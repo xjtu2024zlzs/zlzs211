@@ -1,0 +1,30 @@
+# Tomcat
+server:
+  port: 9210
+
+# Spring
+spring:
+  application:
+    name: ruoyi-project1
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
+      discovery:
+        server-addr: 127.0.0.1:8848
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 127.0.0.1:8848
+        group: DEFAULT_GROUP
+        file-extension: yml
+        username: nacos
+        password: nacos
+  config:
+    file-extension: yml
+    import:
+      - nacos:application-${spring.profiles.active}.${spring.config.file-extension}?group=DEFAULT_GROUP
+      - nacos:${spring.application.name}-${spring.profiles.active}.${spring.config.file-extension}?group=DEFAULT_GROUP
