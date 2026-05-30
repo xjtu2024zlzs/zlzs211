@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.topic5.mapper.T5AlgorithmRunMapper">
+    
+    <resultMap type="T5AlgorithmRun" id="T5AlgorithmRunResult">
+        <result property="runId"    column="run_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="algorithmType"    column="algorithm_type"    />
+        <result property="algorithmName"    column="algorithm_name"    />
+        <result property="modelVersion"    column="model_version"    />
+        <result property="inputData"    column="input_data"    />
+        <result property="outputData"    column="output_data"    />
+        <result property="runStatus"    column="run_status"    />
+        <result property="errorMessage"    column="error_message"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="costTimeMs"    column="cost_time_ms"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectT5AlgorithmRunVo">
+        select run_id, task_id, algorithm_type, algorithm_name, model_version, input_data, output_data, run_status, error_message, start_time, end_time, cost_time_ms, create_by, create_time, update_by, update_time, remark from t5_algorithm_run
+    </sql>
+
+    <select id="selectT5AlgorithmRunList" parameterType="T5AlgorithmRun" resultMap="T5AlgorithmRunResult">
+        <include refid="selectT5AlgorithmRunVo"/>
+        <where>  
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="algorithmType != null  and algorithmType != ''"> and algorithm_type = #{algorithmType}</if>
+            <if test="algorithmName != null  and algorithmName != ''"> and algorithm_name like concat('%', #{algorithmName}, '%')</if>
+            <if test="modelVersion != null  and modelVersion != ''"> and model_version = #{modelVersion}</if>
+            <if test="inputData != null  and inputData != ''"> and input_data = #{inputData}</if>
+            <if test="outputData != null  and outputData != ''"> and output_data = #{outputData}</if>
+            <if test="runStatus != null  and runStatus != ''"> and run_status = #{runStatus}</if>
+            <if test="errorMessage != null  and errorMessage != ''"> and error_message = #{errorMessage}</if>
+            <if test="startTime != null "> and start_time = #{startTime}</if>
+            <if test="endTime != null "> and end_time = #{endTime}</if>
+            <if test="costTimeMs != null "> and cost_time_ms = #{costTimeMs}</if>
+        </where>
+    </select>
+    
+    <select id="selectT5AlgorithmRunByRunId" parameterType="Long" resultMap="T5AlgorithmRunResult">
+        <include refid="selectT5AlgorithmRunVo"/>
+        where run_id = #{runId}
+    </select>
+
+    <insert id="insertT5AlgorithmRun" parameterType="T5AlgorithmRun" useGeneratedKeys="true" keyProperty="runId">
+        insert into t5_algorithm_run
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">task_id,</if>
+            <if test="algorithmType != null">algorithm_type,</if>
+            <if test="algorithmName != null">algorithm_name,</if>
+            <if test="modelVersion != null">model_version,</if>
+            <if test="inputData != null">input_data,</if>
+            <if test="outputData != null">output_data,</if>
+            <if test="runStatus != null">run_status,</if>
+            <if test="errorMessage != null">error_message,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="costTimeMs != null">cost_time_ms,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">#{taskId},</if>
+            <if test="algorithmType != null">#{algorithmType},</if>
+            <if test="algorithmName != null">#{algorithmName},</if>
+            <if test="modelVersion != null">#{modelVersion},</if>
+            <if test="inputData != null">#{inputData},</if>
+            <if test="outputData != null">#{outputData},</if>
+            <if test="runStatus != null">#{runStatus},</if>
+            <if test="errorMessage != null">#{errorMessage},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="costTimeMs != null">#{costTimeMs},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateT5AlgorithmRun" parameterType="T5AlgorithmRun">
+        update t5_algorithm_run
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="algorithmType != null">algorithm_type = #{algorithmType},</if>
+            <if test="algorithmName != null">algorithm_name = #{algorithmName},</if>
+            <if test="modelVersion != null">model_version = #{modelVersion},</if>
+            <if test="inputData != null">input_data = #{inputData},</if>
+            <if test="outputData != null">output_data = #{outputData},</if>
+            <if test="runStatus != null">run_status = #{runStatus},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="costTimeMs != null">cost_time_ms = #{costTimeMs},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where run_id = #{runId}
+    </update>
+
+    <delete id="deleteT5AlgorithmRunByRunId" parameterType="Long">
+        delete from t5_algorithm_run where run_id = #{runId}
+    </delete>
+
+    <delete id="deleteT5AlgorithmRunByRunIds" parameterType="String">
+        delete from t5_algorithm_run where run_id in 
+        <foreach item="runId" collection="array" open="(" separator="," close=")">
+            #{runId}
+        </foreach>
+    </delete>
+</mapper>

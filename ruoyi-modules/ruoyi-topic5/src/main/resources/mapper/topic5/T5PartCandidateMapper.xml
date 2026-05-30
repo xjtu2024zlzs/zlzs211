@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.topic5.mapper.T5PartCandidateMapper">
+    
+    <resultMap type="T5PartCandidate" id="T5PartCandidateResult">
+        <result property="candidateId"    column="candidate_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="runId"    column="run_id"    />
+        <result property="partId"    column="part_id"    />
+        <result property="partNo"    column="part_no"    />
+        <result property="partName"    column="part_name"    />
+        <result property="serialNo"    column="serial_no"    />
+        <result property="batchNo"    column="batch_no"    />
+        <result property="locateMethod"    column="locate_method"    />
+        <result property="matchScore"    column="match_score"    />
+        <result property="confidence"    column="confidence"    />
+        <result property="rankNo"    column="rank_no"    />
+        <result property="isSelected"    column="is_selected"    />
+        <result property="locateReason"    column="locate_reason"    />
+        <result property="relationPath"    column="relation_path"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectT5PartCandidateVo">
+        select candidate_id, task_id, run_id, part_id, part_no, part_name, serial_no, batch_no, locate_method, match_score, confidence, rank_no, is_selected, locate_reason, relation_path, create_by, create_time, update_by, update_time, remark from t5_part_candidate
+    </sql>
+
+    <select id="selectT5PartCandidateList" parameterType="T5PartCandidate" resultMap="T5PartCandidateResult">
+        <include refid="selectT5PartCandidateVo"/>
+        <where>  
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="runId != null "> and run_id = #{runId}</if>
+            <if test="partId != null "> and part_id = #{partId}</if>
+            <if test="partNo != null  and partNo != ''"> and part_no = #{partNo}</if>
+            <if test="partName != null  and partName != ''"> and part_name like concat('%', #{partName}, '%')</if>
+            <if test="serialNo != null  and serialNo != ''"> and serial_no = #{serialNo}</if>
+            <if test="batchNo != null  and batchNo != ''"> and batch_no = #{batchNo}</if>
+            <if test="locateMethod != null  and locateMethod != ''"> and locate_method = #{locateMethod}</if>
+            <if test="matchScore != null "> and match_score = #{matchScore}</if>
+            <if test="confidence != null "> and confidence = #{confidence}</if>
+            <if test="rankNo != null "> and rank_no = #{rankNo}</if>
+            <if test="isSelected != null  and isSelected != ''"> and is_selected = #{isSelected}</if>
+            <if test="locateReason != null  and locateReason != ''"> and locate_reason = #{locateReason}</if>
+            <if test="relationPath != null  and relationPath != ''"> and relation_path = #{relationPath}</if>
+        </where>
+    </select>
+    
+    <select id="selectT5PartCandidateByCandidateId" parameterType="Long" resultMap="T5PartCandidateResult">
+        <include refid="selectT5PartCandidateVo"/>
+        where candidate_id = #{candidateId}
+    </select>
+
+    <insert id="insertT5PartCandidate" parameterType="T5PartCandidate" useGeneratedKeys="true" keyProperty="candidateId">
+        insert into t5_part_candidate
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">task_id,</if>
+            <if test="runId != null">run_id,</if>
+            <if test="partId != null">part_id,</if>
+            <if test="partNo != null">part_no,</if>
+            <if test="partName != null">part_name,</if>
+            <if test="serialNo != null">serial_no,</if>
+            <if test="batchNo != null">batch_no,</if>
+            <if test="locateMethod != null">locate_method,</if>
+            <if test="matchScore != null">match_score,</if>
+            <if test="confidence != null">confidence,</if>
+            <if test="rankNo != null">rank_no,</if>
+            <if test="isSelected != null">is_selected,</if>
+            <if test="locateReason != null">locate_reason,</if>
+            <if test="relationPath != null">relation_path,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">#{taskId},</if>
+            <if test="runId != null">#{runId},</if>
+            <if test="partId != null">#{partId},</if>
+            <if test="partNo != null">#{partNo},</if>
+            <if test="partName != null">#{partName},</if>
+            <if test="serialNo != null">#{serialNo},</if>
+            <if test="batchNo != null">#{batchNo},</if>
+            <if test="locateMethod != null">#{locateMethod},</if>
+            <if test="matchScore != null">#{matchScore},</if>
+            <if test="confidence != null">#{confidence},</if>
+            <if test="rankNo != null">#{rankNo},</if>
+            <if test="isSelected != null">#{isSelected},</if>
+            <if test="locateReason != null">#{locateReason},</if>
+            <if test="relationPath != null">#{relationPath},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateT5PartCandidate" parameterType="T5PartCandidate">
+        update t5_part_candidate
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="runId != null">run_id = #{runId},</if>
+            <if test="partId != null">part_id = #{partId},</if>
+            <if test="partNo != null">part_no = #{partNo},</if>
+            <if test="partName != null">part_name = #{partName},</if>
+            <if test="serialNo != null">serial_no = #{serialNo},</if>
+            <if test="batchNo != null">batch_no = #{batchNo},</if>
+            <if test="locateMethod != null">locate_method = #{locateMethod},</if>
+            <if test="matchScore != null">match_score = #{matchScore},</if>
+            <if test="confidence != null">confidence = #{confidence},</if>
+            <if test="rankNo != null">rank_no = #{rankNo},</if>
+            <if test="isSelected != null">is_selected = #{isSelected},</if>
+            <if test="locateReason != null">locate_reason = #{locateReason},</if>
+            <if test="relationPath != null">relation_path = #{relationPath},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where candidate_id = #{candidateId}
+    </update>
+
+    <delete id="deleteT5PartCandidateByCandidateId" parameterType="Long">
+        delete from t5_part_candidate where candidate_id = #{candidateId}
+    </delete>
+
+    <delete id="deleteT5PartCandidateByCandidateIds" parameterType="String">
+        delete from t5_part_candidate where candidate_id in 
+        <foreach item="candidateId" collection="array" open="(" separator="," close=")">
+            #{candidateId}
+        </foreach>
+    </delete>
+</mapper>

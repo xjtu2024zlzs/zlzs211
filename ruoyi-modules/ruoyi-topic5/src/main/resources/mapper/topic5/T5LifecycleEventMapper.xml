@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.topic5.mapper.T5LifecycleEventMapper">
+    
+    <resultMap type="T5LifecycleEvent" id="T5LifecycleEventResult">
+        <result property="eventId"    column="event_id"    />
+        <result property="partId"    column="part_id"    />
+        <result property="stageCode"    column="stage_code"    />
+        <result property="stageName"    column="stage_name"    />
+        <result property="eventType"    column="event_type"    />
+        <result property="eventName"    column="event_name"    />
+        <result property="eventDesc"    column="event_desc"    />
+        <result property="eventTime"    column="event_time"    />
+        <result property="processNo"    column="process_no"    />
+        <result property="processName"    column="process_name"    />
+        <result property="equipmentNo"    column="equipment_no"    />
+        <result property="operatorName"    column="operator_name"    />
+        <result property="materialBatchNo"    column="material_batch_no"    />
+        <result property="inspectionResult"    column="inspection_result"    />
+        <result property="parameterJson"    column="parameter_json"    />
+        <result property="abnormalFlag"    column="abnormal_flag"    />
+        <result property="qualityScore"    column="quality_score"    />
+        <result property="sourceSystem"    column="source_system"    />
+        <result property="sourceTable"    column="source_table"    />
+        <result property="sourceRecordId"    column="source_record_id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectT5LifecycleEventVo">
+        select event_id, part_id, stage_code, stage_name, event_type, event_name, event_desc, event_time, process_no, process_name, equipment_no, operator_name, material_batch_no, inspection_result, parameter_json, abnormal_flag, quality_score, source_system, source_table, source_record_id, create_by, create_time, update_by, update_time, remark from t5_lifecycle_event
+    </sql>
+
+    <select id="selectT5LifecycleEventList" parameterType="T5LifecycleEvent" resultMap="T5LifecycleEventResult">
+        <include refid="selectT5LifecycleEventVo"/>
+        <where>  
+            <if test="partId != null "> and part_id = #{partId}</if>
+            <if test="stageCode != null  and stageCode != ''"> and stage_code = #{stageCode}</if>
+            <if test="stageName != null  and stageName != ''"> and stage_name like concat('%', #{stageName}, '%')</if>
+            <if test="eventType != null  and eventType != ''"> and event_type = #{eventType}</if>
+            <if test="eventName != null  and eventName != ''"> and event_name like concat('%', #{eventName}, '%')</if>
+            <if test="eventDesc != null  and eventDesc != ''"> and event_desc = #{eventDesc}</if>
+            <if test="eventTime != null "> and event_time = #{eventTime}</if>
+            <if test="processNo != null  and processNo != ''"> and process_no = #{processNo}</if>
+            <if test="processName != null  and processName != ''"> and process_name like concat('%', #{processName}, '%')</if>
+            <if test="equipmentNo != null  and equipmentNo != ''"> and equipment_no = #{equipmentNo}</if>
+            <if test="operatorName != null  and operatorName != ''"> and operator_name like concat('%', #{operatorName}, '%')</if>
+            <if test="materialBatchNo != null  and materialBatchNo != ''"> and material_batch_no = #{materialBatchNo}</if>
+            <if test="inspectionResult != null  and inspectionResult != ''"> and inspection_result = #{inspectionResult}</if>
+            <if test="parameterJson != null  and parameterJson != ''"> and parameter_json = #{parameterJson}</if>
+            <if test="abnormalFlag != null  and abnormalFlag != ''"> and abnormal_flag = #{abnormalFlag}</if>
+            <if test="qualityScore != null "> and quality_score = #{qualityScore}</if>
+            <if test="sourceSystem != null  and sourceSystem != ''"> and source_system = #{sourceSystem}</if>
+            <if test="sourceTable != null  and sourceTable != ''"> and source_table = #{sourceTable}</if>
+            <if test="sourceRecordId != null  and sourceRecordId != ''"> and source_record_id = #{sourceRecordId}</if>
+        </where>
+    </select>
+    
+    <select id="selectT5LifecycleEventByEventId" parameterType="Long" resultMap="T5LifecycleEventResult">
+        <include refid="selectT5LifecycleEventVo"/>
+        where event_id = #{eventId}
+    </select>
+
+    <insert id="insertT5LifecycleEvent" parameterType="T5LifecycleEvent" useGeneratedKeys="true" keyProperty="eventId">
+        insert into t5_lifecycle_event
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="partId != null">part_id,</if>
+            <if test="stageCode != null and stageCode != ''">stage_code,</if>
+            <if test="stageName != null">stage_name,</if>
+            <if test="eventType != null">event_type,</if>
+            <if test="eventName != null">event_name,</if>
+            <if test="eventDesc != null">event_desc,</if>
+            <if test="eventTime != null">event_time,</if>
+            <if test="processNo != null">process_no,</if>
+            <if test="processName != null">process_name,</if>
+            <if test="equipmentNo != null">equipment_no,</if>
+            <if test="operatorName != null">operator_name,</if>
+            <if test="materialBatchNo != null">material_batch_no,</if>
+            <if test="inspectionResult != null">inspection_result,</if>
+            <if test="parameterJson != null">parameter_json,</if>
+            <if test="abnormalFlag != null">abnormal_flag,</if>
+            <if test="qualityScore != null">quality_score,</if>
+            <if test="sourceSystem != null">source_system,</if>
+            <if test="sourceTable != null">source_table,</if>
+            <if test="sourceRecordId != null">source_record_id,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="partId != null">#{partId},</if>
+            <if test="stageCode != null and stageCode != ''">#{stageCode},</if>
+            <if test="stageName != null">#{stageName},</if>
+            <if test="eventType != null">#{eventType},</if>
+            <if test="eventName != null">#{eventName},</if>
+            <if test="eventDesc != null">#{eventDesc},</if>
+            <if test="eventTime != null">#{eventTime},</if>
+            <if test="processNo != null">#{processNo},</if>
+            <if test="processName != null">#{processName},</if>
+            <if test="equipmentNo != null">#{equipmentNo},</if>
+            <if test="operatorName != null">#{operatorName},</if>
+            <if test="materialBatchNo != null">#{materialBatchNo},</if>
+            <if test="inspectionResult != null">#{inspectionResult},</if>
+            <if test="parameterJson != null">#{parameterJson},</if>
+            <if test="abnormalFlag != null">#{abnormalFlag},</if>
+            <if test="qualityScore != null">#{qualityScore},</if>
+            <if test="sourceSystem != null">#{sourceSystem},</if>
+            <if test="sourceTable != null">#{sourceTable},</if>
+            <if test="sourceRecordId != null">#{sourceRecordId},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateT5LifecycleEvent" parameterType="T5LifecycleEvent">
+        update t5_lifecycle_event
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="partId != null">part_id = #{partId},</if>
+            <if test="stageCode != null and stageCode != ''">stage_code = #{stageCode},</if>
+            <if test="stageName != null">stage_name = #{stageName},</if>
+            <if test="eventType != null">event_type = #{eventType},</if>
+            <if test="eventName != null">event_name = #{eventName},</if>
+            <if test="eventDesc != null">event_desc = #{eventDesc},</if>
+            <if test="eventTime != null">event_time = #{eventTime},</if>
+            <if test="processNo != null">process_no = #{processNo},</if>
+            <if test="processName != null">process_name = #{processName},</if>
+            <if test="equipmentNo != null">equipment_no = #{equipmentNo},</if>
+            <if test="operatorName != null">operator_name = #{operatorName},</if>
+            <if test="materialBatchNo != null">material_batch_no = #{materialBatchNo},</if>
+            <if test="inspectionResult != null">inspection_result = #{inspectionResult},</if>
+            <if test="parameterJson != null">parameter_json = #{parameterJson},</if>
+            <if test="abnormalFlag != null">abnormal_flag = #{abnormalFlag},</if>
+            <if test="qualityScore != null">quality_score = #{qualityScore},</if>
+            <if test="sourceSystem != null">source_system = #{sourceSystem},</if>
+            <if test="sourceTable != null">source_table = #{sourceTable},</if>
+            <if test="sourceRecordId != null">source_record_id = #{sourceRecordId},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where event_id = #{eventId}
+    </update>
+
+    <delete id="deleteT5LifecycleEventByEventId" parameterType="Long">
+        delete from t5_lifecycle_event where event_id = #{eventId}
+    </delete>
+
+    <delete id="deleteT5LifecycleEventByEventIds" parameterType="String">
+        delete from t5_lifecycle_event where event_id in 
+        <foreach item="eventId" collection="array" open="(" separator="," close=")">
+            #{eventId}
+        </foreach>
+    </delete>
+</mapper>
