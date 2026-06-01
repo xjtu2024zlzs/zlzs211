@@ -100,12 +100,32 @@ export const constantRoutes = [
     path: '/project_3',
     component: Layout,
     hidden: true,
+    alwaysShow: true,
+    meta: { title: '课题三', icon: 'dashboard' },
     children: [
       {
         path: '',
         component: () => import('@/views/project_3/index.vue'),
         name: 'Project3',
-        meta: { title: '课题三', icon: 'dashboard' }
+        meta: { title: '课题三首页', icon: 'dashboard' }
+      },
+      {
+        path: 'monitor',
+        component: () => import('@/views/project_3/monitor/index.vue'),
+        name: 'Project3Monitor',
+        meta: { title: '生命周期质量统一监测', icon: 'monitor' }
+      },
+      {
+        path: 'feedback/warning',
+        component: () => import('@/views/project_3/feedback/warning.vue'),
+        name: 'Project3FeedbackWarning',
+        meta: { title: '关键工序异常信号预警', icon: 'message' }
+      },
+      {
+        path: 'service/identify',
+        component: () => import('@/views/project_3/service/identify.vue'),
+        name: 'Project3ServiceIdentify',
+        meta: { title: '故障识别与预测', icon: 'skill' }
       }
     ]
   },

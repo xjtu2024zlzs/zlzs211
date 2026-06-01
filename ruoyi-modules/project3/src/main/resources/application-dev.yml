@@ -1,0 +1,28 @@
+mybatis:
+  mapperLocations: classpath*:mapper/**/*.xml
+  typeAliasesPackage: com.ruoyi.project3.domain
+
+python:
+  algorithm:
+    baseUrl: http://localhost:8000
+    keyProcessPath: /api/v1/key-process/identify
+    feature-analysis-path: /python/data-analysis
+    feature-processing-path: /python/feature-analysis
+    predict-path: /algorithm/prevention/analyze
+    warning-path: /algorithm/process-anomaly/execute
+    faultPath: /algorithm/detection/early-fault
+    mock: true
+
+quality:
+  fault-identify:
+    source-root: F:/TotalData
+    export-dir: F:/TotalDataExport/feature_analysis
+    source-file-url-prefix: http://localhost:8088/quality/fault-iden/source-file
+    predict-source-file-url-prefix: http://localhost:8088/quality/fault-iden/predict-source-file
+    warning-source-file-url-prefix: http://localhost:8088/quality/fault-iden/warning-source-file
+    export-file-url-prefix: http://localhost:8088/quality/fault-iden/export-file
+    default-start-time: "2024-01-01 00:00:00"
+    max-package-samples: 500
+
+project3:
+  profile: ${user.dir}/uploadPath

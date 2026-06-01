@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.project3.mapper.FaultIdenSampleMapper">
+
+    <resultMap id="FaultIdenSampleFileMap" type="com.ruoyi.project3.domain.faultiden.FaultIdenSampleFile">
+        <id property="id" column="id"/>
+        <result property="conditionLabel" column="condition_label"/>
+        <result property="bearingCode" column="bearing_code"/>
+        <result property="sampleNo" column="sample_no"/>
+        <result property="fileName" column="file_name"/>
+        <result property="sourceFile" column="source_file"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="dataUsage" column="data_usage"/>
+        <result property="aircraftId" column="aircraft_id"/>
+        <result property="subsystemId" column="subsystem_id"/>
+        <result property="equipmentId" column="equipment_id"/>
+        <result property="componentId" column="component_id"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="inFaultIdenSample" parameterType="com.ruoyi.project3.domain.faultiden.FaultIdenSampleFile" useGeneratedKeys="true" keyProperty="id">
+        insert into fault_iden_sample (
+            condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            aircraft_id, subsystem_id, equipment_id, component_id, create_time
+        ) values (
+            #{conditionLabel}, #{bearingCode}, #{sampleNo}, #{fileName}, #{sourceFile}, #{fileSize}, #{dataUsage},
+            #{aircraftId}, #{subsystemId}, #{equipmentId}, #{componentId}, now()
+        )
+    </insert>
+
+    <select id="seFaultIdenSampleById" resultMap="FaultIdenSampleFileMap">
+        select
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            aircraft_id, subsystem_id, equipment_id, component_id, create_time
+        from fault_iden_sample
+        where id = #{id}
+    </select>
+
+    <select id="selectByUniqueKey" resultMap="FaultIdenSampleFileMap">
+        select
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            aircraft_id, subsystem_id, equipment_id, component_id, create_time
+        from fault_iden_sample
+        where condition_label = #{conditionLabel}
+          and bearing_code = #{bearingCode}
+          and file_name = #{fileName}
+        <if test="dataUsage != null and dataUsage != ''">
+          and data_usage = #{dataUsage}
+        </if>
+        limit 1
+    </select>
+
+    <select id="selectConditions" resultType="java.util.HashMap">
+        select
+            condition_label as conditionLabel,
+            count(distinct bearing_code) as bearingCount,
+            count(1) as sampleCount
+        from fault_iden_sample
+        group by condition_label
+        order by condition_label
+    </select>
+
+    <select id="selectBearingsByConditionLabel" resultType="java.util.HashMap">
+        select
+            bearing_code as bearingCode,
+            count(1) as sampleCount,
+            min(sample_no) as minSampleNo,
+            max(sample_no) as maxSampleNo
+        from fault_iden_sample
+        where condition_label = #{conditionLabel}
+        group by bearing_code
+        order by bearing_code
+    </select>
+
+    <select id="selectSamplesByConditionAndBearing" resultMap="FaultIdenSampleFileMap">
+        select
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            aircraft_id, subsystem_id, equipment_id, component_id, create_time
+        from fault_iden_sample
+        where condition_label = #{conditionLabel}
+          and bearing_code = #{bearingCode}
+        <if test="dataUsage != null and dataUsage != ''">
+          and data_usage = #{dataUsage}
+        </if>
+        <if test="uploadBatchId != null and uploadBatchId != ''">
+          and source_file like concat('%', #{uploadBatchId}, '%')
+        </if>
+        <if test="keyword != null and keyword != ''">
+          and file_name like concat('%', #{keyword}, '%')
+        </if>
+        order by sample_no
+        <if test="pageSize != null and pageSize > 0">
+            limit #{pageSize}
+            <if test="offset != null and offset >= 0">
+                offset #{offset}
+            </if>
+        </if>
+    </select>
+
+    <select id="selectSamplesByIds" resultMap="FaultIdenSampleFileMap">
+        select
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            aircraft_id, subsystem_id, equipment_id, component_id, create_time
+        from fault_iden_sample
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        <if test="dataUsage != null and dataUsage != ''">
+          and data_usage = #{dataUsage}
+        </if>
+        order by condition_label, bearing_code, sample_no
+    </select>
+
+    <select id="selectAllSamples" resultMap="FaultIdenSampleFileMap">
+        select
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            aircraft_id, subsystem_id, equipment_id, component_id, create_time
+        from fault_iden_sample
+        where 1 = 1
+        <if test="dataUsage != null and dataUsage != ''">
+          and data_usage = #{dataUsage}
+        </if>
+        <if test="uploadBatchId != null and uploadBatchId != ''">
+          and source_file like concat('%', #{uploadBatchId}, '%')
+        </if>
+        <if test="keyword != null and keyword != ''">
+          and (
+            file_name like concat('%', #{keyword}, '%')
+            or source_file like concat('%', #{keyword}, '%')
+            or condition_label like concat('%', #{keyword}, '%')
+            or bearing_code like concat('%', #{keyword}, '%')
+          )
+        </if>
+        order by create_time desc, id desc
+        <if test="pageSize != null and pageSize > 0">
+            limit #{pageSize}
+            <if test="offset != null and offset >= 0">
+                offset #{offset}
+            </if>
+        </if>
+    </select>
+
+    <select id="countAllSamples" resultType="java.lang.Long">
+        select count(1)
+        from fault_iden_sample
+        where 1 = 1
+        <if test="dataUsage != null and dataUsage != ''">
+          and data_usage = #{dataUsage}
+        </if>
+        <if test="uploadBatchId != null and uploadBatchId != ''">
+          and source_file like concat('%', #{uploadBatchId}, '%')
+        </if>
+        <if test="keyword != null and keyword != ''">
+          and (
+            file_name like concat('%', #{keyword}, '%')
+            or source_file like concat('%', #{keyword}, '%')
+            or condition_label like concat('%', #{keyword}, '%')
+            or bearing_code like concat('%', #{keyword}, '%')
+          )
+        </if>
+    </select>
+
+    <delete id="deleteSampleById">
+        delete from fault_iden_sample
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteSamplesByIds">
+        delete from fault_iden_sample
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="countSamplesByConditionAndBearing" resultType="java.lang.Long">
+        select count(1)
+        from fault_iden_sample
+        where condition_label = #{conditionLabel}
+          and bearing_code = #{bearingCode}
+        <if test="dataUsage != null and dataUsage != ''">
+          and data_usage = #{dataUsage}
+        </if>
+        <if test="uploadBatchId != null and uploadBatchId != ''">
+          and source_file like concat('%', #{uploadBatchId}, '%')
+        </if>
+        <if test="keyword != null and keyword != ''">
+          and file_name like concat('%', #{keyword}, '%')
+        </if>
+    </select>
+
+    <sql id="ObjectSampleWhere">
+        <if test="aircraftId != null and aircraftId != ''">
+          and aircraft_id = #{aircraftId}
+        </if>
+        <if test="subsystemId != null and subsystemId != ''">
+          and subsystem_id = #{subsystemId}
+        </if>
+        <if test="equipmentId != null and equipmentId != ''">
+          and equipment_id = #{equipmentId}
+        </if>
+        <if test="componentId != null and componentId != ''">
+          and component_id = #{componentId}
+        </if>
+        <if test="dataUsage != null and dataUsage != ''">
+          and data_usage = #{dataUsage}
+        </if>
+        <if test="uploadBatchId != null and uploadBatchId != ''">
+          and source_file like concat('%', #{uploadBatchId}, '%')
+        </if>
+        <choose>
+            <when test="targetLevel == 'aircraft'">
+              and (subsystem_id is null or subsystem_id = '')
+              and (equipment_id is null or equipment_id = '')
+              and (component_id is null or component_id = '')
+            </when>
+            <when test="targetLevel == 'subsystem'">
+              and (equipment_id is null or equipment_id = '')
+              and (component_id is null or component_id = '')
+            </when>
+            <when test="targetLevel == 'equipment'">
+              and (component_id is null or component_id = '')
+            </when>
+            <when test="targetLevel == 'part'">
+              and bearing_code = #{targetId}
+            </when>
+        </choose>
+        <if test="keyword != null and keyword != ''">
+          and file_name like concat('%', #{keyword}, '%')
+        </if>
+    </sql>
+
+    <select id="selectSamplesByObject" resultMap="FaultIdenSampleFileMap">
+        select
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            aircraft_id, subsystem_id, equipment_id, component_id, create_time
+        from fault_iden_sample
+        where condition_label = concat('object_', #{targetLevel})
+        <include refid="ObjectSampleWhere"/>
+        order by sample_no, file_name
+        <if test="pageSize != null and pageSize > 0">
+            limit #{pageSize}
+            <if test="offset != null and offset >= 0">
+                offset #{offset}
+            </if>
+        </if>
+    </select>
+
+    <select id="countSamplesByObject" resultType="java.lang.Long">
+        select count(1)
+        from fault_iden_sample
+        where condition_label = concat('object_', #{targetLevel})
+        <include refid="ObjectSampleWhere"/>
+    </select>
+
+    <select id="countByConditionBearingSampleNo" resultType="java.lang.Long">
+        select count(1)
+        from fault_iden_sample
+        where condition_label = #{conditionLabel}
+          and bearing_code = #{bearingCode}
+          and sample_no = #{sampleNo}
+        <if test="dataUsage != null and dataUsage != ''">
+          and data_usage = #{dataUsage}
+        </if>
+    </select>
+</mapper>

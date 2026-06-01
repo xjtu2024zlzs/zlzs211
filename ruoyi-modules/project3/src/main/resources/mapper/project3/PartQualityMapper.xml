@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.project3.mapper.PartQualityMapper">
+
+    <select id="countDesignById" resultType="int">
+        select count(1)
+        from design_quality
+        where design_quality_id = #{id}
+    </select>
+
+    <select id="countManufacturingById" resultType="int">
+        select count(1)
+        from manufacturing_quality
+        where manufacturing_quality_id = #{id}
+    </select>
+
+    <select id="countServiceById" resultType="int">
+        select count(1)
+        from service_quality
+        where service_quality_id = #{id}
+    </select>
+
+    <select id="countPartTemplateById" resultType="int">
+        select count(1)
+        from part_templates
+        where part_template_id = #{id}
+    </select>
+
+    <select id="countPartInstanceById" resultType="int">
+        select count(1)
+        from part_instances
+        where part_instance_id = #{id}
+    </select>
+
+    <select id="countEquipmentById" resultType="int">
+        select count(1)
+        from equipments
+        where equipment_id = #{id}
+    </select>
+
+    <select id="countComponentById" resultType="int">
+        select count(1)
+        from components
+        where component_id = #{id}
+    </select>
+
+    <insert id="upsertDesign" parameterType="com.ruoyi.project3.domain.partquality.DesignQuality">
+        insert into design_quality (
+            design_quality_id,
+            part_template_id,
+            design_version,
+            drawing_version,
+            design_requirements,
+            functional_requirements,
+            tolerance_requirements,
+            key_quality_characteristics,
+            design_review_result,
+            verification_result,
+            create_time
+        ) values (
+            #{designQualityId},
+            #{partTemplateId},
+            #{designVersion},
+            #{drawingVersion},
+            #{designRequirements},
+            #{functionalRequirements},
+            #{toleranceRequirements},
+            #{keyQualityCharacteristics},
+            #{designReviewResult},
+            #{verificationResult},
+            now()
+        )
+        on duplicate key update
+            part_template_id = values(part_template_id),
+            design_version = values(design_version),
+            drawing_version = values(drawing_version),
+            design_requirements = values(design_requirements),
+            functional_requirements = values(functional_requirements),
+            tolerance_requirements = values(tolerance_requirements),
+            key_quality_characteristics = values(key_quality_characteristics),
+            design_review_result = values(design_review_result),
+            verification_result = values(verification_result)
+    </insert>
+
+    <insert id="upsertManufacturing" parameterType="com.ruoyi.project3.domain.partquality.ManufacturingQuality">
+        insert into manufacturing_quality (
+            manufacturing_quality_id,
+            part_instance_id,
+            production_order_id,
+            workshop_id,
+            production_line_id,
+            start_time,
+            end_time,
+            process_status,
+            final_inspection_result,
+            defect_count,
+            rework_count,
+            create_time
+        ) values (
+            #{manufacturingQualityId},
+            #{partInstanceId},
+            #{productionOrderId},
+            #{workshopId},
+            #{productionLineId},
+            #{startTime},
+            #{endTime},
+            #{processStatus},
+            #{finalInspectionResult},
+            #{defectCount},
+            #{reworkCount},
+            now()
+        )
+        on duplicate key update
+            part_instance_id = values(part_instance_id),
+            production_order_id = values(production_order_id),
+            workshop_id = values(workshop_id),
+            production_line_id = values(production_line_id),
+            start_time = values(start_time),
+            end_time = values(end_time),
+            process_status = values(process_status),
+            final_inspection_result = values(final_inspection_result),
+            defect_count = values(defect_count),
+            rework_count = values(rework_count)
+    </insert>
+
+    <insert id="upsertService" parameterType="com.ruoyi.project3.domain.partquality.ServiceQuality">
+        insert into service_quality (
+            service_quality_id,
+            equipment_id,
+            component_id,
+            installed_aircraft_id,
+            installation_position,
+            installation_date,
+            service_status,
+            total_running_hours,
+            cycle_count,
+            health_score,
+            last_inspection_date,
+            next_inspection_date,
+            update_time
+        ) values (
+            #{serviceQualityId},
+            #{equipmentId},
+            #{componentId},
+            #{installedAircraftId},
+            #{installationPosition},
+            #{installationDate},
+            #{serviceStatus},
+            #{totalRunningHours},
+            #{cycleCount},
+            #{healthScore},
+            #{lastInspectionDate},
+            #{nextInspectionDate},
+            now()
+        )
+        on duplicate key update
+            equipment_id = values(equipment_id),
+            component_id = values(component_id),
+            installed_aircraft_id = values(installed_aircraft_id),
+            installation_position = values(installation_position),
+            installation_date = values(installation_date),
+            service_status = values(service_status),
+            total_running_hours = values(total_running_hours),
+            cycle_count = values(cycle_count),
+            health_score = values(health_score),
+            last_inspection_date = values(last_inspection_date),
+            next_inspection_date = values(next_inspection_date),
+            update_time = now()
+    </insert>
+</mapper>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.project3.mapper.HomeMapper">
+
+    <select id="cnt_aircraft" resultType="java.lang.Long">
+        select count(1)
+        from aircraft
+    </select>
+
+    <select id="cnt_subsys" resultType="java.lang.Long">
+        select count(1)
+        from subsystems
+    </select>
+
+    <select id="cnt_equip" resultType="java.lang.Long">
+        select count(1)
+        from equipments
+    </select>
+
+    <select id="cnt_comp" resultType="java.lang.Long">
+        select count(1)
+        from components
+    </select>
+
+    <select id="cnt_part" resultType="java.lang.Long">
+        select count(1)
+        from part_instances
+    </select>
+
+</mapper>
+

@@ -1,100 +1,153 @@
 <template>
-  <div class="project-page">
-    <div class="project-page__header">
-      <div>
-        <p class="project-eyebrow">专题入口</p>
-        <h1 class="project-title">课题三</h1>
-        <p class="project-summary">课题三对应的独立页面，用于承接首页快捷入口跳转。</p>
-      </div>
-    </div>
-    <el-card class="project-card" shadow="hover">
-      <div class="project-content">
-        <div class="stat-box">
-          <span class="stat-label">当前状态</span>
-          <span class="stat-value">预警关注</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">重点数据</span>
-          <span class="stat-value">74 条</span>
-        </div>
+  <div class="app-container quality-page">
+    <el-card shadow="never" class="quality-hero">
+      <template #header>
+        <span class="quality-title">生命周期质量监管与故障预防系统</span>
+      </template>
+
+      <div class="quality-desc">
+        面向设计、制造、服役全过程的质量数据管理、异常监管、故障识别预测和周期性巡检。
       </div>
     </el-card>
+
+    <el-row :gutter="16" class="quality-mb16">
+      <el-col :span="4">
+        <el-card shadow="never">
+          <div class="quality-stat-value">{{ displayValue(summary.aircraft_count) }}</div>
+          <div class="quality-stat-label">飞机数量</div>
+        </el-card>
+      </el-col>
+      <el-col :span="5">
+        <el-card shadow="never">
+          <div class="quality-stat-value">{{ displayValue(summary.subsystem_count) }}</div>
+          <div class="quality-stat-label">分系统数量</div>
+        </el-card>
+      </el-col>
+      <el-col :span="5">
+        <el-card shadow="never">
+          <div class="quality-stat-value">{{ displayValue(summary.device_count) }}</div>
+          <div class="quality-stat-label">设备数量</div>
+        </el-card>
+      </el-col>
+      <el-col :span="5">
+        <el-card shadow="never">
+          <div class="quality-stat-value">{{ displayValue(summary.component_count) }}</div>
+          <div class="quality-stat-label">组件数量</div>
+        </el-card>
+      </el-col>
+      <el-col :span="5">
+        <el-card shadow="never">
+          <div class="quality-stat-value">{{ displayValue(summary.part_count) }}</div>
+          <div class="quality-stat-label">零件数量</div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="16">
+      <el-col :span="8">
+        <el-card shadow="hover" class="module-card" @click="go('/project_3/monitor')">
+          <div class="module-title">生命周期质量统一监测</div>
+          <div class="module-desc">
+            进入模块级联管理、零件/组件信息管理、数据导入、数据预处理、关键质量特性挖掘页面。
+          </div>
+          <el-button type="primary" link>进入模块</el-button>
+        </el-card>
+      </el-col>
+
+      <el-col :span="8">
+        <el-card shadow="hover" class="module-card" @click="go('/project_3/feedback/warning')">
+          <div class="module-title">全域制造过程反馈监管</div>
+          <div class="module-desc">
+            进入关键工序异常信号预警、设备异常预警、制造过程预防性检测页面。
+          </div>
+          <el-button type="primary" link>进入模块</el-button>
+        </el-card>
+      </el-col>
+
+      <el-col :span="8">
+        <el-card shadow="hover" class="module-card" @click="go('/project_3/service/identify')">
+          <div class="module-title">服役性能周期故障预防</div>
+          <div class="module-desc">
+            进入故障识别、故障预防、健康基准建立和周期性巡检页面。
+          </div>
+          <el-button type="primary" link>进入模块</el-button>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+import '@/views/project_3/common.css'
+import { reactive, onMounted } from 'vue'
+import { getHomeOverview } from '@/api/project_3/home'
+
+defineOptions({
+  name: 'Home'
+})
+
+const router = useRouter()
+
+const summary = reactive({
+  aircraft_count: null,
+  subsystem_count: null,
+  device_count: null,
+  component_count: null,
+  part_count: null
+})
+
+onMounted(() => {
+  getOverview()
+})
+
+function go(path) {
+  router.push(path)
+}
+
+function displayValue(value) {
+  return value === null || value === undefined ? '暂无数据' : value
+}
+
+function getOverview() {
+  getHomeOverview().then(res => {
+    const data = res.data || {}
+    const overview = data.summary || {}
+
+    summary.aircraft_count = overview.aircraft_count
+    summary.subsystem_count = overview.subsystem_count
+    summary.device_count = overview.device_count
+    summary.component_count = overview.component_count
+    summary.part_count = overview.part_count
+  }).catch(() => {
+    summary.aircraft_count = null
+    summary.subsystem_count = null
+    summary.device_count = null
+    summary.component_count = null
+    summary.part_count = null
+  })
+}
+
+
 </script>
 
-<style scoped lang="scss">
-.project-page {
-  min-height: calc(100vh - 24px);
-  padding: 16px;
-  box-sizing: border-box;
-  background: linear-gradient(180deg, #fff9f4 0%, #f7e9e0 100%);
+<style scoped>
+.module-card {
+  min-height: 210px;
+  cursor: pointer;
+  border-radius: 10px;
 }
 
-.project-page__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding: 18px 20px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.78);
-  border: 1px solid rgba(201, 157, 133, 0.36);
-}
-
-.project-eyebrow {
-  margin: 0 0 6px;
-  color: #d56c31;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.project-title {
-  margin: 0;
-  color: #702f1d;
-  font-size: 28px;
-}
-
-.project-summary {
-  margin: 8px 0 0;
-  color: #8c5d4d;
-  line-height: 1.5;
-}
-
-.project-card {
-  border-radius: 20px;
-  border: 1px solid rgba(211, 152, 126, 0.32);
-  background: rgba(255,255,255,0.84);
-}
-
-.project-content {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.stat-box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: #fffaf7;
-  border: 1px solid rgba(211, 152, 126, 0.22);
-}
-
-.stat-label {
-  color: #a77a67;
-  font-size: 12px;
-}
-
-.stat-value {
-  color: #5f2f20;
-  font-size: 16px;
+.module-title {
+  font-size: 18px;
   font-weight: 700;
+  margin-bottom: 12px;
+  color: #1f2d3d;
+}
+
+.module-desc {
+  min-height: 104px;
+  color: #607081;
+  line-height: 1.8;
 }
 </style>

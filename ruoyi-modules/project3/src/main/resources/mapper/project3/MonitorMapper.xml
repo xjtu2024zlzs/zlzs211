@@ -1,0 +1,1019 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.project3.mapper.MonitorMapper">
+
+    <select id="sel_all_nodes" resultType="java.util.HashMap">
+        select
+            concat('aircraft:', a.aircraft_id) as id,
+            null as parent_id,
+            a.aircraft_name as name,
+            'aircraft' as node_type,
+            1 as level,
+            false as terminal,
+            (
+                select count(1)
+
+
+                from subsystems s
+                where s.aircraft_id = a.aircraft_id
+            ) as child_count,
+            (
+                select count(1)
+                from subsystems s
+                         inner join equipments e on e.subsystem_id = s.subsystem_id
+                         inner join components c on c.equipment_id = e.equipment_id
+                         inner join part_templates pt on pt.component_id = c.component_id
+                         inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                where s.aircraft_id = a.aircraft_id
+            ) as part_count
+        from aircraft a
+
+
+
+        union all
+
+        select
+            concat('subsystem:', s.subsystem_id) as id,
+            concat('aircraft:', s.aircraft_id) as parent_id,
+
+            s.subsystem_name as name,
+            'subsystem' as node_type,
+            2 as level,
+            false as terminal,
+            (
+                select count(1)
+
+                from equipments e
+
+                where e.subsystem_id = s.subsystem_id
+            ) as child_count,
+
+            (
+                select count(1)
+                from equipments e
+                         inner join components c on c.equipment_id = e.equipment_id
+                         inner join part_templates pt on pt.component_id = c.component_id
+                         inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                where e.subsystem_id = s.subsystem_id
+            ) as part_count
+        from subsystems s
+
+        union all
+
+        select
+            concat('equipment:', e.equipment_id) as id,
+            concat('subsystem:', e.subsystem_id) as parent_id,
+            e.equipment_name as name,
+            'equipment' as node_type,
+            3 as level,
+            false as terminal,
+            (
+                select count(1)
+                from components c
+
+                where c.equipment_id = e.equipment_id
+            ) as child_count,
+
+            (
+
+                select count(1)
+                from components c
+                         inner join part_templates pt on pt.component_id = c.component_id
+                         inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                where c.equipment_id = e.equipment_id
+            ) as part_count
+        from equipments e
+
+        union all
+
+        select
+            concat('component:', c.component_id) as id,
+            concat('equipment:', c.equipment_id) as parent_id,
+            c.component_name as name,
+            'component' as node_type,
+            4 as level,
+            false as terminal,
+            (
+                select count(1)
+                from part_templates pt
+
+                where pt.component_id = c.component_id
+            ) as child_count,
+            (
+                select count(1)
+                from part_templates pt
+                         inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                where pt.component_id = c.component_id
+            ) as part_count
+        from components c
+
+        union all
+
+
+
+        select
+            concat('part_template:', pt.part_template_id) as id,
+            concat('component:', pt.component_id) as parent_id,
+            pt.part_name as name,
+            'part_template' as node_type,
+            5 as level,
+            true as terminal,
+            0 as child_count,
+            (
+                select count(1)
+                from part_instances pi
+                where pi.part_template_id = pt.part_template_id
+            ) as part_count
+        from part_templates pt
+    </select>
+
+
+    <select id="sel_node_by_id" resultType="java.util.HashMap">
+        select *
+        from (
+                 select
+                     concat('aircraft:', a.aircraft_id) as id,
+                     null as parent_id,
+                     a.aircraft_name as name,
+                     'aircraft' as node_type,
+                     1 as level,
+                     false as terminal,
+                     (
+                         select count(1)
+                         from subsystems s
+                         where s.aircraft_id = a.aircraft_id
+                     ) as child_count,
+                     (
+                         select count(1)
+                         from subsystems s
+                                  inner join equipments e on e.subsystem_id = s.subsystem_id
+                                  inner join components c on c.equipment_id = e.equipment_id
+                                  inner join part_templates pt on pt.component_id = c.component_id
+                                  inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                         where s.aircraft_id = a.aircraft_id
+                     ) as part_count
+                 from aircraft a
+
+                 union all
+
+                 select
+                     concat('subsystem:', s.subsystem_id) as id,
+                     concat('aircraft:', s.aircraft_id) as parent_id,
+                     s.subsystem_name as name,
+                     'subsystem' as node_type,
+                     2 as level,
+
+                     false as terminal,
+                     (
+                         select count(1)
+                         from equipments e
+
+                         where e.subsystem_id = s.subsystem_id
+                     ) as child_count,
+                     (
+                         select count(1)
+                         from equipments e
+                                  inner join components c on c.equipment_id = e.equipment_id
+                                  inner join part_templates pt on pt.component_id = c.component_id
+                                  inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                         where e.subsystem_id = s.subsystem_id
+                     ) as part_count
+                 from subsystems s
+
+                 union all
+
+                 select
+                     concat('equipment:', e.equipment_id) as id,
+                     concat('subsystem:', e.subsystem_id) as parent_id,
+
+                     e.equipment_name as name,
+                     'equipment' as node_type,
+                     3 as level,
+
+                     false as terminal,
+                     (
+                         select count(1)
+                         from components c
+
+
+                         where c.equipment_id = e.equipment_id
+                     ) as child_count,
+                     (
+                         select count(1)
+                         from components c
+                                  inner join part_templates pt on pt.component_id = c.component_id
+                                  inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                         where c.equipment_id = e.equipment_id
+                     ) as part_count
+                 from equipments e
+
+                 union all
+
+                 select
+                     concat('component:', c.component_id) as id,
+                     concat('equipment:', c.equipment_id) as parent_id,
+                     c.component_name as name,
+                     'component' as node_type,
+                     4 as level,
+
+                     false as terminal,
+                     (
+                         select count(1)
+                         from part_templates pt
+                         where pt.component_id = c.component_id
+                     ) as child_count,
+                     (
+
+                         select count(1)
+                         from part_templates pt
+
+                                  inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                         where pt.component_id = c.component_id
+                     ) as part_count
+                 from components c
+
+
+
+                 union all
+
+                 select
+                     concat('part_template:', pt.part_template_id) as id,
+                     concat('component:', pt.component_id) as parent_id,
+                     pt.part_name as name,
+                     'part_template' as node_type,
+                     5 as level,
+                     true as terminal,
+                     0 as child_count,
+                     (
+                         select count(1)
+                         from part_instances pi
+                         where pi.part_template_id = pt.part_template_id
+
+                     ) as part_count
+                 from part_templates pt
+             ) t
+        where t.id = #{node_id}
+    </select>
+
+
+    <select id="sel_child_nodes" resultType="java.util.HashMap">
+        select *
+        from (
+                 select
+                     concat('subsystem:', s.subsystem_id) as id,
+                     concat('aircraft:', s.aircraft_id) as parent_id,
+                     s.subsystem_name as name,
+                     'subsystem' as node_type,
+                     2 as level,
+
+                     false as terminal,
+                     (
+                         select count(1)
+
+                         from equipments e
+                         where e.subsystem_id = s.subsystem_id
+                     ) as child_count,
+                     (
+                         select count(1)
+                         from equipments e
+                                  inner join components c on c.equipment_id = e.equipment_id
+                                  inner join part_templates pt on pt.component_id = c.component_id
+                                  inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                         where e.subsystem_id = s.subsystem_id
+                     ) as part_count
+                 from subsystems s
+
+                 union all
+
+                 select
+                     concat('equipment:', e.equipment_id) as id,
+
+                     concat('subsystem:', e.subsystem_id) as parent_id,
+                     e.equipment_name as name,
+                     'equipment' as node_type,
+                     3 as level,
+                     false as terminal,
+                     (
+                         select count(1)
+                         from components c
+                         where c.equipment_id = e.equipment_id
+                     ) as child_count,
+                     (
+                         select count(1)
+                         from components c
+                                  inner join part_templates pt on pt.component_id = c.component_id
+                                  inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                         where c.equipment_id = e.equipment_id
+                     ) as part_count
+
+                 from equipments e
+
+                 union all
+
+                 select
+                     concat('component:', c.component_id) as id,
+
+                     concat('equipment:', c.equipment_id) as parent_id,
+                     c.component_name as name,
+                     'component' as node_type,
+                     4 as level,
+                     false as terminal,
+                     (
+                         select count(1)
+                         from part_templates pt
+                         where pt.component_id = c.component_id
+                     ) as child_count,
+                     (
+                         select count(1)
+
+
+                         from part_templates pt
+                                  inner join part_instances pi on pi.part_template_id = pt.part_template_id
+                         where pt.component_id = c.component_id
+                     ) as part_count
+                 from components c
+
+                 union all
+
+                 select
+                     concat('part_template:', pt.part_template_id) as id,
+
+                     concat('component:', pt.component_id) as parent_id,
+                     pt.part_name as name,
+                     'part_template' as node_type,
+                     5 as level,
+                     true as terminal,
+                     0 as child_count,
+
+                     (
+                         select count(1)
+                         from part_instances pi
+                         where pi.part_template_id = pt.part_template_id
+                     ) as part_count
+                 from part_templates pt
+             ) t
+        where t.parent_id = #{node_id}
+        order by t.level, t.name
+    </select>
+
+
+    <select id="sel_bread_nodes" resultType="java.util.HashMap">
+        select
+            concat('aircraft:', a.aircraft_id) as id,
+            null as parent_id,
+            a.aircraft_name as name,
+            'aircraft' as node_type,
+            1 as level
+
+        from aircraft a
+        where concat('aircraft:', a.aircraft_id) = #{node_id}
+
+        union all
+
+        select
+            concat('aircraft:', a.aircraft_id) as id,
+            null as parent_id,
+            a.aircraft_name as name,
+            'aircraft' as node_type,
+            1 as level
+
+        from subsystems s
+                 inner join aircraft a on a.aircraft_id = s.aircraft_id
+        where concat('subsystem:', s.subsystem_id) = #{node_id}
+
+        union all
+
+        select
+            concat('subsystem:', s.subsystem_id) as id,
+            concat('aircraft:', s.aircraft_id) as parent_id,
+            s.subsystem_name as name,
+            'subsystem' as node_type,
+            2 as level
+
+        from subsystems s
+        where concat('subsystem:', s.subsystem_id) = #{node_id}
+
+
+        union all
+
+        select
+            concat('aircraft:', a.aircraft_id) as id,
+            null as parent_id,
+            a.aircraft_name as name,
+            'aircraft' as node_type,
+            1 as level
+
+        from equipments e
+                 inner join subsystems s on s.subsystem_id = e.subsystem_id
+                 inner join aircraft a on a.aircraft_id = s.aircraft_id
+        where concat('equipment:', e.equipment_id) = #{node_id}
+
+        union all
+
+
+        select
+            concat('subsystem:', s.subsystem_id) as id,
+            concat('aircraft:', s.aircraft_id) as parent_id,
+            s.subsystem_name as name,
+            'subsystem' as node_type,
+            2 as level
+
+        from equipments e
+                 inner join subsystems s on s.subsystem_id = e.subsystem_id
+        where concat('equipment:', e.equipment_id) = #{node_id}
+
+        union all
+
+        select
+            concat('equipment:', e.equipment_id) as id,
+            concat('subsystem:', e.subsystem_id) as parent_id,
+            e.equipment_name as name,
+            'equipment' as node_type,
+            3 as level
+
+        from equipments e
+        where concat('equipment:', e.equipment_id) = #{node_id}
+
+        union all
+
+        select
+            concat('aircraft:', a.aircraft_id) as id,
+            null as parent_id,
+            a.aircraft_name as name,
+            'aircraft' as node_type,
+            1 as level
+
+        from components c
+                 inner join equipments e on e.equipment_id = c.equipment_id
+                 inner join subsystems s on s.subsystem_id = e.subsystem_id
+                 inner join aircraft a on a.aircraft_id = s.aircraft_id
+        where concat('component:', c.component_id) = #{node_id}
+
+        union all
+
+        select
+            concat('subsystem:', s.subsystem_id) as id,
+            concat('aircraft:', s.aircraft_id) as parent_id,
+            s.subsystem_name as name,
+            'subsystem' as node_type,
+            2 as level
+
+        from components c
+                 inner join equipments e on e.equipment_id = c.equipment_id
+                 inner join subsystems s on s.subsystem_id = e.subsystem_id
+        where concat('component:', c.component_id) = #{node_id}
+
+        union all
+
+        select
+            concat('equipment:', e.equipment_id) as id,
+            concat('subsystem:', e.subsystem_id) as parent_id,
+            e.equipment_name as name,
+            'equipment' as node_type,
+            3 as level
+
+        from components c
+                 inner join equipments e on e.equipment_id = c.equipment_id
+        where concat('component:', c.component_id) = #{node_id}
+
+        union all
+
+        select
+            concat('component:', c.component_id) as id,
+            concat('equipment:', c.equipment_id) as parent_id,
+            c.component_name as name,
+            'component' as node_type,
+            4 as level
+
+        from components c
+        where concat('component:', c.component_id) = #{node_id}
+
+        union all
+
+        select
+            concat('aircraft:', a.aircraft_id) as id,
+            null as parent_id,
+            a.aircraft_name as name,
+            'aircraft' as node_type,
+            1 as level
+
+        from part_templates pt
+                 inner join components c on c.component_id = pt.component_id
+                 inner join equipments e on e.equipment_id = c.equipment_id
+                 inner join subsystems s on s.subsystem_id = e.subsystem_id
+                 inner join aircraft a on a.aircraft_id = s.aircraft_id
+        where concat('part_template:', pt.part_template_id) = #{node_id}
+
+        union all
+
+        select
+            concat('subsystem:', s.subsystem_id) as id,
+            concat('aircraft:', s.aircraft_id) as parent_id,
+
+            s.subsystem_name as name,
+            'subsystem' as node_type,
+            2 as level
+
+        from part_templates pt
+                 inner join components c on c.component_id = pt.component_id
+                 inner join equipments e on e.equipment_id = c.equipment_id
+                 inner join subsystems s on s.subsystem_id = e.subsystem_id
+        where concat('part_template:', pt.part_template_id) = #{node_id}
+
+        union all
+
+        select
+            concat('equipment:', e.equipment_id) as id,
+            concat('subsystem:', e.subsystem_id) as parent_id,
+
+            e.equipment_name as name,
+            'equipment' as node_type,
+            3 as level
+
+        from part_templates pt
+                 inner join components c on c.component_id = pt.component_id
+                 inner join equipments e on e.equipment_id = c.equipment_id
+        where concat('part_template:', pt.part_template_id) = #{node_id}
+
+        union all
+
+        select
+            concat('component:', c.component_id) as id,
+            concat('equipment:', c.equipment_id) as parent_id,
+            c.component_name as name,
+            'component' as node_type,
+            4 as level
+
+        from part_templates pt
+                 inner join components c on c.component_id = pt.component_id
+        where concat('part_template:', pt.part_template_id) = #{node_id}
+
+
+        union all
+
+        select
+            concat('part_template:', pt.part_template_id) as id,
+
+            concat('component:', pt.component_id) as parent_id,
+            pt.part_name as name,
+            'part_template' as node_type,
+            5 as level
+
+        from part_templates pt
+        where concat('part_template:', pt.part_template_id) = #{node_id}
+
+        order by level
+    </select>
+
+    <select id="cnt_child_nodes" resultType="java.lang.Long">
+        select count(1)
+        from (
+                 select concat('aircraft:', aircraft_id) as parent_id
+                 from subsystems
+
+                 union all
+
+                 select concat('subsystem:', subsystem_id) as parent_id
+                 from equipments
+
+                 union all
+
+                 select concat('equipment:', equipment_id) as parent_id
+                 from components
+
+                 union all
+
+                 select concat('component:', component_id) as parent_id
+                 from part_templates
+             ) t
+        where t.parent_id = #{node_id}
+    </select>
+
+    <select id="cnt_part_by_node" resultType="java.lang.Long">
+        select count(1)
+        from part_instances pi
+        inner join part_templates pt on pt.part_template_id = pi.part_template_id
+        where 1 = 1
+        <choose>
+            <when test="node_id != null and node_id.startsWith('component:')">
+                and concat('component:', pt.component_id) = #{node_id}
+            </when>
+            <when test="node_id != null and node_id.startsWith('part_template:')">
+                and concat('part_template:', pt.part_template_id) = #{node_id}
+            </when>
+            <otherwise>
+                and 1 = 0
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="sel_part_list" resultType="java.util.HashMap">
+        <bind name="offset" value="(page_num - 1) * page_size"/>
+
+        select
+        pi.part_instance_id as part_id,
+        pi.part_instance_id as part_instance_id,
+        pt.part_template_id as part_template_id,
+        pt.part_number as part_code,
+        pt.part_name as part_name,
+        pt.material as material,
+        pt.specification as spec_model,
+        pi.batch_number as batch_no,
+        pi.serial_number as serial_number,
+        pi.manufacturer as manufacturer,
+        pi.production_date as production_date,
+        pi.current_status as status,
+        pi.quality_level as quality_level,
+        pi.key_degree as key_degree
+        from part_instances pi
+        inner join part_templates pt on pt.part_template_id = pi.part_template_id
+        where 1 = 1
+
+        <choose>
+            <when test="module_id != null and module_id.startsWith('component:')">
+                and concat('component:', pt.component_id) = #{module_id}
+            </when>
+            <when test="module_id != null and module_id.startsWith('part_template:')">
+                and concat('part_template:', pt.part_template_id) = #{module_id}
+            </when>
+            <otherwise>
+                and 1 = 0
+            </otherwise>
+        </choose>
+
+        <if test="keyword != null and keyword != ''">
+            and (
+            pt.part_number like concat('%', #{keyword}, '%')
+            or pt.part_name like concat('%', #{keyword}, '%')
+            or pt.specification like concat('%', #{keyword}, '%')
+            or pi.serial_number like concat('%', #{keyword}, '%')
+            )
+        </if>
+
+        <if test="material != null and material != ''">
+            and pt.material = #{material}
+        </if>
+
+        <if test="status != null and status != ''">
+            and pi.current_status = #{status}
+        </if>
+
+        order by pi.create_time desc
+        limit #{page_size} offset #{offset}
+    </select>
+
+    <select id="cnt_part_list" resultType="java.lang.Long">
+        select count(1)
+        from part_instances pi
+        inner join part_templates pt on pt.part_template_id = pi.part_template_id
+        where 1 = 1
+
+
+        <choose>
+            <when test="module_id != null and module_id.startsWith('component:')">
+                and concat('component:', pt.component_id) = #{module_id}
+            </when>
+            <when test="module_id != null and module_id.startsWith('part_template:')">
+                and concat('part_template:', pt.part_template_id) = #{module_id}
+            </when>
+            <otherwise>
+                and 1 = 0
+            </otherwise>
+
+        </choose>
+
+        <if test="keyword != null and keyword != ''">
+            and (
+            pt.part_number like concat('%', #{keyword}, '%')
+            or pt.part_name like concat('%', #{keyword}, '%')
+            or pt.specification like concat('%', #{keyword}, '%')
+            or pi.serial_number like concat('%', #{keyword}, '%')
+            )
+        </if>
+
+        <if test="material != null and material != ''">
+            and pt.material = #{material}
+        </if>
+
+        <if test="status != null and status != ''">
+            and pi.current_status = #{status}
+        </if>
+    </select>
+
+    <select id="sel_table_cols" resultType="java.util.HashMap">
+        select
+            c.column_name as column_name,
+
+            c.ordinal_position as ordinal_position
+        from information_schema.columns c
+        where c.table_schema = database()
+          and c.table_name = #{table_name}
+        order by c.ordinal_position
+    </select>
+
+    <select id="sel_dsn_rows" resultType="java.util.HashMap">
+        select dq.*
+        from design_quality dq
+        where dq.part_template_id = (
+            select pi.part_template_id
+            from part_instances pi
+            where pi.part_instance_id = #{part_instance_id}
+            limit 1
+        )
+    </select>
+
+    <select id="sel_manu_rows" resultType="java.util.HashMap">
+        select mq.*
+        from manufacturing_quality mq
+
+        where mq.part_instance_id = #{part_instance_id}
+    </select>
+
+    <select id="sel_srv_rows" resultType="java.util.HashMap">
+        select sq.*
+        from service_quality sq
+        where sq.part_instance_id = #{part_instance_id}
+    </select>
+
+    <insert id="ins_subsystem">
+        insert into subsystems (
+            subsystem_id, subsystem_name, aircraft_id, remarks
+        ) values (
+            #{subsystem_id}, #{subsystem_name}, #{aircraft_id}, null
+        )
+    </insert>
+
+    <insert id="ins_aircraft">
+        insert into aircraft (
+            aircraft_id, aircraft_name, aircraft_model, serial_number, status, remarks, create_time, update_time
+        ) values (
+            #{aircraft_id}, #{aircraft_name}, null, null, null, null, now(), now()
+        )
+    </insert>
+
+    <insert id="ins_equipment">
+        insert into equipments (
+            equipment_id, equipment_name, subsystem_id, remarks
+        ) values (
+            #{equipment_id}, #{equipment_name}, #{subsystem_id}, null
+        )
+    </insert>
+
+    <insert id="ins_component">
+        insert into components (
+            component_id, component_name, equipment_id, specification, remarks
+        ) values (
+            #{component_id}, #{component_name}, #{equipment_id}, null, null
+        )
+    </insert>
+
+    <insert id="ins_part_tpl">
+        insert into part_templates (
+            part_template_id, part_number, part_name, component_id, material, specification, design_version, create_time, update_time
+        ) values (
+            #{part_template_id}, #{part_number}, #{part_name}, #{component_id}, #{material}, #{specification}, null, now(), now()
+        )
+    </insert>
+
+    <select id="cnt_subs_by_air_id" resultType="java.lang.Long">
+        select count(1) from subsystems where aircraft_id = #{aircraft_id}
+    </select>
+
+    <select id="cnt_equip_by_sub_id" resultType="java.lang.Long">
+        select count(1) from equipments where subsystem_id = #{subsystem_id}
+    </select>
+
+
+    <select id="cnt_comp_by_equ_id" resultType="java.lang.Long">
+        select count(1) from components where equipment_id = #{equipment_id}
+    </select>
+
+    <select id="cnt_tpl_by_comp_id" resultType="java.lang.Long">
+        select count(1) from part_templates where component_id = #{component_id}
+    </select>
+
+    <select id="cnt_ins_by_tpl_id" resultType="java.lang.Long">
+        select count(1) from part_instances where part_template_id = #{part_template_id}
+    </select>
+
+    <delete id="del_aircraft">
+        delete from aircraft where aircraft_id = #{aircraft_id}
+    </delete>
+
+    <delete id="del_subsystem">
+        delete from subsystems where subsystem_id = #{subsystem_id}
+    </delete>
+
+    <delete id="del_equipment">
+        delete from equipments where equipment_id = #{equipment_id}
+    </delete>
+
+
+    <delete id="del_component">
+        delete from components where component_id = #{component_id}
+    </delete>
+
+    <delete id="del_part_tpl">
+        delete from part_templates where part_template_id = #{part_template_id}
+    </delete>
+
+    <delete id="del_part_ins">
+        delete from part_instances where part_instance_id = #{part_instance_id}
+    </delete>
+
+    <update id="upd_part_instance">
+        update part_instances
+        set
+            serial_number = #{serial_number},
+            batch_number = #{batch_number},
+            manufacturer = #{manufacturer},
+            production_date = #{production_date},
+            current_status = #{current_status},
+            quality_level = #{quality_level},
+            key_degree = #{key_degree},
+            update_time = now()
+        where part_instance_id = #{part_instance_id}
+    </update>
+
+    <insert id="ins_part_instance">
+        insert into part_instances (
+            part_instance_id, part_template_id, serial_number, batch_number, manufacturer,
+            production_date, current_status, quality_level, key_degree, create_time, update_time
+        ) values (
+            #{part_instance_id}, #{part_template_id}, #{serial_number}, #{batch_number}, #{manufacturer},
+            #{production_date}, #{current_status}, #{quality_level}, #{key_degree}, now(), now()
+        )
+    </insert>
+
+
+
+    <update id="upd_part_tpl_basic">
+        update part_templates
+        set
+            part_number = #{part_number},
+            part_name = #{part_name},
+            material = #{material},
+            specification = #{specification},
+            update_time = now()
+        where part_template_id = #{part_template_id}
+    </update>
+
+    <select id="sel_part_tpl_basic" resultType="java.util.HashMap">
+        select
+            part_template_id,
+            part_number,
+            part_name,
+            component_id,
+            material,
+            specification
+        from part_templates
+        where part_template_id = #{part_template_id}
+        limit 1
+    </select>
+
+    <select id="sel_component_basic" resultType="java.util.HashMap">
+        select
+            component_id,
+            component_name,
+            equipment_id
+        from components
+        where component_id = #{component_id}
+        limit 1
+    </select>
+
+    <select id="sel_part_tpl_by_comp_num" resultType="java.util.HashMap">
+        select
+            part_template_id,
+            part_number,
+            part_name,
+            component_id,
+            material,
+            specification
+        from part_templates
+        where component_id = #{component_id}
+          and part_number = #{part_number}
+        limit 1
+    </select>
+
+    <insert id="ins_process_route">
+        insert into process_routes (
+            route_id, part_template_id, route_name, version, effective_date, is_active
+        ) values (
+            #{route_id}, #{part_template_id}, #{route_name}, 'V1', curdate(), 1
+        )
+        on duplicate key update
+            part_template_id = values(part_template_id),
+            route_name = values(route_name),
+            version = values(version),
+            effective_date = values(effective_date),
+            is_active = values(is_active)
+    </insert>
+
+    <insert id="ins_process_def">
+        insert into process_definitions (
+            process_def_id, route_id, process_number, process_name, equipment_type, standard_duration, is_key_process, is_high_risk
+        ) values (
+            #{process_def_id}, #{route_id}, #{process_number}, #{process_name}, #{equipment_type}, null, 0, 0
+        )
+        on duplicate key update
+            route_id = values(route_id),
+            process_number = values(process_number),
+            process_name = values(process_name),
+            equipment_type = values(equipment_type)
+    </insert>
+
+    <insert id="upsert_aircraft" parameterType="java.util.Map">
+        insert into aircraft (
+            aircraft_id, aircraft_name, aircraft_model, serial_number, status, remarks, create_time, update_time
+        ) values (
+            #{aircraft_id}, #{aircraft_name}, #{aircraft_model}, #{serial_number}, #{status}, #{remarks}, now(), now()
+        )
+        on duplicate key update
+            aircraft_name = values(aircraft_name),
+            aircraft_model = values(aircraft_model),
+            serial_number = values(serial_number),
+            status = values(status),
+            remarks = values(remarks),
+            update_time = now()
+    </insert>
+
+    <insert id="upsert_subsystem" parameterType="java.util.Map">
+        insert into subsystems (
+            subsystem_id, subsystem_name, aircraft_id, remarks
+        ) values (
+            #{subsystem_id}, #{subsystem_name}, #{aircraft_id}, #{remarks}
+        )
+        on duplicate key update
+            subsystem_name = values(subsystem_name),
+            aircraft_id = values(aircraft_id),
+            remarks = values(remarks)
+    </insert>
+
+    <insert id="upsert_equipment" parameterType="java.util.Map">
+        insert into equipments (
+            equipment_id, equipment_name, subsystem_id, remarks
+        ) values (
+            #{equipment_id}, #{equipment_name}, #{subsystem_id}, #{remarks}
+        )
+        on duplicate key update
+            equipment_name = values(equipment_name),
+            subsystem_id = values(subsystem_id),
+            remarks = values(remarks)
+    </insert>
+
+    <insert id="upsert_component" parameterType="java.util.Map">
+        insert into components (
+            component_id, component_name, equipment_id, specification, remarks
+        ) values (
+            #{component_id}, #{component_name}, #{equipment_id}, #{specification}, #{remarks}
+        )
+        on duplicate key update
+            component_name = values(component_name),
+            equipment_id = values(equipment_id),
+            specification = values(specification),
+            remarks = values(remarks)
+    </insert>
+
+    <insert id="upsert_part_template" parameterType="java.util.Map">
+        insert into part_templates (
+            part_template_id, part_number, part_name, component_id, material, specification, design_version, create_time, update_time
+        ) values (
+            #{part_template_id}, #{part_number}, #{part_name}, #{component_id}, #{material}, #{specification}, #{design_version}, now(), now()
+        )
+        on duplicate key update
+            part_number = values(part_number),
+            part_name = values(part_name),
+            component_id = values(component_id),
+            material = values(material),
+            specification = values(specification),
+            design_version = values(design_version),
+            update_time = now()
+    </insert>
+
+    <insert id="upsert_part_instance" parameterType="java.util.Map">
+        insert into part_instances (
+            part_instance_id, part_template_id, serial_number, batch_number, manufacturer,
+            production_date, current_status, quality_level, key_degree, image_url, create_time, update_time
+        ) values (
+            #{part_instance_id}, #{part_template_id}, #{serial_number}, #{batch_number}, #{manufacturer},
+            #{production_date}, #{current_status}, #{quality_level}, #{key_degree}, #{image_url}, now(), now()
+        )
+        on duplicate key update
+            part_template_id = values(part_template_id),
+            serial_number = values(serial_number),
+            batch_number = values(batch_number),
+            manufacturer = values(manufacturer),
+            production_date = values(production_date),
+            current_status = values(current_status),
+            quality_level = values(quality_level),
+            key_degree = values(key_degree),
+            image_url = values(image_url),
+            update_time = now()
+    </insert>
+
+</mapper>
+
+

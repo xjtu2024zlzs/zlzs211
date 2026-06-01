@@ -1,0 +1,70 @@
+.quality-page {
+  min-height: calc(100vh - 84px);
+  background: #f4f7fb;
+}
+
+.quality-hero {
+  margin-bottom: 16px;
+  border-radius: 10px;
+}
+
+.quality-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+
+.quality-desc {
+  margin-top: 8px;
+  color: #607081;
+  line-height: 1.7;
+}
+
+.quality-card {
+  border-radius: 10px;
+}
+
+.quality-card + .quality-card {
+  margin-top: 16px;
+}
+
+.quality-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+
+.quality-placeholder {
+  min-height: 120px;
+  padding: 16px;
+  border: 1px dashed #dbe4ee;
+  border-radius: 8px;
+  color: #607081;
+  background: #f8fbff;
+  line-height: 1.8;
+}
+
+.quality-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.quality-mt16 {
+  margin-top: 16px;
+}
+
+.quality-mb16 {
+  margin-bottom: 16px;
+}
+
+.quality-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #4c8fdc;
+}
+
+.quality-stat-label {
+  margin-top: 6px;
+  color: #607081;
+}

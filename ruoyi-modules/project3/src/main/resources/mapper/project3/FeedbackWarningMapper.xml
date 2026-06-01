@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.project3.mapper.FeedbackWarningMapper">
+
+    <select id="partList" resultType="java.util.HashMap">
+        <bind name="offset" value="(page_num - 1) * page_size"/>
+
+        select
+        pt.part_template_id as part_template_id,
+        a.aircraft_id as aircraft_id,
+        s.subsystem_id as subsystem_id,
+        e.equipment_id as equipment_id,
+        c.component_id as component_id,
+        pt.part_number as part_code,
+        pt.part_name as part_name,
+        pt.material as material,
+        pt.specification as spec_model,
+        pt.design_version as design_version,
+        count(distinct pi.part_instance_id) as instance_count,
+        max(pa.anomaly_level) as risk_level,
+        max(pd.process_name) as current_process,
+        concat(a.aircraft_name, ' / ', s.subsystem_name, ' / ', e.equipment_name, ' / ', c.component_name, ' / ', pt.part_name) as path_text
+        from part_templates pt
+        left join components c on c.component_id = pt.component_id
+        left join equipments e on e.equipment_id = c.equipment_id
+        left join subsystems s on s.subsystem_id = e.subsystem_id
+        left join aircraft a on a.aircraft_id = s.aircraft_id
+        left join part_instances pi on pi.part_template_id = pt.part_template_id
+        left join work_orders wo on wo.part_instance_id = pi.part_instance_id
+        left join process_executions pe on pe.work_order_id = wo.work_order_id
+        left join process_definitions pd on pd.process_def_id = pe.process_def_id
+        left join process_anomalies pa on pa.process_exec_id = pe.process_exec_id
+
+        where 1 = 1
+
+        <if test="keyword != null and keyword != ''">
+            and (
+            pt.part_number like concat('%', #{keyword}, '%')
+            or pt.part_name like concat('%', #{keyword}, '%')
+            )
+        </if>
+        <if test="risk_level != null and risk_level != ''">
+            and pa.anomaly_level = #{risk_level}
+        </if>
+
+        group by
+        pt.part_template_id,
+        a.aircraft_id,
+        s.subsystem_id,
+        e.equipment_id,
+        c.component_id,
+        pt.part_number,
+        pt.part_name,
+        pt.material,
+        pt.specification,
+        pt.design_version,
+        a.aircraft_name,
+        s.subsystem_name,
+        e.equipment_name,
+        c.component_name
+
+        <choose>
+            <when test="sort_by == 'part_name'">
+                <choose>
+                    <when test="sort_order == 'desc'">
+                        order by pt.part_name desc, pt.part_number desc, pt.part_template_id desc
+                    </when>
+                    <otherwise>
+                        order by pt.part_name asc, pt.part_number asc, pt.part_template_id asc
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="sort_order == 'desc'">
+                        order by pt.part_number desc, pt.part_name desc, pt.part_template_id desc
+                    </when>
+                    <otherwise>
+                        order by pt.part_number asc, pt.part_name asc, pt.part_template_id asc
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        limit #{page_size} offset #{offset}
+    </select>
+
+    <select id="partCount" resultType="java.lang.Long">
+        select count(1)
+        from (
+        select pt.part_template_id
+        from part_templates pt
+        left join part_instances pi on pi.part_template_id = pt.part_template_id
+        left join work_orders wo on wo.part_instance_id = pi.part_instance_id
+        left join process_executions pe on pe.work_order_id = wo.work_order_id
+        left join process_anomalies pa on pa.process_exec_id = pe.process_exec_id
+        where 1 = 1
+
+        <if test="keyword != null and keyword != ''">
+            and (
+            pt.part_number like concat('%', #{keyword}, '%')
+            or pt.part_name like concat('%', #{keyword}, '%')
+            )
+        </if>
+        <if test="risk_level != null and risk_level != ''">
+            and pa.anomaly_level = #{risk_level}
+        </if>
+
+        group by pt.part_template_id
+        ) t
+    </select>
+
+    <select id="partInstanceList" resultType="java.util.HashMap">
+        <bind name="offset" value="(page_num - 1) * page_size"/>
+
+        select
+            pi.part_instance_id as part_id,
+            pi.part_instance_id as part_instance_id,
+            pt.part_template_id as part_template_id,
+            a.aircraft_id as aircraft_id,
+            s.subsystem_id as subsystem_id,
+            e.equipment_id as equipment_id,
+            c.component_id as component_id,
+            pt.part_number as part_code,
+            pt.part_name as part_name,
+            pt.material as material,
+            pt.specification as spec_model,
+            pi.serial_number as serial_number,
+            pi.batch_number as batch_number,
+            pi.manufacturer as manufacturer,
+            pi.production_date as production_date,
+            pi.image_url as image_url,
+            pi.current_status as status,
+            pi.quality_level as quality_level,
+            pi.key_degree as key_degree,
+            max(pa.anomaly_level) as risk_level,
+            max(pd.process_name) as current_process,
+            concat(a.aircraft_name, ' / ', s.subsystem_name, ' / ', e.equipment_name, ' / ', c.component_name, ' / ', pt.part_name, ' / ', pi.part_instance_id) as path_text
+        from part_instances pi
+                 inner join part_templates pt on pt.part_template_id = pi.part_template_id
+                 left join components c on c.component_id = pt.component_id
+                 left join equipments e on e.equipment_id = c.equipment_id
+                 left join subsystems s on s.subsystem_id = e.subsystem_id
+                 left join aircraft a on a.aircraft_id = s.aircraft_id
+                 left join work_orders wo on wo.part_instance_id = pi.part_instance_id
+                 left join process_executions pe on pe.work_order_id = wo.work_order_id
+                 left join process_definitions pd on pd.process_def_id = pe.process_def_id
+                 left join process_anomalies pa on pa.process_exec_id = pe.process_exec_id
+        where pi.part_template_id = #{part_template_id}
+        group by
+            pi.part_instance_id,
+            pt.part_template_id,
+            a.aircraft_id,
+            s.subsystem_id,
+            e.equipment_id,
+            c.component_id,
+            pt.part_number,
+            pt.part_name,
+            pt.material,
+            pt.specification,
+            pi.serial_number,
+            pi.batch_number,
+            pi.manufacturer,
+            pi.production_date,
+            pi.image_url,
+            pi.current_status,
+            pi.quality_level,
+            pi.key_degree,
+            a.aircraft_name,
+            s.subsystem_name,
+            e.equipment_name,
+            c.component_name
+        order by pi.part_instance_id asc
+        limit #{page_size} offset #{offset}
+    </select>
+
+    <select id="partInstanceCount" resultType="java.lang.Long">
+        select count(1)
+        from part_instances
+        where part_template_id = #{part_template_id}
+    </select>
+
+    <select id="partProc" resultType="java.util.HashMap">
+        select *
+        from (
+            select
+                pe.process_exec_id as process_exec_id,
+                pd.process_def_id as process_id,
+                pd.process_number as process_order,
+                pd.process_name as process_name,
+                pd.equipment_type as equipment_type,
+                pd.standard_duration as standard_duration,
+                pd.is_key_process as is_key_process,
+                pd.is_high_risk as is_high_risk,
+                pe.status as status,
+                pe.start_time as start_time,
+                pe.end_time as end_time,
+                pe.operator as operator,
+                md.device_id as device_id,
+                md.device_name as device_name,
+                pa.anomaly_level as risk_level,
+                pa.anomaly_description as process_desc,
+                pa.detection_time as detection_time,
+                pa.handling_status as handling_status
+
+            from part_instances pi
+                     inner join work_orders wo on wo.part_instance_id = pi.part_instance_id
+                     inner join process_executions pe on pe.work_order_id = wo.work_order_id
+                     inner join process_definitions pd on pd.process_def_id = pe.process_def_id
+                     left join manufacturing_devices md on md.device_id = pe.device_id
+                     left join process_anomalies pa on pa.process_exec_id = pe.process_exec_id
+
+            where pi.part_instance_id = #{part_id}
+
+            union all
+
+            select
+                null as process_exec_id,
+                pd.process_def_id as process_id,
+                pd.process_number as process_order,
+                pd.process_name as process_name,
+                pd.equipment_type as equipment_type,
+                pd.standard_duration as standard_duration,
+                pd.is_key_process as is_key_process,
+                pd.is_high_risk as is_high_risk,
+                '未执行' as status,
+                null as start_time,
+                null as end_time,
+                null as operator,
+                null as device_id,
+                null as device_name,
+                null as risk_level,
+                null as process_desc,
+                null as detection_time,
+                null as handling_status
+
+            from part_instances pi
+                     inner join process_routes pr on pr.part_template_id = pi.part_template_id and pr.is_active = 1
+                     inner join process_definitions pd on pd.route_id = pr.route_id
+
+            where pi.part_instance_id = #{part_id}
+              and not exists (
+                  select 1
+                  from work_orders wo2
+                           inner join process_executions pe2 on pe2.work_order_id = wo2.work_order_id
+                  where wo2.part_instance_id = pi.part_instance_id
+              )
+        ) t
+        order by t.process_order asc
+
+    </select>
+
+    <select id="partImage" resultType="java.lang.String">
+        select image_url
+        from part_instances
+        where part_instance_id = #{part_id}
+    </select>
+
+    <update id="updPartImage">
+        update part_instances
+        set image_url = #{image_url},
+            update_time = now()
+        where part_instance_id = #{part_id}
+    </update>
+
+    <select id="devList" resultType="java.util.HashMap">
+        <bind name="offset" value="(page_num - 1) * page_size"/>
+
+        select
+        md.device_id as device_id,
+        md.device_id as device_code,
+        md.device_name as device_name,
+        md.device_type as device_type,
+        md.device_model as device_model,
+        md.device_status as status,
+        md.risk_level as risk_level,
+        md.remarks as device_desc,
+        md.update_time as update_time
+        from manufacturing_devices md
+
+        where 1 = 1
+
+        <if test="keyword != null and keyword != ''">
+            and (
+            md.device_id like concat('%', #{keyword}, '%')
+            or md.device_name like concat('%', #{keyword}, '%')
+            or md.device_model like concat('%', #{keyword}, '%')
+            )
+        </if>
+        <if test="risk_level != null and risk_level != ''">
+            and md.risk_level = #{risk_level}
+        </if>
+
+        order by md.update_time desc
+
+        limit #{page_size} offset #{offset}
+
+    </select>
+
+    <select id="devCount" resultType="java.lang.Long">
+        select count(1)
+        from manufacturing_devices md
+        where 1 = 1
+
+        <if test="keyword != null and keyword != ''">
+            and (
+            md.device_id like concat('%', #{keyword}, '%')
+            or md.device_name like concat('%', #{keyword}, '%')
+            or md.device_model like concat('%', #{keyword}, '%')
+            )
+
+        </if>
+
+        <if test="risk_level != null and risk_level != ''">
+            and md.risk_level = #{risk_level}
+        </if>
+    </select>
+
+    <select id="devPart" resultType="java.util.HashMap">
+        select distinct
+            pi.part_instance_id as part_id,
+            pt.part_number as part_code,
+            pt.part_name as part_name,
+            pt.material as material,
+            pt.specification as spec_model,
+            pd.process_def_id as process_id,
+            pd.process_number as process_order,
+            pd.process_name as process_name,
+            pe.status as process_status,
+            pe.start_time as start_time,
+            pe.end_time as end_time
+        
+        from process_executions pe
+                 inner join work_orders wo on wo.work_order_id = pe.work_order_id
+                 inner join part_instances pi on pi.part_instance_id = wo.part_instance_id
+                 inner join part_templates pt on pt.part_template_id = pi.part_template_id
+                 inner join process_definitions pd on pd.process_def_id = pe.process_def_id
+        where pe.device_id = #{device_id}
+        order by pe.start_time desc, pd.process_number asc
+    </select>
+
+</mapper>
+
