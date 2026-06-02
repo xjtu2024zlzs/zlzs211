@@ -1,5 +1,5 @@
 <template>
-  <div :class="classObj" class="app-wrapper" :style="{ '--current-color': theme, '--current-color-light': theme + '1a', '--current-color-dark-bg': theme + '33' }">
+  <div :class="classObj" class="app-wrapper" :style="{ '--current-color': theme, '--current-color-light': theme + '1a', '--current-color-dark-bg': theme + '33', '--sidebar-width': sidebar.width + 'px' }">
     <div v-if="device === 'mobile' && sidebar.opened" class="drawer-bg" @click="handleClickOutside"/>
     <sidebar v-if="!sidebar.hide" class="sidebar-container" />
     <div :class="{ hasTagsView: needTagsView, sidebarHide: sidebar.hide }" class="main-container">
@@ -98,7 +98,7 @@ function setLayout() {
   top: 0;
   right: 0;
   z-index: 9;
-  width: calc(100% - #{vars.$base-sidebar-width});
+  width: calc(100% - var(--sidebar-width, 200px));
   transition: width 0.28s;
 }
 

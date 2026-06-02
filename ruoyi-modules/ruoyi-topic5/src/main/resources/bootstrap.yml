@@ -1,29 +1,32 @@
-# Tomcat
 server:
   port: 9305
 
-# Spring
 spring:
   application:
     name: ruoyi-topic5
+
   profiles:
     active: dev
+
+  config:
+    import:
+      - optional:nacos:ruoyi-topic5-dev.yml?group=DEFAULT_GROUP
+
   cloud:
     nacos:
-      server-addr: 127.0.0.1:8848
       username: nacos
       password: nacos
+
       discovery:
         server-addr: 127.0.0.1:8848
         username: nacos
         password: nacos
+        group: DEFAULT_GROUP
+
       config:
         server-addr: 127.0.0.1:8848
-        group: DEFAULT_GROUP
-        file-extension: yml
         username: nacos
         password: nacos
-  config:
-    import:
-      - nacos:application-dev.yml?group=DEFAULT_GROUP
-      - nacos:ruoyi-topic5-dev.yml?group=DEFAULT_GROUP
+        group: DEFAULT_GROUP
+        file-extension: yml
+        refresh-enabled: true

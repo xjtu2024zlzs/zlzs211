@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.topic5.mapper.T5LifecycleGraphMapper">
+    
+    <resultMap type="T5LifecycleGraph" id="T5LifecycleGraphResult">
+        <result property="graphId"    column="graph_id"    />
+        <result property="graphNo"    column="graph_no"    />
+        <result property="graphName"    column="graph_name"    />
+        <result property="caseId"    column="case_id"    />
+        <result property="partId"    column="part_id"    />
+        <result property="partNo"    column="part_no"    />
+        <result property="partName"    column="part_name"    />
+        <result property="buildAlgorithmId"    column="build_algorithm_id"    />
+        <result property="buildAlgorithmName"    column="build_algorithm_name"    />
+        <result property="graphType"    column="graph_type"    />
+        <result property="nodeCount"    column="node_count"    />
+        <result property="edgeCount"    column="edge_count"    />
+        <result property="buildStatus"    column="build_status"    />
+        <result property="buildTime"    column="build_time"    />
+        <result property="graphSummary"    column="graph_summary"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectT5LifecycleGraphVo">
+        select graph_id, graph_no, graph_name, case_id, part_id, part_no, part_name, build_algorithm_id, build_algorithm_name, graph_type, node_count, edge_count, build_status, build_time, graph_summary, create_by, create_time, update_by, update_time, remark from t5_lifecycle_graph
+    </sql>
+
+    <select id="selectT5LifecycleGraphList" parameterType="T5LifecycleGraph" resultMap="T5LifecycleGraphResult">
+        <include refid="selectT5LifecycleGraphVo"/>
+        <where>  
+            <if test="graphNo != null  and graphNo != ''"> and graph_no = #{graphNo}</if>
+            <if test="graphName != null  and graphName != ''"> and graph_name like concat('%', #{graphName}, '%')</if>
+            <if test="caseId != null "> and case_id = #{caseId}</if>
+            <if test="partId != null "> and part_id = #{partId}</if>
+            <if test="partNo != null  and partNo != ''"> and part_no = #{partNo}</if>
+            <if test="partName != null  and partName != ''"> and part_name like concat('%', #{partName}, '%')</if>
+            <if test="buildAlgorithmId != null "> and build_algorithm_id = #{buildAlgorithmId}</if>
+            <if test="buildAlgorithmName != null  and buildAlgorithmName != ''"> and build_algorithm_name like concat('%', #{buildAlgorithmName}, '%')</if>
+            <if test="graphType != null  and graphType != ''"> and graph_type = #{graphType}</if>
+            <if test="nodeCount != null "> and node_count = #{nodeCount}</if>
+            <if test="edgeCount != null "> and edge_count = #{edgeCount}</if>
+            <if test="buildStatus != null  and buildStatus != ''"> and build_status = #{buildStatus}</if>
+            <if test="buildTime != null "> and build_time = #{buildTime}</if>
+            <if test="graphSummary != null  and graphSummary != ''"> and graph_summary = #{graphSummary}</if>
+        </where>
+    </select>
+    
+    <select id="selectT5LifecycleGraphByGraphId" parameterType="Long" resultMap="T5LifecycleGraphResult">
+        <include refid="selectT5LifecycleGraphVo"/>
+        where graph_id = #{graphId}
+    </select>
+
+    <insert id="insertT5LifecycleGraph" parameterType="T5LifecycleGraph" useGeneratedKeys="true" keyProperty="graphId">
+        insert into t5_lifecycle_graph
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="graphNo != null">graph_no,</if>
+            <if test="graphName != null">graph_name,</if>
+            <if test="caseId != null">case_id,</if>
+            <if test="partId != null">part_id,</if>
+            <if test="partNo != null">part_no,</if>
+            <if test="partName != null">part_name,</if>
+            <if test="buildAlgorithmId != null">build_algorithm_id,</if>
+            <if test="buildAlgorithmName != null">build_algorithm_name,</if>
+            <if test="graphType != null">graph_type,</if>
+            <if test="nodeCount != null">node_count,</if>
+            <if test="edgeCount != null">edge_count,</if>
+            <if test="buildStatus != null">build_status,</if>
+            <if test="buildTime != null">build_time,</if>
+            <if test="graphSummary != null">graph_summary,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="graphNo != null">#{graphNo},</if>
+            <if test="graphName != null">#{graphName},</if>
+            <if test="caseId != null">#{caseId},</if>
+            <if test="partId != null">#{partId},</if>
+            <if test="partNo != null">#{partNo},</if>
+            <if test="partName != null">#{partName},</if>
+            <if test="buildAlgorithmId != null">#{buildAlgorithmId},</if>
+            <if test="buildAlgorithmName != null">#{buildAlgorithmName},</if>
+            <if test="graphType != null">#{graphType},</if>
+            <if test="nodeCount != null">#{nodeCount},</if>
+            <if test="edgeCount != null">#{edgeCount},</if>
+            <if test="buildStatus != null">#{buildStatus},</if>
+            <if test="buildTime != null">#{buildTime},</if>
+            <if test="graphSummary != null">#{graphSummary},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateT5LifecycleGraph" parameterType="T5LifecycleGraph">
+        update t5_lifecycle_graph
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="graphNo != null">graph_no = #{graphNo},</if>
+            <if test="graphName != null">graph_name = #{graphName},</if>
+            <if test="caseId != null">case_id = #{caseId},</if>
+            <if test="partId != null">part_id = #{partId},</if>
+            <if test="partNo != null">part_no = #{partNo},</if>
+            <if test="partName != null">part_name = #{partName},</if>
+            <if test="buildAlgorithmId != null">build_algorithm_id = #{buildAlgorithmId},</if>
+            <if test="buildAlgorithmName != null">build_algorithm_name = #{buildAlgorithmName},</if>
+            <if test="graphType != null">graph_type = #{graphType},</if>
+            <if test="nodeCount != null">node_count = #{nodeCount},</if>
+            <if test="edgeCount != null">edge_count = #{edgeCount},</if>
+            <if test="buildStatus != null">build_status = #{buildStatus},</if>
+            <if test="buildTime != null">build_time = #{buildTime},</if>
+            <if test="graphSummary != null">graph_summary = #{graphSummary},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where graph_id = #{graphId}
+    </update>
+
+    <delete id="deleteT5LifecycleGraphByGraphId" parameterType="Long">
+        delete from t5_lifecycle_graph where graph_id = #{graphId}
+    </delete>
+
+    <delete id="deleteT5LifecycleGraphByGraphIds" parameterType="String">
+        delete from t5_lifecycle_graph where graph_id in 
+        <foreach item="graphId" collection="array" open="(" separator="," close=")">
+            #{graphId}
+        </foreach>
+    </delete>
+    <select id="selectLatestGraphByCaseId" parameterType="Long" resultMap="T5LifecycleGraphResult">
+        select *
+        from t5_lifecycle_graph
+        where case_id = #{caseId}
+        order by graph_id desc
+            limit 1
+    </select>
+
+</mapper>

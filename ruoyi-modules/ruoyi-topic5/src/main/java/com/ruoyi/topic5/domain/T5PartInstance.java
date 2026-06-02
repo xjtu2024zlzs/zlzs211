@@ -6,10 +6,10 @@ import com.ruoyi.common.core.annotation.Excel;
 import com.ruoyi.common.core.web.domain.BaseEntity;
 
 /**
- * 课题五-零部件实例对象 t5_part_instance
+ * 追溯案例对象 t5_part_instance
  * 
  * @author ruoyi
- * @date 2026-05-30
+ * @date 2026-05-31
  */
 public class T5PartInstance extends BaseEntity
 {
@@ -54,21 +54,17 @@ public class T5PartInstance extends BaseEntity
     @Excel(name = "供应商名称")
     private String supplierName;
 
-    /** 父级部件ID */
-    @Excel(name = "父级部件ID")
-    private Long parentPartId;
-
     /** 安装位置 */
     @Excel(name = "安装位置")
     private String installPosition;
 
+    /** 父级部件ID */
+    @Excel(name = "父级部件ID")
+    private Long parentPartId;
+
     /** 生命周期状态：0制造中，1已装配，2服役中，3维修中，4退役 */
     @Excel(name = "生命周期状态：0制造中，1已装配，2服役中，3维修中，4退役")
     private String lifecycleStatus;
-
-    /** 数据来源 */
-    @Excel(name = "数据来源")
-    private String dataSource;
 
     public void setPartId(Long partId) 
     {
@@ -170,16 +166,6 @@ public class T5PartInstance extends BaseEntity
         return supplierName;
     }
 
-    public void setParentPartId(Long parentPartId) 
-    {
-        this.parentPartId = parentPartId;
-    }
-
-    public Long getParentPartId() 
-    {
-        return parentPartId;
-    }
-
     public void setInstallPosition(String installPosition) 
     {
         this.installPosition = installPosition;
@@ -190,6 +176,16 @@ public class T5PartInstance extends BaseEntity
         return installPosition;
     }
 
+    public void setParentPartId(Long parentPartId) 
+    {
+        this.parentPartId = parentPartId;
+    }
+
+    public Long getParentPartId() 
+    {
+        return parentPartId;
+    }
+
     public void setLifecycleStatus(String lifecycleStatus) 
     {
         this.lifecycleStatus = lifecycleStatus;
@@ -198,16 +194,6 @@ public class T5PartInstance extends BaseEntity
     public String getLifecycleStatus() 
     {
         return lifecycleStatus;
-    }
-
-    public void setDataSource(String dataSource) 
-    {
-        this.dataSource = dataSource;
-    }
-
-    public String getDataSource() 
-    {
-        return dataSource;
     }
 
     @Override
@@ -223,10 +209,9 @@ public class T5PartInstance extends BaseEntity
             .append("subsystemName", getSubsystemName())
             .append("materialSpec", getMaterialSpec())
             .append("supplierName", getSupplierName())
-            .append("parentPartId", getParentPartId())
             .append("installPosition", getInstallPosition())
+            .append("parentPartId", getParentPartId())
             .append("lifecycleStatus", getLifecycleStatus())
-            .append("dataSource", getDataSource())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())

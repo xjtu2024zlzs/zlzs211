@@ -1,5 +1,5 @@
 <template>
-  <div :class="['sidebar-theme-wrapper', {'has-logo':showLogo}, sideTheme]" class="sidebar-container">
+  <div :class="['sidebar-theme-wrapper', {'has-logo':showLogo}, sideTheme]" class="sidebar-container" :style="{ width: sidebarWidth + 'px' }">
     <logo v-if="showLogo" :collapse="isCollapse" />
     <el-scrollbar wrap-class="scrollbar-wrapper">
       <el-menu
@@ -21,6 +21,7 @@
         />
       </el-menu>
     </el-scrollbar>
+    <div class="resize-handle" @mousedown="handleMouseDown" />
   </div>
 </template>
 
@@ -42,6 +43,7 @@ const showLogo = computed(() => settingsStore.sidebarLogo)
 const sideTheme = computed(() => settingsStore.sideTheme)
 const theme = computed(() => settingsStore.theme)
 const isCollapse = computed(() => !appStore.sidebar.opened)
+const sidebarWidth = computed(() => appStore.sidebar.width)
 
 // 获取菜单背景色
 const getMenuBackground = computed(() => {
@@ -66,11 +68,43 @@ const activeMenu = computed(() => {
   }
   return path
 })
+
+// 拖动相关变量
+let isResizing = false
+let startX = 0
+let startWidth = 0
+
+const handleMouseDown = (e) => {
+  isResizing = true
+  startX = e.clientX
+  startWidth = appStore.sidebar.width
+  document.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('mouseup', handleMouseUp)
+}
+
+const handleMouseMove = (e) => {
+  if (!isResizing) return
+  const delta = e.clientX - startX
+  const newWidth = Math.max(150, Math.min(400, startWidth + delta))
+  appStore.setSidebarWidth(newWidth)
+}
+
+const handleMouseUp = () => {
+  isResizing = false
+  document.removeEventListener('mousemove', handleMouseMove)
+  document.removeEventListener('mouseup', handleMouseUp)
+}
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mousemove', handleMouseMove)
+  document.removeEventListener('mouseup', handleMouseUp)
+})
 </script>
 
 <style lang="scss" scoped>
 .sidebar-container {
   background-color: v-bind(getMenuBackground);
+  position: relative;
   
   .scrollbar-wrapper {
     background-color: v-bind(getMenuBackground);
@@ -98,6 +132,26 @@ const activeMenu = computed(() => {
 
     .el-sub-menu__title {
       color: v-bind(getMenuTextColor);
+    }
+  }
+
+  .resize-handle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    cursor: col-resize;
+    background-color: transparent;
+    transition: background-color 0.2s;
+    z-index: 1000;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+      background-color: #409eff;
     }
   }
 }

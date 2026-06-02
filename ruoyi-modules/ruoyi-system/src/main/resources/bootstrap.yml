@@ -5,7 +5,7 @@ server:
 # Spring
 spring:
   application:
-    name: ruoyi-system
+    name: ruoyi-topic5
   profiles:
     active: dev
   cloud:

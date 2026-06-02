@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.topic5.mapper.T5TraceCaseMapper">
+    
+    <resultMap type="T5TraceCase" id="T5TraceCaseResult">
+        <result property="caseId"    column="case_id"    />
+        <result property="caseNo"    column="case_no"    />
+        <result property="caseName"    column="case_name"    />
+        <result property="systemName"    column="system_name"    />
+        <result property="subsystemName"    column="subsystem_name"    />
+        <result property="productModel"    column="product_model"    />
+        <result property="faultTitle"    column="fault_title"    />
+        <result property="faultPhenomenon"    column="fault_phenomenon"    />
+        <result property="faultDesc"    column="fault_desc"    />
+        <result property="faultLocation"    column="fault_location"    />
+        <result property="faultMode"    column="fault_mode"    />
+        <result property="abnormalParam"    column="abnormal_param"    />
+        <result property="abnormalValue"    column="abnormal_value"    />
+        <result property="normalRange"    column="normal_range"    />
+        <result property="detectMethod"    column="detect_method"    />
+        <result property="locateAlgorithmId"    column="locate_algorithm_id"    />
+        <result property="locateAlgorithmName"    column="locate_algorithm_name"    />
+        <result property="finalPartId"    column="final_part_id"    />
+        <result property="finalPartNo"    column="final_part_no"    />
+        <result property="finalPartName"    column="final_part_name"    />
+        <result property="locateConfidence"    column="locate_confidence"    />
+        <result property="graphId"    column="graph_id"    />
+        <result property="rootResultId"    column="root_result_id"    />
+        <result property="caseStatus"    column="case_status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectT5TraceCaseVo">
+        select case_id, case_no, case_name, system_name, subsystem_name, product_model, fault_title, fault_phenomenon, fault_desc, fault_location, fault_mode, abnormal_param, abnormal_value, normal_range, detect_method, locate_algorithm_id, locate_algorithm_name, final_part_id, final_part_no, final_part_name, locate_confidence, graph_id, root_result_id, case_status, create_by, create_time, update_by, update_time, remark from t5_trace_case
+    </sql>
+
+    <select id="selectT5TraceCaseList" parameterType="T5TraceCase" resultMap="T5TraceCaseResult">
+        <include refid="selectT5TraceCaseVo"/>
+        <where>  
+            <if test="caseNo != null  and caseNo != ''"> and case_no = #{caseNo}</if>
+            <if test="caseName != null  and caseName != ''"> and case_name like concat('%', #{caseName}, '%')</if>
+            <if test="systemName != null  and systemName != ''"> and system_name like concat('%', #{systemName}, '%')</if>
+            <if test="subsystemName != null  and subsystemName != ''"> and subsystem_name like concat('%', #{subsystemName}, '%')</if>
+            <if test="productModel != null  and productModel != ''"> and product_model = #{productModel}</if>
+            <if test="faultTitle != null  and faultTitle != ''"> and fault_title = #{faultTitle}</if>
+            <if test="faultPhenomenon != null  and faultPhenomenon != ''"> and fault_phenomenon = #{faultPhenomenon}</if>
+            <if test="faultDesc != null  and faultDesc != ''"> and fault_desc = #{faultDesc}</if>
+            <if test="faultLocation != null  and faultLocation != ''"> and fault_location = #{faultLocation}</if>
+            <if test="faultMode != null  and faultMode != ''"> and fault_mode = #{faultMode}</if>
+            <if test="abnormalParam != null  and abnormalParam != ''"> and abnormal_param = #{abnormalParam}</if>
+            <if test="abnormalValue != null  and abnormalValue != ''"> and abnormal_value = #{abnormalValue}</if>
+            <if test="normalRange != null  and normalRange != ''"> and normal_range = #{normalRange}</if>
+            <if test="detectMethod != null  and detectMethod != ''"> and detect_method = #{detectMethod}</if>
+            <if test="locateAlgorithmId != null "> and locate_algorithm_id = #{locateAlgorithmId}</if>
+            <if test="locateAlgorithmName != null  and locateAlgorithmName != ''"> and locate_algorithm_name like concat('%', #{locateAlgorithmName}, '%')</if>
+            <if test="finalPartId != null "> and final_part_id = #{finalPartId}</if>
+            <if test="finalPartNo != null  and finalPartNo != ''"> and final_part_no = #{finalPartNo}</if>
+            <if test="finalPartName != null  and finalPartName != ''"> and final_part_name like concat('%', #{finalPartName}, '%')</if>
+            <if test="locateConfidence != null "> and locate_confidence = #{locateConfidence}</if>
+            <if test="graphId != null "> and graph_id = #{graphId}</if>
+            <if test="rootResultId != null "> and root_result_id = #{rootResultId}</if>
+            <if test="caseStatus != null  and caseStatus != ''"> and case_status = #{caseStatus}</if>
+        </where>
+    </select>
+    
+    <select id="selectT5TraceCaseByCaseId" parameterType="Long" resultMap="T5TraceCaseResult">
+        <include refid="selectT5TraceCaseVo"/>
+        where case_id = #{caseId}
+    </select>
+
+    <insert id="insertT5TraceCase" parameterType="T5TraceCase" useGeneratedKeys="true" keyProperty="caseId">
+        insert into t5_trace_case
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="caseNo != null and caseNo != ''">case_no,</if>
+            <if test="caseName != null and caseName != ''">case_name,</if>
+            <if test="systemName != null">system_name,</if>
+            <if test="subsystemName != null">subsystem_name,</if>
+            <if test="productModel != null">product_model,</if>
+            <if test="faultTitle != null">fault_title,</if>
+            <if test="faultPhenomenon != null">fault_phenomenon,</if>
+            <if test="faultDesc != null">fault_desc,</if>
+            <if test="faultLocation != null">fault_location,</if>
+            <if test="faultMode != null">fault_mode,</if>
+            <if test="abnormalParam != null">abnormal_param,</if>
+            <if test="abnormalValue != null">abnormal_value,</if>
+            <if test="normalRange != null">normal_range,</if>
+            <if test="detectMethod != null">detect_method,</if>
+            <if test="locateAlgorithmId != null">locate_algorithm_id,</if>
+            <if test="locateAlgorithmName != null">locate_algorithm_name,</if>
+            <if test="finalPartId != null">final_part_id,</if>
+            <if test="finalPartNo != null">final_part_no,</if>
+            <if test="finalPartName != null">final_part_name,</if>
+            <if test="locateConfidence != null">locate_confidence,</if>
+            <if test="graphId != null">graph_id,</if>
+            <if test="rootResultId != null">root_result_id,</if>
+            <if test="caseStatus != null">case_status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="caseNo != null and caseNo != ''">#{caseNo},</if>
+            <if test="caseName != null and caseName != ''">#{caseName},</if>
+            <if test="systemName != null">#{systemName},</if>
+            <if test="subsystemName != null">#{subsystemName},</if>
+            <if test="productModel != null">#{productModel},</if>
+            <if test="faultTitle != null">#{faultTitle},</if>
+            <if test="faultPhenomenon != null">#{faultPhenomenon},</if>
+            <if test="faultDesc != null">#{faultDesc},</if>
+            <if test="faultLocation != null">#{faultLocation},</if>
+            <if test="faultMode != null">#{faultMode},</if>
+            <if test="abnormalParam != null">#{abnormalParam},</if>
+            <if test="abnormalValue != null">#{abnormalValue},</if>
+            <if test="normalRange != null">#{normalRange},</if>
+            <if test="detectMethod != null">#{detectMethod},</if>
+            <if test="locateAlgorithmId != null">#{locateAlgorithmId},</if>
+            <if test="locateAlgorithmName != null">#{locateAlgorithmName},</if>
+            <if test="finalPartId != null">#{finalPartId},</if>
+            <if test="finalPartNo != null">#{finalPartNo},</if>
+            <if test="finalPartName != null">#{finalPartName},</if>
+            <if test="locateConfidence != null">#{locateConfidence},</if>
+            <if test="graphId != null">#{graphId},</if>
+            <if test="rootResultId != null">#{rootResultId},</if>
+            <if test="caseStatus != null">#{caseStatus},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateT5TraceCase" parameterType="T5TraceCase">
+        update t5_trace_case
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="caseNo != null and caseNo != ''">case_no = #{caseNo},</if>
+            <if test="caseName != null and caseName != ''">case_name = #{caseName},</if>
+            <if test="systemName != null">system_name = #{systemName},</if>
+            <if test="subsystemName != null">subsystem_name = #{subsystemName},</if>
+            <if test="productModel != null">product_model = #{productModel},</if>
+            <if test="faultTitle != null">fault_title = #{faultTitle},</if>
+            <if test="faultPhenomenon != null">fault_phenomenon = #{faultPhenomenon},</if>
+            <if test="faultDesc != null">fault_desc = #{faultDesc},</if>
+            <if test="faultLocation != null">fault_location = #{faultLocation},</if>
+            <if test="faultMode != null">fault_mode = #{faultMode},</if>
+            <if test="abnormalParam != null">abnormal_param = #{abnormalParam},</if>
+            <if test="abnormalValue != null">abnormal_value = #{abnormalValue},</if>
+            <if test="normalRange != null">normal_range = #{normalRange},</if>
+            <if test="detectMethod != null">detect_method = #{detectMethod},</if>
+            <if test="locateAlgorithmId != null">locate_algorithm_id = #{locateAlgorithmId},</if>
+            <if test="locateAlgorithmName != null">locate_algorithm_name = #{locateAlgorithmName},</if>
+            <if test="finalPartId != null">final_part_id = #{finalPartId},</if>
+            <if test="finalPartNo != null">final_part_no = #{finalPartNo},</if>
+            <if test="finalPartName != null">final_part_name = #{finalPartName},</if>
+            <if test="locateConfidence != null">locate_confidence = #{locateConfidence},</if>
+            <if test="graphId != null">graph_id = #{graphId},</if>
+            <if test="rootResultId != null">root_result_id = #{rootResultId},</if>
+            <if test="caseStatus != null">case_status = #{caseStatus},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where case_id = #{caseId}
+    </update>
+
+    <delete id="deleteT5TraceCaseByCaseId" parameterType="Long">
+        delete from t5_trace_case where case_id = #{caseId}
+    </delete>
+
+    <delete id="deleteT5TraceCaseByCaseIds" parameterType="String">
+        delete from t5_trace_case where case_id in 
+        <foreach item="caseId" collection="array" open="(" separator="," close=")">
+            #{caseId}
+        </foreach>
+    </delete>
+</mapper>

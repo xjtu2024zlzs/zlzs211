@@ -5,7 +5,7 @@
   .main-container {
     min-height: 100%;
     transition: margin-left .28s;
-    margin-left: vars.$base-sidebar-width;
+    margin-left: var(--sidebar-width, 200px);
     position: relative;
   }
 
@@ -15,7 +15,7 @@
 
   .sidebar-container {
     transition: width 0.28s;
-    width: vars.$base-sidebar-width !important;
+    width: var(--sidebar-width, 200px) !important;
     height: 100%;
     position: fixed;
     font-size: 0px;

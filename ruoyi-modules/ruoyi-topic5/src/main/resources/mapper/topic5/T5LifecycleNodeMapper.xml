@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.topic5.mapper.T5LifecycleNodeMapper">
+    
+    <resultMap type="T5LifecycleNode" id="T5LifecycleNodeResult">
+        <result property="nodeId"    column="node_id"    />
+        <result property="graphId"    column="graph_id"    />
+        <result property="nodeCode"    column="node_code"    />
+        <result property="nodeName"    column="node_name"    />
+        <result property="nodeType"    column="node_type"    />
+        <result property="lifecycleStage"    column="lifecycle_stage"    />
+        <result property="sourceRecordId"    column="source_record_id"    />
+        <result property="sourceTable"    column="source_table"    />
+        <result property="abnormalFlag"    column="abnormal_flag"    />
+        <result property="nodeWeight"    column="node_weight"    />
+        <result property="riskScore"    column="risk_score"    />
+        <result property="nodeProperties"    column="node_properties"    />
+        <result property="displayCategory"    column="display_category"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectT5LifecycleNodeVo">
+        select node_id, graph_id, node_code, node_name, node_type, lifecycle_stage, source_record_id, source_table, abnormal_flag, node_weight, risk_score, node_properties, display_category, create_by, create_time, update_by, update_time, remark from t5_lifecycle_node
+    </sql>
+
+    <select id="selectT5LifecycleNodeList" parameterType="T5LifecycleNode" resultMap="T5LifecycleNodeResult">
+        <include refid="selectT5LifecycleNodeVo"/>
+        <where>  
+            <if test="graphId != null "> and graph_id = #{graphId}</if>
+            <if test="nodeCode != null  and nodeCode != ''"> and node_code = #{nodeCode}</if>
+            <if test="nodeName != null  and nodeName != ''"> and node_name like concat('%', #{nodeName}, '%')</if>
+            <if test="nodeType != null  and nodeType != ''"> and node_type = #{nodeType}</if>
+            <if test="lifecycleStage != null  and lifecycleStage != ''"> and lifecycle_stage = #{lifecycleStage}</if>
+            <if test="sourceRecordId != null "> and source_record_id = #{sourceRecordId}</if>
+            <if test="sourceTable != null  and sourceTable != ''"> and source_table = #{sourceTable}</if>
+            <if test="abnormalFlag != null  and abnormalFlag != ''"> and abnormal_flag = #{abnormalFlag}</if>
+            <if test="nodeWeight != null "> and node_weight = #{nodeWeight}</if>
+            <if test="riskScore != null "> and risk_score = #{riskScore}</if>
+            <if test="nodeProperties != null  and nodeProperties != ''"> and node_properties = #{nodeProperties}</if>
+            <if test="displayCategory != null  and displayCategory != ''"> and display_category = #{displayCategory}</if>
+        </where>
+    </select>
+    
+    <select id="selectT5LifecycleNodeByNodeId" parameterType="Long" resultMap="T5LifecycleNodeResult">
+        <include refid="selectT5LifecycleNodeVo"/>
+        where node_id = #{nodeId}
+    </select>
+
+    <insert id="insertT5LifecycleNode" parameterType="T5LifecycleNode" useGeneratedKeys="true" keyProperty="nodeId">
+        insert into t5_lifecycle_node
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="graphId != null">graph_id,</if>
+            <if test="nodeCode != null and nodeCode != ''">node_code,</if>
+            <if test="nodeName != null and nodeName != ''">node_name,</if>
+            <if test="nodeType != null">node_type,</if>
+            <if test="lifecycleStage != null">lifecycle_stage,</if>
+            <if test="sourceRecordId != null">source_record_id,</if>
+            <if test="sourceTable != null">source_table,</if>
+            <if test="abnormalFlag != null">abnormal_flag,</if>
+            <if test="nodeWeight != null">node_weight,</if>
+            <if test="riskScore != null">risk_score,</if>
+            <if test="nodeProperties != null">node_properties,</if>
+            <if test="displayCategory != null">display_category,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="graphId != null">#{graphId},</if>
+            <if test="nodeCode != null and nodeCode != ''">#{nodeCode},</if>
+            <if test="nodeName != null and nodeName != ''">#{nodeName},</if>
+            <if test="nodeType != null">#{nodeType},</if>
+            <if test="lifecycleStage != null">#{lifecycleStage},</if>
+            <if test="sourceRecordId != null">#{sourceRecordId},</if>
+            <if test="sourceTable != null">#{sourceTable},</if>
+            <if test="abnormalFlag != null">#{abnormalFlag},</if>
+            <if test="nodeWeight != null">#{nodeWeight},</if>
+            <if test="riskScore != null">#{riskScore},</if>
+            <if test="nodeProperties != null">#{nodeProperties},</if>
+            <if test="displayCategory != null">#{displayCategory},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateT5LifecycleNode" parameterType="T5LifecycleNode">
+        update t5_lifecycle_node
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="graphId != null">graph_id = #{graphId},</if>
+            <if test="nodeCode != null and nodeCode != ''">node_code = #{nodeCode},</if>
+            <if test="nodeName != null and nodeName != ''">node_name = #{nodeName},</if>
+            <if test="nodeType != null">node_type = #{nodeType},</if>
+            <if test="lifecycleStage != null">lifecycle_stage = #{lifecycleStage},</if>
+            <if test="sourceRecordId != null">source_record_id = #{sourceRecordId},</if>
+            <if test="sourceTable != null">source_table = #{sourceTable},</if>
+            <if test="abnormalFlag != null">abnormal_flag = #{abnormalFlag},</if>
+            <if test="nodeWeight != null">node_weight = #{nodeWeight},</if>
+            <if test="riskScore != null">risk_score = #{riskScore},</if>
+            <if test="nodeProperties != null">node_properties = #{nodeProperties},</if>
+            <if test="displayCategory != null">display_category = #{displayCategory},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where node_id = #{nodeId}
+    </update>
+
+    <delete id="deleteT5LifecycleNodeByNodeId" parameterType="Long">
+        delete from t5_lifecycle_node where node_id = #{nodeId}
+    </delete>
+
+    <delete id="deleteT5LifecycleNodeByNodeIds" parameterType="String">
+        delete from t5_lifecycle_node where node_id in 
+        <foreach item="nodeId" collection="array" open="(" separator="," close=")">
+            #{nodeId}
+        </foreach>
+    </delete>
+</mapper>

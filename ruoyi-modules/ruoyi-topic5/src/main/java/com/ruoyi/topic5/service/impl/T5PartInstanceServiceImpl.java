@@ -9,10 +9,10 @@ import com.ruoyi.topic5.domain.T5PartInstance;
 import com.ruoyi.topic5.service.IT5PartInstanceService;
 
 /**
- * 课题五-零部件实例Service业务层处理
+ * 追溯案例Service业务层处理
  * 
  * @author ruoyi
- * @date 2026-05-30
+ * @date 2026-05-31
  */
 @Service
 public class T5PartInstanceServiceImpl implements IT5PartInstanceService 
@@ -21,10 +21,10 @@ public class T5PartInstanceServiceImpl implements IT5PartInstanceService
     private T5PartInstanceMapper t5PartInstanceMapper;
 
     /**
-     * 查询课题五-零部件实例
+     * 查询追溯案例
      * 
-     * @param partId 课题五-零部件实例主键
-     * @return 课题五-零部件实例
+     * @param partId 追溯案例主键
+     * @return 追溯案例
      */
     @Override
     public T5PartInstance selectT5PartInstanceByPartId(Long partId)
@@ -33,10 +33,10 @@ public class T5PartInstanceServiceImpl implements IT5PartInstanceService
     }
 
     /**
-     * 查询课题五-零部件实例列表
+     * 查询追溯案例列表
      * 
-     * @param t5PartInstance 课题五-零部件实例
-     * @return 课题五-零部件实例
+     * @param t5PartInstance 追溯案例
+     * @return 追溯案例
      */
     @Override
     public List<T5PartInstance> selectT5PartInstanceList(T5PartInstance t5PartInstance)
@@ -45,9 +45,9 @@ public class T5PartInstanceServiceImpl implements IT5PartInstanceService
     }
 
     /**
-     * 新增课题五-零部件实例
+     * 新增追溯案例
      * 
-     * @param t5PartInstance 课题五-零部件实例
+     * @param t5PartInstance 追溯案例
      * @return 结果
      */
     @Override
@@ -58,9 +58,9 @@ public class T5PartInstanceServiceImpl implements IT5PartInstanceService
     }
 
     /**
-     * 修改课题五-零部件实例
+     * 修改追溯案例
      * 
-     * @param t5PartInstance 课题五-零部件实例
+     * @param t5PartInstance 追溯案例
      * @return 结果
      */
     @Override
@@ -71,9 +71,9 @@ public class T5PartInstanceServiceImpl implements IT5PartInstanceService
     }
 
     /**
-     * 批量删除课题五-零部件实例
+     * 批量删除追溯案例
      * 
-     * @param partIds 需要删除的课题五-零部件实例主键
+     * @param partIds 需要删除的追溯案例主键
      * @return 结果
      */
     @Override
@@ -83,9 +83,9 @@ public class T5PartInstanceServiceImpl implements IT5PartInstanceService
     }
 
     /**
-     * 删除课题五-零部件实例信息
+     * 删除追溯案例信息
      * 
-     * @param partId 课题五-零部件实例主键
+     * @param partId 追溯案例主键
      * @return 结果
      */
     @Override

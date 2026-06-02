@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.topic5.mapper.T5LifecycleEdgeMapper">
+    
+    <resultMap type="T5LifecycleEdge" id="T5LifecycleEdgeResult">
+        <result property="edgeId"    column="edge_id"    />
+        <result property="graphId"    column="graph_id"    />
+        <result property="sourceNodeId"    column="source_node_id"    />
+        <result property="targetNodeId"    column="target_node_id"    />
+        <result property="relationCode"    column="relation_code"    />
+        <result property="relationName"    column="relation_name"    />
+        <result property="relationType"    column="relation_type"    />
+        <result property="edgeWeight"    column="edge_weight"    />
+        <result property="confidence"    column="confidence"    />
+        <result property="sourceRecordId"    column="source_record_id"    />
+        <result property="edgeProperties"    column="edge_properties"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectT5LifecycleEdgeVo">
+        select edge_id, graph_id, source_node_id, target_node_id, relation_code, relation_name, relation_type, edge_weight, confidence, source_record_id, edge_properties, create_by, create_time, update_by, update_time, remark from t5_lifecycle_edge
+    </sql>
+
+    <select id="selectT5LifecycleEdgeList" parameterType="T5LifecycleEdge" resultMap="T5LifecycleEdgeResult">
+        <include refid="selectT5LifecycleEdgeVo"/>
+        <where>  
+            <if test="graphId != null "> and graph_id = #{graphId}</if>
+            <if test="sourceNodeId != null "> and source_node_id = #{sourceNodeId}</if>
+            <if test="targetNodeId != null "> and target_node_id = #{targetNodeId}</if>
+            <if test="relationCode != null  and relationCode != ''"> and relation_code = #{relationCode}</if>
+            <if test="relationName != null  and relationName != ''"> and relation_name like concat('%', #{relationName}, '%')</if>
+            <if test="relationType != null  and relationType != ''"> and relation_type = #{relationType}</if>
+            <if test="edgeWeight != null "> and edge_weight = #{edgeWeight}</if>
+            <if test="confidence != null "> and confidence = #{confidence}</if>
+            <if test="sourceRecordId != null "> and source_record_id = #{sourceRecordId}</if>
+            <if test="edgeProperties != null  and edgeProperties != ''"> and edge_properties = #{edgeProperties}</if>
+        </where>
+    </select>
+    
+    <select id="selectT5LifecycleEdgeByEdgeId" parameterType="Long" resultMap="T5LifecycleEdgeResult">
+        <include refid="selectT5LifecycleEdgeVo"/>
+        where edge_id = #{edgeId}
+    </select>
+
+    <insert id="insertT5LifecycleEdge" parameterType="T5LifecycleEdge" useGeneratedKeys="true" keyProperty="edgeId">
+        insert into t5_lifecycle_edge
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="graphId != null">graph_id,</if>
+            <if test="sourceNodeId != null">source_node_id,</if>
+            <if test="targetNodeId != null">target_node_id,</if>
+            <if test="relationCode != null">relation_code,</if>
+            <if test="relationName != null">relation_name,</if>
+            <if test="relationType != null">relation_type,</if>
+            <if test="edgeWeight != null">edge_weight,</if>
+            <if test="confidence != null">confidence,</if>
+            <if test="sourceRecordId != null">source_record_id,</if>
+            <if test="edgeProperties != null">edge_properties,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="graphId != null">#{graphId},</if>
+            <if test="sourceNodeId != null">#{sourceNodeId},</if>
+            <if test="targetNodeId != null">#{targetNodeId},</if>
+            <if test="relationCode != null">#{relationCode},</if>
+            <if test="relationName != null">#{relationName},</if>
+            <if test="relationType != null">#{relationType},</if>
+            <if test="edgeWeight != null">#{edgeWeight},</if>
+            <if test="confidence != null">#{confidence},</if>
+            <if test="sourceRecordId != null">#{sourceRecordId},</if>
+            <if test="edgeProperties != null">#{edgeProperties},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateT5LifecycleEdge" parameterType="T5LifecycleEdge">
+        update t5_lifecycle_edge
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="graphId != null">graph_id = #{graphId},</if>
+            <if test="sourceNodeId != null">source_node_id = #{sourceNodeId},</if>
+            <if test="targetNodeId != null">target_node_id = #{targetNodeId},</if>
+            <if test="relationCode != null">relation_code = #{relationCode},</if>
+            <if test="relationName != null">relation_name = #{relationName},</if>
+            <if test="relationType != null">relation_type = #{relationType},</if>
+            <if test="edgeWeight != null">edge_weight = #{edgeWeight},</if>
+            <if test="confidence != null">confidence = #{confidence},</if>
+            <if test="sourceRecordId != null">source_record_id = #{sourceRecordId},</if>
+            <if test="edgeProperties != null">edge_properties = #{edgeProperties},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where edge_id = #{edgeId}
+    </update>
+
+    <delete id="deleteT5LifecycleEdgeByEdgeId" parameterType="Long">
+        delete from t5_lifecycle_edge where edge_id = #{edgeId}
+    </delete>
+
+    <delete id="deleteT5LifecycleEdgeByEdgeIds" parameterType="String">
+        delete from t5_lifecycle_edge where edge_id in 
+        <foreach item="edgeId" collection="array" open="(" separator="," close=")">
+            #{edgeId}
+        </foreach>
+    </delete>
+</mapper>

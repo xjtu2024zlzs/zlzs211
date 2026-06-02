@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.topic5.mapper.T5DossierSampleRecordMapper">
+    
+    <resultMap type="T5DossierSampleRecord" id="T5DossierSampleRecordResult">
+        <result property="recordId"    column="record_id"    />
+        <result property="partId"    column="part_id"    />
+        <result property="partNo"    column="part_no"    />
+        <result property="partName"    column="part_name"    />
+        <result property="dossierId"    column="dossier_id"    />
+        <result property="lifecycleStage"    column="lifecycle_stage"    />
+        <result property="stageOrder"    column="stage_order"    />
+        <result property="recordType"    column="record_type"    />
+        <result property="recordName"    column="record_name"    />
+        <result property="recordDesc"    column="record_desc"    />
+        <result property="recordTime"    column="record_time"    />
+        <result property="objectId"    column="object_id"    />
+        <result property="objectName"    column="object_name"    />
+        <result property="parameterName"    column="parameter_name"    />
+        <result property="parameterValue"    column="parameter_value"    />
+        <result property="standardValue"    column="standard_value"    />
+        <result property="resultStatus"    column="result_status"    />
+        <result property="riskLevel"    column="risk_level"    />
+        <result property="sourceSystem"    column="source_system"    />
+        <result property="sourceTable"    column="source_table"    />
+        <result property="sourceRecordNo"    column="source_record_no"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectT5DossierSampleRecordVo">
+        select record_id, part_id, part_no, part_name, dossier_id, lifecycle_stage, stage_order, record_type, record_name, record_desc, record_time, object_id, object_name, parameter_name, parameter_value, standard_value, result_status, risk_level, source_system, source_table, source_record_no, create_by, create_time, update_by, update_time, remark from t5_dossier_sample_record
+    </sql>
+
+    <select id="selectT5DossierSampleRecordList" parameterType="T5DossierSampleRecord" resultMap="T5DossierSampleRecordResult">
+        <include refid="selectT5DossierSampleRecordVo"/>
+        <where>  
+            <if test="partId != null "> and part_id = #{partId}</if>
+            <if test="partNo != null  and partNo != ''"> and part_no = #{partNo}</if>
+            <if test="partName != null  and partName != ''"> and part_name like concat('%', #{partName}, '%')</if>
+            <if test="dossierId != null  and dossierId != ''"> and dossier_id = #{dossierId}</if>
+            <if test="lifecycleStage != null  and lifecycleStage != ''"> and lifecycle_stage = #{lifecycleStage}</if>
+            <if test="stageOrder != null "> and stage_order = #{stageOrder}</if>
+            <if test="recordType != null  and recordType != ''"> and record_type = #{recordType}</if>
+            <if test="recordName != null  and recordName != ''"> and record_name like concat('%', #{recordName}, '%')</if>
+            <if test="recordDesc != null  and recordDesc != ''"> and record_desc = #{recordDesc}</if>
+            <if test="recordTime != null "> and record_time = #{recordTime}</if>
+            <if test="objectId != null  and objectId != ''"> and object_id = #{objectId}</if>
+            <if test="objectName != null  and objectName != ''"> and object_name like concat('%', #{objectName}, '%')</if>
+            <if test="parameterName != null  and parameterName != ''"> and parameter_name like concat('%', #{parameterName}, '%')</if>
+            <if test="parameterValue != null  and parameterValue != ''"> and parameter_value = #{parameterValue}</if>
+            <if test="standardValue != null  and standardValue != ''"> and standard_value = #{standardValue}</if>
+            <if test="resultStatus != null  and resultStatus != ''"> and result_status = #{resultStatus}</if>
+            <if test="riskLevel != null  and riskLevel != ''"> and risk_level = #{riskLevel}</if>
+            <if test="sourceSystem != null  and sourceSystem != ''"> and source_system = #{sourceSystem}</if>
+            <if test="sourceTable != null  and sourceTable != ''"> and source_table = #{sourceTable}</if>
+            <if test="sourceRecordNo != null  and sourceRecordNo != ''"> and source_record_no = #{sourceRecordNo}</if>
+        </where>
+    </select>
+    
+    <select id="selectT5DossierSampleRecordByRecordId" parameterType="Long" resultMap="T5DossierSampleRecordResult">
+        <include refid="selectT5DossierSampleRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <insert id="insertT5DossierSampleRecord" parameterType="T5DossierSampleRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into t5_dossier_sample_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="partId != null">part_id,</if>
+            <if test="partNo != null">part_no,</if>
+            <if test="partName != null">part_name,</if>
+            <if test="dossierId != null">dossier_id,</if>
+            <if test="lifecycleStage != null and lifecycleStage != ''">lifecycle_stage,</if>
+            <if test="stageOrder != null">stage_order,</if>
+            <if test="recordType != null">record_type,</if>
+            <if test="recordName != null">record_name,</if>
+            <if test="recordDesc != null">record_desc,</if>
+            <if test="recordTime != null">record_time,</if>
+            <if test="objectId != null">object_id,</if>
+            <if test="objectName != null">object_name,</if>
+            <if test="parameterName != null">parameter_name,</if>
+            <if test="parameterValue != null">parameter_value,</if>
+            <if test="standardValue != null">standard_value,</if>
+            <if test="resultStatus != null">result_status,</if>
+            <if test="riskLevel != null">risk_level,</if>
+            <if test="sourceSystem != null">source_system,</if>
+            <if test="sourceTable != null">source_table,</if>
+            <if test="sourceRecordNo != null">source_record_no,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="partId != null">#{partId},</if>
+            <if test="partNo != null">#{partNo},</if>
+            <if test="partName != null">#{partName},</if>
+            <if test="dossierId != null">#{dossierId},</if>
+            <if test="lifecycleStage != null and lifecycleStage != ''">#{lifecycleStage},</if>
+            <if test="stageOrder != null">#{stageOrder},</if>
+            <if test="recordType != null">#{recordType},</if>
+            <if test="recordName != null">#{recordName},</if>
+            <if test="recordDesc != null">#{recordDesc},</if>
+            <if test="recordTime != null">#{recordTime},</if>
+            <if test="objectId != null">#{objectId},</if>
+            <if test="objectName != null">#{objectName},</if>
+            <if test="parameterName != null">#{parameterName},</if>
+            <if test="parameterValue != null">#{parameterValue},</if>
+            <if test="standardValue != null">#{standardValue},</if>
+            <if test="resultStatus != null">#{resultStatus},</if>
+            <if test="riskLevel != null">#{riskLevel},</if>
+            <if test="sourceSystem != null">#{sourceSystem},</if>
+            <if test="sourceTable != null">#{sourceTable},</if>
+            <if test="sourceRecordNo != null">#{sourceRecordNo},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateT5DossierSampleRecord" parameterType="T5DossierSampleRecord">
+        update t5_dossier_sample_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="partId != null">part_id = #{partId},</if>
+            <if test="partNo != null">part_no = #{partNo},</if>
+            <if test="partName != null">part_name = #{partName},</if>
+            <if test="dossierId != null">dossier_id = #{dossierId},</if>
+            <if test="lifecycleStage != null and lifecycleStage != ''">lifecycle_stage = #{lifecycleStage},</if>
+            <if test="stageOrder != null">stage_order = #{stageOrder},</if>
+            <if test="recordType != null">record_type = #{recordType},</if>
+            <if test="recordName != null">record_name = #{recordName},</if>
+            <if test="recordDesc != null">record_desc = #{recordDesc},</if>
+            <if test="recordTime != null">record_time = #{recordTime},</if>
+            <if test="objectId != null">object_id = #{objectId},</if>
+            <if test="objectName != null">object_name = #{objectName},</if>
+            <if test="parameterName != null">parameter_name = #{parameterName},</if>
+            <if test="parameterValue != null">parameter_value = #{parameterValue},</if>
+            <if test="standardValue != null">standard_value = #{standardValue},</if>
+            <if test="resultStatus != null">result_status = #{resultStatus},</if>
+            <if test="riskLevel != null">risk_level = #{riskLevel},</if>
+            <if test="sourceSystem != null">source_system = #{sourceSystem},</if>
+            <if test="sourceTable != null">source_table = #{sourceTable},</if>
+            <if test="sourceRecordNo != null">source_record_no = #{sourceRecordNo},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteT5DossierSampleRecordByRecordId" parameterType="Long">
+        delete from t5_dossier_sample_record where record_id = #{recordId}
+    </delete>
+
+    <delete id="deleteT5DossierSampleRecordByRecordIds" parameterType="String">
+        delete from t5_dossier_sample_record where record_id in 
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+</mapper>

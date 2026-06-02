@@ -7,7 +7,8 @@ const useAppStore = defineStore(
       sidebar: {
         opened: Cookies.get('sidebarStatus') ? !!+Cookies.get('sidebarStatus') : true,
         withoutAnimation: false,
-        hide: false
+        hide: false,
+        width: parseInt(Cookies.get('sidebarWidth')) || 200
       },
       device: 'desktop',
       size: Cookies.get('size') || 'default'
@@ -39,6 +40,10 @@ const useAppStore = defineStore(
       },
       toggleSideBarHide(status) {
         this.sidebar.hide = status
+      },
+      setSidebarWidth(width) {
+        this.sidebar.width = width
+        Cookies.set('sidebarWidth', width)
       }
     }
   })
