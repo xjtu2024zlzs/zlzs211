@@ -3,6 +3,7 @@ package com.ruoyi.project3.controller;
 import com.ruoyi.common.core.web.domain.AjaxResult;
 import com.ruoyi.common.core.utils.file.FileUtils;
 import com.ruoyi.project3.service.MonitorService;
+import com.ruoyi.project3.util.ApiImportFileFetcher;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -59,6 +60,16 @@ public class MonitorController {
         return AjaxResult.success();
     }
 
+    @PutMapping("/module/{node_id}/name")
+    public AjaxResult updateModuleName(@PathVariable("node_id") String nodeId, @RequestBody Map<String, Object> payload) {
+        String moduleName = getString(payload, "module_name");
+        if (moduleName == null) {
+            moduleName = getString(payload, "object_name");
+        }
+        monitorService.updateModuleName(nodeId, moduleName);
+        return AjaxResult.success();
+    }
+
     @PostMapping("/parts")
     public AjaxResult createPartInstance(@RequestBody Map<String, Object> payload) {
         return AjaxResult.success(monitorService.createPartInstance(
@@ -88,6 +99,23 @@ public class MonitorController {
         ));
     }
 
+    @GetMapping("/part-template/{part_template_id}")
+    public AjaxResult getPartTemplate(@PathVariable("part_template_id") String partTemplateId) {
+        return AjaxResult.success(monitorService.getPartTemplate(partTemplateId));
+    }
+
+    @PutMapping("/part-template/{part_template_id}")
+    public AjaxResult updatePartTemplate(@PathVariable("part_template_id") String partTemplateId, @RequestBody Map<String, Object> payload) {
+        monitorService.updatePartTemplate(
+                partTemplateId,
+                getString(payload, "part_number"),
+                getString(payload, "part_name"),
+                getString(payload, "material"),
+                getString(payload, "specification")
+        );
+        return AjaxResult.success();
+    }
+
     @DeleteMapping("/parts/{part_instance_id}")
     public AjaxResult deletePartInstance(@PathVariable("part_instance_id") String partInstanceId) {
         monitorService.deletePartInstance(partInstanceId);
@@ -111,20 +139,37 @@ public class MonitorController {
 
     @PostMapping("/text/process/import")
     public AjaxResult importProcessText(
-            @RequestParam("componentId") String componentId,
-            @RequestParam("file") MultipartFile file
+            @RequestParam(value = "componentId", required = false) String componentId,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "taskType", required = false) String taskType
     ) {
-        return AjaxResult.success("导入完成", monitorService.importProcessText(componentId, file));
+        return AjaxResult.success("导入完成", monitorService.importProcessText(componentId, file, taskType));
+    }
+
+    @PostMapping("/text/api/import")
+    public AjaxResult importTextApi(@RequestBody(required = false) Map<String, Object> payload) {
+        String taskType = getString(payload, "taskType");
+        MultipartFile file = ApiImportFileFetcher.fetch(payload, defaultApiTextFileName(taskType));
+        if ("hierarchy".equals(taskType)) {
+            return AjaxResult.success("导入完成", monitorService.importHierarchy(file));
+        }
+        return AjaxResult.success("导入完成", monitorService.importProcessText(
+                getString(payload, "componentId"),
+                file,
+                taskType
+        ));
     }
 
     @GetMapping("/text/process/template")
-    public void downloadProcessTemplate(HttpServletResponse response) throws Exception {
+    public void downloadProcessTemplate(
+            HttpServletResponse response,
+            @RequestParam(value = "taskType", required = false) String taskType
+    ) throws Exception {
         String fileName = "零件工序导入模板.xlsx";
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
         FileUtils.setAttachmentResponseHeader(response, fileName);
-        monitorService.writeProcessTemplate(response.getOutputStream());
+        monitorService.writeProcessTemplate(response.getOutputStream(), taskType);
     }
-
     @PostMapping("/text/hierarchy/import")
     public AjaxResult importHierarchy(@RequestParam("file") MultipartFile file) {
         return AjaxResult.success("导入完成", monitorService.importHierarchy(file));
@@ -141,6 +186,16 @@ public class MonitorController {
     private String getString(Map<String, Object> payload, String field) {
         Object value = payload == null ? null : payload.get(field);
         return value == null ? null : String.valueOf(value);
+    }
+
+    private String defaultApiTextFileName(String taskType) {
+        if ("hierarchy".equals(taskType)) {
+            return "api_hierarchy.xlsx";
+        }
+        if ("PART_ACTUAL_MANUFACTURING_PROCESS".equals(taskType)) {
+            return "api_actual_process.xlsx";
+        }
+        return "api_part_process.xlsx";
     }
 }
 

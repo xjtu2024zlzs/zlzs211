@@ -25,5 +25,4 @@ spring:
         password: nacos
   config:
     import:
-      - nacos:application-dev.yml?group=DEFAULT_GROUP
       - nacos:project3-dev.yml?group=DEFAULT_GROUP

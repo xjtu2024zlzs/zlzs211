@@ -99,6 +99,12 @@ public class FaultIdenCatalogController
         ));
     }
 
+    @PostMapping("/catalog/upload-numeric-api")
+    public AjaxResult uploadNumericApi(@RequestBody(required = false) Map<String, Object> req)
+    {
+        return AjaxResult.success("API瀵煎叆瀹屾垚", faultIdenCatalogService.uploadNumericApi(req));
+    }
+
     @PostMapping("/catalog/upload-numeric-chunk")
     public AjaxResult uploadNumericChunk(
             @RequestParam("uploadId") String uploadId,

@@ -7,6 +7,7 @@ import com.ruoyi.project3.domain.PageRows;
 import com.ruoyi.project3.mapper.MonitorMapper;
 import com.ruoyi.project3.service.MonitorService;
 import com.ruoyi.project3.util.HierarchyTemplateGenerator;
+import com.ruoyi.project3.util.PartActualManufacturingProcessTemplateGenerator;
 import com.ruoyi.project3.util.PartProcessTemplateGenerator;
 import jakarta.annotation.Resource;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -30,6 +31,8 @@ import java.util.function.Function;
 
 @Service
 public class MonitorServiceImpl implements MonitorService {
+
+    private static final String TASK_PART_ACTUAL_MANUFACTURING_PROCESS = "PART_ACTUAL_MANUFACTURING_PROCESS";
 
     @Resource
     private MonitorMapper monitorMapper;
@@ -202,6 +205,36 @@ public class MonitorServiceImpl implements MonitorService {
     }
 
     @Override
+    public void updateModuleName(String nodeId, String moduleName) {
+        ParsedNode node = prs_node_id(nodeId);
+        if (node == null) throw new ServiceException("节点不合法");
+        if (moduleName == null || moduleName.trim().isEmpty()) throw new ServiceException("对象名称不能为空");
+
+        String cleanName = moduleName.trim();
+        int rows;
+        switch (node.type) {
+            case "aircraft":
+                rows = monitorMapper.upd_aircraft_name(node.raw_id, cleanName);
+                break;
+            case "subsystem":
+                rows = monitorMapper.upd_subsystem_name(node.raw_id, cleanName);
+                break;
+            case "equipment":
+                rows = monitorMapper.upd_equipment_name(node.raw_id, cleanName);
+                break;
+            case "component":
+                rows = monitorMapper.upd_component_name(node.raw_id, cleanName);
+                break;
+            case "part_template":
+                rows = monitorMapper.upd_part_tpl_name(node.raw_id, cleanName);
+                break;
+            default:
+                throw new ServiceException("不支持修改该对象名称");
+        }
+        if (rows <= 0) throw new ServiceException("对象不存在或未更新");
+    }
+
+    @Override
     public Map<String, Object> createPartInstance(
             String moduleId,
             String partCode,
@@ -285,6 +318,41 @@ public class MonitorServiceImpl implements MonitorService {
     }
 
     @Override
+    public Map<String, Object> getPartTemplate(String partTemplateId) {
+        if (partTemplateId == null || partTemplateId.trim().isEmpty()) {
+            throw new ServiceException("零件模板ID不能为空");
+        }
+        Map<String, Object> template = monitorMapper.sel_part_tpl_basic(partTemplateId.trim());
+        if (template == null || template.isEmpty()) {
+            throw new ServiceException("零件模板不存在");
+        }
+        return template;
+    }
+
+    @Override
+    public void updatePartTemplate(String partTemplateId, String partNumber, String partName, String material, String specModel) {
+        if (partTemplateId == null || partTemplateId.trim().isEmpty()) {
+            throw new ServiceException("零件模板ID不能为空");
+        }
+        if (partNumber == null || partNumber.trim().isEmpty()) {
+            throw new ServiceException("零件编号不能为空");
+        }
+        if (partName == null || partName.trim().isEmpty()) {
+            throw new ServiceException("零件名称不能为空");
+        }
+        int rows = monitorMapper.upd_part_tpl_basic(
+                partTemplateId.trim(),
+                partNumber.trim(),
+                partName.trim(),
+                trm_to_nil(material),
+                trm_to_nil(specModel)
+        );
+        if (rows <= 0) {
+            throw new ServiceException("零件模板不存在或未更新");
+        }
+    }
+
+    @Override
     public void deletePartInstance(String partInstanceId) {
         if (partInstanceId == null || partInstanceId.trim().isEmpty()) {
             throw new ServiceException("零件实例ID不能为空");
@@ -332,9 +400,14 @@ public class MonitorServiceImpl implements MonitorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> importProcessText(String componentId, MultipartFile file) {
-        String component = raw_component_id(componentId);
-        if (component == null) {
-            throw new ServiceException("请选择组件作为导入对象");
+        return importProcessText(componentId, file, null);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> importProcessText(String componentId, MultipartFile file, String taskType) {
+        if (TASK_PART_ACTUAL_MANUFACTURING_PROCESS.equals(taskType)) {
+            return import_actual_process_text(file);
         }
         if (file == null || file.isEmpty()) {
             throw new ServiceException("导入文件不能为空");
@@ -342,6 +415,24 @@ public class MonitorServiceImpl implements MonitorService {
         String fileName = file.getOriginalFilename();
         if (fileName == null || !(fileName.toLowerCase(Locale.ROOT).endsWith(".xlsx") || fileName.toLowerCase(Locale.ROOT).endsWith(".xls"))) {
             throw new ServiceException("请导入 Excel 文件");
+        }
+
+        ProcessImportData processData = parse_process_template_workbook(file);
+        if (processData != null) {
+            int routeCount = upsert_rows(processData.routeRows, monitorMapper::upsert_process_route);
+            int processCount = upsert_rows(processData.processRows, monitorMapper::upsert_process_def);
+
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("component_id", "");
+            payload.put("part_count", processData.partIds.size());
+            payload.put("route_count", routeCount);
+            payload.put("process_count", processCount);
+            return payload;
+        }
+
+        String component = raw_component_id(componentId);
+        if (component == null) {
+            throw new ServiceException("旧版零件工序导入格式需要选择组件作为导入对象，请使用零件标准制作过程导入模板或选择组件后再导入");
         }
         Map<String, Object> componentRow = monitorMapper.sel_component_basic(component);
         if (componentRow == null || componentRow.isEmpty()) {
@@ -409,7 +500,290 @@ public class MonitorServiceImpl implements MonitorService {
 
     @Override
     public void writeProcessTemplate(OutputStream outputStream) throws IOException {
-        new PartProcessTemplateGenerator().write(outputStream);
+        writeProcessTemplate(outputStream, null);
+    }
+
+    @Override
+    public void writeProcessTemplate(OutputStream outputStream, String taskType) throws IOException {
+        if (TASK_PART_ACTUAL_MANUFACTURING_PROCESS.equals(taskType)) {
+            new PartActualManufacturingProcessTemplateGenerator().write(
+                    outputStream,
+                    monitorMapper.sel_all_part_template_ids(),
+                    monitorMapper.sel_all_process_route_ids(),
+                    monitorMapper.sel_all_process_def_ids()
+            );
+            return;
+        }
+        new PartProcessTemplateGenerator().write(outputStream, monitorMapper.sel_all_part_tpl());
+    }
+
+    private Map<String, Object> import_actual_process_text(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ServiceException("导入文件不能为空");
+        }
+        String fileName = file.getOriginalFilename();
+        if (fileName == null || !fileName.toLowerCase(Locale.ROOT).endsWith(".xlsx")) {
+            throw new ServiceException("请选择 .xlsx Excel 文件");
+        }
+
+        ActualProcessImportData data = parse_actual_process_workbook(file);
+        validate_actual_process_data(data);
+
+        int partInstanceCount = upsert_rows(data.partInstanceRows, monitorMapper::upsert_part_instance);
+        int workOrderCount = upsert_rows(data.workOrderRows, monitorMapper::upsert_work_order);
+        int processExecutionCount = upsert_rows(data.processExecutionRows, monitorMapper::upsert_process_execution);
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("part_instance_count", partInstanceCount);
+        payload.put("work_order_count", workOrderCount);
+        payload.put("process_execution_count", processExecutionCount);
+        return payload;
+    }
+
+    private ActualProcessImportData parse_actual_process_workbook(MultipartFile file) {
+        ActualProcessImportData data = new ActualProcessImportData();
+        DataFormatter formatter = new DataFormatter();
+        try (InputStream inputStream = file.getInputStream(); Workbook workbook = WorkbookFactory.create(inputStream)) {
+            data.partInstanceRows.addAll(parse_actual_sheet(
+                    workbook, formatter, "零件实例",
+                    new String[]{"part_instance_id", "part_template_id", "serial_number"},
+                    new String[]{"part_instance_id", "part_template_id", "serial_number", "batch_number", "manufacturer", "production_date", "current_status", "quality_level", "key_degree", "image_url"},
+                    actual_part_instance_labels()));
+            data.workOrderRows.addAll(parse_actual_sheet(
+                    workbook, formatter, "生产工单",
+                    new String[]{"work_order_id", "part_instance_id", "route_id"},
+                    new String[]{"work_order_id", "part_instance_id", "route_id", "manufacturing_quality_id", "production_line", "start_time", "end_time", "operator", "status"},
+                    actual_work_order_labels()));
+            data.processExecutionRows.addAll(parse_actual_sheet(
+                    workbook, formatter, "工序执行记录",
+                    new String[]{"process_exec_id", "work_order_id", "process_def_id"},
+                    new String[]{"process_exec_id", "work_order_id", "process_def_id", "device_id", "start_time", "end_time", "operator", "status", "remark"},
+                    actual_process_execution_labels()));
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("解析零件实际制作过程Excel失败：" + e.getMessage());
+        }
+        return data;
+    }
+
+    private List<Map<String, Object>> parse_actual_sheet(Workbook workbook, DataFormatter formatter, String sheetName,
+                                                         String[] requiredFields, String[] fields,
+                                                         Map<String, String[]> fieldLabels) {
+        Sheet sheet = workbook.getSheet(sheetName);
+        if (sheet == null) throw new ServiceException("缺少Sheet：" + sheetName);
+        Row headerRow = sheet.getRow(0);
+        if (headerRow == null) throw new ServiceException("Sheet " + sheetName + " 缺少中文表头");
+
+        Map<String, Integer> header = new LinkedHashMap<>();
+        for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+            String label = normalize_actual_header(formatter.formatCellValue(headerRow.getCell(i)));
+            if (label != null) header.put(label, i);
+        }
+
+        Map<String, Integer> columns = new LinkedHashMap<>();
+        for (String field : fields) {
+            for (String label : fieldLabels.get(field)) {
+                Integer column = header.get(normalize_actual_header(label));
+                if (column != null) {
+                    columns.put(field, column);
+                    break;
+                }
+            }
+        }
+        for (String field : fields) {
+            if (!columns.containsKey(field)) {
+                throw new ServiceException("Sheet " + sheetName + " 缺少字段列：" + actual_field_label(fieldLabels, field));
+            }
+        }
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Row row = sheet.getRow(i);
+            if (actual_row_empty(row, formatter, columns.values())) continue;
+            int rowNum = i + 1;
+            Map<String, Object> values = new LinkedHashMap<>();
+            for (String field : fields) {
+                values.put(field, trm_to_nil(formatter.formatCellValue(row.getCell(columns.get(field)))));
+            }
+            values.put("_row_num", rowNum);
+            for (String field : requiredFields) {
+                if (values.get(field) == null) {
+                    throw new ServiceException("Sheet " + sheetName + " 第" + rowNum + "行字段 " + actual_field_label(fieldLabels, field) + " 不能为空");
+                }
+            }
+            validate_actual_date(values, fieldLabels, sheetName, rowNum, "production_date", "yyyy-MM-dd");
+            validate_actual_date(values, fieldLabels, sheetName, rowNum, "start_time", "yyyy-MM-dd HH:mm:ss");
+            validate_actual_date(values, fieldLabels, sheetName, rowNum, "end_time", "yyyy-MM-dd HH:mm:ss");
+            rows.add(values);
+        }
+        return rows;
+    }
+
+    private boolean actual_row_empty(Row row, DataFormatter formatter, Collection<Integer> columns) {
+        if (row == null) return true;
+        for (Integer column : columns) {
+            if (trm_to_nil(formatter.formatCellValue(row.getCell(column))) != null) return false;
+        }
+        return true;
+    }
+
+    private void validate_actual_date(Map<String, Object> values, Map<String, String[]> fieldLabels, String sheetName, int rowNum, String field, String pattern) {
+        Object value = values.get(field);
+        if (value == null) return;
+        try {
+            SimpleDateFormat format = new SimpleDateFormat(pattern);
+            format.setLenient(false);
+            format.parse(String.valueOf(value));
+        } catch (Exception e) {
+            throw new ServiceException("Sheet " + sheetName + " 第" + rowNum + "行字段 " + actual_field_label(fieldLabels, field) + " 格式应为 " + pattern);
+        }
+    }
+
+    private Map<String, String[]> actual_part_instance_labels() {
+        Map<String, String[]> labels = new LinkedHashMap<>();
+        labels.put("part_instance_id", new String[]{"零件实例ID", "part_instance_id"});
+        labels.put("part_template_id", new String[]{"零件模板ID", "part_template_id"});
+        labels.put("serial_number", new String[]{"零件序列号", "serial_number"});
+        labels.put("batch_number", new String[]{"批次号", "batch_number"});
+        labels.put("manufacturer", new String[]{"制造商", "manufacturer"});
+        labels.put("production_date", new String[]{"生产日期(yyyy-MM-dd)", "生产日期", "production_date"});
+        labels.put("current_status", new String[]{"当前状态", "current_status"});
+        labels.put("quality_level", new String[]{"质量等级", "quality_level"});
+        labels.put("key_degree", new String[]{"关键度", "key_degree"});
+        labels.put("image_url", new String[]{"零件图片地址", "image_url"});
+        return labels;
+    }
+
+    private Map<String, String[]> actual_work_order_labels() {
+        Map<String, String[]> labels = new LinkedHashMap<>();
+        labels.put("work_order_id", new String[]{"生产工单ID", "work_order_id"});
+        labels.put("part_instance_id", new String[]{"零件实例ID", "part_instance_id"});
+        labels.put("route_id", new String[]{"工艺路线ID", "route_id"});
+        labels.put("manufacturing_quality_id", new String[]{"制造质量记录ID", "manufacturing_quality_id"});
+        labels.put("production_line", new String[]{"生产线", "production_line"});
+        labels.put("start_time", new String[]{"工单开始时间(yyyy-MM-dd HH:mm:ss)", "工单开始时间", "start_time"});
+        labels.put("end_time", new String[]{"工单结束时间(yyyy-MM-dd HH:mm:ss)", "工单结束时间", "end_time"});
+        labels.put("operator", new String[]{"操作人员", "operator"});
+        labels.put("status", new String[]{"工单状态", "status"});
+        return labels;
+    }
+
+    private Map<String, String[]> actual_process_execution_labels() {
+        Map<String, String[]> labels = new LinkedHashMap<>();
+        labels.put("process_exec_id", new String[]{"工序执行记录ID", "process_exec_id"});
+        labels.put("work_order_id", new String[]{"生产工单ID", "work_order_id"});
+        labels.put("process_def_id", new String[]{"详细工序ID", "process_def_id"});
+        labels.put("device_id", new String[]{"制造设备ID", "device_id"});
+        labels.put("start_time", new String[]{"工序开始时间(yyyy-MM-dd HH:mm:ss)", "工序开始时间", "start_time"});
+        labels.put("end_time", new String[]{"工序结束时间(yyyy-MM-dd HH:mm:ss)", "工序结束时间", "end_time"});
+        labels.put("operator", new String[]{"操作人员", "operator"});
+        labels.put("status", new String[]{"工序执行状态", "status"});
+        labels.put("remark", new String[]{"备注", "remark"});
+        return labels;
+    }
+
+    private String normalize_actual_header(String value) {
+        String text = trm_to_nil(value);
+        if (text == null) return null;
+        return text.replace("*", "").replace("：", ":").trim();
+    }
+
+    private String actual_field_label(Map<String, String[]> fieldLabels, String field) {
+        String[] labels = fieldLabels.get(field);
+        return labels == null || labels.length == 0 ? field : labels[0];
+    }
+
+    private int actual_row_num(Map<String, Object> row, int defaultRowNum) {
+        Object rowNum = row.get("_row_num");
+        return rowNum instanceof Integer ? (Integer) rowNum : defaultRowNum;
+    }
+
+    private void validate_actual_process_data(ActualProcessImportData data) {
+        if (data.partInstanceRows.isEmpty() && data.workOrderRows.isEmpty() && data.processExecutionRows.isEmpty()) {
+            throw new ServiceException("Excel 中没有可导入的零件实际制作过程数据");
+        }
+
+        Map<String, String> excelPartTemplates = new LinkedHashMap<>();
+        Map<String, String> excelWorkOrderRoutes = new LinkedHashMap<>();
+        Set<String> partInstanceIds = new LinkedHashSet<>();
+        Set<String> workOrderIds = new LinkedHashSet<>();
+        Set<String> processExecIds = new LinkedHashSet<>();
+
+        for (int i = 0; i < data.partInstanceRows.size(); i++) {
+            Map<String, Object> row = data.partInstanceRows.get(i);
+            int rowNum = actual_row_num(row, i + 2);
+            String partInstanceId = get_str(row, "part_instance_id");
+            String partTemplateId = get_str(row, "part_template_id");
+            if (!partInstanceIds.add(partInstanceId)) {
+                throw new ServiceException("Sheet 零件实例 第" + rowNum + "行字段 零件实例ID 重复");
+            }
+            if (monitorMapper.count_part_tpl_by_id(partTemplateId) == 0) {
+                throw new ServiceException("Sheet 零件实例 第" + rowNum + "行字段 零件模板ID 不存在于 part_templates");
+            }
+            excelPartTemplates.put(partInstanceId, partTemplateId);
+        }
+
+        for (int i = 0; i < data.workOrderRows.size(); i++) {
+            Map<String, Object> row = data.workOrderRows.get(i);
+            int rowNum = actual_row_num(row, i + 2);
+            String workOrderId = get_str(row, "work_order_id");
+            String partInstanceId = get_str(row, "part_instance_id");
+            String routeId = get_str(row, "route_id");
+            String manufacturingQualityId = get_str(row, "manufacturing_quality_id");
+            if (!workOrderIds.add(workOrderId)) {
+                throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 生产工单ID 重复");
+            }
+            if (manufacturingQualityId != null && monitorMapper.count_manufacturing_quality_by_id(manufacturingQualityId) == 0) {
+                throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 制造质量记录ID 不存在于 manufacturing_quality");
+            }
+            String partTemplateId = excelPartTemplates.get(partInstanceId);
+            if (partTemplateId == null) {
+                Map<String, Object> dbPart = monitorMapper.sel_part_instance_ref(partInstanceId);
+                if (dbPart == null || dbPart.isEmpty()) {
+                    throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 零件实例ID 不存在于本次Excel或数据库 part_instances");
+                }
+                partTemplateId = get_str(dbPart, "part_template_id");
+            }
+            Map<String, Object> route = monitorMapper.sel_process_route_ref(routeId);
+            if (route == null || route.isEmpty()) {
+                throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 工艺路线ID 不存在于 process_routes");
+            }
+            if (!Objects.equals(partTemplateId, get_str(route, "part_template_id"))) {
+                throw new ServiceException("Sheet 生产工单 第" + rowNum + "行错误：工单使用了不属于该零件模板的工艺路线");
+            }
+            excelWorkOrderRoutes.put(workOrderId, routeId);
+        }
+
+        for (int i = 0; i < data.processExecutionRows.size(); i++) {
+            Map<String, Object> row = data.processExecutionRows.get(i);
+            int rowNum = actual_row_num(row, i + 2);
+            String processExecId = get_str(row, "process_exec_id");
+            String workOrderId = get_str(row, "work_order_id");
+            String processDefId = get_str(row, "process_def_id");
+            String deviceId = get_str(row, "device_id");
+            if (!processExecIds.add(processExecId)) {
+                throw new ServiceException("Sheet 工序执行记录 第" + rowNum + "行字段 工序执行记录ID 重复");
+            }
+            if (deviceId != null && monitorMapper.count_manufacturing_device_by_id(deviceId) == 0) {
+                throw new ServiceException("Sheet 工序执行记录 第" + rowNum + "行字段 制造设备ID 不存在于 manufacturing_devices");
+            }
+            String routeId = excelWorkOrderRoutes.get(workOrderId);
+            if (routeId == null) {
+                Map<String, Object> dbWorkOrder = monitorMapper.sel_work_order_ref(workOrderId);
+                if (dbWorkOrder == null || dbWorkOrder.isEmpty()) {
+                    throw new ServiceException("Sheet 工序执行记录 第" + rowNum + "行字段 生产工单ID 不存在于本次Excel或数据库 work_orders");
+                }
+                routeId = get_str(dbWorkOrder, "route_id");
+            }
+            Map<String, Object> processDef = monitorMapper.sel_process_def_ref(processDefId);
+            if (processDef == null || processDef.isEmpty()) {
+                throw new ServiceException("Sheet 工序执行记录 第" + rowNum + "行字段 详细工序ID 不存在于 process_definitions");
+            }
+            if (!Objects.equals(routeId, get_str(processDef, "route_id"))) {
+                throw new ServiceException("Sheet 工序执行记录 第" + rowNum + "行错误：工单执行了不属于该工艺路线的工序");
+            }
+        }
     }
 
     @Override
@@ -453,8 +827,8 @@ public class MonitorServiceImpl implements MonitorService {
         requiredColumns.put("subsystems", new String[]{"subsystem_id", "subsystem_name", "aircraft_id"});
         requiredColumns.put("equipments", new String[]{"equipment_id", "equipment_name", "subsystem_id"});
         requiredColumns.put("components", new String[]{"component_id", "component_name", "equipment_id"});
-        requiredColumns.put("part_templates", new String[]{"part_template_id", "part_number", "part_name", "component_id"});
-        requiredColumns.put("part_instances", new String[]{"part_instance_id", "part_template_id"});
+        requiredColumns.put("part_templates", new String[]{"part_template_id", "part_name", "component_id"});
+        requiredColumns.put("part_instances", new String[]{"part_instance_id", "part_template_id", "serial_number"});
 
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
         DataFormatter formatter = new DataFormatter();
@@ -483,11 +857,11 @@ public class MonitorServiceImpl implements MonitorService {
         Map<String, Integer> headerMap = new LinkedHashMap<>();
         for (int i = 0; i < headerRow.getLastCellNum(); i++) {
             String header = trm_to_nil(formatter.formatCellValue(headerRow.getCell(i)));
-            if (header != null) headerMap.put(header, i);
+            if (header != null) headerMap.put(hierarchy_column_key(header), i);
         }
         for (String column : requiredColumns) {
             if (!headerMap.containsKey(column)) {
-                throw new ServiceException("Sheet " + sheet.getSheetName() + " 缺少必填列：" + column);
+                throw new ServiceException("Sheet " + sheet.getSheetName() + " 缺少必填列：" + hierarchy_column_label(column));
             }
         }
 
@@ -501,7 +875,7 @@ public class MonitorServiceImpl implements MonitorService {
             }
             for (String column : requiredColumns) {
                 if (values.get(column) == null) {
-                    throw new ServiceException("Sheet " + sheet.getSheetName() + " 第" + (i + 1) + "行缺少必填字段：" + column);
+                    throw new ServiceException("Sheet " + sheet.getSheetName() + " 第" + (i + 1) + "行缺少必填字段：" + hierarchy_column_label(column));
                 }
             }
             if (values.containsKey("production_date") && values.get("production_date") != null) {
@@ -511,12 +885,24 @@ public class MonitorServiceImpl implements MonitorService {
         }
         return rows;
     }
-
     private boolean hierarchy_row_empty(Row row, DataFormatter formatter, Collection<Integer> indexes) {
         for (Integer index : indexes) {
             if (trm_to_nil(formatter.formatCellValue(row.getCell(index))) != null) return false;
         }
         return true;
+    }
+
+    private String hierarchy_column_key(String header) {
+        if (header == null) return null;
+        return HIERARCHY_COLUMN_MAP.getOrDefault(header, header);
+    }
+
+    private String hierarchy_column_label(String column) {
+        if (column == null) return "";
+        for (Map.Entry<String, String> entry : HIERARCHY_COLUMN_MAP.entrySet()) {
+            if (column.equals(entry.getValue())) return entry.getKey();
+        }
+        return column;
     }
 
     private String parse_date_text(String value, String sheetName, int rowNum, String fieldName) {
@@ -568,6 +954,176 @@ public class MonitorServiceImpl implements MonitorService {
         if (value == null) return null;
         String s = value.trim();
         return s.isEmpty() ? null : s;
+    }
+
+    private ProcessImportData parse_process_template_workbook(MultipartFile file) {
+        DataFormatter formatter = new DataFormatter();
+        try (InputStream inputStream = file.getInputStream(); Workbook workbook = WorkbookFactory.create(inputStream)) {
+            Sheet partSheet = workbook.getSheet("零件模板");
+            Sheet routeSheet = workbook.getSheet("工序路线");
+            Sheet processSheet = workbook.getSheet("详细工序");
+            if (partSheet == null && routeSheet == null && processSheet == null) {
+                return null;
+            }
+            if (partSheet == null) throw new ServiceException("缺少Sheet：零件模板");
+            if (routeSheet == null) throw new ServiceException("缺少Sheet：工序路线");
+            if (processSheet == null) throw new ServiceException("缺少Sheet：详细工序");
+
+            ProcessImportData data = new ProcessImportData();
+            data.partIds.addAll(parse_process_part_ids(partSheet, formatter));
+            data.routeRows.addAll(parse_process_routes(routeSheet, formatter, data.partIds));
+            Set<String> routeIds = new LinkedHashSet<>();
+            for (Map<String, Object> row : data.routeRows) {
+                String routeId = trm_to_nil(String.valueOf(row.get("route_id")));
+                if (routeId != null) routeIds.add(routeId);
+            }
+            data.processRows.addAll(parse_process_defs(processSheet, formatter, routeIds));
+            if (data.routeRows.isEmpty() && data.processRows.isEmpty()) {
+                throw new ServiceException("Excel 中没有可导入的工序路线或详细工序数据");
+            }
+            return data;
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("解析零件标准制作过程Excel失败：" + e.getMessage());
+        }
+    }
+
+    private Set<String> parse_process_part_ids(Sheet sheet, DataFormatter formatter) {
+        Map<String, Integer> header = process_header(sheet, formatter, new String[]{"零件id"});
+        Set<String> partIds = new LinkedHashSet<>();
+        Integer partIdCol = header.get("零件id");
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Row row = sheet.getRow(i);
+            if (row == null) continue;
+            String partId = trm_to_nil(formatter.formatCellValue(row.getCell(partIdCol)));
+            if (partId != null) partIds.add(partId);
+        }
+        if (partIds.isEmpty()) {
+            throw new ServiceException("Sheet 零件模板 缺少可用于关联校验的零件id数据");
+        }
+        return partIds;
+    }
+
+    private List<Map<String, Object>> parse_process_routes(Sheet sheet, DataFormatter formatter, Set<String> partIds) {
+        String[] headers = {"工序路线id", "零件id", "工序路线名称", "版本", "生效日期", "是否启用"};
+        Map<String, Integer> header = process_header(sheet, formatter, headers);
+        List<Map<String, Object>> rows = new ArrayList<>();
+        Set<String> routeIds = new LinkedHashSet<>();
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Row row = sheet.getRow(i);
+            if (process_row_empty(row, formatter, header.values())) continue;
+            int rowNum = i + 1;
+            String routeId = process_cell(row, formatter, header, "工序路线id");
+            String partId = process_cell(row, formatter, header, "零件id");
+            String routeName = process_cell(row, formatter, header, "工序路线名称");
+            require_process_value(routeId, "工序路线", rowNum, "工序路线id");
+            require_process_value(partId, "工序路线", rowNum, "零件id");
+            require_process_value(routeName, "工序路线", rowNum, "工序路线名称");
+            if (!partIds.contains(partId)) {
+                throw new ServiceException("Sheet 工序路线 第" + rowNum + "行 零件id 错误：零件id不在零件模板工作表中");
+            }
+            if (!routeIds.add(routeId)) {
+                throw new ServiceException("Sheet 工序路线 第" + rowNum + "行 工序路线id 错误：工序路线id重复");
+            }
+
+            Map<String, Object> values = new LinkedHashMap<>();
+            values.put("route_id", routeId);
+            values.put("part_template_id", partId);
+            values.put("route_name", routeName);
+            values.put("version", process_cell(row, formatter, header, "版本"));
+            values.put("effective_date", process_cell(row, formatter, header, "生效日期"));
+            values.put("is_active", process_default(process_cell(row, formatter, header, "是否启用"), "1"));
+            rows.add(values);
+        }
+        return rows;
+    }
+
+    private List<Map<String, Object>> parse_process_defs(Sheet sheet, DataFormatter formatter, Set<String> routeIds) {
+        String[] headers = {"工序id", "工序路线id", "工序序号", "工序名称", "设备类型", "标准工时", "是否关键工序", "是否高风险"};
+        Map<String, Integer> header = process_header(sheet, formatter, headers);
+        List<Map<String, Object>> rows = new ArrayList<>();
+        Set<String> processIds = new LinkedHashSet<>();
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Row row = sheet.getRow(i);
+            if (process_row_empty(row, formatter, header.values())) continue;
+            int rowNum = i + 1;
+            String processId = process_cell(row, formatter, header, "工序id");
+            String routeId = process_cell(row, formatter, header, "工序路线id");
+            String processNumber = process_cell(row, formatter, header, "工序序号");
+            String processName = process_cell(row, formatter, header, "工序名称");
+            String equipmentType = process_cell(row, formatter, header, "设备类型");
+            require_process_value(processId, "详细工序", rowNum, "工序id");
+            require_process_value(routeId, "详细工序", rowNum, "工序路线id");
+            require_process_value(processNumber, "详细工序", rowNum, "工序序号");
+            require_process_value(processName, "详细工序", rowNum, "工序名称");
+            require_process_value(equipmentType, "详细工序", rowNum, "设备类型");
+            if (!routeIds.contains(routeId)) {
+                throw new ServiceException("Sheet 详细工序 第" + rowNum + "行 工序路线id 错误：工序路线id不在工序路线工作表中");
+            }
+            if (!processIds.add(processId)) {
+                throw new ServiceException("Sheet 详细工序 第" + rowNum + "行 工序id 错误：工序id重复");
+            }
+
+            Map<String, Object> values = new LinkedHashMap<>();
+            values.put("process_def_id", processId);
+            values.put("route_id", routeId);
+            values.put("process_number", parse_process_int(processNumber, "详细工序", rowNum, "工序序号"));
+            values.put("process_name", processName);
+            values.put("equipment_type", equipmentType);
+            values.put("standard_duration", process_cell(row, formatter, header, "标准工时"));
+            values.put("is_key_process", process_cell(row, formatter, header, "是否关键工序"));
+            values.put("is_high_risk", process_cell(row, formatter, header, "是否高风险"));
+            rows.add(values);
+        }
+        return rows;
+    }
+
+    private Map<String, Integer> process_header(Sheet sheet, DataFormatter formatter, String[] requiredHeaders) {
+        Row row = sheet.getRow(0);
+        if (row == null) throw new ServiceException("Sheet " + sheet.getSheetName() + " 缺少表头");
+        Map<String, Integer> header = new LinkedHashMap<>();
+        for (int i = 0; i < row.getLastCellNum(); i++) {
+            String value = trm_to_nil(formatter.formatCellValue(row.getCell(i)));
+            if (value != null) header.put(value, i);
+        }
+        for (String required : requiredHeaders) {
+            if (!header.containsKey(required)) {
+                throw new ServiceException("Sheet " + sheet.getSheetName() + " 缺少表头：" + required);
+            }
+        }
+        return header;
+    }
+
+    private boolean process_row_empty(Row row, DataFormatter formatter, Collection<Integer> columns) {
+        if (row == null) return true;
+        for (Integer column : columns) {
+            if (trm_to_nil(formatter.formatCellValue(row.getCell(column))) != null) return false;
+        }
+        return true;
+    }
+
+    private String process_cell(Row row, DataFormatter formatter, Map<String, Integer> header, String column) {
+        Integer index = header.get(column);
+        return index == null ? null : trm_to_nil(formatter.formatCellValue(row.getCell(index)));
+    }
+
+    private void require_process_value(String value, String sheetName, int rowNum, String column) {
+        if (value == null) {
+            throw new ServiceException("Sheet " + sheetName + " 第" + rowNum + "行 " + column + " 错误：" + column + "不能为空");
+        }
+    }
+
+    private Object process_default(String value, String defaultValue) {
+        return value == null ? defaultValue : value;
+    }
+
+    private Integer parse_process_int(String value, String sheetName, int rowNum, String column) {
+        try {
+            return new BigDecimal(value.trim()).intValueExact();
+        } catch (Exception e) {
+            throw new ServiceException("Sheet " + sheetName + " 第" + rowNum + "行 " + column + " 错误：" + column + "必须是整数");
+        }
     }
 
     private List<ImportedPart> parse_process_workbook(MultipartFile file) {
@@ -761,6 +1317,48 @@ public class MonitorServiceImpl implements MonitorService {
             this.processCode = processCode;
             this.processName = processName;
         }
+    }
+
+    private static class ProcessImportData {
+        private final Set<String> partIds = new LinkedHashSet<>();
+        private final List<Map<String, Object>> routeRows = new ArrayList<>();
+        private final List<Map<String, Object>> processRows = new ArrayList<>();
+    }
+
+    private static class ActualProcessImportData {
+        private final List<Map<String, Object>> partInstanceRows = new ArrayList<>();
+        private final List<Map<String, Object>> workOrderRows = new ArrayList<>();
+        private final List<Map<String, Object>> processExecutionRows = new ArrayList<>();
+    }
+
+    private static final Map<String, String> HIERARCHY_COLUMN_MAP = new LinkedHashMap<>();
+    static {
+        HIERARCHY_COLUMN_MAP.put("飞机ID", "aircraft_id");
+        HIERARCHY_COLUMN_MAP.put("飞机名称", "aircraft_name");
+        HIERARCHY_COLUMN_MAP.put("飞机型号", "aircraft_model");
+        HIERARCHY_COLUMN_MAP.put("序列号", "serial_number");
+        HIERARCHY_COLUMN_MAP.put("状态", "status");
+        HIERARCHY_COLUMN_MAP.put("备注", "remarks");
+        HIERARCHY_COLUMN_MAP.put("分系统ID", "subsystem_id");
+        HIERARCHY_COLUMN_MAP.put("分系统名称", "subsystem_name");
+        HIERARCHY_COLUMN_MAP.put("设备ID", "equipment_id");
+        HIERARCHY_COLUMN_MAP.put("设备名称", "equipment_name");
+        HIERARCHY_COLUMN_MAP.put("组件ID", "component_id");
+        HIERARCHY_COLUMN_MAP.put("组件名称", "component_name");
+        HIERARCHY_COLUMN_MAP.put("规格型号", "specification");
+        HIERARCHY_COLUMN_MAP.put("零件模板ID", "part_template_id");
+        HIERARCHY_COLUMN_MAP.put("零件编号", "part_number");
+        HIERARCHY_COLUMN_MAP.put("零件名称", "part_name");
+        HIERARCHY_COLUMN_MAP.put("材料", "material");
+        HIERARCHY_COLUMN_MAP.put("设计版本", "design_version");
+        HIERARCHY_COLUMN_MAP.put("零件实例ID", "part_instance_id");
+        HIERARCHY_COLUMN_MAP.put("批次号", "batch_number");
+        HIERARCHY_COLUMN_MAP.put("制造商", "manufacturer");
+        HIERARCHY_COLUMN_MAP.put("生产日期", "production_date");
+        HIERARCHY_COLUMN_MAP.put("当前状态", "current_status");
+        HIERARCHY_COLUMN_MAP.put("质量等级", "quality_level");
+        HIERARCHY_COLUMN_MAP.put("关键程度", "key_degree");
+        HIERARCHY_COLUMN_MAP.put("图片地址", "image_url");
     }
 
     private static final Map<String, String> COLUMN_LABEL_MAP = new LinkedHashMap<>();

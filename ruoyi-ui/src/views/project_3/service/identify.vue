@@ -1,6 +1,13 @@
 <template>
   <div class="app-container fault-identify-page">
 
+    <el-card shadow="never" class="quality-hero feedback-hero">
+      <template #header>
+        <span class="quality-title">服役性能周期故障预防</span>
+      </template>
+      <div class="quality-desc">进行故障识别、故障预防</div>
+    </el-card>
+
     <el-card shadow="never" class="section-card">
       <template #header>
         <span class="section-title">故障识别</span>
@@ -247,7 +254,7 @@
               type="warning"
               class="orange-btn"
               :loading="prevention_loading"
-              :disabled="prevention_loading || degrade_status !== 'SUCCESS'"
+              :disabled="prevention_loading || degrade_status !== 'SUCCESS' || !has_degradation_point"
               @click="handle_fault_prevention"
             >
               开始故障预防
@@ -624,6 +631,11 @@ const degradation_params = reactive({
   detection_methods: ['kurtosis', 'rms']
 })
 const degradation_table_rows = ref([])
+const has_degradation_point = computed(() => {
+  const point = get_degrade_field('point')
+  if (point === undefined || point === null || point === '') return false
+  return Number.isFinite(Number(point))
+})
 const prevention_advice_rows = computed(() => {
   const result = prevention_result.value || {}
   const advice = pick_field(result, ['maintenanceAdvice', 'maintenance_advice', 'suggestions', 'advice'])
@@ -2153,6 +2165,10 @@ async function handle_degradation_detect() {
     degradation_point_text.value = point === undefined ? '--' : String(point)
     degradation_table_rows.value = build_degradation_rows(degrade_result.value)
     renderDegradationCharts(degrade_result.value)
+    if (!has_degradation_point.value) {
+      ElMessage.warning('早期故障识别未检测到退化点，故障预防不可执行')
+      return
+    }
     ElMessage.success('退化点检测完成')
   } catch (err) {
     degrade_status.value = 'FAILED'
@@ -2165,6 +2181,11 @@ async function handle_degradation_detect() {
 async function handle_fault_prevention() {
   if (degrade_status.value !== 'SUCCESS' || !degrade_task_id.value) {
     ElMessage.warning('请先完成早期退化点检测')
+    return
+  }
+
+  if (!has_degradation_point.value) {
+    ElMessage.warning('早期故障识别未检测到退化点，不能执行故障预防')
     return
   }
 

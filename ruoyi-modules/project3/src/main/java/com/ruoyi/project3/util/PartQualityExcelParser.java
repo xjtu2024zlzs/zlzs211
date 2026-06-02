@@ -17,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -84,8 +83,6 @@ public class PartQualityExcelParser
             item.setVerificationResult(text(row, header, "验证结果"));
 
             req(data, DESIGN_SHEET, rowIndex, "零件模板ID", item.getPartTemplateId());
-            oneOf(data, DESIGN_SHEET, rowIndex, "设计评审结果", item.getDesignReviewResult(), "通过", "不通过", "待评审");
-            oneOf(data, DESIGN_SHEET, rowIndex, "验证结果", item.getVerificationResult(), "通过", "不通过", "待验证");
             data.getDesignRows().add(item);
         }
     }
@@ -122,8 +119,6 @@ public class PartQualityExcelParser
             item.setReworkCount(nonNegativeInt(row, header, "返工数", MANUFACTURING_SHEET, rowIndex, data));
 
             req(data, MANUFACTURING_SHEET, rowIndex, "零件实例ID", item.getPartInstanceId());
-            oneOf(data, MANUFACTURING_SHEET, rowIndex, "工艺状态", item.getProcessStatus(), "未开始", "进行中", "已完成", "异常", "暂停");
-            oneOf(data, MANUFACTURING_SHEET, rowIndex, "终检结果", item.getFinalInspectionResult(), "合格", "不合格", "待检");
             data.getManufacturingRows().add(item);
         }
     }
@@ -132,7 +127,7 @@ public class PartQualityExcelParser
     {
         if (!ensureSheet(sheet, SERVICE_SHEET, data)) return;
         Map<String, Integer> header = header(sheet, data, SERVICE_SHEET);
-        String[] requiredHeaders = {"服役质量ID", "设备ID", "组件ID", "装机飞机ID", "安装位置", "安装日期", "服役状态", "累计运行小时", "循环次数", "健康评分", "上次检修日期", "下次检修日期"};
+        String[] requiredHeaders = {"服役质量ID", "零件实例id", "设备ID", "组件ID", "装机飞机ID", "安装位置", "安装日期", "服役状态", "累计运行小时", "循环次数", "健康评分", "上次检修日期", "下次检修日期"};
         if (!ensureHeaders(header, requiredHeaders, SERVICE_SHEET, data)) return;
 
         Set<String> ids = new HashSet<>();
@@ -148,6 +143,7 @@ public class PartQualityExcelParser
             }
             ServiceQuality item = new ServiceQuality();
             item.setServiceQualityId(id);
+            item.setPartInstanceId(text(row, header, "零件实例id"));
             item.setEquipmentId(text(row, header, "设备ID"));
             item.setComponentId(text(row, header, "组件ID"));
             item.setInstalledAircraftId(text(row, header, "装机飞机ID"));
@@ -160,9 +156,9 @@ public class PartQualityExcelParser
             item.setLastInspectionDate(date(row, header, "上次检修日期", SERVICE_SHEET, rowIndex, data));
             item.setNextInspectionDate(date(row, header, "下次检修日期", SERVICE_SHEET, rowIndex, data));
 
+            req(data, SERVICE_SHEET, rowIndex, "零件实例id", item.getPartInstanceId());
             req(data, SERVICE_SHEET, rowIndex, "设备ID", item.getEquipmentId());
             req(data, SERVICE_SHEET, rowIndex, "组件ID", item.getComponentId());
-            oneOf(data, SERVICE_SHEET, rowIndex, "服役状态", item.getServiceStatus(), "在役", "停用", "维修中", "退役");
             data.getServiceRows().add(item);
         }
     }
@@ -278,14 +274,6 @@ public class PartQualityExcelParser
     private void req(PartQualityImportData data, String sheet, int rowIndex, String field, String value)
     {
         if (blank(value)) data.getErrors().add(err(sheet, rowIndex, field, field + "不能为空"));
-    }
-
-    private void oneOf(PartQualityImportData data, String sheet, int rowIndex, String field, String value, String... allowed)
-    {
-        if (blank(value)) return;
-        if (!Arrays.asList(allowed).contains(value)) {
-            data.getErrors().add(err(sheet, rowIndex, field, field + "的值“" + value + "”不在允许范围内"));
-        }
     }
 
     private boolean emptyRow(Row row)

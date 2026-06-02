@@ -129,6 +129,7 @@
     <insert id="upsertService" parameterType="com.ruoyi.project3.domain.partquality.ServiceQuality">
         insert into service_quality (
             service_quality_id,
+            part_instance_id,
             equipment_id,
             component_id,
             installed_aircraft_id,
@@ -143,6 +144,7 @@
             update_time
         ) values (
             #{serviceQualityId},
+            #{partInstanceId},
             #{equipmentId},
             #{componentId},
             #{installedAircraftId},
@@ -157,6 +159,7 @@
             now()
         )
         on duplicate key update
+            part_instance_id = values(part_instance_id),
             equipment_id = values(equipment_id),
             component_id = values(component_id),
             installed_aircraft_id = values(installed_aircraft_id),

@@ -32,7 +32,9 @@ public class PythonAlgorithmClient
 
     private static final Logger log = LoggerFactory.getLogger(PythonAlgorithmClient.class);
     private static final String DEFAULT_FAILURE_MESSAGE = "Python算法服务返回失败";
-    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .build();
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     @Resource
     private PythonAlgorithmProperties pythonAlgorithmProperties;
@@ -334,6 +336,7 @@ public class PythonAlgorithmClient
         try
         {
             HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                    .version(HttpClient.Version.HTTP_1_1)
                     .header("Content-Type", mediaType)
                     .POST(HttpRequest.BodyPublishers.ofString(body == null ? "" : body, StandardCharsets.UTF_8))
                     .build();

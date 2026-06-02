@@ -6,6 +6,7 @@ import java.util.Date;
 public class ServiceQuality
 {
     private String serviceQualityId;
+    private String partInstanceId;
     private String equipmentId;
     private String componentId;
     private String installedAircraftId;
@@ -20,6 +21,8 @@ public class ServiceQuality
 
     public String getServiceQualityId() { return serviceQualityId; }
     public void setServiceQualityId(String serviceQualityId) { this.serviceQualityId = serviceQualityId; }
+    public String getPartInstanceId() { return partInstanceId; }
+    public void setPartInstanceId(String partInstanceId) { this.partInstanceId = partInstanceId; }
     public String getEquipmentId() { return equipmentId; }
     public void setEquipmentId(String equipmentId) { this.equipmentId = equipmentId; }
     public String getComponentId() { return componentId; }

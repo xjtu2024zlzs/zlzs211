@@ -95,6 +95,31 @@ public interface MonitorMapper {
 
     int del_part_ins(@Param("part_instance_id") String part_instance_id);
 
+    int upd_aircraft_name(
+            @Param("aircraft_id") String aircraft_id,
+            @Param("aircraft_name") String aircraft_name
+    );
+
+    int upd_subsystem_name(
+            @Param("subsystem_id") String subsystem_id,
+            @Param("subsystem_name") String subsystem_name
+    );
+
+    int upd_equipment_name(
+            @Param("equipment_id") String equipment_id,
+            @Param("equipment_name") String equipment_name
+    );
+
+    int upd_component_name(
+            @Param("component_id") String component_id,
+            @Param("component_name") String component_name
+    );
+
+    int upd_part_tpl_name(
+            @Param("part_template_id") String part_template_id,
+            @Param("part_name") String part_name
+    );
+
     int upd_part_instance(
             @Param("part_instance_id") String part_instance_id,
             @Param("serial_number") String serial_number,
@@ -135,6 +160,14 @@ public interface MonitorMapper {
             @Param("part_number") String part_number
     );
 
+    List<Map<String, Object>> sel_all_part_tpl();
+
+    List<Map<String, Object>> sel_all_part_template_ids();
+
+    List<Map<String, Object>> sel_all_process_route_ids();
+
+    List<Map<String, Object>> sel_all_process_def_ids();
+
     int ins_process_route(
             @Param("route_id") String route_id,
             @Param("part_template_id") String part_template_id,
@@ -149,6 +182,10 @@ public interface MonitorMapper {
             @Param("equipment_type") String equipment_type
     );
 
+    int upsert_process_route(Map<String, Object> row);
+
+    int upsert_process_def(Map<String, Object> row);
+
     int upsert_aircraft(Map<String, Object> row);
 
     int upsert_subsystem(Map<String, Object> row);
@@ -160,6 +197,32 @@ public interface MonitorMapper {
     int upsert_part_template(Map<String, Object> row);
 
     int upsert_part_instance(Map<String, Object> row);
+
+    int count_part_tpl_by_id(@Param("part_template_id") String part_template_id);
+
+    int count_part_instance_by_id(@Param("part_instance_id") String part_instance_id);
+
+    int count_process_route_by_id(@Param("route_id") String route_id);
+
+    int count_process_def_by_id(@Param("process_def_id") String process_def_id);
+
+    int count_work_order_by_id(@Param("work_order_id") String work_order_id);
+
+    int count_manufacturing_quality_by_id(@Param("manufacturing_quality_id") String manufacturing_quality_id);
+
+    int count_manufacturing_device_by_id(@Param("device_id") String device_id);
+
+    Map<String, Object> sel_part_instance_ref(@Param("part_instance_id") String part_instance_id);
+
+    Map<String, Object> sel_process_route_ref(@Param("route_id") String route_id);
+
+    Map<String, Object> sel_process_def_ref(@Param("process_def_id") String process_def_id);
+
+    Map<String, Object> sel_work_order_ref(@Param("work_order_id") String work_order_id);
+
+    int upsert_work_order(Map<String, Object> row);
+
+    int upsert_process_execution(Map<String, Object> row);
 }
 
 

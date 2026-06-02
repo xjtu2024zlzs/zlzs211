@@ -11,11 +11,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -49,6 +55,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
     private static final String FAULT_IDENTIFY_DIR = "FaultIdentifyData";
     private static final String BEARING_DATASET_DIR = "XJTU-SY_Bearing_Datasets";
     private static final String CHUNK_DIR = "_chunks";
+    private static final long API_IMPORT_MAX_BYTES = 100L * 1024L * 1024L;
     private static final Pattern FIRST_NUMBER = Pattern.compile("(\\d+)");
     private static final String[][] NUMERIC_DATASET_DIRS = {
             {"35Hz12kN", "Bearing1_1"},
@@ -391,6 +398,114 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         log.info("数值型数据单文件上传完成，batchId={}，sampleId={}，fileName={}，status={}",
                 text(uploadBatchId), ret.get("sampleId"), ret.get("fileName"), ret.get("uploadStatus"));
         return ret;
+    }
+
+    @Override
+    public Map<String, Object> uploadNumericApi(Map<String, Object> req)
+    {
+        if (req == null)
+        {
+            throw new ServiceException("API导入参数不能为空");
+        }
+        UploadContext ctx = uploadContext(
+                text(req.get("purpose")),
+                text(req.get("executionObject")),
+                text(req.get("conditionLabel")),
+                positiveInt(req.get("bearingNo")),
+                text(req.get("aircraftId")),
+                text(req.get("subsystemId")),
+                text(req.get("equipmentId")),
+                text(req.get("componentId")),
+                text(req.get("partId"))
+        );
+
+        String apiUrl = text(req.get("apiUrl"));
+        if (apiUrl == null)
+        {
+            throw new ServiceException("API地址不能为空");
+        }
+        URI uri;
+        try
+        {
+            uri = URI.create(apiUrl);
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("API地址不合法");
+        }
+        String scheme = uri.getScheme();
+        if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))
+        {
+            throw new ServiceException("API地址仅支持HTTP/HTTPS");
+        }
+
+        String method = text(req.get("method"));
+        method = method == null ? "GET" : method.toUpperCase();
+        if (!"GET".equals(method) && !"POST".equals(method))
+        {
+            throw new ServiceException("API请求方法仅支持GET/POST");
+        }
+
+        String fileName = apiFileName(text(req.get("fileName")));
+        String uploadBatchId = text(req.get("uploadBatchId"));
+        Path targetDir = uploadTargetDir(ctx, uploadBatchId);
+        Path target = uniqueTarget(targetDir, fileName);
+
+        try
+        {
+            HttpRequest.Builder builder = HttpRequest.newBuilder(uri)
+                    .timeout(Duration.ofSeconds(120));
+            addApiHeaders(builder, req.get("headers"));
+            String body = text(req.get("body"));
+            if ("POST".equals(method))
+            {
+                builder.POST(body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
+            }
+            else
+            {
+                builder.GET();
+            }
+
+            HttpResponse<InputStream> response = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(20))
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .build()
+                    .send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());
+            if (response.statusCode() < 200 || response.statusCode() >= 300)
+            {
+                throw new ServiceException("API请求失败，HTTP状态码：" + response.statusCode());
+            }
+            try (InputStream input = response.body(); OutputStream output = Files.newOutputStream(target))
+            {
+                copyWithLimit(input, output, API_IMPORT_MAX_BYTES);
+            }
+            Map<String, Object> ret = saveNumericSample(ctx, target, uploadBatchId, 1, 1);
+            ret.put("apiUrl", apiUrl);
+            ret.put("uploadStatus", "SUCCESS");
+            return ret;
+        }
+        catch (ServiceException e)
+        {
+            try
+            {
+                Files.deleteIfExists(target);
+            }
+            catch (Exception ignored)
+            {
+            }
+            throw e;
+        }
+        catch (Exception e)
+        {
+            try
+            {
+                Files.deleteIfExists(target);
+            }
+            catch (Exception ignored)
+            {
+            }
+            throw new ServiceException("API导入失败：" + e.getMessage());
+        }
     }
 
     @Override
@@ -833,6 +948,65 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             throw new ServiceException("文件名不合法：" + fileName);
         }
         return clean;
+    }
+
+    private String apiFileName(String fileName)
+    {
+        String clean = text(fileName);
+        if (clean == null)
+        {
+            clean = "api_numeric_" + System.currentTimeMillis() + ".csv";
+        }
+        if (!clean.toLowerCase().endsWith(".csv") && !clean.toLowerCase().endsWith(".txt"))
+        {
+            clean = clean + ".csv";
+        }
+        clean = cleanFileName(clean);
+        if (!isDataFile(clean))
+        {
+            throw new ServiceException("API导入文件名仅支持CSV/TXT");
+        }
+        return clean;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addApiHeaders(HttpRequest.Builder builder, Object headers)
+    {
+        if (!(headers instanceof Map<?, ?> map))
+        {
+            return;
+        }
+        for (Map.Entry<?, ?> entry : map.entrySet())
+        {
+            String key = text(entry.getKey());
+            String value = text(entry.getValue());
+            if (key == null || value == null)
+            {
+                continue;
+            }
+            String lower = key.toLowerCase();
+            if ("host".equals(lower) || "content-length".equals(lower) || "connection".equals(lower))
+            {
+                continue;
+            }
+            builder.header(key, value);
+        }
+    }
+
+    private void copyWithLimit(InputStream input, OutputStream output, long maxBytes) throws Exception
+    {
+        byte[] buffer = new byte[8192];
+        long total = 0L;
+        int len;
+        while ((len = input.read(buffer)) >= 0)
+        {
+            total += len;
+            if (total > maxBytes)
+            {
+                throw new ServiceException("API响应内容超过100MB限制");
+            }
+            output.write(buffer, 0, len);
+        }
     }
 
     private Path uniqueTarget(Path dir, String fileName)

@@ -5,6 +5,7 @@ import com.ruoyi.common.core.utils.file.FileUtils;
 import com.ruoyi.project3.domain.partquality.PartQualityImportError;
 import com.ruoyi.project3.domain.partquality.PartQualityImportResult;
 import com.ruoyi.project3.service.PartQualityService;
+import com.ruoyi.project3.util.ApiImportFileFetcher;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -12,10 +13,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/quality/part-quality")
@@ -34,14 +38,21 @@ public class PartQualityController
             if (result.isSuccess()) {
                 return AjaxResult.success("导入成功", result);
             }
-            return AjaxResult.error("导入失败", result);
+            return AjaxResult.success("导入失败", result);
         } catch (Exception e) {
             log.error("零件质量信息导入失败，文件名={}", file == null ? null : file.getOriginalFilename(), e);
             PartQualityImportResult result = new PartQualityImportResult();
             result.setSuccess(false);
-            result.getErrors().add(new PartQualityImportError(null, null, "导入服务", "导入服务异常，请查看后端日志"));
-            return AjaxResult.error("导入失败", result);
+            result.getErrors().add(new PartQualityImportError(null, null, "导入服务", "导入服务异常：" + e.getMessage()));
+            return AjaxResult.success("导入失败", result);
         }
+    }
+
+    @PostMapping("/api/import")
+    public AjaxResult importPartQualityApi(@RequestBody(required = false) Map<String, Object> req)
+    {
+        MultipartFile file = ApiImportFileFetcher.fetch(req, "api_part_quality.xlsx");
+        return importPartQuality(file);
     }
 
     @GetMapping("/template")

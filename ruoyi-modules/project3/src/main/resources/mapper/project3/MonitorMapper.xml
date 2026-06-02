@@ -622,10 +622,12 @@
         pt.material as material,
         pt.specification as spec_model,
         pi.batch_number as batch_no,
+        pi.batch_number as batch_number,
         pi.serial_number as serial_number,
         pi.manufacturer as manufacturer,
         pi.production_date as production_date,
         pi.current_status as status,
+        pi.current_status as current_status,
         pi.quality_level as quality_level,
         pi.key_degree as key_degree
         from part_instances pi
@@ -824,6 +826,40 @@
         delete from part_instances where part_instance_id = #{part_instance_id}
     </delete>
 
+    <update id="upd_aircraft_name">
+        update aircraft
+        set
+            aircraft_name = #{aircraft_name},
+            update_time = now()
+        where aircraft_id = #{aircraft_id}
+    </update>
+
+    <update id="upd_subsystem_name">
+        update subsystems
+        set subsystem_name = #{subsystem_name}
+        where subsystem_id = #{subsystem_id}
+    </update>
+
+    <update id="upd_equipment_name">
+        update equipments
+        set equipment_name = #{equipment_name}
+        where equipment_id = #{equipment_id}
+    </update>
+
+    <update id="upd_component_name">
+        update components
+        set component_name = #{component_name}
+        where component_id = #{component_id}
+    </update>
+
+    <update id="upd_part_tpl_name">
+        update part_templates
+        set
+            part_name = #{part_name},
+            update_time = now()
+        where part_template_id = #{part_template_id}
+    </update>
+
     <update id="upd_part_instance">
         update part_instances
         set
@@ -898,6 +934,39 @@
         limit 1
     </select>
 
+    <select id="sel_all_part_tpl" resultType="java.util.HashMap">
+        select
+            part_template_id,
+            part_number,
+            part_name,
+            component_id,
+            material,
+            specification,
+            design_version,
+            create_time,
+            update_time
+        from part_templates
+        order by part_number asc, part_name asc, part_template_id asc
+    </select>
+
+    <select id="sel_all_part_template_ids" resultType="java.util.HashMap">
+        select part_template_id
+        from part_templates
+        order by part_template_id
+    </select>
+
+    <select id="sel_all_process_route_ids" resultType="java.util.HashMap">
+        select route_id
+        from process_routes
+        order by route_id
+    </select>
+
+    <select id="sel_all_process_def_ids" resultType="java.util.HashMap">
+        select process_def_id
+        from process_definitions
+        order by process_def_id
+    </select>
+
     <insert id="ins_process_route">
         insert into process_routes (
             route_id, part_template_id, route_name, version, effective_date, is_active
@@ -923,6 +992,36 @@
             process_number = values(process_number),
             process_name = values(process_name),
             equipment_type = values(equipment_type)
+    </insert>
+
+    <insert id="upsert_process_route" parameterType="java.util.Map">
+        insert into process_routes (
+            route_id, part_template_id, route_name, version, effective_date, is_active
+        ) values (
+            #{route_id}, #{part_template_id}, #{route_name}, #{version}, #{effective_date}, #{is_active}
+        )
+        on duplicate key update
+            part_template_id = values(part_template_id),
+            route_name = values(route_name),
+            version = values(version),
+            effective_date = values(effective_date),
+            is_active = values(is_active)
+    </insert>
+
+    <insert id="upsert_process_def" parameterType="java.util.Map">
+        insert into process_definitions (
+            process_def_id, route_id, process_number, process_name, equipment_type, standard_duration, is_key_process, is_high_risk
+        ) values (
+            #{process_def_id}, #{route_id}, #{process_number}, #{process_name}, #{equipment_type}, #{standard_duration}, #{is_key_process}, #{is_high_risk}
+        )
+        on duplicate key update
+            route_id = values(route_id),
+            process_number = values(process_number),
+            process_name = values(process_name),
+            equipment_type = values(equipment_type),
+            standard_duration = values(standard_duration),
+            is_key_process = values(is_key_process),
+            is_high_risk = values(is_high_risk)
     </insert>
 
     <insert id="upsert_aircraft" parameterType="java.util.Map">
@@ -1012,6 +1111,99 @@
             key_degree = values(key_degree),
             image_url = values(image_url),
             update_time = now()
+    </insert>
+
+    <select id="count_part_tpl_by_id" resultType="int">
+        select count(1) from part_templates where part_template_id = #{part_template_id}
+    </select>
+
+    <select id="count_part_instance_by_id" resultType="int">
+        select count(1) from part_instances where part_instance_id = #{part_instance_id}
+    </select>
+
+    <select id="count_process_route_by_id" resultType="int">
+        select count(1) from process_routes where route_id = #{route_id}
+    </select>
+
+    <select id="count_process_def_by_id" resultType="int">
+        select count(1) from process_definitions where process_def_id = #{process_def_id}
+    </select>
+
+    <select id="count_work_order_by_id" resultType="int">
+        select count(1) from work_orders where work_order_id = #{work_order_id}
+    </select>
+
+    <select id="count_manufacturing_quality_by_id" resultType="int">
+        select count(1) from manufacturing_quality where manufacturing_quality_id = #{manufacturing_quality_id}
+    </select>
+
+    <select id="count_manufacturing_device_by_id" resultType="int">
+        select count(1) from manufacturing_devices where device_id = #{device_id}
+    </select>
+
+    <select id="sel_part_instance_ref" resultType="java.util.HashMap">
+        select part_instance_id, part_template_id
+        from part_instances
+        where part_instance_id = #{part_instance_id}
+        limit 1
+    </select>
+
+    <select id="sel_process_route_ref" resultType="java.util.HashMap">
+        select route_id, part_template_id
+        from process_routes
+        where route_id = #{route_id}
+        limit 1
+    </select>
+
+    <select id="sel_process_def_ref" resultType="java.util.HashMap">
+        select process_def_id, route_id
+        from process_definitions
+        where process_def_id = #{process_def_id}
+        limit 1
+    </select>
+
+    <select id="sel_work_order_ref" resultType="java.util.HashMap">
+        select work_order_id, part_instance_id, route_id
+        from work_orders
+        where work_order_id = #{work_order_id}
+        limit 1
+    </select>
+
+    <insert id="upsert_work_order" parameterType="java.util.Map">
+        insert into work_orders (
+            work_order_id, part_instance_id, manufacturing_quality_id, route_id,
+            production_line, start_time, end_time, operator, status
+        ) values (
+            #{work_order_id}, #{part_instance_id}, #{manufacturing_quality_id}, #{route_id},
+            #{production_line}, #{start_time}, #{end_time}, #{operator}, #{status}
+        )
+        on duplicate key update
+            part_instance_id = values(part_instance_id),
+            manufacturing_quality_id = values(manufacturing_quality_id),
+            route_id = values(route_id),
+            production_line = values(production_line),
+            start_time = values(start_time),
+            end_time = values(end_time),
+            operator = values(operator),
+            status = values(status)
+    </insert>
+
+    <insert id="upsert_process_execution" parameterType="java.util.Map">
+        insert into process_executions (
+            process_exec_id, work_order_id, process_def_id, device_id,
+            start_time, end_time, operator, status
+        ) values (
+            #{process_exec_id}, #{work_order_id}, #{process_def_id}, #{device_id},
+            #{start_time}, #{end_time}, #{operator}, #{status}
+        )
+        on duplicate key update
+            work_order_id = values(work_order_id),
+            process_def_id = values(process_def_id),
+            device_id = values(device_id),
+            start_time = values(start_time),
+            end_time = values(end_time),
+            operator = values(operator),
+            status = values(status)
     </insert>
 
 </mapper>

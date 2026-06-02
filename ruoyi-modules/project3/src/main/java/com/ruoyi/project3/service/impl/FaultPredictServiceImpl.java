@@ -12,6 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -123,6 +126,10 @@ public class FaultPredictServiceImpl implements FaultPredictService
         String detectionId = txt(findVal(detection, 0, "detectionId", "detection_id"));
         String detectionPath = txt(findVal(detection, 0, "detectionPath", "detection_path"));
         Object degradationTime = findVal(detection, 0, "earlyDegradationTime", "early_degradation_time", "earlyDegradationPoint", "early_degradation_point", "degradationTime", "degradation_time");
+        if (degradationTime == null)
+        {
+            degradationTime = readDegradationTime(detectionPath);
+        }
 
         String flowTaskId = firstText(reqMap, params, "featureAnalysisTaskId", "feature_analysis_task_id", "flowTaskId", "flow_task_id");
         if (flowTaskId == null)
@@ -191,6 +198,11 @@ public class FaultPredictServiceImpl implements FaultPredictService
             throw new ServiceException("接口三结果缺少detectionPath");
         }
 
+        if (degradationTime == null)
+        {
+            throw new ServiceException("早期故障识别未检测到退化点，不能执行故障预防");
+        }
+
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("taskId", taskId);
         out.put("taskType", TASK_TYPE);
@@ -223,6 +235,26 @@ public class FaultPredictServiceImpl implements FaultPredictService
             out.put("featureResult", feature);
         }
         return out;
+    }
+
+    private Object readDegradationTime(String detectionPath)
+    {
+        String path = txt(detectionPath);
+        if (path == null)
+        {
+            return null;
+        }
+        try
+        {
+            String body = Files.readString(Paths.get(path), StandardCharsets.UTF_8);
+            Map<String, Object> result = jsonMap(body);
+            return findVal(result, 0, "earlyDegradationTime", "early_degradation_time", "earlyDegradationPoint", "early_degradation_point", "degradationTime", "degradation_time");
+        }
+        catch (Exception e)
+        {
+            log.warn("读取退化点检测结果文件失败，路径={}", path, e);
+            return null;
+        }
     }
 
     private AlgTaskResult sourceTask(String taskId)

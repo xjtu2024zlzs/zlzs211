@@ -30,6 +30,8 @@ public interface MonitorService {
 
     void deleteModule(String nodeId);
 
+    void updateModuleName(String nodeId, String moduleName);
+
     Map<String, Object> createPartInstance(
             String moduleId,
             String partCode,
@@ -53,6 +55,16 @@ public interface MonitorService {
             String specModel
     );
 
+    Map<String, Object> getPartTemplate(String partTemplateId);
+
+    void updatePartTemplate(
+            String partTemplateId,
+            String partNumber,
+            String partName,
+            String material,
+            String specModel
+    );
+
     void updatePartInstance(
             String partInstanceId,
             String serialNumber,
@@ -68,7 +80,11 @@ public interface MonitorService {
 
     Map<String, Object> importProcessText(String componentId, MultipartFile file);
 
+    Map<String, Object> importProcessText(String componentId, MultipartFile file, String taskType);
+
     void writeProcessTemplate(OutputStream outputStream) throws IOException;
+
+    void writeProcessTemplate(OutputStream outputStream, String taskType) throws IOException;
 
     Map<String, Object> importHierarchy(MultipartFile file);
 

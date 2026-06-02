@@ -76,6 +76,13 @@
             <div class="numeric-switch-title"><el-icon><Warning /></el-icon><span>切换任务类型</span></div>
             <div>已选择任务对象会被清空，避免任务类型与对象层级不匹配。</div>
           </div>
+          <div class="numeric-switch-tip">
+            <div class="numeric-switch-title"><span>导入方式</span></div>
+            <el-radio-group v-model="numObjDlg.form.importMode" class="numeric-import-mode">
+              <el-radio-button label="file">文件导入</el-radio-button>
+              <el-radio-button label="api">API导入</el-radio-button>
+            </el-radio-group>
+          </div>
         </aside>
 
         <section class="numeric-object-main">
@@ -86,6 +93,26 @@
             </div>
           </div>
           <el-input v-model="numObjDlg.keyword" class="numeric-object-search" placeholder="搜索对象名称" clearable :prefix-icon="Search" />
+          <el-form v-if="numObjDlg.form.importMode === 'api'" label-width="96px" class="numeric-api-form">
+            <el-form-item label="API地址">
+              <el-input v-model="numObjDlg.form.apiUrl" placeholder="请输入返回CSV/TXT数据的HTTP/HTTPS地址" />
+            </el-form-item>
+            <el-form-item label="请求方法">
+              <el-select v-model="numObjDlg.form.apiMethod" style="width: 140px">
+                <el-option label="GET" value="GET" />
+                <el-option label="POST" value="POST" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="请求头">
+              <el-input v-model="numObjDlg.form.apiHeaders" type="textarea" :rows="3" placeholder='可选，JSON格式，例如 {"Authorization":"Bearer token"}' />
+            </el-form-item>
+            <el-form-item v-if="numObjDlg.form.apiMethod === 'POST'" label="请求体">
+              <el-input v-model="numObjDlg.form.apiBody" type="textarea" :rows="4" placeholder="可选，JSON或文本请求体" />
+            </el-form-item>
+            <el-form-item label="保存文件名">
+              <el-input v-model="numObjDlg.form.apiFileName" placeholder="可选，例如 api_data.csv；为空则自动生成" />
+            </el-form-item>
+          </el-form>
           <div class="numeric-object-content">
             <div class="numeric-tree-wrap" v-loading="numObjDlg.loading">
               <el-tree
@@ -137,7 +164,7 @@
       </div>
       <template #footer>
         <el-button @click="numObjDlg.visible = false">取消</el-button>
-        <el-button type="primary" :loading="numObjDlg.loading" :disabled="numObjDlg.loading" @click="conNumObj">导入数据</el-button>
+        <el-button type="primary" :loading="numObjDlg.loading || numImporting" :disabled="numObjDlg.loading || numImporting" @click="conNumObj">导入数据</el-button>
       </template>
     </el-dialog>
 
@@ -164,16 +191,44 @@
             <div class="numeric-switch-title"><el-icon><Warning /></el-icon><span>导入规则</span></div>
             <div>{{ curTextTaskRule }}</div>
           </div>
+          <div class="numeric-switch-tip">
+            <div class="numeric-switch-title"><span>导入方式</span></div>
+            <el-radio-group v-model="textObjDlg.form.importMode" class="numeric-import-mode">
+              <el-radio-button label="file">文件导入</el-radio-button>
+              <el-radio-button label="api">API导入</el-radio-button>
+            </el-radio-group>
+          </div>
         </aside>
 
         <section class="numeric-object-main">
           <div class="numeric-object-header">
             <div>
               <div class="numeric-panel-title">任务对象</div>
-              <div class="numeric-current-task">当前任务：{{ curTextTaskLabel }}，请选择 <span>{{ textObjReqLevelText }}</span> 作为任务对象。</div>
+              <div v-if="textTaskRequiresObject" class="numeric-current-task">当前任务：{{ curTextTaskLabel }}，请选择 <span>{{ textObjReqLevelText }}</span> 作为任务对象。</div>
+              <div v-else class="numeric-current-task">当前任务：{{ curTextTaskLabel }}，无需选择任务对象。</div>
             </div>
             <el-button v-if="hasTextImportTemplate" plain type="primary" @click="downloadTextImportTemplate">下载导入模板</el-button>
           </div>
+          <el-form v-if="textObjDlg.form.importMode === 'api'" label-width="96px" class="numeric-api-form">
+            <el-form-item label="API地址">
+              <el-input v-model="textObjDlg.form.apiUrl" placeholder="请输入返回Excel文件内容的HTTP/HTTPS地址" />
+            </el-form-item>
+            <el-form-item label="请求方法">
+              <el-select v-model="textObjDlg.form.apiMethod" style="width: 140px">
+                <el-option label="GET" value="GET" />
+                <el-option label="POST" value="POST" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="请求头">
+              <el-input v-model="textObjDlg.form.apiHeaders" type="textarea" :rows="3" placeholder='可选，JSON格式，例如 {"Authorization":"Bearer token"}' />
+            </el-form-item>
+            <el-form-item v-if="textObjDlg.form.apiMethod === 'POST'" label="请求体">
+              <el-input v-model="textObjDlg.form.apiBody" type="textarea" :rows="4" placeholder="可选，JSON或文本请求体" />
+            </el-form-item>
+            <el-form-item label="文件名">
+              <el-input v-model="textObjDlg.form.apiFileName" placeholder="可选，例如 import.xlsx；为空则自动生成" />
+            </el-form-item>
+          </el-form>
           <el-input v-model="textObjDlg.keyword" class="numeric-object-search" placeholder="搜索对象名称" clearable :prefix-icon="Search" />
           <div class="numeric-object-content">
             <div class="numeric-tree-wrap" v-loading="textObjDlg.loading">
@@ -231,17 +286,23 @@
 
     <el-dialog v-model="dataFileDialog.visible" title="全部数据文件" width="1100px" :close-on-click-modal="false">
       <div class="data-file-toolbar">
-        <el-select v-model="dataFileQuery.dataUsage" placeholder="全部用途" clearable style="width: 160px" @change="loadDataFiles">
+        <el-select v-model="dataFileQuery.dataUsage" placeholder="全部用途" clearable style="width: 160px" @change="searchDataFiles">
           <el-option label="全部用途" value="ALL" />
           <el-option label="服役周期" value="FAULT_IDENTIFY" />
           <el-option label="制造周期" value="PROCESS_ANOMALY" />
           <el-option label="通用" value="COMMON" />
         </el-select>
-        <el-input v-model="dataFileQuery.keyword" placeholder="搜索文件名/路径/对象" clearable style="width: 260px" @keyup.enter="loadDataFiles" @clear="loadDataFiles" />
-        <el-input v-model="dataFileQuery.uploadBatchId" placeholder="上传批次" clearable style="width: 180px" @keyup.enter="loadDataFiles" @clear="loadDataFiles" />
-        <el-button type="primary" @click="loadDataFiles">查询</el-button>
+        <el-input v-model="dataFileQuery.keyword" placeholder="搜索文件名/路径/对象" clearable style="width: 260px" @keyup.enter="searchDataFiles" @clear="searchDataFiles" />
+        <el-input v-model="dataFileQuery.uploadBatchId" placeholder="上传批次" clearable style="width: 180px" @keyup.enter="searchDataFiles" @clear="searchDataFiles" />
+        <el-button type="primary" @click="searchDataFiles">查询</el-button>
+        <el-button :loading="dataFileDialog.selectingAll" :disabled="!dataFileDialog.total || dataFileDialog.loading || dataFileDialog.selectingAll" @click="selectAllDataFiles">全选</el-button>
+        <el-button :disabled="!dataFileSelectedCount" @click="clearSelectedDataFiles">清空选择</el-button>
+        <el-button type="danger" :loading="dataFileDialog.deleting" :disabled="!dataFileSelectedCount || dataFileDialog.deleting" @click="removeSelectedDataFiles">
+          删除选中 {{ dataFileSelectedCount ? `(${dataFileSelectedCount})` : '' }}
+        </el-button>
       </div>
-      <el-table v-loading="dataFileDialog.loading" :data="dataFileDialog.rows" height="460" border>
+      <el-table ref="dataFileTableRef" v-loading="dataFileDialog.loading" :data="dataFileDialog.rows" height="460" border row-key="id" @selection-change="handleDataFileSelectionChange">
+        <el-table-column type="selection" width="48" reserve-selection />
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
         <el-table-column label="数据用途" width="130"><template #default="{ row }">{{ dataUsageText(row.dataUsage) }}</template></el-table-column>
@@ -291,13 +352,11 @@
               <el-form-item><el-button type="primary" @click="applyPartFilters">筛选</el-button><el-button @click="resetPartFilters">重置</el-button><el-button type="success" @click="openCreatePartInstanceDialog">新增零件实例</el-button></el-form-item>
             </el-form>
             <el-table v-loading="part_loading" :data="part_list" border>
-              <el-table-column prop="part_code" label="编号" min-width="120" />
-              <el-table-column prop="part_name" label="零件名称" min-width="160" />
-              <el-table-column prop="material" label="材料" min-width="140" />
-              <el-table-column prop="spec_model" label="规格型号" min-width="140" />
-              <el-table-column prop="batch_no" label="批次号" min-width="120" />
-              <el-table-column prop="quality_level" label="质量等级" min-width="120" />
-              <el-table-column prop="status" label="状态" min-width="100" />
+              <el-table-column prop="part_instance_id" label="零件实例ID" min-width="160" />
+              <el-table-column prop="serial_number" label="序列号" min-width="140" />
+              <el-table-column prop="batch_number" label="批次号" min-width="140" />
+              <el-table-column prop="manufacturer" label="制造商" min-width="140" />
+              <el-table-column prop="current_status" label="当前状态" min-width="120" />
               <el-table-column label="操作" width="270" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="openPartQualityDialog(row)">质量详情</el-button><el-button link type="primary" @click="openEditPartInstanceDialog(row)">修改</el-button><el-button link type="danger" @click="submitDeletePartInstance(row)">删除</el-button></template></el-table-column>
             </el-table>
           </el-card>
@@ -312,12 +371,42 @@
       <div class="context-menu-item danger" @click.stop="handleDeleteModule">{{ deleteEntryText }}</div>
     </div>
 
-    <el-dialog v-model="nodeDetailDialog.visible" width="760px" :title="`对象详情 - ${nodeDetailDialog.node?.name || ''}`">
-      <el-descriptions :column="2" border>
-        <el-descriptions-item v-for="item in nodeDetailItems" :key="item.key" :label="item.label">
-          {{ item.value }}
-        </el-descriptions-item>
-      </el-descriptions>
+    <el-dialog v-model="nodeDetailDialog.visible" width="620px" :title="`对象详情 - ${nodeDetailDialog.node?.name || ''}`" :close-on-click-modal="false">
+      <el-form v-if="nodeDetailDialog.type === 'part_template'" v-loading="nodeDetailDialog.loading" label-width="110px">
+        <el-form-item label="零件模板ID">
+          <el-input v-model="nodeDetailDialog.partForm.part_template_id" disabled />
+        </el-form-item>
+        <el-form-item label="零件编号">
+          <el-input v-model="nodeDetailDialog.partForm.part_number" maxlength="100" show-word-limit />
+        </el-form-item>
+        <el-form-item label="零件名称">
+          <el-input v-model="nodeDetailDialog.partForm.part_name" maxlength="100" show-word-limit />
+        </el-form-item>
+        <el-form-item label="组件ID">
+          <el-input v-model="nodeDetailDialog.partForm.component_id" disabled />
+        </el-form-item>
+        <el-form-item label="材料">
+          <el-input v-model="nodeDetailDialog.partForm.material" maxlength="100" show-word-limit />
+        </el-form-item>
+        <el-form-item label="规格型号">
+          <el-input v-model="nodeDetailDialog.partForm.specification" maxlength="100" show-word-limit />
+        </el-form-item>
+      </el-form>
+      <el-form v-else label-width="90px">
+        <el-form-item label="对象ID">
+          <el-input :model-value="nodeDetailDialog.node?.id || ''" disabled />
+        </el-form-item>
+        <el-form-item label="对象名称">
+          <el-input v-model="nodeDetailDialog.form.name" maxlength="100" show-word-limit />
+        </el-form-item>
+        <el-form-item label="父级ID">
+          <el-input :model-value="nodeDetailDialog.node?.parent_id || '-'" disabled />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="nodeDetailDialog.visible = false">取消</el-button>
+        <el-button type="primary" :loading="nodeDetailDialog.loading" @click="submitNodeDetail">保存</el-button>
+      </template>
     </el-dialog>
 
     <el-dialog v-model="partQualityDialog.visible" width="900px" :title="`零件质量详情 - ${partQualityDialog.part_name || partQualityDialog.part_code || ''}`">
@@ -434,6 +523,14 @@ function deleteModule(node_id) {
     method: 'delete'
   })
 }
+
+function updateModuleName(node_id, data) {
+  return request({
+    url: `/monitor/module/${encodeURIComponent(node_id)}/name`,
+    method: 'put',
+    data
+  })
+}
 function createPartInstance(data) {
   return request({
     url: '/monitor/parts',
@@ -454,6 +551,21 @@ function createPartTemplate(data) {
   return request({
     url: '/monitor/part-template',
     method: 'post',
+    data
+  })
+}
+
+function fetchPartTemplateDetail(part_template_id) {
+  return request({
+    url: `/monitor/part-template/${encodeURIComponent(part_template_id)}`,
+    method: 'get'
+  })
+}
+
+function updatePartTemplateDetail(part_template_id, data) {
+  return request({
+    url: `/monitor/part-template/${encodeURIComponent(part_template_id)}`,
+    method: 'put',
     data
   })
 }
@@ -494,6 +606,15 @@ function uploadNumericChunk(data, onUploadProgress) {
   })
 }
 
+function uploadNumericApi(data) {
+  return request({
+    url: '/quality/fault-iden/catalog/upload-numeric-api',
+    method: 'post',
+    data,
+    timeout: 300000
+  })
+}
+
 function mergeNumericChunks(data) {
   return request({
     url: '/quality/fault-iden/catalog/merge-numeric-chunks',
@@ -520,6 +641,15 @@ function uploadProcessTextData(data) {
   })
 }
 
+function uploadProcessTextApiData(data) {
+  return request({
+    url: '/monitor/text/api/import',
+    method: 'post',
+    data,
+    timeout: 300000
+  })
+}
+
 function uploadPartQualityData(data) {
   return request({
     url: '/quality/part-quality/import',
@@ -533,6 +663,15 @@ function uploadPartQualityData(data) {
   })
 }
 
+function uploadPartQualityApiData(data) {
+  return request({
+    url: '/quality/part-quality/api/import',
+    method: 'post',
+    data,
+    timeout: 300000
+  })
+}
+
 function downloadPartQualityTemplateApi() {
   return request({
     url: '/quality/part-quality/template',
@@ -542,10 +681,11 @@ function downloadPartQualityTemplateApi() {
   })
 }
 
-function downloadPartProcessTemplateApi() {
+function downloadPartProcessTemplateApi(params) {
   return request({
     url: '/monitor/text/process/template',
     method: 'get',
+    params,
     responseType: 'blob',
     timeout: 300000
   })
@@ -615,9 +755,10 @@ const numProg = reactive({
 })
 let numProgTimer = null
 const NUM_MB = 1024 * 1024
-const NUM_NORMAL_UPLOAD_LIMIT = 500 * NUM_MB
+const NUM_KB = 1024
+const NUM_NORMAL_UPLOAD_LIMIT = 5*1024 * NUM_KB
 const NUM_IN_FLIGHT_SIZE = 400 * NUM_MB
-const NUM_CHUNK_SIZE = 20 * NUM_MB
+const NUM_CHUNK_SIZE = 5*1024 * NUM_KB
 const NUM_UPLOAD_WAITING = 'WAITING'
 const NUM_UPLOAD_UPLOADING = 'UPLOADING'
 const NUM_UPLOAD_SUCCESS = 'SUCCESS'
@@ -632,18 +773,25 @@ const numPurposeOpts = [
 ]
 const textTaskOpts = [
   {
-    label: '零件工序',
+    label: '零件标准制作过程',
     value: 'partProcess',
     desc: '导入零件及制造工序',
-    objectLevelText: '组件',
-    rule: '请选择组件作为导入对象，Excel需包含零件编号、零件名称、工序序号、工序编号、工序名称。'
+    objectLevelText: '无需选择',
+    rule: '无需选择任务对象，Excel需包含零件模板、工序路线、详细工序三个Sheet。'
+  },
+  {
+    label: '零件实际制作过程',
+    value: 'PART_ACTUAL_MANUFACTURING_PROCESS',
+    desc: '导入零件实例、生产工单和工序执行记录',
+    objectLevelText: '无需选择',
+    rule: 'Excel需包含零件实例、生产工单、工序执行记录三个Sheet。'
   },
   {
     label: '零件质量信息',
     value: 'partQuality',
-    desc: '选择零件作为质量信息归属对象',
-    objectLevelText: '零件',
-    rule: '请选择零件作为任务对象。'
+    desc: '导入零件设计、制造、服役质量信息',
+    objectLevelText: '无需选择',
+    rule: '无需选择任务对象，导入时按Excel中的零件模板ID、零件实例ID等字段校验关联关系。'
   },
   {
     label: '层级对象',
@@ -664,7 +812,13 @@ const numObjDlg = reactive({
     subsystemId: '',
     equipmentId: '',
     componentId: '',
-    partId: ''
+    partId: '',
+    importMode: 'file',
+    apiUrl: '',
+    apiMethod: 'GET',
+    apiHeaders: '',
+    apiBody: '',
+    apiFileName: ''
   }
 })
 const numObjDlgTitle = computed(() => numObjDlg.importType === 'sequence' ? '选择时序数据对象' : '选择数值型数据对象')
@@ -675,15 +829,26 @@ const textObjDlg = reactive({
   form: {
     taskType: 'partProcess',
     componentId: '',
-    partId: ''
+    partId: '',
+    importMode: 'file',
+    apiUrl: '',
+    apiMethod: 'GET',
+    apiHeaders: '',
+    apiBody: '',
+    apiFileName: ''
   }
 })
 const dataFileDialog = reactive({
   visible: false,
   loading: false,
+  deleting: false,
+  selectingAll: false,
   rows: [],
-  total: 0
+  total: 0,
+  selectedRows: []
 })
+const dataFileTableRef = ref(null)
+const dataFileSelectedCount = computed(() => dataFileDialog.selectedRows.length)
 const dataFileQuery = reactive({
   dataUsage: 'ALL',
   keyword: '',
@@ -711,7 +876,20 @@ const context_menu = reactive({
 })
 const nodeDetailDialog = reactive({
   visible: false,
-  node: null
+  loading: false,
+  type: '',
+  node: null,
+  form: {
+    name: ''
+  },
+  partForm: {
+    part_template_id: '',
+    part_number: '',
+    part_name: '',
+    component_id: '',
+    material: '',
+    specification: ''
+  }
 })
 const partQualityDialog = reactive({
   visible: false,
@@ -798,27 +976,6 @@ const deleteEntryText = computed(() => {
   const nodeId = context_menu.node?.id || ''
   return String(nodeId).startsWith('part_template:') ? '删除零件' : '删除模块'
 })
-const nodeDetailItems = computed(() => {
-  const node = nodeDetailDialog.node || {}
-  const labelMap = {
-    id: '对象ID',
-    name: '对象名称',
-    level: '层级',
-    parent_id: '父级ID',
-    terminal: '是否末级',
-    child_count: '子级数量',
-    part_count: '零件数量'
-  }
-  const excludeKeys = new Set(['children'])
-  return Object.keys(node)
-    .filter(key => !excludeKeys.has(key))
-    .map(key => ({
-      key,
-      label: labelMap[key] || key,
-      value: formatNodeDetailValue(node[key], key)
-    }))
-})
-
 const currentPathText = computed(() => breadcrumbList.value.map(item => item.name).join(' / '))
 
 const canGoParent = computed(() => !!current_node.value?.id)
@@ -864,10 +1021,12 @@ const curTextTaskRule = computed(() => curTextTask.value.rule)
 const textObjReqLevelText = computed(() => curTextTask.value.objectLevelText)
 const isTextPartQuality = computed(() => textObjDlg.form.taskType === 'partQuality')
 const isTextHierarchy = computed(() => textObjDlg.form.taskType === 'hierarchy')
-const hasTextImportTemplate = computed(() => ['partProcess', 'partQuality', 'hierarchy'].includes(textObjDlg.form.taskType))
+const isTextActualProcess = computed(() => textObjDlg.form.taskType === 'PART_ACTUAL_MANUFACTURING_PROCESS')
+const textTaskRequiresObject = computed(() => !['partProcess', 'partQuality', 'hierarchy', 'PART_ACTUAL_MANUFACTURING_PROCESS'].includes(textObjDlg.form.taskType))
+const hasTextImportTemplate = computed(() => ['partProcess', 'partQuality', 'hierarchy', 'PART_ACTUAL_MANUFACTURING_PROCESS'].includes(textObjDlg.form.taskType))
 const textConfirmText = computed(() => '导入数据')
 const textSelNodeId = computed(() => {
-  if (isTextHierarchy.value) return ''
+  if (!textTaskRequiresObject.value) return ''
   if (isTextPartQuality.value) return prefixedNodeId('part_template', textObjDlg.form.partId)
   return prefixedNodeId('component', textObjDlg.form.componentId)
 })
@@ -1009,7 +1168,7 @@ function filterNumTree(value, data) {
 }
 
 function isTextNodeSelectable(data) {
-  if (isTextHierarchy.value) return false
+  if (!textTaskRequiresObject.value) return false
   return numNodeType(data) === (isTextPartQuality.value ? 'part_template' : 'component')
 }
 
@@ -1226,15 +1385,121 @@ function handleAddEntry() {
   }
   openCreateModuleDialog()
 }
-function handleViewNodeDetail() {
+async function handleViewNodeDetail() {
   const node = context_menu.node
   closeContextMenu()
   if (!node) {
     ElMessage.warning('请先选择对象')
     return
   }
-  nodeDetailDialog.node = node
+  nodeDetailDialog.node = { ...node }
+  nodeDetailDialog.type = String(node.id || '').startsWith('part_template:') ? 'part_template' : 'module'
+  nodeDetailDialog.form.name = node.name || ''
   nodeDetailDialog.visible = true
+  if (nodeDetailDialog.type === 'part_template') {
+    await loadPartTemplateDetail(node.id)
+  }
+}
+
+function rawPartTemplateId(nodeId) {
+  const value = String(nodeId || '')
+  return value.startsWith('part_template:') ? value.slice('part_template:'.length) : value
+}
+
+function resetPartTemplateDetailForm(data = {}) {
+  nodeDetailDialog.partForm.part_template_id = data.part_template_id || ''
+  nodeDetailDialog.partForm.part_number = data.part_number || ''
+  nodeDetailDialog.partForm.part_name = data.part_name || ''
+  nodeDetailDialog.partForm.component_id = data.component_id || ''
+  nodeDetailDialog.partForm.material = data.material || ''
+  nodeDetailDialog.partForm.specification = data.specification || ''
+}
+
+async function loadPartTemplateDetail(nodeId) {
+  const partTemplateId = rawPartTemplateId(nodeId)
+  resetPartTemplateDetailForm({ part_template_id: partTemplateId })
+  if (!partTemplateId) return
+  nodeDetailDialog.loading = true
+  try {
+    const res = await fetchPartTemplateDetail(partTemplateId)
+    resetPartTemplateDetailForm(res?.data || {})
+  } catch {
+    ElMessage.error('获取零件模板详情失败')
+  } finally {
+    nodeDetailDialog.loading = false
+  }
+}
+
+async function submitNodeDetail() {
+  if (nodeDetailDialog.type === 'part_template') {
+    await submitPartTemplateDetail()
+    return
+  }
+  await submitNodeDetailName()
+}
+
+async function submitNodeDetailName() {
+  const node = nodeDetailDialog.node
+  const name = (nodeDetailDialog.form.name || '').trim()
+  if (!node || !node.id) {
+    ElMessage.warning('请选择对象')
+    return
+  }
+  if (!name) {
+    ElMessage.warning('请输入对象名称')
+    return
+  }
+
+  nodeDetailDialog.loading = true
+  try {
+    const keepNodeId = current_node.value?.id || node.id
+    await updateModuleName(node.id, { module_name: name })
+    ElMessage.success('修改成功')
+    nodeDetailDialog.visible = false
+    await reloadTreeView(keepNodeId)
+  } catch {
+    ElMessage.error('修改对象名称失败')
+  } finally {
+    nodeDetailDialog.loading = false
+  }
+}
+
+async function submitPartTemplateDetail() {
+  const node = nodeDetailDialog.node
+  const form = nodeDetailDialog.partForm
+  const partTemplateId = rawPartTemplateId(node?.id || form.part_template_id)
+  const partNumber = (form.part_number || '').trim()
+  const partName = (form.part_name || '').trim()
+  if (!partTemplateId) {
+    ElMessage.warning('请选择零件模板')
+    return
+  }
+  if (!partNumber) {
+    ElMessage.warning('请输入零件编号')
+    return
+  }
+  if (!partName) {
+    ElMessage.warning('请输入零件名称')
+    return
+  }
+
+  nodeDetailDialog.loading = true
+  try {
+    const keepNodeId = current_node.value?.id || node?.id || ''
+    await updatePartTemplateDetail(partTemplateId, {
+      part_number: partNumber,
+      part_name: partName,
+      material: (form.material || '').trim(),
+      specification: (form.specification || '').trim()
+    })
+    ElMessage.success('修改成功')
+    nodeDetailDialog.visible = false
+    await reloadTreeView(keepNodeId)
+  } catch {
+    ElMessage.error('修改零件模板详情失败')
+  } finally {
+    nodeDetailDialog.loading = false
+  }
 }
 
 async function submitCreateModule() {
@@ -1376,10 +1641,12 @@ async function submitCreatePartInstance() {
       material: payload.material || '',
       spec_model: payload.spec_model || '',
       batch_no: payload.batch_number || '',
+      batch_number: payload.batch_number || '',
       serial_number: payload.serial_number || '',
       manufacturer: payload.manufacturer || '',
       production_date: payload.production_date || '',
       status: payload.status || '',
+      current_status: payload.status || '',
       quality_level: payload.quality_level || '',
       key_degree: payload.key_degree || ''
     }
@@ -1636,6 +1903,12 @@ function resetTextObjForm() {
   textObjDlg.form.taskType = 'partProcess'
   textObjDlg.form.componentId = ''
   textObjDlg.form.partId = ''
+  textObjDlg.form.importMode = 'file'
+  textObjDlg.form.apiUrl = ''
+  textObjDlg.form.apiMethod = 'GET'
+  textObjDlg.form.apiHeaders = ''
+  textObjDlg.form.apiBody = ''
+  textObjDlg.form.apiFileName = ''
 }
 
 async function openNumObjDlg(importType = 'numeric') {
@@ -1665,6 +1938,12 @@ function resetNumObjForm() {
   numObjDlg.form.equipmentId = ''
   numObjDlg.form.componentId = ''
   numObjDlg.form.partId = ''
+  numObjDlg.form.importMode = 'file'
+  numObjDlg.form.apiUrl = ''
+  numObjDlg.form.apiMethod = 'GET'
+  numObjDlg.form.apiHeaders = ''
+  numObjDlg.form.apiBody = ''
+  numObjDlg.form.apiFileName = ''
 }
 
 function selectNumPurpose(value) {
@@ -1698,15 +1977,6 @@ function hasNumObjSel() {
 
 function wait(ms) {
   return new Promise(resolve => window.setTimeout(resolve, ms))
-}
-
-function formatNodeDetailValue(value, key = '') {
-  if (value === null || value === undefined || value === '') return '暂无数据'
-  if (typeof value === 'boolean') return value ? '是' : '否'
-  if (Array.isArray(value)) return value.length ? JSON.stringify(value) : '[]'
-  if (typeof value === 'object') return JSON.stringify(value)
-  if (key === 'terminal') return String(value) === 'true' ? '是' : '否'
-  return String(value)
 }
 
 function stopNumProgTimer() {
@@ -1758,6 +2028,10 @@ function conNumObj() {
     ElMessage.warning(numObjReqText.value)
     return
   }
+  if (numObjDlg.form.importMode === 'api') {
+    submitNumApiData()
+    return
+  }
   numObjDlg.visible = false
   if (numFileInput.value) {
     numFileInput.value.value = ''
@@ -1766,8 +2040,8 @@ function conNumObj() {
 }
 
 function conTextObj() {
-  if (isTextHierarchy.value) {
-    // hierarchy import does not bind to a selected tree node.
+  if (!textTaskRequiresObject.value) {
+    // These imports do not bind to a selected tree node.
   } else if (isTextPartQuality.value) {
     if (!textObjDlg.form.partId) {
       ElMessage.warning('请选择零件作为任务对象')
@@ -1775,6 +2049,10 @@ function conTextObj() {
     }
   } else if (!textObjDlg.form.componentId) {
     ElMessage.warning('请选择组件作为导入对象')
+    return
+  }
+  if (textObjDlg.form.importMode === 'api') {
+    submitTextApiData()
     return
   }
   textObjDlg.visible = false
@@ -1795,11 +2073,11 @@ async function onNumFileChange(event) {
 }
 
 async function onTextFileChange(event) {
-  const pattern = (isTextPartQuality.value || isTextHierarchy.value) ? /\.xlsx$/i : /\.(xlsx|xls)$/i
+  const pattern = (isTextPartQuality.value || isTextHierarchy.value || isTextActualProcess.value) ? /\.xlsx$/i : /\.(xlsx|xls)$/i
   const file = Array.from(event?.target?.files || []).find(item => pattern.test(item.name))
   if (event?.target) event.target.value = ''
   if (!file) {
-    ElMessage.warning((isTextPartQuality.value || isTextHierarchy.value) ? '请选择 .xlsx Excel 文件' : '请选择 Excel 文件')
+    ElMessage.warning((isTextPartQuality.value || isTextHierarchy.value || isTextActualProcess.value) ? '请选择 .xlsx Excel 文件' : '请选择 Excel 文件')
     return
   }
   if (isTextHierarchy.value) {
@@ -1847,6 +2125,84 @@ async function submitNumData(files) {
     const msg = error?.response?.data?.msg || error?.message || '未知错误'
     await failNumProg('导入失败')
     ElMessage.error('导入失败：' + msg)
+  } finally {
+    numImporting.value = false
+  }
+}
+
+function parseNumApiHeaders() {
+  const raw = (numObjDlg.form.apiHeaders || '').trim()
+  if (!raw) return {}
+  try {
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('headers must be object')
+    }
+    return parsed
+  } catch {
+    ElMessage.warning('请求头必须是JSON对象格式')
+    return null
+  }
+}
+
+async function submitNumApiData() {
+  const apiUrl = (numObjDlg.form.apiUrl || '').trim()
+  if (!apiUrl) {
+    ElMessage.warning('请输入API地址')
+    return
+  }
+  const headers = parseNumApiHeaders()
+  if (headers === null) return
+
+  numObjDlg.visible = false
+  numImporting.value = true
+  numUploadBatchId = createNumUploadBatchId()
+  numUploadRows.value = [{
+    id: `${numUploadBatchId}_api`,
+    name: (numObjDlg.form.apiFileName || '').trim() || 'api_numeric_data.csv',
+    size: 0,
+    index: 0,
+    status: NUM_UPLOAD_UPLOADING,
+    progress: 25,
+    message: 'API拉取中'
+  }]
+  startNumProg('正在通过API导入数据...')
+  try {
+    const res = await uploadNumericApi({
+      purpose: numObjDlg.form.purpose,
+      executionObject: 'bearing',
+      aircraftId: numObjDlg.form.aircraftId || '',
+      subsystemId: numObjDlg.form.subsystemId || '',
+      equipmentId: numObjDlg.form.equipmentId || '',
+      componentId: numObjDlg.form.componentId || '',
+      partId: numObjDlg.form.partId || '',
+      uploadBatchId: numUploadBatchId,
+      apiUrl,
+      method: numObjDlg.form.apiMethod || 'GET',
+      headers,
+      body: numObjDlg.form.apiBody || '',
+      fileName: (numObjDlg.form.apiFileName || '').trim()
+    })
+    const data = res?.data || {}
+    numUploadRows.value[0].status = data.uploadStatus === 'SKIPPED' ? NUM_UPLOAD_SUCCESS : NUM_UPLOAD_SUCCESS
+    numUploadRows.value[0].progress = 100
+    numUploadRows.value[0].size = Number(data.fileSize || 0)
+    numUploadRows.value[0].name = data.fileName || numUploadRows.value[0].name
+    numUploadRows.value[0].message = data.message || '导入成功'
+    await finishNumProg('API导入完成')
+    ElMessage.success('API导入完成')
+    dataFileQuery.uploadBatchId = numUploadBatchId
+    if (dataFileDialog.visible) {
+      dataFileQuery.pageNum = 1
+      await loadDataFiles()
+    }
+  } catch (error) {
+    const msg = error?.response?.data?.msg || error?.message || '未知错误'
+    numUploadRows.value[0].status = NUM_UPLOAD_FAILED
+    numUploadRows.value[0].progress = 100
+    numUploadRows.value[0].message = msg
+    await failNumProg('API导入失败')
+    ElMessage.error('API导入失败：' + msg)
   } finally {
     numImporting.value = false
   }
@@ -2004,20 +2360,25 @@ function uploadStatusText(status) {
 }
 
 async function submitTextData(file) {
-  if (!textObjDlg.form.componentId) {
+  if (textTaskRequiresObject.value && !textObjDlg.form.componentId) {
     ElMessage.warning('请选择组件作为导入对象')
     return
   }
 
   const payload = new FormData()
-  payload.append('componentId', textObjDlg.form.componentId)
+  payload.append('componentId', textObjDlg.form.componentId || '')
+  payload.append('taskType', textObjDlg.form.taskType)
   payload.append('file', file)
 
   textImporting.value = true
   try {
     const res = await uploadProcessTextData(payload)
     const data = res?.data || {}
-    ElMessage.success('导入完成：零件 ' + (data.part_count || 0) + ' 个，新增实例 ' + (data.instance_count || 0) + ' 个，工序 ' + (data.process_count || 0) + ' 条')
+    if (isTextActualProcess.value) {
+      ElMessage.success('导入完成：零件实例 ' + (data.part_instance_count || 0) + ' 条，生产工单 ' + (data.work_order_count || 0) + ' 条，工序执行记录 ' + (data.process_execution_count || 0) + ' 条')
+    } else {
+      ElMessage.success('导入完成：零件 ' + (data.part_count || 0) + ' 个，新增实例 ' + (data.instance_count || 0) + ' 个，工序 ' + (data.process_count || 0) + ' 条')
+    }
     const keepNodeId = current_node.value?.id || ''
     await reloadTreeView(keepNodeId)
   } catch (error) {
@@ -2028,11 +2389,6 @@ async function submitTextData(file) {
 }
 
 async function submitPartQualityData(file) {
-  if (!textObjDlg.form.partId) {
-    ElMessage.warning('请选择零件作为任务对象')
-    return
-  }
-
   const payload = new FormData()
   payload.append('file', file)
 
@@ -2040,6 +2396,13 @@ async function submitPartQualityData(file) {
   try {
     const res = await uploadPartQualityData(payload)
     const data = res?.data || {}
+    if (data.success === false) {
+      const errors = Array.isArray(data.errors) ? data.errors : []
+      const firstError = errors.length ? errors[0] : null
+      const detail = firstError ? `${firstError.sheetName || ''} 第${firstError.rowIndex || '-'}行 ${firstError.fieldName || ''}：${firstError.message || ''}` : '请检查Excel数据'
+      ElMessage.error(`导入失败：${detail}${errors.length > 1 ? `，共 ${errors.length} 处错误` : ''}`)
+      return
+    }
     ElMessage.success('导入成功：设计 ' + (data.designCount || 0) + ' 条，制造 ' + (data.manufacturingCount || 0) + ' 条，服役 ' + (data.serviceCount || 0) + ' 条')
     if (partQuery.module_id) loadPartInstances()
   } catch (error) {
@@ -2069,6 +2432,82 @@ async function submitHierarchyData(file) {
   }
 }
 
+function parseTextApiHeaders() {
+  const raw = (textObjDlg.form.apiHeaders || '').trim()
+  if (!raw) return {}
+  try {
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('headers must be object')
+    }
+    return parsed
+  } catch {
+    ElMessage.warning('请求头必须是JSON对象格式')
+    return null
+  }
+}
+
+async function submitTextApiData() {
+  const apiUrl = (textObjDlg.form.apiUrl || '').trim()
+  if (!apiUrl) {
+    ElMessage.warning('请输入API地址')
+    return
+  }
+  const headers = parseTextApiHeaders()
+  if (headers === null) return
+
+  const payload = {
+    taskType: textObjDlg.form.taskType,
+    componentId: textObjDlg.form.componentId || '',
+    partId: textObjDlg.form.partId || '',
+    apiUrl,
+    method: textObjDlg.form.apiMethod || 'GET',
+    headers,
+    body: textObjDlg.form.apiBody || '',
+    fileName: (textObjDlg.form.apiFileName || '').trim()
+  }
+
+  textObjDlg.visible = false
+  textImporting.value = true
+  try {
+    let res
+    if (isTextPartQuality.value) {
+      res = await uploadPartQualityApiData(payload)
+      const data = res?.data || {}
+      if (data.success === false) {
+        const errors = Array.isArray(data.errors) ? data.errors : []
+        const firstError = errors.length ? errors[0] : null
+        const detail = firstError ? `${firstError.sheetName || ''} 第${firstError.rowIndex || '-'}行 ${firstError.fieldName || ''}：${firstError.message || ''}` : '请检查Excel数据'
+        ElMessage.error(`导入失败：${detail}${errors.length > 1 ? `，共 ${errors.length} 处错误` : ''}`)
+        return
+      }
+      ElMessage.success('API导入成功：设计 ' + (data.designCount || 0) + ' 条，制造 ' + (data.manufacturingCount || 0) + ' 条，服役 ' + (data.serviceCount || 0) + ' 条')
+      if (partQuery.module_id) loadPartInstances()
+      return
+    }
+
+    res = await uploadProcessTextApiData(payload)
+    const data = res?.data || {}
+    if (isTextHierarchy.value) {
+      ElMessage.success('API导入完成：层级对象 ' + (data.total_count || 0) + ' 条')
+      await reloadTreeView(current_node.value?.id || '')
+    } else if (isTextActualProcess.value) {
+      ElMessage.success('API导入完成：零件实例 ' + (data.part_instance_count || 0) + ' 条，生产工单 ' + (data.work_order_count || 0) + ' 条，工序执行记录 ' + (data.process_execution_count || 0) + ' 条')
+      await reloadTreeView(current_node.value?.id || '')
+    } else {
+      ElMessage.success('API导入完成：零件 ' + (data.part_count || 0) + ' 个，新增实例 ' + (data.instance_count || 0) + ' 个，工序 ' + (data.process_count || 0) + ' 条')
+      await reloadTreeView(current_node.value?.id || '')
+    }
+  } catch (error) {
+    const data = error?.response?.data?.data
+    const firstError = Array.isArray(data?.errors) && data.errors.length ? data.errors[0] : null
+    const detail = firstError ? `${firstError.sheetName || ''} 第${firstError.rowIndex || '-'}行 ${firstError.fieldName || ''}：${firstError.message || ''}` : ''
+    ElMessage.error(detail || error?.response?.data?.msg || error?.message || 'API导入文本数据失败')
+  } finally {
+    textImporting.value = false
+  }
+}
+
 async function downloadPartQualityTemplate() {
   try {
     const data = await downloadPartQualityTemplateApi()
@@ -2081,7 +2520,16 @@ async function downloadPartQualityTemplate() {
 async function downloadPartProcessTemplate() {
   try {
     const data = await downloadPartProcessTemplateApi()
-    saveAs(new Blob([data]), '零件工序导入模板.xlsx')
+    saveAs(new Blob([data]), '零件标准制作过程导入模板.xlsx')
+  } catch {
+    ElMessage.error('下载导入模板失败')
+  }
+}
+
+async function generatePartActualManufacturingProcessTemplate() {
+  try {
+    const data = await downloadPartProcessTemplateApi({ taskType: 'PART_ACTUAL_MANUFACTURING_PROCESS' })
+    saveAs(new Blob([data]), '零件实际制作过程导入模板.xlsx')
   } catch {
     ElMessage.error('下载导入模板失败')
   }
@@ -2103,6 +2551,10 @@ function downloadTextImportTemplate() {
   }
   if (isTextPartQuality.value) {
     downloadPartQualityTemplate()
+    return
+  }
+  if (isTextActualProcess.value) {
+    generatePartActualManufacturingProcessTemplate()
     return
   }
   downloadPartProcessTemplate()
@@ -2128,6 +2580,13 @@ function fileSizeText(size) {
 async function openDataFileDialog() {
   dataFileDialog.visible = true
   dataFileQuery.pageNum = 1
+  clearSelectedDataFiles()
+  await loadDataFiles()
+}
+
+async function searchDataFiles() {
+  dataFileQuery.pageNum = 1
+  clearSelectedDataFiles()
   await loadDataFiles()
 }
 
@@ -2143,6 +2602,7 @@ async function loadDataFiles() {
     })
     dataFileDialog.rows = Array.isArray(res.rows) ? res.rows : []
     dataFileDialog.total = Number(res.total || 0)
+    syncDataFilePageSelection()
   } catch (error) {
     dataFileDialog.rows = []
     dataFileDialog.total = 0
@@ -2150,6 +2610,81 @@ async function loadDataFiles() {
   } finally {
     dataFileDialog.loading = false
   }
+}
+
+function handleDataFileSelectionChange(selection) {
+  const selectedMap = new Map(dataFileDialog.selectedRows.map(row => [row.id, row]))
+  const currentIds = new Set(dataFileDialog.rows.map(row => row.id))
+  currentIds.forEach(id => selectedMap.delete(id))
+  ;(Array.isArray(selection) ? selection : []).forEach(row => {
+    if (row && row.id !== undefined && row.id !== null) {
+      selectedMap.set(row.id, row)
+    }
+  })
+  dataFileDialog.selectedRows = Array.from(selectedMap.values())
+}
+
+function syncDataFilePageSelection() {
+  const selectedIds = new Set(dataFileDialog.selectedRows.map(row => row.id))
+  nextTick(() => {
+    const table = dataFileTableRef.value
+    if (!table || !dataFileDialog.rows.length) return
+    table.clearSelection?.()
+    dataFileDialog.rows.forEach(row => {
+      if (selectedIds.has(row.id)) {
+        table.toggleRowSelection?.(row, true)
+      }
+    })
+  })
+}
+
+async function selectAllDataFiles() {
+  if (!dataFileDialog.total) return
+  dataFileDialog.selectingAll = true
+  try {
+    const pageSize = 500
+    const first = await listAllDataFiles({
+      dataUsage: dataFileQuery.dataUsage || 'ALL',
+      keyword: dataFileQuery.keyword,
+      uploadBatchId: dataFileQuery.uploadBatchId,
+      pageNum: 1,
+      pageSize
+    })
+    const total = Number(first.total || 0)
+    const allRows = Array.isArray(first.rows) ? [...first.rows] : []
+    const effectivePageSize = allRows.length || pageSize
+    const pageCount = Math.ceil(total / effectivePageSize)
+    for (let pageNum = 2; pageNum <= pageCount; pageNum++) {
+      const res = await listAllDataFiles({
+        dataUsage: dataFileQuery.dataUsage || 'ALL',
+        keyword: dataFileQuery.keyword,
+        uploadBatchId: dataFileQuery.uploadBatchId,
+        pageNum,
+        pageSize
+      })
+      if (Array.isArray(res.rows)) {
+        allRows.push(...res.rows)
+      }
+    }
+    const unique = new Map()
+    allRows.forEach(row => {
+      if (row && row.id !== undefined && row.id !== null) {
+        unique.set(row.id, row)
+      }
+    })
+    dataFileDialog.selectedRows = Array.from(unique.values())
+    syncDataFilePageSelection()
+    ElMessage.success(`已全选 ${dataFileDialog.selectedRows.length} 个数据文件`)
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.msg || error?.message || '全选数据文件失败')
+  } finally {
+    dataFileDialog.selectingAll = false
+  }
+}
+
+function clearSelectedDataFiles() {
+  dataFileDialog.selectedRows = []
+  dataFileTableRef.value?.clearSelection?.()
 }
 
 async function removeDataFile(row) {
@@ -2165,6 +2700,44 @@ async function removeDataFile(row) {
   } catch (error) {
     if (error === 'cancel' || error === 'close') return
     ElMessage.error(error?.response?.data?.msg || error?.message || '删除数据文件失败')
+  }
+}
+
+async function removeSelectedDataFiles() {
+  const rows = dataFileDialog.selectedRows.filter(row => row && row.id !== undefined && row.id !== null)
+  if (!rows.length) {
+    ElMessage.warning('请先选择要删除的数据文件')
+    return
+  }
+  try {
+    await ElMessageBox.confirm(`确认删除选中的 ${rows.length} 个数据文件吗？`, '批量删除确认', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    })
+    dataFileDialog.deleting = true
+    let success = 0
+    let failed = 0
+    for (const row of rows) {
+      try {
+        await deleteDataFile(row.id)
+        success++
+      } catch {
+        failed++
+      }
+    }
+    clearSelectedDataFiles()
+    await loadDataFiles()
+    if (failed) {
+      ElMessage.warning(`批量删除完成：成功 ${success} 个，失败 ${failed} 个`)
+    } else {
+      ElMessage.success(`批量删除成功：${success} 个`)
+    }
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+    ElMessage.error(error?.response?.data?.msg || error?.message || '批量删除数据文件失败')
+  } finally {
+    dataFileDialog.deleting = false
   }
 }
 

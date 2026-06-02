@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
+from pydantic import ValidationError
 
 from algorithms.data_upload_analysis import process_uploaded_dataset
 from algorithms.feature_processing import extract_features_from_dataset
@@ -141,8 +142,12 @@ def health():
 # POST /python/data-analysis
 # ============================================================
 @app.post("/python/data-analysis")
-def python_data_analysis(request: UploadAnalyzeRequest):
+async def python_data_analysis(http_request: Request):
     """Interface one: data analysis."""
+    request, invalid_response = await _upload_analyze_request(http_request)
+    if invalid_response is not None:
+        return invalid_response
+
     try:
         dataset_id = request.datasetId or request.taskId
         if not dataset_id:
@@ -210,6 +215,100 @@ def python_data_analysis(request: UploadAnalyzeRequest):
             "errorCode": "DATA_ANALYSIS_FAILED",
             "fileReports": [],
         }
+
+
+async def _upload_analyze_request(http_request: Request):
+    """Parse Spring Boot and direct frontend-compatible payloads without FastAPI 422."""
+    try:
+        raw_payload = await http_request.json()
+    except Exception as exc:
+        return None, _invalid_data_analysis_response(
+            None,
+            "request body must be valid JSON",
+            f"INVALID_JSON: {exc}",
+        )
+
+    if not isinstance(raw_payload, dict):
+        return None, _invalid_data_analysis_response(
+            None,
+            "request body must be a JSON object",
+            "BODY_NOT_OBJECT",
+        )
+
+    payload = _normalize_upload_analyze_payload(raw_payload)
+    try:
+        return UploadAnalyzeRequest.model_validate(payload), None
+    except ValidationError as exc:
+        task_id = _text(payload.get("taskId") or payload.get("task_id"))
+        return None, _invalid_data_analysis_response(
+            task_id,
+            "request body does not match data-analysis schema",
+            exc.errors(),
+        )
+
+
+def _normalize_upload_analyze_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Accept both flat Java payloads and wrapper payloads containing feature_params."""
+    normalized = dict(payload)
+    nested = payload.get("feature_params") or payload.get("featureParams") or payload.get("params")
+    if isinstance(nested, dict):
+        merged = dict(nested)
+        merged.update({k: v for k, v in normalized.items() if v is not None})
+        normalized = merged
+
+    aliases = {
+        "task_id": "taskId",
+        "dataset_id": "datasetId",
+        "task_type": "taskType",
+        "file_mode": "fileMode",
+        "sample_ids": "sampleIds",
+        "file_path": "filePath",
+        "file_url": "fileUrl",
+        "file_paths": "filePaths",
+        "file_urls": "fileUrls",
+        "batch_path": "batchPath",
+        "sampling_frequency": "samplingFrequency",
+        "samplingRate": "samplingFrequency",
+        "sampling_rate": "samplingFrequency",
+        "column_index": "columnIndex",
+        "window_size": "windowSize",
+        "overlap_percent": "overlapPercent",
+        "overlapRate": "overlapPercent",
+        "overlap_rate": "overlapPercent",
+        "remove_outliers": "removeOutliers",
+        "max_seconds": "maxSeconds",
+    }
+    for source, target in aliases.items():
+        if source in normalized and target not in normalized:
+            normalized[target] = normalized[source]
+
+    if not normalized.get("datasetId"):
+        normalized["datasetId"] = (
+            normalized.get("taskId")
+            or normalized.get("import_record_id")
+            or normalized.get("importRecordId")
+        )
+    return normalized
+
+
+def _invalid_data_analysis_response(task_id: Optional[str], message: str, detail: Any):
+    return {
+        "taskId": task_id,
+        "datasetId": task_id,
+        "taskType": "FEATURE_ANALYSIS",
+        "status": "FAILED",
+        "message": message,
+        "errorCode": "INVALID_REQUEST_SCHEMA",
+        "detail": detail,
+        "fileReports": [],
+    }
+
+
+def _text(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
 
 
 # ============================================================

@@ -16,6 +16,7 @@ public interface FaultIdenCatalogService
                                           String airId, String subId, String eqpId, String cmpId,
                                           String ptId, String uploadBatchId, Integer fileIndex, Integer totalFiles,
                                           MultipartFile file);
+    Map<String, Object> uploadNumericApi(Map<String, Object> req);
     Map<String, Object> uploadNumericChunk(String uploadId, Integer chunkIndex, Integer chunkCount, String fileName, MultipartFile chunk);
     Map<String, Object> mergeNumericChunks(String purpose, String executionObject, String conditionLabel, Integer bearingNo,
                                            String airId, String subId, String eqpId, String cmpId,

@@ -2,7 +2,7 @@
   <div class="app-container quality-page warning-page">
     <el-card shadow="never" class="quality-hero feedback-hero">
       <template #header>
-        <span class="quality-title">关键工序异常信号预警</span>
+        <span class="quality-title">全域制造过程反馈监管</span>
       </template>
       <div class="quality-desc">查看零件、工序和设备异常状态，并发起异常检测算法分析。</div>
     </el-card>

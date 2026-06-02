@@ -114,6 +114,7 @@ public class PartQualityServiceImpl implements PartQualityService
             partInstanceIds.add(row.getPartInstanceId());
         }
         for (ServiceQuality row : data.getServiceRows()) {
+            partInstanceIds.add(row.getPartInstanceId());
             equipmentIds.add(row.getEquipmentId());
             componentIds.add(row.getComponentId());
         }
