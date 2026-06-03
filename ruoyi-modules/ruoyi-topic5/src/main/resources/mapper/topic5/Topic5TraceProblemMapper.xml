@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.topic5.mapper.Topic5TraceProblemMapper">
+
+    <resultMap type="Topic5TraceProblem" id="Topic5TraceProblemResult">
+        <result property="id" column="id" />
+        <result property="traceNo" column="trace_no" />
+        <result property="eventTime" column="event_time" />
+        <result property="aircraftNo" column="aircraft_no" />
+        <result property="partName" column="part_name" />
+        <result property="partCode" column="part_code" />
+        <result property="occurrencePosition" column="occurrence_position" />
+        <result property="problemType" column="problem_type" />
+        <result property="severityLevel" column="severity_level" />
+        <result property="problemDescription" column="problem_description" />
+
+        <result property="workflowStage" column="workflow_stage" />
+        <result property="status" column="status" />
+
+        <result property="topic4Status" column="topic4_status" />
+        <result property="topic4Result" column="topic4_result" />
+        <result property="suggestedCause" column="suggested_cause" />
+        <result property="riskLevel" column="risk_level" />
+        <result property="suggestedAction" column="suggested_action" />
+        <result property="topic4ResultFilled" column="topic4_result_filled" />
+
+        <result property="algorithmStatus" column="algorithm_status" />
+        <result property="algorithmResult" column="algorithm_result" />
+
+        <result property="kgRebuildStatus" column="kg_rebuild_status" />
+        <result property="kgGraphUrl" column="kg_graph_url" />
+        <result property="traceReportStatus" column="trace_report_status" />
+        <result property="traceReportUrl" column="trace_report_url" />
+
+        <result property="reporter" column="reporter" />
+        <result property="source" column="source" />
+        <result property="remark" column="remark" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="delFlag" column="del_flag" />
+        <result property="attachmentSavePath" column="attachment_save_path" />
+    </resultMap>
+
+    <sql id="selectTopic5TraceProblemVo">
+        select
+            id,
+            trace_no,
+            event_time,
+            aircraft_no,
+            part_name,
+            part_code,
+            occurrence_position,
+            problem_type,
+            severity_level,
+            problem_description,
+            workflow_stage,
+            status,
+            topic4_status,
+            topic4_result,
+            suggested_cause,
+            risk_level,
+            suggested_action,
+            topic4_result_filled,
+            algorithm_status,
+            algorithm_result,
+            kg_rebuild_status,
+            kg_graph_url,
+            trace_report_status,
+            trace_report_url,
+            reporter,
+            source,
+            remark,
+            create_by,
+            create_time,
+            update_by,
+            update_time,
+            attachment_save_path,
+            del_flag
+        from topic5_trace_problem
+    </sql>
+
+    <select id="selectTopic5TraceProblemList" parameterType="Topic5TraceProblem" resultMap="Topic5TraceProblemResult">
+        <include refid="selectTopic5TraceProblemVo"/>
+        <where>
+            <if test="traceNo != null and traceNo != ''"> and trace_no = #{traceNo}</if>
+            <if test="eventTime != null"> and event_time = #{eventTime}</if>
+            <if test="aircraftNo != null and aircraftNo != ''"> and aircraft_no = #{aircraftNo}</if>
+            <if test="partName != null and partName != ''"> and part_name like concat('%', #{partName}, '%')</if>
+            <if test="partCode != null and partCode != ''"> and part_code = #{partCode}</if>
+            <if test="occurrencePosition != null and occurrencePosition != ''"> and occurrence_position = #{occurrencePosition}</if>
+            <if test="problemType != null and problemType != ''"> and problem_type = #{problemType}</if>
+            <if test="severityLevel != null and severityLevel != ''"> and severity_level = #{severityLevel}</if>
+            <if test="problemDescription != null and problemDescription != ''"> and problem_description = #{problemDescription}</if>
+
+            <if test="workflowStage != null"> and workflow_stage = #{workflowStage}</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+
+            <if test="topic4Status != null"> and topic4_status = #{topic4Status}</if>
+            <if test="topic4Result != null and topic4Result != ''"> and topic4_result = #{topic4Result}</if>
+            <if test="suggestedCause != null and suggestedCause != ''"> and suggested_cause = #{suggestedCause}</if>
+            <if test="riskLevel != null and riskLevel != ''"> and risk_level = #{riskLevel}</if>
+            <if test="suggestedAction != null and suggestedAction != ''"> and suggested_action = #{suggestedAction}</if>
+            <if test="topic4ResultFilled != null"> and topic4_result_filled = #{topic4ResultFilled}</if>
+
+            <if test="algorithmStatus != null"> and algorithm_status = #{algorithmStatus}</if>
+            <if test="algorithmResult != null and algorithmResult != ''"> and algorithm_result = #{algorithmResult}</if>
+
+            <if test="kgRebuildStatus != null"> and kg_rebuild_status = #{kgRebuildStatus}</if>
+            <if test="kgGraphUrl != null and kgGraphUrl != ''"> and kg_graph_url = #{kgGraphUrl}</if>
+            <if test="traceReportStatus != null"> and trace_report_status = #{traceReportStatus}</if>
+            <if test="traceReportUrl != null and traceReportUrl != ''"> and trace_report_url = #{traceReportUrl}</if>
+
+            <if test="reporter != null and reporter != ''"> and reporter = #{reporter}</if>
+            <if test="source != null and source != ''"> and source = #{source}</if>
+        </where>
+    </select>
+
+    <select id="selectTopic5TraceProblemById" parameterType="Long" resultMap="Topic5TraceProblemResult">
+        <include refid="selectTopic5TraceProblemVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTopic5TraceProblem" parameterType="Topic5TraceProblem" useGeneratedKeys="true" keyProperty="id">
+        insert into topic5_trace_problem
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="traceNo != null and traceNo != ''">trace_no,</if>
+            <if test="eventTime != null">event_time,</if>
+            <if test="aircraftNo != null and aircraftNo != ''">aircraft_no,</if>
+            <if test="partName != null and partName != ''">part_name,</if>
+            <if test="partCode != null">part_code,</if>
+            <if test="occurrencePosition != null">occurrence_position,</if>
+            <if test="problemType != null">problem_type,</if>
+            <if test="severityLevel != null">severity_level,</if>
+            <if test="problemDescription != null">problem_description,</if>
+
+            <if test="workflowStage != null">workflow_stage,</if>
+            <if test="status != null">status,</if>
+
+            <if test="topic4Status != null">topic4_status,</if>
+            <if test="topic4Result != null">topic4_result,</if>
+            <if test="suggestedCause != null">suggested_cause,</if>
+            <if test="riskLevel != null">risk_level,</if>
+            <if test="suggestedAction != null">suggested_action,</if>
+            <if test="topic4ResultFilled != null">topic4_result_filled,</if>
+
+            <if test="algorithmStatus != null">algorithm_status,</if>
+            <if test="algorithmResult != null">algorithm_result,</if>
+
+            <if test="kgRebuildStatus != null">kg_rebuild_status,</if>
+            <if test="kgGraphUrl != null">kg_graph_url,</if>
+            <if test="traceReportStatus != null">trace_report_status,</if>
+            <if test="traceReportUrl != null">trace_report_url,</if>
+
+            <if test="reporter != null">reporter,</if>
+            <if test="source != null">source,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="attachmentSavePath != null">attachment_save_path,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="traceNo != null and traceNo != ''">#{traceNo},</if>
+            <if test="eventTime != null">#{eventTime},</if>
+            <if test="aircraftNo != null and aircraftNo != ''">#{aircraftNo},</if>
+            <if test="partName != null and partName != ''">#{partName},</if>
+            <if test="partCode != null">#{partCode},</if>
+            <if test="occurrencePosition != null">#{occurrencePosition},</if>
+            <if test="problemType != null">#{problemType},</if>
+            <if test="severityLevel != null">#{severityLevel},</if>
+            <if test="problemDescription != null">#{problemDescription},</if>
+            <if test="attachmentSavePath != null">#{attachmentSavePath},</if>
+
+            <if test="workflowStage != null">#{workflowStage},</if>
+            <if test="status != null">#{status},</if>
+
+            <if test="topic4Status != null">#{topic4Status},</if>
+            <if test="topic4Result != null">#{topic4Result},</if>
+            <if test="suggestedCause != null">#{suggestedCause},</if>
+            <if test="riskLevel != null">#{riskLevel},</if>
+            <if test="suggestedAction != null">#{suggestedAction},</if>
+            <if test="topic4ResultFilled != null">#{topic4ResultFilled},</if>
+
+            <if test="algorithmStatus != null">#{algorithmStatus},</if>
+            <if test="algorithmResult != null">#{algorithmResult},</if>
+
+            <if test="kgRebuildStatus != null">#{kgRebuildStatus},</if>
+            <if test="kgGraphUrl != null">#{kgGraphUrl},</if>
+            <if test="traceReportStatus != null">#{traceReportStatus},</if>
+            <if test="traceReportUrl != null">#{traceReportUrl},</if>
+
+            <if test="reporter != null">#{reporter},</if>
+            <if test="source != null">#{source},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTopic5TraceProblem" parameterType="Topic5TraceProblem">
+        update topic5_trace_problem
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="traceNo != null and traceNo != ''">trace_no = #{traceNo},</if>
+            <if test="eventTime != null">event_time = #{eventTime},</if>
+            <if test="aircraftNo != null and aircraftNo != ''">aircraft_no = #{aircraftNo},</if>
+            <if test="partName != null and partName != ''">part_name = #{partName},</if>
+            <if test="partCode != null">part_code = #{partCode},</if>
+            <if test="occurrencePosition != null">occurrence_position = #{occurrencePosition},</if>
+            <if test="problemType != null">problem_type = #{problemType},</if>
+            <if test="severityLevel != null">severity_level = #{severityLevel},</if>
+            <if test="problemDescription != null">problem_description = #{problemDescription},</if>
+
+            <if test="workflowStage != null">workflow_stage = #{workflowStage},</if>
+            <if test="status != null">status = #{status},</if>
+
+            <if test="topic4Status != null">topic4_status = #{topic4Status},</if>
+            <if test="topic4Result != null">topic4_result = #{topic4Result},</if>
+            <if test="suggestedCause != null">suggested_cause = #{suggestedCause},</if>
+            <if test="riskLevel != null">risk_level = #{riskLevel},</if>
+            <if test="suggestedAction != null">suggested_action = #{suggestedAction},</if>
+            <if test="topic4ResultFilled != null">topic4_result_filled = #{topic4ResultFilled},</if>
+
+            <if test="algorithmStatus != null">algorithm_status = #{algorithmStatus},</if>
+            <if test="algorithmResult != null">algorithm_result = #{algorithmResult},</if>
+
+            <if test="kgRebuildStatus != null">kg_rebuild_status = #{kgRebuildStatus},</if>
+            <if test="kgGraphUrl != null">kg_graph_url = #{kgGraphUrl},</if>
+            <if test="traceReportStatus != null">trace_report_status = #{traceReportStatus},</if>
+            <if test="traceReportUrl != null">trace_report_url = #{traceReportUrl},</if>
+
+            <if test="reporter != null">reporter = #{reporter},</if>
+            <if test="source != null">source = #{source},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="attachmentSavePath != null">attachment_save_path = #{attachmentSavePath},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTopic5TraceProblemById" parameterType="Long">
+        delete from topic5_trace_problem where id = #{id}
+    </delete>
+
+    <delete id="deleteTopic5TraceProblemByIds" parameterType="String">
+        delete from topic5_trace_problem where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.topic5.mapper.Topic5TraceFlowLogMapper">
+    
+    <resultMap type="Topic5TraceFlowLog" id="Topic5TraceFlowLogResult">
+        <result property="id"    column="id"    />
+        <result property="traceId"    column="trace_id"    />
+        <result property="stageCode"    column="stage_code"    />
+        <result property="stageName"    column="stage_name"    />
+        <result property="operateUser"    column="operate_user"    />
+        <result property="operateTime"    column="operate_time"    />
+        <result property="operateResult"    column="operate_result"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTopic5TraceFlowLogVo">
+        select id, trace_id, stage_code, stage_name, operate_user, operate_time, operate_result, remark from topic5_trace_flow_log
+    </sql>
+
+    <select id="selectTopic5TraceFlowLogList" parameterType="Topic5TraceFlowLog" resultMap="Topic5TraceFlowLogResult">
+        <include refid="selectTopic5TraceFlowLogVo"/>
+        <where>  
+            <if test="traceId != null "> and trace_id = #{traceId}</if>
+            <if test="stageCode != null "> and stage_code = #{stageCode}</if>
+            <if test="stageName != null  and stageName != ''"> and stage_name like concat('%', #{stageName}, '%')</if>
+            <if test="operateUser != null  and operateUser != ''"> and operate_user = #{operateUser}</if>
+            <if test="operateTime != null "> and operate_time = #{operateTime}</if>
+            <if test="operateResult != null  and operateResult != ''"> and operate_result = #{operateResult}</if>
+        </where>
+    </select>
+    
+    <select id="selectTopic5TraceFlowLogById" parameterType="Long" resultMap="Topic5TraceFlowLogResult">
+        <include refid="selectTopic5TraceFlowLogVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTopic5TraceFlowLog" parameterType="Topic5TraceFlowLog" useGeneratedKeys="true" keyProperty="id">
+        insert into topic5_trace_flow_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="traceId != null">trace_id,</if>
+            <if test="stageCode != null">stage_code,</if>
+            <if test="stageName != null and stageName != ''">stage_name,</if>
+            <if test="operateUser != null">operate_user,</if>
+            <if test="operateTime != null">operate_time,</if>
+            <if test="operateResult != null">operate_result,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="traceId != null">#{traceId},</if>
+            <if test="stageCode != null">#{stageCode},</if>
+            <if test="stageName != null and stageName != ''">#{stageName},</if>
+            <if test="operateUser != null">#{operateUser},</if>
+            <if test="operateTime != null">#{operateTime},</if>
+            <if test="operateResult != null">#{operateResult},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTopic5TraceFlowLog" parameterType="Topic5TraceFlowLog">
+        update topic5_trace_flow_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="traceId != null">trace_id = #{traceId},</if>
+            <if test="stageCode != null">stage_code = #{stageCode},</if>
+            <if test="stageName != null and stageName != ''">stage_name = #{stageName},</if>
+            <if test="operateUser != null">operate_user = #{operateUser},</if>
+            <if test="operateTime != null">operate_time = #{operateTime},</if>
+            <if test="operateResult != null">operate_result = #{operateResult},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTopic5TraceFlowLogById" parameterType="Long">
+        delete from topic5_trace_flow_log where id = #{id}
+    </delete>
+
+    <delete id="deleteTopic5TraceFlowLogByIds" parameterType="String">
+        delete from topic5_trace_flow_log where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

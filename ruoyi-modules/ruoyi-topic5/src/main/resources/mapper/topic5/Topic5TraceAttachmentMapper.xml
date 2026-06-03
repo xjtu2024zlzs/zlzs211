@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.topic5.mapper.Topic5TraceAttachmentMapper">
+    
+    <resultMap type="Topic5TraceAttachment" id="Topic5TraceAttachmentResult">
+        <result property="id"    column="id"    />
+        <result property="traceId"    column="trace_id"    />
+        <result property="fileName"    column="file_name"    />
+        <result property="fileType"    column="file_type"    />
+        <result property="fileUrl"    column="file_url"    />
+        <result property="fileSource"    column="file_source"    />
+        <result property="sensorType"    column="sensor_type"    />
+        <result property="dataTime"    column="data_time"    />
+        <result property="fileSize"    column="file_size"    />
+        <result property="savedFlag"    column="saved_flag"    />
+        <result property="remark"    column="remark"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectTopic5TraceAttachmentVo">
+        select id, trace_id, file_name, file_type, file_url, file_source, sensor_type, data_time, file_size, saved_flag, remark, create_time from topic5_trace_attachment
+    </sql>
+
+    <select id="selectTopic5TraceAttachmentList" parameterType="Topic5TraceAttachment" resultMap="Topic5TraceAttachmentResult">
+        <include refid="selectTopic5TraceAttachmentVo"/>
+        <where>  
+            <if test="traceId != null "> and trace_id = #{traceId}</if>
+            <if test="fileName != null  and fileName != ''"> and file_name like concat('%', #{fileName}, '%')</if>
+            <if test="fileType != null  and fileType != ''"> and file_type = #{fileType}</if>
+            <if test="fileUrl != null  and fileUrl != ''"> and file_url = #{fileUrl}</if>
+            <if test="fileSource != null  and fileSource != ''"> and file_source = #{fileSource}</if>
+            <if test="sensorType != null  and sensorType != ''"> and sensor_type = #{sensorType}</if>
+            <if test="dataTime != null "> and data_time = #{dataTime}</if>
+            <if test="fileSize != null  and fileSize != ''"> and file_size = #{fileSize}</if>
+            <if test="savedFlag != null "> and saved_flag = #{savedFlag}</if>
+        </where>
+    </select>
+    
+    <select id="selectTopic5TraceAttachmentById" parameterType="Long" resultMap="Topic5TraceAttachmentResult">
+        <include refid="selectTopic5TraceAttachmentVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTopic5TraceAttachment" parameterType="Topic5TraceAttachment" useGeneratedKeys="true" keyProperty="id">
+        insert into topic5_trace_attachment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="traceId != null">trace_id,</if>
+            <if test="fileName != null and fileName != ''">file_name,</if>
+            <if test="fileType != null">file_type,</if>
+            <if test="fileUrl != null and fileUrl != ''">file_url,</if>
+            <if test="fileSource != null">file_source,</if>
+            <if test="sensorType != null">sensor_type,</if>
+            <if test="dataTime != null">data_time,</if>
+            <if test="fileSize != null">file_size,</if>
+            <if test="savedFlag != null">saved_flag,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="traceId != null">#{traceId},</if>
+            <if test="fileName != null and fileName != ''">#{fileName},</if>
+            <if test="fileType != null">#{fileType},</if>
+            <if test="fileUrl != null and fileUrl != ''">#{fileUrl},</if>
+            <if test="fileSource != null">#{fileSource},</if>
+            <if test="sensorType != null">#{sensorType},</if>
+            <if test="dataTime != null">#{dataTime},</if>
+            <if test="fileSize != null">#{fileSize},</if>
+            <if test="savedFlag != null">#{savedFlag},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTopic5TraceAttachment" parameterType="Topic5TraceAttachment">
+        update topic5_trace_attachment
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="traceId != null">trace_id = #{traceId},</if>
+            <if test="fileName != null and fileName != ''">file_name = #{fileName},</if>
+            <if test="fileType != null">file_type = #{fileType},</if>
+            <if test="fileUrl != null and fileUrl != ''">file_url = #{fileUrl},</if>
+            <if test="fileSource != null">file_source = #{fileSource},</if>
+            <if test="sensorType != null">sensor_type = #{sensorType},</if>
+            <if test="dataTime != null">data_time = #{dataTime},</if>
+            <if test="fileSize != null">file_size = #{fileSize},</if>
+            <if test="savedFlag != null">saved_flag = #{savedFlag},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTopic5TraceAttachmentById" parameterType="Long">
+        delete from topic5_trace_attachment where id = #{id}
+    </delete>
+
+    <delete id="deleteTopic5TraceAttachmentByIds" parameterType="String">
+        delete from topic5_trace_attachment where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
