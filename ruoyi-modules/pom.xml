@@ -14,6 +14,7 @@
         <module>ruoyi-job</module>
         <module>ruoyi-file</module>
         <module>ruoyi-topic5</module>
+        <module>project3</module>
     </modules>
 
     <artifactId>ruoyi-modules</artifactId>
