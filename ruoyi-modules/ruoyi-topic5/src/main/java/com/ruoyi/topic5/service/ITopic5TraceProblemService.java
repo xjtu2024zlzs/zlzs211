@@ -7,6 +7,8 @@ import java.util.Map;
 import com.ruoyi.topic5.domain.Topic5TraceAttachment;
 import com.ruoyi.topic5.domain.Topic5TraceProblem;
 import com.ruoyi.topic5.domain.dto.Topic4CallbackDTO;
+import java.util.Map;
+
 /**
  * 追溯问题Service接口
  * 
@@ -106,6 +108,50 @@ public interface ITopic5TraceProblemService
      * 保存附件并同步附件保存位置
      */
     void saveDossierAttachmentsWithPath(Long id, String attachmentSavePath);
+
+    /**
+     * 从课题一拉取知识图谱
+     */
+    public Map<String, Object> pullTopic1Kg(Long id);
+
+    /**
+     * 运行第二部分算法
+     */
+    public Map<String, Object> runSecondAlgorithm(Long id, String algorithmName);
+
+    /**
+     * 查询追溯任务知识图谱信息
+     */
+    public Map<String, Object> getTraceKg(Long id);
+
+    /**
+     * 人工判定第二部分算法结果
+     */
+    public void confirmSecondAlgorithmResult(Long id, Boolean saveFlag, String remark);
+    /**
+     * 运行最终溯源算法
+     */
+    public Map<String, Object> runSourceAlgorithm(Long id, String algorithmName);
+
+    /**
+     * 获取最终溯源结果
+     */
+    public Map<String, Object> getSourceResult(Long id);
+
+    /**
+     * 导出最终溯源报告
+     */
+    public Map<String, Object> exportSourceReport(Long id);
+
+    /**
+     * 推送课题二
+     */
+    public void pushTopic2(Long id);
+
+    /**
+     * 推送课题三
+     */
+    public void pushTopic3(Long id);
 
 
 }

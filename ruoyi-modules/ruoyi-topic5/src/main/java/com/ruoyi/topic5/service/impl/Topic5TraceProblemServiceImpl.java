@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+import com.alibaba.fastjson2.JSON;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import com.alibaba.fastjson2.JSON;
 
 /**
  * 追溯问题Service业务层处理
@@ -43,6 +51,9 @@ import java.nio.file.StandardCopyOption;
 @Service
 public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 {
+    @Value("${topic5.python.first-algorithm-url:http://127.0.0.1:8000/api/v1/diagnose}")
+    private String firstAlgorithmUrl;
+
     @Autowired
     private Topic5TraceProblemMapper topic5TraceProblemMapper;
 
@@ -108,6 +119,14 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         topic5TraceProblem.setKgRebuildStatus(0L);
         topic5TraceProblem.setTraceReportStatus(0L);
+
+        // 初始化第二页面相关状态
+        topic5TraceProblem.setTopic1KgStatus(0L);
+        topic5TraceProblem.setSecondAlgorithmStatus(0L);
+
+        topic5TraceProblem.setSourceAlgorithmStatus(0L);
+        topic5TraceProblem.setTopic2PushStatus(0L);
+        topic5TraceProblem.setTopic3PushStatus(0L);
 
         // 5. 如果来源为空，默认人工填报
         if (topic5TraceProblem.getSource() == null || "".equals(topic5TraceProblem.getSource()))
@@ -336,15 +355,14 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         Topic5TraceProblem update = new Topic5TraceProblem();
         update.setId(dto.getTraceId());
 
-        // 主表 topic4Status 是 Long 类型，因此这里使用 2L
-        update.setTopic4Status(2L);
+        update.setTopic4Status(dto.getTopic4Status());
 
-        update.setTopic4Result(dto.getTopic4Result());
-        update.setSuggestedCause(dto.getSuggestedCause());
-        update.setRiskLevel(dto.getRiskLevel());
-        update.setSuggestedAction(dto.getSuggestedAction());
-        update.setWorkflowStage(5L);
-        update.setStatus("处理中");
+        update.setTopic4FaultType(dto.getFaultType());
+        update.setTopic4FaultLocation(dto.getFaultLocation());
+        update.setTopic4CauseAnalysis(dto.getCauseAnalysis());
+        update.setTopic4DeductionProcess(dto.getDeductionProcess());
+        update.setTopic4RootConfidence(dto.getRootConfidence());
+
         update.setUpdateTime(DateUtils.getNowDate());
 
         topic5TraceProblemMapper.updateTopic5TraceProblem(update);
@@ -426,9 +444,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("追溯任务不存在，无法运行第一部分算法");
         }
 
-        // 新流程下，第一部分算法的前置条件是：
-        // 1. 课题四结果已经回填 topic4_result_filled = 1
-        // 2. workflow_stage 至少为 2，即数据处理完成
+        // 第一部分算法前置条件：课题四反馈已经回填，且流程至少完成多元特征提取
         if (!Long.valueOf(1L).equals(problem.getTopic4ResultFilled()))
         {
             throw new ServiceException("请先完成课题四结果回填，再运行第一部分算法");
@@ -439,44 +455,115 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("请先完成数据处理，再运行第一部分算法");
         }
 
-        String algorithmResult =
-                "第一部分算法模拟运行完成：" +
-                        "Top1 原因为液压压力异常，置信度 0.87；" +
-                        "Top2 原因为密封件老化，置信度 0.76；" +
-                        "Top3 原因为装配间隙异常，置信度 0.69。";
+        // 先更新为运行中
+        Topic5TraceProblem runningUpdate = new Topic5TraceProblem();
+        runningUpdate.setId(id);
+        runningUpdate.setAlgorithmStatus(1L);
+        runningUpdate.setStatus("处理中");
+        runningUpdate.setUpdateTime(DateUtils.getNowDate());
+        topic5TraceProblemMapper.updateTopic5TraceProblem(runningUpdate);
 
-        Topic5TraceProblem update = new Topic5TraceProblem();
-        update.setId(id);
-        update.setAlgorithmStatus(2L);
-        update.setAlgorithmResult(algorithmResult);
+        try
+        {
+            // 1. 组装 Python API 请求体，对应 Python 中 DiagnoseRequest
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("case_id", problem.getTraceNo() == null ? String.valueOf(problem.getId()) : problem.getTraceNo());
+            requestBody.put("product_model", problem.getAircraftNo() == null ? "Aircraft-A" : problem.getAircraftNo());
+            requestBody.put("algorithm", "时空图神经网络定位算法");
 
-        // 新流程：第一部分算法运行完成后，workflow_stage = 3
-        update.setWorkflowStage(3L);
-        update.setStatus("第一部分算法完成");
-        update.setUpdateTime(DateUtils.getNowDate());
+            // 2. 设置请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-        insertFlowLog(
-                id,
-                3L,
-                "第一部分算法运行",
-                "成功",
-                "第一部分追溯算法模拟运行完成"
-        );
+            // 3. 调用 Python FastAPI 服务
+            RestTemplate restTemplate = new RestTemplate();
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("traceId", id);
-        result.put("algorithmStatus", 2L);
-        result.put("algorithmResult", algorithmResult);
-        result.put("top1", "液压压力异常");
-        result.put("score1", 0.87);
-        result.put("top2", "密封件老化");
-        result.put("score2", 0.76);
-        result.put("top3", "装配间隙异常");
-        result.put("score3", 0.69);
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    firstAlgorithmUrl,
+                    entity,
+                    Map.class
+            );
 
-        return result;
+            Map responseBody = response.getBody();
+
+            if (responseBody == null)
+            {
+                throw new ServiceException("Python算法服务无返回结果");
+            }
+
+            Object codeObj = responseBody.get("code");
+
+            if (codeObj == null || Integer.parseInt(codeObj.toString()) != 200)
+            {
+                Object messageObj = responseBody.get("message");
+                throw new ServiceException("Python算法服务执行失败：" + (messageObj == null ? "未知错误" : messageObj.toString()));
+            }
+
+            Map data = (Map) responseBody.get("data");
+
+            if (data == null)
+            {
+                throw new ServiceException("Python算法服务返回data为空");
+            }
+
+            // 4. 解析 Python 返回结果，整理成前端算法结果文本
+            String algorithmResult = buildFirstAlgorithmResultText(data);
+
+            // 5. 写回数据库
+            Topic5TraceProblem update = new Topic5TraceProblem();
+            update.setId(id);
+            update.setAlgorithmStatus(2L);
+            update.setAlgorithmResult(algorithmResult);
+
+            // 新流程：故障根因分析完成，对应 workflow_stage = 3
+            update.setWorkflowStage(3L);
+            update.setStatus("第一部分算法完成");
+            update.setUpdateTime(DateUtils.getNowDate());
+
+            topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+
+            insertFlowLog(
+                    id,
+                    3L,
+                    "故障根因分析",
+                    "成功",
+                    "已调用Python时空图神经网络定位算法并完成第一部分分析"
+            );
+
+            // 6. 返回给 Controller / 前端
+            Map<String, Object> result = new HashMap<>();
+            result.put("traceId", id);
+            result.put("algorithmStatus", 2L);
+            result.put("algorithmResult", algorithmResult);
+            result.put("pythonResponse", responseBody);
+            result.put("businessConclusion", data.get("business_conclusion"));
+            result.put("algorithmDetails", data.get("algorithm_details"));
+            result.put("visualizationData", data.get("visualization_data"));
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            Topic5TraceProblem failUpdate = new Topic5TraceProblem();
+            failUpdate.setId(id);
+            failUpdate.setAlgorithmStatus(3L);
+            failUpdate.setAlgorithmResult("第一部分算法运行失败：" + e.getMessage());
+            failUpdate.setStatus("处理中");
+            failUpdate.setUpdateTime(DateUtils.getNowDate());
+            topic5TraceProblemMapper.updateTopic5TraceProblem(failUpdate);
+
+            insertFlowLog(
+                    id,
+                    3L,
+                    "故障根因分析",
+                    "失败",
+                    "Python第一部分算法运行失败：" + e.getMessage()
+            );
+
+            throw new ServiceException("Python第一部分算法运行失败：" + e.getMessage());
+        }
     }
 
     /**
@@ -726,5 +813,547 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         {
             throw new ServiceException("附件文件复制失败：" + e.getMessage());
         }
+    }
+    @Override
+    @Transactional
+    public Map<String, Object> pullTopic1Kg(Long id)
+    {
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在，无法拉取知识图谱");
+        }
+
+        // 建议第二页面至少要求第一部分算法已完成
+        if (problem.getWorkflowStage() == null || problem.getWorkflowStage() < 3L)
+        {
+            throw new ServiceException("请先完成第一部分算法运行，再导入知识图谱");
+        }
+
+        String graphJson = buildMockTopic1KgJson(problem);
+
+        Topic5TraceProblem update = new Topic5TraceProblem();
+        update.setId(id);
+        update.setTopic1KgStatus(1L);
+        update.setTopic1KgJson(graphJson);
+
+        // 知识图谱导入完成，对应总流程第4步
+        update.setWorkflowStage(4L);
+
+
+
+        update.setUpdateTime(DateUtils.getNowDate());
+
+        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+
+        insertFlowLog(
+                id,
+                4L,
+                "知识图谱导入",
+                "成功",
+                "已从课题一拉取并导入原始知识图谱"
+        );
+
+        Topic5TraceProblem newProblem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("traceProblem", newProblem);
+        result.put("graphData", parseGraphJsonToMap(graphJson));
+
+        return result;
+    }
+    @Override
+    @Transactional
+    public Map<String, Object> runSecondAlgorithm(Long id, String algorithmName)
+    {
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在，无法运行第二部分算法");
+        }
+
+        if (problem.getTopic1KgStatus() == null || problem.getTopic1KgStatus() != 1L)
+        {
+            throw new ServiceException("请先从课题一拉取知识图谱，再运行第二部分算法");
+        }
+
+        if (algorithmName == null || "".equals(algorithmName.trim()))
+        {
+            throw new ServiceException("请选择第二部分算法");
+        }
+
+        String resultGraphJson = buildMockSecondAlgorithmGraphJson(problem, algorithmName);
+
+        Topic5TraceProblem update = new Topic5TraceProblem();
+        update.setId(id);
+        update.setSecondAlgorithmName(algorithmName);
+        update.setSecondAlgorithmStatus(2L);
+        update.setSecondAlgorithmResultJson(resultGraphJson);
+        update.setSecondAlgorithmConfirmStatus(0L);
+        update.setSecondAlgorithmConfirmRemark(null);
+
+        // 第二部分算法完成，对应总流程第5步
+        update.setWorkflowStage(5L);
+        update.setStatus("第二部分算法完成");
+        update.setUpdateTime(DateUtils.getNowDate());
+
+        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+
+        insertFlowLog(
+                id,
+                5L,
+                "第二部分算法运行",
+                "成功",
+                "第二部分算法运行完成：" + algorithmName
+        );
+
+        Topic5TraceProblem newProblem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("traceProblem", newProblem);
+        result.put("graphData", parseGraphJsonToMap(resultGraphJson));
+
+        return result;
+    }
+    @Override
+    public Map<String, Object> getTraceKg(Long id)
+    {
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在");
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("topic1KgJson", problem.getTopic1KgJson());
+        result.put("secondAlgorithmResultJson", problem.getSecondAlgorithmResultJson());
+        result.put("traceProblem", problem);
+
+        return result;
+    }
+    private String buildMockTopic1KgJson(Topic5TraceProblem problem)
+    {
+        Long id = problem.getId();
+        String partName = problem.getPartName() == null ? "故障部件" : problem.getPartName();
+        String aircraftNo = problem.getAircraftNo() == null ? "未知架次" : problem.getAircraftNo();
+
+        return "{"
+                + "\"nodes\":["
+                + "{\"id\":\"T" + id + "\",\"name\":\"追溯任务" + id + "\",\"category\":\"追溯任务\"},"
+                + "{\"id\":\"A" + id + "\",\"name\":\"" + aircraftNo + "\",\"category\":\"架次\"},"
+                + "{\"id\":\"P" + id + "\",\"name\":\"" + partName + "\",\"category\":\"部件\"},"
+                + "{\"id\":\"S1" + id + "\",\"name\":\"压力传感器\",\"category\":\"传感器\"},"
+                + "{\"id\":\"S2" + id + "\",\"name\":\"温度传感器\",\"category\":\"传感器\"},"
+                + "{\"id\":\"F" + id + "\",\"name\":\"质量异常\",\"category\":\"故障\"}"
+                + "],"
+                + "\"links\":["
+                + "{\"source\":\"T" + id + "\",\"target\":\"A" + id + "\",\"name\":\"对应架次\"},"
+                + "{\"source\":\"A" + id + "\",\"target\":\"P" + id + "\",\"name\":\"包含部件\"},"
+                + "{\"source\":\"P" + id + "\",\"target\":\"S1" + id + "\",\"name\":\"关联传感器\"},"
+                + "{\"source\":\"P" + id + "\",\"target\":\"S2" + id + "\",\"name\":\"关联传感器\"},"
+                + "{\"source\":\"S1" + id + "\",\"target\":\"F" + id + "\",\"name\":\"检测异常\"}"
+                + "]"
+                + "}";
+    }
+    private String buildMockSecondAlgorithmGraphJson(Topic5TraceProblem problem, String algorithmName)
+    {
+        Long id = problem.getId();
+        String partName = problem.getPartName() == null ? "故障部件" : problem.getPartName();
+
+        return "{"
+                + "\"nodes\":["
+                + "{\"id\":\"P" + id + "\",\"name\":\"" + partName + "\",\"category\":\"部件\"},"
+                + "{\"id\":\"C1" + id + "\",\"name\":\"液压压力异常\",\"category\":\"候选原因\"},"
+                + "{\"id\":\"C2" + id + "\",\"name\":\"密封件老化\",\"category\":\"候选原因\"},"
+                + "{\"id\":\"C3" + id + "\",\"name\":\"装配间隙异常\",\"category\":\"候选原因\"},"
+                + "{\"id\":\"M" + id + "\",\"name\":\"" + algorithmName + "\",\"category\":\"算法模型\"}"
+                + "],"
+                + "\"links\":["
+                + "{\"source\":\"M" + id + "\",\"target\":\"C1" + id + "\",\"name\":\"Top1 0.87\"},"
+                + "{\"source\":\"M" + id + "\",\"target\":\"C2" + id + "\",\"name\":\"Top2 0.76\"},"
+                + "{\"source\":\"M" + id + "\",\"target\":\"C3" + id + "\",\"name\":\"Top3 0.69\"},"
+                + "{\"source\":\"C1" + id + "\",\"target\":\"P" + id + "\",\"name\":\"影响部件\"},"
+                + "{\"source\":\"C2" + id + "\",\"target\":\"P" + id + "\",\"name\":\"影响部件\"},"
+                + "{\"source\":\"C3" + id + "\",\"target\":\"P" + id + "\",\"name\":\"影响部件\"}"
+                + "]"
+                + "}";
+    }
+    private Map<String, Object> parseGraphJsonToMap(String graphJson)
+    {
+        return JSON.parseObject(graphJson, Map.class);
+    }
+    @Override
+    @Transactional
+    public void confirmSecondAlgorithmResult(Long id, Boolean saveFlag, String remark)
+    {
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在，无法进行人工判定");
+        }
+
+        if (saveFlag == null)
+        {
+            throw new ServiceException("请选择是否保存算法结果");
+        }
+
+        if (problem.getSecondAlgorithmStatus() == null || !Long.valueOf(2L).equals(problem.getSecondAlgorithmStatus()))
+        {
+            throw new ServiceException("第二部分算法尚未运行完成，不能进行人工判定");
+        }
+
+        if (saveFlag)
+        {
+            // 人工确认保存第二部分算法结果
+            Topic5TraceProblem update = new Topic5TraceProblem();
+            update.setId(id);
+
+            // 人工确认状态
+            update.setSecondAlgorithmConfirmStatus(1L);
+            update.setSecondAlgorithmConfirmRemark(remark);
+
+            // 保持第二部分算法已完成状态
+            update.setSecondAlgorithmStatus(2L);
+
+            // 人工确认保存后，第一个页面才允许查看知识图谱
+            update.setKgRebuildStatus(1L);
+            update.setKgGraphUrl("/topic5/graph?traceId=" + id);
+
+            // 保持流程在第5步：第二部分算法运行
+            update.setWorkflowStage(5L);
+            update.setUpdateTime(DateUtils.getNowDate());
+
+            topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+
+            insertFlowLog(
+                    id,
+                    5L,
+                    "第二部分算法人工确认",
+                    "成功",
+                    "人工确认保存第二部分算法输出结果"
+            );
+        }
+        else
+        {
+            // 人工驳回：删除第二部分算法输出结果，要求重新运行算法
+            // 注意：这里不再重新定义 Topic5TraceProblem update，避免变量重复定义
+            topic5TraceProblemMapper.rejectSecondAlgorithmResult(
+                    id,
+                    0L,
+                    2L,
+                    remark,
+                    4L,
+                    DateUtils.getNowDate()
+            );
+
+            insertFlowLog(
+                    id,
+                    4L,
+                    "第二部分算法人工确认",
+                    "驳回",
+                    "人工驳回第二部分算法输出结果，需要重新运行算法"
+            );
+        }
+    }
+    @Override
+    @Transactional
+    public Map<String, Object> runSourceAlgorithm(Long id, String algorithmName)
+    {
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在，无法运行最终溯源算法");
+        }
+
+        if (problem.getSecondAlgorithmConfirmStatus() == null || !Long.valueOf(1L).equals(problem.getSecondAlgorithmConfirmStatus()))
+        {
+            throw new ServiceException("请先完成人工确认保存第二部分算法结果，再进行最终溯源");
+        }
+
+        if (algorithmName == null || "".equals(algorithmName.trim()))
+        {
+            throw new ServiceException("请选择最终溯源算法");
+        }
+
+        String sourceGraphJson = buildMockSourceGraphJson(problem, algorithmName);
+        String reasonTableJson = buildMockReasonTableJson(problem);
+        String summary = "最终溯源算法判断该问题主要由液压管路装配间隙异常引起，同时可能受到密封件性能退化和压力传感器波动的共同影响。";
+
+        Topic5TraceProblem update = new Topic5TraceProblem();
+        update.setId(id);
+        update.setSourceAlgorithmName(algorithmName);
+        update.setSourceAlgorithmStatus(2L);
+        update.setSourceGraphJson(sourceGraphJson);
+        update.setSourceReasonTableJson(reasonTableJson);
+        update.setSourceResultSummary(summary);
+        update.setStatus("最终溯源算法完成");
+        update.setUpdateTime(DateUtils.getNowDate());
+
+        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+
+        insertFlowLog(
+                id,
+                5L,
+                "最终溯源算法运行",
+                "成功",
+                "最终溯源算法运行完成：" + algorithmName
+        );
+
+        Topic5TraceProblem newProblem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("traceProblem", newProblem);
+        result.put("sourceGraphJson", sourceGraphJson);
+        result.put("reasonTableJson", reasonTableJson);
+        result.put("summary", summary);
+        result.put("graphData", parseGraphJsonToMap(sourceGraphJson));
+        result.put("reasonList", JSON.parseArray(reasonTableJson, Map.class));
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getSourceResult(Long id)
+    {
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在");
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("traceProblem", problem);
+        result.put("sourceGraphJson", problem.getSourceGraphJson());
+        result.put("reasonTableJson", problem.getSourceReasonTableJson());
+        result.put("summary", problem.getSourceResultSummary());
+
+        if (problem.getSourceGraphJson() != null)
+        {
+            result.put("graphData", parseGraphJsonToMap(problem.getSourceGraphJson()));
+        }
+
+        if (problem.getSourceReasonTableJson() != null)
+        {
+            result.put("reasonList", JSON.parseArray(problem.getSourceReasonTableJson(), Map.class));
+        }
+
+        return result;
+    }
+
+    private String buildMockSourceGraphJson(Topic5TraceProblem problem, String algorithmName)
+    {
+        Long id = problem.getId();
+        String partName = problem.getPartName() == null ? "故障部件" : problem.getPartName();
+
+        return "{"
+                + "\"nodes\":["
+                + "{\"id\":\"F" + id + "\",\"name\":\"质量异常\",\"category\":\"故障现象\"},"
+                + "{\"id\":\"P" + id + "\",\"name\":\"" + partName + "\",\"category\":\"故障部件\"},"
+                + "{\"id\":\"C1" + id + "\",\"name\":\"液压管路装配间隙异常\",\"category\":\"主导原因\"},"
+                + "{\"id\":\"C2" + id + "\",\"name\":\"密封件性能退化\",\"category\":\"次要原因\"},"
+                + "{\"id\":\"E1" + id + "\",\"name\":\"压力传感器波动\",\"category\":\"证据\"},"
+                + "{\"id\":\"M" + id + "\",\"name\":\"" + algorithmName + "\",\"category\":\"溯源算法\"}"
+                + "],"
+                + "\"links\":["
+                + "{\"source\":\"M" + id + "\",\"target\":\"C1" + id + "\",\"name\":\"Top1 0.91\"},"
+                + "{\"source\":\"M" + id + "\",\"target\":\"C2" + id + "\",\"name\":\"Top2 0.82\"},"
+                + "{\"source\":\"C1" + id + "\",\"target\":\"P" + id + "\",\"name\":\"导致\"},"
+                + "{\"source\":\"C2" + id + "\",\"target\":\"P" + id + "\",\"name\":\"影响\"},"
+                + "{\"source\":\"E1" + id + "\",\"target\":\"C1" + id + "\",\"name\":\"支持\"},"
+                + "{\"source\":\"P" + id + "\",\"target\":\"F" + id + "\",\"name\":\"表现为\"}"
+                + "]"
+                + "}";
+    }
+
+    private String buildMockReasonTableJson(Topic5TraceProblem problem)
+    {
+        String partName = problem.getPartName() == null ? "故障部件" : problem.getPartName();
+
+        return "["
+                + "{"
+                + "\"rank\":1,"
+                + "\"reasonType\":\"装配阶段\","
+                + "\"reasonName\":\"液压管路装配间隙异常\","
+                + "\"relatedPart\":\"" + partName + "\","
+                + "\"evidence\":\"压力传感器波动异常，知识图谱中存在装配间隙异常链路\","
+                + "\"confidence\":0.91,"
+                + "\"suggestion\":\"建议检查管路连接状态和作动筒密封状态\""
+                + "},"
+                + "{"
+                + "\"rank\":2,"
+                + "\"reasonType\":\"材料阶段\","
+                + "\"reasonName\":\"密封件性能退化\","
+                + "\"relatedPart\":\"密封件\","
+                + "\"evidence\":\"温度升高后压力保持能力下降\","
+                + "\"confidence\":0.82,"
+                + "\"suggestion\":\"建议复核密封件批次和材料检验记录\""
+                + "},"
+                + "{"
+                + "\"rank\":3,"
+                + "\"reasonType\":\"传感器/运维阶段\","
+                + "\"reasonName\":\"压力传感器采集异常\","
+                + "\"relatedPart\":\"压力传感器\","
+                + "\"evidence\":\"局部时间段存在压力信号尖峰\","
+                + "\"confidence\":0.73,"
+                + "\"suggestion\":\"建议复核传感器标定状态和采样记录\""
+                + "}"
+                + "]";
+    }
+
+    @Override
+    @Transactional
+    public Map<String, Object> exportSourceReport(Long id)
+    {
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在，无法导出报告");
+        }
+
+        if (problem.getSourceAlgorithmStatus() == null || !Long.valueOf(2L).equals(problem.getSourceAlgorithmStatus()))
+        {
+            throw new ServiceException("请先运行最终溯源算法，再导出报告");
+        }
+
+        String fileName = "trace_report_" + id + ".docx";
+        String relativeUrl = "/profile/topic5/report/" + fileName;
+
+        Topic5TraceProblem update = new Topic5TraceProblem();
+        update.setId(id);
+        update.setTraceReportStatus(1L);
+        update.setTraceReportUrl(relativeUrl);
+
+        // 导出报告后，总流程进入第6步
+        update.setWorkflowStage(6L);
+        update.setStatus("溯源完成");
+        update.setUpdateTime(DateUtils.getNowDate());
+
+        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+
+        insertFlowLog(
+                id,
+                6L,
+                "最终溯源报告导出",
+                "成功",
+                "已生成最终溯源报告：" + relativeUrl
+        );
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("traceId", id);
+        result.put("reportUrl", relativeUrl);
+        result.put("fileName", fileName);
+
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void pushTopic2(Long id)
+    {
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在，无法推送课题二");
+        }
+
+        if (problem.getTraceReportStatus() == null || !Long.valueOf(1L).equals(problem.getTraceReportStatus()))
+        {
+            throw new ServiceException("请先导出最终溯源报告，再推送课题二");
+        }
+
+        Topic5TraceProblem update = new Topic5TraceProblem();
+        update.setId(id);
+        update.setTopic2PushStatus(1L);
+        update.setTopic2PushTime(DateUtils.getNowDate());
+        update.setUpdateTime(DateUtils.getNowDate());
+
+        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+
+        insertFlowLog(
+                id,
+                6L,
+                "推送课题二",
+                "成功",
+                "最终溯源报告已模拟推送至课题二"
+        );
+    }
+    @Override
+    @Transactional
+    public void pushTopic3(Long id)
+    {
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在，无法推送课题三");
+        }
+
+        if (problem.getTraceReportStatus() == null || !Long.valueOf(1L).equals(problem.getTraceReportStatus()))
+        {
+            throw new ServiceException("请先导出最终溯源报告，再推送课题三");
+        }
+
+        Topic5TraceProblem update = new Topic5TraceProblem();
+        update.setId(id);
+        update.setTopic3PushStatus(1L);
+        update.setTopic3PushTime(DateUtils.getNowDate());
+        update.setUpdateTime(DateUtils.getNowDate());
+
+        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+
+        insertFlowLog(
+                id,
+                6L,
+                "推送课题三",
+                "成功",
+                "最终溯源报告已模拟推送至课题三"
+        );
+    }
+    private String buildFirstAlgorithmResultText(Map data)
+    {
+        Map<String, Object> result = new HashMap<>();
+
+        result.put("displayType", "PYTHON_AAGCN_RCA_V1");
+        result.put("caseId", data.get("case_id"));
+
+        Map businessConclusion = (Map) data.get("business_conclusion");
+        if (businessConclusion != null)
+        {
+            result.put("faultComponentId", businessConclusion.get("fault_component_id"));
+            result.put("faultComponent", businessConclusion.get("fault_component"));
+            result.put("componentConfidence", businessConclusion.get("component_confidence"));
+            result.put("componentStatus", businessConclusion.get("component_status"));
+            result.put("severityScores", businessConclusion.get("severity_scores"));
+            result.put("componentDiagnostics", businessConclusion.get("component_diagnostics"));
+            result.put("subtypeProbabilities", businessConclusion.get("subtype_probabilities"));
+            result.put("subtypeByComponent", businessConclusion.get("subtype_by_component"));
+        }
+
+        Map algorithmDetails = (Map) data.get("algorithm_details");
+        if (algorithmDetails != null)
+        {
+            result.put("triggerSensor", algorithmDetails.get("trigger_sensor"));
+            result.put("sensorConfidence", algorithmDetails.get("sensor_confidence"));
+            result.put("evolutionChain", algorithmDetails.get("evolution_chain"));
+        }
+
+        Map visualizationData = (Map) data.get("visualization_data");
+        if (visualizationData != null)
+        {
+            result.put("sensorAnomalyEnergy", visualizationData.get("sensor_anomaly_energy"));
+            result.put("dynamicTopologyMatrix", visualizationData.get("dynamic_topology_matrix"));
+        }
+
+        result.put("conclusion", "当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。");
+
+        return JSON.toJSONString(result);
     }
 }

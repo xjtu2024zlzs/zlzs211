@@ -3,6 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
+
 <mapper namespace="com.ruoyi.topic5.mapper.Topic5TraceProblemMapper">
 
     <resultMap type="Topic5TraceProblem" id="Topic5TraceProblemResult">
@@ -21,10 +22,6 @@
         <result property="status" column="status" />
 
         <result property="topic4Status" column="topic4_status" />
-        <result property="topic4Result" column="topic4_result" />
-        <result property="suggestedCause" column="suggested_cause" />
-        <result property="riskLevel" column="risk_level" />
-        <result property="suggestedAction" column="suggested_action" />
         <result property="topic4ResultFilled" column="topic4_result_filled" />
 
         <result property="algorithmStatus" column="algorithm_status" />
@@ -44,6 +41,29 @@
         <result property="updateTime" column="update_time" />
         <result property="delFlag" column="del_flag" />
         <result property="attachmentSavePath" column="attachment_save_path" />
+
+        <result property="topic1KgStatus" column="topic1_kg_status" />
+        <result property="topic1KgJson" column="topic1_kg_json" />
+        <result property="secondAlgorithmName" column="second_algorithm_name" />
+        <result property="secondAlgorithmStatus" column="second_algorithm_status" />
+        <result property="secondAlgorithmResultJson" column="second_algorithm_result_json" />
+        <result property="secondAlgorithmConfirmStatus" column="second_algorithm_confirm_status" />
+        <result property="secondAlgorithmConfirmRemark" column="second_algorithm_confirm_remark" />
+
+        <result property="sourceAlgorithmName" column="source_algorithm_name" />
+        <result property="sourceAlgorithmStatus" column="source_algorithm_status" />
+        <result property="sourceGraphJson" column="source_graph_json" />
+        <result property="sourceReasonTableJson" column="source_reason_table_json" />
+        <result property="sourceResultSummary" column="source_result_summary" />
+        <result property="topic2PushStatus" column="topic2_push_status" />
+        <result property="topic2PushTime" column="topic2_push_time" />
+        <result property="topic3PushStatus" column="topic3_push_status" />
+        <result property="topic3PushTime" column="topic3_push_time" />
+        <result property="topic4FaultType" column="topic4_fault_type" />
+        <result property="topic4FaultLocation" column="topic4_fault_location" />
+        <result property="topic4CauseAnalysis" column="topic4_cause_analysis" />
+        <result property="topic4DeductionProcess" column="topic4_deduction_process" />
+        <result property="topic4RootConfidence" column="topic4_root_confidence" />
     </resultMap>
 
     <sql id="selectTopic5TraceProblemVo">
@@ -61,16 +81,19 @@
             workflow_stage,
             status,
             topic4_status,
-            topic4_result,
-            suggested_cause,
-            risk_level,
-            suggested_action,
             topic4_result_filled,
             algorithm_status,
             algorithm_result,
             kg_rebuild_status,
             kg_graph_url,
             trace_report_status,
+            topic1_kg_status,
+            topic1_kg_json,
+            second_algorithm_name,
+            second_algorithm_status,
+            second_algorithm_result_json,
+            second_algorithm_confirm_status,
+            second_algorithm_confirm_remark,
             trace_report_url,
             reporter,
             source,
@@ -80,7 +103,21 @@
             update_by,
             update_time,
             attachment_save_path,
-            del_flag
+            del_flag,
+            source_algorithm_name,
+            source_algorithm_status,
+            source_graph_json,
+            source_reason_table_json,
+            source_result_summary,
+            topic2_push_status,
+            topic2_push_time,
+            topic3_push_status,
+            topic3_push_time,
+            topic4_fault_type,
+            topic4_fault_location,
+            topic4_cause_analysis,
+            topic4_deduction_process,
+            topic4_root_confidence
         from topic5_trace_problem
     </sql>
 
@@ -101,10 +138,6 @@
             <if test="status != null and status != ''"> and status = #{status}</if>
 
             <if test="topic4Status != null"> and topic4_status = #{topic4Status}</if>
-            <if test="topic4Result != null and topic4Result != ''"> and topic4_result = #{topic4Result}</if>
-            <if test="suggestedCause != null and suggestedCause != ''"> and suggested_cause = #{suggestedCause}</if>
-            <if test="riskLevel != null and riskLevel != ''"> and risk_level = #{riskLevel}</if>
-            <if test="suggestedAction != null and suggestedAction != ''"> and suggested_action = #{suggestedAction}</if>
             <if test="topic4ResultFilled != null"> and topic4_result_filled = #{topic4ResultFilled}</if>
 
             <if test="algorithmStatus != null"> and algorithm_status = #{algorithmStatus}</if>
@@ -142,10 +175,6 @@
             <if test="status != null">status,</if>
 
             <if test="topic4Status != null">topic4_status,</if>
-            <if test="topic4Result != null">topic4_result,</if>
-            <if test="suggestedCause != null">suggested_cause,</if>
-            <if test="riskLevel != null">risk_level,</if>
-            <if test="suggestedAction != null">suggested_action,</if>
             <if test="topic4ResultFilled != null">topic4_result_filled,</if>
 
             <if test="algorithmStatus != null">algorithm_status,</if>
@@ -165,6 +194,29 @@
             <if test="updateTime != null">update_time,</if>
             <if test="delFlag != null">del_flag,</if>
             <if test="attachmentSavePath != null">attachment_save_path,</if>
+
+            <if test="topic1KgStatus != null">topic1_kg_status,</if>
+            <if test="topic1KgJson != null">topic1_kg_json,</if>
+            <if test="secondAlgorithmName != null">second_algorithm_name,</if>
+            <if test="secondAlgorithmStatus != null">second_algorithm_status,</if>
+            <if test="secondAlgorithmResultJson != null">second_algorithm_result_json,</if>
+            <if test="secondAlgorithmConfirmStatus != null">second_algorithm_confirm_status,</if>
+            <if test="secondAlgorithmConfirmRemark != null">second_algorithm_confirm_remark,</if>
+
+            <if test="sourceAlgorithmName != null">source_algorithm_name,</if>
+            <if test="sourceAlgorithmStatus != null">source_algorithm_status,</if>
+            <if test="sourceGraphJson != null">source_graph_json,</if>
+            <if test="sourceReasonTableJson != null">source_reason_table_json,</if>
+            <if test="sourceResultSummary != null">source_result_summary,</if>
+            <if test="topic2PushStatus != null">topic2_push_status,</if>
+            <if test="topic2PushTime != null">topic2_push_time,</if>
+            <if test="topic3PushStatus != null">topic3_push_status,</if>
+            <if test="topic3PushTime != null">topic3_push_time,</if>
+            <if test="topic4FaultType != null">topic4_fault_type,</if>
+            <if test="topic4FaultLocation != null">topic4_fault_location,</if>
+            <if test="topic4CauseAnalysis != null">topic4_cause_analysis,</if>
+            <if test="topic4DeductionProcess != null">topic4_deduction_process,</if>
+            <if test="topic4RootConfidence != null">topic4_root_confidence,</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="traceNo != null and traceNo != ''">#{traceNo},</if>
@@ -182,10 +234,6 @@
             <if test="status != null">#{status},</if>
 
             <if test="topic4Status != null">#{topic4Status},</if>
-            <if test="topic4Result != null">#{topic4Result},</if>
-            <if test="suggestedCause != null">#{suggestedCause},</if>
-            <if test="riskLevel != null">#{riskLevel},</if>
-            <if test="suggestedAction != null">#{suggestedAction},</if>
             <if test="topic4ResultFilled != null">#{topic4ResultFilled},</if>
 
             <if test="algorithmStatus != null">#{algorithmStatus},</if>
@@ -204,6 +252,29 @@
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
             <if test="delFlag != null">#{delFlag},</if>
+
+            <if test="topic1KgStatus != null">#{topic1KgStatus},</if>
+            <if test="topic1KgJson != null">#{topic1KgJson},</if>
+            <if test="secondAlgorithmName != null">#{secondAlgorithmName},</if>
+            <if test="secondAlgorithmStatus != null">#{secondAlgorithmStatus},</if>
+            <if test="secondAlgorithmResultJson != null">#{secondAlgorithmResultJson},</if>
+            <if test="secondAlgorithmConfirmStatus != null">#{secondAlgorithmConfirmStatus},</if>
+            <if test="secondAlgorithmConfirmRemark != null">#{secondAlgorithmConfirmRemark},</if>
+
+            <if test="sourceAlgorithmName != null">#{sourceAlgorithmName},</if>
+            <if test="sourceAlgorithmStatus != null">#{sourceAlgorithmStatus},</if>
+            <if test="sourceGraphJson != null">#{sourceGraphJson},</if>
+            <if test="sourceReasonTableJson != null">#{sourceReasonTableJson},</if>
+            <if test="sourceResultSummary != null">#{sourceResultSummary},</if>
+            <if test="topic2PushStatus != null">#{topic2PushStatus},</if>
+            <if test="topic2PushTime != null">#{topic2PushTime},</if>
+            <if test="topic3PushStatus != null">#{topic3PushStatus},</if>
+            <if test="topic3PushTime != null">#{topic3PushTime},</if>
+            <if test="topic4FaultType != null">#{topic4FaultType},</if>
+            <if test="topic4FaultLocation != null">#{topic4FaultLocation},</if>
+            <if test="topic4CauseAnalysis != null">#{topic4CauseAnalysis},</if>
+            <if test="topic4DeductionProcess != null">#{topic4DeductionProcess},</if>
+            <if test="topic4RootConfidence != null">#{topic4RootConfidence},</if>
         </trim>
     </insert>
 
@@ -224,10 +295,6 @@
             <if test="status != null">status = #{status},</if>
 
             <if test="topic4Status != null">topic4_status = #{topic4Status},</if>
-            <if test="topic4Result != null">topic4_result = #{topic4Result},</if>
-            <if test="suggestedCause != null">suggested_cause = #{suggestedCause},</if>
-            <if test="riskLevel != null">risk_level = #{riskLevel},</if>
-            <if test="suggestedAction != null">suggested_action = #{suggestedAction},</if>
             <if test="topic4ResultFilled != null">topic4_result_filled = #{topic4ResultFilled},</if>
 
             <if test="algorithmStatus != null">algorithm_status = #{algorithmStatus},</if>
@@ -247,6 +314,29 @@
             <if test="updateTime != null">update_time = #{updateTime},</if>
             <if test="delFlag != null">del_flag = #{delFlag},</if>
             <if test="attachmentSavePath != null">attachment_save_path = #{attachmentSavePath},</if>
+
+            <if test="topic1KgStatus != null">topic1_kg_status = #{topic1KgStatus},</if>
+            <if test="topic1KgJson != null">topic1_kg_json = #{topic1KgJson},</if>
+            <if test="secondAlgorithmName != null">second_algorithm_name = #{secondAlgorithmName},</if>
+            <if test="secondAlgorithmStatus != null">second_algorithm_status = #{secondAlgorithmStatus},</if>
+            <if test="secondAlgorithmResultJson != null">second_algorithm_result_json = #{secondAlgorithmResultJson},</if>
+            <if test="secondAlgorithmConfirmStatus != null">second_algorithm_confirm_status = #{secondAlgorithmConfirmStatus},</if>
+            <if test="secondAlgorithmConfirmRemark != null">second_algorithm_confirm_remark = #{secondAlgorithmConfirmRemark},</if>
+
+            <if test="sourceAlgorithmName != null">source_algorithm_name = #{sourceAlgorithmName},</if>
+            <if test="sourceAlgorithmStatus != null">source_algorithm_status = #{sourceAlgorithmStatus},</if>
+            <if test="sourceGraphJson != null">source_graph_json = #{sourceGraphJson},</if>
+            <if test="sourceReasonTableJson != null">source_reason_table_json = #{sourceReasonTableJson},</if>
+            <if test="sourceResultSummary != null">source_result_summary = #{sourceResultSummary},</if>
+            <if test="topic2PushStatus != null">topic2_push_status = #{topic2PushStatus},</if>
+            <if test="topic2PushTime != null">topic2_push_time = #{topic2PushTime},</if>
+            <if test="topic3PushStatus != null">topic3_push_status = #{topic3PushStatus},</if>
+            <if test="topic3PushTime != null">topic3_push_time = #{topic3PushTime},</if>
+            <if test="topic4FaultType != null">topic4_fault_type = #{topic4FaultType},</if>
+            <if test="topic4FaultLocation != null">topic4_fault_location = #{topic4FaultLocation},</if>
+            <if test="topic4CauseAnalysis != null">topic4_cause_analysis = #{topic4CauseAnalysis},</if>
+            <if test="topic4DeductionProcess != null">topic4_deduction_process = #{topic4DeductionProcess},</if>
+            <if test="topic4RootConfidence != null">topic4_root_confidence = #{topic4RootConfidence},</if>
         </trim>
         where id = #{id}
     </update>
@@ -261,5 +351,21 @@
             #{id}
         </foreach>
     </delete>
+    <update id="rejectSecondAlgorithmResult">
+        update topic5_trace_problem
+        set
+            second_algorithm_status = #{secondAlgorithmStatus},
+            second_algorithm_name = null,
+            second_algorithm_result_json = null,
+            second_algorithm_confirm_status = #{secondAlgorithmConfirmStatus},
+            second_algorithm_confirm_remark = #{secondAlgorithmConfirmRemark},
+
+            kg_rebuild_status = 0,
+            kg_graph_url = null,
+
+            workflow_stage = #{workflowStage},
+            update_time = #{updateTime}
+        where id = #{id}
+    </update>
 
 </mapper>

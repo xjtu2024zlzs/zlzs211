@@ -1,6 +1,8 @@
 package com.ruoyi.topic5.controller;
 
 import java.util.List;
+import java.util.Map;
+
 import jakarta.servlet.http.HttpServletResponse;
 import com.ruoyi.common.core.web.controller.BaseController;
 import com.ruoyi.common.core.web.domain.AjaxResult;
@@ -162,7 +164,8 @@ public class Topic5TraceProblemController extends BaseController
     @PostMapping("/{id}/run-algorithm")
     public AjaxResult runAlgorithm(@PathVariable Long id)
     {
-        return success(traceProblemService.runAlgorithmMock(id));
+        Map<String, Object> result = traceProblemService.runAlgorithmMock(id);
+        return success(result);
     }
 
     /**
