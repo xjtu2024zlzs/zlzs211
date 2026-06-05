@@ -1,0 +1,120 @@
+{
+  "success": true,
+  "taskId": "PY2026060517090252499BB",
+  "algorithmType": "KQC_MINING",
+  "status": "SUCCESS",
+  "progress": 100,
+  "message": "任务完成",
+  "createdAt": "2026-06-05T17:09:02",
+  "startedAt": "2026-06-05T17:09:02",
+  "finishedAt": "2026-06-05T17:29:46",
+  "result": {
+    "success": true,
+    "code": 0,
+    "message": "Bosch KQC mining completed",
+    "taskId": "KQC20260605170902512",
+    "taskType": "KQC_MINING",
+    "status": "SUCCESS",
+    "data": {
+      "taskId": "KQC20260605170902512",
+      "status": "SUCCESS",
+      "result": {
+        "taskId": "KQC20260605170902512",
+        "taskType": "KQC_MINING",
+        "status": "SUCCESS",
+        "message": "Bosch KQC mining completed",
+        "targetKqc": "Response",
+        "selectedFeatureCount": 80,
+        "influenceCount": 2,
+        "topInfluences": [
+          {
+            "source_variable": "L1_S24_F1723",
+            "station": "L1_S24",
+            "target_kqc": "Response",
+            "weight": -0.020461903585807736,
+            "frequency": 1.0
+          },
+          {
+            "source_variable": "L1_S24_F1695",
+            "station": "L1_S24",
+            "target_kqc": "Response",
+            "weight": -0.006578727346850787,
+            "frequency": 1.0
+          }
+        ],
+        "cvScore": {
+          "mean": 0.5225444978902234,
+          "std": 0.017062193835593754,
+          "splits": 5
+        },
+        "adjPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_adj_matrix_selected.csv",
+        "freqPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_edge_frequency.csv",
+        "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512",
+        "outputFiles": {
+          "bosch_adj_matrix_raw": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_adj_matrix_raw.csv",
+          "bosch_edge_frequency": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_edge_frequency.csv",
+          "bosch_adj_matrix_selected": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_adj_matrix_selected.csv",
+          "bosch_influences_on_response": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_influences_on_response.csv",
+          "bosch_causal_dag": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_causal_dag.png",
+          "bosch_response_subgraph": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_response_subgraph.png",
+          "bosch_debug_stats": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_debug_stats.txt",
+          "bosch_kqc_cv_score": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_kqc_cv_score.txt"
+        }
+      },
+      "logs": []
+    },
+    "payload": {
+      "taskId": "KQC20260605170902512",
+      "taskType": "KQC_MINING",
+      "status": "SUCCESS",
+      "message": "Bosch KQC mining completed",
+      "targetKqc": "Response",
+      "selectedFeatureCount": 80,
+      "influenceCount": 2,
+      "topInfluences": [
+        {
+          "source_variable": "L1_S24_F1723",
+          "station": "L1_S24",
+          "target_kqc": "Response",
+          "weight": -0.020461903585807736,
+          "frequency": 1.0
+        },
+        {
+          "source_variable": "L1_S24_F1695",
+          "station": "L1_S24",
+          "target_kqc": "Response",
+          "weight": -0.006578727346850787,
+          "frequency": 1.0
+        }
+      ],
+      "cvScore": {
+        "mean": 0.5225444978902234,
+        "std": 0.017062193835593754,
+        "splits": 5
+      },
+      "adjPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_adj_matrix_selected.csv",
+      "freqPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_edge_frequency.csv",
+      "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512",
+      "outputFiles": {
+        "bosch_adj_matrix_raw": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_adj_matrix_raw.csv",
+        "bosch_edge_frequency": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_edge_frequency.csv",
+        "bosch_adj_matrix_selected": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_adj_matrix_selected.csv",
+        "bosch_influences_on_response": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_influences_on_response.csv",
+        "bosch_causal_dag": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_causal_dag.png",
+        "bosch_response_subgraph": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_response_subgraph.png",
+        "bosch_debug_stats": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_debug_stats.txt",
+        "bosch_kqc_cv_score": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605170902512/bosch_kqc_cv_score.txt"
+      }
+    }
+  },
+  "error": "",
+  "payload": {
+    "trainNumericPath": "F:\\python\\三算法\\train_numeric.csv",
+    "maxRows": 200000,
+    "maxFeatures": 80,
+    "perStation": 2,
+    "selectionMode": "response_assoc",
+    "ssRuns": 5,
+    "taskId": "KQC20260605170902512"
+  }
+}

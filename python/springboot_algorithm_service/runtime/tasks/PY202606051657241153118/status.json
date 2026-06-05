@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "taskId": "PY202606051657241153118",
+  "algorithmType": "KQC_MINING",
+  "status": "FAILED",
+  "progress": 100,
+  "message": "任务执行失败",
+  "createdAt": "2026-06-05T16:57:24",
+  "startedAt": "2026-06-05T16:57:24",
+  "finishedAt": "2026-06-05T16:57:24",
+  "result": null,
+  "error": "未找到 train_numeric.csv 文件：‪F:\\python\\三算法\\train_numeric.csv",
+  "payload": {
+    "trainNumericPath": "‪F:\\python\\三算法\\train_numeric.csv",
+    "maxRows": 200000,
+    "maxFeatures": 80,
+    "perStation": 2,
+    "selectionMode": "response_assoc",
+    "ssRuns": 5,
+    "taskId": "KQC20260605165724101"
+  }
+}

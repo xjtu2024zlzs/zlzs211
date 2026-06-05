@@ -24,6 +24,12 @@ public interface FeedbackWarningService {
 
     List<Map<String, Object>> partProc(String partId);
 
+    Map<String, Object> createProcessExecution(Map<String, Object> row);
+
+    void updateProcessExecution(String processExecId, Map<String, Object> row);
+
+    void deleteProcessExecution(String processExecId);
+
     String partImage(String partId);
 
     void updatePartImage(String partId, String imageUrl);
@@ -39,9 +45,17 @@ public interface FeedbackWarningService {
 
     Map<String, Object> startDetect(String requestBody);
 
+    Map<String, Object> kqcMining(String requestBody);
+
+    Map<String, Object> kqcMiningStatus(String taskId);
+
+    Map<String, Object> cancelKqcMining(String taskId);
+
     Map<String, Object> detectStatus(String taskId);
 
     List<Map<String, Object>> detectLogs(String taskId);
+
+    Map<String, Object> cancelDetect(String taskId);
 
     PageRows detectResults(
             String status,
@@ -52,4 +66,13 @@ public interface FeedbackWarningService {
             Integer pageNum,
             Integer pageSize
     );
+
+    PageRows kqcMiningResults(
+            String keyword,
+            String status,
+            Integer pageNum,
+            Integer pageSize
+    );
+
+    Map<String, Object> deleteAlgorithmResult(String taskId);
 }

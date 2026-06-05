@@ -69,12 +69,13 @@ python:
   algorithm:
     baseUrl: http://localhost:8000
     keyProcessPath: /api/v1/key-process/identify
+    kqc-mining-path: /algorithm/bosch/kqc-mining/execute
     feature-analysis-path: /python/data-analysis
     feature-processing-path: /python/feature-analysis
     predict-path: /algorithm/prevention/analyze
     warning-path: /algorithm/process-anomaly/execute
     faultPath: /algorithm/detection/early-fault
-    mock: true
+    mock: false
 
 # 质量业务配置
 quality:

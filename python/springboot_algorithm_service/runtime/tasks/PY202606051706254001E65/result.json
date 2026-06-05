@@ -1,0 +1,27 @@
+{
+  "success": false,
+  "code": 500,
+  "message": "name 'FEATURE_RE' is not defined",
+  "taskId": "KQC20260605170625387",
+  "taskType": "KQC_MINING",
+  "status": "FAILED",
+  "data": {
+    "taskId": "KQC20260605170625387",
+    "status": "FAILED",
+    "result": {
+      "taskId": "KQC20260605170625387",
+      "taskType": "KQC_MINING",
+      "status": "FAILED",
+      "message": "name 'FEATURE_RE' is not defined",
+      "errorCode": "BOSCH_KQC_MINING_FAILED"
+    },
+    "logs": []
+  },
+  "payload": {
+    "taskId": "KQC20260605170625387",
+    "taskType": "KQC_MINING",
+    "status": "FAILED",
+    "message": "name 'FEATURE_RE' is not defined",
+    "errorCode": "BOSCH_KQC_MINING_FAILED"
+  }
+}

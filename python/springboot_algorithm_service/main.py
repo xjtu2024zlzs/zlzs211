@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from pydantic import ValidationError
 
@@ -15,6 +16,14 @@ from algorithms.feature_processing import extract_features_from_dataset
 from algorithms.early_fault_detection import run_early_fault_detection
 from algorithms.fault_prevention import run_fault_prevention
 from algorithms.process_anomaly import run_process_anomaly
+from algorithms.single_process_anomaly import run_single_process_anomaly
+from algorithms.bosch_services import (
+    run_bosch_key_station,
+    run_bosch_kqc_mining,
+    run_bosch_process_anomaly,
+    run_id,
+)
+from task_manager import cancel_task, get_logs, get_result, get_status, submit_task
 
 
 STORAGE_ROOT = Path(os.getenv("ALGORITHM_STORAGE_ROOT", "F:/TotalData/FaultIdentifyData/AlgorithmData")).resolve()
@@ -24,6 +33,13 @@ app = FastAPI(
     title="Vibration PHM Algorithm Service",
     description="Data analysis, feature processing, early degradation detection and fault prevention service",
     version="1.1.0",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -131,10 +147,115 @@ class ProcessAnomalyRequest(BaseModel):
     preFaultSample: Optional[int] = None
     ewmaAlpha: Optional[float] = 0.2
 
+    boschTrainNumericPath: Optional[str] = None
+    bosch_train_numeric_path: Optional[str] = None
+    station: Optional[str] = None
+    featureColName: Optional[str] = None
+    feature_col: Optional[str] = None
+    selectionMode: str = "response_assoc"
+    maxRows: int = 200000
+    minFailedObserved: int = 10
+    minObserved: int = 1000
+    epochs: int = 60
+    alphaSample: float = 0.01
+    ewmaLambda: float = 0.30
+    seed: int = 0
+    device: str = "auto"
+
+
+class BoschKqcRequest(BaseModel):
+    taskId: Optional[str] = None
+    trainNumericPath: Optional[str] = None
+    train_numeric_path: Optional[str] = None
+    boschTrainNumericPath: Optional[str] = None
+    bosch_train_numeric_path: Optional[str] = None
+    outputDir: Optional[str] = None
+    maxRows: int = 200000
+    maxFeatures: int = 80
+    perStation: int = 2
+    selectionMode: str = "response_assoc"
+    keepFreq: float = 0.6
+    weightThresh: float = 1e-4
+    topK: int = 3
+    ssRuns: int = 20
+    ssFrac: float = 0.8
+
+
+class BoschKeyStationRequest(BaseModel):
+    taskId: Optional[str] = None
+    kqcTaskId: Optional[str] = None
+    kqc_task_id: Optional[str] = None
+    trainNumericPath: Optional[str] = None
+    train_numeric_path: Optional[str] = None
+    boschTrainNumericPath: Optional[str] = None
+    bosch_train_numeric_path: Optional[str] = None
+    kqcOutputDir: Optional[str] = None
+    kqc_output_dir: Optional[str] = None
+    adjPath: Optional[str] = None
+    adj_path: Optional[str] = None
+    freqPath: Optional[str] = None
+    freq_path: Optional[str] = None
+    topN: int = 10
+    maxRows: int = 200000
+    maxFeatures: int = 80
+    perStation: int = 2
+    selectionMode: str = "response_assoc"
+    keepFreq: float = 0.6
+    weightThresh: float = 1e-4
+    ssRuns: int = 20
+
+
+class AlgorithmTaskSubmitRequest(BaseModel):
+    algorithmType: str
+    payload: Dict[str, Any] = Field(default_factory=dict)
+
 
 @app.get("/health")
 def health():
     return {"status": "UP", "storageRoot": str(STORAGE_ROOT)}
+
+
+@app.post("/algorithm/tasks")
+def submit_algorithm_task(request: AlgorithmTaskSubmitRequest):
+    algorithm_type = (request.algorithmType or "").strip().upper()
+    if algorithm_type not in {"PROCESS_ANOMALY", "KEY_PROCESS", "KQC_MINING"}:
+        return {"success": False, "message": f"unsupported algorithmType: {request.algorithmType}"}
+    task = submit_task(algorithm_type, dict(request.payload or {}), _run_algorithm_task)
+    return {
+        "success": True,
+        "taskId": task["taskId"],
+        "algorithmType": algorithm_type,
+        "status": task["status"],
+        "progress": task["progress"],
+        "message": task["message"],
+    }
+
+
+@app.get("/algorithm/tasks/{task_id}")
+def get_algorithm_task(task_id: str):
+    status = get_status(task_id)
+    if not status:
+        return {"success": False, "message": "任务不存在"}
+    return status
+
+
+@app.get("/algorithm/tasks/{task_id}/logs")
+def get_algorithm_task_logs(task_id: str):
+    if not get_status(task_id):
+        return {"success": False, "message": "任务不存在", "logs": []}
+    return {"success": True, "taskId": task_id, "logs": get_logs(task_id)}
+
+
+@app.get("/algorithm/tasks/{task_id}/result")
+def get_algorithm_task_result(task_id: str):
+    if not get_status(task_id):
+        return {"success": False, "message": "任务不存在", "result": None}
+    return {"success": True, "taskId": task_id, "result": get_result(task_id)}
+
+
+@app.post("/algorithm/tasks/{task_id}/cancel")
+def cancel_algorithm_task(task_id: str):
+    return cancel_task(task_id)
 
 
 # ============================================================
@@ -489,6 +610,28 @@ def prevention_analyze(request: FaultPreventionRequest):
 def process_anomaly_execute(request: ProcessAnomalyRequest):
     """Process anomaly detection based on TEP PCA / DPCA statistics."""
     try:
+        bosch_path = request.boschTrainNumericPath or request.bosch_train_numeric_path
+        if bosch_path:
+            output_dir = STORAGE_ROOT / "bosch_process_anomaly" / (request.datasetId or request.taskId or run_id("bosch_pa"))
+            result = run_bosch_process_anomaly(
+                train_numeric_csv=bosch_path,
+                output_dir=output_dir,
+                task_id=request.taskId,
+                station=request.station or "",
+                feature_col=request.featureColName or request.feature_col or "",
+                selection_mode=request.selectionMode,
+                max_rows=request.maxRows,
+                min_failed_observed=request.minFailedObserved,
+                min_observed=request.minObserved,
+                epochs=request.epochs,
+                batch_size=request.batchSize,
+                alpha_sample=request.alphaSample,
+                ewma_lambda=request.ewmaLambda,
+                seed=request.seed,
+                device=request.device,
+            )
+            return _algorithm_response(result)
+
         train_path = request.trainPath or request.standardDataPath
         test_path = request.testPath or request.realDataPath
         if not train_path:
@@ -559,3 +702,256 @@ def process_anomaly_execute(request: ProcessAnomalyRequest):
             "message": str(exc),
             "errorCode": "PROCESS_ANOMALY_FAILED",
         }
+
+
+@app.post("/algorithm/bosch/kqc-mining/execute")
+def bosch_kqc_mining_execute(request: BoschKqcRequest):
+    """Bosch global key quality characteristic mining."""
+    task_id = request.taskId
+    try:
+        train_path = (
+            request.trainNumericPath
+            or request.train_numeric_path
+            or request.boschTrainNumericPath
+            or request.bosch_train_numeric_path
+        )
+        if not train_path:
+            return _failed_algorithm_response(task_id, "KQC_MINING", "trainNumericPath cannot be empty", "TRAIN_PATH_EMPTY")
+        output_dir = Path(request.outputDir) if request.outputDir else STORAGE_ROOT / "bosch_kqc" / (task_id or run_id("bosch_kqc"))
+        result = run_bosch_kqc_mining(
+            train_numeric_csv=train_path,
+            output_dir=output_dir,
+            task_id=task_id,
+            max_rows=request.maxRows,
+            max_features=request.maxFeatures,
+            per_station=request.perStation,
+            selection_mode=request.selectionMode,
+            keep_freq=request.keepFreq,
+            weight_thresh=request.weightThresh,
+            top_k=request.topK,
+            ss_runs=request.ssRuns,
+            ss_frac=request.ssFrac,
+        )
+        return _algorithm_response(result)
+    except Exception as exc:
+        return _failed_algorithm_response(task_id, "KQC_MINING", str(exc), "BOSCH_KQC_MINING_FAILED")
+
+
+@app.post("/api/v1/key-process/identify")
+async def key_process_identify(http_request: Request):
+    """Bosch key station identification, compatible with the Java key-process task."""
+    try:
+        raw_payload = await http_request.json()
+    except Exception:
+        return _failed_algorithm_response(None, "KEY_PROCESS_IDENTIFY", "request body must be valid JSON", "INVALID_JSON")
+    if not isinstance(raw_payload, dict):
+        return _failed_algorithm_response(None, "KEY_PROCESS_IDENTIFY", "request body must be a JSON object", "BODY_NOT_OBJECT")
+
+    payload = dict(raw_payload)
+    params = payload.get("params") if isinstance(payload.get("params"), dict) else {}
+    merged = {k: v for k, v in payload.items() if k != "params" and v is not None}
+    merged.update({k: v for k, v in params.items() if v is not None})
+    try:
+        request = BoschKeyStationRequest.model_validate(merged)
+        task_id = request.taskId or _text(payload.get("taskId"))
+        output_root = STORAGE_ROOT / "bosch_key_station" / (task_id or run_id("bosch_key"))
+
+        adj_path = request.adjPath or request.adj_path
+        freq_path = request.freqPath or request.freq_path
+        kqc_output_dir = request.kqcOutputDir or request.kqc_output_dir
+        if kqc_output_dir:
+            adj_path = adj_path or str(Path(kqc_output_dir) / "bosch_adj_matrix_selected.csv")
+            freq_path = freq_path or str(Path(kqc_output_dir) / "bosch_edge_frequency.csv")
+
+        if not adj_path or not freq_path:
+            return _failed_algorithm_response(
+                task_id,
+                "KEY_PROCESS_IDENTIFY",
+                "KQC output directory or adjPath/freqPath cannot be empty",
+                "KEY_PROCESS_KQC_INPUT_EMPTY",
+            )
+
+        result = run_bosch_key_station(
+            adj_path=adj_path,
+            freq_path=freq_path,
+            output_dir=output_root / "key_station",
+            task_id=task_id,
+            keep_freq=request.keepFreq,
+            weight_thresh=request.weightThresh,
+            top_n=request.topN,
+        )
+        return _algorithm_response(result)
+    except Exception as exc:
+        return _failed_algorithm_response(_text(raw_payload.get("taskId")), "KEY_PROCESS_IDENTIFY", str(exc), "KEY_PROCESS_IDENTIFY_FAILED")
+
+
+# ============================================================
+# 单工序逐点异常检测 — MemAE + ECDF + EWMA + UCL
+# POST /algorithm/single-process-anomaly/execute
+# ============================================================
+@app.post("/algorithm/single-process-anomaly/execute")
+async def single_process_anomaly_execute(http_request: Request):
+    """Single-process pointwise anomaly detection using MemAE."""
+    try:
+        raw_payload = await http_request.json()
+    except Exception:
+        return _single_process_error(None, "request body must be valid JSON", "INVALID_JSON")
+
+    if not isinstance(raw_payload, dict):
+        return _single_process_error(None, "request body must be a JSON object", "BODY_NOT_OBJECT")
+
+    # --- 从 Spring Boot 格式中提取参数 ---
+    task_id = _text(raw_payload.get("taskId"))
+    dataset_id = _text(raw_payload.get("processId") or raw_payload.get("targetId") or task_id)
+    task_type = "SINGLE_PROCESS_ANOMALY"
+
+    # 训练文件路径
+    train_info = raw_payload.get("trainFileInfo") or {}
+    train_path = _text(train_info.get("fileUrl"))
+
+    # 检测文件路径（优先 detectFileInfo，备选 fileInfo）
+    detect_info = raw_payload.get("detectFileInfo") or {}
+    test_path = _text(detect_info.get("fileUrl"))
+    if not test_path:
+        file_info = raw_payload.get("fileInfo") or {}
+        test_path = _text(file_info.get("fileUrl"))
+
+    # --- 参数校验 ---
+    if not train_path:
+        return _single_process_error(task_id, "trainFileInfo.fileUrl cannot be empty",
+                                      "TRAIN_PATH_EMPTY", dataset_id=dataset_id)
+    if not test_path:
+        return _single_process_error(task_id, "detectFileInfo.fileUrl or fileInfo.fileUrl cannot be empty",
+                                      "TEST_PATH_EMPTY", dataset_id=dataset_id)
+    if not Path(train_path).exists():
+        return _single_process_error(task_id, f"training data path not found: {train_path}",
+                                      "TRAIN_PATH_NOT_FOUND", dataset_id=dataset_id)
+    if not Path(test_path).exists():
+        return _single_process_error(task_id, f"test data path not found: {test_path}",
+                                      "TEST_PATH_NOT_FOUND", dataset_id=dataset_id)
+
+    output_dir = STORAGE_ROOT / "single_process_anomaly" / (dataset_id or task_id or "default")
+
+    try:
+        result = run_single_process_anomaly(
+            train_path=train_path,
+            test_path=test_path,
+            output_dir=output_dir,
+            task_id=task_id,
+            dataset_id=dataset_id,
+            task_type=task_type,
+        )
+        result["sourceTaskId"] = task_id
+        return result
+    except Exception as exc:
+        return _single_process_error(
+            task_id, str(exc), "SINGLE_PROCESS_ANOMALY_FAILED",
+            dataset_id=dataset_id, source_task_id=task_id,
+        )
+
+
+def _single_process_error(
+    task_id: Optional[str],
+    message: str,
+    error_code: str,
+    task_type: str = "SINGLE_PROCESS_ANOMALY",
+    dataset_id: Optional[str] = None,
+    source_task_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    return {
+        "taskId": task_id,
+        "taskType": task_type,
+        "sourceTaskId": source_task_id,
+        "datasetId": dataset_id,
+        "status": "FAILED",
+        "message": message,
+        "errorCode": error_code,
+    }
+
+
+def _algorithm_response(result: Dict[str, Any]) -> Dict[str, Any]:
+    task_id = result.get("taskId")
+    task_type = result.get("taskType")
+    data = {
+        "taskId": task_id,
+        "status": result.get("status", "SUCCESS"),
+        "result": result,
+        "logs": result.get("logs", []),
+    }
+    return {
+        "success": True,
+        "code": 0,
+        "message": result.get("message", "success"),
+        "taskId": task_id,
+        "taskType": task_type,
+        "status": result.get("status", "SUCCESS"),
+        "data": data,
+        "payload": result,
+    }
+
+
+def _failed_algorithm_response(task_id: Optional[str], task_type: str, message: str, error_code: str) -> Dict[str, Any]:
+    result = {
+        "taskId": task_id,
+        "taskType": task_type,
+        "status": "FAILED",
+        "message": message,
+        "errorCode": error_code,
+    }
+    return {
+        "success": False,
+        "code": 500,
+        "message": message,
+        "taskId": task_id,
+        "taskType": task_type,
+        "status": "FAILED",
+        "data": {"taskId": task_id, "status": "FAILED", "result": result, "logs": []},
+        "payload": result,
+    }
+
+
+def _run_algorithm_task(task_id: str, algorithm_type: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    data = dict(payload or {})
+    data["taskId"] = data.get("taskId") or task_id
+    if algorithm_type == "PROCESS_ANOMALY":
+        return process_anomaly_execute(ProcessAnomalyRequest.model_validate(data))
+    if algorithm_type == "KQC_MINING":
+        return bosch_kqc_mining_execute(BoschKqcRequest.model_validate(data))
+    if algorithm_type == "KEY_PROCESS":
+        return _key_process_identify_payload(data)
+    raise ValueError(f"unsupported algorithmType: {algorithm_type}")
+
+
+def _key_process_identify_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+    params = payload.get("params") if isinstance(payload.get("params"), dict) else {}
+    merged = {k: v for k, v in payload.items() if k != "params" and v is not None}
+    merged.update({k: v for k, v in params.items() if v is not None})
+    request = BoschKeyStationRequest.model_validate(merged)
+    task_id = request.taskId or _text(payload.get("taskId"))
+    output_root = STORAGE_ROOT / "bosch_key_station" / (task_id or run_id("bosch_key"))
+
+    adj_path = request.adjPath or request.adj_path
+    freq_path = request.freqPath or request.freq_path
+    kqc_output_dir = request.kqcOutputDir or request.kqc_output_dir
+    if kqc_output_dir:
+        adj_path = adj_path or str(Path(kqc_output_dir) / "bosch_adj_matrix_selected.csv")
+        freq_path = freq_path or str(Path(kqc_output_dir) / "bosch_edge_frequency.csv")
+
+    if not adj_path or not freq_path:
+        return _failed_algorithm_response(
+            task_id,
+            "KEY_PROCESS_IDENTIFY",
+            "KQC output directory or adjPath/freqPath cannot be empty",
+            "KEY_PROCESS_KQC_INPUT_EMPTY",
+        )
+
+    result = run_bosch_key_station(
+        adj_path=adj_path,
+        freq_path=freq_path,
+        output_dir=output_root / "key_station",
+        task_id=task_id,
+        keep_freq=request.keepFreq,
+        weight_thresh=request.weightThresh,
+        top_n=request.topN,
+    )
+    return _algorithm_response(result)

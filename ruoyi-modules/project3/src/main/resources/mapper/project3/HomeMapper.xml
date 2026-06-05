@@ -7,27 +7,27 @@
 
     <select id="cnt_aircraft" resultType="java.lang.Long">
         select count(1)
-        from aircraft
+        from t3_aircraft
     </select>
 
     <select id="cnt_subsys" resultType="java.lang.Long">
         select count(1)
-        from subsystems
+        from t3_subsystems
     </select>
 
     <select id="cnt_equip" resultType="java.lang.Long">
         select count(1)
-        from equipments
+        from t3_equipments
     </select>
 
     <select id="cnt_comp" resultType="java.lang.Long">
         select count(1)
-        from components
+        from t3_components
     </select>
 
     <select id="cnt_part" resultType="java.lang.Long">
         select count(1)
-        from part_instances
+        from t3_part_instances
     </select>
 
 </mapper>

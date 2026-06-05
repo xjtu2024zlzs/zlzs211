@@ -23,6 +23,8 @@ public class PythonAlgorithmProperties
     private String warningPath = "/algorithm/process-anomaly/execute";
     private String warningAuthCode = "ALGO_PROCESS_ANOMALY_EXECUTE";
     private String warningUrl;
+    private String kqcMiningPath = "/algorithm/bosch/kqc-mining/execute";
+    private String kqcMiningUrl;
     private String faultPath = "/algorithm/detection/early-fault";
     private String faultUrl;
     private boolean mock = false;
@@ -96,6 +98,16 @@ public class PythonAlgorithmProperties
     public void setWarningUrl(String v)
     {
         this.warningUrl = v;
+    }
+
+    public void setKqcMiningPath(String v)
+    {
+        this.kqcMiningPath = v;
+    }
+
+    public void setKqcMiningUrl(String v)
+    {
+        this.kqcMiningUrl = v;
     }
 
     public void setFaultPath(String v)
@@ -277,6 +289,38 @@ public class PythonAlgorithmProperties
 
         String ep = StringUtils.startsWith(path, "/") ? path : "/" + path;
         return StringUtils.endsWith(base, "/") ? base + ep.substring(1) : base + ep;
+    }
+
+    public String getKqcMiningPath()
+    {
+        String path = StringUtils.trim(kqcMiningPath);
+        if (StringUtils.isEmpty(path))
+        {
+            return path;
+        }
+        return StringUtils.startsWith(path, "/") ? path : "/" + path;
+    }
+
+    public String getKqcMiningUrl()
+    {
+        String url = StringUtils.trim(kqcMiningUrl);
+        if (StringUtils.isNotEmpty(url))
+        {
+            return url;
+        }
+
+        String base = getBaseUrl();
+        if (StringUtils.isEmpty(base))
+        {
+            return null;
+        }
+
+        String path = getKqcMiningPath();
+        if (StringUtils.isEmpty(path))
+        {
+            return base;
+        }
+        return StringUtils.endsWith(base, "/") ? base + path.substring(1) : base + path;
     }
 
     public boolean isMock()

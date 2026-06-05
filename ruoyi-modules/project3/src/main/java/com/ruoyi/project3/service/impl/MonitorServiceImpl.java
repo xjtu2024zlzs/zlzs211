@@ -115,9 +115,9 @@ public class MonitorServiceImpl implements MonitorService {
         List<Map<String, Object>> serviceRows = monitorMapper.sel_srv_rows(partInstanceId);
 
         List<Map<String, Object>> stageTables = new ArrayList<>();
-        stageTables.add(bld_qlt_tbl("design_quality", "设计质量信息", designRows));
-        stageTables.add(bld_qlt_tbl("manufacturing_quality", "制造质量信息", manufacturingRows));
-        stageTables.add(bld_qlt_tbl("service_quality", "服役质量信息", serviceRows));
+        stageTables.add(bld_qlt_tbl("t3_design_quality", "设计质量信息", designRows));
+        stageTables.add(bld_qlt_tbl("t3_manufacturing_quality", "制造质量信息", manufacturingRows));
+        stageTables.add(bld_qlt_tbl("t3_service_quality", "服役质量信息", serviceRows));
 
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("tables", stageTables);
@@ -1224,6 +1224,8 @@ public class MonitorServiceImpl implements MonitorService {
         node.set_terminal(get_bool(raw_node, "terminal"));
         node.set_child_count(get_int(raw_node, "child_count"));
         node.set_part_cnt(get_int(raw_node, "part_count"));
+        node.set_route_name(get_str(raw_node, "route_name"));
+        node.set_process_count(get_int(raw_node, "process_count"));
         node.set_children(new ArrayList<>());
         return node;
     }

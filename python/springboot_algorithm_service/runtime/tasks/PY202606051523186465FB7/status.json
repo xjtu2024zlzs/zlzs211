@@ -1,0 +1,70 @@
+{
+  "success": true,
+  "taskId": "PY202606051523186465FB7",
+  "algorithmType": "KEY_PROCESS",
+  "status": "FAILED",
+  "progress": 100,
+  "message": "任务执行失败",
+  "createdAt": "2026-06-05T15:23:18",
+  "startedAt": "2026-06-05T15:23:18",
+  "finishedAt": "2026-06-05T15:23:41",
+  "result": null,
+  "error": "'Response'",
+  "payload": {
+    "authCode": "ALGO_KEY_PROCESS_IDENTIFY_EXECUTE",
+    "requestId": "0ef265ff693b49ec90f7511954ed1a63",
+    "taskId": "KP20260605152318579",
+    "algorithmVersion": "v1.0",
+    "requestTime": "2026-06-05 15:23:18",
+    "targetType": "part",
+    "targetId": "PT5",
+    "targetName": "电控主板印制电路板",
+    "targetNodeId": "part_template:PT5",
+    "hierarchyContext": {
+      "aircraftId": "A1",
+      "aircraftName": "C919-01",
+      "subsystemId": "S2",
+      "subsystemName": "机身",
+      "deviceId": "E3",
+      "deviceName": "电控系统",
+      "equipmentId": "E3",
+      "equipmentName": "电控系统",
+      "componentId": "C3",
+      "componentName": "电控主板",
+      "partId": "PT5",
+      "partName": "电控主板印制电路板",
+      "breadcrumb": [
+        "C919-01",
+        "机身",
+        "电控系统",
+        "电控主板",
+        "电控主板印制电路板"
+      ]
+    },
+    "fileInfo": {
+      "fileName": "F:/python/三算法/test_numeric.csv",
+      "fileUrl": "F:/python/三算法/test_numeric.csv",
+      "fileType": "bosch",
+      "fileMode": "bosch",
+      "dataUsage": "BOSCH_KEY_PROCESS"
+    },
+    "dbExportInfo": {},
+    "params": {
+      "dataSelectionMode": "BOSCH",
+      "sampleIds": [],
+      "fileMode": "bosch",
+      "topN": 10.0,
+      "threshold": 0.7,
+      "samplingRate": 25600.0,
+      "boschTrainNumericPath": "F:/python/三算法/test_numeric.csv",
+      "kqcOutputDir": "",
+      "maxRows": 200000,
+      "maxFeatures": 80,
+      "perStation": 2,
+      "selectionMode": "response_assoc",
+      "keepFreq": 0.6,
+      "weightThresh": 0.0001,
+      "ssRuns": 5
+    }
+  }
+}

@@ -3,13 +3,18 @@ package com.ruoyi.project3.assembler.algorithm;
 import com.alibaba.fastjson2.JSON;
 import com.ruoyi.common.core.exception.ServiceException;
 import com.ruoyi.project3.config.PythonAlgorithmProperties;
+import com.ruoyi.project3.domain.algorithm.AlgTaskResult;
 import com.ruoyi.project3.domain.algorithm.FaultIdentifyStartRequest;
 import com.ruoyi.project3.domain.faultiden.FaultIdenFilePackage;
+import com.ruoyi.project3.mapper.AlgTaskMapper;
 import com.ruoyi.project3.mapper.MonitorMapper;
 import com.ruoyi.project3.service.FaultIdenFileService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,9 +30,14 @@ public class KeyProcessReqAssembler
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private static final String SELECTED_FILES = "SELECTED_FILES";
     private static final String RAW_SINGLE = "RAW_SINGLE";
+    private static final String KQC_TASK_TYPE = "KQC_MINING";
+    private static final String TASK_STATUS_SUCCESS = "SUCCESS";
 
     @Resource
     private MonitorMapper monitorMapper;
+
+    @Resource
+    private AlgTaskMapper algTaskMapper;
 
     @Resource
     private PythonAlgorithmProperties pythonAlgorithmProperties;
@@ -56,18 +66,23 @@ public class KeyProcessReqAssembler
         }
 
         String mode = dataMode(source, params);
-        if (!SELECTED_FILES.equals(mode))
+        boolean boschMode = hasBoschInput(params);
+        if (!boschMode && !SELECTED_FILES.equals(mode))
         {
             throw new ServiceException("当前关键工序识别仅支持 SELECTED_FILES 原始文件选择模式");
         }
+        if (boschMode)
+        {
+            validateBoschInput(params);
+        }
 
-        List<Long> ids = sampleIds(source, params);
-        if (ids.isEmpty())
+        List<Long> ids = boschMode ? Collections.emptyList() : sampleIds(source, params);
+        if (!boschMode && ids.isEmpty())
         {
             throw new ServiceException("请选择至少一个原始 CSV/TXT 文件");
         }
 
-        FaultIdenFilePackage pack = faultIdenFileService.prepare(taskId, ids, dataUsage(params));
+        FaultIdenFilePackage pack = boschMode ? null : faultIdenFileService.prepare(taskId, ids, dataUsage(params));
 
         Map<String, Object> req = new LinkedHashMap<>();
         req.put("authCode", pythonAlgorithmProperties.getKeyProcessAuthCode());
@@ -80,8 +95,8 @@ public class KeyProcessReqAssembler
         req.put("targetName", target.get("targetName"));
         req.put("targetNodeId", nodeId);
         req.put("hierarchyContext", ctx);
-        req.put("fileInfo", fileInfo(pack));
-        req.put("dbExportInfo", dbInfo(pack));
+        req.put("fileInfo", boschMode ? boschFileInfo(params) : fileInfo(pack));
+        req.put("dbExportInfo", boschMode ? Collections.emptyMap() : dbInfo(pack));
         req.put("params", algoParams(params, pack));
         return req;
     }
@@ -275,14 +290,157 @@ public class KeyProcessReqAssembler
     private Map<String, Object> algoParams(Map<String, Object> params, FaultIdenFilePackage pack)
     {
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("dataSelectionMode", SELECTED_FILES);
+        boolean boschMode = hasBoschInput(params);
+        out.put("dataSelectionMode", boschMode ? "BOSCH" : SELECTED_FILES);
         out.put("sampleIds", packIds(pack));
-        out.put("fileMode", pack.getFileMode());
+        out.put("fileMode", pack == null ? "bosch" : pack.getFileMode());
         out.put("topN", number(params, 3D, "topN", "top_n"));
         out.put("threshold", number(params, 0.7D, "threshold"));
         out.put("channel", text(first(params, "channel", "collectChannel")));
         out.put("samplingRate", number(params, 25600D, "samplingRate", "sampling_rate"));
+        copyIfPresent(out, params, "kqcTaskId", "kqcTaskId", "kqc_task_id");
+        copyIfPresent(out, params, "kqcOutputDir", "kqcOutputDir", "kqc_output_dir");
+        copyIfPresent(out, params, "adjPath", "adjPath", "adj_path");
+        copyIfPresent(out, params, "freqPath", "freqPath", "freq_path");
+        copyIfPresent(out, params, "keepFreq", "keepFreq", "keep_freq");
+        copyIfPresent(out, params, "weightThresh", "weightThresh", "weight_thresh");
         return out;
+    }
+
+    private boolean hasBoschInput(Map<String, Object> params)
+    {
+        return text(first(params, "kqcTaskId", "kqc_task_id")) != null
+                || text(first(params, "kqcOutputDir", "kqc_output_dir")) != null
+                || text(first(params, "adjPath", "adj_path")) != null
+                || text(first(params, "freqPath", "freq_path")) != null;
+    }
+
+    private void validateBoschInput(Map<String, Object> params)
+    {
+        String kqcTaskId = text(first(params, "kqcTaskId", "kqc_task_id"));
+        if (kqcTaskId != null)
+        {
+            resolveKqcTask(params, kqcTaskId);
+        }
+        String kqcOutputDir = text(first(params, "kqcOutputDir", "kqc_output_dir"));
+        String adjPath = text(first(params, "adjPath", "adj_path"));
+        String freqPath = text(first(params, "freqPath", "freq_path"));
+        if (kqcOutputDir != null)
+        {
+            Path dir = Paths.get(kqcOutputDir);
+            if (!isKqcOutputDir(dir))
+            {
+                throw new ServiceException("KQC输出目录无效，目录中需要包含 bosch_adj_matrix_selected.csv 和 bosch_edge_frequency.csv：" + kqcOutputDir);
+            }
+            params.put("adjPath", dir.resolve("bosch_adj_matrix_selected.csv").toString());
+            params.put("freqPath", dir.resolve("bosch_edge_frequency.csv").toString());
+            return;
+        }
+        if (adjPath != null && freqPath != null)
+        {
+            return;
+        }
+
+        throw new ServiceException("请填写已完成的KQC任务ID或KQC输出目录；KQC输出目录中需要包含 bosch_adj_matrix_selected.csv 和 bosch_edge_frequency.csv。");
+    }
+
+    @SuppressWarnings("unchecked")
+    private void resolveKqcTask(Map<String, Object> params, String kqcTaskId)
+    {
+        AlgTaskResult record = algTaskMapper.getByTaskId(kqcTaskId);
+        if (record == null || !KQC_TASK_TYPE.equals(record.getTaskType()))
+        {
+            throw new ServiceException("未找到关键质量特性挖掘任务：" + kqcTaskId);
+        }
+        if (!TASK_STATUS_SUCCESS.equals(record.getStatus()))
+        {
+            throw new ServiceException("KQC任务尚未成功完成，不能用于关键工序识别：" + kqcTaskId);
+        }
+        Map<String, Object> result = JSON.parseObject(record.getResJson(), Map.class);
+        String outputDir = text(findValue(result, "outputDir", "output_dir", "resultDir", "result_dir"));
+        String adjPath = text(findValue(result, "adjPath", "adj_path"));
+        String freqPath = text(findValue(result, "freqPath", "freq_path"));
+        if (outputDir == null && (adjPath == null || freqPath == null))
+        {
+            throw new ServiceException("KQC任务结果中缺少输出目录或矩阵文件路径：" + kqcTaskId);
+        }
+        params.put("kqcTaskId", kqcTaskId);
+        if (outputDir != null)
+        {
+            params.put("kqcOutputDir", outputDir);
+        }
+        if (adjPath != null)
+        {
+            params.put("adjPath", adjPath);
+        }
+        if (freqPath != null)
+        {
+            params.put("freqPath", freqPath);
+        }
+    }
+
+    private Object findValue(Object source, String... names)
+    {
+        if (source instanceof Map)
+        {
+            Map<?, ?> map = (Map<?, ?>) source;
+            for (String name : names)
+            {
+                if (map.containsKey(name))
+                {
+                    return map.get(name);
+                }
+            }
+            for (Object value : map.values())
+            {
+                Object found = findValue(value, names);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+        }
+        if (source instanceof Iterable)
+        {
+            for (Object item : (Iterable<?>) source)
+            {
+                Object found = findValue(item, names);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean isKqcOutputDir(Path path)
+    {
+        return path != null
+                && Files.isDirectory(path)
+                && Files.isRegularFile(path.resolve("bosch_adj_matrix_selected.csv"))
+                && Files.isRegularFile(path.resolve("bosch_edge_frequency.csv"));
+    }
+
+    private Map<String, Object> boschFileInfo(Map<String, Object> params)
+    {
+        Map<String, Object> info = new LinkedHashMap<>();
+        String path = text(first(params, "kqcOutputDir", "kqc_output_dir", "kqcTaskId", "kqc_task_id"));
+        info.put("fileName", path == null ? "bosch" : path);
+        info.put("fileUrl", path);
+        info.put("fileType", "bosch");
+        info.put("fileMode", "bosch");
+        info.put("dataUsage", "BOSCH_KEY_PROCESS");
+        return info;
+    }
+
+    private void copyIfPresent(Map<String, Object> out, Map<String, Object> source, String target, String... names)
+    {
+        Object value = first(source, names);
+        if (value != null)
+        {
+            out.put(target, value);
+        }
     }
 
     private String dataMode(FaultIdentifyStartRequest source, Map<String, Object> params)

@@ -63,7 +63,7 @@ public class FaultIdenFileController
     public void export(@PathVariable("fileName") String fileName, HttpServletResponse response) throws Exception
     {
         Path file = faultIdenFileService.exportFile(fileName);
-        stream(response, file, fileName, "application/zip");
+        stream(response, file, fileName, contentType(fileName));
     }
 
     private void stream(HttpServletResponse response, Path file, String name, String contentType) throws Exception

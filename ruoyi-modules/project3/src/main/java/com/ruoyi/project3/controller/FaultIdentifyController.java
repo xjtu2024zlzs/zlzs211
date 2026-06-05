@@ -122,6 +122,12 @@ public class FaultIdentifyController
         return AjaxResult.success(faultIdentifyService.get_task(taskId));
     }
 
+    @PostMapping("/key_process_tasks/{taskId}/cancel")
+    public AjaxResult cancel_key_process_task(@PathVariable("taskId") String taskId)
+    {
+        return AjaxResult.success(faultIdentifyService.cancel_key_process(taskId));
+    }
+
     @GetMapping("/task_status")
     public AjaxResult task_status(
             @RequestParam(value = "task_id", required = false) String task_id,

@@ -27,6 +27,12 @@ public class ModuleNode {
     @JsonProperty("part_count")
     private Integer part_count;
 
+    @JsonProperty("route_name")
+    private String route_name;
+
+    @JsonProperty("process_count")
+    private Integer process_count;
+
     @JsonProperty("children")
     private List<ModuleNode> children;
 
@@ -84,6 +90,22 @@ public class ModuleNode {
 
     public void set_part_cnt(Integer part_count) {
         this.part_count = part_count;
+    }
+
+    public String get_route_name() {
+        return route_name;
+    }
+
+    public void set_route_name(String route_name) {
+        this.route_name = route_name;
+    }
+
+    public Integer get_process_count() {
+        return process_count;
+    }
+
+    public void set_process_count(Integer process_count) {
+        this.process_count = process_count;
     }
 
     public List<ModuleNode> get_children() {

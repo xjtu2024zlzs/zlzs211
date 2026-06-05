@@ -7,14 +7,14 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 
-DROP TABLE IF EXISTS `part_instances`;
-DROP TABLE IF EXISTS `part_templates`;
-DROP TABLE IF EXISTS `components`;
-DROP TABLE IF EXISTS `equipments`;
-DROP TABLE IF EXISTS `subsystems`;
-DROP TABLE IF EXISTS `aircraft`;
+DROP TABLE IF EXISTS `t3_part_instances`;
+DROP TABLE IF EXISTS `t3_part_templates`;
+DROP TABLE IF EXISTS `t3_components`;
+DROP TABLE IF EXISTS `t3_equipments`;
+DROP TABLE IF EXISTS `t3_subsystems`;
+DROP TABLE IF EXISTS `t3_aircraft`;
 
-CREATE TABLE `aircraft` (
+CREATE TABLE `t3_aircraft` (
   `aircraft_id` varchar(50) NOT NULL,
   `aircraft_name` varchar(100) DEFAULT NULL,
   `aircraft_model` varchar(50) DEFAULT NULL,
@@ -26,27 +26,27 @@ CREATE TABLE `aircraft` (
   PRIMARY KEY (`aircraft_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `subsystems` (
+CREATE TABLE `t3_subsystems` (
   `subsystem_id` varchar(50) NOT NULL,
   `subsystem_name` varchar(100) DEFAULT NULL,
   `aircraft_id` varchar(50) DEFAULT NULL,
   `remarks` text,
   PRIMARY KEY (`subsystem_id`),
   KEY `idx_subsystems_aircraft_id` (`aircraft_id`),
-  CONSTRAINT `fk_subsystems_aircraft_id` FOREIGN KEY (`aircraft_id`) REFERENCES `aircraft` (`aircraft_id`)
+  CONSTRAINT `fk_subsystems_aircraft_id` FOREIGN KEY (`aircraft_id`) REFERENCES `t3_aircraft` (`aircraft_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `equipments` (
+CREATE TABLE `t3_equipments` (
   `equipment_id` varchar(50) NOT NULL,
   `equipment_name` varchar(100) DEFAULT NULL,
   `subsystem_id` varchar(50) DEFAULT NULL,
   `remarks` text,
   PRIMARY KEY (`equipment_id`),
   KEY `idx_equipments_subsystem_id` (`subsystem_id`),
-  CONSTRAINT `fk_equipments_subsystem_id` FOREIGN KEY (`subsystem_id`) REFERENCES `subsystems` (`subsystem_id`)
+  CONSTRAINT `fk_equipments_subsystem_id` FOREIGN KEY (`subsystem_id`) REFERENCES `t3_subsystems` (`subsystem_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `components` (
+CREATE TABLE `t3_components` (
   `component_id` varchar(50) NOT NULL,
   `component_name` varchar(100) DEFAULT NULL,
   `equipment_id` varchar(50) DEFAULT NULL,
@@ -54,10 +54,10 @@ CREATE TABLE `components` (
   `remarks` text,
   PRIMARY KEY (`component_id`),
   KEY `idx_components_equipment_id` (`equipment_id`),
-  CONSTRAINT `fk_components_equipment_id` FOREIGN KEY (`equipment_id`) REFERENCES `equipments` (`equipment_id`)
+  CONSTRAINT `fk_components_equipment_id` FOREIGN KEY (`equipment_id`) REFERENCES `t3_equipments` (`equipment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `part_templates` (
+CREATE TABLE `t3_part_templates` (
   `part_template_id` varchar(50) NOT NULL,
   `part_number` varchar(50) DEFAULT NULL,
   `part_name` varchar(100) DEFAULT NULL,
@@ -69,10 +69,10 @@ CREATE TABLE `part_templates` (
   `update_time` datetime DEFAULT NULL,
   PRIMARY KEY (`part_template_id`),
   KEY `idx_part_templates_component_id` (`component_id`),
-  CONSTRAINT `fk_part_templates_component_id` FOREIGN KEY (`component_id`) REFERENCES `components` (`component_id`)
+  CONSTRAINT `fk_part_templates_component_id` FOREIGN KEY (`component_id`) REFERENCES `t3_components` (`component_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `part_instances` (
+CREATE TABLE `t3_part_instances` (
   `part_instance_id` varchar(50) NOT NULL,
   `part_template_id` varchar(50) DEFAULT NULL,
   `serial_number` varchar(50) DEFAULT NULL,
@@ -87,7 +87,7 @@ CREATE TABLE `part_instances` (
   `update_time` datetime DEFAULT NULL,
   PRIMARY KEY (`part_instance_id`),
   KEY `idx_part_instances_part_template_id` (`part_template_id`),
-  CONSTRAINT `fk_part_instances_part_template_id` FOREIGN KEY (`part_template_id`) REFERENCES `part_templates` (`part_template_id`)
+  CONSTRAINT `fk_part_instances_part_template_id` FOREIGN KEY (`part_template_id`) REFERENCES `t3_part_templates` (`part_template_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
@@ -100,11 +100,11 @@ SET FOREIGN_KEY_CHECKS = 1;
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS `service_quality`;
-DROP TABLE IF EXISTS `manufacturing_quality`;
-DROP TABLE IF EXISTS `design_quality`;
+DROP TABLE IF EXISTS `t3_service_quality`;
+DROP TABLE IF EXISTS `t3_manufacturing_quality`;
+DROP TABLE IF EXISTS `t3_design_quality`;
 
-CREATE TABLE `design_quality` (
+CREATE TABLE `t3_design_quality` (
   `design_quality_id` varchar(50) NOT NULL,
   `part_template_id` varchar(50) DEFAULT NULL,
   `design_version` varchar(20) DEFAULT NULL,
@@ -118,10 +118,10 @@ CREATE TABLE `design_quality` (
   `create_time` datetime DEFAULT NULL,
   PRIMARY KEY (`design_quality_id`),
   KEY `idx_design_quality_part_template_id` (`part_template_id`),
-  CONSTRAINT `fk_design_quality_part_template_id` FOREIGN KEY (`part_template_id`) REFERENCES `part_templates` (`part_template_id`)
+  CONSTRAINT `fk_design_quality_part_template_id` FOREIGN KEY (`part_template_id`) REFERENCES `t3_part_templates` (`part_template_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `manufacturing_quality` (
+CREATE TABLE `t3_manufacturing_quality` (
   `manufacturing_quality_id` varchar(50) NOT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
   `production_order_id` varchar(50) DEFAULT NULL,
@@ -136,10 +136,10 @@ CREATE TABLE `manufacturing_quality` (
   `create_time` datetime DEFAULT NULL,
   PRIMARY KEY (`manufacturing_quality_id`),
   KEY `idx_manufacturing_quality_part_instance_id` (`part_instance_id`),
-  CONSTRAINT `fk_manufacturing_quality_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`)
+  CONSTRAINT `fk_manufacturing_quality_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `service_quality` (
+CREATE TABLE `t3_service_quality` (
   `service_quality_id` varchar(50) NOT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
   `equipment_id` varchar(50) DEFAULT NULL,
@@ -159,10 +159,10 @@ CREATE TABLE `service_quality` (
   KEY `idx_service_quality_equipment_id` (`equipment_id`),
   KEY `idx_service_quality_component_id` (`component_id`),
   KEY `idx_service_quality_installed_aircraft_id` (`installed_aircraft_id`),
-  CONSTRAINT `fk_service_quality_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`),
-  CONSTRAINT `fk_service_quality_equipment_id` FOREIGN KEY (`equipment_id`) REFERENCES `equipments` (`equipment_id`),
-  CONSTRAINT `fk_service_quality_component_id` FOREIGN KEY (`component_id`) REFERENCES `components` (`component_id`),
-  CONSTRAINT `fk_service_quality_installed_aircraft_id` FOREIGN KEY (`installed_aircraft_id`) REFERENCES `aircraft` (`aircraft_id`)
+  CONSTRAINT `fk_service_quality_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`),
+  CONSTRAINT `fk_service_quality_equipment_id` FOREIGN KEY (`equipment_id`) REFERENCES `t3_equipments` (`equipment_id`),
+  CONSTRAINT `fk_service_quality_component_id` FOREIGN KEY (`component_id`) REFERENCES `t3_components` (`component_id`),
+  CONSTRAINT `fk_service_quality_installed_aircraft_id` FOREIGN KEY (`installed_aircraft_id`) REFERENCES `t3_aircraft` (`aircraft_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
@@ -175,17 +175,17 @@ SET FOREIGN_KEY_CHECKS = 1;
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS `key_process_identifications`;
-DROP TABLE IF EXISTS `process_anomalies`;
-DROP TABLE IF EXISTS `processing_quality_data`;
-DROP TABLE IF EXISTS `process_executions`;
-DROP TABLE IF EXISTS `work_orders`;
-DROP TABLE IF EXISTS `process_standard_params`;
-DROP TABLE IF EXISTS `process_definitions`;
-DROP TABLE IF EXISTS `process_routes`;
-DROP TABLE IF EXISTS `manufacturing_devices`;
+DROP TABLE IF EXISTS `t3_key_process_identifications`;
+DROP TABLE IF EXISTS `t3_process_anomalies`;
+DROP TABLE IF EXISTS `t3_processing_quality_data`;
+DROP TABLE IF EXISTS `t3_process_executions`;
+DROP TABLE IF EXISTS `t3_work_orders`;
+DROP TABLE IF EXISTS `t3_process_standard_params`;
+DROP TABLE IF EXISTS `t3_process_definitions`;
+DROP TABLE IF EXISTS `t3_process_routes`;
+DROP TABLE IF EXISTS `t3_manufacturing_devices`;
 
-CREATE TABLE `manufacturing_devices` (
+CREATE TABLE `t3_manufacturing_devices` (
   `device_id` varchar(50) NOT NULL,
   `device_name` varchar(100) DEFAULT NULL,
   `device_type` varchar(50) DEFAULT NULL,
@@ -197,7 +197,7 @@ CREATE TABLE `manufacturing_devices` (
   PRIMARY KEY (`device_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `process_routes` (
+CREATE TABLE `t3_process_routes` (
   `route_id` varchar(50) NOT NULL,
   `part_template_id` varchar(50) DEFAULT NULL,
   `route_name` varchar(100) DEFAULT NULL,
@@ -206,10 +206,10 @@ CREATE TABLE `process_routes` (
   `is_active` tinyint DEFAULT NULL,
   PRIMARY KEY (`route_id`),
   KEY `idx_process_routes_part_template_id` (`part_template_id`),
-  CONSTRAINT `fk_process_routes_part_template_id` FOREIGN KEY (`part_template_id`) REFERENCES `part_templates` (`part_template_id`)
+  CONSTRAINT `fk_process_routes_part_template_id` FOREIGN KEY (`part_template_id`) REFERENCES `t3_part_templates` (`part_template_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `process_definitions` (
+CREATE TABLE `t3_process_definitions` (
   `process_def_id` varchar(50) NOT NULL,
   `route_id` varchar(50) DEFAULT NULL,
   `process_number` int DEFAULT NULL,
@@ -220,10 +220,10 @@ CREATE TABLE `process_definitions` (
   `is_high_risk` tinyint DEFAULT NULL,
   PRIMARY KEY (`process_def_id`),
   KEY `idx_process_definitions_route_id` (`route_id`),
-  CONSTRAINT `fk_process_definitions_route_id` FOREIGN KEY (`route_id`) REFERENCES `process_routes` (`route_id`)
+  CONSTRAINT `fk_process_definitions_route_id` FOREIGN KEY (`route_id`) REFERENCES `t3_process_routes` (`route_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `process_standard_params` (
+CREATE TABLE `t3_process_standard_params` (
   `standard_param_id` varchar(50) NOT NULL,
   `process_def_id` varchar(50) DEFAULT NULL,
   `param_name` varchar(100) DEFAULT NULL,
@@ -234,10 +234,10 @@ CREATE TABLE `process_standard_params` (
   `data_type` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`standard_param_id`),
   KEY `idx_process_standard_params_process_def_id` (`process_def_id`),
-  CONSTRAINT `fk_process_standard_params_process_def_id` FOREIGN KEY (`process_def_id`) REFERENCES `process_definitions` (`process_def_id`)
+  CONSTRAINT `fk_process_standard_params_process_def_id` FOREIGN KEY (`process_def_id`) REFERENCES `t3_process_definitions` (`process_def_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `work_orders` (
+CREATE TABLE `t3_work_orders` (
   `work_order_id` varchar(50) NOT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
   `manufacturing_quality_id` varchar(50) DEFAULT NULL,
@@ -251,12 +251,12 @@ CREATE TABLE `work_orders` (
   KEY `idx_work_orders_part_instance_id` (`part_instance_id`),
   KEY `idx_work_orders_manufacturing_quality_id` (`manufacturing_quality_id`),
   KEY `idx_work_orders_route_id` (`route_id`),
-  CONSTRAINT `fk_work_orders_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`),
-  CONSTRAINT `fk_work_orders_manufacturing_quality_id` FOREIGN KEY (`manufacturing_quality_id`) REFERENCES `manufacturing_quality` (`manufacturing_quality_id`),
-  CONSTRAINT `fk_work_orders_route_id` FOREIGN KEY (`route_id`) REFERENCES `process_routes` (`route_id`)
+  CONSTRAINT `fk_work_orders_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`),
+  CONSTRAINT `fk_work_orders_manufacturing_quality_id` FOREIGN KEY (`manufacturing_quality_id`) REFERENCES `t3_manufacturing_quality` (`manufacturing_quality_id`),
+  CONSTRAINT `fk_work_orders_route_id` FOREIGN KEY (`route_id`) REFERENCES `t3_process_routes` (`route_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `process_executions` (
+CREATE TABLE `t3_process_executions` (
   `process_exec_id` varchar(50) NOT NULL,
   `work_order_id` varchar(50) DEFAULT NULL,
   `process_def_id` varchar(50) DEFAULT NULL,
@@ -269,12 +269,12 @@ CREATE TABLE `process_executions` (
   KEY `idx_process_executions_work_order_id` (`work_order_id`),
   KEY `idx_process_executions_process_def_id` (`process_def_id`),
   KEY `idx_process_executions_device_id` (`device_id`),
-  CONSTRAINT `fk_process_executions_work_order_id` FOREIGN KEY (`work_order_id`) REFERENCES `work_orders` (`work_order_id`),
-  CONSTRAINT `fk_process_executions_process_def_id` FOREIGN KEY (`process_def_id`) REFERENCES `process_definitions` (`process_def_id`),
-  CONSTRAINT `fk_process_executions_device_id` FOREIGN KEY (`device_id`) REFERENCES `manufacturing_devices` (`device_id`)
+  CONSTRAINT `fk_process_executions_work_order_id` FOREIGN KEY (`work_order_id`) REFERENCES `t3_work_orders` (`work_order_id`),
+  CONSTRAINT `fk_process_executions_process_def_id` FOREIGN KEY (`process_def_id`) REFERENCES `t3_process_definitions` (`process_def_id`),
+  CONSTRAINT `fk_process_executions_device_id` FOREIGN KEY (`device_id`) REFERENCES `t3_manufacturing_devices` (`device_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `processing_quality_data` (
+CREATE TABLE `t3_processing_quality_data` (
   `quality_data_id` varchar(50) NOT NULL,
   `process_exec_id` varchar(50) DEFAULT NULL,
   `standard_param_id` varchar(50) DEFAULT NULL,
@@ -285,11 +285,11 @@ CREATE TABLE `processing_quality_data` (
   PRIMARY KEY (`quality_data_id`),
   KEY `idx_processing_quality_data_process_exec_id` (`process_exec_id`),
   KEY `idx_processing_quality_data_standard_param_id` (`standard_param_id`),
-  CONSTRAINT `fk_processing_quality_data_process_exec_id` FOREIGN KEY (`process_exec_id`) REFERENCES `process_executions` (`process_exec_id`),
-  CONSTRAINT `fk_processing_quality_data_standard_param_id` FOREIGN KEY (`standard_param_id`) REFERENCES `process_standard_params` (`standard_param_id`)
+  CONSTRAINT `fk_processing_quality_data_process_exec_id` FOREIGN KEY (`process_exec_id`) REFERENCES `t3_process_executions` (`process_exec_id`),
+  CONSTRAINT `fk_processing_quality_data_standard_param_id` FOREIGN KEY (`standard_param_id`) REFERENCES `t3_process_standard_params` (`standard_param_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `process_anomalies` (
+CREATE TABLE `t3_process_anomalies` (
   `anomaly_id` varchar(50) NOT NULL,
   `process_exec_id` varchar(50) DEFAULT NULL,
   `quality_data_id` varchar(50) DEFAULT NULL,
@@ -303,11 +303,11 @@ CREATE TABLE `process_anomalies` (
   PRIMARY KEY (`anomaly_id`),
   KEY `idx_process_anomalies_process_exec_id` (`process_exec_id`),
   KEY `idx_process_anomalies_quality_data_id` (`quality_data_id`),
-  CONSTRAINT `fk_process_anomalies_process_exec_id` FOREIGN KEY (`process_exec_id`) REFERENCES `process_executions` (`process_exec_id`),
-  CONSTRAINT `fk_process_anomalies_quality_data_id` FOREIGN KEY (`quality_data_id`) REFERENCES `processing_quality_data` (`quality_data_id`)
+  CONSTRAINT `fk_process_anomalies_process_exec_id` FOREIGN KEY (`process_exec_id`) REFERENCES `t3_process_executions` (`process_exec_id`),
+  CONSTRAINT `fk_process_anomalies_quality_data_id` FOREIGN KEY (`quality_data_id`) REFERENCES `t3_processing_quality_data` (`quality_data_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `key_process_identifications` (
+CREATE TABLE `t3_key_process_identifications` (
   `identification_id` varchar(50) NOT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
   `process_def_id` varchar(50) DEFAULT NULL,
@@ -318,8 +318,8 @@ CREATE TABLE `key_process_identifications` (
   PRIMARY KEY (`identification_id`),
   KEY `idx_key_process_identifications_part_instance_id` (`part_instance_id`),
   KEY `idx_key_process_identifications_process_def_id` (`process_def_id`),
-  CONSTRAINT `fk_key_process_identifications_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`),
-  CONSTRAINT `fk_key_process_identifications_process_def_id` FOREIGN KEY (`process_def_id`) REFERENCES `process_definitions` (`process_def_id`)
+  CONSTRAINT `fk_key_process_identifications_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`),
+  CONSTRAINT `fk_key_process_identifications_process_def_id` FOREIGN KEY (`process_def_id`) REFERENCES `t3_process_definitions` (`process_def_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
@@ -332,15 +332,15 @@ SET FOREIGN_KEY_CHECKS = 1;
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS `inspection_results`;
-DROP TABLE IF EXISTS `health_baselines`;
-DROP TABLE IF EXISTS `inspection_tasks`;
-DROP TABLE IF EXISTS `fault_predictions`;
-DROP TABLE IF EXISTS `fault_detections`;
-DROP TABLE IF EXISTS `fault_records`;
-DROP TABLE IF EXISTS `sensors`;
+DROP TABLE IF EXISTS `t3_inspection_results`;
+DROP TABLE IF EXISTS `t3_health_baselines`;
+DROP TABLE IF EXISTS `t3_inspection_tasks`;
+DROP TABLE IF EXISTS `t3_fault_predictions`;
+DROP TABLE IF EXISTS `t3_fault_detections`;
+DROP TABLE IF EXISTS `t3_fault_records`;
+DROP TABLE IF EXISTS `t3_sensors`;
 
-CREATE TABLE `sensors` (
+CREATE TABLE `t3_sensors` (
   `sensor_id` varchar(50) NOT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
   `service_quality_id` varchar(50) DEFAULT NULL,
@@ -360,13 +360,13 @@ CREATE TABLE `sensors` (
   KEY `idx_sensors_service_quality_id` (`service_quality_id`),
   KEY `idx_sensors_equipment_id` (`equipment_id`),
   KEY `idx_sensors_component_id` (`component_id`),
-  CONSTRAINT `fk_sensors_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`),
-  CONSTRAINT `fk_sensors_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `service_quality` (`service_quality_id`),
-  CONSTRAINT `fk_sensors_equipment_id` FOREIGN KEY (`equipment_id`) REFERENCES `equipments` (`equipment_id`),
-  CONSTRAINT `fk_sensors_component_id` FOREIGN KEY (`component_id`) REFERENCES `components` (`component_id`)
+  CONSTRAINT `fk_sensors_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`),
+  CONSTRAINT `fk_sensors_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `t3_service_quality` (`service_quality_id`),
+  CONSTRAINT `fk_sensors_equipment_id` FOREIGN KEY (`equipment_id`) REFERENCES `t3_equipments` (`equipment_id`),
+  CONSTRAINT `fk_sensors_component_id` FOREIGN KEY (`component_id`) REFERENCES `t3_components` (`component_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `fault_records` (
+CREATE TABLE `t3_fault_records` (
   `fault_id` varchar(50) NOT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
   `service_quality_id` varchar(50) DEFAULT NULL,
@@ -382,11 +382,11 @@ CREATE TABLE `fault_records` (
   PRIMARY KEY (`fault_id`),
   KEY `idx_fault_records_part_instance_id` (`part_instance_id`),
   KEY `idx_fault_records_service_quality_id` (`service_quality_id`),
-  CONSTRAINT `fk_fault_records_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`),
-  CONSTRAINT `fk_fault_records_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `service_quality` (`service_quality_id`)
+  CONSTRAINT `fk_fault_records_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`),
+  CONSTRAINT `fk_fault_records_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `t3_service_quality` (`service_quality_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `fault_detections` (
+CREATE TABLE `t3_fault_detections` (
   `detection_id` varchar(50) NOT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
   `service_quality_id` varchar(50) DEFAULT NULL,
@@ -402,12 +402,12 @@ CREATE TABLE `fault_detections` (
   KEY `idx_fault_detections_part_instance_id` (`part_instance_id`),
   KEY `idx_fault_detections_service_quality_id` (`service_quality_id`),
   KEY `idx_fault_detections_sensor_id` (`sensor_id`),
-  CONSTRAINT `fk_fault_detections_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`),
-  CONSTRAINT `fk_fault_detections_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `service_quality` (`service_quality_id`),
-  CONSTRAINT `fk_fault_detections_sensor_id` FOREIGN KEY (`sensor_id`) REFERENCES `sensors` (`sensor_id`)
+  CONSTRAINT `fk_fault_detections_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`),
+  CONSTRAINT `fk_fault_detections_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `t3_service_quality` (`service_quality_id`),
+  CONSTRAINT `fk_fault_detections_sensor_id` FOREIGN KEY (`sensor_id`) REFERENCES `t3_sensors` (`sensor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `fault_predictions` (
+CREATE TABLE `t3_fault_predictions` (
   `prediction_id` varchar(50) NOT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
   `service_quality_id` varchar(50) DEFAULT NULL,
@@ -422,11 +422,11 @@ CREATE TABLE `fault_predictions` (
   PRIMARY KEY (`prediction_id`),
   KEY `idx_fault_predictions_part_instance_id` (`part_instance_id`),
   KEY `idx_fault_predictions_service_quality_id` (`service_quality_id`),
-  CONSTRAINT `fk_fault_predictions_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`),
-  CONSTRAINT `fk_fault_predictions_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `service_quality` (`service_quality_id`)
+  CONSTRAINT `fk_fault_predictions_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`),
+  CONSTRAINT `fk_fault_predictions_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `t3_service_quality` (`service_quality_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `inspection_tasks` (
+CREATE TABLE `t3_inspection_tasks` (
   `task_id` varchar(50) NOT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
   `service_quality_id` varchar(50) DEFAULT NULL,
@@ -438,11 +438,11 @@ CREATE TABLE `inspection_tasks` (
   PRIMARY KEY (`task_id`),
   KEY `idx_inspection_tasks_part_instance_id` (`part_instance_id`),
   KEY `idx_inspection_tasks_service_quality_id` (`service_quality_id`),
-  CONSTRAINT `fk_inspection_tasks_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`),
-  CONSTRAINT `fk_inspection_tasks_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `service_quality` (`service_quality_id`)
+  CONSTRAINT `fk_inspection_tasks_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`),
+  CONSTRAINT `fk_inspection_tasks_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `t3_service_quality` (`service_quality_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `health_baselines` (
+CREATE TABLE `t3_health_baselines` (
   `baseline_id` varchar(50) NOT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
   `service_quality_id` varchar(50) DEFAULT NULL,
@@ -454,11 +454,11 @@ CREATE TABLE `health_baselines` (
   PRIMARY KEY (`baseline_id`),
   KEY `idx_health_baselines_part_instance_id` (`part_instance_id`),
   KEY `idx_health_baselines_service_quality_id` (`service_quality_id`),
-  CONSTRAINT `fk_health_baselines_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`),
-  CONSTRAINT `fk_health_baselines_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `service_quality` (`service_quality_id`)
+  CONSTRAINT `fk_health_baselines_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`),
+  CONSTRAINT `fk_health_baselines_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `t3_service_quality` (`service_quality_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `inspection_results` (
+CREATE TABLE `t3_inspection_results` (
   `result_id` varchar(50) NOT NULL,
   `task_id` varchar(50) DEFAULT NULL,
   `part_instance_id` varchar(50) DEFAULT NULL,
@@ -478,10 +478,10 @@ CREATE TABLE `inspection_results` (
   KEY `idx_inspection_results_part_instance_id` (`part_instance_id`),
   KEY `idx_inspection_results_service_quality_id` (`service_quality_id`),
   KEY `idx_inspection_results_baseline_id` (`baseline_id`),
-  CONSTRAINT `fk_inspection_results_task_id` FOREIGN KEY (`task_id`) REFERENCES `inspection_tasks` (`task_id`),
-  CONSTRAINT `fk_inspection_results_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `part_instances` (`part_instance_id`),
-  CONSTRAINT `fk_inspection_results_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `service_quality` (`service_quality_id`),
-  CONSTRAINT `fk_inspection_results_baseline_id` FOREIGN KEY (`baseline_id`) REFERENCES `health_baselines` (`baseline_id`)
+  CONSTRAINT `fk_inspection_results_task_id` FOREIGN KEY (`task_id`) REFERENCES `t3_inspection_tasks` (`task_id`),
+  CONSTRAINT `fk_inspection_results_part_instance_id` FOREIGN KEY (`part_instance_id`) REFERENCES `t3_part_instances` (`part_instance_id`),
+  CONSTRAINT `fk_inspection_results_service_quality_id` FOREIGN KEY (`service_quality_id`) REFERENCES `t3_service_quality` (`service_quality_id`),
+  CONSTRAINT `fk_inspection_results_baseline_id` FOREIGN KEY (`baseline_id`) REFERENCES `t3_health_baselines` (`baseline_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
@@ -493,7 +493,7 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- 算法结果表
-CREATE TABLE IF NOT EXISTS `algorithm_task_results` (
+CREATE TABLE IF NOT EXISTS `t3_algorithm_task_results` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `task_id` varchar(64) NOT NULL COMMENT '算法任务ID',
   `task_type` varchar(64) NOT NULL COMMENT '算法任务类型，如 FEATURE_ANALYSIS、DEGRADATION_DETECT、FAULT_PREDICT',
@@ -549,7 +549,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ============================================================
 SET NAMES utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `fault_iden_sample` (
+CREATE TABLE IF NOT EXISTS `t3_fault_iden_sample` (
     `id` BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'primary key',
     `condition_label` VARCHAR(64) NOT NULL COMMENT 'condition folder, e.g. 35Hz12kN',
     `bearing_code` VARCHAR(64) NOT NULL COMMENT 'bearing folder, e.g. Bearing1_1',
@@ -573,7 +573,7 @@ CREATE TABLE IF NOT EXISTS `fault_iden_sample` (
     KEY `idx_fault_iden_sample_component_id` (`component_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Fault identification original csv sample file';
 
-CREATE TABLE IF NOT EXISTS `fault_iden_file_package` (
+CREATE TABLE IF NOT EXISTS `t3_fault_iden_file_package` (
     `id` BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'primary key',
     `task_id` VARCHAR(64) NOT NULL COMMENT 'feature analysis task id',
     `file_mode` VARCHAR(32) NOT NULL COMMENT 'RAW_SINGLE or RAW_ZIP',
@@ -593,5 +593,5 @@ CREATE TABLE IF NOT EXISTS `fault_iden_file_package` (
 -- ============================================================
 SET NAMES utf8mb4;
 
-ALTER TABLE `part_instances`
+ALTER TABLE `t3_part_instances`
   ADD COLUMN `image_url` varchar(255) DEFAULT NULL COMMENT '零件图片地址' AFTER `key_degree`;

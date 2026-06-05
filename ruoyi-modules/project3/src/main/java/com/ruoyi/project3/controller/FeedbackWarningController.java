@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/feedback/warning")
@@ -60,6 +62,26 @@ public class FeedbackWarningController {
             @RequestParam(value = "page_size", required = false, defaultValue = "10") Integer pageSize
     ) {
         return AjaxResult.success(warningService.partInstances(partTemplateId, pageNum, pageSize));
+    }
+
+    @PostMapping("/process-executions")
+    public AjaxResult createProcessExecution(@RequestBody(required = false) Map<String, Object> row) {
+        return AjaxResult.success(warningService.createProcessExecution(row));
+    }
+
+    @PutMapping("/process-executions/{process_exec_id}")
+    public AjaxResult updateProcessExecution(
+            @PathVariable("process_exec_id") String processExecId,
+            @RequestBody(required = false) Map<String, Object> row
+    ) {
+        warningService.updateProcessExecution(processExecId, row);
+        return AjaxResult.success();
+    }
+
+    @DeleteMapping("/process-executions/{process_exec_id}")
+    public AjaxResult deleteProcessExecution(@PathVariable("process_exec_id") String processExecId) {
+        warningService.deleteProcessExecution(processExecId);
+        return AjaxResult.success();
     }
 
     @PostMapping("/parts/{part_id}/image")
@@ -120,6 +142,21 @@ public class FeedbackWarningController {
         return AjaxResult.success(warningService.startDetect(requestBody));
     }
 
+    @PostMapping("/kqc-mining")
+    public AjaxResult kqcMining(@RequestBody(required = false) String requestBody) {
+        return AjaxResult.success(warningService.kqcMining(requestBody));
+    }
+
+    @GetMapping("/kqc-mining/tasks/{task_id}/status")
+    public AjaxResult kqcMiningStatus(@PathVariable("task_id") String taskId) {
+        return AjaxResult.success(warningService.kqcMiningStatus(taskId));
+    }
+
+    @PostMapping("/kqc-mining/tasks/{task_id}/cancel")
+    public AjaxResult cancelKqcMining(@PathVariable("task_id") String taskId) {
+        return AjaxResult.success(warningService.cancelKqcMining(taskId));
+    }
+
     @GetMapping("/detect/tasks/{task_id}/status")
     public AjaxResult detectStatus(@PathVariable("task_id") String taskId) {
         return AjaxResult.success(warningService.detectStatus(taskId));
@@ -128,6 +165,11 @@ public class FeedbackWarningController {
     @GetMapping("/detect/tasks/{task_id}/logs")
     public AjaxResult detectLogs(@PathVariable("task_id") String taskId) {
         return AjaxResult.success(warningService.detectLogs(taskId));
+    }
+
+    @PostMapping("/detect/tasks/{task_id}/cancel")
+    public AjaxResult cancelDetect(@PathVariable("task_id") String taskId) {
+        return AjaxResult.success(warningService.cancelDetect(taskId));
     }
 
     @GetMapping("/detect/results")
@@ -141,6 +183,21 @@ public class FeedbackWarningController {
             @RequestParam(value = "page_size", required = false, defaultValue = "10") Integer pageSize
     ) {
         return AjaxResult.success(warningService.detectResults(status, targetType, targetId, beginTime, endTime, pageNum, pageSize));
+    }
+
+    @GetMapping("/kqc-mining/results")
+    public AjaxResult kqcMiningResults(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "page_num", required = false, defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "page_size", required = false, defaultValue = "10") Integer pageSize
+    ) {
+        return AjaxResult.success(warningService.kqcMiningResults(keyword, status, pageNum, pageSize));
+    }
+
+    @DeleteMapping("/results/{task_id}")
+    public AjaxResult deleteAlgorithmResult(@PathVariable("task_id") String taskId) {
+        return AjaxResult.success(warningService.deleteAlgorithmResult(taskId));
     }
 
     private String uploadImage(MultipartFile file) throws Exception {

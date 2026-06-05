@@ -14,12 +14,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -238,6 +241,10 @@ public class PythonAlgorithmClient
         }
         if (pythonAlgorithmProperties.isMock())
         {
+            log.warn("工序异常检测已禁用模拟响应，当前 python.algorithm.mock=true 也将调用真实 Python 服务，任务ID={}", taskId);
+        }
+        if (pythonAlgorithmProperties.isMock() && shouldUseWarningMock())
+        {
             Map<String, Object> mock = mock_warning(request);
             log.info("Python预警检测算法返回模拟响应，任务ID={}，摘要={}", taskId, response_summary(mock));
             return mock;
@@ -255,6 +262,56 @@ public class PythonAlgorithmClient
         }
         log.info("Python预警检测算法已返回，任务ID={}，摘要={}", taskId, response_summary(res));
         return res;
+    }
+
+    public Map<String, Object> runKqcMining(Map<String, Object> request)
+    {
+        String taskId = request == null ? null : get_string(request.get("taskId"));
+        if (pythonAlgorithmProperties.isMock())
+        {
+            log.warn("鍏抽敭璐ㄩ噺鐗规€ф寲鎺樹笉浣跨敤妯℃嫙妯″紡锛屾鍦ㄨ皟鐢ㄧ湡瀹濸ython鏈嶅姟锛屼换鍔D={}", taskId);
+        }
+
+        String url = kqc_mining_url();
+        log.info("璋冪敤Python鍏抽敭璐ㄩ噺鐗规€ф寲鎺樼畻娉曪紝浠诲姟ID={}锛屽湴鍧€={}", taskId, url);
+        Map<String, Object> res = parse_json(
+                sendPost(url, JSON.toJSONString(request == null ? Collections.emptyMap() : request), MediaType.APPLICATION_JSON_VALUE),
+                url
+        );
+        if (!isAlgorithmSuccess(res))
+        {
+            throw new ServiceException(algorithm_err(res));
+        }
+        log.info("Python鍏抽敭璐ㄩ噺鐗规€ф寲鎺樼畻娉曞凡杩斿洖锛屼换鍔D={}锛屾憳瑕?{}", taskId, response_summary(res));
+        return res;
+    }
+
+    public Map<String, Object> submitPythonTask(String algorithmType, Object payload)
+    {
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("algorithmType", algorithmType);
+        request.put("payload", payload == null ? Collections.emptyMap() : payload);
+        return parse_json(sendPost(task_url(), JSON.toJSONString(request), MediaType.APPLICATION_JSON_VALUE), task_url());
+    }
+
+    public Map<String, Object> getPythonTaskStatus(String pythonTaskId)
+    {
+        return parse_json(sendGet(task_url() + "/" + pythonTaskId), task_url() + "/" + pythonTaskId);
+    }
+
+    public Map<String, Object> getPythonTaskLogs(String pythonTaskId)
+    {
+        return parse_json(sendGet(task_url() + "/" + pythonTaskId + "/logs"), task_url() + "/" + pythonTaskId + "/logs");
+    }
+
+    public Map<String, Object> getPythonTaskResult(String pythonTaskId)
+    {
+        return parse_json(sendGet(task_url() + "/" + pythonTaskId + "/result"), task_url() + "/" + pythonTaskId + "/result");
+    }
+
+    public Map<String, Object> cancelPythonTask(String pythonTaskId)
+    {
+        return parse_json(sendPost(task_url() + "/" + pythonTaskId + "/cancel", "{}", MediaType.APPLICATION_JSON_VALUE), task_url() + "/" + pythonTaskId + "/cancel");
     }
 
     private String identify_url()
@@ -328,6 +385,26 @@ public class PythonAlgorithmClient
         return url;
     }
 
+    private String kqc_mining_url()
+    {
+        String url = pythonAlgorithmProperties.getKqcMiningUrl();
+        if (StringUtils.isEmpty(url))
+        {
+            throw new ServiceException("缺少配置：python.algorithm.kqcMiningUrl 或 python.algorithm.baseUrl");
+        }
+        return url;
+    }
+
+    private String task_url()
+    {
+        String baseUrl = pythonAlgorithmProperties.getBaseUrl();
+        if (StringUtils.isEmpty(baseUrl))
+        {
+            throw new ServiceException("缺少配置：python.algorithm.baseUrl");
+        }
+        return StringUtils.endsWith(baseUrl, "/") ? baseUrl + "algorithm/tasks" : baseUrl + "/algorithm/tasks";
+    }
+
 
 
 
@@ -337,15 +414,138 @@ public class PythonAlgorithmClient
         {
             HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                     .version(HttpClient.Version.HTTP_1_1)
+                    .timeout(Duration.ofMinutes(10))
                     .header("Content-Type", mediaType)
                     .POST(HttpRequest.BodyPublishers.ofString(body == null ? "" : body, StandardCharsets.UTF_8))
                     .build();
-            return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)).body();
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() >= 400)
+            {
+                throw http_status_exception(url, response.statusCode(), response.body());
+            }
+            return response.body();
+        }
+        catch (HttpTimeoutException e)
+        {
+            log.error("调用Python算法服务超时，地址={}", url, e);
+            throw new ServiceException("Python算法服务请求超时，请确认服务已启动且算法未卡住：" + url);
+        }
+        catch (ConnectException e)
+        {
+            log.error("无法连接Python算法服务，地址={}", url, e);
+            throw new ServiceException("无法连接Python算法服务，请确认服务已启动并监听端口：" + url);
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+            log.error("调用Python算法服务被中断，地址={}", url, e);
+            throw new ServiceException("调用Python算法服务被中断，请稍后重试");
+        }
+        catch (IllegalArgumentException e)
+        {
+            log.error("Python算法服务地址配置错误，地址={}", url, e);
+            throw new ServiceException("Python算法服务地址配置错误：" + url);
         }
         catch (Exception e)
         {
             log.error("调用Python算法服务失败，地址={}", url, e);
-            throw new ServiceException("Python algorithm service call failed: " + e.getMessage());
+            String message = e.getMessage() == null ? "" : e.getMessage();
+            if (message.contains("Connection refused") || message.contains("No connection"))
+            {
+                throw new ServiceException("无法连接Python算法服务，请确认服务已启动并监听端口：" + url);
+            }
+            if (message.contains("timed out") || message.contains("timeout"))
+            {
+                throw new ServiceException("Python算法服务请求超时，请确认服务已启动且算法未卡住：" + url);
+            }
+            throw new ServiceException("调用Python算法服务失败：" + message);
+        }
+    }
+
+    private String sendGet(String url)
+    {
+        try
+        {
+            HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .timeout(Duration.ofMinutes(2))
+                    .GET()
+                    .build();
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() >= 400)
+            {
+                throw http_status_exception(url, response.statusCode(), response.body());
+            }
+            return response.body();
+        }
+        catch (HttpTimeoutException e)
+        {
+            throw new ServiceException("Python算法任务状态查询超时：" + url);
+        }
+        catch (ConnectException e)
+        {
+            throw new ServiceException("无法连接Python算法服务，请确认服务已启动并监听端口：" + url);
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+            throw new ServiceException("查询Python算法任务被中断，请稍后重试");
+        }
+        catch (IllegalArgumentException e)
+        {
+            throw new ServiceException("Python算法服务地址配置错误：" + url);
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("查询Python算法任务失败：" + (e.getMessage() == null ? "" : e.getMessage()));
+        }
+    }
+
+    private ServiceException http_status_exception(String url, int statusCode, String body)
+    {
+        String message = python_error_message(body);
+        if (statusCode == 404)
+        {
+            return new ServiceException("Python算法服务未注册当前接口，请确认8000端口启动的是最新的 springboot_algorithm_service/main.py，并已重启服务。接口：" + url);
+        }
+        if (statusCode == 422)
+        {
+            return new ServiceException("Python算法服务参数校验失败：" + (StringUtils.isEmpty(message) ? raw_summary(body) : message));
+        }
+        if (statusCode >= 500)
+        {
+            return new ServiceException("Python算法服务内部错误：" + (StringUtils.isEmpty(message) ? raw_summary(body) : message));
+        }
+        return new ServiceException("Python算法服务返回HTTP " + statusCode + "：" + (StringUtils.isEmpty(message) ? raw_summary(body) : message));
+    }
+
+    private String python_error_message(String body)
+    {
+        if (StringUtils.isEmpty(body))
+        {
+            return "";
+        }
+        try
+        {
+            JSONObject json = JSON.parseObject(body);
+            String msg = get_string(json.get("message"));
+            if (StringUtils.isEmpty(msg))
+            {
+                msg = get_string(json.get("msg"));
+            }
+            if (StringUtils.isEmpty(msg))
+            {
+                msg = get_string(json.get("error"));
+            }
+            if (StringUtils.isEmpty(msg))
+            {
+                msg = get_string(json.get("detail"));
+            }
+            return msg;
+        }
+        catch (Exception ignored)
+        {
+            return "";
         }
     }
     private Map<String, Object> parse_identify(String rawPythonResponse, String requestUrl)
@@ -649,6 +849,11 @@ public class PythonAlgorithmClient
         return response;
     }
 
+    private boolean shouldUseWarningMock()
+    {
+        return false;
+    }
+
     private Map<String, Object> mock_warning(WarningDetectReq request)
     {
         String taskId = request == null ? null : request.getTaskId();
@@ -809,6 +1014,35 @@ public class PythonAlgorithmClient
             msg = get_string(((Map<String, Object>) data).get("errorMessage"));
         }
         return StringUtils.isEmpty(msg) ? "预警检测算法执行失败" : "预警检测算法执行失败：" + msg;
+    }
+
+    @SuppressWarnings("unchecked")
+    private String algorithm_err(Map<String, Object> response)
+    {
+        if (response == null || response.isEmpty())
+        {
+            return "Python算法服务返回空结果";
+        }
+        String msg = get_string(response.get("message"));
+        if (StringUtils.isEmpty(msg))
+        {
+            msg = get_string(response.get("msg"));
+        }
+        if (StringUtils.isEmpty(msg))
+        {
+            msg = get_string(response.get("error"));
+        }
+        Object payload = response.get("payload");
+        if (StringUtils.isEmpty(msg) && payload instanceof Map)
+        {
+            msg = get_string(((Map<String, Object>) payload).get("message"));
+        }
+        Object data = response.get("data");
+        if (StringUtils.isEmpty(msg) && data instanceof Map)
+        {
+            msg = get_string(((Map<String, Object>) data).get("errorMessage"));
+        }
+        return StringUtils.isEmpty(msg) ? "Python算法执行失败" : "Python算法执行失败：" + msg;
     }
 
     private Map<String, Object> log(String content)
