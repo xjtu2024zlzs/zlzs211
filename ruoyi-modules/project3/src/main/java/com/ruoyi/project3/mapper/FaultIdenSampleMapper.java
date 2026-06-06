@@ -82,6 +82,8 @@ public interface FaultIdenSampleMapper
 
     int deleteSamplesByIds(@Param("ids") List<Long> ids);
 
+    int updateSampleDataUsage(@Param("id") Long id, @Param("dataUsage") String dataUsage);
+
     Long countByConditionBearingSampleNo(
             @Param("conditionLabel") String conditionLabel,
             @Param("bearingCode") String bearingCode,

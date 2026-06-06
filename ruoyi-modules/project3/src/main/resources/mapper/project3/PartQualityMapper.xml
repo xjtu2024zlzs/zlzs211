@@ -7,48 +7,48 @@
 
     <select id="countDesignById" resultType="int">
         select count(1)
-        from design_quality
+        from t3_design_quality
         where design_quality_id = #{id}
     </select>
 
     <select id="countManufacturingById" resultType="int">
         select count(1)
-        from manufacturing_quality
+        from t3_manufacturing_quality
         where manufacturing_quality_id = #{id}
     </select>
 
     <select id="countServiceById" resultType="int">
         select count(1)
-        from service_quality
+        from t3_service_quality
         where service_quality_id = #{id}
     </select>
 
     <select id="countPartTemplateById" resultType="int">
         select count(1)
-        from part_templates
+        from t3_part_templates
         where part_template_id = #{id}
     </select>
 
     <select id="countPartInstanceById" resultType="int">
         select count(1)
-        from part_instances
+        from t3_part_instances
         where part_instance_id = #{id}
     </select>
 
     <select id="countEquipmentById" resultType="int">
         select count(1)
-        from equipments
+        from t3_equipments
         where equipment_id = #{id}
     </select>
 
     <select id="countComponentById" resultType="int">
         select count(1)
-        from components
+        from t3_components
         where component_id = #{id}
     </select>
 
     <insert id="upsertDesign" parameterType="com.ruoyi.project3.domain.partquality.DesignQuality">
-        insert into design_quality (
+        insert into t3_design_quality (
             design_quality_id,
             part_template_id,
             design_version,
@@ -86,7 +86,7 @@
     </insert>
 
     <insert id="upsertManufacturing" parameterType="com.ruoyi.project3.domain.partquality.ManufacturingQuality">
-        insert into manufacturing_quality (
+        insert into t3_manufacturing_quality (
             manufacturing_quality_id,
             part_instance_id,
             production_order_id,
@@ -127,7 +127,7 @@
     </insert>
 
     <insert id="upsertService" parameterType="com.ruoyi.project3.domain.partquality.ServiceQuality">
-        insert into service_quality (
+        insert into t3_service_quality (
             service_quality_id,
             part_instance_id,
             equipment_id,

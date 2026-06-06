@@ -45,6 +45,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
     private static final String USAGE_PREDICT = "FAULT_PREDICT";
     private static final String USAGE_IDENTIFY = "FAULT_IDENTIFY";
     private static final String USAGE_WARNING = "PROCESS_ANOMALY";
+    private static final String USAGE_KEY_PROCESS = "KEY_PROCESS";
+    private static final String USAGE_MANUFACTURE_COMMON = "MANUFACTURE_COMMON";
     private static final String USAGE_COMMON = "COMMON";
     private static final String USAGE_ALL = "ALL";
     private static final String PURPOSE_FEATURE_ANALYSIS = "featureAnalysis";
@@ -1236,7 +1238,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         }
         if (PURPOSE_PROC_ANOM.equals(purpose))
         {
-            return USAGE_WARNING;
+            return USAGE_MANUFACTURE_COMMON;
         }
         return USAGE_FEATURE;
     }
@@ -1248,7 +1250,9 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         {
             return USAGE_FEATURE;
         }
-        if (USAGE_FEATURE.equals(usage) || USAGE_PREDICT.equals(usage) || USAGE_IDENTIFY.equals(usage) || USAGE_WARNING.equals(usage) || USAGE_COMMON.equals(usage))
+        if (USAGE_FEATURE.equals(usage) || USAGE_PREDICT.equals(usage) || USAGE_IDENTIFY.equals(usage)
+                || USAGE_WARNING.equals(usage) || USAGE_KEY_PROCESS.equals(usage)
+                || USAGE_MANUFACTURE_COMMON.equals(usage) || USAGE_COMMON.equals(usage))
         {
             return usage;
         }
@@ -1502,6 +1506,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             String subId,
             String eqpId,
             String cmpId,
+            String partId,
             String dataUsage,
             String uploadBatchId,
             Integer pageNum,
@@ -1514,10 +1519,10 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         String usage = USAGE_ALL.equalsIgnoreCase(String.valueOf(usageText)) ? null : sampleUsage(usageText);
         Map<String, Object> ret = new LinkedHashMap<>();
         boolean objectQuery = text(airId) != null || text(subId) != null
-                || text(eqpId) != null || text(cmpId) != null;
+                || text(eqpId) != null || text(cmpId) != null || text(partId) != null;
         if (objectQuery)
         {
-            ObjBind bind = valObjBind(airId, subId, eqpId, cmpId);
+            ObjBind bind = valObjBind(airId, subId, eqpId, cmpId, partId);
             ret.put("rows", sampleMapper.selectSamplesByObject(
                     bind.tgtLv,
                     bind.tgtId,
@@ -1570,9 +1575,10 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         {
             throw new ServiceException("数据文件不存在");
         }
-        String rootText = text(props.getSourceRoot());
+        String configuredRoot = props.getSourceRoot();
+        String rootText = configuredRoot == null || configuredRoot.trim().isEmpty() ? DEFAULT_DATA_ROOT : configuredRoot;
         String fileText = text(sample.getSourceFile());
-        if (rootText == null || fileText == null)
+        if (fileText == null)
         {
             throw new ServiceException("数据文件路径不完整，不能删除");
         }
@@ -1597,6 +1603,39 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         Map<String, Object> ret = new LinkedHashMap<>();
         ret.put("id", sampleId);
         ret.put("fileName", sample.getFileName());
+        return ret;
+    }
+
+    @Override
+    public Map<String, Object> updateSampleDataUsage(Long sampleId, String dataUsage)
+    {
+        if (sampleId == null)
+        {
+            throw new ServiceException("数据文件ID不能为空");
+        }
+        String usage = text(dataUsage);
+        if (!USAGE_MANUFACTURE_COMMON.equals(usage) && !USAGE_WARNING.equals(usage) && !USAGE_KEY_PROCESS.equals(usage))
+        {
+            throw new ServiceException("制造周期数据用途只能设置为制造通用数据、工序异常检测或关键工序识别");
+        }
+        FaultIdenSampleFile sample = sampleMapper.seFaultIdenSampleById(sampleId);
+        if (sample == null)
+        {
+            throw new ServiceException("数据文件不存在");
+        }
+        String oldUsage = text(sample.getDataUsage());
+        if (!USAGE_MANUFACTURE_COMMON.equals(oldUsage) && !USAGE_WARNING.equals(oldUsage) && !USAGE_KEY_PROCESS.equals(oldUsage))
+        {
+            throw new ServiceException("仅支持修改制造周期数据用途");
+        }
+        int rows = sampleMapper.updateSampleDataUsage(sampleId, usage);
+        if (rows <= 0)
+        {
+            throw new ServiceException("数据用途未更新");
+        }
+        Map<String, Object> ret = new LinkedHashMap<>();
+        ret.put("id", sampleId);
+        ret.put("dataUsage", usage);
         return ret;
     }
 

@@ -1,0 +1,106 @@
+server:
+  tomcat:
+    max-part-count: 200
+# spring配置
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 600MB
+      max-request-size: 600MB
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+  datasource:
+    druid:
+      stat-view-servlet:
+        enabled: true
+        loginUsername: ruoyi
+        loginPassword: 123456
+    dynamic:
+      primary: master
+      strict: false
+      druid:
+        initial-size: 5
+        min-idle: 5
+        maxActive: 20
+        maxWait: 60000
+        connectTimeout: 30000
+        socketTimeout: 60000
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: SELECT 1 FROM DUAL
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxPoolPreparedStatementPerConnectionSize: 20
+        filters: stat,slf4j
+        connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
+      datasource:
+        # 主库数据源
+        master:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://localhost:3306/ry-cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: root
+          password: 183869
+        # 从库数据源
+        # slave:
+        #   username:
+        #   password:
+        #   url:
+        #   driver-class-name:
+
+# mybatis配置
+mybatis:
+  # 搜索指定包别名
+  typeAliasesPackage: com.ruoyi.project3.domain
+  # 配置mapper的扫描，找到所有的mapper.xml映射文件
+  mapperLocations: classpath*:mapper/**/*.xml
+
+# project3文件配置
+project3:
+  profile: ${user.dir}/uploadPath
+
+# Python算法服务配置
+python:
+  algorithm:
+    baseUrl: http://localhost:8000
+    keyProcessPath: /api/v1/key-process/identify
+    kqc-mining-path: /algorithm/bosch/kqc-mining/execute
+    feature-analysis-path: /python/data-analysis
+    feature-processing-path: /python/feature-analysis
+    predict-path: /algorithm/prevention/analyze
+    warning-path: /algorithm/process-anomaly/execute
+    faultPath: /algorithm/detection/early-fault
+    mock: false
+
+# 质量业务配置
+quality:
+  fault-identify:
+    source-root: F:/TotalData
+    export-dir: F:/TotalDataExport/feature_analysis
+    source-file-url-prefix: http://localhost:8088/quality/fault-iden/source-file
+    predict-source-file-url-prefix: http://localhost:8088/quality/fault-iden/predict-source-file
+    warning-source-file-url-prefix: http://localhost:8088/quality/fault-iden/warning-source-file
+    export-file-url-prefix: http://localhost:8088/quality/fault-iden/export-file
+    default-start-time: "2024-01-01 00:00:00"
+    max-package-samples: 500
+
+# springdoc配置
+springdoc:
+  gatewayUrl: http://localhost:8088/${spring.application.name}
+  api-docs:
+    # 是否开启接口文档
+    enabled: true
+  info:
+    # 标题
+    title: 'HUST-project3模块接口文档'
+    # 描述
+    description: 'HUST-project3模块接口描述'
+    # 作者信息
+    contact:
+      name: RuoYi
+      url: https://ruoyi.vip

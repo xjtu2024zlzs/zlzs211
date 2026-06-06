@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "taskId": "PY20260605161042628EF2A",
+  "algorithmType": "KQC_MINING",
+  "status": "FAILED",
+  "progress": 100,
+  "message": "任务执行失败",
+  "createdAt": "2026-06-05T16:10:42",
+  "startedAt": "2026-06-05T16:10:42",
+  "finishedAt": "2026-06-05T16:10:42",
+  "result": null,
+  "error": "当前 train_numeric.csv 缺少响应结果列，无法直接进行关键质量特性挖掘。请使用包含响应结果列的训练数据；如果没有响应结果列，请提供已完成的 KQC输出目录用于关键工序识别。该目录需要包含 bosch_adj_matrix_selected.csv 和 bosch_edge_frequency.csv。",
+  "payload": {
+    "trainNumericPath": "F:/python/三算法/test_numeric.csv",
+    "maxRows": 200000,
+    "maxFeatures": 80,
+    "perStation": 2,
+    "selectionMode": "response_assoc",
+    "ssRuns": 5,
+    "taskId": "KQC20260605161042583"
+  }
+}

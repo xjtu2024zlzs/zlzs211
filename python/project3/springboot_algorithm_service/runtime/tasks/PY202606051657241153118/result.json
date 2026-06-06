@@ -1,0 +1,27 @@
+{
+  "success": false,
+  "code": 500,
+  "message": "未找到 train_numeric.csv 文件：‪F:\\python\\三算法\\train_numeric.csv",
+  "taskId": "KQC20260605165724101",
+  "taskType": "KQC_MINING",
+  "status": "FAILED",
+  "data": {
+    "taskId": "KQC20260605165724101",
+    "status": "FAILED",
+    "result": {
+      "taskId": "KQC20260605165724101",
+      "taskType": "KQC_MINING",
+      "status": "FAILED",
+      "message": "未找到 train_numeric.csv 文件：‪F:\\python\\三算法\\train_numeric.csv",
+      "errorCode": "BOSCH_KQC_MINING_FAILED"
+    },
+    "logs": []
+  },
+  "payload": {
+    "taskId": "KQC20260605165724101",
+    "taskType": "KQC_MINING",
+    "status": "FAILED",
+    "message": "未找到 train_numeric.csv 文件：‪F:\\python\\三算法\\train_numeric.csv",
+    "errorCode": "BOSCH_KQC_MINING_FAILED"
+  }
+}

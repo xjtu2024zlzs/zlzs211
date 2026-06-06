@@ -1,0 +1,299 @@
+{
+  "success": true,
+  "taskId": "PY202606051826561150516",
+  "algorithmType": "KEY_PROCESS",
+  "status": "SUCCESS",
+  "progress": 100,
+  "message": "任务完成",
+  "createdAt": "2026-06-05T18:26:56",
+  "startedAt": "2026-06-05T18:26:56",
+  "finishedAt": "2026-06-05T18:26:56",
+  "result": {
+    "success": true,
+    "code": 0,
+    "message": "Bosch key station identification completed",
+    "taskId": "KP20260605182656055",
+    "taskType": "KEY_PROCESS_IDENTIFY",
+    "status": "SUCCESS",
+    "data": {
+      "taskId": "KP20260605182656055",
+      "status": "SUCCESS",
+      "result": {
+        "taskId": "KP20260605182656055",
+        "taskType": "KEY_PROCESS_IDENTIFY",
+        "status": "SUCCESS",
+        "message": "Bosch key station identification completed",
+        "keyProcessCode": "L1_S24",
+        "keyProcessName": "L1_S24",
+        "confidence": 0.8,
+        "score": 0.8,
+        "reason": "根据KQC加权的直接响应影响、路径响应影响和工序PageRank综合排序。",
+        "suggestion": "建议优先对排名最高的工序进行工艺复核和质量控制检查。",
+        "candidateProcesses": [
+          {
+            "rank": 1,
+            "processCode": "L1_S24",
+            "processName": "L1_S24",
+            "score": 0.8,
+            "directResponseScore": 0.1356482795327614,
+            "pathResponseScore": 0.22382155429040143,
+            "pagerankScore": 0.011071923343662589
+          },
+          {
+            "rank": 2,
+            "processCode": "L3_S49",
+            "processName": "L3_S49",
+            "score": 0.6679027491999863,
+            "directResponseScore": 0.0793377536470341,
+            "pathResponseScore": 0.13090840072836601,
+            "pagerankScore": 0.0784660605803503
+          },
+          {
+            "rank": 3,
+            "processCode": "L0_S22",
+            "processName": "L0_S22",
+            "score": 0.18869426239439746,
+            "directResponseScore": 0.0,
+            "pathResponseScore": 0.09106529809605882,
+            "pagerankScore": 0.02667073152574626
+          },
+          {
+            "rank": 4,
+            "processCode": "L3_S40",
+            "processName": "L3_S40",
+            "score": 0.16298640611434823,
+            "directResponseScore": 0.0,
+            "pathResponseScore": 0.0,
+            "pagerankScore": 0.0659935644505871
+          },
+          {
+            "rank": 5,
+            "processCode": "L3_S48",
+            "processName": "L3_S48",
+            "score": 0.15065299016384825,
+            "directResponseScore": 0.0,
+            "pathResponseScore": 0.0,
+            "pagerankScore": 0.06183756481476135
+          },
+          {
+            "rank": 6,
+            "processCode": "L0_S20",
+            "processName": "L0_S20",
+            "score": 0.12944211537246123,
+            "directResponseScore": 0.0,
+            "pathResponseScore": 0.037404182858315135,
+            "pagerankScore": 0.03498049363021441
+          },
+          {
+            "rank": 7,
+            "processCode": "L3_S39",
+            "processName": "L3_S39",
+            "score": 0.09066787399313933,
+            "directResponseScore": 0.0,
+            "pathResponseScore": 0.0,
+            "pagerankScore": 0.041624339057924294
+          },
+          {
+            "rank": 8,
+            "processCode": "L3_S45",
+            "processName": "L3_S45",
+            "score": 0.08107799587019782,
+            "directResponseScore": 0.0,
+            "pathResponseScore": 0.0,
+            "pagerankScore": 0.03839283124642114
+          },
+          {
+            "rank": 9,
+            "processCode": "L3_S32",
+            "processName": "L3_S32",
+            "score": 0.07573610516770589,
+            "directResponseScore": 0.0,
+            "pathResponseScore": 0.0,
+            "pagerankScore": 0.03659277067088551
+          },
+          {
+            "rank": 10,
+            "processCode": "L0_S23",
+            "processName": "L0_S23",
+            "score": 0.0722129946484784,
+            "directResponseScore": 0.0,
+            "pathResponseScore": 0.0,
+            "pagerankScore": 0.03540558570172133
+          }
+        ],
+        "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260605182656055/key_station",
+        "outputFiles": {
+          "bosch_key_station_ranking": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260605182656055/key_station/bosch_key_station_ranking.csv",
+          "bosch_key_station_evidence": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260605182656055/key_station/bosch_key_station_evidence.csv",
+          "bosch_station_network": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260605182656055/key_station/bosch_station_network.csv"
+        }
+      },
+      "logs": []
+    },
+    "payload": {
+      "taskId": "KP20260605182656055",
+      "taskType": "KEY_PROCESS_IDENTIFY",
+      "status": "SUCCESS",
+      "message": "Bosch key station identification completed",
+      "keyProcessCode": "L1_S24",
+      "keyProcessName": "L1_S24",
+      "confidence": 0.8,
+      "score": 0.8,
+      "reason": "根据KQC加权的直接响应影响、路径响应影响和工序PageRank综合排序。",
+      "suggestion": "建议优先对排名最高的工序进行工艺复核和质量控制检查。",
+      "candidateProcesses": [
+        {
+          "rank": 1,
+          "processCode": "L1_S24",
+          "processName": "L1_S24",
+          "score": 0.8,
+          "directResponseScore": 0.1356482795327614,
+          "pathResponseScore": 0.22382155429040143,
+          "pagerankScore": 0.011071923343662589
+        },
+        {
+          "rank": 2,
+          "processCode": "L3_S49",
+          "processName": "L3_S49",
+          "score": 0.6679027491999863,
+          "directResponseScore": 0.0793377536470341,
+          "pathResponseScore": 0.13090840072836601,
+          "pagerankScore": 0.0784660605803503
+        },
+        {
+          "rank": 3,
+          "processCode": "L0_S22",
+          "processName": "L0_S22",
+          "score": 0.18869426239439746,
+          "directResponseScore": 0.0,
+          "pathResponseScore": 0.09106529809605882,
+          "pagerankScore": 0.02667073152574626
+        },
+        {
+          "rank": 4,
+          "processCode": "L3_S40",
+          "processName": "L3_S40",
+          "score": 0.16298640611434823,
+          "directResponseScore": 0.0,
+          "pathResponseScore": 0.0,
+          "pagerankScore": 0.0659935644505871
+        },
+        {
+          "rank": 5,
+          "processCode": "L3_S48",
+          "processName": "L3_S48",
+          "score": 0.15065299016384825,
+          "directResponseScore": 0.0,
+          "pathResponseScore": 0.0,
+          "pagerankScore": 0.06183756481476135
+        },
+        {
+          "rank": 6,
+          "processCode": "L0_S20",
+          "processName": "L0_S20",
+          "score": 0.12944211537246123,
+          "directResponseScore": 0.0,
+          "pathResponseScore": 0.037404182858315135,
+          "pagerankScore": 0.03498049363021441
+        },
+        {
+          "rank": 7,
+          "processCode": "L3_S39",
+          "processName": "L3_S39",
+          "score": 0.09066787399313933,
+          "directResponseScore": 0.0,
+          "pathResponseScore": 0.0,
+          "pagerankScore": 0.041624339057924294
+        },
+        {
+          "rank": 8,
+          "processCode": "L3_S45",
+          "processName": "L3_S45",
+          "score": 0.08107799587019782,
+          "directResponseScore": 0.0,
+          "pathResponseScore": 0.0,
+          "pagerankScore": 0.03839283124642114
+        },
+        {
+          "rank": 9,
+          "processCode": "L3_S32",
+          "processName": "L3_S32",
+          "score": 0.07573610516770589,
+          "directResponseScore": 0.0,
+          "pathResponseScore": 0.0,
+          "pagerankScore": 0.03659277067088551
+        },
+        {
+          "rank": 10,
+          "processCode": "L0_S23",
+          "processName": "L0_S23",
+          "score": 0.0722129946484784,
+          "directResponseScore": 0.0,
+          "pathResponseScore": 0.0,
+          "pagerankScore": 0.03540558570172133
+        }
+      ],
+      "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260605182656055/key_station",
+      "outputFiles": {
+        "bosch_key_station_ranking": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260605182656055/key_station/bosch_key_station_ranking.csv",
+        "bosch_key_station_evidence": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260605182656055/key_station/bosch_key_station_evidence.csv",
+        "bosch_station_network": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260605182656055/key_station/bosch_station_network.csv"
+      }
+    }
+  },
+  "error": "",
+  "payload": {
+    "authCode": "ALGO_KEY_PROCESS_IDENTIFY_EXECUTE",
+    "requestId": "25e2f8aeaf8b48f288122a52f0b550fd",
+    "taskId": "KP20260605182656055",
+    "algorithmVersion": "v1.0",
+    "requestTime": "2026-06-05 18:26:56",
+    "targetType": "part",
+    "targetId": "PT1",
+    "targetName": "液压泵轴",
+    "targetNodeId": "part_template:PT1",
+    "hierarchyContext": {
+      "aircraftId": "A1",
+      "aircraftName": "C919-01",
+      "subsystemId": "S1",
+      "subsystemName": "机翼",
+      "deviceId": "E1",
+      "deviceName": "液压系统",
+      "equipmentId": "E1",
+      "equipmentName": "液压系统",
+      "componentId": "C1",
+      "componentName": "液压泵",
+      "partId": "PT1",
+      "partName": "液压泵轴",
+      "breadcrumb": [
+        "C919-01",
+        "机翼",
+        "液压系统",
+        "液压泵",
+        "液压泵轴"
+      ]
+    },
+    "fileInfo": {
+      "fileName": "F:\\TotalData\\FaultIdentifyData\\AlgorithmData\\bosch_kqc\\KQC20260605180856915",
+      "fileUrl": "F:\\TotalData\\FaultIdentifyData\\AlgorithmData\\bosch_kqc\\KQC20260605180856915",
+      "fileType": "bosch",
+      "fileMode": "bosch",
+      "dataUsage": "BOSCH_KEY_PROCESS"
+    },
+    "dbExportInfo": {},
+    "params": {
+      "dataSelectionMode": "BOSCH",
+      "sampleIds": [],
+      "fileMode": "bosch",
+      "topN": 10.0,
+      "threshold": 0.7,
+      "samplingRate": 25600.0,
+      "kqcTaskId": "",
+      "kqcOutputDir": "F:\\TotalData\\FaultIdentifyData\\AlgorithmData\\bosch_kqc\\KQC20260605180856915",
+      "adjPath": "F:\\TotalData\\FaultIdentifyData\\AlgorithmData\\bosch_kqc\\KQC20260605180856915\\bosch_adj_matrix_selected.csv",
+      "freqPath": "F:\\TotalData\\FaultIdentifyData\\AlgorithmData\\bosch_kqc\\KQC20260605180856915\\bosch_edge_frequency.csv",
+      "keepFreq": 0.6,
+      "weightThresh": 0.0001
+    }
+  }
+}

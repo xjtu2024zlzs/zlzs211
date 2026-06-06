@@ -2,7 +2,10 @@
   <div class="app-container quality-page warning-page">
     <el-card shadow="never" class="quality-hero feedback-hero">
       <template #header>
-        <span class="quality-title">全域制造过程反馈监管</span>
+        <div class="hero-header-row">
+          <span class="quality-title">全域制造过程反馈监管</span>
+          <el-button type="primary" plain @click="openManufacturingDataDialog">查看制造周期数据</el-button>
+        </div>
       </template>
       <div class="quality-desc">查看零件、工序和设备异常状态，并发起异常检测算法分析。</div>
     </el-card>
@@ -40,21 +43,15 @@
               </el-form-item>
             </el-form>
 
-            <el-table
-              v-loading="partLoading"
-              :data="partList"
-              border
-              highlight-current-row
-              @row-click="pickPartTemplate"
-            >
+            <el-table v-loading="partLoading" :data="partList" border highlight-current-row @row-click="pickPartTemplate">
               <el-table-column prop="part_code" label="编号" min-width="120" />
               <el-table-column prop="part_name" label="零件名称" min-width="130" show-overflow-tooltip />
               <el-table-column prop="material" label="材料" min-width="100" show-overflow-tooltip />
               <el-table-column prop="spec_model" label="规格型号" min-width="110" show-overflow-tooltip />
               <el-table-column prop="instance_count" label="实例数" width="90" />
-              <el-table-column prop="risk_level" label="风险等级" width="100">
+              <el-table-column label="操作" width="90" fixed="right">
                 <template #default="{ row }">
-                  <el-tag size="small" :type="riskTag(row.risk_level)">{{ row.risk_level || '无' }}</el-tag>
+                  <el-button link type="primary" @click.stop="showTemplateDetail(row)">详情</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -86,7 +83,7 @@
                 <el-table-column label="操作" width="220" fixed="right">
                   <template #default="{ row }">
                     <el-button link type="danger" @click.stop="keyProc(row)">关键工序识别</el-button>
-                    <el-button link type="info" @click.stop="showPartDetail(row)">详情</el-button>
+                    <el-button link type="info" @click.stop="showExecutionDetail(row)">详情</el-button>
                   </template>
                 </el-table-column>
               </el-table>
@@ -217,6 +214,12 @@
         <el-table-column prop="abnormalTime" label="异常时间" width="170" show-overflow-tooltip />
         <el-table-column prop="status" label="状态" width="100" />
         <el-table-column prop="createTime" label="创建时间" width="170" />
+        <el-table-column label="操作" width="130" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="viewHistoryResult(row, 'detect')">查看</el-button>
+            <el-button link type="danger" @click="deleteDetectResult(row)">删除</el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <pagination
         v-show="resultTotal > 0"
@@ -227,47 +230,194 @@
       />
     </el-card>
 
-    <el-dialog v-model="detectDialog.visible" :title="detectDialogTitle" width="1000px" :close-on-click-modal="false" @close="closeDetectDialog">
+    <el-card shadow="never" class="quality-card warning-section">
+      <template #header>
+        <div class="card-header-row">
+          <span class="quality-section-title">历史关键工序识别结果</span>
+          <el-button @click="loadKeyProcessResults">刷新</el-button>
+        </div>
+      </template>
+      <el-table v-loading="keyResultLoading" :data="keyResultRows" border>
+        <el-table-column prop="taskId" label="任务ID" width="190" show-overflow-tooltip />
+        <el-table-column prop="targetName" label="识别对象" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="keyProcessName" label="关键工序" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="keyProcessCode" label="工序编码" width="130" show-overflow-tooltip />
+        <el-table-column prop="score" label="分数" width="110" />
+        <el-table-column prop="status" label="状态" width="100" />
+        <el-table-column prop="createTime" label="创建时间" width="170" />
+        <el-table-column label="操作" width="130" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="viewHistoryResult(row, 'key')">查看</el-button>
+            <el-button link type="danger" @click="deleteKeyProcessResult(row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <pagination
+        v-show="keyResultTotal > 0"
+        v-model:page="keyResultQuery.page_num"
+        v-model:limit="keyResultQuery.page_size"
+        :total="keyResultTotal"
+        @pagination="loadKeyProcessResults"
+      />
+    </el-card>
+
+    <el-dialog v-model="detectDialog.visible" :title="detectDialogTitle" width="1080px" :close-on-click-modal="false" @close="closeDetectDialog">
       <div class="detect-summary">
         <span>检测对象：{{ detectTargetText }}</span>
         <span>已选择 {{ selectedSampleIds.length }} 个文件</span>
       </div>
-      <div class="file-toolbar">
-        <el-input
-          v-model="fileQuery.keyword"
-          placeholder="搜索文件名"
-          clearable
-          style="width: 240px"
-          @keyup.enter="loadSamples"
-          @clear="loadSamples"
-        />
-        <el-button @click="loadSamples">查询</el-button>
-        <el-button @click="clearSamples">清空选择</el-button>
+      <div class="task-lookup-row">
+        <el-input v-model="lookupTaskId" placeholder="输入任务ID查看结果" clearable @keyup.enter="lookupDialogTaskResult" />
+        <el-button type="primary" :loading="lookupLoading" @click="lookupDialogTaskResult">查看结果</el-button>
       </div>
-      <el-table
-        ref="sampleTableRef"
-        v-loading="fileQuery.loading"
-        :data="fileQuery.samples"
-        row-key="id"
-        height="360"
-        border
-        @selection-change="onSampleSelection"
-      >
-        <el-table-column type="selection" width="48" reserve-selection />
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="conditionLabel" label="对象类型" width="130" />
-        <el-table-column prop="bearingCode" label="对象编号" width="120" />
-        <el-table-column prop="fileSize" label="文件大小" width="120" />
-        <el-table-column prop="createTime" label="导入时间" width="170" />
-      </el-table>
-      <pagination
-        v-show="fileQuery.total > 0"
-        v-model:page="fileQuery.pageNum"
-        v-model:limit="fileQuery.pageSize"
-        :total="fileQuery.total"
-        @pagination="loadSamples"
-      />
+
+      <template v-if="isKeyMode">
+        <div class="detect-data-section bosch-param-section">
+          <div class="detect-data-header">
+            <span class="detect-data-title">Bosch 关键工序识别参数</span>
+            <el-switch v-model="boschKeyForm.enabled" active-text="Bosch算法" inactive-text="原文件模式" />
+          </div>
+          <el-form v-if="boschKeyForm.enabled" :model="boschKeyForm" label-width="130px" class="bosch-param-form">
+            <el-row :gutter="12">
+              <el-col :span="12">
+                <el-form-item label="KQC任务ID">
+                  <el-input v-model="boschKeyForm.kqcTaskId" placeholder="输入已完成的KQC任务ID" clearable />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="KQC输出目录">
+                  <el-input v-model="boschKeyForm.kqcOutputDir" placeholder="也可直接填写已完成KQC输出目录" clearable />
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="Top N">
+                  <el-input-number v-model="boschKeyForm.topN" :min="1" :max="50" controls-position="right" style="width: 100%" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-form>
+        </div>
+        <div v-if="!boschKeyForm.enabled" class="file-toolbar">
+          <el-input v-model="fileQuery.keyword" placeholder="搜索文件名" clearable style="width: 240px" @keyup.enter="loadSamples" @clear="loadSamples" />
+          <el-button @click="loadSamples">查询</el-button>
+          <el-button @click="clearSamples">清空选择</el-button>
+        </div>
+        <el-table v-if="!boschKeyForm.enabled" ref="sampleTableRef" v-loading="fileQuery.loading" :data="fileQuery.samples" row-key="id" height="360" border @selection-change="onSampleSelection">
+          <el-table-column type="selection" width="48" reserve-selection />
+          <el-table-column prop="id" label="ID" width="80" />
+          <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
+          <el-table-column prop="conditionLabel" label="对象类型" width="130" />
+          <el-table-column prop="bearingCode" label="对象编号" width="120" />
+          <el-table-column prop="fileSize" label="文件大小" width="120">
+            <template #default="{ row }">{{ fileSizeText(row.fileSize) }}</template>
+          </el-table-column>
+          <el-table-column prop="createTime" label="导入时间" width="170" />
+        </el-table>
+        <pagination v-if="!boschKeyForm.enabled" v-show="fileQuery.total > 0" v-model:page="fileQuery.pageNum" v-model:limit="fileQuery.pageSize" :total="fileQuery.total" @pagination="loadSamples" />
+      </template>
+
+      <template v-else>
+        <div class="detect-data-section bosch-param-section">
+          <div class="detect-data-header">
+            <span class="detect-data-title">Bosch 工序异常检测参数</span>
+            <el-switch v-model="boschProcessForm.enabled" active-text="Bosch算法" inactive-text="原文件模式" />
+          </div>
+          <el-form v-if="boschProcessForm.enabled" :model="boschProcessForm" label-width="130px" class="bosch-param-form">
+            <el-row :gutter="12">
+              <el-col :span="12">
+                <el-form-item label="选择数据文件" required>
+                  <el-input v-model="boschProcessForm.trainNumericPath" placeholder="例如 F:/python/三算法/test_numeric.csv" clearable />
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="工序">
+                  <el-input v-model="boschProcessForm.station" placeholder="例如 L3_S36" clearable />
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="特征列">
+                  <el-input v-model="boschProcessForm.featureColName" placeholder="可留空自动选择" clearable />
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="最大行数">
+                  <el-input-number v-model="boschProcessForm.maxRows" :min="1000" :step="10000" controls-position="right" style="width: 100%" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="训练轮数">
+                  <el-input-number v-model="boschProcessForm.epochs" :min="1" :max="300" controls-position="right" style="width: 100%" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="选择策略">
+                  <el-select v-model="boschProcessForm.selectionMode" style="width: 100%">
+                    <el-option label="按失效关联度" value="response_assoc" />
+                    <el-option label="按数据覆盖率" value="coverage" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="告警比例">
+                  <el-input-number v-model="boschProcessForm.alphaSample" :min="0.001" :max="0.2" :step="0.001" :precision="3" controls-position="right" style="width: 100%" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-form>
+        </div>
+
+        <div v-if="!boschProcessForm.enabled" class="detect-data-section">
+          <div class="detect-data-header">
+            <span class="detect-data-title">1、选择训练和测试数据</span>
+            <span class="detect-data-count">已选择 {{ selectedSamples.length }} 个文件</span>
+          </div>
+          <div class="file-toolbar">
+            <el-input v-model="fileQuery.keyword" placeholder="搜索文件名" clearable style="width: 240px" @keyup.enter="loadSamples" @clear="loadSamples" />
+            <el-button @click="loadSamples">查询</el-button>
+            <el-button @click="clearSamples">清空选择</el-button>
+          </div>
+          <el-table ref="sampleTableRef" v-loading="fileQuery.loading" :data="fileQuery.samples" row-key="id" height="260" border @selection-change="onSampleSelection">
+            <el-table-column type="selection" width="48" reserve-selection />
+            <el-table-column prop="id" label="ID" width="80" />
+            <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
+            <el-table-column prop="conditionLabel" label="对象类型" width="130" />
+            <el-table-column prop="bearingCode" label="对象编号" width="120" />
+            <el-table-column prop="fileSize" label="文件大小" width="120">
+              <template #default="{ row }">{{ fileSizeText(row.fileSize) }}</template>
+            </el-table-column>
+            <el-table-column prop="createTime" label="导入时间" width="170" />
+          </el-table>
+          <pagination v-show="fileQuery.total > 0" v-model:page="fileQuery.pageNum" v-model:limit="fileQuery.pageSize" :total="fileQuery.total" @pagination="loadSamples" />
+        </div>
+
+        <div v-if="!boschProcessForm.enabled" class="detect-data-section">
+          <div class="detect-data-header">
+            <span class="detect-data-title">2、选择检测数据</span>
+            <span class="detect-data-count">已上传 {{ detectUploadRows.length }} 个文件</span>
+          </div>
+          <div class="file-toolbar">
+            <el-upload accept=".csv,.txt" :auto-upload="false" :show-file-list="false" :on-change="onDetectFileChange">
+              <el-button type="primary" :loading="detectUpload.loading">上传数据文件</el-button>
+            </el-upload>
+            <el-button :disabled="!detectUploadRows.length || detectUpload.loading" @click="clearDetectUploads">清空上传</el-button>
+          </div>
+          <el-table :data="detectUploadRows" border height="180" empty-text="暂无检测数据文件">
+            <el-table-column prop="id" label="ID" width="80" />
+            <el-table-column prop="fileName" label="文件名" min-width="220" show-overflow-tooltip />
+            <el-table-column prop="fileSize" label="文件大小" width="120">
+              <template #default="{ row }">{{ fileSizeText(row.fileSize) }}</template>
+            </el-table-column>
+            <el-table-column prop="columnCount" label="列数" width="80" />
+            <el-table-column label="使用列" width="100">
+              <template #default="{ row }">
+                {{ row.featureCol || autoFeatureColText(row) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="uploadStatus" label="状态" width="110" />
+          </el-table>
+        </div>
+      </template>
+
       <div class="detect-result" v-if="status || error || Object.keys(result).length">
         <el-descriptions v-if="isKeyMode" :column="3" border>
           <el-descriptions-item label="任务ID">{{ taskId || '--' }}</el-descriptions-item>
@@ -276,8 +426,8 @@
           <el-descriptions-item label="关键工序">{{ val(keyField('name')) }}</el-descriptions-item>
           <el-descriptions-item label="工序编码">{{ val(keyField('code')) }}</el-descriptions-item>
           <el-descriptions-item label="分数">{{ val(keyField('score')) }}</el-descriptions-item>
-          <el-descriptions-item label="原因" :span="3">{{ val(keyField('reason')) }}</el-descriptions-item>
-          <el-descriptions-item label="建议" :span="3">{{ val(keyField('suggestion')) }}</el-descriptions-item>
+          <el-descriptions-item label="原因" :span="3">{{ val(keyText('reason')) }}</el-descriptions-item>
+          <el-descriptions-item label="建议" :span="3">{{ val(keyText('suggestion')) }}</el-descriptions-item>
           <el-descriptions-item v-if="error" label="失败原因" :span="3">{{ error }}</el-descriptions-item>
         </el-descriptions>
         <el-table v-if="isKeyMode && keyProcessRows.length" :data="keyProcessRows" border height="180" class="quality-mt16">
@@ -286,6 +436,10 @@
           <el-table-column prop="processName" label="工序名称" />
           <el-table-column prop="score" label="分数" width="120" />
         </el-table>
+        <div v-if="!isKeyMode && (taskProgress || taskMessage)" class="task-progress-row">
+          <el-progress :percentage="taskProgress || 0" :status="status === 'FAILED' ? 'exception' : (status === 'SUCCESS' ? 'success' : undefined)" />
+          <div class="task-progress-message">{{ taskMessage }}</div>
+        </div>
         <el-descriptions v-if="!isKeyMode" :column="3" border>
           <el-descriptions-item label="任务ID">{{ taskId || '--' }}</el-descriptions-item>
           <el-descriptions-item label="状态">{{ status || '--' }}</el-descriptions-item>
@@ -295,16 +449,125 @@
           <el-descriptions-item label="建议" :span="3">{{ val(result.suggestion) }}</el-descriptions-item>
           <el-descriptions-item v-if="error" label="失败原因" :span="3">{{ error }}</el-descriptions-item>
         </el-descriptions>
-        <el-table v-if="!isKeyMode && curveRows.length" :data="curveRows" border height="180" class="quality-mt16">
+        <div v-if="!isKeyMode && curveRows.length" class="anomaly-chart-panel quality-mt16">
+          <div class="anomaly-chart-head">
+            <div>
+              <div class="anomaly-chart-title">异常分数趋势</div>
+              <div class="anomaly-chart-subtitle">横轴为样本点，纵轴为异常分数</div>
+            </div>
+            <div class="anomaly-chart-stats">
+              <span>点数 {{ curveRows.length }}</span>
+              <span>峰值 {{ formatChartValue(curveMaxValue) }}</span>
+              <span v-if="curveThreshold !== null">阈值 {{ formatChartValue(curveThreshold) }}</span>
+            </div>
+          </div>
+          <div ref="anomalyChartRef" class="anomaly-chart"></div>
+        </div>
+        <el-table v-if="!isKeyMode && curveRows.length" :data="curveRows" border height="160" class="quality-mt16">
           <el-table-column prop="x" label="x" />
           <el-table-column prop="value" label="value" />
         </el-table>
       </div>
+
       <template #footer>
         <el-button @click="closeDetectDialog">关闭</el-button>
-        <el-button type="primary" :loading="detectDialog.loading" :disabled="detectDialog.loading" @click="submitDetectDialog">
+        <el-button v-if="canCancelDetect" type="warning" :loading="cancelLoading" @click="cancelDetectTask">Cancel</el-button>
+        <el-button type="primary" :loading="detectSubmitLoading" :disabled="detectSubmitDisabled" @click="submitDetectDialog">
           {{ detectDialogSubmitText }}
         </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="featureColumnDialog.visible" title="选择检测数据列" width="420px" :close-on-click-modal="false">
+      <el-form label-width="110px">
+        <el-form-item label="工序 number">
+          <el-input :model-value="featureColumnDialog.processNumber || '--'" disabled />
+        </el-form-item>
+        <el-form-item label="文件列数">
+          <el-input :model-value="featureColumnDialog.columnCount || '--'" disabled />
+        </el-form-item>
+        <el-form-item label="使用列" required>
+          <el-select v-model="featureColumnDialog.selected" style="width: 100%">
+            <el-option v-for="item in featureColumnOptions" :key="item" :label="`第 ${item} 列`" :value="item" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="featureColumnDialog.visible = false">取消</el-button>
+        <el-button type="primary" @click="confirmFeatureColumn">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="templateDetailDialog.visible" title="零件模板详细信息" width="760px">
+      <el-table :data="templateDetailRows" border>
+        <el-table-column prop="label" label="字段" width="160" />
+        <el-table-column prop="value" label="内容" min-width="420" show-overflow-tooltip />
+      </el-table>
+    </el-dialog>
+
+    <el-dialog v-model="executionDetailDialog.visible" title="工序执行详情" width="1120px">
+      <div class="execution-detail-head">
+        <div class="info-box">
+          <div class="info-label">零件实例</div>
+          <div class="info-value">{{ executionDetailDialog.part?.part_instance_id || '--' }}</div>
+          <div class="info-desc">{{ executionDetailDialog.part?.part_name || executionDetailDialog.part?.part_code || '--' }}</div>
+        </div>
+        <div class="selected-path">{{ executionDetailDialog.part?.path_text || '--' }}</div>
+      </div>
+      <div class="execution-detail-toolbar">
+        <el-button type="primary" @click="openExecutionForm()">新增</el-button>
+      </div>
+      <el-table v-loading="executionDetailDialog.loading" :data="executionDetailRows" border max-height="420" empty-text="暂无工序执行数据">
+        <el-table-column prop="process_exec_id" label="执行ID" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="work_order_id" label="工单ID" min-width="130" show-overflow-tooltip />
+        <el-table-column prop="process_def_id" label="工序定义ID" min-width="130" show-overflow-tooltip />
+        <el-table-column prop="process_order" label="工序顺序" width="90" />
+        <el-table-column prop="process_name" label="工序名称" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="device_id" label="设备ID" min-width="120" show-overflow-tooltip />
+        <el-table-column prop="device_name" label="设备名称" min-width="130" show-overflow-tooltip />
+        <el-table-column prop="start_time" label="开始时间" min-width="160" show-overflow-tooltip />
+        <el-table-column prop="end_time" label="结束时间" min-width="160" show-overflow-tooltip />
+        <el-table-column prop="operator" label="操作员" min-width="100" show-overflow-tooltip />
+        <el-table-column prop="status" label="状态" width="100" />
+        <el-table-column label="操作" width="130" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="openExecutionForm(row)">编辑</el-button>
+            <el-button link type="danger" @click="removeExecution(row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
+    <el-dialog v-model="executionFormDialog.visible" :title="executionFormTitle" width="640px" :close-on-click-modal="false">
+      <el-form :model="executionForm" label-width="110px">
+        <el-form-item label="执行ID">
+          <el-input v-model="executionForm.process_exec_id" :disabled="executionFormDialog.mode === 'edit'" placeholder="新增时可为空，由系统生成" />
+        </el-form-item>
+        <el-form-item label="工单ID" required>
+          <el-input v-model="executionForm.work_order_id" placeholder="请输入工单ID" />
+        </el-form-item>
+        <el-form-item label="工序定义ID" required>
+          <el-input v-model="executionForm.process_def_id" placeholder="请输入工序定义ID" />
+        </el-form-item>
+        <el-form-item label="设备ID">
+          <el-input v-model="executionForm.device_id" placeholder="请输入设备ID" />
+        </el-form-item>
+        <el-form-item label="开始时间">
+          <el-date-picker v-model="executionForm.start_time" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" placeholder="选择开始时间" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="结束时间">
+          <el-date-picker v-model="executionForm.end_time" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" placeholder="选择结束时间" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="操作员">
+          <el-input v-model="executionForm.operator" placeholder="请输入操作员" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-input v-model="executionForm.status" placeholder="请输入状态" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="executionFormDialog.visible = false">取消</el-button>
+        <el-button type="primary" :loading="executionFormDialog.loading" @click="submitExecutionForm">保存</el-button>
       </template>
     </el-dialog>
 
@@ -312,13 +575,7 @@
       <div class="part-detail-layout">
         <div class="part-image-panel">
           <div class="part-image-title">零件图片</div>
-          <el-upload
-            class="part-image-uploader"
-            accept="image/*"
-            :auto-upload="false"
-            :show-file-list="false"
-            :on-change="onPartImageChange"
-          >
+          <el-upload class="part-image-uploader" accept="image/*" :auto-upload="false" :show-file-list="false" :on-change="onPartImageChange">
             <div v-loading="partDetailUploading" class="part-image-box">
               <img v-if="partDetailImage" :src="partDetailImage" alt="零件图片" />
               <div v-else class="part-image-empty">
@@ -340,27 +597,77 @@
         </div>
       </div>
     </el-dialog>
+
+    <el-dialog v-model="manufacturingDataDialog.visible" title="制造周期数据" width="1100px" :close-on-click-modal="false">
+      <div class="data-file-toolbar">
+        <el-input v-model="manufacturingDataQuery.keyword" placeholder="搜索文件名 / 对象编号 / 来源文件" clearable style="width: 280px" @keyup.enter="searchManufacturingData" @clear="searchManufacturingData" />
+        <el-input v-model="manufacturingDataQuery.uploadBatchId" placeholder="上传批次" clearable style="width: 180px" @keyup.enter="searchManufacturingData" @clear="searchManufacturingData" />
+        <el-button type="primary" @click="searchManufacturingData">查询</el-button>
+        <el-button @click="resetManufacturingData">重置</el-button>
+      </div>
+      <el-table v-loading="manufacturingDataDialog.loading" :data="manufacturingDataDialog.rows" height="460" border row-key="id">
+        <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
+        <el-table-column label="数据用途" width="180">
+          <template #default="{ row }">
+            <el-select :model-value="row.dataUsage" size="small" :loading="row.usageUpdating" @change="value => changeManufacturingDataUsage(row, value)">
+              <el-option label="制造通用数据" value="MANUFACTURE_COMMON" />
+              <el-option label="工序异常检测" value="PROCESS_ANOMALY" />
+              <el-option label="关键工序识别" value="KEY_PROCESS" />
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column prop="aircraftId" label="飞机" width="90" />
+        <el-table-column prop="subsystemId" label="分系统" width="90" />
+        <el-table-column prop="equipmentId" label="设备" width="90" />
+        <el-table-column prop="componentId" label="组件" width="90" />
+        <el-table-column label="文件大小" width="110">
+          <template #default="{ row }">{{ fileSizeText(row.fileSize) }}</template>
+        </el-table-column>
+        <el-table-column prop="createTime" label="导入时间" width="170" />
+        <el-table-column prop="sourceFile" label="来源文件" min-width="260" show-overflow-tooltip />
+        <el-table-column label="操作" width="90" fixed="right">
+          <template #default="{ row }">
+            <el-button type="danger" link :loading="row.deleting" @click="deleteManufacturingData(row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <pagination
+        v-show="manufacturingDataDialog.total > 0"
+        v-model:page="manufacturingDataQuery.pageNum"
+        v-model:limit="manufacturingDataQuery.pageSize"
+        :total="manufacturingDataDialog.total"
+        @pagination="loadManufacturingData"
+      />
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import * as echarts from 'echarts'
 import {
-  getWarningKeyProcessTask,
+  createWarningProcessExecution,
+  deleteWarningProcessExecution,
   deleteWarningPartImage,
+  deleteWarningAlgorithmResult,
+  cancelWarningDetectTask,
+  cancelWarningKeyProcessTask,
   getWarningDetectTask,
+  getWarningKeyProcessTask,
   listWarningDetectResults,
   listWarningDeviceParts,
   listWarningDevices,
   listWarningPartInstances,
   listWarningPartProcesses,
   listWarningParts,
-  uploadWarningPartImage,
+  startWarningDetectTask,
   startWarningKeyProcessTask,
-  startWarningDetectTask
+  updateWarningProcessExecution,
+  uploadWarningDetectFile,
+  uploadWarningPartImage
 } from '@/api/project_3/feedback'
-import { listFaultIdenSamples } from '@/api/project_3/service'
+import { deleteFaultIdentifyResult, deleteFaultIdenSample, listFaultIdenSamples, listKeyProcessResults, updateFaultIdenSampleDataUsage } from '@/api/project_3/service'
 import { getApiPayload, getErrorMessage, useQualityAlgorithmTask } from '@/utils/useQualityAlgorithmTask'
 import '@/views/project_3/common.css'
 
@@ -372,6 +679,7 @@ const processLoading = ref(false)
 const deviceLoading = ref(false)
 const devicePartLoading = ref(false)
 const resultLoading = ref(false)
+const keyResultLoading = ref(false)
 const partDetailUploading = ref(false)
 const partList = ref([])
 const partInstanceList = ref([])
@@ -386,12 +694,82 @@ const selectedDevice = ref(null)
 const devicePartTotal = ref(0)
 const resultRows = ref([])
 const resultTotal = ref(0)
+const keyResultRows = ref([])
+const keyResultTotal = ref(0)
 const selectedSamples = ref([])
 const sampleTableRef = ref(null)
 const taskId = ref('')
+const lookupTaskId = ref('')
 const status = ref('')
 const error = ref('')
 const result = ref({})
+const lookupLoading = ref(false)
+const cancelLoading = ref(false)
+const detectSubmitting = ref(false)
+const detectRunning = ref(false)
+const keySubmitting = ref(false)
+const keyRunning = ref(false)
+const anomalyChartRef = ref(null)
+let anomalyChart = null
+const fileQuery = reactive({ keyword: '', samples: [], pageNum: 1, pageSize: 20, total: 0, loading: false })
+const detectUpload = reactive({ loading: false })
+const detectUploadRows = ref([])
+const detectDialog = reactive({ visible: false, loading: false, mode: 'detect', part: null, process: null })
+const featureColumnDialog = reactive({ visible: false, row: null, columnCount: 0, processNumber: 0, selected: 1 })
+const boschProcessForm = reactive({
+  enabled: true,
+  trainNumericPath: 'F:/python/三算法/test_numeric.csv',
+  station: 'L3_S36',
+  featureColName: '',
+  maxRows: 200000,
+  epochs: 60,
+  selectionMode: 'response_assoc',
+  alphaSample: 0.01,
+  ewmaLambda: 0.3,
+  minFailedObserved: 10,
+  minObserved: 1000,
+  seed: 0,
+  device: 'auto'
+})
+const boschKeyForm = reactive({
+  enabled: true,
+  kqcTaskId: '',
+  kqcOutputDir: '',
+  keepFreq: 0.6,
+  weightThresh: 0.0001,
+  topN: 10
+})
+const partDetailDialog = reactive({ visible: false, row: null })
+const templateDetailDialog = reactive({ visible: false, row: null })
+const executionDetailDialog = reactive({ visible: false, loading: false, part: null })
+const executionDetailRows = ref([])
+const executionFormDialog = reactive({ visible: false, loading: false, mode: 'create' })
+const executionForm = reactive({
+  process_exec_id: '',
+  work_order_id: '',
+  process_def_id: '',
+  device_id: '',
+  start_time: '',
+  end_time: '',
+  operator: '',
+  status: ''
+})
+const manufacturingDataDialog = reactive({ visible: false, loading: false, rows: [], total: 0 })
+const manufacturingDataQuery = reactive({ keyword: '', uploadBatchId: '', pageNum: 1, pageSize: 20 })
+
+const partQuery = reactive({ keyword: '', sort_by: 'part_code', sort_order: 'asc', page_num: 1, page_size: 6 })
+const partInstanceQuery = reactive({ page_num: 1, page_size: 5 })
+const deviceQuery = reactive({ keyword: '', risk_level: '', page_num: 1, page_size: 10 })
+const devicePartQuery = reactive({ page_num: 1, page_size: 6 })
+const resultQuery = reactive({ page_num: 1, page_size: 10 })
+const keyResultQuery = reactive({ page_num: 1, page_size: 10 })
+
+const MANUFACTURING_DATA_USAGES = ['MANUFACTURE_COMMON', 'PROCESS_ANOMALY', 'KEY_PROCESS']
+const DETECT_DATA_USAGES = {
+  detect: ['PROCESS_ANOMALY'],
+  key: ['KEY_PROCESS', 'MANUFACTURE_COMMON']
+}
+
 const task = useQualityAlgorithmTask({
   taskId,
   status,
@@ -399,25 +777,54 @@ const task = useQualityAlgorithmTask({
   result,
   query: (id, context) => context.mode === 'key' ? getWarningKeyProcessTask(id) : getWarningDetectTask(id),
   onDone: (taskStatus, data, context) => {
-    if (taskStatus === 'SUCCESS' && context.mode === 'detect') loadDetectResults()
+    if (context.mode === 'detect') {
+      detectSubmitting.value = false
+      detectDialog.loading = false
+      detectRunning.value = false
+      if (taskStatus === 'SUCCESS') loadDetectResults()
+    } else if (context.mode === 'key') {
+      keySubmitting.value = false
+      keyRunning.value = false
+      detectDialog.loading = false
+    }
   },
-  onError: msg => ElMessage.error(msg),
+  onError: (msg, context) => {
+    if (context?.mode === 'detect') {
+      detectSubmitting.value = false
+      detectDialog.loading = false
+      detectRunning.value = false
+    } else if (context?.mode === 'key') {
+      keySubmitting.value = false
+      keyRunning.value = false
+      detectDialog.loading = false
+    }
+    ElMessage.error(msg)
+  },
   onMissingTaskId: () => ElMessage.warning('任务已提交，但未返回 taskId')
 })
 
-const partQuery = reactive({ keyword: '', sort_by: 'part_code', sort_order: 'asc', page_num: 1, page_size: 6 })
-const partInstanceQuery = reactive({ page_num: 1, page_size: 5 })
-const deviceQuery = reactive({ keyword: '', risk_level: '', page_num: 1, page_size: 10 })
-const devicePartQuery = reactive({ page_num: 1, page_size: 6 })
-const resultQuery = reactive({ page_num: 1, page_size: 10 })
-const fileQuery = reactive({ keyword: '', samples: [], pageNum: 1, pageSize: 20, total: 0, loading: false })
-const detectDialog = reactive({ visible: false, loading: false, mode: 'detect', part: null, process: null })
-const partDetailDialog = reactive({ visible: false, row: null })
-
-const selectedSampleIds = computed(() => selectedSamples.value.map(item => item.id))
+const trainSampleIds = computed(() => selectedSamples.value.map(item => item.id))
+const detectSampleIds = computed(() => detectUploadRows.value.map(item => item.id).filter(Boolean))
+const selectedSampleIds = computed(() => {
+  if (isKeyMode.value && boschKeyForm.enabled) return []
+  if (!isKeyMode.value && boschProcessForm.enabled) return []
+  return isKeyMode.value ? trainSampleIds.value : [...trainSampleIds.value, ...detectSampleIds.value]
+})
+const featureColumnOptions = computed(() => Array.from({ length: featureColumnDialog.columnCount || 0 }, (_, index) => index + 1))
 const isKeyMode = computed(() => detectDialog.mode === 'key')
-const detectDialogTitle = computed(() => isKeyMode.value ? '关键工序识别' : '异常检测')
+const executionFormTitle = computed(() => executionFormDialog.mode === 'edit' ? '编辑工序执行' : '新增工序执行')
+const detectDialogTitle = computed(() => isKeyMode.value ? '关键工序识别' : '工序异常检测')
 const detectDialogSubmitText = computed(() => isKeyMode.value ? '开始关键工序识别' : '开始异常检测')
+const taskProgress = computed(() => {
+  const value = Number(result.value?.progress || 0)
+  return Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0
+})
+const taskMessage = computed(() => result.value?.message || result.value?.errorMessage || '')
+const canCancelDetect = computed(() => taskId.value && ['PENDING', 'RUNNING'].includes(status.value))
+const detectTaskActive = computed(() => !isKeyMode.value && detectRunning.value && taskId.value && isActiveTaskStatus(status.value))
+const keyTaskActive = computed(() => isKeyMode.value && keyRunning.value && taskId.value && isActiveTaskStatus(status.value))
+const detectSubmitLoading = computed(() => isKeyMode.value ? keySubmitting.value : detectSubmitting.value)
+const detectSubmitDisabled = computed(() => isKeyMode.value ? (keySubmitting.value || keyTaskActive.value) : (detectSubmitting.value || detectTaskActive.value))
 const detectTargetText = computed(() => {
   const part = detectDialog.part
   const proc = detectDialog.process
@@ -434,6 +841,15 @@ const curveRows = computed(() => {
   const rows = result.value?.curveData || result.value?.curve_data || []
   return Array.isArray(rows) ? rows.map(item => ({ x: item.x, value: item.value ?? item.y ?? item.riskScore })) : []
 })
+const curveValues = computed(() => curveRows.value.map(item => Number(item.value)).filter(Number.isFinite))
+const curveMaxValue = computed(() => {
+  return curveValues.value.length ? Math.max(...curveValues.value) : null
+})
+const curveThreshold = computed(() => {
+  const value = result.value?.threshold ?? result.value?.ucl ?? result.value?.UCL_sample ?? result.value?.summary?.UCL_sample ?? result.value?.summary?.ucl
+  const num = Number(value)
+  return Number.isFinite(num) ? num : null
+})
 const keyProcessRows = computed(() => {
   const rows = result.value?.candidateProcesses || result.value?.candidate_processes || []
   return Array.isArray(rows)
@@ -445,6 +861,23 @@ const keyProcessRows = computed(() => {
       score: item.score ?? item.confidence
     }))
     : []
+})
+const templateDetailRows = computed(() => {
+  const row = templateDetailDialog.row || {}
+  return [
+    { label: '零件模板ID', value: val(row.part_template_id) },
+    { label: '零件编号', value: val(row.part_code) },
+    { label: '零件名称', value: val(row.part_name) },
+    { label: '材料', value: val(row.material) },
+    { label: '规格型号', value: val(row.spec_model) },
+    { label: '设计版本', value: val(row.design_version) },
+    { label: '实例数量', value: val(row.instance_count) },
+    { label: '飞机ID', value: val(row.aircraft_id) },
+    { label: '分系统ID', value: val(row.subsystem_id) },
+    { label: '设备ID', value: val(row.equipment_id) },
+    { label: '组件ID', value: val(row.component_id) },
+    { label: '结构路径', value: val(row.path_text) }
+  ]
 })
 const partDetailRows = computed(() => {
   const row = partDetailDialog.row || {}
@@ -465,9 +898,7 @@ const partDetailRows = computed(() => {
     { label: '结构路径', value: val(row.path_text) }
   ]
 })
-const partDetailImage = computed(() => {
-  return imageSrc(partDetailDialog.row?.image_url || partDetailDialog.row?.imageUrl)
-})
+const partDetailImage = computed(() => imageSrc(partDetailDialog.row?.image_url || partDetailDialog.row?.imageUrl))
 
 function riskTag(level) {
   if (level === '高' || level === 'HIGH') return 'danger'
@@ -572,6 +1003,107 @@ function resetPart() {
   loadParts()
 }
 
+function showTemplateDetail(row) {
+  templateDetailDialog.row = row || null
+  templateDetailDialog.visible = true
+}
+
+async function showExecutionDetail(row) {
+  executionDetailDialog.part = row || null
+  executionDetailRows.value = []
+  executionDetailDialog.visible = true
+  await reloadExecutionDetailRows()
+}
+
+async function reloadExecutionDetailRows() {
+  const row = executionDetailDialog.part
+  if (!row?.part_id) {
+    executionDetailRows.value = []
+    return
+  }
+  executionDetailDialog.loading = true
+  try {
+    const res = await listWarningPartProcesses(row.part_id)
+    const rows = Array.isArray(res?.data) ? res.data : []
+    executionDetailRows.value = rows.filter(item => item.process_exec_id)
+  } finally {
+    executionDetailDialog.loading = false
+  }
+}
+
+function resetExecutionForm(row = {}) {
+  executionForm.process_exec_id = row.process_exec_id || ''
+  executionForm.work_order_id = row.work_order_id || ''
+  executionForm.process_def_id = row.process_def_id || row.process_id || ''
+  executionForm.device_id = row.device_id || ''
+  executionForm.start_time = row.start_time || ''
+  executionForm.end_time = row.end_time || ''
+  executionForm.operator = row.operator || ''
+  executionForm.status = row.status || ''
+}
+
+function openExecutionForm(row) {
+  executionFormDialog.mode = row?.process_exec_id ? 'edit' : 'create'
+  const defaults = row || executionDetailRows.value[0] || {}
+  resetExecutionForm(defaults)
+  if (!row) {
+    executionForm.process_exec_id = ''
+    executionForm.start_time = ''
+    executionForm.end_time = ''
+    executionForm.operator = ''
+    executionForm.status = ''
+  }
+  executionFormDialog.visible = true
+}
+
+async function submitExecutionForm() {
+  if (!executionForm.work_order_id) {
+    ElMessage.warning('请输入工单ID')
+    return
+  }
+  if (!executionForm.process_def_id) {
+    ElMessage.warning('请输入工序定义ID')
+    return
+  }
+  executionFormDialog.loading = true
+  try {
+    const data = { ...executionForm }
+    if (executionFormDialog.mode === 'edit') {
+      await updateWarningProcessExecution(executionForm.process_exec_id, data)
+      ElMessage.success('工序执行已更新')
+    } else {
+      await createWarningProcessExecution(data)
+      ElMessage.success('工序执行已新增')
+    }
+    executionFormDialog.visible = false
+    await reloadExecutionDetailRows()
+    if (selectedPart.value?.part_id === executionDetailDialog.part?.part_id) {
+      await loadPartProc(selectedPart.value)
+    }
+  } finally {
+    executionFormDialog.loading = false
+  }
+}
+
+async function removeExecution(row) {
+  if (!row?.process_exec_id) return
+  try {
+    await ElMessageBox.confirm('确认删除该工序执行记录吗？相关异常和质量数据也会同步删除。', '删除确认', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    })
+  } catch (_) {
+    return
+  }
+  await deleteWarningProcessExecution(row.process_exec_id)
+  ElMessage.success('工序执行已删除')
+  await reloadExecutionDetailRows()
+  if (selectedPart.value?.part_id === executionDetailDialog.part?.part_id) {
+    await loadPartProc(selectedPart.value)
+  }
+}
+
 function showPartDetail(row) {
   partDetailDialog.row = row || null
   partDetailDialog.visible = true
@@ -645,6 +1177,11 @@ async function openKeyProcess(part) {
     return
   }
   task.clearPoll()
+  detectSubmitting.value = false
+  detectRunning.value = false
+  keySubmitting.value = false
+  keyRunning.value = false
+  detectDialog.loading = false
   detectDialog.mode = 'key'
   detectDialog.part = part
   detectDialog.process = null
@@ -654,6 +1191,7 @@ async function openKeyProcess(part) {
   error.value = ''
   result.value = {}
   clearSamples()
+  clearDetectUploads()
   fileQuery.pageNum = 1
   await loadSamples()
 }
@@ -668,6 +1206,11 @@ async function openDetect(part, process) {
     return
   }
   task.clearPoll()
+  detectSubmitting.value = false
+  detectRunning.value = false
+  keySubmitting.value = false
+  keyRunning.value = false
+  detectDialog.loading = false
   detectDialog.mode = 'detect'
   detectDialog.part = part
   detectDialog.process = process
@@ -677,6 +1220,7 @@ async function openDetect(part, process) {
   error.value = ''
   result.value = {}
   clearSamples()
+  clearDetectUploads()
   fileQuery.pageNum = 1
   await loadSamples()
 }
@@ -684,16 +1228,40 @@ async function openDetect(part, process) {
 async function loadSamples() {
   fileQuery.loading = true
   try {
-    const res = await listFaultIdenSamples({
-      dataUsage: 'PROCESS_ANOMALY',
+    const usages = DETECT_DATA_USAGES[detectDialog.mode] || DETECT_DATA_USAGES.detect
+    const objectQuery = sampleObjectQuery()
+    if (objectQuery === null) {
+      fileQuery.samples = []
+      fileQuery.total = 0
+      return
+    }
+    const results = await Promise.all(usages.map(dataUsage => listFaultIdenSamples({
+      dataUsage,
       keyword: fileQuery.keyword,
-      pageNum: fileQuery.pageNum,
-      pageSize: fileQuery.pageSize
-    })
-    fileQuery.samples = Array.isArray(res?.rows) ? res.rows : []
-    fileQuery.total = Number(res?.total || 0)
+      ...objectQuery,
+      pageNum: 1,
+      pageSize: 5000
+    })))
+    const rows = results.flatMap(res => Array.isArray(res?.rows) ? res.rows : [])
+    const start = (fileQuery.pageNum - 1) * fileQuery.pageSize
+    fileQuery.samples = rows.slice(start, start + fileQuery.pageSize)
+    fileQuery.total = rows.length
   } finally {
     fileQuery.loading = false
+  }
+}
+
+function sampleObjectQuery() {
+  if (detectDialog.mode !== 'detect') return {}
+  const part = detectDialog.part || {}
+  const partId = part.part_template_id || part.partTemplateId
+  if (!partId || !part.component_id) return null
+  return {
+    aircraftId: part.aircraft_id,
+    subsystemId: part.subsystem_id,
+    equipmentId: part.equipment_id,
+    componentId: part.component_id,
+    partId
   }
 }
 
@@ -709,7 +1277,160 @@ function clearSamples() {
   sampleTableRef.value?.clearSelection?.()
 }
 
+function clearDetectUploads() {
+  detectUploadRows.value = []
+  featureColumnDialog.visible = false
+  featureColumnDialog.row = null
+}
+
+async function onDetectFileChange(file) {
+  const raw = file?.raw
+  if (!raw) return
+  const name = raw.name || ''
+  if (!/\.(csv|txt)$/i.test(name)) {
+    ElMessage.warning('请选择 CSV/TXT 数据文件')
+    return
+  }
+  const part = detectDialog.part || {}
+  const partTemplateId = part.part_template_id || part.partTemplateId
+  if (!partTemplateId) {
+    ElMessage.warning('检测对象缺少零件模板ID')
+    return
+  }
+  const columnCount = await detectFileColumnCount(raw)
+  const payload = new FormData()
+  payload.append('purpose', 'processAnomaly')
+  payload.append('executionObject', 'bearing')
+  payload.append('aircraftId', part.aircraft_id || '')
+  payload.append('subsystemId', part.subsystem_id || '')
+  payload.append('equipmentId', part.equipment_id || '')
+  payload.append('componentId', part.component_id || '')
+  payload.append('partId', partTemplateId)
+  payload.append('uploadBatchId', `WARN_DETECT_${Date.now()}`)
+  payload.append('fileIndex', '1')
+  payload.append('totalFiles', '1')
+  payload.append('file', raw)
+  detectUpload.loading = true
+  try {
+    const res = await uploadWarningDetectFile(payload)
+    const data = res?.data || res || {}
+    const row = {
+      id: data.id || data.sampleId || data.sample_id,
+      fileName: data.fileName || data.file_name || name,
+      fileSize: data.fileSize || data.file_size || raw.size,
+      uploadStatus: data.uploadStatus || data.upload_status || 'SUCCESS',
+      dataUsage: data.dataUsage || 'MANUFACTURE_COMMON',
+      columnCount,
+      featureCol: autoFeatureCol(columnCount)
+    }
+    if (!row.id) throw new Error('上传成功但未返回文件ID')
+    detectUploadRows.value = [row]
+    ElMessage.success('检测数据文件上传成功')
+    if (needsFeatureColumnChoice(row)) {
+      openFeatureColumnDialog(row)
+    }
+  } catch (e) {
+    ElMessage.error(getErrorMessage(e, '检测数据文件上传失败'))
+  } finally {
+    detectUpload.loading = false
+  }
+}
+
+async function detectFileColumnCount(raw) {
+  const text = await raw.slice(0, 65536).text()
+  const line = text.split(/\r?\n/).find(item => item && item.trim())
+  return line ? splitDataLine(line, detectDelimiter(line)).length : 0
+}
+
+function detectDelimiter(line) {
+  if (line.includes('\t') && !line.includes(',')) return '\t'
+  if (!line.includes(',') && line.trim().includes(' ')) return ' '
+  return ','
+}
+
+function splitDataLine(line, delimiter) {
+  if (delimiter === ' ') return line.trim().split(/\s+/)
+  const values = []
+  let current = ''
+  let quoted = false
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (ch === '"') {
+      if (quoted && line[i + 1] === '"') {
+        current += '"'
+        i += 1
+      } else {
+        quoted = !quoted
+      }
+    } else if (ch === delimiter && !quoted) {
+      values.push(current)
+      current = ''
+    } else {
+      current += ch
+    }
+  }
+  values.push(current)
+  return values
+}
+
+function processNumber() {
+  const proc = detectDialog.process || {}
+  const value = Number(proc.process_number || proc.processNumber || proc.process_order || proc.processOrder || 0)
+  return Number.isFinite(value) && value > 0 ? value : 0
+}
+
+function autoFeatureCol(columnCount) {
+  const count = Number(columnCount || 0)
+  const number = processNumber()
+  if (count <= 1) return count === 1 ? 1 : null
+  if (number && number <= count) return number
+  return null
+}
+
+function autoFeatureColText(row) {
+  const value = autoFeatureCol(row?.columnCount)
+  return value || '--'
+}
+
+function needsFeatureColumnChoice(row) {
+  const count = Number(row?.columnCount || 0)
+  return count > 1 && !autoFeatureCol(count) && !row?.featureCol
+}
+
+function openFeatureColumnDialog(row) {
+  featureColumnDialog.row = row
+  featureColumnDialog.columnCount = Number(row?.columnCount || 0)
+  featureColumnDialog.processNumber = processNumber()
+  featureColumnDialog.selected = row?.featureCol || 1
+  featureColumnDialog.visible = true
+}
+
+function confirmFeatureColumn() {
+  if (!featureColumnDialog.selected) {
+    ElMessage.warning('请选择需要使用的数据列')
+    return
+  }
+  if (featureColumnDialog.row) {
+    featureColumnDialog.row.featureCol = featureColumnDialog.selected
+  }
+  featureColumnDialog.visible = false
+}
+
+function isActiveTaskStatus(value) {
+  return ['PENDING', 'RUNNING'].includes(value)
+}
+
+function continueDetectPolling() {
+  if (taskId.value && isActiveTaskStatus(status.value)) {
+    task.startPoll(taskId.value, { mode: isKeyMode.value ? 'key' : 'detect' })
+  }
+}
+
 function submitDetectDialog() {
+  if ((isKeyMode.value && keyTaskActive.value) || (!isKeyMode.value && (detectSubmitting.value || detectTaskActive.value))) {
+    continueDetectPolling()
+    return
+  }
   if (isKeyMode.value) {
     startKeyProcess()
     return
@@ -719,30 +1440,43 @@ function submitDetectDialog() {
 
 function closeDetectDialog() {
   task.clearPoll()
+  detectSubmitting.value = false
+  detectRunning.value = false
+  keySubmitting.value = false
+  keyRunning.value = false
+  detectDialog.loading = false
   detectDialog.visible = false
+  clearDetectUploads()
 }
 
 async function startKeyProcess() {
-  if (detectDialog.loading) return
+  if (keySubmitting.value || keyTaskActive.value) {
+    continueDetectPolling()
+    return
+  }
   if (!detectDialog.part?.part_id) {
     ElMessage.warning('识别对象不能为空')
     return
   }
-  if (!selectedSampleIds.value.length) {
+  if (boschKeyForm.enabled && !boschKeyForm.kqcTaskId && !boschKeyForm.kqcOutputDir) {
+    ElMessage.warning('请填写 KQC任务ID或KQC输出目录')
+    return
+  }
+  if (!boschKeyForm.enabled && !trainSampleIds.value.length) {
     ElMessage.warning('请至少选择一个 CSV/TXT 文件')
     return
   }
   task.clearPoll()
+  keySubmitting.value = true
+  keyRunning.value = true
   detectDialog.loading = true
-  status.value = 'RUNNING'
+  status.value = 'PENDING'
   error.value = ''
   result.value = {}
   try {
     const part = detectDialog.part
     const partTplId = part.part_template_id || part.partTemplateId
-    if (!partTplId) {
-      throw new Error('识别对象缺少零件模板ID')
-    }
+    if (!partTplId) throw new Error('识别对象缺少零件模板ID')
     const targetNodeId = `part_template:${partTplId}`
     const selectedObject = {
       id: targetNodeId,
@@ -753,8 +1487,8 @@ async function startKeyProcess() {
     }
     const params = {
       dataSelectionMode: 'SELECTED_FILES',
-      dataUsage: 'PROCESS_ANOMALY',
-      sampleIds: selectedSampleIds.value,
+      dataUsage: 'KEY_PROCESS',
+      sampleIds: trainSampleIds.value,
       selected_object: selectedObject,
       targetNodeId,
       targetType: 'part',
@@ -772,10 +1506,25 @@ async function startKeyProcess() {
       topN: 3,
       threshold: 0.7
     }
+    if (boschKeyForm.enabled) {
+      const keyKqcTaskId = cleanLocalPath(boschKeyForm.kqcTaskId)
+      const keyKqcOutputDir = cleanLocalPath(boschKeyForm.kqcOutputDir)
+      boschKeyForm.kqcTaskId = keyKqcTaskId
+      boschKeyForm.kqcOutputDir = keyKqcOutputDir
+      Object.assign(params, {
+        dataSelectionMode: 'BOSCH',
+        sampleIds: [],
+        kqcTaskId: keyKqcTaskId,
+        kqcOutputDir: keyKqcOutputDir,
+        keepFreq: boschKeyForm.keepFreq,
+        weightThresh: boschKeyForm.weightThresh,
+        topN: boschKeyForm.topN
+      })
+    }
     const res = await startWarningKeyProcessTask({
       import_record_id: targetNodeId,
-      dataSelectionMode: 'SELECTED_FILES',
-      sampleIds: selectedSampleIds.value,
+      dataSelectionMode: boschKeyForm.enabled ? 'BOSCH' : 'SELECTED_FILES',
+      sampleIds: boschKeyForm.enabled ? [] : trainSampleIds.value,
       params
     })
     if (!detectDialog.visible) return
@@ -786,14 +1535,23 @@ async function startKeyProcess() {
     const msg = getErrorMessage(e, '关键工序识别任务启动失败')
     status.value = 'FAILED'
     error.value = msg
+    keyRunning.value = false
     ElMessage.error(msg)
   } finally {
+    keySubmitting.value = false
     detectDialog.loading = false
   }
 }
 
+function cleanLocalPath(path) {
+  return String(path || '').replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '').trim()
+}
+
 async function startDetect() {
-  if (detectDialog.loading) return
+  if (detectSubmitting.value || detectTaskActive.value) {
+    continueDetectPolling()
+    return
+  }
   if (!detectDialog.part?.part_id) {
     ElMessage.warning('检测对象不能为空')
     return
@@ -802,19 +1560,37 @@ async function startDetect() {
     ElMessage.warning('请先选择工序')
     return
   }
-  if (!selectedSampleIds.value.length) {
-    ElMessage.warning('请至少选择一个 CSV/TXT 文件')
+  const processTrainNumericPath = cleanLocalPath(boschProcessForm.trainNumericPath)
+  boschProcessForm.trainNumericPath = processTrainNumericPath
+  if (boschProcessForm.enabled && !processTrainNumericPath) {
+    ElMessage.warning('请填写 Bosch train_numeric.csv 路径')
     return
   }
+  if (!boschProcessForm.enabled && !trainSampleIds.value.length) {
+    ElMessage.warning('请至少选择一个训练和测试数据文件')
+    return
+  }
+  if (!boschProcessForm.enabled && !detectSampleIds.value.length) {
+    ElMessage.warning('请上传一个检测数据文件')
+    return
+  }
+  const detectRow = detectUploadRows.value[0]
+  if (!boschProcessForm.enabled && needsFeatureColumnChoice(detectRow)) {
+    openFeatureColumnDialog(detectRow)
+    return
+  }
+  const featureCol = detectRow?.featureCol || autoFeatureCol(detectRow?.columnCount) || processNumber() || 1
   task.clearPoll()
+  detectSubmitting.value = true
+  detectRunning.value = true
   detectDialog.loading = true
-  status.value = 'RUNNING'
+  status.value = 'PENDING'
   error.value = ''
   result.value = {}
   try {
     const part = detectDialog.part
     const proc = detectDialog.process || {}
-    const res = await startWarningDetectTask({
+    const payload = {
       partId: part.part_id,
       partCode: part.part_code,
       partName: part.part_name,
@@ -824,8 +1600,32 @@ async function startDetect() {
       processOrder: proc.process_order,
       deviceId: proc.device_id,
       deviceName: proc.device_name,
-      sampleIds: selectedSampleIds.value
-    })
+      dataUsage: boschProcessForm.enabled ? 'BOSCH_PROCESS_ANOMALY' : 'PROCESS_ANOMALY',
+      featureCol
+    }
+    if (boschProcessForm.enabled) {
+      Object.assign(payload, {
+        boschTrainNumericPath: processTrainNumericPath,
+        station: boschProcessForm.station,
+        featureColName: boschProcessForm.featureColName,
+        maxRows: boschProcessForm.maxRows,
+        epochs: boschProcessForm.epochs,
+        selectionMode: boschProcessForm.selectionMode,
+        alphaSample: boschProcessForm.alphaSample,
+        ewmaLambda: boschProcessForm.ewmaLambda,
+        minFailedObserved: boschProcessForm.minFailedObserved,
+        minObserved: boschProcessForm.minObserved,
+        seed: boschProcessForm.seed,
+        device: boschProcessForm.device
+      })
+    } else {
+      Object.assign(payload, {
+        trainSampleIds: trainSampleIds.value,
+        detectSampleIds: detectSampleIds.value,
+        sampleIds: selectedSampleIds.value
+      })
+    }
+    const res = await startWarningDetectTask(payload)
     if (!detectDialog.visible) return
     task.acceptTask(res, { mode: 'detect' })
     ElMessage.success('异常检测任务已提交')
@@ -835,9 +1635,40 @@ async function startDetect() {
     const msg = getErrorMessage(e, '异常检测任务启动失败')
     status.value = 'FAILED'
     error.value = msg
+    detectRunning.value = false
     ElMessage.error(msg)
   } finally {
+    detectSubmitting.value = false
     detectDialog.loading = false
+  }
+}
+
+async function cancelDetectTask() {
+  if (!taskId.value || cancelLoading.value) return
+  cancelLoading.value = true
+  task.clearPoll()
+  detectSubmitting.value = false
+  detectRunning.value = false
+  keySubmitting.value = false
+  keyRunning.value = false
+  detectDialog.loading = false
+  try {
+    const api = isKeyMode.value ? cancelWarningKeyProcessTask : cancelWarningDetectTask
+    const res = await api(taskId.value)
+    const data = getApiPayload(res)
+    status.value = data.status || 'CANCELED'
+    result.value = data.result || data || {}
+    error.value = ''
+    ElMessage.success('任务已取消')
+  } catch (e) {
+    ElMessage.error(getErrorMessage(e, '任务取消失败'))
+  } finally {
+    detectSubmitting.value = false
+    detectRunning.value = false
+    keySubmitting.value = false
+    keyRunning.value = false
+    detectDialog.loading = false
+    cancelLoading.value = false
   }
 }
 
@@ -851,6 +1682,21 @@ function keyField(type) {
     suggestion: ['suggestion']
   }
   return pickValue(result.value, keys[type] || [type])
+}
+
+function keyText(type) {
+  return translateKeyProcessText(keyField(type))
+}
+
+function translateKeyProcessText(value) {
+  const text = String(value || '').trim()
+  const map = {
+    'Ranked by KQC-weighted direct response impact, path response impact and station PageRank.': '根据KQC加权的直接响应影响、路径响应影响和工序PageRank综合排序。',
+    'Prioritize process review and quality control checks for the top ranked station.': '建议优先对排名最高的工序进行工艺复核和质量控制检查。',
+    'mock reason': '模拟原因',
+    'mock suggestion': '模拟建议'
+  }
+  return map[text] || value
 }
 
 function pickValue(source, keys) {
@@ -873,9 +1719,182 @@ async function loadDetectResults() {
   }
 }
 
+async function loadKeyProcessResults() {
+  keyResultLoading.value = true
+  try {
+    const res = await listKeyProcessResults(keyResultQuery)
+    const data = getApiPayload(res)
+    keyResultRows.value = Array.isArray(data.rows) ? data.rows : []
+    keyResultTotal.value = Number(data.total || 0)
+  } finally {
+    keyResultLoading.value = false
+  }
+}
+
+async function lookupDialogTaskResult() {
+  const id = cleanLocalPath(lookupTaskId.value)
+  if (!id) {
+    ElMessage.warning('请输入任务ID')
+    return
+  }
+  lookupTaskId.value = id
+  lookupLoading.value = true
+  task.clearPoll()
+  try {
+    const api = isKeyMode.value ? getWarningKeyProcessTask : getWarningDetectTask
+    const res = await api(id)
+    const data = getApiPayload(res)
+    taskId.value = data.taskId || data.task_id || id
+    status.value = data.status || ''
+    error.value = data.errorMessage || data.error_message || ''
+    result.value = data.result && typeof data.result === 'object' ? data.result : data
+    if (taskId.value && isActiveTaskStatus(status.value)) {
+      task.startPoll(taskId.value, { mode: isKeyMode.value ? 'key' : 'detect' })
+    }
+  } catch (e) {
+    ElMessage.error(getErrorMessage(e, '查询任务结果失败'))
+  } finally {
+    lookupLoading.value = false
+  }
+}
+
+function viewHistoryResult(row, mode) {
+  if (!row?.taskId && !row?.task_id) return
+  task.clearPoll()
+  detectSubmitting.value = false
+  detectRunning.value = false
+  keySubmitting.value = false
+  keyRunning.value = false
+  detectDialog.loading = false
+  detectDialog.mode = mode
+  detectDialog.part = {
+    part_id: row.targetId || row.target_id || '',
+    part_name: row.targetName || row.target_name || row.bizName || ''
+  }
+  detectDialog.process = mode === 'detect' ? { process_name: row.processName || row.process_name || '' } : null
+  detectDialog.visible = true
+  lookupTaskId.value = row.taskId || row.task_id
+  lookupDialogTaskResult()
+}
+
+async function deleteDetectResult(row) {
+  await deleteAlgorithmHistory(row, deleteWarningAlgorithmResult, loadDetectResults, '异常检测结果')
+}
+
+async function deleteKeyProcessResult(row) {
+  await deleteAlgorithmHistory(row, (id) => deleteFaultIdentifyResult(id, { deleteAlgorithmArtifacts: true }), loadKeyProcessResults, '关键工序识别结果')
+}
+
+async function deleteAlgorithmHistory(row, api, reload, label) {
+  const id = row?.taskId || row?.task_id
+  if (!id) return
+  try {
+    await ElMessageBox.confirm(`确认删除${label} ${id} 吗？本地算法结果和数据库记录都会删除。`, '删除确认', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    })
+  } catch (_) {
+    return
+  }
+  try {
+    await api(id)
+    ElMessage.success('删除成功')
+    await reload()
+  } catch (e) {
+    ElMessage.error(getErrorMessage(e, '删除失败'))
+  }
+}
+
 function downloadDataFile(row) {
   const url = row?.dataFileUrl || row?.data_file_url
   if (url) window.open(url, '_blank')
+}
+
+async function openManufacturingDataDialog() {
+  manufacturingDataDialog.visible = true
+  manufacturingDataQuery.pageNum = 1
+  await loadManufacturingData()
+}
+
+async function searchManufacturingData() {
+  manufacturingDataQuery.pageNum = 1
+  await loadManufacturingData()
+}
+
+async function resetManufacturingData() {
+  manufacturingDataQuery.keyword = ''
+  manufacturingDataQuery.uploadBatchId = ''
+  manufacturingDataQuery.pageNum = 1
+  await loadManufacturingData()
+}
+
+async function loadManufacturingData() {
+  manufacturingDataDialog.loading = true
+  try {
+    const results = await Promise.all(MANUFACTURING_DATA_USAGES.map(dataUsage => listFaultIdenSamples({
+      dataUsage,
+      keyword: manufacturingDataQuery.keyword,
+      uploadBatchId: manufacturingDataQuery.uploadBatchId,
+      pageNum: 1,
+      pageSize: 5000
+    })))
+    const rows = results
+      .flatMap(res => Array.isArray(res?.rows) ? res.rows : [])
+      .filter(row => MANUFACTURING_DATA_USAGES.includes(row.dataUsage))
+    manufacturingDataDialog.total = rows.length
+    const start = (manufacturingDataQuery.pageNum - 1) * manufacturingDataQuery.pageSize
+    manufacturingDataDialog.rows = rows.slice(start, start + manufacturingDataQuery.pageSize)
+  } catch (e) {
+    manufacturingDataDialog.rows = []
+    manufacturingDataDialog.total = 0
+    ElMessage.error('制造周期数据加载失败')
+  } finally {
+    manufacturingDataDialog.loading = false
+  }
+}
+
+async function changeManufacturingDataUsage(row, dataUsage) {
+  if (!row?.id || row.dataUsage === dataUsage) return
+  const oldUsage = row.dataUsage
+  row.usageUpdating = true
+  try {
+    await updateFaultIdenSampleDataUsage(row.id, dataUsage)
+    row.dataUsage = dataUsage
+    ElMessage.success('数据用途已更新')
+  } catch (e) {
+    row.dataUsage = oldUsage
+    ElMessage.error(e?.response?.data?.msg || e?.message || '数据用途更新失败')
+  } finally {
+    row.usageUpdating = false
+  }
+}
+
+async function deleteManufacturingData(row) {
+  if (!row?.id || row.deleting) return
+  try {
+    await ElMessageBox.confirm(`确认删除数据文件 ${row.fileName || row.id} 吗？删除后无法恢复。`, '删除制造周期数据', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    })
+  } catch (_) {
+    return
+  }
+  row.deleting = true
+  try {
+    await deleteFaultIdenSample(row.id)
+    selectedSamples.value = selectedSamples.value.filter(item => item.id !== row.id)
+    ElMessage.success('数据文件已删除')
+    if (manufacturingDataDialog.rows.length <= 1 && manufacturingDataQuery.pageNum > 1) {
+      manufacturingDataQuery.pageNum -= 1
+    }
+    await loadManufacturingData()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.msg || e?.message || '删除数据文件失败')
+  } finally {
+    row.deleting = false
+  }
 }
 
 async function loadDevs() {
@@ -928,8 +1947,121 @@ function resetDev() {
   loadDevs()
 }
 
+function fileSizeText(size) {
+  const value = Number(size || 0)
+  if (!value) return '--'
+  if (value < 1024) return value + ' B'
+  if (value < 1024 * 1024) return (value / 1024).toFixed(1) + ' KB'
+  return (value / 1024 / 1024).toFixed(1) + ' MB'
+}
+
 function val(value) {
   return value === undefined || value === null || value === '' ? '--' : value
+}
+
+function formatChartValue(value) {
+  const num = Number(value)
+  if (!Number.isFinite(num)) return '--'
+  return Math.abs(num) >= 100 ? num.toFixed(2) : num.toFixed(4)
+}
+
+function renderAnomalyChart() {
+  if (!detectDialog.visible || !anomalyChartRef.value || isKeyMode.value || !curveRows.value.length) return
+  if (anomalyChart && anomalyChart.getDom() !== anomalyChartRef.value) {
+    anomalyChart.dispose()
+    anomalyChart = null
+  }
+  if (!anomalyChart) {
+    anomalyChart = echarts.init(anomalyChartRef.value)
+  }
+
+  const xData = curveRows.value.map(item => String(item.x ?? ''))
+  const yData = curveRows.value.map(item => Number(item.value))
+  const threshold = curveThreshold.value
+  const lineColor = '#2f80ed'
+  const alarmColor = '#e85d5d'
+  const markLineData = threshold === null ? [] : [{
+    yAxis: threshold,
+    name: '阈值',
+    lineStyle: { color: alarmColor, type: 'dashed', width: 2 },
+    label: {
+      formatter: `阈值 ${formatChartValue(threshold)}`,
+      color: alarmColor,
+      fontWeight: 600
+    }
+  }]
+
+  anomalyChart.setOption({
+    backgroundColor: 'transparent',
+    color: [lineColor],
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(17, 24, 39, 0.92)',
+      borderWidth: 0,
+      textStyle: { color: '#fff' },
+      axisPointer: { type: 'line', lineStyle: { color: '#9bb8d8', width: 1 } },
+      formatter(params) {
+        const point = params?.[0]
+        if (!point) return ''
+        return `样本点：${point.axisValue}<br/>异常分数：${formatChartValue(point.data)}`
+      }
+    },
+    grid: { left: 46, right: 24, top: 28, bottom: 54 },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: xData,
+      axisLine: { lineStyle: { color: '#c9d6e2' } },
+      axisTick: { show: false },
+      axisLabel: { color: '#607081' }
+    },
+    yAxis: {
+      type: 'value',
+      min: value => Math.min(0, value.min),
+      axisLabel: { color: '#607081', formatter: value => formatChartValue(value) },
+      splitLine: { lineStyle: { color: '#e7edf3', type: 'dashed' } }
+    },
+    dataZoom: [
+      { type: 'inside', throttle: 50 },
+      { type: 'slider', height: 18, bottom: 14, borderColor: '#dbe4ee', fillerColor: 'rgba(47, 128, 237, 0.18)' }
+    ],
+    series: [{
+      name: '异常分数',
+      type: 'line',
+      data: yData,
+      smooth: true,
+      showSymbol: yData.length <= 80,
+      symbol: 'circle',
+      symbolSize: 5,
+      lineStyle: { width: 3, color: lineColor },
+      itemStyle: { color: lineColor },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(47, 128, 237, 0.26)' },
+          { offset: 1, color: 'rgba(47, 128, 237, 0.03)' }
+        ])
+      },
+      markPoint: {
+        symbolSize: 52,
+        itemStyle: { color: alarmColor },
+        label: { color: '#fff', formatter: '峰值' },
+        data: [{ type: 'max', name: '峰值' }]
+      },
+      markLine: {
+        symbol: 'none',
+        data: markLineData
+      }
+    }]
+  }, true)
+  anomalyChart.resize()
+}
+
+function scheduleAnomalyChartRender() {
+  nextTick(() => renderAnomalyChart())
+}
+
+function resizeAnomalyChart() {
+  anomalyChart?.resize()
 }
 
 function formatProcess(row) {
@@ -939,16 +2071,38 @@ function formatProcess(row) {
   return name || '--'
 }
 
+watch([curveRows, curveThreshold, () => detectDialog.visible, isKeyMode], scheduleAnomalyChartRender)
+
 onMounted(() => {
   loadParts()
   loadDevs()
   loadDetectResults()
+  loadKeyProcessResults()
+  window.addEventListener('resize', resizeAnomalyChart)
+})
+
+onBeforeUnmount(() => {
+  task.clearPoll()
+  detectSubmitting.value = false
+  detectRunning.value = false
+  keySubmitting.value = false
+  keyRunning.value = false
+  window.removeEventListener('resize', resizeAnomalyChart)
+  anomalyChart?.dispose()
+  anomalyChart = null
 })
 </script>
 
 <style scoped>
 .feedback-hero {
   border-top: 4px solid #4c8fdc;
+}
+
+.hero-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .warning-section {
@@ -988,28 +2142,42 @@ onMounted(() => {
   margin-top: 18px;
 }
 
-.instance-header {
+.instance-header,
+.card-header-row,
+.detect-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+}
+
+.task-lookup-row {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0 16px;
+}
+
+.task-lookup-row .el-input {
+  max-width: 320px;
 }
 
 .sub-title {
   font-size: 15px;
 }
 
-.instance-meta {
+.instance-meta,
+.selected-path,
+.process-desc,
+.process-device,
+.info-desc,
+.detect-data-count {
   color: #607081;
-  font-size: 13px;
 }
 
 .selected-path,
 .process-desc,
 .process-device,
 .info-desc {
-  color: #607081;
   line-height: 1.8;
 }
 
@@ -1062,30 +2230,121 @@ onMounted(() => {
   margin-bottom: 6px;
 }
 
-.process-actions {
+.process-actions,
+.file-toolbar,
+.data-file-toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
+}
+
+.process-actions {
   justify-content: flex-end;
 }
 
-.card-header-row,
-.detect-summary,
-.file-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.file-toolbar {
-  justify-content: flex-start;
+.file-toolbar,
+.data-file-toolbar {
   margin: 12px 0;
 }
 
 .detect-result {
   margin-top: 16px;
+}
+
+.anomaly-chart-panel {
+  padding: 14px 16px 10px;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fbfdff 0%, #f5f9fd 100%);
+}
+
+.anomaly-chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.anomaly-chart-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+
+.anomaly-chart-subtitle {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #607081;
+}
+
+.anomaly-chart-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  color: #3d566e;
+  font-size: 12px;
+}
+
+.anomaly-chart-stats span {
+  padding: 4px 8px;
+  border: 1px solid #dbe4ee;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.anomaly-chart {
+  width: 100%;
+  height: 320px;
+}
+
+.task-progress-row {
+  margin-bottom: 12px;
+}
+
+.task-progress-message {
+  margin-top: 6px;
+  color: #607081;
+  font-size: 13px;
+}
+
+.detect-data-section {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #fbfdff;
+}
+
+.detect-data-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.detect-data-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+
+.execution-detail-head {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+  margin-bottom: 14px;
+}
+
+.execution-detail-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
 }
 
 .part-detail-layout {
@@ -1158,7 +2417,8 @@ onMounted(() => {
 }
 
 @media (max-width: 900px) {
-  .part-detail-layout {
+  .part-detail-layout,
+  .execution-detail-head {
     grid-template-columns: 1fr;
   }
 }

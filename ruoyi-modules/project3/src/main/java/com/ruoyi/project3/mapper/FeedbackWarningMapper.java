@@ -31,6 +31,16 @@ public interface FeedbackWarningMapper {
 
     List<Map<String, Object>> partProc(@Param("part_id") String partId);
 
+    int insertProcessExecution(Map<String, Object> row);
+
+    int updateProcessExecution(Map<String, Object> row);
+
+    int deleteProcessAnomaliesByExecution(@Param("process_exec_id") String processExecId);
+
+    int deleteProcessingQualityDataByExecution(@Param("process_exec_id") String processExecId);
+
+    int deleteProcessExecution(@Param("process_exec_id") String processExecId);
+
     String partImage(@Param("part_id") String partId);
 
     int updPartImage(

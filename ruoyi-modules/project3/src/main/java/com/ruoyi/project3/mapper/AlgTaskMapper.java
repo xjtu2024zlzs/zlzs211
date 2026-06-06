@@ -9,6 +9,11 @@ public interface AlgTaskMapper
 {
     AlgTaskResult getByTaskId(@Param("taskId") String taskId);
 
+    AlgTaskResult getRunningTaskByRemark(
+            @Param("taskType") String taskType,
+            @Param("remark") String remark
+    );
+
     List<AlgTaskResult> getTasksByFlowTaskId(@Param("flowTaskId") String flowTaskId);
 
     int deleteByFlowTaskId(@Param("flowTaskId") String flowTaskId);
@@ -40,6 +45,18 @@ public interface AlgTaskMapper
             @Param("targetId") String targetId,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime
+    );
+
+    List<AlgTaskResult> getKqcMiningResult(
+            @Param("keyword") String keyword,
+            @Param("status") String status,
+            @Param("offset") Integer offset,
+            @Param("limit") Integer limit
+    );
+
+    Long countKqcMiningResult(
+            @Param("keyword") String keyword,
+            @Param("status") String status
     );
 
     List<AlgTaskResult> getIdentifyResult(

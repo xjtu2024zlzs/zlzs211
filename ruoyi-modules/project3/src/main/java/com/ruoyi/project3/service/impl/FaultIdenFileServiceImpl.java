@@ -29,6 +29,9 @@ public class FaultIdenFileServiceImpl implements FaultIdenFileService
     private static final String RAW_MULTI = "RAW_MULTI";
     private static final String RAW_ZIP = "RAW_ZIP";
     private static final String USAGE_FEATURE = "FEATURE_ANALYSIS";
+    private static final String USAGE_PROCESS_ANOMALY = "PROCESS_ANOMALY";
+    private static final String USAGE_KEY_PROCESS = "KEY_PROCESS";
+    private static final String USAGE_MANUFACTURE_COMMON = "MANUFACTURE_COMMON";
 
     @Resource
     private FaultIdenFileProps props;
@@ -54,13 +57,17 @@ public class FaultIdenFileServiceImpl implements FaultIdenFileService
         {
             throw new ServiceException("请选择至少一个CSV/TXT文件");
         }
-        List<FaultIdenSampleFile> samples = sampleMapper.selectSamplesByIds(ids, usage);
+        List<FaultIdenSampleFile> samples = sampleMapper.selectSamplesByIds(ids, null);
         if (samples.size() != ids.size())
         {
             throw new ServiceException("部分 sampleIds 不存在或不属于当前算法用途");
         }
         for (FaultIdenSampleFile sample : samples)
         {
+            if (!matchesDataUsage(usage, sample.getDataUsage()))
+            {
+                throw new ServiceException("sampleIds dataUsage invalid");
+            }
             checkSource(sample.getSourceFile());
         }
 
@@ -69,6 +76,16 @@ public class FaultIdenFileServiceImpl implements FaultIdenFileService
                 : multi(taskId, samples, ids, usage);
         packageMapper.inFaultIdenFilePackage(pack);
         return pack;
+    }
+
+    private boolean matchesDataUsage(String taskUsage, String sampleUsage)
+    {
+        if (taskUsage == null || taskUsage.equals(sampleUsage))
+        {
+            return true;
+        }
+        return (USAGE_PROCESS_ANOMALY.equals(taskUsage) || USAGE_KEY_PROCESS.equals(taskUsage))
+                && USAGE_MANUFACTURE_COMMON.equals(sampleUsage);
     }
 
     @Override

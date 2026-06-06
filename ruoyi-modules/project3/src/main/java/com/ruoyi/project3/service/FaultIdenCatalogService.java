@@ -27,6 +27,8 @@ public interface FaultIdenCatalogService
     Map<String, Object> bearings(String conditionLabel);
     Map<String, Object> samples(String conditionLabel, String bearingCode, String keyword,
                                 String airId, String subId, String eqpId, String cmpId,
+                                String partId,
                                 String dataUsage, String uploadBatchId, Integer pageNum, Integer pageSize);
     Map<String, Object> deleteSample(Long sampleId);
+    Map<String, Object> updateSampleDataUsage(Long sampleId, String dataUsage);
 }

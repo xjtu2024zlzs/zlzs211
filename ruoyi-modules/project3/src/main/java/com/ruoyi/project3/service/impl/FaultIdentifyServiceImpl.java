@@ -25,9 +25,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,15 +53,17 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
     private static final String TASK_STATUS_RUNNING = "RUNNING";
     private static final String TASK_STATUS_SUCCESS = "SUCCESS";
     private static final String TASK_STATUS_FAILED = "FAILED";
+    private static final String TASK_STATUS_CANCELED = "CANCELED";
     private static final String TASK_TYPE_FEATURE_ANALYSIS = "FEATURE_ANALYSIS";
     private static final String TASK_TYPE_FEATURE_PROCESSING = "FEATURE_PROCESSING";
     private static final String TASK_TYPE_DEGRADATION_DETECT = "EARLY_DEGRADATION_POINT_DETECT";
-    private static final String TASK_TYPE_KEY_PROCESS_IDENTIFY = "KEY_PROCESS_IDENTIFY";
+    private static final String TASK_TYPE_KEY_PROCESS_IDENTIFY = "KEY_PROCESS";
     private static final String ALG_FEATURE = "FEATURE_ANALYSIS";
     private static final String ALG_FEATURE_PROCESSING = "FEATURE_PROCESSING";
     private static final String ALG_DEGRADE = TASK_TYPE_DEGRADATION_DETECT;
-    private static final String ALG_KEY_PROCESS = "KEY_PROCESS_IDENTIFY";
-    private static final String NAME_KEY_PROCESS = "KEY_PROCESS_IDENTIFY";
+    private static final String ALG_KEY_PROCESS = "KEY_PROCESS";
+    private static final String PY_ALG_KEY_PROCESS = "KEY_PROCESS";
+    private static final String NAME_KEY_PROCESS = "KEY_PROCESS";
     private static final String NAME_FEATURE = "FEATURE_ANALYSIS";
     private static final String NAME_DEGRADE = "DEGRADATION_DETECT";
 
@@ -246,6 +250,13 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
         }
 
         String taskId = task_id.trim();
+        AlgTaskResult dbRecord = algTaskMapper.getByTaskId(taskId);
+        if (dbRecord != null && ALG_KEY_PROCESS.equals(dbRecord.getTaskType()))
+        {
+            AlgTaskResult synced = syncKeyProcessTask(dbRecord);
+            return keyTaskSnapshot(synced);
+        }
+
         Map<String, Object> taskStatusSnapshot = taskId.startsWith("FY") ? dbTaskSnapshot(taskId) : taskStatusStore.get(taskId);
         if (taskStatusSnapshot == null)
         {
@@ -700,6 +711,13 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
     {
         Map<String, Object> reqMap = normReq(request);
         checkReq(reqMap);
+        String fingerprint = keyProcessFingerprint(reqMap);
+        AlgTaskResult existing = algTaskMapper.getRunningTaskByRemark(ALG_KEY_PROCESS, fingerprint);
+        if (existing != null)
+        {
+            AlgTaskResult synced = syncKeyProcessTask(existing);
+            return keyTaskSnapshot(synced);
+        }
 
         Map<String, Object> task = newKeyTask(reqMap);
         String taskId = str(task, "task_id");
@@ -710,31 +728,41 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
             Map<String, Object> py = keyProcessReqAssembler.assemble(request, taskId, requestId);
             task.put("algorithm_params", py.get("params"));
             task.put("business_object_id", py.get("targetNodeId"));
+            task.put("remark", fingerprint);
             cacheKey(task, null, null);
-            insAlg(newKey(task, py));
+            AlgTaskResult record = newKey(task, py);
+            record.setRemark(fingerprint);
+            record.setReqJson(json(py));
+            record.setResJson(json(keyPythonState(PY_ALG_KEY_PROCESS, null)));
+            algTaskMapper.insertTask(record);
 
             setStatus(task, TASK_STATUS_RUNNING);
-            cacheKey(task, null, null);
             String reqJson = json(py);
-            runAlg(taskId, reqJson);
-            log.info("调用Python关键工序识别服务，任务ID={}，目标={}:{}", taskId, py.get("targetType"), py.get("targetId"));
+            log.info("提交Python关键工序识别后台任务，任务ID={}，目标={}:{}", taskId, py.get("targetType"), py.get("targetId"));
 
-            Map<String, Object> res = pythonAlgorithmClient.identify_process(py);
-            Map<String, Object> result = normKey(res, taskId);
-            if (result.isEmpty())
+            Map<String, Object> pyTask = pythonAlgorithmClient.submitPythonTask(PY_ALG_KEY_PROCESS, py);
+            if (Boolean.FALSE.equals(pyTask.get("success")))
             {
-                throw new ServiceException("关键工序识别算法返回空结果");
+                throw new ServiceException(to_text(pyTask.get("message")));
             }
-            setStatus(task, str(result, "status") == null ? TASK_STATUS_SUCCESS : str(result, "status"));
-            cacheKey(task, result, null);
-            okAlg(
-                    taskId,
-                    json(result),
-                    keySum(result),
-                    keyVal(result),
-                    null
-            );
-            return startResp(task, result);
+            String pythonTaskId = to_text(pyTask.get("taskId"));
+            if (pythonTaskId == null)
+            {
+                throw new ServiceException("Python关键工序识别任务提交失败：未返回pythonTaskId");
+            }
+
+            Map<String, Object> state = keyPythonState(PY_ALG_KEY_PROCESS, pyTask);
+            cacheKey(task, state, null);
+            AlgTaskResult running = new AlgTaskResult();
+            running.setTaskId(taskId);
+            running.setStatus(TASK_STATUS_RUNNING);
+            running.setStartAt(new Date());
+            running.setReqJson(reqJson);
+            running.setResJson(json(state));
+            running.setSummary(cut(to_text(pyTask.get("message")), 512));
+            running.setRemark(fingerprint);
+            algTaskMapper.updateTask(running);
+            return startResp(task, state);
         }
         catch (ServiceException e)
         {
@@ -753,6 +781,75 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
             log.error("关键工序识别任务失败，任务ID={}，状态={}，错误={}", taskId, TASK_STATUS_FAILED, e.getMessage(), e);
             throw new ServiceException(err);
         }
+    }
+
+    @Override
+    public Map<String, Object> cancel_key_process(String taskId)
+    {
+        String id = to_text(taskId);
+        if (id == null)
+        {
+            throw new ServiceException("任务ID不能为空");
+        }
+        AlgTaskResult record = algTaskMapper.getByTaskId(id);
+        if (record == null || !ALG_KEY_PROCESS.equals(record.getTaskType()))
+        {
+            throw new ServiceException("未找到关键工序识别任务");
+        }
+        if (TASK_STATUS_CANCELED.equals(record.getStatus()))
+        {
+            return keyTaskSnapshot(record);
+        }
+        if (TASK_STATUS_SUCCESS.equals(record.getStatus()) || TASK_STATUS_FAILED.equals(record.getStatus()))
+        {
+            Map<String, Object> out = keyTaskSnapshot(record);
+            out.put("success", false);
+            out.put("message", "任务已结束，不能取消");
+            return out;
+        }
+
+        Map<String, Object> state = parseJsonObject(record.getResJson());
+        String pythonTaskId = to_text(pickVal(state, "pythonTaskId", "python_task_id"));
+        Map<String, Object> py = Collections.emptyMap();
+        if (pythonTaskId != null)
+        {
+            try
+            {
+                py = pythonAlgorithmClient.cancelPythonTask(pythonTaskId);
+            }
+            catch (Exception e)
+            {
+                log.warn("取消Python关键工序识别任务失败，taskId={}, pythonTaskId={}, error={}", id, pythonTaskId, e.getMessage());
+                Map<String, Object> out = keyTaskSnapshot(record);
+                out.put("success", false);
+                out.put("message", "取消Python任务失败");
+                out.put("errorMessage", e.getMessage());
+                out.put("error_message", e.getMessage());
+                return out;
+            }
+            if (Boolean.FALSE.equals(py.get("success")))
+            {
+                Map<String, Object> out = keyTaskSnapshot(record);
+                out.put("success", false);
+                out.put("message", to_text(py.get("message")));
+                return out;
+            }
+        }
+
+        state.put("status", TASK_STATUS_CANCELED);
+        state.put("message", "任务已取消");
+        state.put("rawPythonCancel", py);
+        AlgTaskResult cancel = new AlgTaskResult();
+        cancel.setTaskId(id);
+        cancel.setStatus(TASK_STATUS_CANCELED);
+        cancel.setResJson(json(state));
+        cancel.setEndAt(new Date());
+        algTaskMapper.updateTask(cancel);
+        record.setStatus(TASK_STATUS_CANCELED);
+        record.setResJson(json(state));
+        record.setEndAt(cancel.getEndAt());
+        cacheKey(taskMap(record), state, null);
+        return keyTaskSnapshot(record);
     }
 
     @Override
@@ -1201,6 +1298,10 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
     private Map<String, Object> normKey(Map<String, Object> response, String fallbackTaskId)
     {
         Map<String, Object> data = response == null ? Collections.emptyMap() : asMap(response.get("data"));
+        if (data.isEmpty() && response != null && TASK_STATUS_SUCCESS.equalsIgnoreCase(String.valueOf(response.get("status"))))
+        {
+            data = new LinkedHashMap<>(response);
+        }
         Map<String, Object> result = asMap(data.get("result"));
         if (result.isEmpty())
         {
@@ -1230,6 +1331,234 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
         out.put("logs", data.get("logs"));
         out.put("rawResponse", response);
         return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    private AlgTaskResult syncKeyProcessTask(AlgTaskResult record)
+    {
+        if (record == null || !ALG_KEY_PROCESS.equals(record.getTaskType()) || isTerminalStatus(record.getStatus()))
+        {
+            return record;
+        }
+        Map<String, Object> state = parseJsonObject(record.getResJson());
+        String pythonTaskId = to_text(pickVal(state, "pythonTaskId", "python_task_id"));
+        if (pythonTaskId == null)
+        {
+            return record;
+        }
+
+        Map<String, Object> py;
+        try
+        {
+            py = pythonAlgorithmClient.getPythonTaskStatus(pythonTaskId);
+        }
+        catch (Exception e)
+        {
+            log.warn("同步Python关键工序识别任务状态失败，taskId={}, pythonTaskId={}, error={}", record.getTaskId(), pythonTaskId, e.getMessage());
+            state.put("status", TASK_STATUS_RUNNING);
+            state.put("message", "查询Python任务状态失败，等待下次轮询重试");
+            state.put("errorMessage", e.getMessage());
+            state.put("error_message", e.getMessage());
+            AlgTaskResult running = new AlgTaskResult();
+            running.setTaskId(record.getTaskId());
+            running.setStatus(TASK_STATUS_RUNNING);
+            running.setResJson(json(state));
+            running.setSummary(cut(to_text(state.get("message")), 512));
+            algTaskMapper.updateTask(running);
+            record.setStatus(TASK_STATUS_RUNNING);
+            record.setResJson(json(state));
+            cacheKey(taskMap(record), state, null);
+            return record;
+        }
+
+        String pyStatus = to_text(py.get("status"));
+        Map<String, Object> next = keyPythonState(PY_ALG_KEY_PROCESS, py);
+        if (TASK_STATUS_SUCCESS.equals(pyStatus))
+        {
+            try
+            {
+                Map<String, Object> resultResponse = pythonAlgorithmClient.getPythonTaskResult(pythonTaskId);
+                Object rawResult = resultResponse == null ? null : resultResponse.get("result");
+                if (!(rawResult instanceof Map))
+                {
+                    rawResult = resultResponse == null ? null : resultResponse.get("data");
+                }
+                Map<String, Object> result;
+                if (rawResult instanceof Map)
+                {
+                    result = normKey(new LinkedHashMap<>((Map<String, Object>) rawResult), record.getTaskId());
+                }
+                else
+                {
+                    result = normKey(resultResponse, record.getTaskId());
+                }
+                if (result.isEmpty())
+                {
+                    throw new ServiceException("关键工序识别算法返回空结果");
+                }
+                next.putAll(saveKeyProcessResult(record.getTaskId(), result));
+                record.setStatus(TASK_STATUS_SUCCESS);
+                record.setResJson(json(next));
+                record.setErrMsg(null);
+                record.setEndAt(new Date());
+                cacheKey(taskMap(record), next, null);
+            }
+            catch (Exception e)
+            {
+                log.error("Python关键工序识别已完成但Java保存结果失败，taskId={}, pythonTaskId={}, error={}", record.getTaskId(), pythonTaskId, e.getMessage(), e);
+                next.put("status", TASK_STATUS_RUNNING);
+                next.put("progress", 99);
+                next.put("message", "Python算法已完成，Java保存KEY_PROCESS结果失败，等待下次轮询重试");
+                next.put("errorMessage", e.getMessage());
+                next.put("error_message", e.getMessage());
+                AlgTaskResult retry = new AlgTaskResult();
+                retry.setTaskId(record.getTaskId());
+                retry.setStatus(TASK_STATUS_RUNNING);
+                retry.setResJson(json(next));
+                retry.setSummary(cut(to_text(next.get("message")), 512));
+                algTaskMapper.updateTask(retry);
+                record.setStatus(TASK_STATUS_RUNNING);
+                record.setResJson(json(next));
+                cacheKey(taskMap(record), next, e.getMessage());
+            }
+            return record;
+        }
+        if (TASK_STATUS_FAILED.equals(pyStatus))
+        {
+            String err = to_text(pickVal(py, "error", "message", "errorMessage"));
+            AlgTaskResult fail = new AlgTaskResult();
+            fail.setTaskId(record.getTaskId());
+            fail.setStatus(TASK_STATUS_FAILED);
+            fail.setErrMsg(err);
+            fail.setResJson(json(next));
+            fail.setEndAt(new Date());
+            algTaskMapper.updateTask(fail);
+            record.setStatus(TASK_STATUS_FAILED);
+            record.setErrMsg(err);
+            record.setResJson(json(next));
+            cacheKey(taskMap(record), next, err);
+            return record;
+        }
+        if (TASK_STATUS_CANCELED.equals(pyStatus))
+        {
+            AlgTaskResult cancel = new AlgTaskResult();
+            cancel.setTaskId(record.getTaskId());
+            cancel.setStatus(TASK_STATUS_CANCELED);
+            cancel.setResJson(json(next));
+            cancel.setEndAt(new Date());
+            algTaskMapper.updateTask(cancel);
+            record.setStatus(TASK_STATUS_CANCELED);
+            record.setResJson(json(next));
+            cacheKey(taskMap(record), next, null);
+            return record;
+        }
+
+        AlgTaskResult running = new AlgTaskResult();
+        running.setTaskId(record.getTaskId());
+        running.setStatus(TASK_STATUS_RUNNING);
+        running.setResJson(json(next));
+        running.setSummary(cut(to_text(py.get("message")), 512));
+        algTaskMapper.updateTask(running);
+        record.setStatus(TASK_STATUS_RUNNING);
+        record.setResJson(json(next));
+        cacheKey(taskMap(record), next, null);
+        return record;
+    }
+
+    private Map<String, Object> saveKeyProcessResult(String taskId, Map<String, Object> pythonResult)
+    {
+        Map<String, Object> result = pythonResult == null ? Collections.emptyMap() : new LinkedHashMap<>(pythonResult);
+        if (result.isEmpty())
+        {
+            throw new ServiceException("关键工序识别算法返回空结果");
+        }
+        AlgTaskResult ok = new AlgTaskResult();
+        ok.setTaskId(taskId);
+        ok.setStatus(TASK_STATUS_SUCCESS);
+        ok.setResJson(json(result));
+        ok.setEndAt(new Date());
+        ok.setSummary(cut(keySum(result), 512));
+        ok.setResultVal(cut(keyVal(result), 128));
+        int rows = algTaskMapper.updateTask(ok);
+        if (rows <= 0)
+        {
+            throw new ServiceException("关键工序识别结果保存失败");
+        }
+        return result;
+    }
+
+    private Map<String, Object> keyTaskSnapshot(AlgTaskResult record)
+    {
+        Map<String, Object> result = parseJsonObject(record == null ? null : record.getResJson());
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("taskId", record == null ? null : record.getTaskId());
+        out.put("task_id", record == null ? null : record.getTaskId());
+        out.put("taskType", record == null ? null : record.getTaskType());
+        out.put("task_type", record == null ? null : record.getTaskType());
+        out.put("status", record == null ? null : record.getStatus());
+        out.put("result", result);
+        out.put("logs", result.get("logs"));
+        out.put("errorMessage", record == null ? null : record.getErrMsg());
+        out.put("error_message", record == null ? null : record.getErrMsg());
+        return out;
+    }
+
+    private Map<String, Object> keyPythonState(String algorithmType, Map<String, Object> pyTask)
+    {
+        Map<String, Object> state = new LinkedHashMap<>();
+        state.put("pythonTaskId", pyTask == null ? null : to_text(pyTask.get("taskId")));
+        state.put("python_task_id", pyTask == null ? null : to_text(pyTask.get("taskId")));
+        state.put("pythonAlgorithmType", algorithmType);
+        state.put("python_algorithm_type", algorithmType);
+        state.put("status", pyTask == null ? TASK_STATUS_PENDING : to_text(pyTask.get("status")));
+        state.put("progress", pyTask == null ? 0 : pyTask.get("progress"));
+        state.put("message", pyTask == null ? "任务已创建" : to_text(pyTask.get("message")));
+        state.put("errorMessage", pyTask == null ? null : to_text(pickVal(pyTask, "error", "errorMessage", "message")));
+        state.put("error_message", state.get("errorMessage"));
+        state.put("rawPythonTask", pyTask);
+        return state;
+    }
+
+    private boolean isTerminalStatus(String status)
+    {
+        return TASK_STATUS_SUCCESS.equals(status) || TASK_STATUS_FAILED.equals(status) || TASK_STATUS_CANCELED.equals(status);
+    }
+
+    private String keyProcessFingerprint(Map<String, Object> reqMap)
+    {
+        Map<String, Object> key = new LinkedHashMap<>();
+        key.put("taskType", ALG_KEY_PROCESS);
+        key.put("request", reqMap);
+        try
+        {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = digest.digest(JSON.toJSONString(key).getBytes(StandardCharsets.UTF_8));
+            StringBuilder out = new StringBuilder("KEY_PROCESS:");
+            for (byte b : bytes)
+            {
+                out.append(String.format("%02x", b));
+            }
+            return out.toString();
+        }
+        catch (Exception e)
+        {
+            return "KEY_PROCESS:" + JSON.toJSONString(key);
+        }
+    }
+
+    private Map<String, Object> taskMap(AlgTaskResult record)
+    {
+        Map<String, Object> task = new LinkedHashMap<>();
+        if (record == null)
+        {
+            return task;
+        }
+        task.put("task_id", record.getTaskId());
+        task.put("task_type", record.getTaskType());
+        task.put("status", record.getStatus());
+        task.put("created_at", record.getCreateTime());
+        task.put("updated_at", record.getUpdateTime());
+        return task;
     }
 
     private Map<String, Object> dbTaskSnapshot(String taskId)

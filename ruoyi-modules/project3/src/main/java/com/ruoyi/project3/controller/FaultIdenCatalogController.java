@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -167,6 +168,7 @@ public class FaultIdenCatalogController
             @RequestParam(value = "subsystemId", required = false) String subId,
             @RequestParam(value = "equipmentId", required = false) String eqpId,
             @RequestParam(value = "componentId", required = false) String cmpId,
+            @RequestParam(value = "partId", required = false) String partId,
             @RequestParam(value = "dataUsage", required = false) String dataUsage,
             @RequestParam(value = "uploadBatchId", required = false) String uploadBatchId,
             @RequestParam(value = "pageNum", required = false, defaultValue = "1") Integer pageNum,
@@ -181,6 +183,7 @@ public class FaultIdenCatalogController
                 subId,
                 eqpId,
                 cmpId,
+                partId,
                 dataUsage,
                 uploadBatchId,
                 pageNum,
@@ -196,6 +199,12 @@ public class FaultIdenCatalogController
     public AjaxResult deleteSample(@PathVariable("sampleId") Long sampleId)
     {
         return AjaxResult.success("删除完成", faultIdenCatalogService.deleteSample(sampleId));
+    }
+
+    @PutMapping("/samples/{sampleId}/data-usage")
+    public AjaxResult updateSampleDataUsage(@PathVariable("sampleId") Long sampleId, @RequestBody(required = false) Map<String, Object> req)
+    {
+        return AjaxResult.success("更新完成", faultIdenCatalogService.updateSampleDataUsage(sampleId, text(req, "dataUsage")));
     }
 
     private String text(Map<String, Object> req, String key)

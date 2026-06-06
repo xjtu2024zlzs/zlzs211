@@ -20,7 +20,7 @@
     </resultMap>
 
     <insert id="inFaultIdenFilePackage" parameterType="com.ruoyi.project3.domain.faultiden.FaultIdenFilePackage" useGeneratedKeys="true" keyProperty="id">
-        insert into fault_iden_file_package (
+        insert into t3_fault_iden_file_package (
             task_id, file_mode, file_type, file_name, file_path, file_url, selected_sample_ids, data_usage, create_time
         ) values (
             #{taskId}, #{fileMode}, #{fileType}, #{fileName}, #{filePath}, #{fileUrl}, #{selectedSampleIds}, #{dataUsage}, now()
@@ -30,7 +30,7 @@
     <select id="seFaultIdenFilePackageById" resultMap="FaultIdenFilePackageMap">
         select
             id, task_id, file_mode, file_type, file_name, file_path, file_url, selected_sample_ids, data_usage, create_time
-        from fault_iden_file_package
+        from t3_fault_iden_file_package
         where id = #{id}
     </select>
 
@@ -38,7 +38,7 @@
     <select id="seFaultIdenFilePackageByTaskId" resultMap="FaultIdenFilePackageMap">
         select
             id, task_id, file_mode, file_type, file_name, file_path, file_url, selected_sample_ids, data_usage, create_time
-        from fault_iden_file_package
+        from t3_fault_iden_file_package
         where task_id = #{taskId}
         order by id desc
         limit 1
@@ -47,7 +47,7 @@
     <select id="selectByTaskIds" resultMap="FaultIdenFilePackageMap">
         select
             id, task_id, file_mode, file_type, file_name, file_path, file_url, selected_sample_ids, data_usage, create_time
-        from fault_iden_file_package
+        from t3_fault_iden_file_package
         where task_id in
         <foreach collection="taskIds" item="taskId" open="(" separator="," close=")">
             #{taskId}
@@ -56,7 +56,7 @@
     </select>
 
     <delete id="deleteByIds">
-        delete from fault_iden_file_package
+        delete from t3_fault_iden_file_package
         where id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}

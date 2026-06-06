@@ -1,0 +1,27 @@
+{
+  "success": false,
+  "code": 500,
+  "message": "当前 train_numeric.csv 缺少响应结果列，无法直接进行关键质量特性挖掘。请使用包含响应结果列的训练数据；如果没有响应结果列，请提供已完成的 KQC输出目录用于关键工序识别。该目录需要包含 bosch_adj_matrix_selected.csv 和 bosch_edge_frequency.csv。",
+  "taskId": "KQC20260605161042583",
+  "taskType": "KQC_MINING",
+  "status": "FAILED",
+  "data": {
+    "taskId": "KQC20260605161042583",
+    "status": "FAILED",
+    "result": {
+      "taskId": "KQC20260605161042583",
+      "taskType": "KQC_MINING",
+      "status": "FAILED",
+      "message": "当前 train_numeric.csv 缺少响应结果列，无法直接进行关键质量特性挖掘。请使用包含响应结果列的训练数据；如果没有响应结果列，请提供已完成的 KQC输出目录用于关键工序识别。该目录需要包含 bosch_adj_matrix_selected.csv 和 bosch_edge_frequency.csv。",
+      "errorCode": "BOSCH_KQC_MINING_FAILED"
+    },
+    "logs": []
+  },
+  "payload": {
+    "taskId": "KQC20260605161042583",
+    "taskType": "KQC_MINING",
+    "status": "FAILED",
+    "message": "当前 train_numeric.csv 缺少响应结果列，无法直接进行关键质量特性挖掘。请使用包含响应结果列的训练数据；如果没有响应结果列，请提供已完成的 KQC输出目录用于关键工序识别。该目录需要包含 bosch_adj_matrix_selected.csv 和 bosch_edge_frequency.csv。",
+    "errorCode": "BOSCH_KQC_MINING_FAILED"
+  }
+}
