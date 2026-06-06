@@ -33,14 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import com.alibaba.fastjson2.JSON;
+
 
 /**
  * 追溯问题Service业务层处理
@@ -53,6 +46,12 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 {
     @Value("${topic5.python.first-algorithm-url:http://127.0.0.1:8000/api/v1/diagnose}")
     private String firstAlgorithmUrl;
+
+    @Value("${topic5.python.second-algorithm-url:http://127.0.0.1:8090/api/v1/trace/run}")
+    private String secondAlgorithmUrl;
+
+    @Value("${topic5.python.third-algorithm-url:http://127.0.0.1:8090/api/v1/trace/run}")
+    private String thirdAlgorithmUrl;
 
     @Autowired
     private Topic5TraceProblemMapper topic5TraceProblemMapper;
@@ -867,6 +866,8 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     @Transactional
     public Map<String, Object> runSecondAlgorithm(Long id, String algorithmName)
     {
+        System.out.println("当前第二部分 Python 算法地址：" + secondAlgorithmUrl);
+
         Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
 
         if (problem == null)
@@ -874,7 +875,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("追溯任务不存在，无法运行第二部分算法");
         }
 
-        if (problem.getTopic1KgStatus() == null || problem.getTopic1KgStatus() != 1L)
+        if (problem.getTopic1KgStatus() == null || !Long.valueOf(1L).equals(problem.getTopic1KgStatus()))
         {
             throw new ServiceException("请先从课题一拉取知识图谱，再运行第二部分算法");
         }
@@ -884,38 +885,113 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("请选择第二部分算法");
         }
 
-        String resultGraphJson = buildMockSecondAlgorithmGraphJson(problem, algorithmName);
+        try
+        {
+            // 1. 组装 Python FastAPI 请求体
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("domain", "hydraulic");
+            requestBody.put("case_id", "HFB-01676");
+            requestBody.put("model_variant", "default");
+            requestBody.put("generate_graph", true);
+            requestBody.put("generate_report", false);
+            requestBody.put("generate_charts", false);
+            requestBody.put("generate_docx", false);
 
-        Topic5TraceProblem update = new Topic5TraceProblem();
-        update.setId(id);
-        update.setSecondAlgorithmName(algorithmName);
-        update.setSecondAlgorithmStatus(2L);
-        update.setSecondAlgorithmResultJson(resultGraphJson);
-        update.setSecondAlgorithmConfirmStatus(0L);
-        update.setSecondAlgorithmConfirmRemark(null);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // 第二部分算法完成，对应总流程第5步
-        update.setWorkflowStage(5L);
-        update.setStatus("第二部分算法完成");
-        update.setUpdateTime(DateUtils.getNowDate());
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+            RestTemplate restTemplate = new RestTemplate();
 
-        insertFlowLog(
-                id,
-                5L,
-                "第二部分算法运行",
-                "成功",
-                "第二部分算法运行完成：" + algorithmName
-        );
+            // 2. 调用 Python FastAPI
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    secondAlgorithmUrl,
+                    entity,
+                    Map.class
+            );
 
-        Topic5TraceProblem newProblem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+            Map responseBody = response.getBody();
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("traceProblem", newProblem);
-        result.put("graphData", parseGraphJsonToMap(resultGraphJson));
+            if (responseBody == null)
+            {
+                throw new ServiceException("Python第二部分算法服务无返回结果");
+            }
 
-        return result;
+            // 如果 Python 返回中有 code 字段，则检查 code
+            Object codeObj = responseBody.get("code");
+            if (codeObj != null && Integer.parseInt(codeObj.toString()) != 200)
+            {
+                Object msgObj = responseBody.get("msg");
+                if (msgObj == null)
+                {
+                    msgObj = responseBody.get("message");
+                }
+                throw new ServiceException("Python第二部分算法执行失败：" + (msgObj == null ? "未知错误" : msgObj.toString()));
+            }
+
+            // 3. 把 Python 返回结果转换成前端表格 JSON
+            String resultTableJson = buildSecondAlgorithmTableJsonFromPython(responseBody, problem, algorithmName);
+
+            // 4. 写回数据库
+            Topic5TraceProblem update = new Topic5TraceProblem();
+            update.setId(id);
+            update.setSecondAlgorithmName(algorithmName);
+            update.setSecondAlgorithmStatus(2L);
+            update.setSecondAlgorithmResultJson(resultTableJson);
+            update.setSecondAlgorithmConfirmStatus(0L);
+            update.setSecondAlgorithmConfirmRemark(null);
+
+            // 第二部分算法完成，对应总流程第5步
+            update.setWorkflowStage(5L);
+            update.setStatus("第二部分算法完成");
+            update.setUpdateTime(DateUtils.getNowDate());
+
+            topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+
+            insertFlowLog(
+                    id,
+                    5L,
+                    "第二部分算法运行",
+                    "成功",
+                    "已调用Python FastAPI完成第二部分算法运行：" + algorithmName
+            );
+
+            Topic5TraceProblem newProblem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+            Map parsedResult = JSON.parseObject(resultTableJson, Map.class);
+
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("traceProblem", newProblem);
+            result.put("secondAlgorithmResultJson", resultTableJson);
+            result.put("secondAlgorithmResult", parsedResult);
+            result.put("summaryRows", parsedResult.get("summaryRows"));
+            result.put("componentDiagnosisTop3", parsedResult.get("componentDiagnosisTop3"));
+            result.put("subtypeTop5", parsedResult.get("subtypeTop5"));
+            result.put("pythonResponse", responseBody);
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            Topic5TraceProblem failUpdate = new Topic5TraceProblem();
+            failUpdate.setId(id);
+            failUpdate.setSecondAlgorithmStatus(3L);
+            failUpdate.setStatus("处理中");
+            failUpdate.setUpdateTime(DateUtils.getNowDate());
+
+            topic5TraceProblemMapper.updateTopic5TraceProblem(failUpdate);
+
+            insertFlowLog(
+                    id,
+                    5L,
+                    "第二部分算法运行",
+                    "失败",
+                    "Python第二部分算法运行失败：" + e.getMessage()
+            );
+
+            throw new ServiceException("Python第二部分算法运行失败：" + e.getMessage());
+        }
     }
     @Override
     public Map<String, Object> getTraceKg(Long id)
@@ -958,28 +1034,223 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                 + "]"
                 + "}";
     }
-    private String buildMockSecondAlgorithmGraphJson(Topic5TraceProblem problem, String algorithmName)
+    private String buildMockSecondAlgorithmTableJson(Topic5TraceProblem problem, String algorithmName)
     {
-        Long id = problem.getId();
         String partName = problem.getPartName() == null ? "故障部件" : problem.getPartName();
 
-        return "{"
-                + "\"nodes\":["
-                + "{\"id\":\"P" + id + "\",\"name\":\"" + partName + "\",\"category\":\"部件\"},"
-                + "{\"id\":\"C1" + id + "\",\"name\":\"液压压力异常\",\"category\":\"候选原因\"},"
-                + "{\"id\":\"C2" + id + "\",\"name\":\"密封件老化\",\"category\":\"候选原因\"},"
-                + "{\"id\":\"C3" + id + "\",\"name\":\"装配间隙异常\",\"category\":\"候选原因\"},"
-                + "{\"id\":\"M" + id + "\",\"name\":\"" + algorithmName + "\",\"category\":\"算法模型\"}"
-                + "],"
-                + "\"links\":["
-                + "{\"source\":\"M" + id + "\",\"target\":\"C1" + id + "\",\"name\":\"Top1 0.87\"},"
-                + "{\"source\":\"M" + id + "\",\"target\":\"C2" + id + "\",\"name\":\"Top2 0.76\"},"
-                + "{\"source\":\"M" + id + "\",\"target\":\"C3" + id + "\",\"name\":\"Top3 0.69\"},"
-                + "{\"source\":\"C1" + id + "\",\"target\":\"P" + id + "\",\"name\":\"影响部件\"},"
-                + "{\"source\":\"C2" + id + "\",\"target\":\"P" + id + "\",\"name\":\"影响部件\"},"
-                + "{\"source\":\"C3" + id + "\",\"target\":\"P" + id + "\",\"name\":\"影响部件\"}"
-                + "]"
-                + "}";
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        Map<String, Object> row1 = new HashMap<>();
+        row1.put("rank", 1);
+        row1.put("resultType", "候选根因");
+        row1.put("causeName", "液压管路压力波动异常");
+        row1.put("relatedEntity", "C011 管路总成");
+        row1.put("evidence", "压力传感器异常能量较高，且与管路总成存在关联");
+        row1.put("confidence", 0.91);
+        row1.put("riskLevel", "高");
+        row1.put("suggestion", "建议优先检查管路连接状态、密封状态及压力保持能力");
+        rows.add(row1);
+
+        Map<String, Object> row2 = new HashMap<>();
+        row2.put("rank", 2);
+        row2.put("resultType", "候选根因");
+        row2.put("causeName", "节流阀流量调节异常");
+        row2.put("relatedEntity", "C010 节流阀");
+        row2.put("evidence", "流量传感器 FS1 异常，并沿压力链路传播");
+        row2.put("confidence", 0.84);
+        row2.put("riskLevel", "较高");
+        row2.put("suggestion", "建议检查节流阀开度、堵塞状态和装配间隙");
+        rows.add(row2);
+
+        Map<String, Object> row3 = new HashMap<>();
+        row3.put("rank", 3);
+        row3.put("resultType", "候选根因");
+        row3.put("causeName", "作动筒响应异常");
+        row3.put("relatedEntity", "C003 作动筒");
+        row3.put("evidence", "当前故障部位“" + partName + "”与作动筒存在直接功能关联");
+        row3.put("confidence", 0.78);
+        row3.put("riskLevel", "中");
+        row3.put("suggestion", "建议检查作动筒密封、响应滞后和磨损状态");
+        rows.add(row3);
+
+        Map<String, Object> row4 = new HashMap<>();
+        row4.put("rank", 4);
+        row4.put("resultType", "辅助证据");
+        row4.put("causeName", "传感器异常传播链路");
+        row4.put("relatedEntity", "压力/流量/温度传感器");
+        row4.put("evidence", "多源传感器异常与知识图谱实体存在多跳关联");
+        row4.put("confidence", 0.69);
+        row4.put("riskLevel", "中");
+        row4.put("suggestion", "建议结合第一部分故障根因分析结果复核传感器异常能量分布");
+        rows.add(row4);
+
+        return JSON.toJSONString(rows);
+    }
+    private String buildSecondAlgorithmTableJsonFromPython(Map responseBody, Topic5TraceProblem problem, String algorithmName)
+    {
+        Map<String, Object> result = new HashMap<>();
+
+        List<Map<String, Object>> summaryRows = new ArrayList<>();
+
+        Object dataObj = responseBody.get("data");
+        if (dataObj == null)
+        {
+            dataObj = responseBody;
+        }
+
+        Map dataMap = null;
+        if (dataObj instanceof Map)
+        {
+            dataMap = (Map) dataObj;
+        }
+        else
+        {
+            addRcaResultRow(summaryRows, 1, "Python算法返回结果", "raw_response", valueToText(responseBody), "Python接口未返回标准data结构，已展示原始返回内容");
+
+            result.put("summaryRows", summaryRows);
+            result.put("componentDiagnosisTop3", new ArrayList<>());
+            result.put("subtypeTop5", new ArrayList<>());
+            return JSON.toJSONString(result);
+        }
+
+        Map rcaContext = null;
+
+        Object reasoningObj = dataMap.get("reasoning");
+        if (reasoningObj instanceof Map)
+        {
+            Object rcaObj = ((Map) reasoningObj).get("rca_context");
+            if (rcaObj instanceof Map)
+            {
+                rcaContext = (Map) rcaObj;
+            }
+        }
+
+        if (rcaContext == null)
+        {
+            Object reasoningObj2 = responseBody.get("reasoning");
+            if (reasoningObj2 instanceof Map)
+            {
+                Object rcaObj2 = ((Map) reasoningObj2).get("rca_context");
+                if (rcaObj2 instanceof Map)
+                {
+                    rcaContext = (Map) rcaObj2;
+                }
+            }
+        }
+
+        if (rcaContext == null)
+        {
+            int rank = 1;
+            for (Object keyObj : dataMap.keySet())
+            {
+                String key = String.valueOf(keyObj);
+                Object value = dataMap.get(keyObj);
+                addRcaResultRow(summaryRows, rank++, key, key, valueToText(value), "未找到 reasoning.rca_context，当前展示 Python data 中的原始字段");
+            }
+
+            result.put("summaryRows", summaryRows);
+            result.put("componentDiagnosisTop3", new ArrayList<>());
+            result.put("subtypeTop5", new ArrayList<>());
+            return JSON.toJSONString(result);
+        }
+
+        addRcaResultRow(summaryRows, 1, "根因传感器", "root_sensor", rcaContext.get("root_sensor"), "RCA判断的首要异常传感器");
+        addRcaResultRow(summaryRows, 2, "根因传感器置信度", "root_sensor_confidence", rcaContext.get("root_sensor_confidence"), "根因传感器对应的可信度评分");
+        addRcaResultRow(summaryRows, 3, "次因传感器", "secondary_sensor", rcaContext.get("secondary_sensor"), "RCA判断的次级异常传感器");
+        addRcaResultRow(summaryRows, 4, "次因传感器置信度", "secondary_sensor_confidence", rcaContext.get("secondary_sensor_confidence"), "次因传感器对应的可信度评分");
+        addRcaResultRow(summaryRows, 5, "根因部件编码", "root_component_code", rcaContext.get("root_component_code"), "根因部件在生命周期质量知识图谱中的编码");
+        addRcaResultRow(summaryRows, 6, "根因部件名称", "root_component_name", rcaContext.get("root_component_name"), "根因部件名称");
+        addRcaResultRow(summaryRows, 7, "RCA置信度", "rca_confidence", rcaContext.get("rca_confidence"), "部件级根因定位的综合置信度");
+
+        result.put("summaryRows", summaryRows);
+        result.put("componentDiagnosisTop3", normalizeListObject(rcaContext.get("component_diagnosis_top3")));
+        result.put("subtypeTop5", normalizeListObject(rcaContext.get("subtype_top5")));
+
+        return JSON.toJSONString(result);
+    }
+
+    private List<Object> normalizeListObject(Object value)
+    {
+        List<Object> list = new ArrayList<>();
+
+        if (value == null)
+        {
+            return list;
+        }
+
+        if (value instanceof List)
+        {
+            return (List<Object>) value;
+        }
+
+        list.add(value);
+        return list;
+    }
+    private void addRcaResultRow(List<Map<String, Object>> rows, int rank, String fieldName, String fieldKey, Object fieldValue, String description)
+    {
+        Map<String, Object> row = new HashMap<>();
+        row.put("rank", rank);
+        row.put("fieldName", fieldName);
+        row.put("fieldKey", fieldKey);
+        row.put("fieldValue", valueToText(fieldValue));
+        row.put("description", description);
+        rows.add(row);
+    }
+
+
+    private Object getFirstNonNull(Map item, String... keys)
+    {
+        for (String key : keys)
+        {
+            Object value = item.get(key);
+            if (value != null && !"".equals(value.toString()))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+    private void fillEmptySecondAlgorithmRow(Map<String, Object> row)
+    {
+        if (row.get("causeName") == null)
+        {
+            row.put("causeName", "-");
+        }
+
+        if (row.get("relatedEntity") == null)
+        {
+            row.put("relatedEntity", "-");
+        }
+
+        if (row.get("evidence") == null)
+        {
+            row.put("evidence", "-");
+        }
+
+        if (row.get("riskLevel") == null)
+        {
+            row.put("riskLevel", "-");
+        }
+
+        if (row.get("suggestion") == null)
+        {
+            row.put("suggestion", "请结合原始 Python 返回结果进一步确认");
+        }
+    }
+    private String valueToText(Object value)
+    {
+        if (value == null)
+        {
+            return "-";
+        }
+
+        if (value instanceof Map || value instanceof List)
+        {
+            return JSON.toJSONString(value);
+        }
+
+        return String.valueOf(value);
     }
     private Map<String, Object> parseGraphJsonToMap(String graphJson)
     {
@@ -1063,6 +1334,8 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     @Transactional
     public Map<String, Object> runSourceAlgorithm(Long id, String algorithmName)
     {
+        System.out.println("当前第三部分 Python 算法地址：" + thirdAlgorithmUrl);
+
         Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
 
         if (problem == null)
@@ -1080,43 +1353,515 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("请选择最终溯源算法");
         }
 
-        String sourceGraphJson = buildMockSourceGraphJson(problem, algorithmName);
-        String reasonTableJson = buildMockReasonTableJson(problem);
-        String summary = "最终溯源算法判断该问题主要由液压管路装配间隙异常引起，同时可能受到密封件性能退化和压力传感器波动的共同影响。";
+        try
+        {
+            // 1. 组装 Python FastAPI 请求体
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("domain", "hydraulic");
 
-        Topic5TraceProblem update = new Topic5TraceProblem();
-        update.setId(id);
-        update.setSourceAlgorithmName(algorithmName);
-        update.setSourceAlgorithmStatus(2L);
-        update.setSourceGraphJson(sourceGraphJson);
-        update.setSourceReasonTableJson(reasonTableJson);
-        update.setSourceResultSummary(summary);
-        update.setStatus("最终溯源算法完成");
-        update.setUpdateTime(DateUtils.getNowDate());
+            // 当前 Python 数据集中存在的 case_id。
+            // 后续正式系统可以改成 problem.getPythonCaseId() 或数据库绑定字段。
+            requestBody.put("case_id", "HFB-01676");
 
-        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+            requestBody.put("model_variant", "default");
 
-        insertFlowLog(
-                id,
-                5L,
-                "最终溯源算法运行",
-                "成功",
-                "最终溯源算法运行完成：" + algorithmName
-        );
+            // 第三页面需要图谱，所以 generate_graph 必须为 true
+            requestBody.put("generate_graph", true);
 
-        Topic5TraceProblem newProblem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+            // 先关闭报告生成，避免 docx / charts 路径问题导致 Python 500
+            requestBody.put("generate_report", false);
+            requestBody.put("generate_charts", false);
+            requestBody.put("generate_docx", false);
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("traceProblem", newProblem);
-        result.put("sourceGraphJson", sourceGraphJson);
-        result.put("reasonTableJson", reasonTableJson);
-        result.put("summary", summary);
-        result.put("graphData", parseGraphJsonToMap(sourceGraphJson));
-        result.put("reasonList", JSON.parseArray(reasonTableJson, Map.class));
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        return result;
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            RestTemplate restTemplate = new RestTemplate();
+
+            // 2. 调用 Python FastAPI
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    thirdAlgorithmUrl,
+                    entity,
+                    Map.class
+            );
+
+            Map responseBody = response.getBody();
+
+            if (responseBody == null)
+            {
+                throw new ServiceException("Python最终溯源算法服务无返回结果");
+            }
+
+            Object codeObj = responseBody.get("code");
+            if (codeObj != null && Integer.parseInt(codeObj.toString()) != 200)
+            {
+                Object msgObj = responseBody.get("msg");
+                if (msgObj == null)
+                {
+                    msgObj = responseBody.get("message");
+                }
+
+                throw new ServiceException("Python最终溯源算法执行失败：" + (msgObj == null ? "未知错误" : msgObj.toString()));
+            }
+
+            // 3. 从 Python 返回中提取第三页面需要的数据
+            String sourceGraphJson = extractSourceGraphJson(responseBody);
+            String reasonTableJson = buildFinalTraceReasonTableJson(responseBody);
+            String summary = buildFinalTraceSummary(responseBody);
+            String traceReportUrl = extractTraceReportUrl(responseBody);
+
+            // 4. 写回数据库
+            Topic5TraceProblem update = new Topic5TraceProblem();
+            update.setId(id);
+            update.setSourceAlgorithmName(algorithmName);
+            update.setSourceAlgorithmStatus(2L);
+            update.setSourceGraphJson(sourceGraphJson);
+            update.setSourceReasonTableJson(reasonTableJson);
+            update.setSourceResultSummary(summary);
+
+            if (traceReportUrl != null && !"".equals(traceReportUrl))
+            {
+                update.setTraceReportUrl(traceReportUrl);
+                update.setTraceReportStatus(1L);
+            }
+
+            // 最终溯源算法完成，对应全链路追溯闭环阶段
+            update.setWorkflowStage(6L);
+            update.setStatus("最终溯源算法完成");
+            update.setUpdateTime(DateUtils.getNowDate());
+
+            topic5TraceProblemMapper.updateTopic5TraceProblem(update);
+
+            insertFlowLog(
+                    id,
+                    6L,
+                    "最终溯源算法运行",
+                    "成功",
+                    "已调用Python FastAPI完成最终溯源算法运行：" + algorithmName
+            );
+
+            Topic5TraceProblem newProblem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("traceProblem", newProblem);
+            result.put("sourceGraphJson", sourceGraphJson);
+            result.put("reasonTableJson", reasonTableJson);
+            result.put("summary", summary);
+            result.put("traceReportUrl", traceReportUrl);
+            result.put("graphData", parseGraphJsonToMap(sourceGraphJson));
+            result.put("reasonList", JSON.parseArray(reasonTableJson, Map.class));
+            result.put("pythonResponse", responseBody);
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            Topic5TraceProblem failUpdate = new Topic5TraceProblem();
+            failUpdate.setId(id);
+            failUpdate.setSourceAlgorithmStatus(3L);
+            failUpdate.setStatus("处理中");
+            failUpdate.setUpdateTime(DateUtils.getNowDate());
+
+            topic5TraceProblemMapper.updateTopic5TraceProblem(failUpdate);
+
+            insertFlowLog(
+                    id,
+                    6L,
+                    "最终溯源算法运行",
+                    "失败",
+                    "Python最终溯源算法运行失败：" + e.getMessage()
+            );
+
+            throw new ServiceException("Python最终溯源算法运行失败：" + e.getMessage());
+        }
+    }
+    private String extractSourceGraphJson(Map responseBody)
+    {
+        if (responseBody == null)
+        {
+            return "{\"series\":[]}";
+        }
+
+        Object graphsObj = responseBody.get("graphs");
+
+        // 兼容 data.graphs 的情况
+        if (!(graphsObj instanceof Map))
+        {
+            Object dataObj = responseBody.get("data");
+            if (dataObj instanceof Map)
+            {
+                graphsObj = ((Map) dataObj).get("graphs");
+            }
+        }
+
+        if (graphsObj instanceof Map)
+        {
+            Map graphsMap = (Map) graphsObj;
+
+            // 1. 优先读取 Python 已经生成好的 ECharts 故障增强图谱
+            Object echartsFaultGraph = graphsMap.get("echarts_fault_enhanced_graph");
+            if (echartsFaultGraph != null)
+            {
+                return JSON.toJSONString(echartsFaultGraph);
+            }
+
+            // 2. 如果没有故障增强图谱，则读取 ECharts 原始图谱
+            Object echartsOriginalGraph = graphsMap.get("echarts_original_graph");
+            if (echartsOriginalGraph != null)
+            {
+                return JSON.toJSONString(echartsOriginalGraph);
+            }
+
+            // 3. 如果只有普通 nodes / edges 格式，则转换为 ECharts option
+            Object faultGraph = graphsMap.get("fault_enhanced_graph");
+            if (faultGraph != null)
+            {
+                return JSON.toJSONString(convertRawGraphToEchartsOption(faultGraph, "故障增强知识图谱"));
+            }
+
+            Object originalGraph = graphsMap.get("original_graph");
+            if (originalGraph != null)
+            {
+                return JSON.toJSONString(convertRawGraphToEchartsOption(originalGraph, "原始生命周期知识图谱"));
+            }
+        }
+
+        return "{\"series\":[]}";
+    }
+    private Map<String, Object> convertRawGraphToEchartsOption(Object rawGraphObj, String title)
+    {
+        Map<String, Object> option = new HashMap<>();
+
+        Map<String, Object> titleMap = new HashMap<>();
+        titleMap.put("text", title);
+        option.put("title", titleMap);
+
+        Map<String, Object> tooltip = new HashMap<>();
+        tooltip.put("trigger", "item");
+        tooltip.put("confine", true);
+        option.put("tooltip", tooltip);
+
+        List<Object> data = new ArrayList<>();
+        List<Object> links = new ArrayList<>();
+
+        if (rawGraphObj instanceof Map)
+        {
+            Map rawGraph = (Map) rawGraphObj;
+
+            Object nodesObj = rawGraph.get("nodes");
+            Object edgesObj = rawGraph.get("edges");
+
+            if (nodesObj instanceof List)
+            {
+                List nodes = (List) nodesObj;
+
+                for (Object nodeObj : nodes)
+                {
+                    if (nodeObj instanceof Map)
+                    {
+                        Map node = (Map) nodeObj;
+
+                        Map<String, Object> item = new HashMap<>();
+                        item.put("id", node.get("id"));
+                        item.put("name", node.get("name"));
+                        item.put("value", node.get("score") == null ? 1 : node.get("score"));
+                        item.put("category", node.get("stage_name") == null ? "未知阶段" : node.get("stage_name"));
+
+                        Object isTopCandidate = node.get("is_top_candidate");
+                        Object isFeedback = node.get("is_feedback");
+                        Object isTargetObject = node.get("is_target_object");
+
+                        if (Boolean.TRUE.equals(isFeedback))
+                        {
+                            item.put("symbolSize", 68);
+                        }
+                        else if (Boolean.TRUE.equals(isTargetObject))
+                        {
+                            item.put("symbolSize", 62);
+                        }
+                        else if (Boolean.TRUE.equals(isTopCandidate))
+                        {
+                            item.put("symbolSize", 56);
+                        }
+                        else
+                        {
+                            item.put("symbolSize", 36);
+                        }
+
+                        item.put("properties", node);
+
+                        data.add(item);
+                    }
+                }
+            }
+
+            if (edgesObj instanceof List)
+            {
+                List edges = (List) edgesObj;
+
+                for (Object edgeObj : edges)
+                {
+                    if (edgeObj instanceof Map)
+                    {
+                        Map edge = (Map) edgeObj;
+
+                        Map<String, Object> link = new HashMap<>();
+                        link.put("source", edge.get("source"));
+                        link.put("target", edge.get("target"));
+                        link.put("name", edge.get("relation_name") == null ? edge.get("relation") : edge.get("relation_name"));
+                        link.put("value", edge.get("weight") == null ? 1 : edge.get("weight"));
+                        link.put("properties", edge);
+
+                        links.add(link);
+                    }
+                }
+            }
+        }
+
+        Map<String, Object> label = new HashMap<>();
+        label.put("show", true);
+        label.put("position", "right");
+
+        Map<String, Object> edgeLabel = new HashMap<>();
+        edgeLabel.put("show", true);
+        edgeLabel.put("formatter", "{b}");
+
+        Map<String, Object> force = new HashMap<>();
+        force.put("repulsion", 650);
+        force.put("edgeLength", 160);
+
+        Map<String, Object> series = new HashMap<>();
+        series.put("name", "知识图谱");
+        series.put("type", "graph");
+        series.put("layout", "force");
+        series.put("roam", true);
+        series.put("draggable", true);
+        series.put("focusNodeAdjacency", true);
+        series.put("label", label);
+        series.put("edgeLabel", edgeLabel);
+        series.put("force", force);
+        series.put("data", data);
+        series.put("links", links);
+
+        List<Map<String, Object>> seriesList = new ArrayList<>();
+        seriesList.add(series);
+
+        option.put("series", seriesList);
+
+        return option;
     }
 
+    private String buildFinalTraceReasonTableJson(Map responseBody)
+    {
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        Map reasoningMap = getReasoningMap(responseBody);
+
+        if (reasoningMap == null)
+        {
+            Map<String, Object> row = new HashMap<>();
+            row.put("rank", 1);
+            row.put("reasonType", "最终溯源结果");
+            row.put("reasonName", "Python算法返回结果");
+            row.put("relatedPart", "-");
+            row.put("evidence", valueToText(responseBody));
+            row.put("confidence", null);
+            row.put("suggestion", "请结合原始 Python 返回内容进一步确认");
+            rows.add(row);
+            return JSON.toJSONString(rows);
+        }
+
+        Object candidatesObj = reasoningMap.get("top6_candidates");
+
+        if (candidatesObj instanceof List)
+        {
+            List candidates = (List) candidatesObj;
+
+            for (int i = 0; i < candidates.size(); i++)
+            {
+                Object itemObj = candidates.get(i);
+
+                if (itemObj instanceof Map)
+                {
+                    Map item = (Map) itemObj;
+
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("rank", item.get("rank") == null ? i + 1 : item.get("rank"));
+                    row.put("reasonType", item.get("candidate_stage_name"));
+                    row.put("reasonName", item.get("candidate_id"));
+                    row.put("relatedPart", item.get("candidate_type"));
+                    row.put("evidence", item.get("reason_description"));
+                    row.put("confidence", item.get("adjusted_final_score") == null ? item.get("final_score") : item.get("adjusted_final_score"));
+                    row.put("suggestion", buildSuggestionByStage(item.get("candidate_stage_name")));
+
+                    rows.add(row);
+                }
+            }
+        }
+
+        if (rows.isEmpty())
+        {
+            Map<String, Object> row = new HashMap<>();
+            row.put("rank", 1);
+            row.put("reasonType", "最终溯源结果");
+            row.put("reasonName", "未获取到Top候选原因");
+            row.put("relatedPart", "-");
+            row.put("evidence", valueToText(reasoningMap));
+            row.put("confidence", null);
+            row.put("suggestion", "请检查 Python 返回中 reasoning.top6_candidates 字段");
+            rows.add(row);
+        }
+
+        return JSON.toJSONString(rows);
+    }
+
+    private String buildSuggestionByStage(Object stageNameObj)
+    {
+        if (stageNameObj == null)
+        {
+            return "建议结合知识图谱和人工经验进行复核";
+        }
+
+        String stageName = String.valueOf(stageNameObj);
+
+        if (stageName.contains("制造"))
+        {
+            return "建议优先复核制造批次、工艺参数、加工设备和过程质量记录";
+        }
+
+        if (stageName.contains("材料"))
+        {
+            return "建议复核材料批次、供应商记录和材料检验结果";
+        }
+
+        if (stageName.contains("设计"))
+        {
+            return "建议复核设计参数、管路结构约束和风险评估结果";
+        }
+
+        if (stageName.contains("装配"))
+        {
+            return "建议复核装配记录、操作人员、工位状态和装配间隙";
+        }
+
+        if (stageName.contains("检测"))
+        {
+            return "建议复核检测记录、检测设备、检测结果和漏检风险";
+        }
+
+        if (stageName.contains("运维") || stageName.contains("使用"))
+        {
+            return "建议复核运维记录、维修操作和运行状态数据";
+        }
+
+        return "建议结合该阶段生命周期数据进行复核";
+    }
+    private String buildFinalTraceSummary(Map responseBody)
+    {
+        Map reasoningMap = getReasoningMap(responseBody);
+
+        if (reasoningMap != null)
+        {
+            Object conclusionText = reasoningMap.get("conclusion_text");
+            if (conclusionText != null)
+            {
+                return String.valueOf(conclusionText);
+            }
+
+            Object stageAttributionObj = reasoningMap.get("stage_attribution");
+            if (stageAttributionObj instanceof Map)
+            {
+                Map stageAttribution = (Map) stageAttributionObj;
+
+                Object primaryStageName = stageAttribution.get("primary_stage_name");
+                Object feedbackSubsystem = stageAttribution.get("feedback_target_subsystem");
+
+                return "最终溯源算法运行完成。首要疑似生命周期阶段为："
+                        + (primaryStageName == null ? "-" : primaryStageName)
+                        + "，建议优先反馈至："
+                        + (feedbackSubsystem == null ? "-" : feedbackSubsystem)
+                        + "。";
+            }
+        }
+
+        return "最终溯源算法运行完成，已生成全链路追溯结果。";
+    }
+
+    private String extractTraceReportUrl(Map responseBody)
+    {
+        Map reasoningMap = getReasoningMap(responseBody);
+
+        if (reasoningMap != null)
+        {
+            Object outputPath = reasoningMap.get("_output_path");
+            if (outputPath != null)
+            {
+                return String.valueOf(outputPath);
+            }
+        }
+
+        Object reportUrl = responseBody.get("report_url");
+        if (reportUrl != null)
+        {
+            return String.valueOf(reportUrl);
+        }
+
+        Object docxUrl = responseBody.get("docx_url");
+        if (docxUrl != null)
+        {
+            return String.valueOf(docxUrl);
+        }
+
+        Object dataObj = responseBody.get("data");
+        if (dataObj instanceof Map)
+        {
+            Map dataMap = (Map) dataObj;
+
+            Object dataReportUrl = dataMap.get("report_url");
+            if (dataReportUrl != null)
+            {
+                return String.valueOf(dataReportUrl);
+            }
+
+            Object dataDocxUrl = dataMap.get("docx_url");
+            if (dataDocxUrl != null)
+            {
+                return String.valueOf(dataDocxUrl);
+            }
+        }
+
+        return null;
+    }
+    private Map getReasoningMap(Map responseBody)
+    {
+        if (responseBody == null)
+        {
+            return null;
+        }
+
+        Object reasoningObj = responseBody.get("reasoning");
+
+        if (reasoningObj instanceof Map)
+        {
+            return (Map) reasoningObj;
+        }
+
+        Object dataObj = responseBody.get("data");
+
+        if (dataObj instanceof Map)
+        {
+            Object dataReasoningObj = ((Map) dataObj).get("reasoning");
+
+            if (dataReasoningObj instanceof Map)
+            {
+                return (Map) dataReasoningObj;
+            }
+        }
+
+        return null;
+    }
     @Override
     public Map<String, Object> getSourceResult(Long id)
     {
@@ -1146,65 +1891,6 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         return result;
     }
 
-    private String buildMockSourceGraphJson(Topic5TraceProblem problem, String algorithmName)
-    {
-        Long id = problem.getId();
-        String partName = problem.getPartName() == null ? "故障部件" : problem.getPartName();
-
-        return "{"
-                + "\"nodes\":["
-                + "{\"id\":\"F" + id + "\",\"name\":\"质量异常\",\"category\":\"故障现象\"},"
-                + "{\"id\":\"P" + id + "\",\"name\":\"" + partName + "\",\"category\":\"故障部件\"},"
-                + "{\"id\":\"C1" + id + "\",\"name\":\"液压管路装配间隙异常\",\"category\":\"主导原因\"},"
-                + "{\"id\":\"C2" + id + "\",\"name\":\"密封件性能退化\",\"category\":\"次要原因\"},"
-                + "{\"id\":\"E1" + id + "\",\"name\":\"压力传感器波动\",\"category\":\"证据\"},"
-                + "{\"id\":\"M" + id + "\",\"name\":\"" + algorithmName + "\",\"category\":\"溯源算法\"}"
-                + "],"
-                + "\"links\":["
-                + "{\"source\":\"M" + id + "\",\"target\":\"C1" + id + "\",\"name\":\"Top1 0.91\"},"
-                + "{\"source\":\"M" + id + "\",\"target\":\"C2" + id + "\",\"name\":\"Top2 0.82\"},"
-                + "{\"source\":\"C1" + id + "\",\"target\":\"P" + id + "\",\"name\":\"导致\"},"
-                + "{\"source\":\"C2" + id + "\",\"target\":\"P" + id + "\",\"name\":\"影响\"},"
-                + "{\"source\":\"E1" + id + "\",\"target\":\"C1" + id + "\",\"name\":\"支持\"},"
-                + "{\"source\":\"P" + id + "\",\"target\":\"F" + id + "\",\"name\":\"表现为\"}"
-                + "]"
-                + "}";
-    }
-
-    private String buildMockReasonTableJson(Topic5TraceProblem problem)
-    {
-        String partName = problem.getPartName() == null ? "故障部件" : problem.getPartName();
-
-        return "["
-                + "{"
-                + "\"rank\":1,"
-                + "\"reasonType\":\"装配阶段\","
-                + "\"reasonName\":\"液压管路装配间隙异常\","
-                + "\"relatedPart\":\"" + partName + "\","
-                + "\"evidence\":\"压力传感器波动异常，知识图谱中存在装配间隙异常链路\","
-                + "\"confidence\":0.91,"
-                + "\"suggestion\":\"建议检查管路连接状态和作动筒密封状态\""
-                + "},"
-                + "{"
-                + "\"rank\":2,"
-                + "\"reasonType\":\"材料阶段\","
-                + "\"reasonName\":\"密封件性能退化\","
-                + "\"relatedPart\":\"密封件\","
-                + "\"evidence\":\"温度升高后压力保持能力下降\","
-                + "\"confidence\":0.82,"
-                + "\"suggestion\":\"建议复核密封件批次和材料检验记录\""
-                + "},"
-                + "{"
-                + "\"rank\":3,"
-                + "\"reasonType\":\"传感器/运维阶段\","
-                + "\"reasonName\":\"压力传感器采集异常\","
-                + "\"relatedPart\":\"压力传感器\","
-                + "\"evidence\":\"局部时间段存在压力信号尖峰\","
-                + "\"confidence\":0.73,"
-                + "\"suggestion\":\"建议复核传感器标定状态和采样记录\""
-                + "}"
-                + "]";
-    }
 
     @Override
     @Transactional

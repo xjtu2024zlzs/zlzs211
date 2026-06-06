@@ -673,7 +673,41 @@ const rules = {
 const activeStep = computed(() => {
   return Number(currentTrace.value.workflowStage || 0)
 })
+const algorithmResultObj = computed(() => {
+  return parseAlgorithmResult(currentTrace.value.algorithmResult)
+})
 
+const topComponentDiagnostics = computed(() => {
+  const list = algorithmResultObj.value?.componentDiagnostics || []
+
+  if (!Array.isArray(list)) {
+    return []
+  }
+
+  return list.slice(0, 6)
+})
+
+const componentStatusList = computed(() => {
+  const status = algorithmResultObj.value?.componentStatus || {}
+  const severity = algorithmResultObj.value?.severityScores || {}
+
+  const nameMap = {
+    cooler: '冷却器',
+    valve: '阀芯/方向阀',
+    pump: '液压泵',
+    accumulator: '蓄能器',
+    stability: '系统稳定性'
+  }
+
+  return Object.keys(status).map(key => {
+    return {
+      key: key,
+      component: nameMap[key] || key,
+      status: status[key],
+      severity: severity[key]
+    }
+  })
+})
 const topic4StatusText = computed(() => {
   return '课题四状态：' + topic4StatusName(currentTrace.value.topic4Status)
 })
@@ -736,7 +770,89 @@ function handleAdd() {
   resetFormData()
   open.value = true
 }
+function parseAlgorithmResult(value) {
+  if (!value) {
+    return null
+  }
 
+  if (typeof value === 'object') {
+    return value
+  }
+
+  try {
+    const obj = JSON.parse(value)
+
+    if (obj && obj.displayType === 'PYTHON_AAGCN_RCA_V1') {
+      return obj
+    }
+
+    return null
+  } catch (e) {
+    return null
+  }
+}
+
+function formatConfidence(value) {
+  if (value === null || value === undefined || value === '') {
+    return '-'
+  }
+
+  const num = Number(value)
+
+  if (Number.isNaN(num)) {
+    return value
+  }
+
+  if (num <= 1) {
+    return (num * 100).toFixed(2) + '%'
+  }
+
+  return num.toFixed(2)
+}
+
+function formatNumber(value) {
+  if (value === null || value === undefined || value === '') {
+    return '-'
+  }
+
+  const num = Number(value)
+
+  if (Number.isNaN(num)) {
+    return value
+  }
+
+  return num.toFixed(4)
+}
+
+function formatEvolutionChain(chain) {
+  if (!chain) {
+    return '-'
+  }
+
+  if (Array.isArray(chain)) {
+    return chain.join(' → ')
+  }
+
+  return chain
+}
+
+function faultLevelTagType(row) {
+  if (!row) {
+    return 'info'
+  }
+
+  if (row.is_fault === true) {
+    return 'danger'
+  }
+
+  const severity = Number(row.severity || 0)
+
+  if (severity >= 0.3) {
+    return 'warning'
+  }
+
+  return 'success'
+}
 // 提交新增追溯问题
 function submitForm() {
   proxy.$refs.traceRef.validate(valid => {
@@ -1061,5 +1177,35 @@ onMounted(() => {
   line-height: 24px;
   color: #606266;
   font-size: 13px;
+}
+.algorithm-result-panel {
+  margin-top: 15px;
+}
+
+.summary-card {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  background: #fafafa;
+  padding: 14px 16px;
+  min-height: 76px;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.summary-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  word-break: break-all;
+}
+
+.sub-title {
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
 }
 </style>

@@ -114,13 +114,13 @@
     <el-card class="box-card mt15">
       <template #header>
         <div class="card-header">
-          <span>最终溯源算法运行</span>
+          <span>全链路追溯闭环算法运行</span>
           <span class="header-tip">运行后输出溯源知识图谱和原因表单</span>
         </div>
       </template>
 
       <el-alert
-        title="第三部分算法用于根据前两部分结果进行最终原因追溯。当前阶段可先调用模拟算法，后续替换为 Python FastAPI 算法服务。"
+        title="该算法将调用后端，由后端调用 Python FastAPI，并读取 API 返回的故障增强知识图谱。"
         type="info"
         show-icon
         :closable="false"
@@ -130,7 +130,7 @@
         <el-col :span="10">
           <el-select
             v-model="algorithmForm.algorithmName"
-            placeholder="请选择最终溯源算法"
+            placeholder="请选择全链路追溯闭环算法"
             style="width: 100%"
           >
             <el-option label="最终溯源综合推理算法" value="SOURCE_REASONING" />
@@ -145,6 +145,7 @@
             type="warning"
             icon="Cpu"
             :loading="sourceRunning"
+            :disabled="sourceRunning"
             @click="handleRunSourceAlgorithm"
           >
             运行溯源算法
@@ -163,7 +164,7 @@
           <el-input
             v-model="currentTrace.sourceAlgorithmName"
             readonly
-            placeholder="尚未运行最终溯源算法"
+            placeholder="尚未运行全链路追溯闭环算法"
           />
         </el-form-item>
 
@@ -173,7 +174,7 @@
             type="textarea"
             :rows="4"
             readonly
-            placeholder="最终溯源算法运行后将在此显示结论摘要"
+            placeholder="全链路追溯闭环算法运行后将在此显示结论摘要"
           />
         </el-form-item>
       </el-form>
@@ -183,12 +184,21 @@
     <el-card class="box-card mt15">
       <template #header>
         <div class="card-header">
-          <span>最终溯源知识图谱</span>
-          <span class="header-tip">展示最终溯源算法输出的原因链路</span>
+          <span>全链路追溯闭环知识图谱</span>
+          <span class="header-tip">展示 Python API 返回的故障增强知识图谱</span>
         </div>
       </template>
 
-      <div ref="sourceGraphRef" class="graph-container"></div>
+      <el-empty
+        v-if="!hasSourceGraph"
+        description="暂无溯源知识图谱，请先运行最终溯源算法"
+      />
+
+      <div
+        v-show="hasSourceGraph"
+        ref="sourceGraphRef"
+        class="graph-container"
+      ></div>
     </el-card>
 
     <!-- 溯源原因表单 -->
@@ -196,7 +206,7 @@
       <template #header>
         <div class="card-header">
           <span>溯源原因表单</span>
-          <span class="header-tip">字段可根据后续 Python 算法输出动态调整</span>
+          <span class="header-tip">展示最终溯源候选原因及证据</span>
         </div>
       </template>
 
@@ -213,8 +223,8 @@
       >
         <el-table-column prop="rank" label="排名" width="80" align="center" />
         <el-table-column prop="reasonType" label="原因阶段/类型" min-width="130" />
-        <el-table-column prop="reasonName" label="原因名称" min-width="180" />
-        <el-table-column prop="relatedPart" label="关联部件" min-width="160" />
+        <el-table-column prop="relatedPart" label="原因名称" min-width="180" />
+        <el-table-column prop="reasonName" label="关联对象" min-width="160" />
         <el-table-column prop="evidence" label="关键证据" min-width="260" show-overflow-tooltip />
         <el-table-column prop="confidence" label="置信度" min-width="100" align="center">
           <template #default="scope">
@@ -235,7 +245,7 @@
       </template>
 
       <el-alert
-        title="导出报告成功后，总流程进入“进行溯源”阶段。推送课题二和课题三当前可先使用模拟接口，后续再替换为真实课题接口。"
+        title="导出报告成功后，总流程进入“全链路追溯闭环”阶段。推送课题二和课题三当前可先使用模拟接口，后续再替换为真实课题接口。"
         type="success"
         show-icon
         :closable="false"
@@ -355,60 +365,20 @@ const algorithmForm = reactive({
   algorithmName: null
 })
 
+const hasSourceGraph = computed(() => {
+  return !!currentTrace.value.sourceGraphJson
+})
+
 const activeStep = computed(() => {
   const stage = Number(currentTrace.value.workflowStage || 0)
 
-  // 顶部流程显示为：
-  // 1 任务开始
-  // 2 质量问题填报
-  // 3 多元特征提取
-  // 4 故障根因分析
-  // 5 卷宗实体映射
-  // 6 溯源图谱构建
-  // 7 全链路追溯闭环
-  // 8 任务完成
-  //
-  // 数据库 workflowStage 仍为：
-  // 1 质量问题填报
-  // 2 多元特征提取
-  // 3 故障根因分析
-  // 4 卷宗实体映射
-  // 5 溯源图谱构建
-  // 6 全链路追溯闭环
-
-  if (stage <= 0) {
-    return 0
-  }
-
-  // 质量问题填报完成时，“任务开始”和“质量问题填报”同步完成
-  if (stage === 1) {
-    return 2
-  }
-
-  // 多元特征提取完成
-  if (stage === 2) {
-    return 3
-  }
-
-  // 故障根因分析完成
-  if (stage === 3) {
-    return 4
-  }
-
-  // 卷宗实体映射完成
-  if (stage === 4) {
-    return 5
-  }
-
-  // 溯源图谱构建完成
-  if (stage === 5) {
-    return 6
-  }
-
-  // 全链路追溯闭环完成时，“任务完成”同步完成
-  if (stage >= 6) {
-    return 8
-  }
+  if (stage <= 0) return 0
+  if (stage === 1) return 2
+  if (stage === 2) return 3
+  if (stage === 3) return 4
+  if (stage === 4) return 5
+  if (stage === 5) return 6
+  if (stage >= 6) return 8
 
   return 0
 })
@@ -432,8 +402,16 @@ function handleTraceChange(id) {
 function loadSourceResult(id) {
   getSourceResult(id).then(res => {
     const data = res.data || {}
+    const traceProblem = data.traceProblem || currentTrace.value || {}
 
-    currentTrace.value = data.traceProblem || currentTrace.value
+    currentTrace.value = {
+      ...currentTrace.value,
+      ...traceProblem,
+      sourceGraphJson: data.sourceGraphJson || traceProblem.sourceGraphJson,
+      sourceReasonTableJson: data.reasonTableJson || traceProblem.sourceReasonTableJson,
+      sourceResultSummary: data.summary || traceProblem.sourceResultSummary
+    }
+
     sourceSummary.value = data.summary || currentTrace.value.sourceResultSummary || ''
 
     if (data.reasonList) {
@@ -442,11 +420,19 @@ function loadSourceResult(id) {
       reasonList.value = parseReasonJson(data.reasonTableJson || currentTrace.value.sourceReasonTableJson)
     }
 
-    if (data.graphData) {
-      renderSourceGraph(data.graphData)
+    const graphJson = data.sourceGraphJson || currentTrace.value.sourceGraphJson
+
+    if (graphJson) {
+      currentTrace.value.sourceGraphJson = graphJson
+      nextTick(() => {
+        renderSourceGraph(graphJson)
+      })
+    } else if (data.graphData) {
+      nextTick(() => {
+        renderSourceGraph(data.graphData)
+      })
     } else {
-      const graphData = parseGraphJson(data.sourceGraphJson || currentTrace.value.sourceGraphJson)
-      renderSourceGraph(graphData)
+      clearSourceGraph()
     }
   })
 }
@@ -470,18 +456,45 @@ function handleRunSourceAlgorithm() {
     proxy.$modal.msgSuccess('最终溯源算法运行完成')
 
     const data = res.data || {}
-    currentTrace.value = data.traceProblem || currentTrace.value
-    sourceSummary.value = data.summary || currentTrace.value.sourceResultSummary || ''
+    const traceProblem = data.traceProblem || currentTrace.value || {}
 
-    reasonList.value = data.reasonList || parseReasonJson(data.reasonTableJson)
-
-    if (data.graphData) {
-      renderSourceGraph(data.graphData)
-    } else {
-      renderSourceGraph(parseGraphJson(data.sourceGraphJson))
+    currentTrace.value = {
+      ...currentTrace.value,
+      ...traceProblem,
+      sourceGraphJson: data.sourceGraphJson || traceProblem.sourceGraphJson,
+      sourceReasonTableJson: data.reasonTableJson || traceProblem.sourceReasonTableJson,
+      sourceResultSummary: data.summary || traceProblem.sourceResultSummary
     }
 
-    refreshCurrentTrace()
+    sourceSummary.value = data.summary || currentTrace.value.sourceResultSummary || ''
+    reasonList.value = data.reasonList || parseReasonJson(data.reasonTableJson || currentTrace.value.sourceReasonTableJson)
+
+    const graphJson = data.sourceGraphJson || currentTrace.value.sourceGraphJson
+
+    if (graphJson) {
+      currentTrace.value.sourceGraphJson = graphJson
+      nextTick(() => {
+        renderSourceGraph(graphJson)
+      })
+    } else if (data.graphData) {
+      nextTick(() => {
+        renderSourceGraph(data.graphData)
+      })
+    } else {
+      clearSourceGraph()
+    }
+
+    refreshCurrentTrace(false)
+  }).catch(err => {
+    console.error('最终溯源算法运行失败：', err)
+
+    const msg =
+      err?.response?.data?.msg ||
+      err?.response?.data?.message ||
+      err?.message ||
+      '最终溯源算法运行失败，请检查 Java 后端和 Python FastAPI 服务'
+
+    proxy.$modal.msgError(msg)
   }).finally(() => {
     sourceRunning.value = false
   })
@@ -511,7 +524,10 @@ function handleExportReport() {
       currentTrace.value.status = '溯源完成'
     }
 
-    refreshCurrentTrace()
+    refreshCurrentTrace(false)
+  }).catch(err => {
+    console.error('导出报告失败：', err)
+    proxy.$modal.msgError('导出报告失败')
   }).finally(() => {
     exporting.value = false
   })
@@ -530,7 +546,7 @@ function handlePushTopic2() {
 
   pushTopic2(selectedTraceId.value).then(() => {
     proxy.$modal.msgSuccess('已推送课题二')
-    refreshCurrentTrace()
+    refreshCurrentTrace(false)
   })
 }
 
@@ -547,34 +563,26 @@ function handlePushTopic3() {
 
   pushTopic3(selectedTraceId.value).then(() => {
     proxy.$modal.msgSuccess('已推送课题三')
-    refreshCurrentTrace()
+    refreshCurrentTrace(false)
   })
 }
 
-function refreshCurrentTrace() {
+function refreshCurrentTrace(needReloadSourceResult = true) {
   if (!selectedTraceId.value) return
 
   getSourceTrace(selectedTraceId.value).then(res => {
-    currentTrace.value = res.data || {}
+    currentTrace.value = {
+      ...currentTrace.value,
+      ...(res.data || {})
+    }
+
     algorithmForm.algorithmName = currentTrace.value.sourceAlgorithmName || algorithmForm.algorithmName
     getTraceList()
+
+    if (needReloadSourceResult) {
+      loadSourceResult(selectedTraceId.value)
+    }
   })
-}
-
-function parseGraphJson(json) {
-  if (!json) {
-    return { nodes: [], links: [] }
-  }
-
-  if (typeof json === 'object') {
-    return json
-  }
-
-  try {
-    return JSON.parse(json)
-  } catch (e) {
-    return { nodes: [], links: [] }
-  }
 }
 
 function parseReasonJson(json) {
@@ -587,85 +595,174 @@ function parseReasonJson(json) {
   }
 
   try {
-    return JSON.parse(json)
+    const obj = JSON.parse(json)
+    return Array.isArray(obj) ? obj : []
   } catch (e) {
     return []
   }
 }
 
-function renderSourceGraph(graphData) {
+function renderSourceGraph(graphInput) {
+  if (!graphInput) {
+    clearSourceGraph()
+    return
+  }
+
   nextTick(() => {
-    if (!sourceGraphRef.value) return
+    if (!sourceGraphRef.value) {
+      return
+    }
+
+    const option = buildEchartsOption(graphInput)
 
     if (!sourceChart) {
       sourceChart = echarts.init(sourceGraphRef.value)
     }
 
-    const nodes = graphData.nodes || []
-    const links = graphData.links || []
-
-    if (nodes.length === 0) {
+    if (!option || !option.series || option.series.length === 0) {
       sourceChart.clear()
       return
     }
 
-    const categories = []
-    const categorySet = new Set()
-
-    nodes.forEach(node => {
-      if (node.category && !categorySet.has(node.category)) {
-        categorySet.add(node.category)
-        categories.push({ name: node.category })
-      }
-    })
-
-    sourceChart.setOption({
-      tooltip: {
-        formatter: function (params) {
-          if (params.dataType === 'node') {
-            return params.data.name || params.data.id
-          }
-          return params.data.name || ''
-        }
-      },
-      legend: [
-        {
-          top: 0,
-          data: categories.map(item => item.name)
-        }
-      ],
-      series: [
-        {
-          type: 'graph',
-          layout: 'force',
-          roam: true,
-          draggable: true,
-          symbolSize: 56,
-          categories,
-          label: {
-            show: true,
-            position: 'right'
-          },
-          edgeLabel: {
-            show: true,
-            formatter: function (params) {
-              return params.data.name || ''
-            }
-          },
-          force: {
-            repulsion: 650,
-            edgeLength: 150
-          },
-          data: nodes.map(node => ({
-            ...node,
-            category: categoryIndex(categories, node.category)
-          })),
-          links
-        }
-      ]
-    }, true)
-
+    sourceChart.setOption(option, true)
     sourceChart.resize()
+  })
+}
+
+function buildEchartsOption(graphInput) {
+  let graphData = graphInput
+
+  if (typeof graphInput === 'string') {
+    try {
+      graphData = JSON.parse(graphInput)
+    } catch (e) {
+      console.error('图谱 JSON 解析失败：', e)
+      return { series: [] }
+    }
+  }
+
+  if (!graphData) {
+    return { series: [] }
+  }
+
+  // 情况1：后端保存的是 Python 返回的完整 ECharts option，直接使用
+  if (graphData.series && Array.isArray(graphData.series)) {
+    return graphData
+  }
+
+  // 情况2：后端返回的是 nodes / links 或 nodes / edges，前端兜底转换
+  if (graphData.nodes || graphData.links || graphData.edges) {
+    return convertNodesLinksToOption(graphData)
+  }
+
+  return { series: [] }
+}
+
+function convertNodesLinksToOption(graphData) {
+  const nodes = graphData.nodes || []
+  const links = graphData.links || graphData.edges || []
+
+  if (nodes.length === 0) {
+    return { series: [] }
+  }
+
+  const categories = []
+  const categorySet = new Set()
+
+  nodes.forEach(node => {
+    const categoryName = node.category || node.stage_name || node.type || '未知类型'
+    if (!categorySet.has(categoryName)) {
+      categorySet.add(categoryName)
+      categories.push({ name: categoryName })
+    }
+  })
+
+  return {
+    tooltip: {
+      trigger: 'item',
+      confine: true,
+      formatter: function (params) {
+        if (params.dataType === 'node') {
+          return `
+            <div>
+              <b>${params.data.name || params.data.id || '-'}</b><br/>
+              类型：${params.data.type || params.data.category || params.data.stage_name || '-'}<br/>
+              分数：${params.data.score || params.data.value || '-'}
+            </div>
+          `
+        }
+
+        return params.data.name || params.data.relation_name || params.data.relation || ''
+      }
+    },
+    legend: [
+      {
+        top: 0,
+        data: categories.map(item => item.name)
+      }
+    ],
+    series: [
+      {
+        name: '全链路追溯闭环知识图谱',
+        type: 'graph',
+        layout: 'force',
+        roam: true,
+        draggable: true,
+        focusNodeAdjacency: true,
+        categories,
+        label: {
+          show: true,
+          position: 'right'
+        },
+        edgeLabel: {
+          show: true,
+          formatter: function (params) {
+            return params.data.name || params.data.relation_name || params.data.relation || ''
+          }
+        },
+        force: {
+          repulsion: 650,
+          edgeLength: 150
+        },
+        data: nodes.map(node => {
+          const categoryName = node.category || node.stage_name || node.type || '未知类型'
+
+          return {
+            ...node,
+            id: node.id,
+            name: node.name || node.id,
+            category: categoryIndex(categories, categoryName),
+            value: node.score || node.value || 1,
+            symbolSize: node.is_feedback
+              ? 68
+              : (node.is_target_object
+                ? 62
+                : (node.is_top_candidate ? 56 : 42))
+          }
+        }),
+        links: links.map(edge => ({
+          ...edge,
+          source: edge.source,
+          target: edge.target,
+          name: edge.name || edge.relation_name || edge.relation || '',
+          value: edge.weight || edge.score || 1
+        }))
+      }
+    ]
+  }
+}
+
+function clearSourceGraph() {
+  nextTick(() => {
+    if (!sourceGraphRef.value) {
+      return
+    }
+
+    if (!sourceChart) {
+      sourceChart = echarts.init(sourceGraphRef.value)
+    }
+
+    sourceChart.clear()
   })
 }
 
@@ -680,11 +777,16 @@ function formatConfidence(value) {
   }
 
   const numberValue = Number(value)
+
   if (Number.isNaN(numberValue)) {
     return value
   }
 
-  return (numberValue * 100).toFixed(1) + '%'
+  if (numberValue <= 1) {
+    return (numberValue * 100).toFixed(1) + '%'
+  }
+
+  return numberValue.toFixed(2)
 }
 
 function openReport(url) {
@@ -810,7 +912,9 @@ onMounted(() => {
   }
 
   window.addEventListener('resize', () => {
-    if (sourceChart) sourceChart.resize()
+    if (sourceChart) {
+      sourceChart.resize()
+    }
   })
 })
 </script>
@@ -837,7 +941,7 @@ onMounted(() => {
 
 .graph-container {
   width: 100%;
-  height: 520px;
+  height: 560px;
   border: 1px solid #ebeef5;
   border-radius: 4px;
   background: #fafafa;
