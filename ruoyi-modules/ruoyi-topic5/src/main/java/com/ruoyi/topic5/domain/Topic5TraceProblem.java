@@ -69,22 +69,6 @@ public class Topic5TraceProblem extends BaseEntity
     @Excel(name = "课题四状态：0未推送，1处理中，2已完成，3失败")
     private Long topic4Status;
 
-    /** 课题四返回结果 */
-    @Excel(name = "课题四返回结果")
-    private String topic4Result;
-
-    /** 课题四建议原因 */
-    @Excel(name = "课题四建议原因")
-    private String suggestedCause;
-
-    /** 风险等级 */
-    @Excel(name = "风险等级")
-    private String riskLevel;
-
-    /** 建议处理措施 */
-    @Excel(name = "建议处理措施")
-    private String suggestedAction;
-
     /** 课题四结果是否已回填：0否，1是 */
     @Excel(name = "课题四结果是否已回填：0否，1是")
     private Long topic4ResultFilled;
@@ -238,46 +222,6 @@ public class Topic5TraceProblem extends BaseEntity
         return topic4Status;
     }
 
-    public void setTopic4Result(String topic4Result) 
-    {
-        this.topic4Result = topic4Result;
-    }
-
-    public String getTopic4Result() 
-    {
-        return topic4Result;
-    }
-
-    public void setSuggestedCause(String suggestedCause) 
-    {
-        this.suggestedCause = suggestedCause;
-    }
-
-    public String getSuggestedCause() 
-    {
-        return suggestedCause;
-    }
-
-    public void setRiskLevel(String riskLevel) 
-    {
-        this.riskLevel = riskLevel;
-    }
-
-    public String getRiskLevel() 
-    {
-        return riskLevel;
-    }
-
-    public void setSuggestedAction(String suggestedAction) 
-    {
-        this.suggestedAction = suggestedAction;
-    }
-
-    public String getSuggestedAction() 
-    {
-        return suggestedAction;
-    }
-
     public void setTopic4ResultFilled(Long topic4ResultFilled) 
     {
         this.topic4ResultFilled = topic4ResultFilled;
@@ -354,10 +298,6 @@ public class Topic5TraceProblem extends BaseEntity
             .append("workflowStage", getWorkflowStage())
             .append("status", getStatus())
             .append("topic4Status", getTopic4Status())
-            .append("topic4Result", getTopic4Result())
-            .append("suggestedCause", getSuggestedCause())
-            .append("riskLevel", getRiskLevel())
-            .append("suggestedAction", getSuggestedAction())
             .append("topic4ResultFilled", getTopic4ResultFilled())
             .append("algorithmStatus", getAlgorithmStatus())
             .append("algorithmResult", getAlgorithmResult())
@@ -374,6 +314,18 @@ public class Topic5TraceProblem extends BaseEntity
                 .append("traceReportStatus", getTraceReportStatus())
                 .append("traceReportUrl", getTraceReportUrl())
                 .append("attachmentSavePath", getAttachmentSavePath())
+                .append("topic1KgStatus", getTopic1KgStatus())
+                .append("topic1KgJson", getTopic1KgJson())
+                .append("secondAlgorithmName", getSecondAlgorithmName())
+                .append("secondAlgorithmStatus", getSecondAlgorithmStatus())
+                .append("secondAlgorithmResultJson", getSecondAlgorithmResultJson())
+                .append("secondAlgorithmConfirmStatus", getSecondAlgorithmConfirmStatus())
+                .append("secondAlgorithmConfirmRemark", getSecondAlgorithmConfirmRemark())
+                .append("topic4FaultType", getTopic4FaultType())
+                .append("topic4FaultLocation", getTopic4FaultLocation())
+                .append("topic4CauseAnalysis", getTopic4CauseAnalysis())
+                .append("topic4DeductionProcess", getTopic4DeductionProcess())
+                .append("topic4RootConfidence", getTopic4RootConfidence())
             .toString();
     }
     /** 知识图谱重构状态：0未生成，1已生成 */
@@ -439,5 +391,255 @@ public class Topic5TraceProblem extends BaseEntity
     public void setAttachmentSavePath(String attachmentSavePath)
     {
         this.attachmentSavePath = attachmentSavePath;
+    }
+    /** 课题一知识图谱状态：0未拉取，1已拉取 */
+    private Long topic1KgStatus;
+
+    /** 课题一返回的原始知识图谱JSON */
+    private String topic1KgJson;
+
+    /** 第二部分算法名称 */
+    private String secondAlgorithmName;
+
+    /** 第二部分算法状态：0未运行，1运行中，2已完成，3失败 */
+    private Long secondAlgorithmStatus;
+
+    /** 第二部分算法输出知识图谱JSON */
+    private String secondAlgorithmResultJson;
+
+    public Long getTopic1KgStatus()
+    {
+        return topic1KgStatus;
+    }
+
+    public void setTopic1KgStatus(Long topic1KgStatus)
+    {
+        this.topic1KgStatus = topic1KgStatus;
+    }
+
+    public String getTopic1KgJson()
+    {
+        return topic1KgJson;
+    }
+
+    public void setTopic1KgJson(String topic1KgJson)
+    {
+        this.topic1KgJson = topic1KgJson;
+    }
+
+    public String getSecondAlgorithmName()
+    {
+        return secondAlgorithmName;
+    }
+
+    public void setSecondAlgorithmName(String secondAlgorithmName)
+    {
+        this.secondAlgorithmName = secondAlgorithmName;
+    }
+
+    public Long getSecondAlgorithmStatus()
+    {
+        return secondAlgorithmStatus;
+    }
+
+    public void setSecondAlgorithmStatus(Long secondAlgorithmStatus)
+    {
+        this.secondAlgorithmStatus = secondAlgorithmStatus;
+    }
+
+    public String getSecondAlgorithmResultJson()
+    {
+        return secondAlgorithmResultJson;
+    }
+
+    public void setSecondAlgorithmResultJson(String secondAlgorithmResultJson)
+    {
+        this.secondAlgorithmResultJson = secondAlgorithmResultJson;
+    }
+    /** 第二部分算法人工确认状态：0未确认，1已确认保存，2已驳回 */
+    private Long secondAlgorithmConfirmStatus;
+
+    /** 第二部分算法人工确认备注 */
+    private String secondAlgorithmConfirmRemark;
+    public Long getSecondAlgorithmConfirmStatus()
+    {
+        return secondAlgorithmConfirmStatus;
+    }
+
+    public void setSecondAlgorithmConfirmStatus(Long secondAlgorithmConfirmStatus)
+    {
+        this.secondAlgorithmConfirmStatus = secondAlgorithmConfirmStatus;
+    }
+
+    public String getSecondAlgorithmConfirmRemark()
+    {
+        return secondAlgorithmConfirmRemark;
+    }
+
+    public void setSecondAlgorithmConfirmRemark(String secondAlgorithmConfirmRemark)
+    {
+        this.secondAlgorithmConfirmRemark = secondAlgorithmConfirmRemark;
+    }
+    /** 最终溯源算法名称 */
+    private String sourceAlgorithmName;
+
+    /** 最终溯源算法状态：0未运行，1运行中，2已完成，3失败 */
+    private Long sourceAlgorithmStatus;
+
+    /** 最终溯源算法输出知识图谱JSON */
+    private String sourceGraphJson;
+
+    /** 最终溯源原因表单JSON */
+    private String sourceReasonTableJson;
+
+    /** 最终溯源结论摘要 */
+    private String sourceResultSummary;
+
+    /** 推送课题二状态：0未推送，1已推送，2推送失败 */
+    private Long topic2PushStatus;
+
+    /** 推送课题二时间 */
+    private Date topic2PushTime;
+
+    public String getSourceAlgorithmName() {
+        return sourceAlgorithmName;
+    }
+
+    public void setSourceAlgorithmName(String sourceAlgorithmName) {
+        this.sourceAlgorithmName = sourceAlgorithmName;
+    }
+
+    public Long getSourceAlgorithmStatus() {
+        return sourceAlgorithmStatus;
+    }
+
+    public void setSourceAlgorithmStatus(Long sourceAlgorithmStatus) {
+        this.sourceAlgorithmStatus = sourceAlgorithmStatus;
+    }
+
+    public String getSourceGraphJson() {
+        return sourceGraphJson;
+    }
+
+    public void setSourceGraphJson(String sourceGraphJson) {
+        this.sourceGraphJson = sourceGraphJson;
+    }
+
+    public String getSourceReasonTableJson() {
+        return sourceReasonTableJson;
+    }
+
+    public void setSourceReasonTableJson(String sourceReasonTableJson) {
+        this.sourceReasonTableJson = sourceReasonTableJson;
+    }
+
+    public String getSourceResultSummary() {
+        return sourceResultSummary;
+    }
+
+    public void setSourceResultSummary(String sourceResultSummary) {
+        this.sourceResultSummary = sourceResultSummary;
+    }
+
+    public Long getTopic2PushStatus() {
+        return topic2PushStatus;
+    }
+
+    public void setTopic2PushStatus(Long topic2PushStatus) {
+        this.topic2PushStatus = topic2PushStatus;
+    }
+
+    public Date getTopic2PushTime() {
+        return topic2PushTime;
+    }
+
+    public void setTopic2PushTime(Date topic2PushTime) {
+        this.topic2PushTime = topic2PushTime;
+    }
+
+    public Long getTopic3PushStatus() {
+        return topic3PushStatus;
+    }
+
+    public void setTopic3PushStatus(Long topic3PushStatus) {
+        this.topic3PushStatus = topic3PushStatus;
+    }
+
+    public Date getTopic3PushTime() {
+        return topic3PushTime;
+    }
+
+    public void setTopic3PushTime(Date topic3PushTime) {
+        this.topic3PushTime = topic3PushTime;
+    }
+
+    /** 推送课题三状态：0未推送，1已推送，2推送失败 */
+    private Long topic3PushStatus;
+
+    /** 推送课题三时间 */
+    private Date topic3PushTime;
+
+    /** 课题四反馈故障类型 */
+    private String topic4FaultType;
+
+    /** 课题四反馈故障位置 */
+    private String topic4FaultLocation;
+
+    /** 课题四反馈原因分析 */
+    private String topic4CauseAnalysis;
+
+    /** 课题四反馈故障推演过程 */
+    private String topic4DeductionProcess;
+
+    /** 课题四反馈根因置信度 */
+    private String topic4RootConfidence;
+    public String getTopic4FaultType()
+    {
+        return topic4FaultType;
+    }
+
+    public void setTopic4FaultType(String topic4FaultType)
+    {
+        this.topic4FaultType = topic4FaultType;
+    }
+
+    public String getTopic4FaultLocation()
+    {
+        return topic4FaultLocation;
+    }
+
+    public void setTopic4FaultLocation(String topic4FaultLocation)
+    {
+        this.topic4FaultLocation = topic4FaultLocation;
+    }
+
+    public String getTopic4CauseAnalysis()
+    {
+        return topic4CauseAnalysis;
+    }
+
+    public void setTopic4CauseAnalysis(String topic4CauseAnalysis)
+    {
+        this.topic4CauseAnalysis = topic4CauseAnalysis;
+    }
+
+    public String getTopic4DeductionProcess()
+    {
+        return topic4DeductionProcess;
+    }
+
+    public void setTopic4DeductionProcess(String topic4DeductionProcess)
+    {
+        this.topic4DeductionProcess = topic4DeductionProcess;
+    }
+
+    public String getTopic4RootConfidence()
+    {
+        return topic4RootConfidence;
+    }
+
+    public void setTopic4RootConfidence(String topic4RootConfidence)
+    {
+        this.topic4RootConfidence = topic4RootConfidence;
     }
 }

@@ -2,7 +2,8 @@ package com.ruoyi.topic5.mapper;
 
 import java.util.List;
 import com.ruoyi.topic5.domain.Topic5TraceProblem;
-
+import java.util.Date;
+import org.apache.ibatis.annotations.Param;
 /**
  * 追溯问题Mapper接口
  * 
@@ -58,4 +59,13 @@ public interface Topic5TraceProblemMapper
      * @return 结果
      */
     public int deleteTopic5TraceProblemByIds(Long[] ids);
+    /**
+     * 驳回第二部分算法结果，并清空算法输出图谱
+     */
+    public int rejectSecondAlgorithmResult(@Param("id") Long id,
+                                           @Param("secondAlgorithmStatus") Long secondAlgorithmStatus,
+                                           @Param("secondAlgorithmConfirmStatus") Long secondAlgorithmConfirmStatus,
+                                           @Param("secondAlgorithmConfirmRemark") String secondAlgorithmConfirmRemark,
+                                           @Param("workflowStage") Long workflowStage,
+                                           @Param("updateTime") Date updateTime);
 }

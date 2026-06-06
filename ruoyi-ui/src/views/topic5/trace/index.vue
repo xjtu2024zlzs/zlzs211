@@ -11,12 +11,14 @@
       </template>
 
       <el-steps :active="activeStep" finish-status="success" align-center>
+        <el-step title="任务开始" />
         <el-step title="问题填报" />
         <el-step title="数据处理" />
         <el-step title="第一部分算法运行" />
         <el-step title="知识图谱导入" />
         <el-step title="第二部分算法运行" />
         <el-step title="进行溯源" />
+        <el-step title="任务完成" />
       </el-steps>
     </el-card>
 
@@ -99,7 +101,7 @@
         <el-table-column label="知识图谱重构" min-width="150">
           <template #default="scope">
             <el-button
-              v-if="isGenerated(scope.row.kgRebuildStatus)"
+              v-if="canViewKnowledgeGraph(scope.row)"
               link
               type="primary"
               @click.stop="openKnowledgeGraph(scope.row)"
@@ -247,7 +249,6 @@
       <template #header>
         <div class="card-header">
           <span>数据处理：课题四协同处理与结果回填</span>
-          <span class="header-tip">课题四结果回填完成后，“数据处理”流程变绿</span>
         </div>
       </template>
 
@@ -281,29 +282,54 @@
       </el-row>
 
       <el-form label-width="120px" class="mt15">
-        <el-form-item label="课题四结果">
+        <el-row :gutter="12">
+          <el-col :span="8">
+            <el-form-item label="故障类型">
+              <el-input
+                v-model="currentTrace.topic4FaultType"
+                readonly
+                placeholder="课题四返回故障类型"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="8">
+            <el-form-item label="故障位置">
+              <el-input
+                v-model="currentTrace.topic4FaultLocation"
+                readonly
+                placeholder="课题四返回故障位置"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="8">
+            <el-form-item label="根因置信度">
+              <el-input
+                v-model="currentTrace.topic4RootConfidence"
+                readonly
+                placeholder="课题四返回根因置信度"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-form-item label="原因分析">
           <el-input
             type="textarea"
             :rows="4"
-            v-model="currentTrace.topic4Result"
-            placeholder="课题四返回结果将在此显示"
+            v-model="currentTrace.topic4CauseAnalysis"
+            placeholder="课题四返回原因分析将在此显示"
             readonly
           />
         </el-form-item>
 
-        <el-form-item label="建议原因">
-          <el-input v-model="currentTrace.suggestedCause" readonly />
-        </el-form-item>
-
-        <el-form-item label="风险等级">
-          <el-input v-model="currentTrace.riskLevel" readonly />
-        </el-form-item>
-
-        <el-form-item label="建议措施">
+        <el-form-item label="故障推演过程">
           <el-input
             type="textarea"
-            :rows="3"
-            v-model="currentTrace.suggestedAction"
+            :rows="5"
+            v-model="currentTrace.topic4DeductionProcess"
+            placeholder="课题四返回故障推演过程将在此显示"
             readonly
           />
         </el-form-item>
@@ -315,7 +341,6 @@
       <template #header>
         <div class="card-header">
           <span>第一部分算法运行区</span>
-          <span class="header-tip">算法完成后，“第一部分算法运行”流程变绿</span>
         </div>
       </template>
 
@@ -328,7 +353,7 @@
 
       <div class="mt15">
         <el-button type="warning" icon="Cpu" @click="handleRunAlgorithm">
-          运行第一部分算法，当前为模拟
+          运行第一部分算法
         </el-button>
       </div>
 
@@ -340,12 +365,76 @@
         </el-form-item>
 
         <el-form-item label="算法结果">
-          <el-input
-            type="textarea"
-            :rows="4"
-            v-model="currentTrace.algorithmResult"
-            placeholder="第一部分算法结果将在此显示"
-            readonly
+          <div v-if="currentFirstAlgorithmResult" class="first-algorithm-detail-box">
+            <el-descriptions :column="2" border>
+              <el-descriptions-item label="故障部件编号">
+                {{ currentFirstAlgorithmResult.faultComponentId || '-' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="故障定位部件">
+                {{ currentFirstAlgorithmResult.faultComponent || '-' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="部件置信度">
+                {{ formatFirstAlgConfidence(currentFirstAlgorithmResult.componentConfidence) }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="触发传感器">
+                {{ currentFirstAlgorithmResult.triggerSensor || '-' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="传感器置信度">
+                {{ formatFirstAlgConfidence(currentFirstAlgorithmResult.sensorConfidence) }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="算法结论">
+                {{ currentFirstAlgorithmResult.conclusion || '-' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="故障传播链路" :span="2">
+                {{ formatEvolutionChain(currentFirstAlgorithmResult.evolutionChain) }}
+              </el-descriptions-item>
+            </el-descriptions>
+
+            <div class="sub-title mt15">故障部件诊断结果</div>
+
+            <el-empty
+              v-if="currentFirstComponentDiagnostics.length === 0"
+              description="暂无故障部件诊断结果"
+            />
+
+            <el-table
+              v-else
+              :data="currentFirstComponentDiagnostics"
+              border
+              style="width: 100%"
+            >
+              <el-table-column prop="rank" label="排名" width="80" align="center" />
+              <el-table-column prop="componentId" label="部件编号" min-width="120" />
+              <el-table-column prop="componentName" label="部件名称" min-width="140" />
+              <el-table-column prop="faultType" label="诊断结果" min-width="160" />
+
+              <el-table-column prop="severity" label="严重度" width="120" align="center">
+                <template #default="scope">
+                  {{ formatFirstAlgConfidence(scope.row.severity) }}
+                </template>
+              </el-table-column>
+
+              <el-table-column prop="faultLevel" label="故障等级" width="120" align="center" />
+
+              <el-table-column prop="isFault" label="是否故障" width="100" align="center">
+                <template #default="scope">
+                  <el-tag :type="scope.row.isFault ? 'danger' : 'success'">
+                    {{ scope.row.isFault ? '是' : '否' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <el-empty
+            v-else
+            description="暂无第一部分算法结构化结果"
           />
         </el-form-item>
       </el-form>
@@ -358,7 +447,7 @@
       </template>
 
       <el-alert
-        title="本页面完成问题填报、数据处理和第一部分算法运行。后续将在第二个页面继续完成知识图谱导入、第二部分算法运行，并在第三个页面完成最终溯源与 Word 报告生成。"
+        title="本页面完成问题填报、数据处理和第一部分算法运行。后续将在第二个页面继续完成知识图谱导入、第二部分算法运行，并在第三个页面完成最终溯源。"
         type="success"
         show-icon
         :closable="false"
@@ -403,6 +492,54 @@
           <el-button type="primary" @click="submitSaveAttachmentsWithPath">
             确认保存
           </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 知识图谱查看弹窗：展示第三页面最终生成的 sourceGraphJson -->
+    <el-dialog
+      title="最终溯源知识图谱"
+      v-model="graphDialogOpen"
+      width="90%"
+      append-to-body
+      destroy-on-close
+      @opened="handleGraphDialogOpened"
+      @closed="handleGraphDialogClosed"
+    >
+      <el-alert
+        title="当前展示的是第三页面“全链路追溯闭环算法”生成的最终溯源知识图谱。"
+        type="info"
+        show-icon
+        :closable="false"
+        style="margin-bottom: 15px;"
+      />
+
+      <div v-if="graphLoading" class="graph-loading">
+        正在加载最终溯源知识图谱...
+      </div>
+
+      <div v-else>
+        <div class="graph-info">
+          <span>追溯任务编号：{{ graphTraceInfo.traceNo || '-' }}</span>
+          <span>发生部位：{{ graphTraceInfo.partName || '-' }}</span>
+          <span>最终溯源算法：{{ graphTraceInfo.sourceAlgorithmName || '-' }}</span>
+        </div>
+
+        <el-empty
+          v-if="!graphDataCache"
+          description="暂无最终溯源知识图谱，请先在第三页面运行全链路追溯闭环算法"
+        />
+
+        <div
+          v-show="graphDataCache"
+          ref="graphDialogRef"
+          class="graph-dialog-container"
+        ></div>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="graphDialogOpen = false">关闭</el-button>
         </div>
       </template>
     </el-dialog>
@@ -550,10 +687,10 @@
 
         <el-descriptions-item label="知识图谱重构">
           <el-button
-            v-if="isGenerated(detail.kgRebuildStatus)"
+            v-if="canViewKnowledgeGraph(detail)"
             link
             type="primary"
-            @click="openKnowledgeGraph(detail)"
+            @click.stop="openKnowledgeGraph(detail)"
           >
             查看知识图谱
           </el-button>
@@ -565,7 +702,7 @@
             v-if="isGenerated(detail.traceReportStatus)"
             link
             type="success"
-            @click="openTraceReport(detail)"
+            @click.stop="openTraceReport(detail)"
           >
             打开Word
           </el-button>
@@ -576,12 +713,63 @@
           {{ detail.problemDescription }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="课题四结果" :span="2">
-          {{ detail.topic4Result }}
+        <el-descriptions-item label="课题四故障类型">
+          {{ detail.topic4FaultType || '-' }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="课题四故障位置">
+          {{ detail.topic4FaultLocation || '-' }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="根因置信度">
+          {{ detail.topic4RootConfidence || '-' }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="原因分析" :span="2">
+          {{ detail.topic4CauseAnalysis || '-' }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="故障推演过程" :span="2">
+          {{ detail.topic4DeductionProcess || '-' }}
         </el-descriptions-item>
 
         <el-descriptions-item label="第一部分算法结果" :span="2">
-          {{ detail.algorithmResult }}
+          <div v-if="detailFirstAlgorithmResult" class="first-algorithm-detail-box">
+            <el-descriptions :column="2" border>
+              <el-descriptions-item label="故障部件编号">
+                {{ detailFirstAlgorithmResult.faultComponentId || '-' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="故障定位部件">
+                {{ detailFirstAlgorithmResult.faultComponent || '-' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="部件置信度">
+                {{ formatFirstAlgConfidence(detailFirstAlgorithmResult.componentConfidence) }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="触发传感器">
+                {{ detailFirstAlgorithmResult.triggerSensor || '-' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="传感器置信度">
+                {{ formatFirstAlgConfidence(detailFirstAlgorithmResult.sensorConfidence) }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="算法结论">
+                {{ detailFirstAlgorithmResult.conclusion || '-' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="故障传播链路" :span="2">
+                {{ formatEvolutionChain(detailFirstAlgorithmResult.evolutionChain) }}
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+
+          <el-empty
+            v-else
+            description="暂无第一部分算法结构化结果"
+          />
         </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
@@ -590,8 +778,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, getCurrentInstance } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance } from 'vue'
+import * as echarts from 'echarts'
 import {
   listTrace,
   getTrace,
@@ -603,22 +791,41 @@ import {
   fillTopic4Result,
   runAlgorithm
 } from '@/api/topic5/trace'
+import { getSourceResult } from '@/api/topic5/source'
 
 const { proxy } = getCurrentInstance()
-const router = useRouter()
 
 const loading = ref(false)
 const open = ref(false)
 const detailOpen = ref(false)
 const savePathOpen = ref(false)
 
+const graphDialogOpen = ref(false)
+const graphLoading = ref(false)
+const graphDialogRef = ref(null)
+const graphTraceInfo = ref({})
+const graphDataCache = ref(null)
+
+let graphDialogChart = null
+
 const traceList = ref([])
 const attachmentList = ref([])
 const selectedTraceId = ref(null)
 const currentTrace = ref({})
 const detail = ref({})
-
 const total = ref(0)
+
+const currentFirstAlgorithmResult = computed(() => {
+  return parseFirstAlgorithmResult(currentTrace.value.algorithmResult)
+})
+
+const currentFirstComponentDiagnostics = computed(() => {
+  return normalizeComponentDiagnostics(currentFirstAlgorithmResult.value?.componentDiagnostics)
+})
+
+const detailFirstAlgorithmResult = computed(() => {
+  return parseFirstAlgorithmResult(detail.value.algorithmResult)
+})
 
 const queryParams = reactive({
   pageNum: 1,
@@ -669,9 +876,18 @@ const rules = {
   ]
 }
 
-// 新流程：1 问题填报，2 数据处理，3 第一部分算法运行，4 知识图谱导入，5 第二部分算法运行，6 进行溯源
 const activeStep = computed(() => {
-  return Number(currentTrace.value.workflowStage || 0)
+  const stage = Number(currentTrace.value.workflowStage || 0)
+
+  if (stage <= 0) return 0
+  if (stage === 1) return 2
+  if (stage === 2) return 3
+  if (stage === 3) return 4
+  if (stage === 4) return 5
+  if (stage === 5) return 6
+  if (stage >= 6) return 8
+
+  return 0
 })
 
 const topic4StatusText = computed(() => {
@@ -687,7 +903,6 @@ const topic4AlertType = computed(() => {
   return 'info'
 })
 
-// 查询列表
 function getList() {
   loading.value = true
   listTrace(queryParams).then(res => {
@@ -699,13 +914,24 @@ function getList() {
   })
 }
 
-// 查询按钮
 function handleQuery() {
   queryParams.pageNum = 1
   getList()
 }
 
-// 重置查询
+function canViewKnowledgeGraph(row) {
+  if (!row) {
+    return false
+  }
+
+  return Number(row.sourceAlgorithmStatus) === 2 ||
+    Number(row.traceReportStatus) === 1 ||
+    (
+      Number(row.kgRebuildStatus) === 1 &&
+      Number(row.secondAlgorithmConfirmStatus) === 1
+    )
+}
+
 function resetQuery() {
   queryParams.traceNo = null
   queryParams.aircraftNo = null
@@ -714,7 +940,6 @@ function resetQuery() {
   getList()
 }
 
-// 重置表单
 function resetFormData() {
   form.id = null
   form.traceNo = null
@@ -731,13 +956,11 @@ function resetFormData() {
   form.remark = null
 }
 
-// 打开新增弹窗
 function handleAdd() {
   resetFormData()
   open.value = true
 }
 
-// 提交新增追溯问题
 function submitForm() {
   proxy.$refs.traceRef.validate(valid => {
     if (!valid) return
@@ -750,12 +973,10 @@ function submitForm() {
   })
 }
 
-// 点击表格行
 function handleRowClick(row) {
   selectTrace(row)
 }
 
-// 选择追溯任务
 function selectTrace(row) {
   selectedTraceId.value = row.id
   getTrace(row.id).then(res => {
@@ -763,7 +984,6 @@ function selectTrace(row) {
   })
 }
 
-// 下拉框切换追溯任务
 function handleTraceChange(id) {
   if (!id) return
 
@@ -772,7 +992,6 @@ function handleTraceChange(id) {
   })
 }
 
-// 查看详情
 function viewTrace(row) {
   getTrace(row.id).then(res => {
     detail.value = res.data || {}
@@ -780,7 +999,6 @@ function viewTrace(row) {
   })
 }
 
-// 调用课题一数字卷宗数据
 function handleImportDossier() {
   if (!selectedTraceId.value) {
     proxy.$modal.msgWarning('请先选择追溯任务')
@@ -794,7 +1012,6 @@ function handleImportDossier() {
   })
 }
 
-// 点击保存附件：先弹出保存位置窗口
 function handleSaveAttachments() {
   if (!selectedTraceId.value) {
     proxy.$modal.msgWarning('请先选择追溯任务')
@@ -812,7 +1029,6 @@ function handleSaveAttachments() {
   savePathOpen.value = true
 }
 
-// 确认保存附件并同步保存位置
 function submitSaveAttachmentsWithPath() {
   if (!selectedTraceId.value) {
     proxy.$modal.msgWarning('请先选择追溯任务')
@@ -845,7 +1061,6 @@ function submitSaveAttachmentsWithPath() {
   })
 }
 
-// 推送课题四
 function handlePushTopic4() {
   if (!selectedTraceId.value) {
     proxy.$modal.msgWarning('请先选择追溯任务')
@@ -858,7 +1073,6 @@ function handlePushTopic4() {
   })
 }
 
-// 模拟课题四返回结果
 function handleMockTopic4Callback() {
   if (!selectedTraceId.value) {
     proxy.$modal.msgWarning('请先选择追溯任务')
@@ -868,10 +1082,12 @@ function handleMockTopic4Callback() {
   const data = {
     traceId: selectedTraceId.value,
     topic4Status: 2,
-    topic4Result: '课题四识别到该异常与液压压力波动、装配间隙异常以及密封状态退化有关。',
-    suggestedCause: '液压管路压力异常',
-    riskLevel: '较高',
-    suggestedAction: '建议检查作动筒密封状态、液压管路连接状态和相关传感器采集数据。'
+    topic4Result: '课题四综合判断：该异常与液压压力波动、装配间隙异常以及密封状态退化有关。',
+    faultType: '液压系统压力异常',
+    faultLocation: '起落架液压作动筒及连接管路',
+    causeAnalysis: '根据课题一数字卷宗中的压力、温度和振动数据，结合故障发生时间窗口分析，发现压力信号存在异常波动，且与作动筒密封状态和管路连接状态存在关联。初步判断故障可能由液压管路装配间隙异常、密封件性能退化或局部压力冲击共同诱发。',
+    deductionProcess: '首先，系统根据故障发生时间和发生部位定位相关传感器数据；其次，对压力传感器数据进行异常波动识别，发现故障时间附近存在明显压力突变；随后结合温度数据和部件关联关系，推断密封状态可能发生退化；最后结合部件装配关系，推演出液压管路连接状态异常可能进一步放大压力波动，最终导致该质量问题。',
+    rootConfidence: '0.87'
   }
 
   topic4Callback(data).then(() => {
@@ -880,7 +1096,6 @@ function handleMockTopic4Callback() {
   })
 }
 
-// 回填课题四结果
 function handleFillTopic4Result() {
   if (!selectedTraceId.value) {
     proxy.$modal.msgWarning('请先选择追溯任务')
@@ -893,7 +1108,6 @@ function handleFillTopic4Result() {
   })
 }
 
-// 模拟运行第一部分算法
 function handleRunAlgorithm() {
   if (!selectedTraceId.value) {
     proxy.$modal.msgWarning('请先选择追溯任务')
@@ -906,7 +1120,6 @@ function handleRunAlgorithm() {
   })
 }
 
-// 刷新当前任务和列表
 function refreshCurrentTrace() {
   if (!selectedTraceId.value) return
 
@@ -916,33 +1129,215 @@ function refreshCurrentTrace() {
   })
 }
 
-// 判断知识图谱或报告是否已经生成
 function isGenerated(value) {
   return Number(value) === 1
 }
 
-// 打开第二部分页面生成的知识图谱
 function openKnowledgeGraph(row) {
   if (!row || !row.id) {
     proxy.$modal.msgWarning('未获取到追溯任务信息')
     return
   }
 
-  if (row.kgGraphUrl) {
-    const url = buildFileUrl(row.kgGraphUrl)
-    window.open(url, '_blank')
-    return
-  }
+  graphDialogOpen.value = true
+  graphLoading.value = true
+  graphTraceInfo.value = row
+  graphDataCache.value = null
 
-  router.push({
-    path: '/topic5/knowledgeGraph',
-    query: {
-      traceId: row.id
+  getSourceResult(row.id).then(res => {
+    const data = res.data || {}
+    const traceProblem = data.traceProblem || row
+
+    graphTraceInfo.value = traceProblem
+
+    const graphJson =
+      data.sourceGraphJson ||
+      traceProblem.sourceGraphJson ||
+      null
+
+    graphLoading.value = false
+
+    if (!graphJson) {
+      proxy.$modal.msgWarning('暂无最终溯源知识图谱，请先在第三页面运行全链路追溯闭环算法')
+      return
     }
+
+    graphDataCache.value = graphJson
+
+    nextTick(() => {
+      renderGraphDialog(graphDataCache.value)
+    })
+  }).catch(err => {
+    graphLoading.value = false
+    console.error('获取最终溯源图谱失败：', err)
+    proxy.$modal.msgError('获取最终溯源图谱失败，请检查第三页面算法结果是否已生成')
   })
 }
 
-// 打开第三部分最终生成的 Word 溯源报告
+function handleGraphDialogOpened() {
+  if (graphDataCache.value) {
+    renderGraphDialog(graphDataCache.value)
+  }
+}
+
+function handleGraphDialogClosed() {
+  if (graphDialogChart) {
+    graphDialogChart.dispose()
+    graphDialogChart = null
+  }
+
+  graphDataCache.value = null
+  graphTraceInfo.value = {}
+}
+
+function renderGraphDialog(graphInput) {
+  if (!graphInput || !graphDialogRef.value) {
+    return
+  }
+
+  nextTick(() => {
+    const option = buildGraphOption(graphInput)
+
+    if (!graphDialogChart) {
+      graphDialogChart = echarts.init(graphDialogRef.value)
+    }
+
+    if (!option || !option.series || option.series.length === 0) {
+      graphDialogChart.clear()
+      return
+    }
+
+    graphDialogChart.setOption(option, true)
+    graphDialogChart.resize()
+  })
+}
+
+function buildGraphOption(graphInput) {
+  let graphData = graphInput
+
+  if (typeof graphInput === 'string') {
+    try {
+      graphData = JSON.parse(graphInput)
+    } catch (e) {
+      console.error('最终溯源图谱 JSON 解析失败：', e)
+      return { series: [] }
+    }
+  }
+
+  if (!graphData) {
+    return { series: [] }
+  }
+
+  if (graphData.series && Array.isArray(graphData.series)) {
+    return graphData
+  }
+
+  if (graphData.nodes || graphData.links || graphData.edges) {
+    return convertNodesLinksToOption(graphData)
+  }
+
+  return { series: [] }
+}
+
+function convertNodesLinksToOption(graphData) {
+  const nodes = graphData.nodes || []
+  const links = graphData.links || graphData.edges || []
+
+  if (nodes.length === 0) {
+    return { series: [] }
+  }
+
+  const categories = []
+  const categorySet = new Set()
+
+  nodes.forEach(node => {
+    const categoryName = node.category || node.stage_name || node.type || '未知类型'
+    if (!categorySet.has(categoryName)) {
+      categorySet.add(categoryName)
+      categories.push({ name: categoryName })
+    }
+  })
+
+  return {
+    tooltip: {
+      trigger: 'item',
+      confine: true,
+      formatter: function (params) {
+        if (params.dataType === 'node') {
+          return `
+            <div>
+              <b>${params.data.name || params.data.id || '-'}</b><br/>
+              类型：${params.data.type || params.data.category || params.data.stage_name || '-'}<br/>
+              分数：${params.data.score || params.data.value || '-'}
+            </div>
+          `
+        }
+
+        return params.data.name || params.data.relation_name || params.data.relation || ''
+      }
+    },
+    legend: [
+      {
+        top: 0,
+        data: categories.map(item => item.name)
+      }
+    ],
+    series: [
+      {
+        name: '最终溯源知识图谱',
+        type: 'graph',
+        layout: 'force',
+        roam: true,
+        draggable: true,
+        focusNodeAdjacency: true,
+        categories,
+        label: {
+          show: true,
+          position: 'right'
+        },
+        edgeLabel: {
+          show: true,
+          formatter: function (params) {
+            return params.data.name || params.data.relation_name || params.data.relation || ''
+          }
+        },
+        force: {
+          repulsion: 650,
+          edgeLength: 150
+        },
+        data: nodes.map(node => {
+          const categoryName = node.category || node.stage_name || node.type || '未知类型'
+
+          return {
+            ...node,
+            id: node.id,
+            name: node.name || node.id,
+            category: categoryIndex(categories, categoryName),
+            value: node.score || node.value || 1,
+            symbolSize: node.is_feedback
+              ? 68
+              : (node.is_target_object
+                ? 62
+                : (node.is_top_candidate ? 56 : 42))
+          }
+        }),
+        links: links.map(edge => ({
+          ...edge,
+          source: edge.source,
+          target: edge.target,
+          name: edge.name || edge.relation_name || edge.relation || '',
+          value: edge.weight || edge.score || 1
+        }))
+      }
+    ]
+  }
+}
+
+function categoryIndex(categories, name) {
+  const index = categories.findIndex(item => item.name === name)
+  return index >= 0 ? index : 0
+}
+
 function openTraceReport(row) {
   if (!row || !row.id) {
     proxy.$modal.msgWarning('未获取到追溯任务信息')
@@ -958,7 +1353,6 @@ function openTraceReport(row) {
   window.open(url, '_blank')
 }
 
-// 兼容 /profile/... 和 http... 地址
 function buildFileUrl(url) {
   if (!url) return ''
   if (url.startsWith('http')) return url
@@ -967,7 +1361,6 @@ function buildFileUrl(url) {
   return baseApi + url
 }
 
-// 路径规范化
 function normalizePath(path) {
   if (!path) return ''
   let result = path.replace(/\\/g, '/')
@@ -977,16 +1370,17 @@ function normalizePath(path) {
   return result
 }
 
-// 任务状态颜色
 function traceStatusTagType(status) {
   if (status === '未处理') return 'info'
   if (status === '处理中') return 'warning'
   if (status === '第一部分算法完成') return 'success'
+  if (status === '第二部分算法完成') return 'success'
+  if (status === '最终溯源算法完成') return 'success'
+  if (status === '溯源完成') return 'success'
   if (status === '已完成') return 'success'
   return 'info'
 }
 
-// 课题四状态文字
 function topic4StatusName(status) {
   const value = Number(status)
   if (value === 0) return '未推送'
@@ -996,7 +1390,6 @@ function topic4StatusName(status) {
   return '未选择追溯任务'
 }
 
-// 算法状态文字
 function algorithmStatusName(status) {
   const value = Number(status)
   if (value === 0) return '未运行'
@@ -1006,7 +1399,6 @@ function algorithmStatusName(status) {
   return '未运行'
 }
 
-// 算法状态颜色
 function algorithmTagType(status) {
   const value = Number(status)
   if (value === 0) return 'info'
@@ -1016,7 +1408,227 @@ function algorithmTagType(status) {
   return 'info'
 }
 
-// 新流程阶段名称
+function parseFirstAlgorithmResult(value) {
+  if (!value) {
+    return null
+  }
+
+  if (typeof value === 'object') {
+    return normalizeFirstAlgorithmResultObject(value)
+  }
+
+  try {
+    const obj = JSON.parse(value)
+    return normalizeFirstAlgorithmResultObject(obj)
+  } catch (e) {
+    return parseFirstAlgorithmResultFromText(value)
+  }
+}
+
+function normalizeFirstAlgorithmResultObject(obj) {
+  if (!obj) {
+    return null
+  }
+
+  const data = obj.data || obj
+  const business = data.business_conclusion || data.businessConclusion || {}
+  const algorithm = data.algorithm_details || data.algorithmDetails || {}
+
+  return {
+    faultComponentId:
+      data.faultComponentId ||
+      data.fault_component_id ||
+      business.fault_component_id ||
+      business.faultComponentId ||
+      '-',
+
+    faultComponent:
+      data.faultComponent ||
+      data.fault_component ||
+      business.fault_component ||
+      business.faultComponent ||
+      '-',
+
+    componentConfidence:
+      data.componentConfidence ||
+      data.component_confidence ||
+      business.component_confidence ||
+      business.componentConfidence ||
+      null,
+
+    triggerSensor:
+      data.triggerSensor ||
+      data.trigger_sensor ||
+      algorithm.trigger_sensor ||
+      algorithm.triggerSensor ||
+      '-',
+
+    sensorConfidence:
+      data.sensorConfidence ||
+      data.sensor_confidence ||
+      algorithm.sensor_confidence ||
+      algorithm.sensorConfidence ||
+      null,
+
+    evolutionChain:
+      data.evolutionChain ||
+      data.evolution_chain ||
+      algorithm.evolution_chain ||
+      algorithm.evolutionChain ||
+      null,
+
+    conclusion:
+      data.conclusion ||
+      data.algorithmConclusion ||
+      data.algorithm_conclusion ||
+      '当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。',
+
+    componentDiagnostics:
+      data.componentDiagnostics ||
+      data.component_diagnostics ||
+      business.component_diagnostics ||
+      business.componentDiagnostics ||
+      []
+  }
+}
+
+function parseFirstAlgorithmResultFromText(text) {
+  if (!text || typeof text !== 'string') {
+    return null
+  }
+
+  return {
+    faultComponentId: extractTextField(text, '故障部件编号'),
+    faultComponent: extractTextField(text, '故障定位部件'),
+    componentConfidence: extractTextField(text, '部件置信度'),
+    triggerSensor: extractTextField(text, '触发传感器'),
+    sensorConfidence: extractTextField(text, '传感器置信度'),
+    evolutionChain: extractTextField(text, '故障传播链条') || extractTextField(text, '故障传播链路'),
+    conclusion: extractTextField(text, '算法结论'),
+    componentDiagnostics: parseComponentDiagnosticsFromText(text)
+  }
+}
+
+function extractTextField(text, label) {
+  const reg = new RegExp(label + '[:：]\\s*([^\\n\\r]+)')
+  const match = text.match(reg)
+  return match ? match[1].trim() : ''
+}
+
+function parseComponentDiagnosticsFromText(text) {
+  const raw = extractTextField(text, '部件诊断信息')
+  return normalizeComponentDiagnostics(raw)
+}
+
+function normalizeComponentDiagnostics(value) {
+  if (!value) {
+    return []
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item, index) => normalizeComponentDiagnosticItem(item, index))
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const jsonObj = JSON.parse(value)
+      if (Array.isArray(jsonObj)) {
+        return jsonObj.map((item, index) => normalizeComponentDiagnosticItem(item, index))
+      }
+    } catch (e) {
+      return parseJavaLikeComponentDiagnostics(value)
+    }
+  }
+
+  return []
+}
+
+function parseJavaLikeComponentDiagnostics(text) {
+  if (!text || typeof text !== 'string') {
+    return []
+  }
+
+  const blocks = text.match(/\{[^{}]*\}/g) || []
+
+  return blocks.map((block, index) => {
+    const item = {}
+
+    block
+      .replace(/^\{/, '')
+      .replace(/\}$/, '')
+      .split(',')
+      .forEach(pair => {
+        const idx = pair.indexOf('=')
+        if (idx > -1) {
+          const key = pair.substring(0, idx).trim()
+          const value = pair.substring(idx + 1).trim()
+          item[key] = value
+        }
+      })
+
+    return normalizeComponentDiagnosticItem(item, index)
+  })
+}
+
+function normalizeComponentDiagnosticItem(item, index) {
+  if (!item || typeof item !== 'object') {
+    return {
+      rank: index + 1,
+      componentId: '-',
+      componentName: '-',
+      faultType: '-',
+      severity: null,
+      faultLevel: '-',
+      isFault: false
+    }
+  }
+
+  const isFaultValue =
+    item.isFault !== undefined
+      ? item.isFault
+      : item.is_fault
+
+  return {
+    rank: item.rank || index + 1,
+    componentId: item.componentId || item.component_id || item.code || '-',
+    componentName: item.componentName || item.component_name || item.name || '-',
+    faultType: item.faultType || item.fault_type || item.type || '-',
+    severity: item.severity !== undefined ? item.severity : item.score,
+    faultLevel: item.faultLevel || item.fault_level || item.level || '-',
+    isFault: isFaultValue === true || isFaultValue === 'true' || isFaultValue === 1 || isFaultValue === '1'
+  }
+}
+
+function formatFirstAlgConfidence(value) {
+  if (value === null || value === undefined || value === '') {
+    return '-'
+  }
+
+  const num = Number(value)
+
+  if (Number.isNaN(num)) {
+    return value
+  }
+
+  if (num <= 1) {
+    return (num * 100).toFixed(2) + '%'
+  }
+
+  return num.toFixed(2)
+}
+
+function formatEvolutionChain(chain) {
+  if (!chain) {
+    return '-'
+  }
+
+  if (Array.isArray(chain)) {
+    return chain.join(' → ')
+  }
+
+  return String(chain)
+}
+
 function workflowName(stage) {
   const value = Number(stage)
   if (value === 1) return '问题填报'
@@ -1030,6 +1642,12 @@ function workflowName(stage) {
 
 onMounted(() => {
   getList()
+
+  window.addEventListener('resize', () => {
+    if (graphDialogChart) {
+      graphDialogChart.resize()
+    }
+  })
 })
 </script>
 
@@ -1040,6 +1658,16 @@ onMounted(() => {
 
 .mt15 {
   margin-top: 15px;
+}
+
+.first-algorithm-detail-box {
+  width: 100%;
+}
+
+.sub-title {
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
 }
 
 .card-header {
@@ -1061,5 +1689,31 @@ onMounted(() => {
   line-height: 24px;
   color: #606266;
   font-size: 13px;
+}
+
+.graph-dialog-container {
+  width: 100%;
+  height: 650px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.graph-loading {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #909399;
+  font-size: 15px;
+}
+
+.graph-info {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 12px;
+  color: #606266;
+  font-size: 14px;
+  flex-wrap: wrap;
 }
 </style>
