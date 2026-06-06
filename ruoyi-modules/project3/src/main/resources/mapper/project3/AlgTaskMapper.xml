@@ -45,28 +45,38 @@
 
     <select id="getByTaskId" resultMap="AlgTaskResultMap">
         select <include refid="BaseColumnList"/>
-        from algorithm_task_results
+        from t3_algorithm_task_results
         where task_id = #{taskId}
+        limit 1
+    </select>
+
+    <select id="getRunningTaskByRemark" resultMap="AlgTaskResultMap">
+        select <include refid="BaseColumnList"/>
+        from t3_algorithm_task_results
+        where task_type = #{taskType}
+          and remark = #{remark}
+          and status in ('PENDING', 'RUNNING')
+        order by created_at desc, id desc
         limit 1
     </select>
 
     <select id="getTasksByFlowTaskId" resultMap="AlgTaskResultMap">
         select <include refid="BaseColumnList"/>
-        from algorithm_task_results
+        from t3_algorithm_task_results
         where task_id = #{flowTaskId}
            or feature_analysis_task_id = #{flowTaskId}
         order by created_at asc, id asc
     </select>
 
     <delete id="deleteByFlowTaskId">
-        delete from algorithm_task_results
+        delete from t3_algorithm_task_results
         where task_id = #{flowTaskId}
            or feature_analysis_task_id = #{flowTaskId}
     </delete>
 
     <select id="getLatestFeatureProcessingByFlowTaskId" resultMap="AlgTaskResultMap">
         select <include refid="BaseColumnList"/>
-        from algorithm_task_results
+        from t3_algorithm_task_results
         where feature_analysis_task_id = #{flowTaskId}
           and task_type = 'FEATURE_PROCESSING'
           and status = 'SUCCESS'
@@ -75,7 +85,7 @@
     </select>
 
     <insert id="insertTask" parameterType="com.ruoyi.project3.domain.algorithm.AlgTaskResult" useGeneratedKeys="true" keyProperty="id">
-        insert into algorithm_task_results
+        insert into t3_algorithm_task_results
         (
             task_id, task_type, task_name, status, request_id, algorithm_version,
             aircraft_id, subsystem_id, equipment_id, component_id,
@@ -96,7 +106,7 @@
     </insert>
 
     <update id="updateTask" parameterType="com.ruoyi.project3.domain.algorithm.AlgTaskResult">
-        update algorithm_task_results
+        update t3_algorithm_task_results
         <set>
             <if test="taskType != null">task_type = #{taskType},</if>
             <if test="taskName != null">task_name = #{taskName},</if>
@@ -123,11 +133,14 @@
             updated_at = now()
         </set>
         where task_id = #{taskId}
+        <if test="status != null">
+            and (status not in ('SUCCESS', 'FAILED', 'CANCELED') or status = #{status})
+        </if>
     </update>
 
     <select id="getLatestFeatureDataTask" resultMap="AlgTaskResultMap">
         select <include refid="BaseColumnList"/>
-        from algorithm_task_results
+        from t3_algorithm_task_results
         where task_type = 'FEATURE_ANALYSIS'
           and status = 'SUCCESS'
           and result_json is not null
@@ -163,7 +176,7 @@
 
     <select id="getWarningResult" resultMap="AlgTaskResultMap">
         select <include refid="BaseColumnList"/>
-        from algorithm_task_results
+        from t3_algorithm_task_results
         <include refid="WarningWhere"/>
         order by created_at desc, id desc
         limit #{offset}, #{limit}
@@ -171,12 +184,42 @@
 
     <select id="countWarningResult" resultType="java.lang.Long">
         select count(1)
-        from algorithm_task_results
+        from t3_algorithm_task_results
         <include refid="WarningWhere"/>
     </select>
 
+    <sql id="KqcMiningWhere">
+        where task_type = 'KQC_MINING'
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                task_id like concat('%', #{keyword}, '%')
+                or task_name like concat('%', #{keyword}, '%')
+                or summary_result like concat('%', #{keyword}, '%')
+                or result_value like concat('%', #{keyword}, '%')
+                or error_message like concat('%', #{keyword}, '%')
+            )
+        </if>
+    </sql>
+
+    <select id="getKqcMiningResult" resultMap="AlgTaskResultMap">
+        select <include refid="BaseColumnList"/>
+        from t3_algorithm_task_results
+        <include refid="KqcMiningWhere"/>
+        order by created_at desc, id desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="countKqcMiningResult" resultType="java.lang.Long">
+        select count(1)
+        from t3_algorithm_task_results
+        <include refid="KqcMiningWhere"/>
+    </select>
+
     <sql id="IdentifyWhere">
-        where t.task_type in ('FEATURE_ANALYSIS', 'FEATURE_PROCESSING', 'EARLY_DEGRADATION_POINT_DETECT', 'KEY_PROCESS_IDENTIFY', 'FAULT_PREDICT')
+        where t.task_type in ('FEATURE_ANALYSIS', 'FEATURE_PROCESSING', 'EARLY_DEGRADATION_POINT_DETECT', 'KEY_PROCESS', 'FAULT_PREDICT')
         <if test="taskType != null and taskType != ''">
             and t.task_type = #{taskType}
         </if>
@@ -214,7 +257,7 @@
                         t.created_at desc,
                         t.id desc
                 ) as rn
-            from algorithm_task_results t
+            from t3_algorithm_task_results t
             <include refid="IdentifyWhere"/>
         ) x
         where x.rn = 1
@@ -226,14 +269,14 @@
         select count(1)
         from (
             select coalesce(t.feature_analysis_task_id, t.task_id) as flow_task_id
-            from algorithm_task_results t
+            from t3_algorithm_task_results t
             <include refid="IdentifyWhere"/>
             group by coalesce(t.feature_analysis_task_id, t.task_id)
         ) x
     </select>
 
     <sql id="KeyProcessWhere">
-        where task_type = 'KEY_PROCESS_IDENTIFY'
+        where task_type = 'KEY_PROCESS'
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
@@ -255,7 +298,7 @@
 
     <select id="getKeyProcessResult" resultMap="AlgTaskResultMap">
         select <include refid="BaseColumnList"/>
-        from algorithm_task_results
+        from t3_algorithm_task_results
         <include refid="KeyProcessWhere"/>
         order by created_at desc, id desc
         limit #{offset}, #{limit}
@@ -263,7 +306,7 @@
 
     <select id="countKeyProcessResult" resultType="java.lang.Long">
         select count(1)
-        from algorithm_task_results
+        from t3_algorithm_task_results
         <include refid="KeyProcessWhere"/>
     </select>
 

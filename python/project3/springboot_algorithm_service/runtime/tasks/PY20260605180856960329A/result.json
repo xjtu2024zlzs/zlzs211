@@ -1,0 +1,5665 @@
+{
+  "success": true,
+  "code": 0,
+  "message": "Bosch KQC mining completed",
+  "taskId": "KQC20260605180856915",
+  "taskType": "KQC_MINING",
+  "status": "SUCCESS",
+  "data": {
+    "taskId": "KQC20260605180856915",
+    "status": "SUCCESS",
+    "result": {
+      "taskId": "KQC20260605180856915",
+      "taskType": "KQC_MINING",
+      "status": "SUCCESS",
+      "message": "Bosch KQC mining completed",
+      "targetKqc": "Response",
+      "selectedFeatureCount": 80,
+      "influenceCount": 3,
+      "topInfluences": [
+        {
+          "source_variable": "L3_S49_F4221",
+          "station": "L3_S49",
+          "target_kqc": "Response",
+          "weight": 0.07933775364703415,
+          "frequency": 1.0
+        },
+        {
+          "source_variable": "L1_S24_F1632",
+          "station": "L1_S24",
+          "target_kqc": "Response",
+          "weight": -0.07404922435409508,
+          "frequency": 1.0
+        },
+        {
+          "source_variable": "L1_S24_F1604",
+          "station": "L1_S24",
+          "target_kqc": "Response",
+          "weight": -0.06159905517866645,
+          "frequency": 1.0
+        }
+      ],
+      "graphData": {
+        "nodes": [
+          {
+            "id": "L0_S0_F2",
+            "name": "L0_S0_F2",
+            "station": "L0_S0",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S0_F10",
+            "name": "L0_S0_F10",
+            "station": "L0_S0",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S1_F24",
+            "name": "L0_S1_F24",
+            "station": "L0_S1",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S1_F28",
+            "name": "L0_S1_F28",
+            "station": "L0_S1",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S2_F48",
+            "name": "L0_S2_F48",
+            "station": "L0_S2",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S2_F60",
+            "name": "L0_S2_F60",
+            "station": "L0_S2",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S3_F68",
+            "name": "L0_S3_F68",
+            "station": "L0_S3",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S3_F92",
+            "name": "L0_S3_F92",
+            "station": "L0_S3",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S4_F104",
+            "name": "L0_S4_F104",
+            "station": "L0_S4",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S4_F109",
+            "name": "L0_S4_F109",
+            "station": "L0_S4",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S5_F114",
+            "name": "L0_S5_F114",
+            "station": "L0_S5",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S5_F116",
+            "name": "L0_S5_F116",
+            "station": "L0_S5",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S6_F118",
+            "name": "L0_S6_F118",
+            "station": "L0_S6",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S6_F132",
+            "name": "L0_S6_F132",
+            "station": "L0_S6",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S7_F138",
+            "name": "L0_S7_F138",
+            "station": "L0_S7",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S7_F142",
+            "name": "L0_S7_F142",
+            "station": "L0_S7",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S8_F144",
+            "name": "L0_S8_F144",
+            "station": "L0_S8",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S9_F190",
+            "name": "L0_S9_F190",
+            "station": "L0_S9",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S9_F210",
+            "name": "L0_S9_F210",
+            "station": "L0_S9",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S10_F219",
+            "name": "L0_S10_F219",
+            "station": "L0_S10",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S10_F229",
+            "name": "L0_S10_F229",
+            "station": "L0_S10",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S11_F306",
+            "name": "L0_S11_F306",
+            "station": "L0_S11",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S11_F318",
+            "name": "L0_S11_F318",
+            "station": "L0_S11",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S12_F334",
+            "name": "L0_S12_F334",
+            "station": "L0_S12",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S12_F336",
+            "name": "L0_S12_F336",
+            "station": "L0_S12",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S13_F354",
+            "name": "L0_S13_F354",
+            "station": "L0_S13",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S13_F356",
+            "name": "L0_S13_F356",
+            "station": "L0_S13",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S14_F362",
+            "name": "L0_S14_F362",
+            "station": "L0_S14",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S14_F390",
+            "name": "L0_S14_F390",
+            "station": "L0_S14",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S15_F400",
+            "name": "L0_S15_F400",
+            "station": "L0_S15",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S15_F403",
+            "name": "L0_S15_F403",
+            "station": "L0_S15",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S17_F431",
+            "name": "L0_S17_F431",
+            "station": "L0_S17",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S18_F435",
+            "name": "L0_S18_F435",
+            "station": "L0_S18",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S18_F449",
+            "name": "L0_S18_F449",
+            "station": "L0_S18",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S19_F453",
+            "name": "L0_S19_F453",
+            "station": "L0_S19",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S19_F459",
+            "name": "L0_S19_F459",
+            "station": "L0_S19",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S20_F461",
+            "name": "L0_S20_F461",
+            "station": "L0_S20",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S21_F472",
+            "name": "L0_S21_F472",
+            "station": "L0_S21",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S21_F487",
+            "name": "L0_S21_F487",
+            "station": "L0_S21",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S22_F571",
+            "name": "L0_S22_F571",
+            "station": "L0_S22",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S22_F591",
+            "name": "L0_S22_F591",
+            "station": "L0_S22",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S23_F623",
+            "name": "L0_S23_F623",
+            "station": "L0_S23",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S23_F659",
+            "name": "L0_S23_F659",
+            "station": "L0_S23",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L1_S24_F1604",
+            "name": "L1_S24_F1604",
+            "station": "L1_S24",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L1_S24_F1632",
+            "name": "L1_S24_F1632",
+            "station": "L1_S24",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L1_S25_F2460",
+            "name": "L1_S25_F2460",
+            "station": "L1_S25",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L1_S25_F2462",
+            "name": "L1_S25_F2462",
+            "station": "L1_S25",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L2_S26_F3069",
+            "name": "L2_S26_F3069",
+            "station": "L2_S26",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L2_S26_F3077",
+            "name": "L2_S26_F3077",
+            "station": "L2_S26",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L2_S27_F3129",
+            "name": "L2_S27_F3129",
+            "station": "L2_S27",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L2_S27_F3133",
+            "name": "L2_S27_F3133",
+            "station": "L2_S27",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S29_F3351",
+            "name": "L3_S29_F3351",
+            "station": "L3_S29",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S29_F3458",
+            "name": "L3_S29_F3458",
+            "station": "L3_S29",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S30_F3794",
+            "name": "L3_S30_F3794",
+            "station": "L3_S30",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S30_F3799",
+            "name": "L3_S30_F3799",
+            "station": "L3_S30",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S32_F3850",
+            "name": "L3_S32_F3850",
+            "station": "L3_S32",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S33_F3855",
+            "name": "L3_S33_F3855",
+            "station": "L3_S33",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S33_F3865",
+            "name": "L3_S33_F3865",
+            "station": "L3_S33",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S35_F3884",
+            "name": "L3_S35_F3884",
+            "station": "L3_S35",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S35_F3894",
+            "name": "L3_S35_F3894",
+            "station": "L3_S35",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S36_F3920",
+            "name": "L3_S36_F3920",
+            "station": "L3_S36",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S36_F3924",
+            "name": "L3_S36_F3924",
+            "station": "L3_S36",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S38_F3956",
+            "name": "L3_S38_F3956",
+            "station": "L3_S38",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S38_F3960",
+            "name": "L3_S38_F3960",
+            "station": "L3_S38",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S39_F3972",
+            "name": "L3_S39_F3972",
+            "station": "L3_S39",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S39_F3976",
+            "name": "L3_S39_F3976",
+            "station": "L3_S39",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S40_F3980",
+            "name": "L3_S40_F3980",
+            "station": "L3_S40",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S40_F3984",
+            "name": "L3_S40_F3984",
+            "station": "L3_S40",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S41_F4014",
+            "name": "L3_S41_F4014",
+            "station": "L3_S41",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S41_F4016",
+            "name": "L3_S41_F4016",
+            "station": "L3_S41",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S45_F4124",
+            "name": "L3_S45_F4124",
+            "station": "L3_S45",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S45_F4130",
+            "name": "L3_S45_F4130",
+            "station": "L3_S45",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S47_F4138",
+            "name": "L3_S47_F4138",
+            "station": "L3_S47",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S47_F4158",
+            "name": "L3_S47_F4158",
+            "station": "L3_S47",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S48_F4196",
+            "name": "L3_S48_F4196",
+            "station": "L3_S48",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S48_F4202",
+            "name": "L3_S48_F4202",
+            "station": "L3_S48",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S49_F4211",
+            "name": "L3_S49_F4211",
+            "station": "L3_S49",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S49_F4221",
+            "name": "L3_S49_F4221",
+            "station": "L3_S49",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S51_F4256",
+            "name": "L3_S51_F4256",
+            "station": "L3_S51",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S51_F4262",
+            "name": "L3_S51_F4262",
+            "station": "L3_S51",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "Response",
+            "name": "Response",
+            "station": null,
+            "category": 1,
+            "symbolSize": 34,
+            "value": 1
+          }
+        ],
+        "links": [
+          {
+            "source": "L0_S0_F2",
+            "target": "L0_S1_F24",
+            "weight": 0.06254798244107093,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F2",
+            "target": "L0_S1_F28",
+            "weight": 0.0013237612210424189,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S0_F2",
+            "target": "L0_S2_F60",
+            "weight": -0.00014962933102715607,
+            "frequency": 0.8,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S0_F2",
+            "target": "L0_S3_F92",
+            "weight": 0.0013894141153390786,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S0_F2",
+            "target": "L0_S5_F114",
+            "weight": -0.2129995038961698,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F2",
+            "target": "L0_S5_F116",
+            "weight": 0.053539186213898,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 5.3539186213898
+            }
+          },
+          {
+            "source": "L0_S0_F2",
+            "target": "L0_S7_F142",
+            "weight": -0.06717750146615632,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F2",
+            "target": "L0_S11_F306",
+            "weight": -0.04548669218618885,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 4.548669218618885
+            }
+          },
+          {
+            "source": "L0_S0_F2",
+            "target": "L0_S11_F318",
+            "weight": -0.030643404849125214,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 3.0643404849125213
+            }
+          },
+          {
+            "source": "L0_S0_F2",
+            "target": "L3_S41_F4014",
+            "weight": 0.08970661736934622,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S1_F24",
+            "weight": 0.18887579813332672,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S1_F28",
+            "weight": 0.0033688382966840344,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S2_F48",
+            "weight": -0.019224263023584178,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.9224263023584178
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S2_F60",
+            "weight": 0.00946825452612318,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S4_F104",
+            "weight": 0.27560052063197554,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S6_F132",
+            "weight": -0.14258302130893008,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S7_F138",
+            "weight": -0.08046828370341813,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S8_F144",
+            "weight": 0.16568477125413325,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S9_F210",
+            "weight": -0.08993266104486893,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S10_F219",
+            "weight": -0.10479192387625083,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L0_S10_F229",
+            "weight": -0.09073624093497867,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L3_S29_F3351",
+            "weight": -0.06378410984024814,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L3_S29_F3458",
+            "weight": -0.06378410984024675,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L3_S33_F3865",
+            "weight": 0.008412811845576407,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S0_F10",
+            "target": "L3_S41_F4016",
+            "weight": 0.2973675148573209,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S2_F48",
+            "weight": -0.01590897206258072,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.590897206258072
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S2_F60",
+            "weight": -0.00023245064552858072,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S3_F68",
+            "weight": 0.0568174225408369,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 5.68174225408369
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S3_F92",
+            "weight": 0.08142065703419239,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S4_F109",
+            "weight": 0.12189082077032865,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S5_F114",
+            "weight": -0.5720849746877127,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S5_F116",
+            "weight": -0.0010340906968057532,
+            "frequency": 0.8,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S7_F142",
+            "weight": -0.3127313297035628,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S10_F229",
+            "weight": 0.07458099945375792,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S11_F306",
+            "weight": -0.21177397851175148,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L0_S11_F318",
+            "weight": -0.17053720632702277,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L2_S27_F3129",
+            "weight": 0.11120598300599242,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L3_S30_F3794",
+            "weight": -0.04428916896396511,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 4.428916896396511
+            }
+          },
+          {
+            "source": "L0_S1_F24",
+            "target": "L3_S41_F4016",
+            "weight": 0.3045770301055869,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S1_F28",
+            "target": "L0_S6_F118",
+            "weight": 0.0660313870784775,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S2_F48",
+            "target": "L0_S4_F104",
+            "weight": -0.136065880297192,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S2_F48",
+            "target": "L0_S5_F116",
+            "weight": 0.06489117189305436,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S2_F48",
+            "target": "L0_S6_F118",
+            "weight": 0.07420442543415205,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S2_F48",
+            "target": "L0_S9_F190",
+            "weight": -0.09953318477273027,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S2_F48",
+            "target": "L3_S33_F3855",
+            "weight": -0.014969861529092708,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.4969861529092707
+            }
+          },
+          {
+            "source": "L0_S2_F48",
+            "target": "L3_S40_F3980",
+            "weight": -0.03822644976701736,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 3.8226449767017363
+            }
+          },
+          {
+            "source": "L0_S2_F48",
+            "target": "L3_S41_F4014",
+            "weight": -0.047537782629128895,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 4.753778262912889
+            }
+          },
+          {
+            "source": "L0_S2_F48",
+            "target": "L3_S47_F4158",
+            "weight": 0.04332037907706189,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 4.332037907706189
+            }
+          },
+          {
+            "source": "L0_S2_F60",
+            "target": "L3_S39_F3972",
+            "weight": 0.0036473766964716567,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S2_F60",
+            "target": "L3_S45_F4130",
+            "weight": 0.0981718489059182,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S3_F68",
+            "target": "L0_S4_F104",
+            "weight": -0.05239008761616105,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.2390087616161045
+            }
+          },
+          {
+            "source": "L0_S3_F68",
+            "target": "L0_S4_F109",
+            "weight": -0.05310313537802303,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.310313537802303
+            }
+          },
+          {
+            "source": "L0_S3_F68",
+            "target": "L0_S7_F138",
+            "weight": -0.03858421857809688,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 3.858421857809688
+            }
+          },
+          {
+            "source": "L0_S3_F92",
+            "target": "L0_S4_F109",
+            "weight": -0.0832760649365779,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S3_F92",
+            "target": "L0_S5_F114",
+            "weight": -0.07160832505287841,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S3_F92",
+            "target": "L0_S6_F118",
+            "weight": 0.09144310398817761,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S4_F104",
+            "target": "L0_S7_F142",
+            "weight": -0.0512968231932897,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.12968231932897
+            }
+          },
+          {
+            "source": "L0_S4_F104",
+            "target": "L0_S9_F210",
+            "weight": -0.06118732635194124,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S4_F104",
+            "target": "L2_S27_F3129",
+            "weight": 0.10375469342648114,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S4_F104",
+            "target": "L2_S27_F3133",
+            "weight": 0.03330429610306371,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 3.330429610306371
+            }
+          },
+          {
+            "source": "L0_S4_F104",
+            "target": "L3_S33_F3855",
+            "weight": -0.035090272805447124,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 3.5090272805447125
+            }
+          },
+          {
+            "source": "L0_S4_F104",
+            "target": "L3_S41_F4016",
+            "weight": -0.26008182469857577,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S4_F109",
+            "target": "L0_S6_F132",
+            "weight": 0.11765858600771946,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S4_F109",
+            "target": "L0_S7_F138",
+            "weight": 0.056646921340295885,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 5.664692134029589
+            }
+          },
+          {
+            "source": "L0_S4_F109",
+            "target": "L0_S11_F306",
+            "weight": -0.06092538971063148,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S4_F109",
+            "target": "L0_S11_F318",
+            "weight": -0.038609280342303584,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 3.8609280342303585
+            }
+          },
+          {
+            "source": "L0_S5_F114",
+            "target": "L0_S9_F190",
+            "weight": 0.10909908083402242,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S5_F114",
+            "target": "L2_S27_F3129",
+            "weight": -0.0012274916280314468,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S5_F114",
+            "target": "L3_S35_F3894",
+            "weight": -0.07857802088417552,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S5_F116",
+            "target": "L0_S6_F132",
+            "weight": 0.02157182987054394,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 2.157182987054394
+            }
+          },
+          {
+            "source": "L0_S6_F118",
+            "target": "L0_S10_F219",
+            "weight": 0.03670682572237281,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 3.6706825722372813
+            }
+          },
+          {
+            "source": "L0_S6_F132",
+            "target": "L0_S8_F144",
+            "weight": -0.10066239660373327,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S6_F132",
+            "target": "L3_S39_F3976",
+            "weight": 0.018459417054240687,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.8459417054240688
+            }
+          },
+          {
+            "source": "L0_S6_F132",
+            "target": "L3_S40_F3984",
+            "weight": 0.1392985518185381,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S7_F142",
+            "target": "L0_S8_F144",
+            "weight": -0.10877982161371877,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S7_F142",
+            "target": "L0_S10_F219",
+            "weight": -0.10622919841998338,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S8_F144",
+            "target": "L0_S9_F190",
+            "weight": 0.18673204118145378,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S8_F144",
+            "target": "L0_S9_F210",
+            "weight": -0.08941779077942065,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S8_F144",
+            "target": "L0_S10_F229",
+            "weight": 0.05761085762537127,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 5.761085762537127
+            }
+          },
+          {
+            "source": "L0_S8_F144",
+            "target": "L3_S29_F3351",
+            "weight": 0.1679384987440945,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S8_F144",
+            "target": "L3_S29_F3458",
+            "weight": 0.16793849874409342,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S8_F144",
+            "target": "L3_S36_F3920",
+            "weight": 0.017186846293001077,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.7186846293001077
+            }
+          },
+          {
+            "source": "L0_S8_F144",
+            "target": "L3_S36_F3924",
+            "weight": 0.017186846293000838,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.7186846293000837
+            }
+          },
+          {
+            "source": "L0_S8_F144",
+            "target": "L3_S38_F3956",
+            "weight": -0.05260100900000936,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.2601009000009356
+            }
+          },
+          {
+            "source": "L0_S8_F144",
+            "target": "L3_S40_F3984",
+            "weight": -0.44674643581083906,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S8_F144",
+            "target": "L3_S48_F4196",
+            "weight": 0.15417548775528067,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S9_F190",
+            "target": "L3_S39_F3976",
+            "weight": -0.17387356947994972,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S9_F210",
+            "target": "L3_S39_F3976",
+            "weight": 0.06721349692654123,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S11_F306",
+            "target": "L3_S32_F3850",
+            "weight": -0.07640895525680447,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S11_F318",
+            "target": "L3_S32_F3850",
+            "weight": -0.07692858963786148,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L0_S13_F354",
+            "weight": 0.008277974445610509,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L0_S13_F356",
+            "weight": 0.000832771693706919,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L0_S14_F362",
+            "weight": -0.0008572676276580885,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L0_S14_F390",
+            "weight": -0.006252410857305216,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L0_S15_F400",
+            "weight": 0.07862943500814877,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L0_S19_F453",
+            "weight": 0.029172638635495903,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 2.91726386354959
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L0_S21_F472",
+            "weight": -0.0533201213481069,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.33201213481069
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L0_S22_F571",
+            "weight": 0.0015709986354494048,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L0_S22_F591",
+            "weight": -0.13714630087868504,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L2_S27_F3133",
+            "weight": -0.2150768127159145,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L3_S33_F3855",
+            "weight": -0.018350999402653497,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.8350999402653496
+            }
+          },
+          {
+            "source": "L0_S12_F334",
+            "target": "L3_S51_F4262",
+            "weight": 0.03469108707898908,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 3.4691087078989082
+            }
+          },
+          {
+            "source": "L0_S12_F336",
+            "target": "L0_S13_F354",
+            "weight": 0.003926435771402571,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S12_F336",
+            "target": "L0_S13_F356",
+            "weight": 0.004180874918711295,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S12_F336",
+            "target": "L0_S15_F400",
+            "weight": 0.06504291233443657,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S12_F336",
+            "target": "L0_S15_F403",
+            "weight": 0.00045799833136158887,
+            "frequency": 0.8,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S12_F336",
+            "target": "L0_S19_F453",
+            "weight": 0.003387273560059271,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S12_F336",
+            "target": "L0_S19_F459",
+            "weight": -0.0679970165123677,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S12_F336",
+            "target": "L0_S23_F659",
+            "weight": -0.06879889336933817,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S12_F336",
+            "target": "L2_S27_F3133",
+            "weight": -0.21337129101684363,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S13_F354",
+            "target": "L0_S14_F362",
+            "weight": -0.010354478730948732,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0354478730948733
+            }
+          },
+          {
+            "source": "L0_S13_F354",
+            "target": "L0_S14_F390",
+            "weight": 0.1735742155556897,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S13_F354",
+            "target": "L0_S15_F400",
+            "weight": -0.059658886344128595,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.96588863441286
+            }
+          },
+          {
+            "source": "L0_S13_F354",
+            "target": "L0_S17_F431",
+            "weight": 0.19770975141669608,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S13_F354",
+            "target": "L0_S18_F435",
+            "weight": -0.04986278778874024,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 4.9862787788740235
+            }
+          },
+          {
+            "source": "L0_S13_F354",
+            "target": "L0_S19_F453",
+            "weight": 0.020772933371358538,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 2.077293337135854
+            }
+          },
+          {
+            "source": "L0_S13_F354",
+            "target": "L0_S19_F459",
+            "weight": -0.1309875447660584,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S13_F354",
+            "target": "L0_S21_F472",
+            "weight": 0.03847085094660043,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 3.8470850946600432
+            }
+          },
+          {
+            "source": "L0_S13_F354",
+            "target": "L0_S21_F487",
+            "weight": 0.1411830136077759,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S13_F354",
+            "target": "L3_S38_F3960",
+            "weight": -0.10140309716732122,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S13_F356",
+            "target": "L0_S14_F362",
+            "weight": -0.05310768829791372,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.310768829791372
+            }
+          },
+          {
+            "source": "L0_S13_F356",
+            "target": "L0_S14_F390",
+            "weight": 0.23443433964226024,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S13_F356",
+            "target": "L0_S18_F449",
+            "weight": 0.001666892840589019,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S13_F356",
+            "target": "L0_S19_F459",
+            "weight": -0.07231546697922064,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S13_F356",
+            "target": "L0_S21_F487",
+            "weight": -0.2740525367290082,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S13_F356",
+            "target": "L0_S23_F623",
+            "weight": -0.2843774935158842,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S14_F362",
+            "target": "L0_S17_F431",
+            "weight": -0.08194259624298388,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S14_F390",
+            "target": "L0_S18_F435",
+            "weight": 0.05091992691512844,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 5.091992691512845
+            }
+          },
+          {
+            "source": "L0_S15_F400",
+            "target": "L0_S17_F431",
+            "weight": -0.05189890928336004,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.189890928336004
+            }
+          },
+          {
+            "source": "L0_S15_F400",
+            "target": "L0_S23_F659",
+            "weight": 0.07552458525682128,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S15_F403",
+            "target": "L0_S18_F449",
+            "weight": -0.000516078840480677,
+            "frequency": 0.8,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S17_F431",
+            "target": "L0_S18_F435",
+            "weight": 0.054629112503679314,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 5.462911250367932
+            }
+          },
+          {
+            "source": "L0_S17_F431",
+            "target": "L0_S18_F449",
+            "weight": 0.03288265320023743,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 3.288265320023743
+            }
+          },
+          {
+            "source": "L0_S17_F431",
+            "target": "L0_S20_F461",
+            "weight": 0.11117745103108476,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S17_F431",
+            "target": "L0_S21_F487",
+            "weight": -0.1528567297624215,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S17_F431",
+            "target": "L0_S22_F571",
+            "weight": 0.10416091746642751,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S17_F431",
+            "target": "L0_S22_F591",
+            "weight": -0.14747533586854544,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S17_F431",
+            "target": "L0_S23_F623",
+            "weight": -0.1511461002543196,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S17_F431",
+            "target": "L3_S51_F4256",
+            "weight": -0.015173754859461538,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.5173754859461537
+            }
+          },
+          {
+            "source": "L0_S18_F449",
+            "target": "L0_S20_F461",
+            "weight": -0.14349793381327977,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S18_F449",
+            "target": "L3_S47_F4138",
+            "weight": 0.0811276587118276,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S19_F459",
+            "target": "L0_S20_F461",
+            "weight": -0.09693538138118948,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L0_S21_F472",
+            "weight": 0.052816002872424994,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 5.281600287242499
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L0_S22_F571",
+            "weight": 0.2077563072627032,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L0_S22_F591",
+            "weight": -0.33409468222934746,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L0_S23_F623",
+            "weight": -0.6060554800578412,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L0_S23_F659",
+            "weight": -0.22571457356729277,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L3_S29_F3351",
+            "weight": 0.04641743935013477,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 4.641743935013477
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L3_S29_F3458",
+            "weight": 0.04641743935013485,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 4.641743935013485
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L3_S40_F3984",
+            "weight": -0.29999410123461745,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L3_S47_F4138",
+            "weight": -0.12594243197900096,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L3_S49_F4221",
+            "weight": 0.1343902234025969,
+            "frequency": 0.6,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S20_F461",
+            "target": "L3_S51_F4256",
+            "weight": -0.05386110655525783,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.386110655525783
+            }
+          },
+          {
+            "source": "L0_S21_F487",
+            "target": "L3_S48_F4202",
+            "weight": -0.18565037197630352,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S22_F571",
+            "target": "L3_S39_F3972",
+            "weight": -0.1014996426075704,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S22_F571",
+            "target": "L3_S49_F4221",
+            "weight": -0.24417755404438896,
+            "frequency": 0.8,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S22_F591",
+            "target": "L3_S39_F3972",
+            "weight": -0.21670737081173644,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S22_F591",
+            "target": "L3_S49_F4221",
+            "weight": -0.5073200554423967,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L0_S23_F623",
+            "target": "L3_S32_F3850",
+            "weight": -0.05511449609609158,
+            "frequency": 0.6,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.511449609609158
+            }
+          },
+          {
+            "source": "L0_S23_F659",
+            "target": "L3_S45_F4124",
+            "weight": 0.04640813109427398,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 4.640813109427398
+            }
+          },
+          {
+            "source": "L1_S24_F1604",
+            "target": "L2_S26_F3069",
+            "weight": -0.0033542539530106654,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L1_S24_F1604",
+            "target": "L2_S26_F3077",
+            "weight": -0.042927644733840094,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 4.292764473384009
+            }
+          },
+          {
+            "source": "L1_S24_F1604",
+            "target": "L3_S38_F3956",
+            "weight": -0.05916054962990781,
+            "frequency": 0.8,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.916054962990781
+            }
+          },
+          {
+            "source": "L1_S24_F1604",
+            "target": "Response",
+            "weight": -0.06159905517866645,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L1_S24_F1632",
+            "target": "L2_S26_F3069",
+            "weight": -0.038337809840058704,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 3.8337809840058705
+            }
+          },
+          {
+            "source": "L1_S24_F1632",
+            "target": "L2_S26_F3077",
+            "weight": -0.059774459399199883,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 5.977445939919988
+            }
+          },
+          {
+            "source": "L1_S24_F1632",
+            "target": "L3_S30_F3799",
+            "weight": 0.025100664602284793,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 2.5100664602284795
+            }
+          },
+          {
+            "source": "L1_S24_F1632",
+            "target": "Response",
+            "weight": -0.07404922435409508,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S29_F3351",
+            "target": "L3_S30_F3794",
+            "weight": 0.050203255421251876,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 5.020325542125188
+            }
+          },
+          {
+            "source": "L3_S29_F3351",
+            "target": "L3_S30_F3799",
+            "weight": -0.015070164622492013,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.5070164622492013
+            }
+          },
+          {
+            "source": "L3_S29_F3351",
+            "target": "L3_S33_F3865",
+            "weight": 0.040317006041994424,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 4.031700604199442
+            }
+          },
+          {
+            "source": "L3_S29_F3351",
+            "target": "L3_S35_F3894",
+            "weight": 0.10517947628415389,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S29_F3351",
+            "target": "L3_S36_F3920",
+            "weight": 0.023794944873373094,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 2.3794944873373094
+            }
+          },
+          {
+            "source": "L3_S29_F3351",
+            "target": "L3_S36_F3924",
+            "weight": 0.023794944873373282,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 2.379494487337328
+            }
+          },
+          {
+            "source": "L3_S29_F3458",
+            "target": "L3_S30_F3794",
+            "weight": 0.050203255421251876,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 5.020325542125188
+            }
+          },
+          {
+            "source": "L3_S29_F3458",
+            "target": "L3_S30_F3799",
+            "weight": -0.015070164622492013,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.5070164622492013
+            }
+          },
+          {
+            "source": "L3_S29_F3458",
+            "target": "L3_S33_F3865",
+            "weight": 0.040317006041994424,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 4.031700604199442
+            }
+          },
+          {
+            "source": "L3_S29_F3458",
+            "target": "L3_S35_F3894",
+            "weight": 0.10517947628415389,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S29_F3458",
+            "target": "L3_S36_F3920",
+            "weight": 0.023794944873373094,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 2.3794944873373094
+            }
+          },
+          {
+            "source": "L3_S29_F3458",
+            "target": "L3_S36_F3924",
+            "weight": 0.023794944873373282,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 2.379494487337328
+            }
+          },
+          {
+            "source": "L3_S35_F3884",
+            "target": "L3_S38_F3956",
+            "weight": -0.07737960684099511,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S35_F3884",
+            "target": "L3_S38_F3960",
+            "weight": -0.2635954489692736,
+            "frequency": 0.8,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S35_F3894",
+            "target": "L3_S38_F3960",
+            "weight": -0.032432411643639095,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 3.2432411643639094
+            }
+          },
+          {
+            "source": "L3_S39_F3972",
+            "target": "L3_S40_F3980",
+            "weight": 0.004019291473882479,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L3_S39_F3976",
+            "target": "L3_S40_F3980",
+            "weight": -0.006073182787509463,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L3_S40_F3980",
+            "target": "L3_S47_F4158",
+            "weight": -0.07330778251383498,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S40_F3980",
+            "target": "L3_S48_F4202",
+            "weight": -0.18874874783048629,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S40_F3980",
+            "target": "L3_S49_F4211",
+            "weight": 0.14114329053261102,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S40_F3980",
+            "target": "L3_S51_F4262",
+            "weight": 0.0018719367531890058,
+            "frequency": 0.8,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L3_S40_F3984",
+            "target": "L3_S41_F4014",
+            "weight": 0.11417601013469736,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S40_F3984",
+            "target": "L3_S45_F4130",
+            "weight": -0.0010933290106702298,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L3_S40_F3984",
+            "target": "L3_S48_F4196",
+            "weight": -0.10673033296757481,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S40_F3984",
+            "target": "L3_S48_F4202",
+            "weight": 0.23903751657929806,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S40_F3984",
+            "target": "L3_S49_F4211",
+            "weight": -0.2349246709272759,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S41_F4014",
+            "target": "L3_S45_F4124",
+            "weight": 0.10860754653662025,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S41_F4014",
+            "target": "L3_S47_F4138",
+            "weight": -0.04787657879480308,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 4.787657879480308
+            }
+          },
+          {
+            "source": "L3_S41_F4014",
+            "target": "L3_S47_F4158",
+            "weight": 0.12422841431405611,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S41_F4014",
+            "target": "L3_S48_F4196",
+            "weight": 0.10533913716930059,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S41_F4016",
+            "target": "L3_S45_F4124",
+            "weight": -0.04979117627141559,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 4.979117627141559
+            }
+          },
+          {
+            "source": "L3_S41_F4016",
+            "target": "L3_S45_F4130",
+            "weight": -0.0041005473202887785,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L3_S41_F4016",
+            "target": "L3_S51_F4262",
+            "weight": 0.0012878550299046838,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L3_S45_F4124",
+            "target": "L3_S49_F4211",
+            "weight": 0.26325578623002027,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S45_F4124",
+            "target": "L3_S51_F4256",
+            "weight": -0.009724211054271474,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L3_S49_F4221",
+            "target": "Response",
+            "weight": 0.07933775364703415,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          }
+        ],
+        "categories": [
+          {
+            "name": "质量特性"
+          },
+          {
+            "name": "响应结果"
+          }
+        ]
+      },
+      "responseGraphData": {
+        "nodes": [
+          {
+            "id": "L1_S24_F1632",
+            "name": "L1_S24_F1632",
+            "station": "L1_S24",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S49_F4221",
+            "name": "L3_S49_F4221",
+            "station": "L3_S49",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "Response",
+            "name": "Response",
+            "station": null,
+            "category": 1,
+            "symbolSize": 34,
+            "value": 1
+          },
+          {
+            "id": "L1_S24_F1604",
+            "name": "L1_S24_F1604",
+            "station": "L1_S24",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          }
+        ],
+        "links": [
+          {
+            "source": "L1_S24_F1632",
+            "target": "Response",
+            "weight": -0.07404922435409508,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L3_S49_F4221",
+            "target": "Response",
+            "weight": 0.07933775364703415,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#2f8f5b",
+              "width": 6.0
+            }
+          },
+          {
+            "source": "L1_S24_F1604",
+            "target": "Response",
+            "weight": -0.06159905517866645,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 6.0
+            }
+          }
+        ],
+        "categories": [
+          {
+            "name": "质量特性"
+          },
+          {
+            "name": "响应结果"
+          }
+        ]
+      },
+      "cvScore": {
+        "mean": 0.538917299142543,
+        "std": 0.07338785338561635,
+        "splits": 5
+      },
+      "adjPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_adj_matrix_selected.csv",
+      "freqPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_edge_frequency.csv",
+      "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915",
+      "outputFiles": {
+        "bosch_adj_matrix_raw": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_adj_matrix_raw.csv",
+        "bosch_edge_frequency": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_edge_frequency.csv",
+        "bosch_adj_matrix_selected": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_adj_matrix_selected.csv",
+        "bosch_influences_on_response": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_influences_on_response.csv",
+        "bosch_debug_stats": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_debug_stats.txt",
+        "bosch_kqc_cv_score": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_kqc_cv_score.txt"
+      }
+    },
+    "logs": []
+  },
+  "payload": {
+    "taskId": "KQC20260605180856915",
+    "taskType": "KQC_MINING",
+    "status": "SUCCESS",
+    "message": "Bosch KQC mining completed",
+    "targetKqc": "Response",
+    "selectedFeatureCount": 80,
+    "influenceCount": 3,
+    "topInfluences": [
+      {
+        "source_variable": "L3_S49_F4221",
+        "station": "L3_S49",
+        "target_kqc": "Response",
+        "weight": 0.07933775364703415,
+        "frequency": 1.0
+      },
+      {
+        "source_variable": "L1_S24_F1632",
+        "station": "L1_S24",
+        "target_kqc": "Response",
+        "weight": -0.07404922435409508,
+        "frequency": 1.0
+      },
+      {
+        "source_variable": "L1_S24_F1604",
+        "station": "L1_S24",
+        "target_kqc": "Response",
+        "weight": -0.06159905517866645,
+        "frequency": 1.0
+      }
+    ],
+    "graphData": {
+      "nodes": [
+        {
+          "id": "L0_S0_F2",
+          "name": "L0_S0_F2",
+          "station": "L0_S0",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S0_F10",
+          "name": "L0_S0_F10",
+          "station": "L0_S0",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S1_F24",
+          "name": "L0_S1_F24",
+          "station": "L0_S1",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S1_F28",
+          "name": "L0_S1_F28",
+          "station": "L0_S1",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S2_F48",
+          "name": "L0_S2_F48",
+          "station": "L0_S2",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S2_F60",
+          "name": "L0_S2_F60",
+          "station": "L0_S2",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S3_F68",
+          "name": "L0_S3_F68",
+          "station": "L0_S3",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S3_F92",
+          "name": "L0_S3_F92",
+          "station": "L0_S3",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S4_F104",
+          "name": "L0_S4_F104",
+          "station": "L0_S4",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S4_F109",
+          "name": "L0_S4_F109",
+          "station": "L0_S4",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S5_F114",
+          "name": "L0_S5_F114",
+          "station": "L0_S5",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S5_F116",
+          "name": "L0_S5_F116",
+          "station": "L0_S5",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S6_F118",
+          "name": "L0_S6_F118",
+          "station": "L0_S6",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S6_F132",
+          "name": "L0_S6_F132",
+          "station": "L0_S6",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S7_F138",
+          "name": "L0_S7_F138",
+          "station": "L0_S7",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S7_F142",
+          "name": "L0_S7_F142",
+          "station": "L0_S7",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S8_F144",
+          "name": "L0_S8_F144",
+          "station": "L0_S8",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S9_F190",
+          "name": "L0_S9_F190",
+          "station": "L0_S9",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S9_F210",
+          "name": "L0_S9_F210",
+          "station": "L0_S9",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S10_F219",
+          "name": "L0_S10_F219",
+          "station": "L0_S10",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S10_F229",
+          "name": "L0_S10_F229",
+          "station": "L0_S10",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S11_F306",
+          "name": "L0_S11_F306",
+          "station": "L0_S11",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S11_F318",
+          "name": "L0_S11_F318",
+          "station": "L0_S11",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S12_F334",
+          "name": "L0_S12_F334",
+          "station": "L0_S12",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S12_F336",
+          "name": "L0_S12_F336",
+          "station": "L0_S12",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S13_F354",
+          "name": "L0_S13_F354",
+          "station": "L0_S13",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S13_F356",
+          "name": "L0_S13_F356",
+          "station": "L0_S13",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S14_F362",
+          "name": "L0_S14_F362",
+          "station": "L0_S14",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S14_F390",
+          "name": "L0_S14_F390",
+          "station": "L0_S14",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S15_F400",
+          "name": "L0_S15_F400",
+          "station": "L0_S15",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S15_F403",
+          "name": "L0_S15_F403",
+          "station": "L0_S15",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S17_F431",
+          "name": "L0_S17_F431",
+          "station": "L0_S17",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S18_F435",
+          "name": "L0_S18_F435",
+          "station": "L0_S18",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S18_F449",
+          "name": "L0_S18_F449",
+          "station": "L0_S18",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S19_F453",
+          "name": "L0_S19_F453",
+          "station": "L0_S19",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S19_F459",
+          "name": "L0_S19_F459",
+          "station": "L0_S19",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S20_F461",
+          "name": "L0_S20_F461",
+          "station": "L0_S20",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S21_F472",
+          "name": "L0_S21_F472",
+          "station": "L0_S21",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S21_F487",
+          "name": "L0_S21_F487",
+          "station": "L0_S21",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S22_F571",
+          "name": "L0_S22_F571",
+          "station": "L0_S22",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S22_F591",
+          "name": "L0_S22_F591",
+          "station": "L0_S22",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S23_F623",
+          "name": "L0_S23_F623",
+          "station": "L0_S23",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S23_F659",
+          "name": "L0_S23_F659",
+          "station": "L0_S23",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L1_S24_F1604",
+          "name": "L1_S24_F1604",
+          "station": "L1_S24",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L1_S24_F1632",
+          "name": "L1_S24_F1632",
+          "station": "L1_S24",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L1_S25_F2460",
+          "name": "L1_S25_F2460",
+          "station": "L1_S25",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L1_S25_F2462",
+          "name": "L1_S25_F2462",
+          "station": "L1_S25",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L2_S26_F3069",
+          "name": "L2_S26_F3069",
+          "station": "L2_S26",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L2_S26_F3077",
+          "name": "L2_S26_F3077",
+          "station": "L2_S26",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L2_S27_F3129",
+          "name": "L2_S27_F3129",
+          "station": "L2_S27",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L2_S27_F3133",
+          "name": "L2_S27_F3133",
+          "station": "L2_S27",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S29_F3351",
+          "name": "L3_S29_F3351",
+          "station": "L3_S29",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S29_F3458",
+          "name": "L3_S29_F3458",
+          "station": "L3_S29",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S30_F3794",
+          "name": "L3_S30_F3794",
+          "station": "L3_S30",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S30_F3799",
+          "name": "L3_S30_F3799",
+          "station": "L3_S30",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S32_F3850",
+          "name": "L3_S32_F3850",
+          "station": "L3_S32",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S33_F3855",
+          "name": "L3_S33_F3855",
+          "station": "L3_S33",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S33_F3865",
+          "name": "L3_S33_F3865",
+          "station": "L3_S33",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S35_F3884",
+          "name": "L3_S35_F3884",
+          "station": "L3_S35",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S35_F3894",
+          "name": "L3_S35_F3894",
+          "station": "L3_S35",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S36_F3920",
+          "name": "L3_S36_F3920",
+          "station": "L3_S36",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S36_F3924",
+          "name": "L3_S36_F3924",
+          "station": "L3_S36",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S38_F3956",
+          "name": "L3_S38_F3956",
+          "station": "L3_S38",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S38_F3960",
+          "name": "L3_S38_F3960",
+          "station": "L3_S38",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S39_F3972",
+          "name": "L3_S39_F3972",
+          "station": "L3_S39",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S39_F3976",
+          "name": "L3_S39_F3976",
+          "station": "L3_S39",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S40_F3980",
+          "name": "L3_S40_F3980",
+          "station": "L3_S40",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S40_F3984",
+          "name": "L3_S40_F3984",
+          "station": "L3_S40",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S41_F4014",
+          "name": "L3_S41_F4014",
+          "station": "L3_S41",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S41_F4016",
+          "name": "L3_S41_F4016",
+          "station": "L3_S41",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S45_F4124",
+          "name": "L3_S45_F4124",
+          "station": "L3_S45",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S45_F4130",
+          "name": "L3_S45_F4130",
+          "station": "L3_S45",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S47_F4138",
+          "name": "L3_S47_F4138",
+          "station": "L3_S47",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S47_F4158",
+          "name": "L3_S47_F4158",
+          "station": "L3_S47",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S48_F4196",
+          "name": "L3_S48_F4196",
+          "station": "L3_S48",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S48_F4202",
+          "name": "L3_S48_F4202",
+          "station": "L3_S48",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S49_F4211",
+          "name": "L3_S49_F4211",
+          "station": "L3_S49",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S49_F4221",
+          "name": "L3_S49_F4221",
+          "station": "L3_S49",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S51_F4256",
+          "name": "L3_S51_F4256",
+          "station": "L3_S51",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S51_F4262",
+          "name": "L3_S51_F4262",
+          "station": "L3_S51",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "Response",
+          "name": "Response",
+          "station": null,
+          "category": 1,
+          "symbolSize": 34,
+          "value": 1
+        }
+      ],
+      "links": [
+        {
+          "source": "L0_S0_F2",
+          "target": "L0_S1_F24",
+          "weight": 0.06254798244107093,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F2",
+          "target": "L0_S1_F28",
+          "weight": 0.0013237612210424189,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S0_F2",
+          "target": "L0_S2_F60",
+          "weight": -0.00014962933102715607,
+          "frequency": 0.8,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S0_F2",
+          "target": "L0_S3_F92",
+          "weight": 0.0013894141153390786,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S0_F2",
+          "target": "L0_S5_F114",
+          "weight": -0.2129995038961698,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F2",
+          "target": "L0_S5_F116",
+          "weight": 0.053539186213898,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 5.3539186213898
+          }
+        },
+        {
+          "source": "L0_S0_F2",
+          "target": "L0_S7_F142",
+          "weight": -0.06717750146615632,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F2",
+          "target": "L0_S11_F306",
+          "weight": -0.04548669218618885,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 4.548669218618885
+          }
+        },
+        {
+          "source": "L0_S0_F2",
+          "target": "L0_S11_F318",
+          "weight": -0.030643404849125214,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 3.0643404849125213
+          }
+        },
+        {
+          "source": "L0_S0_F2",
+          "target": "L3_S41_F4014",
+          "weight": 0.08970661736934622,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S1_F24",
+          "weight": 0.18887579813332672,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S1_F28",
+          "weight": 0.0033688382966840344,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S2_F48",
+          "weight": -0.019224263023584178,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.9224263023584178
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S2_F60",
+          "weight": 0.00946825452612318,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S4_F104",
+          "weight": 0.27560052063197554,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S6_F132",
+          "weight": -0.14258302130893008,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S7_F138",
+          "weight": -0.08046828370341813,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S8_F144",
+          "weight": 0.16568477125413325,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S9_F210",
+          "weight": -0.08993266104486893,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S10_F219",
+          "weight": -0.10479192387625083,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L0_S10_F229",
+          "weight": -0.09073624093497867,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L3_S29_F3351",
+          "weight": -0.06378410984024814,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L3_S29_F3458",
+          "weight": -0.06378410984024675,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L3_S33_F3865",
+          "weight": 0.008412811845576407,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S0_F10",
+          "target": "L3_S41_F4016",
+          "weight": 0.2973675148573209,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S2_F48",
+          "weight": -0.01590897206258072,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.590897206258072
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S2_F60",
+          "weight": -0.00023245064552858072,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S3_F68",
+          "weight": 0.0568174225408369,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 5.68174225408369
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S3_F92",
+          "weight": 0.08142065703419239,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S4_F109",
+          "weight": 0.12189082077032865,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S5_F114",
+          "weight": -0.5720849746877127,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S5_F116",
+          "weight": -0.0010340906968057532,
+          "frequency": 0.8,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S7_F142",
+          "weight": -0.3127313297035628,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S10_F229",
+          "weight": 0.07458099945375792,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S11_F306",
+          "weight": -0.21177397851175148,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L0_S11_F318",
+          "weight": -0.17053720632702277,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L2_S27_F3129",
+          "weight": 0.11120598300599242,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L3_S30_F3794",
+          "weight": -0.04428916896396511,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 4.428916896396511
+          }
+        },
+        {
+          "source": "L0_S1_F24",
+          "target": "L3_S41_F4016",
+          "weight": 0.3045770301055869,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S1_F28",
+          "target": "L0_S6_F118",
+          "weight": 0.0660313870784775,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S2_F48",
+          "target": "L0_S4_F104",
+          "weight": -0.136065880297192,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S2_F48",
+          "target": "L0_S5_F116",
+          "weight": 0.06489117189305436,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S2_F48",
+          "target": "L0_S6_F118",
+          "weight": 0.07420442543415205,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S2_F48",
+          "target": "L0_S9_F190",
+          "weight": -0.09953318477273027,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S2_F48",
+          "target": "L3_S33_F3855",
+          "weight": -0.014969861529092708,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.4969861529092707
+          }
+        },
+        {
+          "source": "L0_S2_F48",
+          "target": "L3_S40_F3980",
+          "weight": -0.03822644976701736,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 3.8226449767017363
+          }
+        },
+        {
+          "source": "L0_S2_F48",
+          "target": "L3_S41_F4014",
+          "weight": -0.047537782629128895,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 4.753778262912889
+          }
+        },
+        {
+          "source": "L0_S2_F48",
+          "target": "L3_S47_F4158",
+          "weight": 0.04332037907706189,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 4.332037907706189
+          }
+        },
+        {
+          "source": "L0_S2_F60",
+          "target": "L3_S39_F3972",
+          "weight": 0.0036473766964716567,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S2_F60",
+          "target": "L3_S45_F4130",
+          "weight": 0.0981718489059182,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S3_F68",
+          "target": "L0_S4_F104",
+          "weight": -0.05239008761616105,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.2390087616161045
+          }
+        },
+        {
+          "source": "L0_S3_F68",
+          "target": "L0_S4_F109",
+          "weight": -0.05310313537802303,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.310313537802303
+          }
+        },
+        {
+          "source": "L0_S3_F68",
+          "target": "L0_S7_F138",
+          "weight": -0.03858421857809688,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 3.858421857809688
+          }
+        },
+        {
+          "source": "L0_S3_F92",
+          "target": "L0_S4_F109",
+          "weight": -0.0832760649365779,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S3_F92",
+          "target": "L0_S5_F114",
+          "weight": -0.07160832505287841,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S3_F92",
+          "target": "L0_S6_F118",
+          "weight": 0.09144310398817761,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S4_F104",
+          "target": "L0_S7_F142",
+          "weight": -0.0512968231932897,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.12968231932897
+          }
+        },
+        {
+          "source": "L0_S4_F104",
+          "target": "L0_S9_F210",
+          "weight": -0.06118732635194124,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S4_F104",
+          "target": "L2_S27_F3129",
+          "weight": 0.10375469342648114,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S4_F104",
+          "target": "L2_S27_F3133",
+          "weight": 0.03330429610306371,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 3.330429610306371
+          }
+        },
+        {
+          "source": "L0_S4_F104",
+          "target": "L3_S33_F3855",
+          "weight": -0.035090272805447124,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 3.5090272805447125
+          }
+        },
+        {
+          "source": "L0_S4_F104",
+          "target": "L3_S41_F4016",
+          "weight": -0.26008182469857577,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S4_F109",
+          "target": "L0_S6_F132",
+          "weight": 0.11765858600771946,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S4_F109",
+          "target": "L0_S7_F138",
+          "weight": 0.056646921340295885,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 5.664692134029589
+          }
+        },
+        {
+          "source": "L0_S4_F109",
+          "target": "L0_S11_F306",
+          "weight": -0.06092538971063148,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S4_F109",
+          "target": "L0_S11_F318",
+          "weight": -0.038609280342303584,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 3.8609280342303585
+          }
+        },
+        {
+          "source": "L0_S5_F114",
+          "target": "L0_S9_F190",
+          "weight": 0.10909908083402242,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S5_F114",
+          "target": "L2_S27_F3129",
+          "weight": -0.0012274916280314468,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S5_F114",
+          "target": "L3_S35_F3894",
+          "weight": -0.07857802088417552,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S5_F116",
+          "target": "L0_S6_F132",
+          "weight": 0.02157182987054394,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 2.157182987054394
+          }
+        },
+        {
+          "source": "L0_S6_F118",
+          "target": "L0_S10_F219",
+          "weight": 0.03670682572237281,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 3.6706825722372813
+          }
+        },
+        {
+          "source": "L0_S6_F132",
+          "target": "L0_S8_F144",
+          "weight": -0.10066239660373327,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S6_F132",
+          "target": "L3_S39_F3976",
+          "weight": 0.018459417054240687,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.8459417054240688
+          }
+        },
+        {
+          "source": "L0_S6_F132",
+          "target": "L3_S40_F3984",
+          "weight": 0.1392985518185381,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S7_F142",
+          "target": "L0_S8_F144",
+          "weight": -0.10877982161371877,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S7_F142",
+          "target": "L0_S10_F219",
+          "weight": -0.10622919841998338,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S8_F144",
+          "target": "L0_S9_F190",
+          "weight": 0.18673204118145378,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S8_F144",
+          "target": "L0_S9_F210",
+          "weight": -0.08941779077942065,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S8_F144",
+          "target": "L0_S10_F229",
+          "weight": 0.05761085762537127,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 5.761085762537127
+          }
+        },
+        {
+          "source": "L0_S8_F144",
+          "target": "L3_S29_F3351",
+          "weight": 0.1679384987440945,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S8_F144",
+          "target": "L3_S29_F3458",
+          "weight": 0.16793849874409342,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S8_F144",
+          "target": "L3_S36_F3920",
+          "weight": 0.017186846293001077,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.7186846293001077
+          }
+        },
+        {
+          "source": "L0_S8_F144",
+          "target": "L3_S36_F3924",
+          "weight": 0.017186846293000838,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.7186846293000837
+          }
+        },
+        {
+          "source": "L0_S8_F144",
+          "target": "L3_S38_F3956",
+          "weight": -0.05260100900000936,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.2601009000009356
+          }
+        },
+        {
+          "source": "L0_S8_F144",
+          "target": "L3_S40_F3984",
+          "weight": -0.44674643581083906,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S8_F144",
+          "target": "L3_S48_F4196",
+          "weight": 0.15417548775528067,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S9_F190",
+          "target": "L3_S39_F3976",
+          "weight": -0.17387356947994972,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S9_F210",
+          "target": "L3_S39_F3976",
+          "weight": 0.06721349692654123,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S11_F306",
+          "target": "L3_S32_F3850",
+          "weight": -0.07640895525680447,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S11_F318",
+          "target": "L3_S32_F3850",
+          "weight": -0.07692858963786148,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L0_S13_F354",
+          "weight": 0.008277974445610509,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L0_S13_F356",
+          "weight": 0.000832771693706919,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L0_S14_F362",
+          "weight": -0.0008572676276580885,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L0_S14_F390",
+          "weight": -0.006252410857305216,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L0_S15_F400",
+          "weight": 0.07862943500814877,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L0_S19_F453",
+          "weight": 0.029172638635495903,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 2.91726386354959
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L0_S21_F472",
+          "weight": -0.0533201213481069,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.33201213481069
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L0_S22_F571",
+          "weight": 0.0015709986354494048,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L0_S22_F591",
+          "weight": -0.13714630087868504,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L2_S27_F3133",
+          "weight": -0.2150768127159145,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L3_S33_F3855",
+          "weight": -0.018350999402653497,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.8350999402653496
+          }
+        },
+        {
+          "source": "L0_S12_F334",
+          "target": "L3_S51_F4262",
+          "weight": 0.03469108707898908,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 3.4691087078989082
+          }
+        },
+        {
+          "source": "L0_S12_F336",
+          "target": "L0_S13_F354",
+          "weight": 0.003926435771402571,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S12_F336",
+          "target": "L0_S13_F356",
+          "weight": 0.004180874918711295,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S12_F336",
+          "target": "L0_S15_F400",
+          "weight": 0.06504291233443657,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S12_F336",
+          "target": "L0_S15_F403",
+          "weight": 0.00045799833136158887,
+          "frequency": 0.8,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S12_F336",
+          "target": "L0_S19_F453",
+          "weight": 0.003387273560059271,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S12_F336",
+          "target": "L0_S19_F459",
+          "weight": -0.0679970165123677,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S12_F336",
+          "target": "L0_S23_F659",
+          "weight": -0.06879889336933817,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S12_F336",
+          "target": "L2_S27_F3133",
+          "weight": -0.21337129101684363,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S13_F354",
+          "target": "L0_S14_F362",
+          "weight": -0.010354478730948732,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0354478730948733
+          }
+        },
+        {
+          "source": "L0_S13_F354",
+          "target": "L0_S14_F390",
+          "weight": 0.1735742155556897,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S13_F354",
+          "target": "L0_S15_F400",
+          "weight": -0.059658886344128595,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.96588863441286
+          }
+        },
+        {
+          "source": "L0_S13_F354",
+          "target": "L0_S17_F431",
+          "weight": 0.19770975141669608,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S13_F354",
+          "target": "L0_S18_F435",
+          "weight": -0.04986278778874024,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 4.9862787788740235
+          }
+        },
+        {
+          "source": "L0_S13_F354",
+          "target": "L0_S19_F453",
+          "weight": 0.020772933371358538,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 2.077293337135854
+          }
+        },
+        {
+          "source": "L0_S13_F354",
+          "target": "L0_S19_F459",
+          "weight": -0.1309875447660584,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S13_F354",
+          "target": "L0_S21_F472",
+          "weight": 0.03847085094660043,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 3.8470850946600432
+          }
+        },
+        {
+          "source": "L0_S13_F354",
+          "target": "L0_S21_F487",
+          "weight": 0.1411830136077759,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S13_F354",
+          "target": "L3_S38_F3960",
+          "weight": -0.10140309716732122,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S13_F356",
+          "target": "L0_S14_F362",
+          "weight": -0.05310768829791372,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.310768829791372
+          }
+        },
+        {
+          "source": "L0_S13_F356",
+          "target": "L0_S14_F390",
+          "weight": 0.23443433964226024,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S13_F356",
+          "target": "L0_S18_F449",
+          "weight": 0.001666892840589019,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S13_F356",
+          "target": "L0_S19_F459",
+          "weight": -0.07231546697922064,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S13_F356",
+          "target": "L0_S21_F487",
+          "weight": -0.2740525367290082,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S13_F356",
+          "target": "L0_S23_F623",
+          "weight": -0.2843774935158842,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S14_F362",
+          "target": "L0_S17_F431",
+          "weight": -0.08194259624298388,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S14_F390",
+          "target": "L0_S18_F435",
+          "weight": 0.05091992691512844,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 5.091992691512845
+          }
+        },
+        {
+          "source": "L0_S15_F400",
+          "target": "L0_S17_F431",
+          "weight": -0.05189890928336004,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.189890928336004
+          }
+        },
+        {
+          "source": "L0_S15_F400",
+          "target": "L0_S23_F659",
+          "weight": 0.07552458525682128,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S15_F403",
+          "target": "L0_S18_F449",
+          "weight": -0.000516078840480677,
+          "frequency": 0.8,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S17_F431",
+          "target": "L0_S18_F435",
+          "weight": 0.054629112503679314,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 5.462911250367932
+          }
+        },
+        {
+          "source": "L0_S17_F431",
+          "target": "L0_S18_F449",
+          "weight": 0.03288265320023743,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 3.288265320023743
+          }
+        },
+        {
+          "source": "L0_S17_F431",
+          "target": "L0_S20_F461",
+          "weight": 0.11117745103108476,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S17_F431",
+          "target": "L0_S21_F487",
+          "weight": -0.1528567297624215,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S17_F431",
+          "target": "L0_S22_F571",
+          "weight": 0.10416091746642751,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S17_F431",
+          "target": "L0_S22_F591",
+          "weight": -0.14747533586854544,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S17_F431",
+          "target": "L0_S23_F623",
+          "weight": -0.1511461002543196,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S17_F431",
+          "target": "L3_S51_F4256",
+          "weight": -0.015173754859461538,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.5173754859461537
+          }
+        },
+        {
+          "source": "L0_S18_F449",
+          "target": "L0_S20_F461",
+          "weight": -0.14349793381327977,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S18_F449",
+          "target": "L3_S47_F4138",
+          "weight": 0.0811276587118276,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S19_F459",
+          "target": "L0_S20_F461",
+          "weight": -0.09693538138118948,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L0_S21_F472",
+          "weight": 0.052816002872424994,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 5.281600287242499
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L0_S22_F571",
+          "weight": 0.2077563072627032,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L0_S22_F591",
+          "weight": -0.33409468222934746,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L0_S23_F623",
+          "weight": -0.6060554800578412,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L0_S23_F659",
+          "weight": -0.22571457356729277,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L3_S29_F3351",
+          "weight": 0.04641743935013477,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 4.641743935013477
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L3_S29_F3458",
+          "weight": 0.04641743935013485,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 4.641743935013485
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L3_S40_F3984",
+          "weight": -0.29999410123461745,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L3_S47_F4138",
+          "weight": -0.12594243197900096,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L3_S49_F4221",
+          "weight": 0.1343902234025969,
+          "frequency": 0.6,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S20_F461",
+          "target": "L3_S51_F4256",
+          "weight": -0.05386110655525783,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.386110655525783
+          }
+        },
+        {
+          "source": "L0_S21_F487",
+          "target": "L3_S48_F4202",
+          "weight": -0.18565037197630352,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S22_F571",
+          "target": "L3_S39_F3972",
+          "weight": -0.1014996426075704,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S22_F571",
+          "target": "L3_S49_F4221",
+          "weight": -0.24417755404438896,
+          "frequency": 0.8,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S22_F591",
+          "target": "L3_S39_F3972",
+          "weight": -0.21670737081173644,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S22_F591",
+          "target": "L3_S49_F4221",
+          "weight": -0.5073200554423967,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L0_S23_F623",
+          "target": "L3_S32_F3850",
+          "weight": -0.05511449609609158,
+          "frequency": 0.6,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.511449609609158
+          }
+        },
+        {
+          "source": "L0_S23_F659",
+          "target": "L3_S45_F4124",
+          "weight": 0.04640813109427398,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 4.640813109427398
+          }
+        },
+        {
+          "source": "L1_S24_F1604",
+          "target": "L2_S26_F3069",
+          "weight": -0.0033542539530106654,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L1_S24_F1604",
+          "target": "L2_S26_F3077",
+          "weight": -0.042927644733840094,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 4.292764473384009
+          }
+        },
+        {
+          "source": "L1_S24_F1604",
+          "target": "L3_S38_F3956",
+          "weight": -0.05916054962990781,
+          "frequency": 0.8,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.916054962990781
+          }
+        },
+        {
+          "source": "L1_S24_F1604",
+          "target": "Response",
+          "weight": -0.06159905517866645,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L1_S24_F1632",
+          "target": "L2_S26_F3069",
+          "weight": -0.038337809840058704,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 3.8337809840058705
+          }
+        },
+        {
+          "source": "L1_S24_F1632",
+          "target": "L2_S26_F3077",
+          "weight": -0.059774459399199883,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 5.977445939919988
+          }
+        },
+        {
+          "source": "L1_S24_F1632",
+          "target": "L3_S30_F3799",
+          "weight": 0.025100664602284793,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 2.5100664602284795
+          }
+        },
+        {
+          "source": "L1_S24_F1632",
+          "target": "Response",
+          "weight": -0.07404922435409508,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S29_F3351",
+          "target": "L3_S30_F3794",
+          "weight": 0.050203255421251876,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 5.020325542125188
+          }
+        },
+        {
+          "source": "L3_S29_F3351",
+          "target": "L3_S30_F3799",
+          "weight": -0.015070164622492013,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.5070164622492013
+          }
+        },
+        {
+          "source": "L3_S29_F3351",
+          "target": "L3_S33_F3865",
+          "weight": 0.040317006041994424,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 4.031700604199442
+          }
+        },
+        {
+          "source": "L3_S29_F3351",
+          "target": "L3_S35_F3894",
+          "weight": 0.10517947628415389,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S29_F3351",
+          "target": "L3_S36_F3920",
+          "weight": 0.023794944873373094,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 2.3794944873373094
+          }
+        },
+        {
+          "source": "L3_S29_F3351",
+          "target": "L3_S36_F3924",
+          "weight": 0.023794944873373282,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 2.379494487337328
+          }
+        },
+        {
+          "source": "L3_S29_F3458",
+          "target": "L3_S30_F3794",
+          "weight": 0.050203255421251876,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 5.020325542125188
+          }
+        },
+        {
+          "source": "L3_S29_F3458",
+          "target": "L3_S30_F3799",
+          "weight": -0.015070164622492013,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.5070164622492013
+          }
+        },
+        {
+          "source": "L3_S29_F3458",
+          "target": "L3_S33_F3865",
+          "weight": 0.040317006041994424,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 4.031700604199442
+          }
+        },
+        {
+          "source": "L3_S29_F3458",
+          "target": "L3_S35_F3894",
+          "weight": 0.10517947628415389,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S29_F3458",
+          "target": "L3_S36_F3920",
+          "weight": 0.023794944873373094,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 2.3794944873373094
+          }
+        },
+        {
+          "source": "L3_S29_F3458",
+          "target": "L3_S36_F3924",
+          "weight": 0.023794944873373282,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 2.379494487337328
+          }
+        },
+        {
+          "source": "L3_S35_F3884",
+          "target": "L3_S38_F3956",
+          "weight": -0.07737960684099511,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S35_F3884",
+          "target": "L3_S38_F3960",
+          "weight": -0.2635954489692736,
+          "frequency": 0.8,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S35_F3894",
+          "target": "L3_S38_F3960",
+          "weight": -0.032432411643639095,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 3.2432411643639094
+          }
+        },
+        {
+          "source": "L3_S39_F3972",
+          "target": "L3_S40_F3980",
+          "weight": 0.004019291473882479,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L3_S39_F3976",
+          "target": "L3_S40_F3980",
+          "weight": -0.006073182787509463,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L3_S40_F3980",
+          "target": "L3_S47_F4158",
+          "weight": -0.07330778251383498,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S40_F3980",
+          "target": "L3_S48_F4202",
+          "weight": -0.18874874783048629,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S40_F3980",
+          "target": "L3_S49_F4211",
+          "weight": 0.14114329053261102,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S40_F3980",
+          "target": "L3_S51_F4262",
+          "weight": 0.0018719367531890058,
+          "frequency": 0.8,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L3_S40_F3984",
+          "target": "L3_S41_F4014",
+          "weight": 0.11417601013469736,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S40_F3984",
+          "target": "L3_S45_F4130",
+          "weight": -0.0010933290106702298,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L3_S40_F3984",
+          "target": "L3_S48_F4196",
+          "weight": -0.10673033296757481,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S40_F3984",
+          "target": "L3_S48_F4202",
+          "weight": 0.23903751657929806,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S40_F3984",
+          "target": "L3_S49_F4211",
+          "weight": -0.2349246709272759,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S41_F4014",
+          "target": "L3_S45_F4124",
+          "weight": 0.10860754653662025,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S41_F4014",
+          "target": "L3_S47_F4138",
+          "weight": -0.04787657879480308,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 4.787657879480308
+          }
+        },
+        {
+          "source": "L3_S41_F4014",
+          "target": "L3_S47_F4158",
+          "weight": 0.12422841431405611,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S41_F4014",
+          "target": "L3_S48_F4196",
+          "weight": 0.10533913716930059,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S41_F4016",
+          "target": "L3_S45_F4124",
+          "weight": -0.04979117627141559,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 4.979117627141559
+          }
+        },
+        {
+          "source": "L3_S41_F4016",
+          "target": "L3_S45_F4130",
+          "weight": -0.0041005473202887785,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L3_S41_F4016",
+          "target": "L3_S51_F4262",
+          "weight": 0.0012878550299046838,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L3_S45_F4124",
+          "target": "L3_S49_F4211",
+          "weight": 0.26325578623002027,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S45_F4124",
+          "target": "L3_S51_F4256",
+          "weight": -0.009724211054271474,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L3_S49_F4221",
+          "target": "Response",
+          "weight": 0.07933775364703415,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        }
+      ],
+      "categories": [
+        {
+          "name": "质量特性"
+        },
+        {
+          "name": "响应结果"
+        }
+      ]
+    },
+    "responseGraphData": {
+      "nodes": [
+        {
+          "id": "L1_S24_F1632",
+          "name": "L1_S24_F1632",
+          "station": "L1_S24",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S49_F4221",
+          "name": "L3_S49_F4221",
+          "station": "L3_S49",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "Response",
+          "name": "Response",
+          "station": null,
+          "category": 1,
+          "symbolSize": 34,
+          "value": 1
+        },
+        {
+          "id": "L1_S24_F1604",
+          "name": "L1_S24_F1604",
+          "station": "L1_S24",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        }
+      ],
+      "links": [
+        {
+          "source": "L1_S24_F1632",
+          "target": "Response",
+          "weight": -0.07404922435409508,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L3_S49_F4221",
+          "target": "Response",
+          "weight": 0.07933775364703415,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#2f8f5b",
+            "width": 6.0
+          }
+        },
+        {
+          "source": "L1_S24_F1604",
+          "target": "Response",
+          "weight": -0.06159905517866645,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 6.0
+          }
+        }
+      ],
+      "categories": [
+        {
+          "name": "质量特性"
+        },
+        {
+          "name": "响应结果"
+        }
+      ]
+    },
+    "cvScore": {
+      "mean": 0.538917299142543,
+      "std": 0.07338785338561635,
+      "splits": 5
+    },
+    "adjPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_adj_matrix_selected.csv",
+    "freqPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_edge_frequency.csv",
+    "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915",
+    "outputFiles": {
+      "bosch_adj_matrix_raw": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_adj_matrix_raw.csv",
+      "bosch_edge_frequency": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_edge_frequency.csv",
+      "bosch_adj_matrix_selected": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_adj_matrix_selected.csv",
+      "bosch_influences_on_response": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_influences_on_response.csv",
+      "bosch_debug_stats": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_debug_stats.txt",
+      "bosch_kqc_cv_score": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260605180856915/bosch_kqc_cv_score.txt"
+    }
+  }
+}

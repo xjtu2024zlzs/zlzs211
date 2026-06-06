@@ -1,0 +1,27 @@
+{
+  "success": false,
+  "code": 500,
+  "message": "'Response'",
+  "taskId": "KQC20260605160202531",
+  "taskType": "KQC_MINING",
+  "status": "FAILED",
+  "data": {
+    "taskId": "KQC20260605160202531",
+    "status": "FAILED",
+    "result": {
+      "taskId": "KQC20260605160202531",
+      "taskType": "KQC_MINING",
+      "status": "FAILED",
+      "message": "'Response'",
+      "errorCode": "BOSCH_KQC_MINING_FAILED"
+    },
+    "logs": []
+  },
+  "payload": {
+    "taskId": "KQC20260605160202531",
+    "taskType": "KQC_MINING",
+    "status": "FAILED",
+    "message": "'Response'",
+    "errorCode": "BOSCH_KQC_MINING_FAILED"
+  }
+}

@@ -26,12 +26,22 @@ export function useQualityAlgorithmTask(options) {
   let timer = null
   let pollCount = 0
   let activeToken = 0
+  let pollingKey = ''
+
+  function makePollingKey(id, context = {}) {
+    try {
+      return `${id}:${JSON.stringify(context || {})}`
+    } catch (e) {
+      return `${id}:`
+    }
+  }
 
   function stopTimer() {
     if (timer) {
       clearInterval(timer)
       timer = null
     }
+    pollingKey = ''
   }
 
   function clearPoll() {
@@ -91,7 +101,10 @@ export function useQualityAlgorithmTask(options) {
   }
 
   function startPoll(id, context = {}) {
+    const nextPollingKey = makePollingKey(id, context)
+    if (timer && pollingKey === nextPollingKey && !doneStatuses.includes(options.status.value)) return
     clearPoll()
+    pollingKey = nextPollingKey
     const token = activeToken
     pollCount = 0
     timer = setInterval(() => {

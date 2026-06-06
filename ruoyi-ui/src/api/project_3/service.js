@@ -8,6 +8,14 @@ export function listFaultIdentifyResults(query) {
   })
 }
 
+export function listKeyProcessResults(query) {
+  return request({
+    url: '/service/identify/key_process_results',
+    method: 'get',
+    params: query
+  })
+}
+
 export function deleteFaultIdentifyResult(taskId, options = {}) {
   return request({
     url: `/service/identify/results/${encodeURIComponent(taskId)}`,
@@ -74,6 +82,21 @@ export function listFaultIdenSamples(query) {
     url: '/quality/fault-iden/samples',
     method: 'get',
     params: query
+  })
+}
+
+export function updateFaultIdenSampleDataUsage(sampleId, dataUsage) {
+  return request({
+    url: `/quality/fault-iden/samples/${sampleId}/data-usage`,
+    method: 'put',
+    data: { dataUsage }
+  })
+}
+
+export function deleteFaultIdenSample(sampleId) {
+  return request({
+    url: `/quality/fault-iden/samples/${sampleId}`,
+    method: 'delete'
   })
 }
 

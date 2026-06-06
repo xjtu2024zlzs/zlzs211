@@ -1,0 +1,17 @@
+[
+  {
+    "time": "2026-06-05T15:23:18",
+    "level": "INFO",
+    "message": "任务已提交"
+  },
+  {
+    "time": "2026-06-05T15:23:18",
+    "level": "INFO",
+    "message": "算法开始执行"
+  },
+  {
+    "time": "2026-06-05T15:23:41",
+    "level": "ERROR",
+    "message": "'Response'"
+  }
+]

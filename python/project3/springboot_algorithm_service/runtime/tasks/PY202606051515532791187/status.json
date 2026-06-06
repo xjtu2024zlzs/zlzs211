@@ -1,0 +1,70 @@
+{
+  "success": true,
+  "taskId": "PY202606051515532791187",
+  "algorithmType": "KEY_PROCESS",
+  "status": "FAILED",
+  "progress": 100,
+  "message": "任务执行失败",
+  "createdAt": "2026-06-05T15:15:53",
+  "startedAt": "2026-06-05T15:15:53",
+  "finishedAt": "2026-06-05T15:16:12",
+  "result": null,
+  "error": "'Response'",
+  "payload": {
+    "authCode": "ALGO_KEY_PROCESS_IDENTIFY_EXECUTE",
+    "requestId": "d410469f85654ed28f2e455db5f43dbd",
+    "taskId": "KP20260605151553215",
+    "algorithmVersion": "v1.0",
+    "requestTime": "2026-06-05 15:15:53",
+    "targetType": "part",
+    "targetId": "PT1",
+    "targetName": "液压泵轴",
+    "targetNodeId": "part_template:PT1",
+    "hierarchyContext": {
+      "aircraftId": "A1",
+      "aircraftName": "C919-01",
+      "subsystemId": "S1",
+      "subsystemName": "机翼",
+      "deviceId": "E1",
+      "deviceName": "液压系统",
+      "equipmentId": "E1",
+      "equipmentName": "液压系统",
+      "componentId": "C1",
+      "componentName": "液压泵",
+      "partId": "PT1",
+      "partName": "液压泵轴",
+      "breadcrumb": [
+        "C919-01",
+        "机翼",
+        "液压系统",
+        "液压泵",
+        "液压泵轴"
+      ]
+    },
+    "fileInfo": {
+      "fileName": "F:/python/三算法/test_numeric.csv",
+      "fileUrl": "F:/python/三算法/test_numeric.csv",
+      "fileType": "bosch",
+      "fileMode": "bosch",
+      "dataUsage": "BOSCH_KEY_PROCESS"
+    },
+    "dbExportInfo": {},
+    "params": {
+      "dataSelectionMode": "BOSCH",
+      "sampleIds": [],
+      "fileMode": "bosch",
+      "topN": 10.0,
+      "threshold": 0.7,
+      "samplingRate": 25600.0,
+      "boschTrainNumericPath": "F:/python/三算法/test_numeric.csv",
+      "kqcOutputDir": "",
+      "maxRows": 200000,
+      "maxFeatures": 80,
+      "perStation": 2,
+      "selectionMode": "response_assoc",
+      "keepFreq": 0.6,
+      "weightThresh": 0.0001,
+      "ssRuns": 5
+    }
+  }
+}

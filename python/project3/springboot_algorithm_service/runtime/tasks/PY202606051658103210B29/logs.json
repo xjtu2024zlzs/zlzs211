@@ -1,0 +1,17 @@
+[
+  {
+    "time": "2026-06-05T16:58:10",
+    "level": "INFO",
+    "message": "任务已提交"
+  },
+  {
+    "time": "2026-06-05T16:58:10",
+    "level": "INFO",
+    "message": "算法开始执行"
+  },
+  {
+    "time": "2026-06-05T16:58:10",
+    "level": "ERROR",
+    "message": "未找到 train_numeric.csv 文件：‪F:\\python\\三算法\\train_numeric.csv"
+  }
+]

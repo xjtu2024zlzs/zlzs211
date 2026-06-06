@@ -30,4 +30,6 @@ public interface FaultIdentifyService {
     Map<String, Object> submit_degradation(DegradationTaskRequest request);
 
     Map<String, Object> submit_key_process(FaultIdentifyStartRequest request);
+
+    Map<String, Object> cancel_key_process(String taskId);
 }

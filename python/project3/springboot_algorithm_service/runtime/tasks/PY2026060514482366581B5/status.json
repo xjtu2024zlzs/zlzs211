@@ -1,0 +1,61 @@
+{
+  "success": true,
+  "taskId": "PY2026060514482366581B5",
+  "algorithmType": "PROCESS_ANOMALY",
+  "status": "CANCELED",
+  "progress": 40,
+  "message": "任务已取消",
+  "createdAt": "2026-06-05T14:48:23",
+  "startedAt": "2026-06-05T14:48:23",
+  "finishedAt": "2026-06-05T14:48:29",
+  "result": null,
+  "error": null,
+  "payload": {
+    "alphaSample": 0.01,
+    "authCode": "ALGO_PROCESS_ANOMALY_EXECUTE",
+    "boschTrainNumericPath": "F:/python/三算法/test_numeric.csv",
+    "device": "auto",
+    "epochs": 60,
+    "ewmaLambda": 0.3,
+    "featureCol": 1,
+    "fileInfo": {
+      "fileName": "train_numeric.csv",
+      "fileUrl": "F:/python/三算法/test_numeric.csv",
+      "fileType": "csv",
+      "fileMode": "bosch_train_numeric",
+      "dataUsage": "BOSCH_PROCESS_ANOMALY"
+    },
+    "hierarchyContext": {
+      "partId": "PI1",
+      "partName": "液压泵轴",
+      "partCode": "PN001",
+      "processId": "PD_PT1_001",
+      "processName": "下料",
+      "processOrder": 1,
+      "breadcrumb": [
+        "C919-01",
+        "机翼",
+        "液压系统",
+        "液压泵",
+        "液压泵轴",
+        "PI1",
+        "下料"
+      ]
+    },
+    "maxRows": 200000,
+    "minFailedObserved": 10,
+    "minObserved": 1000,
+    "partId": "PI1",
+    "processId": "PD_PT1_001",
+    "processName": "下料",
+    "requestId": "REQ20260605144823628",
+    "requestTime": "2026-06-05 14:48:23",
+    "seed": 0,
+    "selectionMode": "response_assoc",
+    "station": "L3_S36",
+    "targetId": "PD_PT1_001",
+    "targetName": "下料",
+    "targetType": "process",
+    "taskId": "WA20260605144823628"
+  }
+}
