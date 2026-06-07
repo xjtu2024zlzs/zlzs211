@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.AccessTransformRecordMapper">
+    
+    <resultMap type="AccessTransformRecord" id="AccessTransformRecordResult">
+        <result property="transformRecordId"    column="transform_record_id"    />
+        <result property="stageRecordId"    column="stage_record_id"    />
+        <result property="accessBatchId"    column="access_batch_id"    />
+        <result property="accessPlanId"    column="access_plan_id"    />
+        <result property="scopeTableId"    column="scope_table_id"    />
+        <result property="targetTable"    column="target_table"    />
+        <result property="targetPk"    column="target_pk"    />
+        <result property="transformedData"    column="transformed_data"    />
+        <result property="transformStatus"    column="transform_status"    />
+        <result property="writeStatus"    column="write_status"    />
+        <result property="errorMessage"    column="error_message"    />
+        <result property="transformedAt"    column="transformed_at"    />
+        <result property="writtenAt"    column="written_at"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectAccessTransformRecordVo">
+        select transform_record_id, stage_record_id, access_batch_id, access_plan_id, scope_table_id, target_table, target_pk, transformed_data, transform_status, write_status, error_message, transformed_at, written_at, create_time, remark from p1p_access_transform_record
+    </sql>
+
+    <select id="selectAccessTransformRecordList" parameterType="AccessTransformRecord" resultMap="AccessTransformRecordResult">
+        <include refid="selectAccessTransformRecordVo"/>
+        <where>  
+            <if test="stageRecordId != null "> and stage_record_id = #{stageRecordId}</if>
+            <if test="accessBatchId != null "> and access_batch_id = #{accessBatchId}</if>
+            <if test="accessPlanId != null "> and access_plan_id = #{accessPlanId}</if>
+            <if test="scopeTableId != null "> and scope_table_id = #{scopeTableId}</if>
+            <if test="targetTable != null  and targetTable != ''"> and target_table = #{targetTable}</if>
+            <if test="targetPk != null  and targetPk != ''"> and target_pk = #{targetPk}</if>
+            <if test="transformedData != null  and transformedData != ''"> and transformed_data = #{transformedData}</if>
+            <if test="transformStatus != null  and transformStatus != ''"> and transform_status = #{transformStatus}</if>
+            <if test="writeStatus != null  and writeStatus != ''"> and write_status = #{writeStatus}</if>
+            <if test="errorMessage != null  and errorMessage != ''"> and error_message = #{errorMessage}</if>
+            <if test="transformedAt != null "> and transformed_at = #{transformedAt}</if>
+            <if test="writtenAt != null "> and written_at = #{writtenAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectAccessTransformRecordByTransformRecordId" parameterType="Long" resultMap="AccessTransformRecordResult">
+        <include refid="selectAccessTransformRecordVo"/>
+        where transform_record_id = #{transformRecordId}
+    </select>
+
+    <insert id="insertAccessTransformRecord" parameterType="AccessTransformRecord" useGeneratedKeys="true" keyProperty="transformRecordId">
+        insert into p1p_access_transform_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="stageRecordId != null">stage_record_id,</if>
+            <if test="accessBatchId != null">access_batch_id,</if>
+            <if test="accessPlanId != null">access_plan_id,</if>
+            <if test="scopeTableId != null">scope_table_id,</if>
+            <if test="targetTable != null and targetTable != ''">target_table,</if>
+            <if test="targetPk != null">target_pk,</if>
+            <if test="transformedData != null">transformed_data,</if>
+            <if test="transformStatus != null and transformStatus != ''">transform_status,</if>
+            <if test="writeStatus != null and writeStatus != ''">write_status,</if>
+            <if test="errorMessage != null">error_message,</if>
+            <if test="transformedAt != null">transformed_at,</if>
+            <if test="writtenAt != null">written_at,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="stageRecordId != null">#{stageRecordId},</if>
+            <if test="accessBatchId != null">#{accessBatchId},</if>
+            <if test="accessPlanId != null">#{accessPlanId},</if>
+            <if test="scopeTableId != null">#{scopeTableId},</if>
+            <if test="targetTable != null and targetTable != ''">#{targetTable},</if>
+            <if test="targetPk != null">#{targetPk},</if>
+            <if test="transformedData != null">#{transformedData},</if>
+            <if test="transformStatus != null and transformStatus != ''">#{transformStatus},</if>
+            <if test="writeStatus != null and writeStatus != ''">#{writeStatus},</if>
+            <if test="errorMessage != null">#{errorMessage},</if>
+            <if test="transformedAt != null">#{transformedAt},</if>
+            <if test="writtenAt != null">#{writtenAt},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAccessTransformRecord" parameterType="AccessTransformRecord">
+        update p1p_access_transform_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="stageRecordId != null">stage_record_id = #{stageRecordId},</if>
+            <if test="accessBatchId != null">access_batch_id = #{accessBatchId},</if>
+            <if test="accessPlanId != null">access_plan_id = #{accessPlanId},</if>
+            <if test="scopeTableId != null">scope_table_id = #{scopeTableId},</if>
+            <if test="targetTable != null and targetTable != ''">target_table = #{targetTable},</if>
+            <if test="targetPk != null">target_pk = #{targetPk},</if>
+            <if test="transformedData != null">transformed_data = #{transformedData},</if>
+            <if test="transformStatus != null and transformStatus != ''">transform_status = #{transformStatus},</if>
+            <if test="writeStatus != null and writeStatus != ''">write_status = #{writeStatus},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="transformedAt != null">transformed_at = #{transformedAt},</if>
+            <if test="writtenAt != null">written_at = #{writtenAt},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where transform_record_id = #{transformRecordId}
+    </update>
+
+    <delete id="deleteAccessTransformRecordByTransformRecordId" parameterType="Long">
+        delete from p1p_access_transform_record where transform_record_id = #{transformRecordId}
+    </delete>
+
+    <delete id="deleteAccessTransformRecordByTransformRecordIds" parameterType="String">
+        delete from p1p_access_transform_record where transform_record_id in 
+        <foreach item="transformRecordId" collection="array" open="(" separator="," close=")">
+            #{transformRecordId}
+        </foreach>
+    </delete>
+</mapper>

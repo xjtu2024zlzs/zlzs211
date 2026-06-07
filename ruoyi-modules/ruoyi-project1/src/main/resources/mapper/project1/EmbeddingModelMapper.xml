@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.EmbeddingModelMapper">
+    
+    <resultMap type="EmbeddingModel" id="EmbeddingModelResult">
+        <result property="embeddingModelKey"    column="embedding_model_key"    />
+        <result property="modelLabel"    column="model_label"    />
+        <result property="provider"    column="provider"    />
+        <result property="modelName"    column="model_name"    />
+        <result property="dimension"    column="dimension"    />
+        <result property="enabled"    column="enabled"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectEmbeddingModelVo">
+        select embedding_model_key, model_label, provider, model_name, dimension, enabled, create_time, update_time, remark from p1p_embedding_model
+    </sql>
+
+    <select id="selectEmbeddingModelList" parameterType="EmbeddingModel" resultMap="EmbeddingModelResult">
+        <include refid="selectEmbeddingModelVo"/>
+        <where>  
+            <if test="modelLabel != null  and modelLabel != ''"> and model_label = #{modelLabel}</if>
+            <if test="provider != null  and provider != ''"> and provider = #{provider}</if>
+            <if test="modelName != null  and modelName != ''"> and model_name like concat('%', #{modelName}, '%')</if>
+            <if test="dimension != null "> and dimension = #{dimension}</if>
+            <if test="enabled != null "> and enabled = #{enabled}</if>
+        </where>
+    </select>
+    
+    <select id="selectEmbeddingModelByEmbeddingModelKey" parameterType="String" resultMap="EmbeddingModelResult">
+        <include refid="selectEmbeddingModelVo"/>
+        where embedding_model_key = #{embeddingModelKey}
+    </select>
+
+    <insert id="insertEmbeddingModel" parameterType="EmbeddingModel">
+        insert into p1p_embedding_model
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="embeddingModelKey != null">embedding_model_key,</if>
+            <if test="modelLabel != null and modelLabel != ''">model_label,</if>
+            <if test="provider != null">provider,</if>
+            <if test="modelName != null and modelName != ''">model_name,</if>
+            <if test="dimension != null">dimension,</if>
+            <if test="enabled != null">enabled,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="embeddingModelKey != null">#{embeddingModelKey},</if>
+            <if test="modelLabel != null and modelLabel != ''">#{modelLabel},</if>
+            <if test="provider != null">#{provider},</if>
+            <if test="modelName != null and modelName != ''">#{modelName},</if>
+            <if test="dimension != null">#{dimension},</if>
+            <if test="enabled != null">#{enabled},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateEmbeddingModel" parameterType="EmbeddingModel">
+        update p1p_embedding_model
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="modelLabel != null and modelLabel != ''">model_label = #{modelLabel},</if>
+            <if test="provider != null">provider = #{provider},</if>
+            <if test="modelName != null and modelName != ''">model_name = #{modelName},</if>
+            <if test="dimension != null">dimension = #{dimension},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where embedding_model_key = #{embeddingModelKey}
+    </update>
+
+    <delete id="deleteEmbeddingModelByEmbeddingModelKey" parameterType="String">
+        delete from p1p_embedding_model where embedding_model_key = #{embeddingModelKey}
+    </delete>
+
+    <delete id="deleteEmbeddingModelByEmbeddingModelKeys" parameterType="String">
+        delete from p1p_embedding_model where embedding_model_key in 
+        <foreach item="embeddingModelKey" collection="array" open="(" separator="," close=")">
+            #{embeddingModelKey}
+        </foreach>
+    </delete>
+</mapper>

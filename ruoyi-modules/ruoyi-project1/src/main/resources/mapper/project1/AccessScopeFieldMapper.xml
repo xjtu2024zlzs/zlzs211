@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.AccessScopeFieldMapper">
+    
+    <resultMap type="AccessScopeField" id="AccessScopeFieldResult">
+        <result property="scopeFieldId"    column="scope_field_id"    />
+        <result property="scopeTableId"    column="scope_table_id"    />
+        <result property="accessPlanId"    column="access_plan_id"    />
+        <result property="mappingId"    column="mapping_id"    />
+        <result property="sourceFieldId"    column="source_field_id"    />
+        <result property="sourceColumn"    column="source_column"    />
+        <result property="targetColumn"    column="target_column"    />
+        <result property="mappingType"    column="mapping_type"    />
+        <result property="transformRule"    column="transform_rule"    />
+        <result property="fieldStatus"    column="field_status"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectAccessScopeFieldVo">
+        select scope_field_id, scope_table_id, access_plan_id, mapping_id, source_field_id, source_column, target_column, mapping_type, transform_rule, field_status, create_time, update_time, remark from p1p_access_scope_field
+    </sql>
+
+    <select id="selectAccessScopeFieldList" parameterType="AccessScopeField" resultMap="AccessScopeFieldResult">
+        <include refid="selectAccessScopeFieldVo"/>
+        <where>  
+            <if test="scopeTableId != null "> and scope_table_id = #{scopeTableId}</if>
+            <if test="accessPlanId != null "> and access_plan_id = #{accessPlanId}</if>
+            <if test="mappingId != null "> and mapping_id = #{mappingId}</if>
+            <if test="sourceFieldId != null "> and source_field_id = #{sourceFieldId}</if>
+            <if test="sourceColumn != null  and sourceColumn != ''"> and source_column = #{sourceColumn}</if>
+            <if test="targetColumn != null  and targetColumn != ''"> and target_column = #{targetColumn}</if>
+            <if test="mappingType != null  and mappingType != ''"> and mapping_type = #{mappingType}</if>
+            <if test="transformRule != null  and transformRule != ''"> and transform_rule = #{transformRule}</if>
+            <if test="fieldStatus != null  and fieldStatus != ''"> and field_status = #{fieldStatus}</if>
+        </where>
+    </select>
+    
+    <select id="selectAccessScopeFieldByScopeFieldId" parameterType="Long" resultMap="AccessScopeFieldResult">
+        <include refid="selectAccessScopeFieldVo"/>
+        where scope_field_id = #{scopeFieldId}
+    </select>
+
+    <insert id="insertAccessScopeField" parameterType="AccessScopeField" useGeneratedKeys="true" keyProperty="scopeFieldId">
+        insert into p1p_access_scope_field
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="scopeTableId != null">scope_table_id,</if>
+            <if test="accessPlanId != null">access_plan_id,</if>
+            <if test="mappingId != null">mapping_id,</if>
+            <if test="sourceFieldId != null">source_field_id,</if>
+            <if test="sourceColumn != null and sourceColumn != ''">source_column,</if>
+            <if test="targetColumn != null and targetColumn != ''">target_column,</if>
+            <if test="mappingType != null and mappingType != ''">mapping_type,</if>
+            <if test="transformRule != null">transform_rule,</if>
+            <if test="fieldStatus != null">field_status,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="scopeTableId != null">#{scopeTableId},</if>
+            <if test="accessPlanId != null">#{accessPlanId},</if>
+            <if test="mappingId != null">#{mappingId},</if>
+            <if test="sourceFieldId != null">#{sourceFieldId},</if>
+            <if test="sourceColumn != null and sourceColumn != ''">#{sourceColumn},</if>
+            <if test="targetColumn != null and targetColumn != ''">#{targetColumn},</if>
+            <if test="mappingType != null and mappingType != ''">#{mappingType},</if>
+            <if test="transformRule != null">#{transformRule},</if>
+            <if test="fieldStatus != null">#{fieldStatus},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAccessScopeField" parameterType="AccessScopeField">
+        update p1p_access_scope_field
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="scopeTableId != null">scope_table_id = #{scopeTableId},</if>
+            <if test="accessPlanId != null">access_plan_id = #{accessPlanId},</if>
+            <if test="mappingId != null">mapping_id = #{mappingId},</if>
+            <if test="sourceFieldId != null">source_field_id = #{sourceFieldId},</if>
+            <if test="sourceColumn != null and sourceColumn != ''">source_column = #{sourceColumn},</if>
+            <if test="targetColumn != null and targetColumn != ''">target_column = #{targetColumn},</if>
+            <if test="mappingType != null and mappingType != ''">mapping_type = #{mappingType},</if>
+            <if test="transformRule != null">transform_rule = #{transformRule},</if>
+            <if test="fieldStatus != null">field_status = #{fieldStatus},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where scope_field_id = #{scopeFieldId}
+    </update>
+
+    <delete id="deleteAccessScopeFieldByScopeFieldId" parameterType="Long">
+        delete from p1p_access_scope_field where scope_field_id = #{scopeFieldId}
+    </delete>
+
+    <delete id="deleteAccessScopeFieldByScopeFieldIds" parameterType="String">
+        delete from p1p_access_scope_field where scope_field_id in 
+        <foreach item="scopeFieldId" collection="array" open="(" separator="," close=")">
+            #{scopeFieldId}
+        </foreach>
+    </delete>
+</mapper>

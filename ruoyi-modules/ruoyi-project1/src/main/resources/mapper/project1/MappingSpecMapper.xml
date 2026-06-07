@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.MappingSpecMapper">
+    
+    <resultMap type="MappingSpec" id="MappingSpecResult">
+        <result property="mappingId"    column="mapping_id"    />
+        <result property="specSetId"    column="spec_set_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="versionId"    column="version_id"    />
+        <result property="recordId"    column="record_id"    />
+        <result property="sourceDatasourceId"    column="source_datasource_id"    />
+        <result property="reviewId"    column="review_id"    />
+        <result property="sourceDatabase"    column="source_database"    />
+        <result property="sourceTable"    column="source_table"    />
+        <result property="sourceColumn"    column="source_column"    />
+        <result property="targetTable"    column="target_table"    />
+        <result property="targetColumn"    column="target_column"    />
+        <result property="mappingType"    column="mapping_type"    />
+        <result property="transformRule"    column="transform_rule"    />
+        <result property="specStatus"    column="spec_status"    />
+        <result property="loadOrder"    column="load_order"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectMappingSpecVo">
+        select mapping_id, spec_set_id, task_id, version_id, record_id, source_datasource_id, review_id, source_database, source_table, source_column, target_table, target_column, mapping_type, transform_rule, spec_status, load_order, create_by, create_time, update_by, update_time, remark from p1p_mapping_spec
+    </sql>
+
+    <select id="selectMappingSpecList" parameterType="MappingSpec" resultMap="MappingSpecResult">
+        <include refid="selectMappingSpecVo"/>
+        <where>  
+            <if test="specSetId != null "> and spec_set_id = #{specSetId}</if>
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="versionId != null "> and version_id = #{versionId}</if>
+            <if test="recordId != null "> and record_id = #{recordId}</if>
+            <if test="sourceDatasourceId != null "> and source_datasource_id = #{sourceDatasourceId}</if>
+            <if test="reviewId != null "> and review_id = #{reviewId}</if>
+            <if test="sourceDatabase != null  and sourceDatabase != ''"> and source_database = #{sourceDatabase}</if>
+            <if test="sourceTable != null  and sourceTable != ''"> and source_table = #{sourceTable}</if>
+            <if test="sourceColumn != null  and sourceColumn != ''"> and source_column = #{sourceColumn}</if>
+            <if test="targetTable != null  and targetTable != ''"> and target_table = #{targetTable}</if>
+            <if test="targetColumn != null  and targetColumn != ''"> and target_column = #{targetColumn}</if>
+            <if test="mappingType != null  and mappingType != ''"> and mapping_type = #{mappingType}</if>
+            <if test="transformRule != null  and transformRule != ''"> and transform_rule = #{transformRule}</if>
+            <if test="specStatus != null  and specStatus != ''"> and spec_status = #{specStatus}</if>
+            <if test="loadOrder != null "> and load_order = #{loadOrder}</if>
+        </where>
+    </select>
+    
+    <select id="selectMappingSpecByMappingId" parameterType="Long" resultMap="MappingSpecResult">
+        <include refid="selectMappingSpecVo"/>
+        where mapping_id = #{mappingId}
+    </select>
+
+    <insert id="insertMappingSpec" parameterType="MappingSpec" useGeneratedKeys="true" keyProperty="mappingId">
+        insert into p1p_mapping_spec
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="specSetId != null">spec_set_id,</if>
+            <if test="taskId != null">task_id,</if>
+            <if test="versionId != null">version_id,</if>
+            <if test="recordId != null">record_id,</if>
+            <if test="sourceDatasourceId != null">source_datasource_id,</if>
+            <if test="reviewId != null">review_id,</if>
+            <if test="sourceDatabase != null">source_database,</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table,</if>
+            <if test="sourceColumn != null and sourceColumn != ''">source_column,</if>
+            <if test="targetTable != null and targetTable != ''">target_table,</if>
+            <if test="targetColumn != null and targetColumn != ''">target_column,</if>
+            <if test="mappingType != null and mappingType != ''">mapping_type,</if>
+            <if test="transformRule != null">transform_rule,</if>
+            <if test="specStatus != null">spec_status,</if>
+            <if test="loadOrder != null">load_order,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="specSetId != null">#{specSetId},</if>
+            <if test="taskId != null">#{taskId},</if>
+            <if test="versionId != null">#{versionId},</if>
+            <if test="recordId != null">#{recordId},</if>
+            <if test="sourceDatasourceId != null">#{sourceDatasourceId},</if>
+            <if test="reviewId != null">#{reviewId},</if>
+            <if test="sourceDatabase != null">#{sourceDatabase},</if>
+            <if test="sourceTable != null and sourceTable != ''">#{sourceTable},</if>
+            <if test="sourceColumn != null and sourceColumn != ''">#{sourceColumn},</if>
+            <if test="targetTable != null and targetTable != ''">#{targetTable},</if>
+            <if test="targetColumn != null and targetColumn != ''">#{targetColumn},</if>
+            <if test="mappingType != null and mappingType != ''">#{mappingType},</if>
+            <if test="transformRule != null">#{transformRule},</if>
+            <if test="specStatus != null">#{specStatus},</if>
+            <if test="loadOrder != null">#{loadOrder},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMappingSpec" parameterType="MappingSpec">
+        update p1p_mapping_spec
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="specSetId != null">spec_set_id = #{specSetId},</if>
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="versionId != null">version_id = #{versionId},</if>
+            <if test="recordId != null">record_id = #{recordId},</if>
+            <if test="sourceDatasourceId != null">source_datasource_id = #{sourceDatasourceId},</if>
+            <if test="reviewId != null">review_id = #{reviewId},</if>
+            <if test="sourceDatabase != null">source_database = #{sourceDatabase},</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table = #{sourceTable},</if>
+            <if test="sourceColumn != null and sourceColumn != ''">source_column = #{sourceColumn},</if>
+            <if test="targetTable != null and targetTable != ''">target_table = #{targetTable},</if>
+            <if test="targetColumn != null and targetColumn != ''">target_column = #{targetColumn},</if>
+            <if test="mappingType != null and mappingType != ''">mapping_type = #{mappingType},</if>
+            <if test="transformRule != null">transform_rule = #{transformRule},</if>
+            <if test="specStatus != null">spec_status = #{specStatus},</if>
+            <if test="loadOrder != null">load_order = #{loadOrder},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where mapping_id = #{mappingId}
+    </update>
+
+    <delete id="deleteMappingSpecByMappingId" parameterType="Long">
+        delete from p1p_mapping_spec where mapping_id = #{mappingId}
+    </delete>
+
+    <delete id="deleteMappingSpecByMappingIds" parameterType="String">
+        delete from p1p_mapping_spec where mapping_id in 
+        <foreach item="mappingId" collection="array" open="(" separator="," close=")">
+            #{mappingId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteMappingSpecBySpecSetId" parameterType="Long">
+        delete from p1p_mapping_spec where spec_set_id = #{specSetId}
+    </delete>
+</mapper>

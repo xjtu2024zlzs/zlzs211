@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.MatchResultRowMapper">
+    
+    <resultMap type="MatchResultRow" id="MatchResultRowResult">
+        <result property="resultRowId"    column="result_row_id"    />
+        <result property="resultSetId"    column="result_set_id"    />
+        <result property="rowNo"    column="row_no"    />
+        <result property="sourceDatabase"    column="source_database"    />
+        <result property="sourceTable"    column="source_table"    />
+        <result property="sourceColumn"    column="source_column"    />
+        <result property="targetTable"    column="target_table"    />
+        <result property="targetColumn"    column="target_column"    />
+        <result property="score"    column="score"    />
+        <result property="rawPayload"    column="raw_payload"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectMatchResultRowVo">
+        select result_row_id, result_set_id, row_no, source_database, source_table, source_column, target_table, target_column, score, raw_payload, create_time, remark from p1p_match_result_row
+    </sql>
+
+    <select id="selectMatchResultRowList" parameterType="MatchResultRow" resultMap="MatchResultRowResult">
+        <include refid="selectMatchResultRowVo"/>
+        <where>  
+            <if test="resultSetId != null "> and result_set_id = #{resultSetId}</if>
+            <if test="rowNo != null "> and row_no = #{rowNo}</if>
+            <if test="sourceDatabase != null  and sourceDatabase != ''"> and source_database = #{sourceDatabase}</if>
+            <if test="sourceTable != null  and sourceTable != ''"> and source_table = #{sourceTable}</if>
+            <if test="sourceColumn != null  and sourceColumn != ''"> and source_column = #{sourceColumn}</if>
+            <if test="targetTable != null  and targetTable != ''"> and target_table = #{targetTable}</if>
+            <if test="targetColumn != null  and targetColumn != ''"> and target_column = #{targetColumn}</if>
+            <if test="score != null "> and score = #{score}</if>
+            <if test="rawPayload != null  and rawPayload != ''"> and raw_payload = #{rawPayload}</if>
+        </where>
+    </select>
+    
+    <select id="selectMatchResultRowByResultRowId" parameterType="Long" resultMap="MatchResultRowResult">
+        <include refid="selectMatchResultRowVo"/>
+        where result_row_id = #{resultRowId}
+    </select>
+
+    <insert id="insertMatchResultRow" parameterType="MatchResultRow" useGeneratedKeys="true" keyProperty="resultRowId">
+        insert into p1p_match_result_row
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="resultSetId != null">result_set_id,</if>
+            <if test="rowNo != null">row_no,</if>
+            <if test="sourceDatabase != null">source_database,</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table,</if>
+            <if test="sourceColumn != null and sourceColumn != ''">source_column,</if>
+            <if test="targetTable != null and targetTable != ''">target_table,</if>
+            <if test="targetColumn != null and targetColumn != ''">target_column,</if>
+            <if test="score != null">score,</if>
+            <if test="rawPayload != null">raw_payload,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="resultSetId != null">#{resultSetId},</if>
+            <if test="rowNo != null">#{rowNo},</if>
+            <if test="sourceDatabase != null">#{sourceDatabase},</if>
+            <if test="sourceTable != null and sourceTable != ''">#{sourceTable},</if>
+            <if test="sourceColumn != null and sourceColumn != ''">#{sourceColumn},</if>
+            <if test="targetTable != null and targetTable != ''">#{targetTable},</if>
+            <if test="targetColumn != null and targetColumn != ''">#{targetColumn},</if>
+            <if test="score != null">#{score},</if>
+            <if test="rawPayload != null">#{rawPayload},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMatchResultRow" parameterType="MatchResultRow">
+        update p1p_match_result_row
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="resultSetId != null">result_set_id = #{resultSetId},</if>
+            <if test="rowNo != null">row_no = #{rowNo},</if>
+            <if test="sourceDatabase != null">source_database = #{sourceDatabase},</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table = #{sourceTable},</if>
+            <if test="sourceColumn != null and sourceColumn != ''">source_column = #{sourceColumn},</if>
+            <if test="targetTable != null and targetTable != ''">target_table = #{targetTable},</if>
+            <if test="targetColumn != null and targetColumn != ''">target_column = #{targetColumn},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="rawPayload != null">raw_payload = #{rawPayload},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where result_row_id = #{resultRowId}
+    </update>
+
+    <delete id="deleteMatchResultRowByResultRowId" parameterType="Long">
+        delete from p1p_match_result_row where result_row_id = #{resultRowId}
+    </delete>
+
+    <delete id="deleteMatchResultRowByResultRowIds" parameterType="String">
+        delete from p1p_match_result_row where result_row_id in 
+        <foreach item="resultRowId" collection="array" open="(" separator="," close=")">
+            #{resultRowId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.TaskMetricMapper">
+    
+    <resultMap type="TaskMetric" id="TaskMetricResult">
+        <result property="metricId"    column="metric_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="versionId"    column="version_id"    />
+        <result property="recordId"    column="record_id"    />
+        <result property="resultSetId"    column="result_set_id"    />
+        <result property="metricKey"    column="metric_key"    />
+        <result property="metricName"    column="metric_name"    />
+        <result property="metricValue"    column="metric_value"    />
+        <result property="chartType"    column="chart_type"    />
+        <result property="chartData"    column="chart_data"    />
+        <result property="resultDir"    column="result_dir"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTaskMetricVo">
+        select metric_id, task_id, version_id, record_id, result_set_id, metric_key, metric_name, metric_value, chart_type, chart_data, result_dir, create_time, remark from p1p_task_metric
+    </sql>
+
+    <select id="selectTaskMetricList" parameterType="TaskMetric" resultMap="TaskMetricResult">
+        <include refid="selectTaskMetricVo"/>
+        <where>  
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="versionId != null "> and version_id = #{versionId}</if>
+            <if test="recordId != null "> and record_id = #{recordId}</if>
+            <if test="resultSetId != null "> and result_set_id = #{resultSetId}</if>
+            <if test="metricKey != null  and metricKey != ''"> and metric_key = #{metricKey}</if>
+            <if test="metricName != null  and metricName != ''"> and metric_name like concat('%', #{metricName}, '%')</if>
+            <if test="metricValue != null "> and metric_value = #{metricValue}</if>
+            <if test="chartType != null  and chartType != ''"> and chart_type = #{chartType}</if>
+            <if test="chartData != null  and chartData != ''"> and chart_data = #{chartData}</if>
+            <if test="resultDir != null  and resultDir != ''"> and result_dir = #{resultDir}</if>
+        </where>
+    </select>
+    
+    <select id="selectTaskMetricByMetricId" parameterType="Long" resultMap="TaskMetricResult">
+        <include refid="selectTaskMetricVo"/>
+        where metric_id = #{metricId}
+    </select>
+
+    <insert id="insertTaskMetric" parameterType="TaskMetric" useGeneratedKeys="true" keyProperty="metricId">
+        insert into p1p_task_metric
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">task_id,</if>
+            <if test="versionId != null">version_id,</if>
+            <if test="recordId != null">record_id,</if>
+            <if test="resultSetId != null">result_set_id,</if>
+            <if test="metricKey != null and metricKey != ''">metric_key,</if>
+            <if test="metricName != null and metricName != ''">metric_name,</if>
+            <if test="metricValue != null">metric_value,</if>
+            <if test="chartType != null">chart_type,</if>
+            <if test="chartData != null">chart_data,</if>
+            <if test="resultDir != null">result_dir,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">#{taskId},</if>
+            <if test="versionId != null">#{versionId},</if>
+            <if test="recordId != null">#{recordId},</if>
+            <if test="resultSetId != null">#{resultSetId},</if>
+            <if test="metricKey != null and metricKey != ''">#{metricKey},</if>
+            <if test="metricName != null and metricName != ''">#{metricName},</if>
+            <if test="metricValue != null">#{metricValue},</if>
+            <if test="chartType != null">#{chartType},</if>
+            <if test="chartData != null">#{chartData},</if>
+            <if test="resultDir != null">#{resultDir},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTaskMetric" parameterType="TaskMetric">
+        update p1p_task_metric
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="versionId != null">version_id = #{versionId},</if>
+            <if test="recordId != null">record_id = #{recordId},</if>
+            <if test="resultSetId != null">result_set_id = #{resultSetId},</if>
+            <if test="metricKey != null and metricKey != ''">metric_key = #{metricKey},</if>
+            <if test="metricName != null and metricName != ''">metric_name = #{metricName},</if>
+            <if test="metricValue != null">metric_value = #{metricValue},</if>
+            <if test="chartType != null">chart_type = #{chartType},</if>
+            <if test="chartData != null">chart_data = #{chartData},</if>
+            <if test="resultDir != null">result_dir = #{resultDir},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where metric_id = #{metricId}
+    </update>
+
+    <delete id="deleteTaskMetricByMetricId" parameterType="Long">
+        delete from p1p_task_metric where metric_id = #{metricId}
+    </delete>
+
+    <delete id="deleteTaskMetricByMetricIds" parameterType="String">
+        delete from p1p_task_metric where metric_id in 
+        <foreach item="metricId" collection="array" open="(" separator="," close=")">
+            #{metricId}
+        </foreach>
+    </delete>
+</mapper>

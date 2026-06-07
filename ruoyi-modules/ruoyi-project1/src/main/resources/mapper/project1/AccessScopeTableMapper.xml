@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.AccessScopeTableMapper">
+    
+    <resultMap type="AccessScopeTable" id="AccessScopeTableResult">
+        <result property="scopeTableId"    column="scope_table_id"    />
+        <result property="accessPlanId"    column="access_plan_id"    />
+        <result property="specSetId"    column="spec_set_id"    />
+        <result property="sourceDatasourceId"    column="source_datasource_id"    />
+        <result property="sourceDatabase"    column="source_database"    />
+        <result property="sourceTable"    column="source_table"    />
+        <result property="targetTable"    column="target_table"    />
+        <result property="sourceEntityId"    column="source_entity_id"    />
+        <result property="fieldMappingCount"    column="field_mapping_count"    />
+        <result property="scopeStatus"    column="scope_status"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectAccessScopeTableVo">
+        select scope_table_id, access_plan_id, spec_set_id, source_datasource_id, source_database, source_table, target_table, source_entity_id, field_mapping_count, scope_status, create_time, update_time, remark from p1p_access_scope_table
+    </sql>
+
+    <select id="selectAccessScopeTableList" parameterType="AccessScopeTable" resultMap="AccessScopeTableResult">
+        <include refid="selectAccessScopeTableVo"/>
+        <where>  
+            <if test="accessPlanId != null "> and access_plan_id = #{accessPlanId}</if>
+            <if test="specSetId != null "> and spec_set_id = #{specSetId}</if>
+            <if test="sourceDatasourceId != null "> and source_datasource_id = #{sourceDatasourceId}</if>
+            <if test="sourceDatabase != null  and sourceDatabase != ''"> and source_database = #{sourceDatabase}</if>
+            <if test="sourceTable != null  and sourceTable != ''"> and source_table = #{sourceTable}</if>
+            <if test="targetTable != null  and targetTable != ''"> and target_table = #{targetTable}</if>
+            <if test="sourceEntityId != null "> and source_entity_id = #{sourceEntityId}</if>
+            <if test="fieldMappingCount != null "> and field_mapping_count = #{fieldMappingCount}</if>
+            <if test="scopeStatus != null  and scopeStatus != ''"> and scope_status = #{scopeStatus}</if>
+        </where>
+    </select>
+    
+    <select id="selectAccessScopeTableByScopeTableId" parameterType="Long" resultMap="AccessScopeTableResult">
+        <include refid="selectAccessScopeTableVo"/>
+        where scope_table_id = #{scopeTableId}
+    </select>
+
+    <insert id="insertAccessScopeTable" parameterType="AccessScopeTable" useGeneratedKeys="true" keyProperty="scopeTableId">
+        insert into p1p_access_scope_table
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="accessPlanId != null">access_plan_id,</if>
+            <if test="specSetId != null">spec_set_id,</if>
+            <if test="sourceDatasourceId != null">source_datasource_id,</if>
+            <if test="sourceDatabase != null">source_database,</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table,</if>
+            <if test="targetTable != null and targetTable != ''">target_table,</if>
+            <if test="sourceEntityId != null">source_entity_id,</if>
+            <if test="fieldMappingCount != null">field_mapping_count,</if>
+            <if test="scopeStatus != null">scope_status,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="accessPlanId != null">#{accessPlanId},</if>
+            <if test="specSetId != null">#{specSetId},</if>
+            <if test="sourceDatasourceId != null">#{sourceDatasourceId},</if>
+            <if test="sourceDatabase != null">#{sourceDatabase},</if>
+            <if test="sourceTable != null and sourceTable != ''">#{sourceTable},</if>
+            <if test="targetTable != null and targetTable != ''">#{targetTable},</if>
+            <if test="sourceEntityId != null">#{sourceEntityId},</if>
+            <if test="fieldMappingCount != null">#{fieldMappingCount},</if>
+            <if test="scopeStatus != null">#{scopeStatus},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAccessScopeTable" parameterType="AccessScopeTable">
+        update p1p_access_scope_table
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="accessPlanId != null">access_plan_id = #{accessPlanId},</if>
+            <if test="specSetId != null">spec_set_id = #{specSetId},</if>
+            <if test="sourceDatasourceId != null">source_datasource_id = #{sourceDatasourceId},</if>
+            <if test="sourceDatabase != null">source_database = #{sourceDatabase},</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table = #{sourceTable},</if>
+            <if test="targetTable != null and targetTable != ''">target_table = #{targetTable},</if>
+            <if test="sourceEntityId != null">source_entity_id = #{sourceEntityId},</if>
+            <if test="fieldMappingCount != null">field_mapping_count = #{fieldMappingCount},</if>
+            <if test="scopeStatus != null">scope_status = #{scopeStatus},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where scope_table_id = #{scopeTableId}
+    </update>
+
+    <delete id="deleteAccessScopeTableByScopeTableId" parameterType="Long">
+        delete from p1p_access_scope_table where scope_table_id = #{scopeTableId}
+    </delete>
+
+    <delete id="deleteAccessScopeTableByScopeTableIds" parameterType="String">
+        delete from p1p_access_scope_table where scope_table_id in 
+        <foreach item="scopeTableId" collection="array" open="(" separator="," close=")">
+            #{scopeTableId}
+        </foreach>
+    </delete>
+</mapper>

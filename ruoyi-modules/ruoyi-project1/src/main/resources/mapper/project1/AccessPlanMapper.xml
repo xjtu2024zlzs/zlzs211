@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.AccessPlanMapper">
+    
+    <resultMap type="AccessPlan" id="AccessPlanResult">
+        <result property="accessPlanId"    column="access_plan_id"    />
+        <result property="planName"    column="plan_name"    />
+        <result property="sourceDatasourceId"    column="source_datasource_id"    />
+        <result property="accessMode"    column="access_mode"    />
+        <result property="accessType"    column="access_type"    />
+        <result property="cycleHours"    column="cycle_hours"    />
+        <result property="specSetId"    column="spec_set_id"    />
+        <result property="useStatus"    column="use_status"    />
+        <result property="currentBatchId"    column="current_batch_id"    />
+        <result property="lastSuccessCount"    column="last_success_count"    />
+        <result property="lastFailedCount"    column="last_failed_count"    />
+        <result property="totalSuccessCount"    column="total_success_count"    />
+        <result property="totalFailedCount"    column="total_failed_count"    />
+        <result property="lastExecuteTime"    column="last_execute_time"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectAccessPlanVo">
+        select access_plan_id, plan_name, source_datasource_id, access_mode, access_type, cycle_hours, spec_set_id, use_status, current_batch_id, last_success_count, last_failed_count, total_success_count, total_failed_count, last_execute_time, status, del_flag, create_by, create_time, update_by, update_time, remark from p1p_access_plan
+    </sql>
+
+    <select id="selectAccessPlanList" parameterType="AccessPlan" resultMap="AccessPlanResult">
+        <include refid="selectAccessPlanVo"/>
+        <where>  
+            <if test="planName != null  and planName != ''"> and plan_name like concat('%', #{planName}, '%')</if>
+            <if test="sourceDatasourceId != null "> and source_datasource_id = #{sourceDatasourceId}</if>
+            <if test="accessMode != null  and accessMode != ''"> and access_mode = #{accessMode}</if>
+            <if test="accessType != null  and accessType != ''"> and access_type = #{accessType}</if>
+            <if test="cycleHours != null "> and cycle_hours = #{cycleHours}</if>
+            <if test="specSetId != null "> and spec_set_id = #{specSetId}</if>
+            <if test="useStatus != null  and useStatus != ''"> and use_status = #{useStatus}</if>
+            <if test="currentBatchId != null "> and current_batch_id = #{currentBatchId}</if>
+            <if test="lastSuccessCount != null "> and last_success_count = #{lastSuccessCount}</if>
+            <if test="lastFailedCount != null "> and last_failed_count = #{lastFailedCount}</if>
+            <if test="totalSuccessCount != null "> and total_success_count = #{totalSuccessCount}</if>
+            <if test="totalFailedCount != null "> and total_failed_count = #{totalFailedCount}</if>
+            <if test="lastExecuteTime != null "> and last_execute_time = #{lastExecuteTime}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectAccessPlanByAccessPlanId" parameterType="Long" resultMap="AccessPlanResult">
+        <include refid="selectAccessPlanVo"/>
+        where access_plan_id = #{accessPlanId}
+    </select>
+
+    <insert id="insertAccessPlan" parameterType="AccessPlan" useGeneratedKeys="true" keyProperty="accessPlanId">
+        insert into p1p_access_plan
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="planName != null and planName != ''">plan_name,</if>
+            <if test="sourceDatasourceId != null">source_datasource_id,</if>
+            <if test="accessMode != null and accessMode != ''">access_mode,</if>
+            <if test="accessType != null and accessType != ''">access_type,</if>
+            <if test="cycleHours != null">cycle_hours,</if>
+            <if test="specSetId != null">spec_set_id,</if>
+            <if test="useStatus != null and useStatus != ''">use_status,</if>
+            <if test="currentBatchId != null">current_batch_id,</if>
+            <if test="lastSuccessCount != null">last_success_count,</if>
+            <if test="lastFailedCount != null">last_failed_count,</if>
+            <if test="totalSuccessCount != null">total_success_count,</if>
+            <if test="totalFailedCount != null">total_failed_count,</if>
+            <if test="lastExecuteTime != null">last_execute_time,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="planName != null and planName != ''">#{planName},</if>
+            <if test="sourceDatasourceId != null">#{sourceDatasourceId},</if>
+            <if test="accessMode != null and accessMode != ''">#{accessMode},</if>
+            <if test="accessType != null and accessType != ''">#{accessType},</if>
+            <if test="cycleHours != null">#{cycleHours},</if>
+            <if test="specSetId != null">#{specSetId},</if>
+            <if test="useStatus != null and useStatus != ''">#{useStatus},</if>
+            <if test="currentBatchId != null">#{currentBatchId},</if>
+            <if test="lastSuccessCount != null">#{lastSuccessCount},</if>
+            <if test="lastFailedCount != null">#{lastFailedCount},</if>
+            <if test="totalSuccessCount != null">#{totalSuccessCount},</if>
+            <if test="totalFailedCount != null">#{totalFailedCount},</if>
+            <if test="lastExecuteTime != null">#{lastExecuteTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAccessPlan" parameterType="AccessPlan">
+        update p1p_access_plan
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="planName != null and planName != ''">plan_name = #{planName},</if>
+            <if test="sourceDatasourceId != null">source_datasource_id = #{sourceDatasourceId},</if>
+            <if test="accessMode != null and accessMode != ''">access_mode = #{accessMode},</if>
+            <if test="accessType != null and accessType != ''">access_type = #{accessType},</if>
+            cycle_hours = #{cycleHours},
+            <if test="specSetId != null">spec_set_id = #{specSetId},</if>
+            <if test="useStatus != null and useStatus != ''">use_status = #{useStatus},</if>
+            <if test="currentBatchId != null">current_batch_id = #{currentBatchId},</if>
+            <if test="lastSuccessCount != null">last_success_count = #{lastSuccessCount},</if>
+            <if test="lastFailedCount != null">last_failed_count = #{lastFailedCount},</if>
+            <if test="totalSuccessCount != null">total_success_count = #{totalSuccessCount},</if>
+            <if test="totalFailedCount != null">total_failed_count = #{totalFailedCount},</if>
+            <if test="lastExecuteTime != null">last_execute_time = #{lastExecuteTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where access_plan_id = #{accessPlanId}
+    </update>
+
+    <delete id="deleteAccessPlanByAccessPlanId" parameterType="Long">
+        delete from p1p_access_plan where access_plan_id = #{accessPlanId}
+    </delete>
+
+    <delete id="deleteAccessPlanByAccessPlanIds" parameterType="String">
+        delete from p1p_access_plan where access_plan_id in 
+        <foreach item="accessPlanId" collection="array" open="(" separator="," close=")">
+            #{accessPlanId}
+        </foreach>
+    </delete>
+</mapper>

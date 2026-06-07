@@ -28,3 +28,8 @@ spring:
     import:
       - nacos:application-${spring.profiles.active}.${spring.config.file-extension}?group=DEFAULT_GROUP
       - nacos:${spring.application.name}-${spring.profiles.active}.${spring.config.file-extension}?group=DEFAULT_GROUP
+
+# Project1 internal services
+project1:
+  algorithm:
+    base-url: http://127.0.0.1:9204

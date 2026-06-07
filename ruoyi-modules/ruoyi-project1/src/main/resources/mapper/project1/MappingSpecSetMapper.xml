@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.MappingSpecSetMapper">
+    
+    <resultMap type="MappingSpecSet" id="MappingSpecSetResult">
+        <result property="specSetId"    column="spec_set_id"    />
+        <result property="specSetName"    column="spec_set_name"    />
+        <result property="resultSetId"    column="result_set_id"    />
+        <result property="sourceDatasourceId"    column="source_datasource_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="versionId"    column="version_id"    />
+        <result property="recordId"    column="record_id"    />
+        <result property="ruleCount"    column="rule_count"    />
+        <result property="isDefault"    column="is_default"    />
+        <result property="specStatus"    column="spec_status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectMappingSpecSetVo">
+        select spec_set_id, spec_set_name, result_set_id, source_datasource_id, task_id, version_id, record_id, rule_count, is_default, spec_status, create_by, create_time, update_by, update_time, remark from p1p_mapping_spec_set
+    </sql>
+
+    <select id="selectMappingSpecSetList" parameterType="MappingSpecSet" resultMap="MappingSpecSetResult">
+        <include refid="selectMappingSpecSetVo"/>
+        <where>  
+            <if test="specSetName != null  and specSetName != ''"> and spec_set_name like concat('%', #{specSetName}, '%')</if>
+            <if test="resultSetId != null "> and result_set_id = #{resultSetId}</if>
+            <if test="sourceDatasourceId != null "> and source_datasource_id = #{sourceDatasourceId}</if>
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="versionId != null "> and version_id = #{versionId}</if>
+            <if test="recordId != null "> and record_id = #{recordId}</if>
+            <if test="ruleCount != null "> and rule_count = #{ruleCount}</if>
+            <if test="isDefault != null "> and is_default = #{isDefault}</if>
+            <if test="specStatus != null  and specStatus != ''"> and spec_status = #{specStatus}</if>
+        </where>
+    </select>
+    
+    <select id="selectMappingSpecSetBySpecSetId" parameterType="Long" resultMap="MappingSpecSetResult">
+        <include refid="selectMappingSpecSetVo"/>
+        where spec_set_id = #{specSetId}
+    </select>
+
+    <insert id="insertMappingSpecSet" parameterType="MappingSpecSet" useGeneratedKeys="true" keyProperty="specSetId">
+        insert into p1p_mapping_spec_set
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="specSetName != null and specSetName != ''">spec_set_name,</if>
+            <if test="resultSetId != null">result_set_id,</if>
+            <if test="sourceDatasourceId != null">source_datasource_id,</if>
+            <if test="taskId != null">task_id,</if>
+            <if test="versionId != null">version_id,</if>
+            <if test="recordId != null">record_id,</if>
+            <if test="ruleCount != null">rule_count,</if>
+            <if test="isDefault != null">is_default,</if>
+            <if test="specStatus != null and specStatus != ''">spec_status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="specSetName != null and specSetName != ''">#{specSetName},</if>
+            <if test="resultSetId != null">#{resultSetId},</if>
+            <if test="sourceDatasourceId != null">#{sourceDatasourceId},</if>
+            <if test="taskId != null">#{taskId},</if>
+            <if test="versionId != null">#{versionId},</if>
+            <if test="recordId != null">#{recordId},</if>
+            <if test="ruleCount != null">#{ruleCount},</if>
+            <if test="isDefault != null">#{isDefault},</if>
+            <if test="specStatus != null and specStatus != ''">#{specStatus},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMappingSpecSet" parameterType="MappingSpecSet">
+        update p1p_mapping_spec_set
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="specSetName != null and specSetName != ''">spec_set_name = #{specSetName},</if>
+            <if test="resultSetId != null">result_set_id = #{resultSetId},</if>
+            <if test="sourceDatasourceId != null">source_datasource_id = #{sourceDatasourceId},</if>
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="versionId != null">version_id = #{versionId},</if>
+            <if test="recordId != null">record_id = #{recordId},</if>
+            <if test="ruleCount != null">rule_count = #{ruleCount},</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+            <if test="specStatus != null and specStatus != ''">spec_status = #{specStatus},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where spec_set_id = #{specSetId}
+    </update>
+
+    <delete id="deleteMappingSpecSetBySpecSetId" parameterType="Long">
+        delete from p1p_mapping_spec_set where spec_set_id = #{specSetId}
+    </delete>
+
+    <delete id="deleteMappingSpecSetBySpecSetIds" parameterType="String">
+        delete from p1p_mapping_spec_set where spec_set_id in 
+        <foreach item="specSetId" collection="array" open="(" separator="," close=")">
+            #{specSetId}
+        </foreach>
+    </delete>
+</mapper>
