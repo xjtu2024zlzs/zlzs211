@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.MatchTaskRecordMapper">
+    
+    <resultMap type="MatchTaskRecord" id="MatchTaskRecordResult">
+        <result property="recordId"    column="record_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="versionId"    column="version_id"    />
+        <result property="schemaSnapshotId"    column="schema_snapshot_id"    />
+        <result property="defaultResultSetId"    column="default_result_set_id"    />
+        <result property="executionStatus"    column="execution_status"    />
+        <result property="currentStage"    column="current_stage"    />
+        <result property="progress"    column="progress"    />
+        <result property="algorithmParamsSnapshot"    column="algorithm_params_snapshot"    />
+        <result property="resultsDir"    column="results_dir"    />
+        <result property="logFile"    column="log_file"    />
+        <result property="errorMessage"    column="error_message"    />
+        <result property="cancelRequestedAt"    column="cancel_requested_at"    />
+        <result property="canceledAt"    column="canceled_at"    />
+        <result property="startedAt"    column="started_at"    />
+        <result property="finishedAt"    column="finished_at"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectMatchTaskRecordVo">
+        select record_id, task_id, version_id, schema_snapshot_id, default_result_set_id, execution_status, current_stage, progress, algorithm_params_snapshot, results_dir, log_file, error_message, cancel_requested_at, canceled_at, started_at, finished_at, create_time, remark from p1p_match_task_record
+    </sql>
+
+    <select id="selectMatchTaskRecordList" parameterType="MatchTaskRecord" resultMap="MatchTaskRecordResult">
+        <include refid="selectMatchTaskRecordVo"/>
+        <where>  
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="versionId != null "> and version_id = #{versionId}</if>
+            <if test="schemaSnapshotId != null "> and schema_snapshot_id = #{schemaSnapshotId}</if>
+            <if test="defaultResultSetId != null "> and default_result_set_id = #{defaultResultSetId}</if>
+            <if test="executionStatus != null  and executionStatus != ''"> and execution_status = #{executionStatus}</if>
+            <if test="currentStage != null  and currentStage != ''"> and current_stage = #{currentStage}</if>
+            <if test="progress != null "> and progress = #{progress}</if>
+            <if test="algorithmParamsSnapshot != null  and algorithmParamsSnapshot != ''"> and algorithm_params_snapshot = #{algorithmParamsSnapshot}</if>
+            <if test="resultsDir != null  and resultsDir != ''"> and results_dir = #{resultsDir}</if>
+            <if test="logFile != null  and logFile != ''"> and log_file = #{logFile}</if>
+            <if test="errorMessage != null  and errorMessage != ''"> and error_message = #{errorMessage}</if>
+            <if test="cancelRequestedAt != null "> and cancel_requested_at = #{cancelRequestedAt}</if>
+            <if test="canceledAt != null "> and canceled_at = #{canceledAt}</if>
+            <if test="startedAt != null "> and started_at = #{startedAt}</if>
+            <if test="finishedAt != null "> and finished_at = #{finishedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectMatchTaskRecordByRecordId" parameterType="Long" resultMap="MatchTaskRecordResult">
+        <include refid="selectMatchTaskRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <insert id="insertMatchTaskRecord" parameterType="MatchTaskRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into p1p_match_task_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">task_id,</if>
+            <if test="versionId != null">version_id,</if>
+            <if test="schemaSnapshotId != null">schema_snapshot_id,</if>
+            <if test="defaultResultSetId != null">default_result_set_id,</if>
+            <if test="executionStatus != null and executionStatus != ''">execution_status,</if>
+            <if test="currentStage != null and currentStage != ''">current_stage,</if>
+            <if test="progress != null">progress,</if>
+            <if test="algorithmParamsSnapshot != null">algorithm_params_snapshot,</if>
+            <if test="resultsDir != null">results_dir,</if>
+            <if test="logFile != null">log_file,</if>
+            <if test="errorMessage != null">error_message,</if>
+            <if test="cancelRequestedAt != null">cancel_requested_at,</if>
+            <if test="canceledAt != null">canceled_at,</if>
+            <if test="startedAt != null">started_at,</if>
+            <if test="finishedAt != null">finished_at,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">#{taskId},</if>
+            <if test="versionId != null">#{versionId},</if>
+            <if test="schemaSnapshotId != null">#{schemaSnapshotId},</if>
+            <if test="defaultResultSetId != null">#{defaultResultSetId},</if>
+            <if test="executionStatus != null and executionStatus != ''">#{executionStatus},</if>
+            <if test="currentStage != null and currentStage != ''">#{currentStage},</if>
+            <if test="progress != null">#{progress},</if>
+            <if test="algorithmParamsSnapshot != null">#{algorithmParamsSnapshot},</if>
+            <if test="resultsDir != null">#{resultsDir},</if>
+            <if test="logFile != null">#{logFile},</if>
+            <if test="errorMessage != null">#{errorMessage},</if>
+            <if test="cancelRequestedAt != null">#{cancelRequestedAt},</if>
+            <if test="canceledAt != null">#{canceledAt},</if>
+            <if test="startedAt != null">#{startedAt},</if>
+            <if test="finishedAt != null">#{finishedAt},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMatchTaskRecord" parameterType="MatchTaskRecord">
+        update p1p_match_task_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="versionId != null">version_id = #{versionId},</if>
+            <if test="schemaSnapshotId != null">schema_snapshot_id = #{schemaSnapshotId},</if>
+            <if test="defaultResultSetId != null">default_result_set_id = #{defaultResultSetId},</if>
+            <if test="executionStatus != null and executionStatus != ''">execution_status = #{executionStatus},</if>
+            <if test="currentStage != null and currentStage != ''">current_stage = #{currentStage},</if>
+            <if test="progress != null">progress = #{progress},</if>
+            <if test="algorithmParamsSnapshot != null">algorithm_params_snapshot = #{algorithmParamsSnapshot},</if>
+            <if test="resultsDir != null">results_dir = #{resultsDir},</if>
+            <if test="logFile != null">log_file = #{logFile},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="cancelRequestedAt != null">cancel_requested_at = #{cancelRequestedAt},</if>
+            <if test="canceledAt != null">canceled_at = #{canceledAt},</if>
+            <if test="startedAt != null">started_at = #{startedAt},</if>
+            <if test="finishedAt != null">finished_at = #{finishedAt},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteMatchTaskRecordByRecordId" parameterType="Long">
+        delete from p1p_match_task_record where record_id = #{recordId}
+    </delete>
+
+    <delete id="deleteMatchTaskRecordByRecordIds" parameterType="String">
+        delete from p1p_match_task_record where record_id in 
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+</mapper>

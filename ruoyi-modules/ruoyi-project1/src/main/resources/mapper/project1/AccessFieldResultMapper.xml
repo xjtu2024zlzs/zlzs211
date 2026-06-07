@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.AccessFieldResultMapper">
+    
+    <resultMap type="AccessFieldResult" id="AccessFieldResultResult">
+        <result property="fieldResultId"    column="field_result_id"    />
+        <result property="tableResultId"    column="table_result_id"    />
+        <result property="accessBatchId"    column="access_batch_id"    />
+        <result property="accessPlanId"    column="access_plan_id"    />
+        <result property="scopeFieldId"    column="scope_field_id"    />
+        <result property="sourceColumn"    column="source_column"    />
+        <result property="targetColumn"    column="target_column"    />
+        <result property="mappingType"    column="mapping_type"    />
+        <result property="transformStatus"    column="transform_status"    />
+        <result property="successCount"    column="success_count"    />
+        <result property="failedCount"    column="failed_count"    />
+        <result property="errorMessage"    column="error_message"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectAccessFieldResultVo">
+        select field_result_id, table_result_id, access_batch_id, access_plan_id, scope_field_id, source_column, target_column, mapping_type, transform_status, success_count, failed_count, error_message, create_time, update_time, remark from p1p_access_field_result
+    </sql>
+
+    <select id="selectAccessFieldResultList" parameterType="AccessFieldResult" resultMap="AccessFieldResultResult">
+        <include refid="selectAccessFieldResultVo"/>
+        <where>  
+            <if test="tableResultId != null "> and table_result_id = #{tableResultId}</if>
+            <if test="accessBatchId != null "> and access_batch_id = #{accessBatchId}</if>
+            <if test="accessPlanId != null "> and access_plan_id = #{accessPlanId}</if>
+            <if test="scopeFieldId != null "> and scope_field_id = #{scopeFieldId}</if>
+            <if test="sourceColumn != null  and sourceColumn != ''"> and source_column = #{sourceColumn}</if>
+            <if test="targetColumn != null  and targetColumn != ''"> and target_column = #{targetColumn}</if>
+            <if test="mappingType != null  and mappingType != ''"> and mapping_type = #{mappingType}</if>
+            <if test="transformStatus != null  and transformStatus != ''"> and transform_status = #{transformStatus}</if>
+            <if test="successCount != null "> and success_count = #{successCount}</if>
+            <if test="failedCount != null "> and failed_count = #{failedCount}</if>
+            <if test="errorMessage != null  and errorMessage != ''"> and error_message = #{errorMessage}</if>
+        </where>
+    </select>
+    
+    <select id="selectAccessFieldResultByFieldResultId" parameterType="Long" resultMap="AccessFieldResultResult">
+        <include refid="selectAccessFieldResultVo"/>
+        where field_result_id = #{fieldResultId}
+    </select>
+
+    <insert id="insertAccessFieldResult" parameterType="AccessFieldResult" useGeneratedKeys="true" keyProperty="fieldResultId">
+        insert into p1p_access_field_result
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="tableResultId != null">table_result_id,</if>
+            <if test="accessBatchId != null">access_batch_id,</if>
+            <if test="accessPlanId != null">access_plan_id,</if>
+            <if test="scopeFieldId != null">scope_field_id,</if>
+            <if test="sourceColumn != null and sourceColumn != ''">source_column,</if>
+            <if test="targetColumn != null and targetColumn != ''">target_column,</if>
+            <if test="mappingType != null and mappingType != ''">mapping_type,</if>
+            <if test="transformStatus != null and transformStatus != ''">transform_status,</if>
+            <if test="successCount != null">success_count,</if>
+            <if test="failedCount != null">failed_count,</if>
+            <if test="errorMessage != null">error_message,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tableResultId != null">#{tableResultId},</if>
+            <if test="accessBatchId != null">#{accessBatchId},</if>
+            <if test="accessPlanId != null">#{accessPlanId},</if>
+            <if test="scopeFieldId != null">#{scopeFieldId},</if>
+            <if test="sourceColumn != null and sourceColumn != ''">#{sourceColumn},</if>
+            <if test="targetColumn != null and targetColumn != ''">#{targetColumn},</if>
+            <if test="mappingType != null and mappingType != ''">#{mappingType},</if>
+            <if test="transformStatus != null and transformStatus != ''">#{transformStatus},</if>
+            <if test="successCount != null">#{successCount},</if>
+            <if test="failedCount != null">#{failedCount},</if>
+            <if test="errorMessage != null">#{errorMessage},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAccessFieldResult" parameterType="AccessFieldResult">
+        update p1p_access_field_result
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="tableResultId != null">table_result_id = #{tableResultId},</if>
+            <if test="accessBatchId != null">access_batch_id = #{accessBatchId},</if>
+            <if test="accessPlanId != null">access_plan_id = #{accessPlanId},</if>
+            <if test="scopeFieldId != null">scope_field_id = #{scopeFieldId},</if>
+            <if test="sourceColumn != null and sourceColumn != ''">source_column = #{sourceColumn},</if>
+            <if test="targetColumn != null and targetColumn != ''">target_column = #{targetColumn},</if>
+            <if test="mappingType != null and mappingType != ''">mapping_type = #{mappingType},</if>
+            <if test="transformStatus != null and transformStatus != ''">transform_status = #{transformStatus},</if>
+            <if test="successCount != null">success_count = #{successCount},</if>
+            <if test="failedCount != null">failed_count = #{failedCount},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where field_result_id = #{fieldResultId}
+    </update>
+
+    <delete id="deleteAccessFieldResultByFieldResultId" parameterType="Long">
+        delete from p1p_access_field_result where field_result_id = #{fieldResultId}
+    </delete>
+
+    <delete id="deleteAccessFieldResultByFieldResultIds" parameterType="String">
+        delete from p1p_access_field_result where field_result_id in 
+        <foreach item="fieldResultId" collection="array" open="(" separator="," close=")">
+            #{fieldResultId}
+        </foreach>
+    </delete>
+</mapper>

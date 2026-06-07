@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.AccessTableResultMapper">
+    
+    <resultMap type="AccessTableResult" id="AccessTableResultResult">
+        <result property="tableResultId"    column="table_result_id"    />
+        <result property="accessBatchId"    column="access_batch_id"    />
+        <result property="accessPlanId"    column="access_plan_id"    />
+        <result property="scopeTableId"    column="scope_table_id"    />
+        <result property="sourceTable"    column="source_table"    />
+        <result property="targetTable"    column="target_table"    />
+        <result property="resultStatus"    column="result_status"    />
+        <result property="readCount"    column="read_count"    />
+        <result property="stagedCount"    column="staged_count"    />
+        <result property="insertedCount"    column="inserted_count"    />
+        <result property="updatedCount"    column="updated_count"    />
+        <result property="successCount"    column="success_count"    />
+        <result property="failedCount"    column="failed_count"    />
+        <result property="totalSuccessCount"    column="total_success_count"    />
+        <result property="totalFailedCount"    column="total_failed_count"    />
+        <result property="lastExecuteTime"    column="last_execute_time"    />
+        <result property="message"    column="message"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectAccessTableResultVo">
+        select table_result_id, access_batch_id, access_plan_id, scope_table_id, source_table, target_table, result_status, read_count, staged_count, inserted_count, updated_count, success_count, failed_count, total_success_count, total_failed_count, last_execute_time, message, create_time, update_time, remark from p1p_access_table_result
+    </sql>
+
+    <select id="selectAccessTableResultList" parameterType="AccessTableResult" resultMap="AccessTableResultResult">
+        <include refid="selectAccessTableResultVo"/>
+        <where>  
+            <if test="accessBatchId != null "> and access_batch_id = #{accessBatchId}</if>
+            <if test="accessPlanId != null "> and access_plan_id = #{accessPlanId}</if>
+            <if test="scopeTableId != null "> and scope_table_id = #{scopeTableId}</if>
+            <if test="sourceTable != null  and sourceTable != ''"> and source_table = #{sourceTable}</if>
+            <if test="targetTable != null  and targetTable != ''"> and target_table = #{targetTable}</if>
+            <if test="resultStatus != null  and resultStatus != ''"> and result_status = #{resultStatus}</if>
+            <if test="readCount != null "> and read_count = #{readCount}</if>
+            <if test="stagedCount != null "> and staged_count = #{stagedCount}</if>
+            <if test="insertedCount != null "> and inserted_count = #{insertedCount}</if>
+            <if test="updatedCount != null "> and updated_count = #{updatedCount}</if>
+            <if test="successCount != null "> and success_count = #{successCount}</if>
+            <if test="failedCount != null "> and failed_count = #{failedCount}</if>
+            <if test="totalSuccessCount != null "> and total_success_count = #{totalSuccessCount}</if>
+            <if test="totalFailedCount != null "> and total_failed_count = #{totalFailedCount}</if>
+            <if test="lastExecuteTime != null "> and last_execute_time = #{lastExecuteTime}</if>
+            <if test="message != null  and message != ''"> and message = #{message}</if>
+        </where>
+    </select>
+    
+    <select id="selectAccessTableResultByTableResultId" parameterType="Long" resultMap="AccessTableResultResult">
+        <include refid="selectAccessTableResultVo"/>
+        where table_result_id = #{tableResultId}
+    </select>
+
+    <insert id="insertAccessTableResult" parameterType="AccessTableResult" useGeneratedKeys="true" keyProperty="tableResultId">
+        insert into p1p_access_table_result
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="accessBatchId != null">access_batch_id,</if>
+            <if test="accessPlanId != null">access_plan_id,</if>
+            <if test="scopeTableId != null">scope_table_id,</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table,</if>
+            <if test="targetTable != null and targetTable != ''">target_table,</if>
+            <if test="resultStatus != null and resultStatus != ''">result_status,</if>
+            <if test="readCount != null">read_count,</if>
+            <if test="stagedCount != null">staged_count,</if>
+            <if test="insertedCount != null">inserted_count,</if>
+            <if test="updatedCount != null">updated_count,</if>
+            <if test="successCount != null">success_count,</if>
+            <if test="failedCount != null">failed_count,</if>
+            <if test="totalSuccessCount != null">total_success_count,</if>
+            <if test="totalFailedCount != null">total_failed_count,</if>
+            <if test="lastExecuteTime != null">last_execute_time,</if>
+            <if test="message != null">message,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="accessBatchId != null">#{accessBatchId},</if>
+            <if test="accessPlanId != null">#{accessPlanId},</if>
+            <if test="scopeTableId != null">#{scopeTableId},</if>
+            <if test="sourceTable != null and sourceTable != ''">#{sourceTable},</if>
+            <if test="targetTable != null and targetTable != ''">#{targetTable},</if>
+            <if test="resultStatus != null and resultStatus != ''">#{resultStatus},</if>
+            <if test="readCount != null">#{readCount},</if>
+            <if test="stagedCount != null">#{stagedCount},</if>
+            <if test="insertedCount != null">#{insertedCount},</if>
+            <if test="updatedCount != null">#{updatedCount},</if>
+            <if test="successCount != null">#{successCount},</if>
+            <if test="failedCount != null">#{failedCount},</if>
+            <if test="totalSuccessCount != null">#{totalSuccessCount},</if>
+            <if test="totalFailedCount != null">#{totalFailedCount},</if>
+            <if test="lastExecuteTime != null">#{lastExecuteTime},</if>
+            <if test="message != null">#{message},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAccessTableResult" parameterType="AccessTableResult">
+        update p1p_access_table_result
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="accessBatchId != null">access_batch_id = #{accessBatchId},</if>
+            <if test="accessPlanId != null">access_plan_id = #{accessPlanId},</if>
+            <if test="scopeTableId != null">scope_table_id = #{scopeTableId},</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table = #{sourceTable},</if>
+            <if test="targetTable != null and targetTable != ''">target_table = #{targetTable},</if>
+            <if test="resultStatus != null and resultStatus != ''">result_status = #{resultStatus},</if>
+            <if test="readCount != null">read_count = #{readCount},</if>
+            <if test="stagedCount != null">staged_count = #{stagedCount},</if>
+            <if test="insertedCount != null">inserted_count = #{insertedCount},</if>
+            <if test="updatedCount != null">updated_count = #{updatedCount},</if>
+            <if test="successCount != null">success_count = #{successCount},</if>
+            <if test="failedCount != null">failed_count = #{failedCount},</if>
+            <if test="totalSuccessCount != null">total_success_count = #{totalSuccessCount},</if>
+            <if test="totalFailedCount != null">total_failed_count = #{totalFailedCount},</if>
+            <if test="lastExecuteTime != null">last_execute_time = #{lastExecuteTime},</if>
+            <if test="message != null">message = #{message},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where table_result_id = #{tableResultId}
+    </update>
+
+    <delete id="deleteAccessTableResultByTableResultId" parameterType="Long">
+        delete from p1p_access_table_result where table_result_id = #{tableResultId}
+    </delete>
+
+    <delete id="deleteAccessTableResultByTableResultIds" parameterType="String">
+        delete from p1p_access_table_result where table_result_id in 
+        <foreach item="tableResultId" collection="array" open="(" separator="," close=")">
+            #{tableResultId}
+        </foreach>
+    </delete>
+</mapper>

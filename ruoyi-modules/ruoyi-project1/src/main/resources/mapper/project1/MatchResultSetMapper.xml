@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.MatchResultSetMapper">
+    
+    <resultMap type="MatchResultSet" id="MatchResultSetResult">
+        <result property="resultSetId"    column="result_set_id"    />
+        <result property="resultVersionId"    column="result_version_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="versionId"    column="version_id"    />
+        <result property="recordId"    column="record_id"    />
+        <result property="sourceDatasourceId"    column="source_datasource_id"    />
+        <result property="method"    column="method"    />
+        <result property="variant"    column="variant"    />
+        <result property="resultSetName"    column="result_set_name"    />
+        <result property="isDefault"    column="is_default"    />
+        <result property="totalRows"    column="total_rows"    />
+        <result property="avgScore"    column="avg_score"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectMatchResultSetVo">
+        select result_set_id, result_version_id, task_id, version_id, record_id, source_datasource_id, method, variant, result_set_name, is_default, total_rows, avg_score, create_by, create_time, update_by, update_time, remark from p1p_match_result_set
+    </sql>
+
+    <select id="selectMatchResultSetList" parameterType="MatchResultSet" resultMap="MatchResultSetResult">
+        <include refid="selectMatchResultSetVo"/>
+        <where>  
+            <if test="resultVersionId != null "> and result_version_id = #{resultVersionId}</if>
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="versionId != null "> and version_id = #{versionId}</if>
+            <if test="recordId != null "> and record_id = #{recordId}</if>
+            <if test="sourceDatasourceId != null "> and source_datasource_id = #{sourceDatasourceId}</if>
+            <if test="method != null  and method != ''"> and method = #{method}</if>
+            <if test="variant != null  and variant != ''"> and variant = #{variant}</if>
+            <if test="resultSetName != null  and resultSetName != ''"> and result_set_name like concat('%', #{resultSetName}, '%')</if>
+            <if test="isDefault != null "> and is_default = #{isDefault}</if>
+            <if test="totalRows != null "> and total_rows = #{totalRows}</if>
+            <if test="avgScore != null "> and avg_score = #{avgScore}</if>
+        </where>
+    </select>
+    
+    <select id="selectMatchResultSetByResultSetId" parameterType="Long" resultMap="MatchResultSetResult">
+        <include refid="selectMatchResultSetVo"/>
+        where result_set_id = #{resultSetId}
+    </select>
+
+    <insert id="insertMatchResultSet" parameterType="MatchResultSet" useGeneratedKeys="true" keyProperty="resultSetId">
+        insert into p1p_match_result_set
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="resultVersionId != null">result_version_id,</if>
+            <if test="taskId != null">task_id,</if>
+            <if test="versionId != null">version_id,</if>
+            <if test="recordId != null">record_id,</if>
+            <if test="sourceDatasourceId != null">source_datasource_id,</if>
+            <if test="method != null and method != ''">method,</if>
+            <if test="variant != null and variant != ''">variant,</if>
+            <if test="resultSetName != null">result_set_name,</if>
+            <if test="isDefault != null">is_default,</if>
+            <if test="totalRows != null">total_rows,</if>
+            <if test="avgScore != null">avg_score,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="resultVersionId != null">#{resultVersionId},</if>
+            <if test="taskId != null">#{taskId},</if>
+            <if test="versionId != null">#{versionId},</if>
+            <if test="recordId != null">#{recordId},</if>
+            <if test="sourceDatasourceId != null">#{sourceDatasourceId},</if>
+            <if test="method != null and method != ''">#{method},</if>
+            <if test="variant != null and variant != ''">#{variant},</if>
+            <if test="resultSetName != null">#{resultSetName},</if>
+            <if test="isDefault != null">#{isDefault},</if>
+            <if test="totalRows != null">#{totalRows},</if>
+            <if test="avgScore != null">#{avgScore},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMatchResultSet" parameterType="MatchResultSet">
+        update p1p_match_result_set
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="resultVersionId != null">result_version_id = #{resultVersionId},</if>
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="versionId != null">version_id = #{versionId},</if>
+            <if test="recordId != null">record_id = #{recordId},</if>
+            <if test="sourceDatasourceId != null">source_datasource_id = #{sourceDatasourceId},</if>
+            <if test="method != null and method != ''">method = #{method},</if>
+            <if test="variant != null and variant != ''">variant = #{variant},</if>
+            <if test="resultSetName != null">result_set_name = #{resultSetName},</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+            <if test="totalRows != null">total_rows = #{totalRows},</if>
+            <if test="avgScore != null">avg_score = #{avgScore},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where result_set_id = #{resultSetId}
+    </update>
+
+    <delete id="deleteMatchResultSetByResultSetId" parameterType="Long">
+        delete from p1p_match_result_set where result_set_id = #{resultSetId}
+    </delete>
+
+    <delete id="deleteMatchResultSetByResultSetIds" parameterType="String">
+        delete from p1p_match_result_set where result_set_id in 
+        <foreach item="resultSetId" collection="array" open="(" separator="," close=")">
+            #{resultSetId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.DbDatasourceMapper">
+    
+    <resultMap type="DbDatasource" id="DbDatasourceResult">
+        <result property="datasourceId"    column="datasource_id"    />
+        <result property="dbType"    column="db_type"    />
+        <result property="host"    column="host"    />
+        <result property="port"    column="port"    />
+        <result property="databaseName"    column="database_name"    />
+        <result property="schemaName"    column="schema_name"    />
+        <result property="username"    column="username"    />
+        <result property="passwordEnc"    column="password_enc"    />
+        <result property="savePassword"    column="save_password"    />
+        <result property="connectionParams"    column="connection_params"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectDbDatasourceVo">
+        select datasource_id, db_type, host, port, database_name, schema_name, username, password_enc, save_password, connection_params, create_time, update_time, remark from p1p_db_datasource
+    </sql>
+
+    <select id="selectDbDatasourceList" parameterType="DbDatasource" resultMap="DbDatasourceResult">
+        <include refid="selectDbDatasourceVo"/>
+        <where>  
+            <if test="dbType != null  and dbType != ''"> and db_type = #{dbType}</if>
+            <if test="host != null  and host != ''"> and host = #{host}</if>
+            <if test="port != null "> and port = #{port}</if>
+            <if test="databaseName != null  and databaseName != ''"> and database_name like concat('%', #{databaseName}, '%')</if>
+            <if test="schemaName != null  and schemaName != ''"> and schema_name like concat('%', #{schemaName}, '%')</if>
+            <if test="username != null  and username != ''"> and username like concat('%', #{username}, '%')</if>
+            <if test="passwordEnc != null  and passwordEnc != ''"> and password_enc = #{passwordEnc}</if>
+            <if test="savePassword != null "> and save_password = #{savePassword}</if>
+            <if test="connectionParams != null  and connectionParams != ''"> and connection_params = #{connectionParams}</if>
+        </where>
+    </select>
+    
+    <select id="selectDbDatasourceByDatasourceId" parameterType="Long" resultMap="DbDatasourceResult">
+        <include refid="selectDbDatasourceVo"/>
+        where datasource_id = #{datasourceId}
+    </select>
+
+    <insert id="insertDbDatasource" parameterType="DbDatasource">
+        insert into p1p_db_datasource
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="datasourceId != null">datasource_id,</if>
+            <if test="dbType != null and dbType != ''">db_type,</if>
+            <if test="host != null and host != ''">host,</if>
+            <if test="port != null">port,</if>
+            <if test="databaseName != null and databaseName != ''">database_name,</if>
+            <if test="schemaName != null">schema_name,</if>
+            <if test="username != null and username != ''">username,</if>
+            <if test="passwordEnc != null">password_enc,</if>
+            <if test="savePassword != null">save_password,</if>
+            <if test="connectionParams != null">connection_params,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="datasourceId != null">#{datasourceId},</if>
+            <if test="dbType != null and dbType != ''">#{dbType},</if>
+            <if test="host != null and host != ''">#{host},</if>
+            <if test="port != null">#{port},</if>
+            <if test="databaseName != null and databaseName != ''">#{databaseName},</if>
+            <if test="schemaName != null">#{schemaName},</if>
+            <if test="username != null and username != ''">#{username},</if>
+            <if test="passwordEnc != null">#{passwordEnc},</if>
+            <if test="savePassword != null">#{savePassword},</if>
+            <if test="connectionParams != null">#{connectionParams},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDbDatasource" parameterType="DbDatasource">
+        update p1p_db_datasource
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="dbType != null and dbType != ''">db_type = #{dbType},</if>
+            <if test="host != null and host != ''">host = #{host},</if>
+            <if test="port != null">port = #{port},</if>
+            <if test="databaseName != null and databaseName != ''">database_name = #{databaseName},</if>
+            <if test="schemaName != null">schema_name = #{schemaName},</if>
+            <if test="username != null and username != ''">username = #{username},</if>
+            <if test="passwordEnc != null">password_enc = #{passwordEnc},</if>
+            <if test="savePassword != null">save_password = #{savePassword},</if>
+            <if test="connectionParams != null">connection_params = #{connectionParams},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where datasource_id = #{datasourceId}
+    </update>
+
+    <delete id="deleteDbDatasourceByDatasourceId" parameterType="Long">
+        delete from p1p_db_datasource where datasource_id = #{datasourceId}
+    </delete>
+
+    <delete id="deleteDbDatasourceByDatasourceIds" parameterType="String">
+        delete from p1p_db_datasource where datasource_id in 
+        <foreach item="datasourceId" collection="array" open="(" separator="," close=")">
+            #{datasourceId}
+        </foreach>
+    </delete>
+</mapper>

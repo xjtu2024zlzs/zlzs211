@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.ApiPullDatasourceMapper">
+    
+    <resultMap type="ApiPullDatasource" id="ApiPullDatasourceResult">
+        <result property="datasourceId"    column="datasource_id"    />
+        <result property="baseUrl"    column="base_url"    />
+        <result property="pullEndpoint"    column="pull_endpoint"    />
+        <result property="schemaEndpoint"    column="schema_endpoint"    />
+        <result property="requestMethod"    column="request_method"    />
+        <result property="authType"    column="auth_type"    />
+        <result property="healthEndpoint"    column="health_endpoint"    />
+        <result property="apiKeyEnc"    column="api_key_enc"    />
+        <result property="headersConfig"    column="headers_config"    />
+        <result property="extraConfig"    column="extra_config"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectApiPullDatasourceVo">
+        select datasource_id, base_url, pull_endpoint, schema_endpoint, request_method, auth_type, health_endpoint, api_key_enc, headers_config, extra_config, create_time, update_time, remark from p1p_api_pull_datasource
+    </sql>
+
+    <select id="selectApiPullDatasourceList" parameterType="ApiPullDatasource" resultMap="ApiPullDatasourceResult">
+        <include refid="selectApiPullDatasourceVo"/>
+        <where>  
+            <if test="baseUrl != null  and baseUrl != ''"> and base_url = #{baseUrl}</if>
+            <if test="pullEndpoint != null  and pullEndpoint != ''"> and pull_endpoint = #{pullEndpoint}</if>
+            <if test="schemaEndpoint != null  and schemaEndpoint != ''"> and schema_endpoint = #{schemaEndpoint}</if>
+            <if test="requestMethod != null  and requestMethod != ''"> and request_method = #{requestMethod}</if>
+            <if test="authType != null  and authType != ''"> and auth_type = #{authType}</if>
+            <if test="healthEndpoint != null  and healthEndpoint != ''"> and health_endpoint = #{healthEndpoint}</if>
+            <if test="apiKeyEnc != null  and apiKeyEnc != ''"> and api_key_enc = #{apiKeyEnc}</if>
+            <if test="headersConfig != null  and headersConfig != ''"> and headers_config = #{headersConfig}</if>
+            <if test="extraConfig != null  and extraConfig != ''"> and extra_config = #{extraConfig}</if>
+        </where>
+    </select>
+    
+    <select id="selectApiPullDatasourceByDatasourceId" parameterType="Long" resultMap="ApiPullDatasourceResult">
+        <include refid="selectApiPullDatasourceVo"/>
+        where datasource_id = #{datasourceId}
+    </select>
+
+    <insert id="insertApiPullDatasource" parameterType="ApiPullDatasource">
+        insert into p1p_api_pull_datasource
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="datasourceId != null">datasource_id,</if>
+            <if test="baseUrl != null and baseUrl != ''">base_url,</if>
+            <if test="pullEndpoint != null and pullEndpoint != ''">pull_endpoint,</if>
+            <if test="schemaEndpoint != null">schema_endpoint,</if>
+            <if test="requestMethod != null and requestMethod != ''">request_method,</if>
+            <if test="authType != null">auth_type,</if>
+            <if test="healthEndpoint != null and healthEndpoint != ''">health_endpoint,</if>
+            <if test="apiKeyEnc != null">api_key_enc,</if>
+            <if test="headersConfig != null">headers_config,</if>
+            <if test="extraConfig != null">extra_config,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="datasourceId != null">#{datasourceId},</if>
+            <if test="baseUrl != null and baseUrl != ''">#{baseUrl},</if>
+            <if test="pullEndpoint != null and pullEndpoint != ''">#{pullEndpoint},</if>
+            <if test="schemaEndpoint != null">#{schemaEndpoint},</if>
+            <if test="requestMethod != null and requestMethod != ''">#{requestMethod},</if>
+            <if test="authType != null">#{authType},</if>
+            <if test="healthEndpoint != null and healthEndpoint != ''">#{healthEndpoint},</if>
+            <if test="apiKeyEnc != null">#{apiKeyEnc},</if>
+            <if test="headersConfig != null">#{headersConfig},</if>
+            <if test="extraConfig != null">#{extraConfig},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateApiPullDatasource" parameterType="ApiPullDatasource">
+        update p1p_api_pull_datasource
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="baseUrl != null and baseUrl != ''">base_url = #{baseUrl},</if>
+            <if test="pullEndpoint != null and pullEndpoint != ''">pull_endpoint = #{pullEndpoint},</if>
+            <if test="schemaEndpoint != null">schema_endpoint = #{schemaEndpoint},</if>
+            <if test="requestMethod != null and requestMethod != ''">request_method = #{requestMethod},</if>
+            <if test="authType != null">auth_type = #{authType},</if>
+            <if test="healthEndpoint != null and healthEndpoint != ''">health_endpoint = #{healthEndpoint},</if>
+            <if test="apiKeyEnc != null">api_key_enc = #{apiKeyEnc},</if>
+            <if test="headersConfig != null">headers_config = #{headersConfig},</if>
+            <if test="extraConfig != null">extra_config = #{extraConfig},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where datasource_id = #{datasourceId}
+    </update>
+
+    <delete id="deleteApiPullDatasourceByDatasourceId" parameterType="Long">
+        delete from p1p_api_pull_datasource where datasource_id = #{datasourceId}
+    </delete>
+
+    <delete id="deleteApiPullDatasourceByDatasourceIds" parameterType="String">
+        delete from p1p_api_pull_datasource where datasource_id in 
+        <foreach item="datasourceId" collection="array" open="(" separator="," close=")">
+            #{datasourceId}
+        </foreach>
+    </delete>
+</mapper>

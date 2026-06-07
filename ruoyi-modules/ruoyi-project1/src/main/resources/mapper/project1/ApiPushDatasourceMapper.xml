@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.ApiPushDatasourceMapper">
+    
+    <resultMap type="ApiPushDatasource" id="ApiPushDatasourceResult">
+        <result property="datasourceId"    column="datasource_id"    />
+        <result property="listenPath"    column="listen_path"    />
+        <result property="payloadFormat"    column="payload_format"    />
+        <result property="authType"    column="auth_type"    />
+        <result property="signatureHeader"    column="signature_header"    />
+        <result property="pushSecretEnc"    column="push_secret_enc"    />
+        <result property="ipWhitelist"    column="ip_whitelist"    />
+        <result property="healthEndpoint"    column="health_endpoint"    />
+        <result property="headersConfig"    column="headers_config"    />
+        <result property="extraConfig"    column="extra_config"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectApiPushDatasourceVo">
+        select datasource_id, listen_path, payload_format, auth_type, signature_header, push_secret_enc, ip_whitelist, health_endpoint, headers_config, extra_config, create_time, update_time, remark from p1p_api_push_datasource
+    </sql>
+
+    <select id="selectApiPushDatasourceList" parameterType="ApiPushDatasource" resultMap="ApiPushDatasourceResult">
+        <include refid="selectApiPushDatasourceVo"/>
+        <where>  
+            <if test="listenPath != null  and listenPath != ''"> and listen_path = #{listenPath}</if>
+            <if test="payloadFormat != null  and payloadFormat != ''"> and payload_format = #{payloadFormat}</if>
+            <if test="authType != null  and authType != ''"> and auth_type = #{authType}</if>
+            <if test="signatureHeader != null  and signatureHeader != ''"> and signature_header = #{signatureHeader}</if>
+            <if test="pushSecretEnc != null  and pushSecretEnc != ''"> and push_secret_enc = #{pushSecretEnc}</if>
+            <if test="ipWhitelist != null  and ipWhitelist != ''"> and ip_whitelist = #{ipWhitelist}</if>
+            <if test="healthEndpoint != null  and healthEndpoint != ''"> and health_endpoint = #{healthEndpoint}</if>
+            <if test="headersConfig != null  and headersConfig != ''"> and headers_config = #{headersConfig}</if>
+            <if test="extraConfig != null  and extraConfig != ''"> and extra_config = #{extraConfig}</if>
+        </where>
+    </select>
+    
+    <select id="selectApiPushDatasourceByDatasourceId" parameterType="Long" resultMap="ApiPushDatasourceResult">
+        <include refid="selectApiPushDatasourceVo"/>
+        where datasource_id = #{datasourceId}
+    </select>
+
+    <insert id="insertApiPushDatasource" parameterType="ApiPushDatasource">
+        insert into p1p_api_push_datasource
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="datasourceId != null">datasource_id,</if>
+            <if test="listenPath != null and listenPath != ''">listen_path,</if>
+            <if test="payloadFormat != null and payloadFormat != ''">payload_format,</if>
+            <if test="authType != null">auth_type,</if>
+            <if test="signatureHeader != null">signature_header,</if>
+            <if test="pushSecretEnc != null">push_secret_enc,</if>
+            <if test="ipWhitelist != null">ip_whitelist,</if>
+            <if test="healthEndpoint != null">health_endpoint,</if>
+            <if test="headersConfig != null">headers_config,</if>
+            <if test="extraConfig != null">extra_config,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="datasourceId != null">#{datasourceId},</if>
+            <if test="listenPath != null and listenPath != ''">#{listenPath},</if>
+            <if test="payloadFormat != null and payloadFormat != ''">#{payloadFormat},</if>
+            <if test="authType != null">#{authType},</if>
+            <if test="signatureHeader != null">#{signatureHeader},</if>
+            <if test="pushSecretEnc != null">#{pushSecretEnc},</if>
+            <if test="ipWhitelist != null">#{ipWhitelist},</if>
+            <if test="healthEndpoint != null">#{healthEndpoint},</if>
+            <if test="headersConfig != null">#{headersConfig},</if>
+            <if test="extraConfig != null">#{extraConfig},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateApiPushDatasource" parameterType="ApiPushDatasource">
+        update p1p_api_push_datasource
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="listenPath != null and listenPath != ''">listen_path = #{listenPath},</if>
+            <if test="payloadFormat != null and payloadFormat != ''">payload_format = #{payloadFormat},</if>
+            <if test="authType != null">auth_type = #{authType},</if>
+            <if test="signatureHeader != null">signature_header = #{signatureHeader},</if>
+            <if test="pushSecretEnc != null">push_secret_enc = #{pushSecretEnc},</if>
+            <if test="ipWhitelist != null">ip_whitelist = #{ipWhitelist},</if>
+            <if test="healthEndpoint != null">health_endpoint = #{healthEndpoint},</if>
+            <if test="headersConfig != null">headers_config = #{headersConfig},</if>
+            <if test="extraConfig != null">extra_config = #{extraConfig},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where datasource_id = #{datasourceId}
+    </update>
+
+    <delete id="deleteApiPushDatasourceByDatasourceId" parameterType="Long">
+        delete from p1p_api_push_datasource where datasource_id = #{datasourceId}
+    </delete>
+
+    <delete id="deleteApiPushDatasourceByDatasourceIds" parameterType="String">
+        delete from p1p_api_push_datasource where datasource_id in 
+        <foreach item="datasourceId" collection="array" open="(" separator="," close=")">
+            #{datasourceId}
+        </foreach>
+    </delete>
+</mapper>
