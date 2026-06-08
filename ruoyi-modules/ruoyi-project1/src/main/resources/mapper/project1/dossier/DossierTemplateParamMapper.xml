@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.dossier.mapper.DossierTemplateParamMapper">
+
+    <resultMap type="DossierTemplateParam" id="DossierTemplateParamResult">
+        <id     property="id"           column="id" />
+        <result property="templateId"   column="template_id" />
+        <result property="chapterId"    column="chapter_id" />
+        <result property="paramCode"    column="param_code" />
+        <result property="paramName"    column="param_name" />
+        <result property="paramType"    column="param_type" />
+        <result property="paramValue"   column="param_value" />
+        <result property="defaultValue" column="default_value" />
+        <result property="optionJson"   column="option_json" />
+        <result property="requiredFlag" column="required_flag" />
+        <result property="editableFlag" column="editable_flag" />
+        <result property="enabledFlag"  column="enabled_flag" />
+        <result property="sortOrder"    column="sort_order" />
+        <result property="paramDesc"    column="param_desc" />
+        <result property="createdBy"    column="created_by" />
+        <result property="updatedBy"    column="updated_by" />
+        <result property="createdAt"    column="created_at" />
+        <result property="updatedAt"    column="updated_at" />
+    </resultMap>
+
+    <select id="selectByTemplateId" parameterType="String" resultMap="DossierTemplateParamResult">
+        select id, template_id, chapter_id, param_code, param_name, param_type,
+               param_value, default_value, cast(option_json as char) as option_json,
+               required_flag, editable_flag, enabled_flag, sort_order, param_desc,
+               created_by, updated_by, created_at, updated_at
+        from t1_dossier_template_param
+        where template_id = #{templateId}
+        order by sort_order asc, created_at asc
+    </select>
+
+    <insert id="batchInsert">
+        insert into t1_dossier_template_param
+        (id, template_id, chapter_id, param_code, param_name, param_type,
+         param_value, default_value, option_json, required_flag, editable_flag,
+         enabled_flag, sort_order, param_desc, created_by, updated_by)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.templateId}, #{item.chapterId}, #{item.paramCode},
+             #{item.paramName}, #{item.paramType}, #{item.paramValue}, #{item.defaultValue},
+             #{item.optionJson}, #{item.requiredFlag}, #{item.editableFlag},
+             #{item.enabledFlag}, #{item.sortOrder}, #{item.paramDesc},
+             #{item.createdBy}, #{item.updatedBy})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByTemplateIds">
+        delete from t1_dossier_template_param where template_id in
+        <foreach collection="templateIds" item="templateId" open="(" separator="," close=")">
+            #{templateId}
+        </foreach>
+    </delete>
+</mapper>

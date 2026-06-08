@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.dossier.mapper.DossierTemplateMapper">
+
+    <resultMap type="DossierTemplate" id="DossierTemplateResult">
+        <id     property="id"                         column="id" />
+        <result property="templateCode"               column="template_code" />
+        <result property="templateVersion"            column="template_version" />
+        <result property="name"                       column="name" />
+        <result property="description"                column="description" />
+        <result property="templateType"               column="template_type" />
+        <result property="applicableObjectType"       column="applicable_object_type" />
+        <result property="chapterTreeJson"            column="chapter_tree_json" />
+        <result property="validationRulesJson"        column="validation_rules_json" />
+        <result property="defaultGeneratorParamsJson" column="default_generator_params_json" />
+        <result property="status"                     column="status" />
+        <result property="isDefault"                  column="is_default" />
+        <result property="effectiveFrom"              column="effective_from" />
+        <result property="effectiveTo"                column="effective_to" />
+        <result property="createdBy"                  column="created_by" />
+        <result property="updatedBy"                  column="updated_by" />
+        <result property="createdAt"                  column="created_at" />
+        <result property="updatedAt"                  column="updated_at" />
+    </resultMap>
+
+    <sql id="selectDossierTemplateVo">
+        select id, template_code, template_version, name, description, template_type,
+               applicable_object_type, cast(chapter_tree_json as char) as chapter_tree_json,
+               cast(validation_rules_json as char) as validation_rules_json,
+               cast(default_generator_params_json as char) as default_generator_params_json,
+               status, is_default, effective_from, effective_to, created_by, updated_by,
+               created_at, updated_at
+        from t1_dossier_template
+    </sql>
+
+    <select id="selectDossierTemplateList" parameterType="DossierTemplate" resultMap="DossierTemplateResult">
+        <include refid="selectDossierTemplateVo" />
+        <where>
+            <if test="templateCode != null and templateCode != ''">
+                AND template_code like concat('%', #{templateCode}, '%')
+            </if>
+            <if test="name != null and name != ''">
+                AND name like concat('%', #{name}, '%')
+            </if>
+            <if test="templateType != null and templateType != ''">
+                AND template_type = #{templateType}
+            </if>
+            <if test="applicableObjectType != null and applicableObjectType != ''">
+                AND applicable_object_type = #{applicableObjectType}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="isDefault != null">
+                AND is_default = #{isDefault}
+            </if>
+        </where>
+        order by is_default desc, updated_at desc, created_at desc
+    </select>
+
+    <select id="selectDossierTemplateById" parameterType="String" resultMap="DossierTemplateResult">
+        <include refid="selectDossierTemplateVo" />
+        where id = #{id}
+    </select>
+
+    <select id="selectDossierTemplateByCode" parameterType="String" resultMap="DossierTemplateResult">
+        <include refid="selectDossierTemplateVo" />
+        where template_code = #{templateCode}
+        limit 1
+    </select>
+
+    <select id="selectDossierTemplateByCodeAndVersion" resultMap="DossierTemplateResult">
+        <include refid="selectDossierTemplateVo" />
+        where template_code = #{templateCode}
+          and template_version = #{templateVersion}
+        limit 1
+    </select>
+
+    <insert id="insertDossierTemplate" parameterType="DossierTemplate">
+        insert into t1_dossier_template
+        (id, template_code, template_version, name, description, template_type,
+         applicable_object_type, chapter_tree_json, validation_rules_json,
+         default_generator_params_json, status, is_default, effective_from,
+         effective_to, created_by, updated_by)
+        values
+        (#{id}, #{templateCode}, #{templateVersion}, #{name}, #{description}, #{templateType},
+         #{applicableObjectType}, #{chapterTreeJson}, #{validationRulesJson},
+         #{defaultGeneratorParamsJson}, #{status}, #{isDefault}, #{effectiveFrom},
+         #{effectiveTo}, #{createdBy}, #{updatedBy})
+    </insert>
+
+    <update id="updateDossierTemplate" parameterType="DossierTemplate">
+        update t1_dossier_template
+        <set>
+            <if test="templateCode != null and templateCode != ''">template_code = #{templateCode},</if>
+            <if test="templateVersion != null and templateVersion != ''">template_version = #{templateVersion},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="templateType != null and templateType != ''">template_type = #{templateType},</if>
+            <if test="applicableObjectType != null and applicableObjectType != ''">applicable_object_type = #{applicableObjectType},</if>
+            <if test="chapterTreeJson != null and chapterTreeJson != ''">chapter_tree_json = #{chapterTreeJson},</if>
+            <if test="validationRulesJson != null and validationRulesJson != ''">validation_rules_json = #{validationRulesJson},</if>
+            <if test="defaultGeneratorParamsJson != null and defaultGeneratorParamsJson != ''">default_generator_params_json = #{defaultGeneratorParamsJson},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+            <if test="effectiveFrom != null">effective_from = #{effectiveFrom},</if>
+            <if test="effectiveTo != null">effective_to = #{effectiveTo},</if>
+            <if test="updatedBy != null and updatedBy != ''">updated_by = #{updatedBy},</if>
+            updated_at = sysdate(6)
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDossierTemplateByIds">
+        delete from t1_dossier_template where id in
+        <foreach collection="templateIds" item="templateId" open="(" separator="," close=")">
+            #{templateId}
+        </foreach>
+    </delete>
+
+    <update id="clearDefaultTemplate" parameterType="DossierTemplate">
+        update t1_dossier_template
+        set is_default = 0,
+            updated_by = #{updatedBy},
+            updated_at = sysdate(6)
+        where template_type = #{templateType}
+          and applicable_object_type = #{applicableObjectType}
+          and is_default = 1
+    </update>
+
+    <update id="updateTemplateDefault">
+        update t1_dossier_template
+        set is_default = #{isDefault},
+            updated_by = #{updatedBy},
+            updated_at = sysdate(6)
+        where id = #{id}
+    </update>
+
+    <update id="updateTemplateStatus">
+        update t1_dossier_template
+        set status = #{status},
+            updated_by = #{updatedBy},
+            updated_at = sysdate(6)
+        where id = #{id}
+    </update>
+</mapper>

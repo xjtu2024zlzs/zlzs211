@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.dossier.mapper.DossierInstanceMapper">
+
+    <sql id="InstanceColumnList">
+        instance_id as instanceId,
+        instance_code as instanceCode,
+        instance_name as instanceName,
+        instance_label as instanceLabel,
+        instance_status as instanceStatus,
+        status_name as statusName,
+        template_id as templateId,
+        template_code as templateCode,
+        template_name as templateName,
+        template_version as templateVersion,
+        aircraft_id as aircraftId,
+        model_id as modelId,
+        model_code as modelCode,
+        model_name as modelName,
+        tail_number as tailNumber,
+        msn,
+        aircraft_type as aircraftType,
+        operational_status as operationalStatus,
+        current_version_id as currentVersionId,
+        current_version_no as currentVersionNo,
+        current_version_label as currentVersionLabel,
+        major_version_no as majorVersionNo,
+        minor_version_no as minorVersionNo,
+        version_level as versionLevel,
+        version_reason as versionReason,
+        generation_job_id as generationJobId,
+        generation_job_code as generationJobCode,
+        generation_job_status as generationJobStatus,
+        generate_time as generateTime,
+        page_count as pageCount,
+        file_count as fileCount,
+        data_record_count as dataRecordCount,
+        document_entry_count as documentEntryCount,
+        content_item_count as contentItemCount,
+        pdf_file_name as pdfFileName,
+        zip_file_name as zipFileName,
+        created_by as createdBy,
+        updated_by as updatedBy,
+        created_at as createdAt,
+        updated_at as updatedAt,
+        published_at as publishedAt,
+        archived_at as archivedAt
+    </sql>
+
+    <sql id="InstanceWhere">
+        from t1_v_dossier_instance_manage
+        <where>
+            deleted_at is null
+            <if test="modelId != null and modelId != ''">
+                and model_id = #{modelId}
+            </if>
+            <if test="tailNumber != null and tailNumber != ''">
+                and tail_number like concat('%', #{tailNumber}, '%')
+            </if>
+            <if test="templateId != null and templateId != ''">
+                and template_id = #{templateId}
+            </if>
+            <if test="versionNo != null and versionNo != ''">
+                and current_version_label = #{versionNo}
+            </if>
+            <if test="status != null and status != ''">
+                and instance_status = #{status}
+            </if>
+            <if test="failedOnly != null and failedOnly">
+                and generation_job_status = 'failed'
+            </if>
+            <if test="beginTime != null and beginTime != ''">
+                and generate_time &gt;= #{beginTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and generate_time &lt;= #{endTime}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (
+                    instance_code like concat('%', #{keyword}, '%')
+                    or instance_name like concat('%', #{keyword}, '%')
+                    or instance_label like concat('%', #{keyword}, '%')
+                    or tail_number like concat('%', #{keyword}, '%')
+                    or msn like concat('%', #{keyword}, '%')
+                    or template_name like concat('%', #{keyword}, '%')
+                    or generation_job_code like concat('%', #{keyword}, '%')
+                    or pdf_file_name like concat('%', #{keyword}, '%')
+                    or zip_file_name like concat('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectInstanceCount" resultType="java.lang.Integer">
+        select count(1)
+        <include refid="InstanceWhere" />
+    </select>
+
+    <select id="selectInstanceList" resultType="java.util.HashMap">
+        select
+        <include refid="InstanceColumnList" />
+        <include refid="InstanceWhere" />
+        order by generate_time ${sortOrder}, updated_at ${sortOrder}, instance_code desc
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectInstanceSummary" resultType="java.util.HashMap">
+        select
+            count(1) as totalCount,
+            coalesce(sum(case when instance_status = 'published' then 1 else 0 end), 0) as publishedCount,
+            coalesce(sum(case when instance_status = 'ready' and coalesce(generation_job_status, '') &lt;&gt; 'failed' then 1 else 0 end), 0) as readyCount,
+            coalesce(sum(case when instance_status = 'building' or generation_job_status in ('queued', 'running') then 1 else 0 end), 0) as buildingCount,
+            coalesce(sum(case when generation_job_status = 'failed' then 1 else 0 end), 0) as failedCount,
+            coalesce(sum(case when instance_status = 'archived' then 1 else 0 end), 0) as archivedCount,
+            coalesce(sum(case when generate_time &gt;= date_format(curdate(), '%Y-%m-01') then 1 else 0 end), 0) as monthNewCount
+        <include refid="InstanceWhere" />
+    </select>
+
+    <select id="selectInstanceDetail" resultType="java.util.HashMap">
+        select
+        <include refid="InstanceColumnList" />
+        from t1_v_dossier_instance_manage
+        where instance_id = #{instanceId}
+          and deleted_at is null
+    </select>
+
+    <select id="selectVersionList" resultType="java.util.HashMap">
+        select dv.id as versionId,
+               dv.dossier_instance_id as instanceId,
+               dv.template_id as templateId,
+               dv.template_code as templateCode,
+               dv.template_version as templateVersion,
+               dv.version_no as versionNo,
+               dv.version_label as versionLabel,
+               dv.major_version_no as majorVersionNo,
+               dv.minor_version_no as minorVersionNo,
+               dv.version_level as versionLevel,
+               dv.version_reason as versionReason,
+               dv.is_current as isCurrent,
+               dv.previous_version_id as previousVersionId,
+               dv.generation_job_id as generationJobId,
+               gj.job_code as generationJobCode,
+               gj.job_status as generationJobStatus,
+               gj.progress_percent as progressPercent,
+               cast(dv.content_summary_json as char) as contentSummaryJson,
+               cast(dv.generation_params_json as char) as generationParamsJson,
+               cast(gj.result_summary_json as char) as resultSummaryJson,
+               cast(gj.output_json as char) as outputJson,
+               dv.change_summary as changeSummary,
+               dv.created_by as createdBy,
+               dv.created_at as createdAt,
+               dv.published_at as publishedAt
+        from t1_dossier_version dv
+        left join t1_generation_job gj on gj.id = dv.generation_job_id
+        where dv.dossier_instance_id = #{instanceId}
+        order by dv.version_no desc
+    </select>
+
+    <select id="selectJobList" resultType="java.util.HashMap">
+        select id as jobId,
+               job_code as jobCode,
+               job_type as jobType,
+               dossier_instance_id as instanceId,
+               dossier_version_id as versionId,
+               precheck_run_id as precheckRunId,
+               job_status as jobStatus,
+               current_stage as currentStage,
+               progress_percent as progressPercent,
+               source_system as sourceSystem,
+               requested_by as requestedBy,
+               started_at as startedAt,
+               finished_at as finishedAt,
+               error_message as errorMessage,
+               cast(result_summary_json as char) as resultSummaryJson,
+               cast(output_json as char) as outputJson,
+               created_at as createdAt
+        from t1_generation_job
+        where dossier_instance_id = #{instanceId}
+        order by created_at desc
+    </select>
+
+    <select id="selectFileList" resultType="java.util.HashMap">
+        select ej.id as exportJobId,
+               ej.export_code as exportCode,
+               ej.export_status as exportStatus,
+               ej.dossier_instance_id as instanceId,
+               ej.dossier_version_id as versionId,
+               ej.generation_job_id as generationJobId,
+               ef.id as fileId,
+               ef.file_name as fileName,
+               ef.file_storage_key as fileStorageKey,
+               ef.file_format as fileFormat,
+               ef.mime_type as mimeType,
+               ef.file_role as fileRole,
+               ef.is_primary as isPrimary,
+               ef.file_size as fileSize,
+               ef.page_count as pageCount,
+               ef.file_hash as fileHash,
+               ef.display_order as displayOrder,
+               ef.created_at as createdAt
+        from t1_dossier_export_job ej
+        inner join t1_dossier_export_file ef on ef.export_job_id = ej.id
+        where ej.dossier_instance_id = #{instanceId}
+        <if test="versionId != null and versionId != ''">
+            and ej.dossier_version_id = #{versionId}
+        </if>
+        order by ef.display_order, ef.created_at desc
+    </select>
+
+    <update id="updateInstanceStatus">
+        update t1_dossier_instance
+        set status = #{status},
+            updated_by = #{updatedBy},
+            updated_at = sysdate(6)
+            <if test="published != null and published">
+                , published_at = sysdate(6),
+                  archived_at = null
+            </if>
+            <if test="archived != null and archived">
+                , archived_at = sysdate(6)
+            </if>
+        where id = #{instanceId}
+          and deleted_at is null
+    </update>
+
+    <update id="updateCurrentVersionPublished">
+        update t1_dossier_version dv
+        inner join t1_dossier_instance di on di.current_version_id = dv.id
+        set dv.published_at = sysdate(6)
+        where di.id = #{instanceId}
+    </update>
+
+    <insert id="insertExportJob">
+        insert into t1_dossier_export_job
+        (id, dossier_instance_id, dossier_version_id, generation_job_id, export_code, export_status,
+         export_scope_json, export_params_json, requested_by, started_at, finished_at, created_at)
+        values
+        (#{exportJobId}, #{instanceId}, #{versionId}, #{generationJobId}, #{exportCode}, 'succeeded',
+         #{exportScopeJson}, #{exportParamsJson}, #{requestedBy}, sysdate(6), sysdate(6), sysdate(6))
+    </insert>
+
+    <insert id="insertExportFile">
+        insert into t1_dossier_export_file
+        (id, export_job_id, file_name, file_storage_key, file_format, mime_type, file_role,
+         is_primary, file_size, page_count, file_hash, display_order, created_at)
+        values
+        (#{exportFileId}, #{exportJobId}, #{fileName}, #{fileStorageKey}, #{fileFormat}, #{mimeType}, #{fileRole},
+         #{isPrimary}, #{fileSize}, #{pageCount}, #{fileHash}, #{displayOrder}, sysdate(6))
+    </insert>
+</mapper>
