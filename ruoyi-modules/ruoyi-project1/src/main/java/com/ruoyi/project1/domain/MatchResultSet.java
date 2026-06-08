@@ -63,6 +63,9 @@ public class MatchResultSet extends BaseEntity
     @Excel(name = "平均匹配分数")
     private BigDecimal avgScore;
 
+    /** F1 score for page display, not a database column. */
+    private BigDecimal f1Score;
+
     public void setResultSetId(Long resultSetId) 
     {
         this.resultSetId = resultSetId;
@@ -183,6 +186,16 @@ public class MatchResultSet extends BaseEntity
         return avgScore;
     }
 
+    public void setF1Score(BigDecimal f1Score)
+    {
+        this.f1Score = f1Score;
+    }
+
+    public BigDecimal getF1Score()
+    {
+        return f1Score;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -198,6 +211,7 @@ public class MatchResultSet extends BaseEntity
             .append("isDefault", getIsDefault())
             .append("totalRows", getTotalRows())
             .append("avgScore", getAvgScore())
+            .append("f1Score", getF1Score())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())

@@ -158,20 +158,34 @@
           <div class="section-title">LLM 配置</div>
           <el-row :gutter="20">
             <el-col :span="12">
-              <el-form-item label="Provider" prop="currentVersion.llmProvider">
-                <el-select v-model="form.currentVersion.llmProvider" style="width: 100%">
+              <el-form-item label="Provider">
+                <el-select v-model="form.currentVersion.llmProvider" clearable placeholder="可选" style="width: 100%" @change="handleLlmProviderChange">
                   <el-option v-for="item in providerOptions" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="Model" prop="currentVersion.llmModel">
-                <el-select v-model="form.currentVersion.llmModel" style="width: 100%">
-                  <el-option v-for="item in modelOptions" :key="item.value" :label="item.label" :value="item.value" />
+              <el-form-item label="Model">
+                <el-select
+                  v-model="form.currentVersion.llmModel"
+                  clearable
+                  placeholder="可选"
+                  style="width: 100%"
+                  :disabled="form.currentVersion.llmProvider === 'none'"
+                  @change="handleLlmModelChange"
+                >
+                  <el-option v-for="item in llmModelOptions" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
               </el-form-item>
             </el-col>
           </el-row>
+          <el-alert
+            class="llm-tip"
+            type="info"
+            :closable="false"
+            show-icon
+            title="API Key 在 Python/FastAPI 算法服务环境变量中配置；未配置时跳过 MagnetoGPT。"
+          />
         </div>
 
         <el-form-item label="备注" prop="remark">
@@ -211,8 +225,12 @@
         <el-table-column label="评估模式" min-width="130" :show-overflow-tooltip="true">
           <template #default="scope">{{ evalModeLabel(scope.row.evalModeKey) }}</template>
         </el-table-column>
-        <el-table-column label="Provider" prop="llmProvider" width="120" />
-        <el-table-column label="Model" prop="llmModel" min-width="140" :show-overflow-tooltip="true" />
+        <el-table-column label="Provider" width="120">
+          <template #default="scope">{{ displayLlmValue(scope.row.llmProvider) }}</template>
+        </el-table-column>
+        <el-table-column label="Model" min-width="140" :show-overflow-tooltip="true">
+          <template #default="scope">{{ displayLlmValue(scope.row.llmModel) }}</template>
+        </el-table-column>
         <el-table-column label="阈值" prop="autoApproveThreshold" width="90" align="center" />
         <el-table-column label="变更说明" prop="changeSummary" min-width="180" :show-overflow-tooltip="true" />
         <el-table-column label="创建时间" prop="createTime" width="160" align="center">
@@ -255,7 +273,7 @@
 </template>
 
 <script setup name="MatchTask">
-import { listMatchTask, getMatchTask, delMatchTask, addMatchTask, updateMatchTask, runMatchTask, listMatchTaskVersion, listMatchTaskRecord } from "@/api/project1/matchTask"
+import { listMatchTask, getMatchTask, delMatchTask, addMatchTask, updateMatchTask, runMatchTask, getMatchTaskRecordStatus, listMatchTaskVersion, listMatchTaskRecord } from "@/api/project1/matchTask"
 import { listDatasource } from "@/api/project1/datasource"
 
 const { proxy } = getCurrentInstance()
@@ -274,6 +292,7 @@ const total = ref(0)
 const title = ref("")
 const versionRows = ref([])
 const recordRows = ref([])
+const pollingTimers = new Map()
 
 const encodingModeOptions = [
   { label: "header_values_default", value: "header_values_default" },
@@ -296,11 +315,16 @@ const providerOptions = [
   { label: "none", value: "none" }
 ]
 
-const modelOptions = [
-  { label: "deepseek-chat", value: "deepseek-chat" },
-  { label: "gpt-4o-mini", value: "gpt-4o-mini" },
-  { label: "none", value: "none" }
-]
+const modelOptionsByProvider = {
+  deepseek: [{ label: "deepseek-chat", value: "deepseek-chat" }],
+  openai: [{ label: "gpt-4o-mini", value: "gpt-4o-mini" }],
+  none: [{ label: "none", value: "none" }]
+}
+
+const llmModelOptions = computed(() => {
+  const provider = form.value?.currentVersion?.llmProvider || "none"
+  return modelOptionsByProvider[provider] || modelOptionsByProvider.none
+})
 
 const lifecycleOptions = [
   { label: "草稿", value: "draft" },
@@ -334,8 +358,6 @@ const data = reactive({
     "currentVersion.encodingModeKey": [{ required: true, message: "列编码模式不能为空", trigger: "change" }],
     "currentVersion.embeddingModelKey": [{ required: true, message: "嵌入模型不能为空", trigger: "change" }],
     "currentVersion.evalModeKey": [{ required: true, message: "评估模式不能为空", trigger: "change" }],
-    "currentVersion.llmProvider": [{ required: true, message: "Provider 不能为空", trigger: "change" }],
-    "currentVersion.llmModel": [{ required: true, message: "Model 不能为空", trigger: "change" }]
   }
 })
 
@@ -347,8 +369,8 @@ function defaultVersion() {
     embeddingModelKey: "mpnet",
     evalModeKey: "global_unknown",
     autoApproveThreshold: 0.9,
-    llmProvider: "deepseek",
-    llmModel: "deepseek-chat",
+    llmProvider: "none",
+    llmModel: "none",
     algorithmParamsJson: undefined,
     changeSummary: undefined
   }
@@ -388,6 +410,7 @@ function reset() {
 
 function normalizeForm(row) {
   const currentVersion = Object.assign(defaultVersion(), row.currentVersion || {})
+  normalizeLlmChoice(currentVersion)
   return {
     taskId: row.taskId,
     taskName: row.taskName,
@@ -398,13 +421,54 @@ function normalizeForm(row) {
 }
 
 function buildSubmitPayload() {
+  const currentVersion = Object.assign({}, defaultVersion(), form.value.currentVersion)
+  normalizeLlmChoice(currentVersion)
+  delete currentVersion.llmConfigId
   return {
     taskId: form.value.taskId,
     taskName: form.value.taskName,
     sourceDatasourceId: form.value.sourceDatasourceId,
     remark: form.value.remark,
-    currentVersion: Object.assign({}, defaultVersion(), form.value.currentVersion)
+    currentVersion
   }
+}
+
+function normalizeLlmChoice(version) {
+  if (!version.llmProvider) {
+    version.llmProvider = "none"
+  }
+  if (version.llmProvider === "none") {
+    version.llmModel = "none"
+    return
+  }
+  if (version.llmProvider === "deepseek" && (!version.llmModel || version.llmModel === "none" || version.llmModel.startsWith("gpt-"))) {
+    version.llmModel = "deepseek-chat"
+    return
+  }
+  if (version.llmProvider === "openai" && (!version.llmModel || version.llmModel === "none" || version.llmModel === "deepseek-chat")) {
+    version.llmModel = "gpt-4o-mini"
+  }
+}
+
+function handleLlmProviderChange(provider) {
+  if (!form.value.currentVersion) {
+    form.value.currentVersion = defaultVersion()
+  }
+  form.value.currentVersion.llmProvider = provider || "none"
+  form.value.currentVersion.llmModel = form.value.currentVersion.llmProvider === "deepseek"
+    ? "deepseek-chat"
+    : form.value.currentVersion.llmProvider === "openai" ? "gpt-4o-mini" : "none"
+  delete form.value.currentVersion.llmConfigId
+}
+
+function handleLlmModelChange() {
+  if (form.value.currentVersion) {
+    delete form.value.currentVersion.llmConfigId
+  }
+}
+
+function displayLlmValue(value) {
+  return value || "none"
 }
 
 function handleQuery() {
@@ -478,10 +542,80 @@ function handleExport() {
 }
 
 function handleRun(row) {
+  row.lastRecordStatus = "running"
+  row.lastRecordProgress = 5
+  row.lastRecordStage = "创建运行记录"
   runMatchTask(row.taskId).then(response => {
-    proxy.$modal.msgSuccess(response.data?.message || "任务运行完成")
-    getList()
+    const data = response.data || {}
+    proxy.$modal.msgSuccess(data.message || "模式映射任务已开始运行")
+    if (data.recordId) {
+      startRecordPolling(row.taskId, data.recordId)
+    } else {
+      getList()
+    }
   })
+}
+
+function startRecordPolling(taskId, recordId) {
+  clearRecordPolling(recordId)
+  const poll = () => {
+    getMatchTaskRecordStatus(recordId).then(response => {
+      const data = response.data || {}
+      updateTaskRowProgress(taskId, data)
+      if (isTerminalStatus(data.executionStatus)) {
+        clearRecordPolling(recordId)
+        if (data.executionStatus === "success") {
+          const countText = data.resultSetCount ? `，已生成 ${data.resultSetCount} 个候选结果集` : ""
+          if (data.noticeMessage) {
+            proxy.$modal.msgWarning(`模式映射运行完成${countText}；${data.noticeMessage}`)
+          } else {
+            proxy.$modal.msgSuccess(`模式映射运行完成${countText}`)
+          }
+        } else if (data.executionStatus === "failed") {
+          proxy.$modal.msgError(data.errorMessage || "模式映射运行失败")
+        }
+        getList()
+        if (recordOpen.value) {
+          const currentTask = matchTaskList.value.find(item => item.taskId === taskId)
+          if (currentTask) {
+            handleRecord(currentTask)
+          }
+        }
+      }
+    }).catch(() => {
+      clearRecordPolling(recordId)
+      getList()
+    })
+  }
+  poll()
+  pollingTimers.set(recordId, window.setInterval(poll, 1000))
+}
+
+function clearRecordPolling(recordId) {
+  const timer = pollingTimers.get(recordId)
+  if (timer) {
+    window.clearInterval(timer)
+    pollingTimers.delete(recordId)
+  }
+}
+
+function clearAllRecordPolling() {
+  pollingTimers.forEach(timer => window.clearInterval(timer))
+  pollingTimers.clear()
+}
+
+function updateTaskRowProgress(taskId, data) {
+  const row = matchTaskList.value.find(item => item.taskId === taskId)
+  if (!row) {
+    return
+  }
+  row.lastRecordStatus = data.executionStatus || row.lastRecordStatus
+  row.lastRecordProgress = Number(data.progress || row.lastRecordProgress || 0)
+  row.lastRecordStage = data.currentStage || row.lastRecordStage
+}
+
+function isTerminalStatus(status) {
+  return ["success", "failed", "canceled", "blocked", "completed"].includes(status)
 }
 
 function handleVersion(row) {
@@ -536,6 +670,10 @@ function recordStatusTagType(value) {
   return value === "success" || value === "completed" ? "success" : value === "running" || value === "queued" ? "warning" : value === "failed" || value === "blocked" ? "danger" : "info"
 }
 
+onBeforeUnmount(() => {
+  clearAllRecordPolling()
+})
+
 loadDatasourceOptions()
 getList()
 </script>
@@ -575,5 +713,9 @@ getList()
   margin-bottom: 12px;
   color: #606266;
   font-weight: 600;
+}
+
+.llm-tip {
+  margin-bottom: 14px;
 }
 </style>

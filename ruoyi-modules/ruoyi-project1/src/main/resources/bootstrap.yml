@@ -26,8 +26,8 @@ spring:
   config:
     file-extension: yml
     import:
-      - optional:nacos:application-${spring.profiles.active}.${spring.config.file-extension}?group=DEFAULT_GROUP
-      - optional:nacos:${spring.application.name}-${spring.profiles.active}.${spring.config.file-extension}?group=DEFAULT_GROUP
+      - nacos:application-${spring.profiles.active}.${spring.config.file-extension}?group=DEFAULT_GROUP
+      - nacos:${spring.application.name}-${spring.profiles.active}.${spring.config.file-extension}?group=DEFAULT_GROUP
 
 # Project1 internal services
 project1:

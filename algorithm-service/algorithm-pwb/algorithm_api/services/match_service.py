@@ -10,6 +10,7 @@ from ..config import (
     build_default_mysql_url,
     default_ground_truth_root,
     default_target_table_prefix,
+    llm_availability,
     normalize_system_key,
 )
 from ..runtime.cf_match_runner import CfMatchRunner, RunnerConfig
@@ -24,6 +25,7 @@ class MatchService:
         return {
             "service": "cf-schema-matching-algorithm",
             "methods": ["Magneto", "MagnetoBoost", "MagnetoGPT"],
+            "variants": ["all", "one2one"],
             "embeddingModels": ["mpnet", "roberta", "e5", "arctic", "minilm"],
             "encodingModes": [
                 "header_values_default",
@@ -42,9 +44,14 @@ class MatchService:
                 for item in SOURCE_SYSTEMS.values()
             ],
             "outputs": {
+                "resultSets": "Method and variant result sets for p1p_match_result_set.",
                 "rows": "Field matching result rows for p1p_match_result_row.",
-                "metrics": "Evaluation metrics for p1p_task_metric.",
+                "metrics": "Legacy CF evaluation metrics for p1p_task_metric.",
                 "charts": "Metric chart_data payload.",
+            },
+            "llm": {
+                "defaultModel": "deepseek/deepseek-chat",
+                "magnetoGpt": llm_availability("deepseek/deepseek-chat"),
             },
         }
 
@@ -59,37 +66,71 @@ class MatchService:
         ground_truth = _scope_ground_truth(all_ground_truth, source_bundle, target_bundle)
         gt_lookup = ground_truth_catalog.lookup() if ground_truth_catalog else {}
 
-        runner_config = self._runner_config(request)
+        methods, warnings = _requested_methods(request.algorithm)
+        variants = _requested_variants(request.algorithm)
+        runner_config = self._runner_config(request, default_method=methods[0])
         runner = CfMatchRunner(runner_config)
-        result = runner.run(
+        method_results = runner.run_methods(
             source_bundle=source_bundle,
             target_bundle=target_bundle,
             source_schema=source_schema,
             target_schema=target_schema,
             ground_truth=ground_truth,
+            methods=methods,
         )
 
+        result_sets = []
+        for result in method_results:
+            if "all" in variants:
+                result_sets.append(
+                    _result_set_payload(
+                        result=result,
+                        variant="all",
+                        rows=result.rows,
+                        metrics=result.metrics.all_metrics,
+                        metrics_summary=result.metrics.all_summary,
+                        gt_lookup=gt_lookup,
+                    )
+                )
+            if "one2one" in variants:
+                result_sets.append(
+                    _result_set_payload(
+                        result=result,
+                        variant="one2one",
+                        rows=result.metrics.one_to_one_rows,
+                        metrics=result.metrics.one_to_one_metrics,
+                        metrics_summary=result.metrics.one_to_one_summary,
+                        gt_lookup=gt_lookup,
+                    )
+                )
+
+        combined_rows = [row for result_set in result_sets for row in result_set["rows"]]
+        combined_metrics = [
+            {**metric, "resultSetKey": result_set["resultSetKey"]}
+            for result_set in result_sets
+            for metric in result_set["metrics"]
+        ]
         return {
             "requestId": request.requestId,
             "status": "success",
             "sourceSystem": source_bundle.source_label,
             "sourceSchemaKey": source_bundle.schema_key,
             "targetKey": "dossier",
-            "method": runner_config.method,
+            "methods": methods,
+            "variants": variants,
+            "warnings": warnings,
+            "resultSetCount": len(result_sets),
             "summary": {
                 "sourceTableCount": len(source_bundle.dataframes),
                 "targetTableCount": len(target_bundle.dataframes),
-                "totalRows": len(result.rows),
-                "avgScore": _avg_score(result.rows),
-                "runtimeSeconds": round(result.runtime_seconds, 3),
+                "totalRows": len(combined_rows),
+                "runtimeSeconds": round(sum(item.runtime_seconds for item in method_results), 3),
                 "groundTruthEnabled": request.groundTruth.enabled,
-                "groundTruthCount": result.metrics.ground_truth_count,
-                "matchedGroundTruthCount": result.metrics.matched_ground_truth_count,
+                "groundTruthCount": len(ground_truth),
             },
-            "rows": rows_to_payload(result.rows, gt_lookup),
-            "oneToOneRows": rows_to_payload(result.metrics.one_to_one_rows, gt_lookup),
-            "metrics": result.metrics.metrics,
-            "charts": build_charts(result.metrics.one_to_one_rows or result.rows),
+            "resultSets": result_sets,
+            "rows": combined_rows,
+            "metrics": combined_metrics,
         }
 
     def run_all(self, request: MatchRunAllRequest) -> dict[str, Any]:
@@ -110,11 +151,17 @@ class MatchService:
 
         combined_metrics = []
         combined_rows = []
-        combined_one_to_one_rows = []
         runtime = 0.0
+        combined_result_sets = []
         for item in results:
             combined_rows.extend(item["rows"])
-            combined_one_to_one_rows.extend(item["oneToOneRows"])
+            combined_result_sets.extend(
+                {
+                    **result_set,
+                    "sourceSystem": item["sourceSystem"],
+                }
+                for result_set in item["resultSets"]
+            )
             runtime += item["summary"]["runtimeSeconds"]
             combined_metrics.extend(
                 {
@@ -128,16 +175,18 @@ class MatchService:
             "requestId": request.requestId,
             "status": "success",
             "targetKey": "dossier",
-            "method": request.algorithm.method,
+            "methods": _requested_methods(request.algorithm)[0],
+            "variants": _requested_variants(request.algorithm),
+            "warnings": [warning for item in results for warning in item.get("warnings", [])],
+            "resultSetCount": len(combined_result_sets),
             "summary": {
                 "sourceSystemCount": len(results),
                 "totalRows": len(combined_rows),
-                "oneToOneRows": len(combined_one_to_one_rows),
                 "runtimeSeconds": round(runtime, 3),
             },
             "results": results,
+            "resultSets": combined_result_sets,
             "rows": combined_rows,
-            "oneToOneRows": combined_one_to_one_rows,
             "metrics": combined_metrics,
         }
 
@@ -171,11 +220,10 @@ class MatchService:
         root = Path(root_path) if root_path else default_ground_truth_root()
         return GroundTruthCatalog.from_file_root(root)
 
-    def _runner_config(self, request: MatchRunRequest | MatchRunAllRequest) -> RunnerConfig:
+    def _runner_config(self, request: MatchRunRequest | MatchRunAllRequest, *, default_method: str) -> RunnerConfig:
         algorithm = request.algorithm
-        method = "MagnetoGPT" if algorithm.useLlmReranker else algorithm.method
         return RunnerConfig(
-            method=method,
+            method=default_method,
             embedding_model=algorithm.embeddingModel,
             encoding_mode=algorithm.encodingMode,
             sampling_mode=algorithm.samplingMode,
@@ -193,6 +241,62 @@ def _avg_score(rows) -> float:
     if not rows:
         return 0.0
     return round(sum(row.score for row in rows) / len(rows), 6)
+
+
+def _requested_methods(algorithm) -> tuple[list[str], list[dict[str, Any]]]:
+    methods = algorithm.methods or ([algorithm.method] if algorithm.method else ["Magneto", "MagnetoBoost", "MagnetoGPT"])
+    deduped = list(dict.fromkeys(methods))
+    warnings: list[dict[str, Any]] = []
+    if "MagnetoGPT" in deduped:
+        llm_status = llm_availability(algorithm.llmModel)
+        if not llm_status["available"]:
+            deduped = [method for method in deduped if method != "MagnetoGPT"]
+            warnings.append(
+                {
+                    "code": "magnetogpt_skipped_no_key",
+                    "method": "MagnetoGPT",
+                    "envVar": llm_status.get("envVar"),
+                    "message": llm_status.get("message") or "LLM 配置不可用，已跳过 MagnetoGPT。",
+                }
+            )
+    if not deduped:
+        deduped = ["Magneto", "MagnetoBoost"]
+    return deduped, warnings
+
+
+def _requested_variants(algorithm) -> list[str]:
+    return list(dict.fromkeys(algorithm.variants or ["all", "one2one"]))
+
+
+def _result_set_payload(
+    *,
+    result,
+    variant: str,
+    rows,
+    metrics,
+    metrics_summary,
+    gt_lookup,
+) -> dict[str, Any]:
+    method = result.method
+    result_set_key = f"{method}:{variant}"
+    return {
+        "resultSetKey": result_set_key,
+        "method": method,
+        "variant": variant,
+        "status": "success",
+        "resultSetName": f"{method} CF-SF {variant}",
+        "summary": {
+            "totalRows": len(rows),
+            "avgScore": _avg_score(rows),
+            "runtimeSeconds": round(result.runtime_seconds, 3),
+            "groundTruthCount": metrics_summary["groundTruthCount"],
+            "matchedGroundTruthCount": metrics_summary["matchedGroundTruthCount"],
+        },
+        "metricsSummary": metrics_summary,
+        "rows": rows_to_payload(rows, gt_lookup),
+        "metrics": metrics,
+        "charts": build_charts(rows),
+    }
 
 
 def _scope_ground_truth(ground_truth, source_bundle, target_bundle):

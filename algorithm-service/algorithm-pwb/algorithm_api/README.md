@@ -7,7 +7,7 @@ This FastAPI service wraps the CF schema matching algorithm for the RuoYi backen
 - Reads source schemas and samples from the five CF API Pull adapters.
 - Reads dossier target schema and samples from RuoYi MySQL `p1p_dossier_*` tables.
 - Reads CF ground truth from `data/magneto_cf/ground-truth`.
-- Returns matching rows, evaluation metrics, and chart data as JSON.
+- Returns method/variant result sets, matching rows, evaluation metrics, and chart data as JSON.
 - Does not write to RuoYi MySQL or any external CF source database.
 
 ## Start
@@ -36,6 +36,27 @@ Override it with:
 ```powershell
 $env:RUOYI_MYSQL_URL = "mysql+pymysql://root:password@127.0.0.1:3306/ry-cloud?charset=utf8mb4"
 ```
+
+## LLM API Key
+
+`MagnetoGPT` uses the API key from the Python service environment. Do not enter the key in the RuoYi frontend.
+
+Create a local `.env` file from the example and paste your own key:
+
+```powershell
+cd E:\Desktop\zlzs211\algorithm-service\algorithm-pwb
+copy .env.example .env
+notepad .env
+```
+
+Supported variables:
+
+```text
+DEEPSEEK_API_KEY=
+OPENAI_API_KEY=
+```
+
+If `DEEPSEEK_API_KEY` is not configured for `deepseek/deepseek-chat`, the service skips `MagnetoGPT` and returns only four result sets: `Magneto all`, `Magneto one2one`, `MagnetoBoost all`, and `MagnetoBoost one2one`.
 
 ## Endpoints
 
@@ -69,10 +90,27 @@ Stop the local service with:
     "enabled": true
   },
   "algorithm": {
-    "method": "Magneto",
+    "methods": ["Magneto", "MagnetoBoost", "MagnetoGPT"],
+    "variants": ["all", "one2one"],
     "embeddingModel": "mpnet",
     "encodingMode": "header_values_verbose_with_table",
-    "topk": 20
+    "topk": 20,
+    "llmModel": "deepseek/deepseek-chat"
   }
 }
 ```
+
+The response contains `resultSets`, one item per requested `method + variant`.
+For the default three methods and two variants, one request returns six result sets:
+
+- `Magneto:all`
+- `Magneto:one2one`
+- `MagnetoBoost:all`
+- `MagnetoBoost:one2one`
+- `MagnetoGPT:all`
+- `MagnetoGPT:one2one`
+
+Each result set includes `rows`, `metrics`, `metricsSummary`, and `charts`.
+Metrics reuse the legacy CF benchmark logic: `mrr` and `Recall@20` come from the old benchmark utility semantics, while precision/recall/F1 come from `valentine.MatcherResults.get_metrics()`.
+
+Legacy requests that only send `method` are still accepted. For example, `"method": "Magneto"` returns the two Magneto result sets: `all` and `one2one`.

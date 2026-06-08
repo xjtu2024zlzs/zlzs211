@@ -61,13 +61,20 @@ public interface IMatchTaskService
     public int deleteMatchTaskByTaskId(Long taskId);
 
     /**
-     * Run matching task without external algorithm. This creates a default result set
-     * that lets the access flow continue for midterm demonstration.
+     * Run schema matching task asynchronously.
      *
      * @param taskId task id
-     * @return run result payload
+     * @return run record payload
      */
-    public Map<String, Object> runWithoutAlgorithm(Long taskId);
+    public Map<String, Object> runMatchTask(Long taskId);
+
+    /**
+     * Query one run record status for progress polling.
+     *
+     * @param recordId record id
+     * @return status payload
+     */
+    public Map<String, Object> recordStatus(Long recordId);
 
     /**
      * Query task version rows for page display.

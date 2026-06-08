@@ -43,11 +43,19 @@ export function delMatchTask(taskId) {
   })
 }
 
-// Run matching task without algorithm dependency
+// Run matching task
 export function runMatchTask(taskId) {
   return request({
     url: '/project1/matchTask/run/' + taskId,
     method: 'post'
+  })
+}
+
+// Query one task run record status for progress polling
+export function getMatchTaskRecordStatus(recordId) {
+  return request({
+    url: '/project1/matchTask/record/status/' + recordId,
+    method: 'get'
   })
 }
 

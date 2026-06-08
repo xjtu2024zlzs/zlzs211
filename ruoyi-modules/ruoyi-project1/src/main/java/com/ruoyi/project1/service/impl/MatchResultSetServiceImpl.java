@@ -1,5 +1,6 @@
 package com.ruoyi.project1.service.impl;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -58,7 +59,12 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
     @Override
     public List<MatchResultSet> selectMatchResultSetList(MatchResultSet matchResultSet)
     {
-        return matchResultSetMapper.selectMatchResultSetList(matchResultSet);
+        List<MatchResultSet> rows = matchResultSetMapper.selectMatchResultSetList(matchResultSet);
+        for (MatchResultSet row : rows)
+        {
+            row.setF1Score(findMetricValue(row.getResultSetId(), "f1Score"));
+        }
+        return rows;
     }
 
     @Override
@@ -247,6 +253,19 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
             cards.add(card);
         }
         return cards;
+    }
+
+    private BigDecimal findMetricValue(Long resultSetId, String metricKey)
+    {
+        if (resultSetId == null || StringUtils.isBlank(metricKey))
+        {
+            return null;
+        }
+        TaskMetric query = new TaskMetric();
+        query.setResultSetId(resultSetId);
+        query.setMetricKey(metricKey);
+        List<TaskMetric> rows = taskMetricMapper.selectTaskMetricList(query);
+        return rows.isEmpty() ? null : rows.get(0).getMetricValue();
     }
 
     private MatchResultSet requireResultSet(Long resultSetId)
