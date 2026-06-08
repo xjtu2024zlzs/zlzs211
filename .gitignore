@@ -46,3 +46,8 @@ nbdist/
 !*/build/*.xml
 
 ruoyi-ui/.edge-project3-task8-profile/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

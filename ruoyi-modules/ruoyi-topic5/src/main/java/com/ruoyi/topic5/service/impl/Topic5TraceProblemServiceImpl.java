@@ -55,13 +55,13 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 @Service
 public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 {
-    @Value("${topic5.python.first-algorithm-url:http://127.0.0.1:8000/api/v1/diagnose}")
+    @Value("${topic5.python.first-algorithm-url:http://127.0.0.1:9781/api/v1/diagnose}")
     private String firstAlgorithmUrl;
 
-    @Value("${topic5.python.second-algorithm-url:http://127.0.0.1:8090/api/v1/trace/run}")
+    @Value("${topic5.python.second-algorithm-url:http://127.0.0.1:9782/api/v1/trace/run}")
     private String secondAlgorithmUrl;
 
-    @Value("${topic5.python.third-algorithm-url:http://127.0.0.1:8090/api/v1/trace/run}")
+    @Value("${topic5.python.third-algorithm-url:http://127.0.0.1:9782/api/v1/trace/run}")
     private String thirdAlgorithmUrl;
 
     @Value("${ruoyi.profile:D:/2.11/topic5_code}")

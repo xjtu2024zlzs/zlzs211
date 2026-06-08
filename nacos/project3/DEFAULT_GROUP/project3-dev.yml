@@ -67,7 +67,7 @@ project3:
 # Python算法服务配置
 python:
   algorithm:
-    baseUrl: http://localhost:8000
+    baseUrl: http://localhost:9781
     keyProcessPath: /api/v1/key-process/identify
     kqc-mining-path: /algorithm/bosch/kqc-mining/execute
     feature-analysis-path: /python/data-analysis

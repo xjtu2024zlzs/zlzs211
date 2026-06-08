@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const pythonRequest = axios.create({
-  baseURL: 'http://127.0.0.1:8090',
+  baseURL: 'http://127.0.0.1:9782',
   timeout: 180000,
   headers: {
     'Content-Type': 'application/json'
