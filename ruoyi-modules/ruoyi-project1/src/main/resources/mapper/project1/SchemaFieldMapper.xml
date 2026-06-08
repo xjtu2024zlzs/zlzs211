@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.SchemaFieldMapper">
+    
+    <resultMap type="SchemaField" id="SchemaFieldResult">
+        <result property="fieldId"    column="field_id"    />
+        <result property="entityId"    column="entity_id"    />
+        <result property="snapshotId"    column="snapshot_id"    />
+        <result property="fieldName"    column="field_name"    />
+        <result property="sourceColumn"    column="source_column"    />
+        <result property="dataType"    column="data_type"    />
+        <result property="ordinalPosition"    column="ordinal_position"    />
+        <result property="isPrimaryKey"    column="is_primary_key"    />
+        <result property="isNullable"    column="is_nullable"    />
+        <result property="sampleValues"    column="sample_values"    />
+        <result property="fieldComment"    column="field_comment"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSchemaFieldVo">
+        select field_id, entity_id, snapshot_id, field_name, source_column, data_type, ordinal_position, is_primary_key, is_nullable, sample_values, field_comment, create_time, remark from p1p_schema_field
+    </sql>
+
+    <select id="selectSchemaFieldList" parameterType="SchemaField" resultMap="SchemaFieldResult">
+        <include refid="selectSchemaFieldVo"/>
+        <where>  
+            <if test="entityId != null "> and entity_id = #{entityId}</if>
+            <if test="snapshotId != null "> and snapshot_id = #{snapshotId}</if>
+            <if test="fieldName != null  and fieldName != ''"> and field_name like concat('%', #{fieldName}, '%')</if>
+            <if test="sourceColumn != null  and sourceColumn != ''"> and source_column = #{sourceColumn}</if>
+            <if test="dataType != null  and dataType != ''"> and data_type = #{dataType}</if>
+            <if test="ordinalPosition != null "> and ordinal_position = #{ordinalPosition}</if>
+            <if test="isPrimaryKey != null "> and is_primary_key = #{isPrimaryKey}</if>
+            <if test="isNullable != null "> and is_nullable = #{isNullable}</if>
+            <if test="sampleValues != null  and sampleValues != ''"> and sample_values = #{sampleValues}</if>
+            <if test="fieldComment != null  and fieldComment != ''"> and field_comment = #{fieldComment}</if>
+        </where>
+    </select>
+    
+    <select id="selectSchemaFieldByFieldId" parameterType="Long" resultMap="SchemaFieldResult">
+        <include refid="selectSchemaFieldVo"/>
+        where field_id = #{fieldId}
+    </select>
+
+    <insert id="insertSchemaField" parameterType="SchemaField" useGeneratedKeys="true" keyProperty="fieldId">
+        insert into p1p_schema_field
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="entityId != null">entity_id,</if>
+            <if test="snapshotId != null">snapshot_id,</if>
+            <if test="fieldName != null and fieldName != ''">field_name,</if>
+            <if test="sourceColumn != null">source_column,</if>
+            <if test="dataType != null">data_type,</if>
+            <if test="ordinalPosition != null">ordinal_position,</if>
+            <if test="isPrimaryKey != null">is_primary_key,</if>
+            <if test="isNullable != null">is_nullable,</if>
+            <if test="sampleValues != null">sample_values,</if>
+            <if test="fieldComment != null">field_comment,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="entityId != null">#{entityId},</if>
+            <if test="snapshotId != null">#{snapshotId},</if>
+            <if test="fieldName != null and fieldName != ''">#{fieldName},</if>
+            <if test="sourceColumn != null">#{sourceColumn},</if>
+            <if test="dataType != null">#{dataType},</if>
+            <if test="ordinalPosition != null">#{ordinalPosition},</if>
+            <if test="isPrimaryKey != null">#{isPrimaryKey},</if>
+            <if test="isNullable != null">#{isNullable},</if>
+            <if test="sampleValues != null">#{sampleValues},</if>
+            <if test="fieldComment != null">#{fieldComment},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSchemaField" parameterType="SchemaField">
+        update p1p_schema_field
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="entityId != null">entity_id = #{entityId},</if>
+            <if test="snapshotId != null">snapshot_id = #{snapshotId},</if>
+            <if test="fieldName != null and fieldName != ''">field_name = #{fieldName},</if>
+            <if test="sourceColumn != null">source_column = #{sourceColumn},</if>
+            <if test="dataType != null">data_type = #{dataType},</if>
+            <if test="ordinalPosition != null">ordinal_position = #{ordinalPosition},</if>
+            <if test="isPrimaryKey != null">is_primary_key = #{isPrimaryKey},</if>
+            <if test="isNullable != null">is_nullable = #{isNullable},</if>
+            <if test="sampleValues != null">sample_values = #{sampleValues},</if>
+            <if test="fieldComment != null">field_comment = #{fieldComment},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where field_id = #{fieldId}
+    </update>
+
+    <delete id="deleteSchemaFieldByFieldId" parameterType="Long">
+        delete from p1p_schema_field where field_id = #{fieldId}
+    </delete>
+
+    <delete id="deleteSchemaFieldByFieldIds" parameterType="String">
+        delete from p1p_schema_field where field_id in 
+        <foreach item="fieldId" collection="array" open="(" separator="," close=")">
+            #{fieldId}
+        </foreach>
+    </delete>
+</mapper>

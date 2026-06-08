@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.AccessBatchMapper">
+    
+    <resultMap type="AccessBatch" id="AccessBatchResult">
+        <result property="accessBatchId"    column="access_batch_id"    />
+        <result property="accessPlanId"    column="access_plan_id"    />
+        <result property="batchNo"    column="batch_no"    />
+        <result property="triggerType"    column="trigger_type"    />
+        <result property="batchStatus"    column="batch_status"    />
+        <result property="readCount"    column="read_count"    />
+        <result property="stagedCount"    column="staged_count"    />
+        <result property="transformSuccessCount"    column="transform_success_count"    />
+        <result property="transformFailedCount"    column="transform_failed_count"    />
+        <result property="writeSuccessCount"    column="write_success_count"    />
+        <result property="writeFailedCount"    column="write_failed_count"    />
+        <result property="insertedCount"    column="inserted_count"    />
+        <result property="updatedCount"    column="updated_count"    />
+        <result property="errorMessage"    column="error_message"    />
+        <result property="cancelRequestedAt"    column="cancel_requested_at"    />
+        <result property="startedAt"    column="started_at"    />
+        <result property="finishedAt"    column="finished_at"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectAccessBatchVo">
+        select access_batch_id, access_plan_id, batch_no, trigger_type, batch_status, read_count, staged_count, transform_success_count, transform_failed_count, write_success_count, write_failed_count, inserted_count, updated_count, error_message, cancel_requested_at, started_at, finished_at, create_by, create_time, update_by, update_time, remark from p1p_access_batch
+    </sql>
+
+    <select id="selectAccessBatchList" parameterType="AccessBatch" resultMap="AccessBatchResult">
+        <include refid="selectAccessBatchVo"/>
+        <where>  
+            <if test="accessPlanId != null "> and access_plan_id = #{accessPlanId}</if>
+            <if test="batchNo != null  and batchNo != ''"> and batch_no = #{batchNo}</if>
+            <if test="triggerType != null  and triggerType != ''"> and trigger_type = #{triggerType}</if>
+            <if test="batchStatus != null  and batchStatus != ''"> and batch_status = #{batchStatus}</if>
+            <if test="readCount != null "> and read_count = #{readCount}</if>
+            <if test="stagedCount != null "> and staged_count = #{stagedCount}</if>
+            <if test="transformSuccessCount != null "> and transform_success_count = #{transformSuccessCount}</if>
+            <if test="transformFailedCount != null "> and transform_failed_count = #{transformFailedCount}</if>
+            <if test="writeSuccessCount != null "> and write_success_count = #{writeSuccessCount}</if>
+            <if test="writeFailedCount != null "> and write_failed_count = #{writeFailedCount}</if>
+            <if test="insertedCount != null "> and inserted_count = #{insertedCount}</if>
+            <if test="updatedCount != null "> and updated_count = #{updatedCount}</if>
+            <if test="errorMessage != null  and errorMessage != ''"> and error_message = #{errorMessage}</if>
+            <if test="cancelRequestedAt != null "> and cancel_requested_at = #{cancelRequestedAt}</if>
+            <if test="startedAt != null "> and started_at = #{startedAt}</if>
+            <if test="finishedAt != null "> and finished_at = #{finishedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectAccessBatchByAccessBatchId" parameterType="Long" resultMap="AccessBatchResult">
+        <include refid="selectAccessBatchVo"/>
+        where access_batch_id = #{accessBatchId}
+    </select>
+
+    <insert id="insertAccessBatch" parameterType="AccessBatch" useGeneratedKeys="true" keyProperty="accessBatchId">
+        insert into p1p_access_batch
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="accessPlanId != null">access_plan_id,</if>
+            <if test="batchNo != null and batchNo != ''">batch_no,</if>
+            <if test="triggerType != null and triggerType != ''">trigger_type,</if>
+            <if test="batchStatus != null and batchStatus != ''">batch_status,</if>
+            <if test="readCount != null">read_count,</if>
+            <if test="stagedCount != null">staged_count,</if>
+            <if test="transformSuccessCount != null">transform_success_count,</if>
+            <if test="transformFailedCount != null">transform_failed_count,</if>
+            <if test="writeSuccessCount != null">write_success_count,</if>
+            <if test="writeFailedCount != null">write_failed_count,</if>
+            <if test="insertedCount != null">inserted_count,</if>
+            <if test="updatedCount != null">updated_count,</if>
+            <if test="errorMessage != null">error_message,</if>
+            <if test="cancelRequestedAt != null">cancel_requested_at,</if>
+            <if test="startedAt != null">started_at,</if>
+            <if test="finishedAt != null">finished_at,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="accessPlanId != null">#{accessPlanId},</if>
+            <if test="batchNo != null and batchNo != ''">#{batchNo},</if>
+            <if test="triggerType != null and triggerType != ''">#{triggerType},</if>
+            <if test="batchStatus != null and batchStatus != ''">#{batchStatus},</if>
+            <if test="readCount != null">#{readCount},</if>
+            <if test="stagedCount != null">#{stagedCount},</if>
+            <if test="transformSuccessCount != null">#{transformSuccessCount},</if>
+            <if test="transformFailedCount != null">#{transformFailedCount},</if>
+            <if test="writeSuccessCount != null">#{writeSuccessCount},</if>
+            <if test="writeFailedCount != null">#{writeFailedCount},</if>
+            <if test="insertedCount != null">#{insertedCount},</if>
+            <if test="updatedCount != null">#{updatedCount},</if>
+            <if test="errorMessage != null">#{errorMessage},</if>
+            <if test="cancelRequestedAt != null">#{cancelRequestedAt},</if>
+            <if test="startedAt != null">#{startedAt},</if>
+            <if test="finishedAt != null">#{finishedAt},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAccessBatch" parameterType="AccessBatch">
+        update p1p_access_batch
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="accessPlanId != null">access_plan_id = #{accessPlanId},</if>
+            <if test="batchNo != null and batchNo != ''">batch_no = #{batchNo},</if>
+            <if test="triggerType != null and triggerType != ''">trigger_type = #{triggerType},</if>
+            <if test="batchStatus != null and batchStatus != ''">batch_status = #{batchStatus},</if>
+            <if test="readCount != null">read_count = #{readCount},</if>
+            <if test="stagedCount != null">staged_count = #{stagedCount},</if>
+            <if test="transformSuccessCount != null">transform_success_count = #{transformSuccessCount},</if>
+            <if test="transformFailedCount != null">transform_failed_count = #{transformFailedCount},</if>
+            <if test="writeSuccessCount != null">write_success_count = #{writeSuccessCount},</if>
+            <if test="writeFailedCount != null">write_failed_count = #{writeFailedCount},</if>
+            <if test="insertedCount != null">inserted_count = #{insertedCount},</if>
+            <if test="updatedCount != null">updated_count = #{updatedCount},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="cancelRequestedAt != null">cancel_requested_at = #{cancelRequestedAt},</if>
+            <if test="startedAt != null">started_at = #{startedAt},</if>
+            <if test="finishedAt != null">finished_at = #{finishedAt},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where access_batch_id = #{accessBatchId}
+    </update>
+
+    <delete id="deleteAccessBatchByAccessBatchId" parameterType="Long">
+        delete from p1p_access_batch where access_batch_id = #{accessBatchId}
+    </delete>
+
+    <delete id="deleteAccessBatchByAccessBatchIds" parameterType="String">
+        delete from p1p_access_batch where access_batch_id in 
+        <foreach item="accessBatchId" collection="array" open="(" separator="," close=")">
+            #{accessBatchId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.ReviewedMatchMapper">
+    
+    <resultMap type="ReviewedMatch" id="ReviewedMatchResult">
+        <result property="reviewId"    column="review_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="versionId"    column="version_id"    />
+        <result property="recordId"    column="record_id"    />
+        <result property="resultSetId"    column="result_set_id"    />
+        <result property="resultRowId"    column="result_row_id"    />
+        <result property="sourceDatasourceId"    column="source_datasource_id"    />
+        <result property="sourceDatabase"    column="source_database"    />
+        <result property="sourceTable"    column="source_table"    />
+        <result property="sourceColumn"    column="source_column"    />
+        <result property="proposedTargetTable"    column="proposed_target_table"    />
+        <result property="proposedTargetColumn"    column="proposed_target_column"    />
+        <result property="targetTable"    column="target_table"    />
+        <result property="targetColumn"    column="target_column"    />
+        <result property="mappingType"    column="mapping_type"    />
+        <result property="algorithmScore"    column="algorithm_score"    />
+        <result property="reviewStatus"    column="review_status"    />
+        <result property="reviewedBy"    column="reviewed_by"    />
+        <result property="reviewedAt"    column="reviewed_at"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectReviewedMatchVo">
+        select review_id, task_id, version_id, record_id, result_set_id, result_row_id, source_datasource_id, source_database, source_table, source_column, proposed_target_table, proposed_target_column, target_table, target_column, mapping_type, algorithm_score, review_status, reviewed_by, reviewed_at, create_time, remark from p1p_reviewed_match
+    </sql>
+
+    <select id="selectReviewedMatchList" parameterType="ReviewedMatch" resultMap="ReviewedMatchResult">
+        <include refid="selectReviewedMatchVo"/>
+        <where>  
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="versionId != null "> and version_id = #{versionId}</if>
+            <if test="recordId != null "> and record_id = #{recordId}</if>
+            <if test="resultSetId != null "> and result_set_id = #{resultSetId}</if>
+            <if test="resultRowId != null "> and result_row_id = #{resultRowId}</if>
+            <if test="sourceDatasourceId != null "> and source_datasource_id = #{sourceDatasourceId}</if>
+            <if test="sourceDatabase != null  and sourceDatabase != ''"> and source_database = #{sourceDatabase}</if>
+            <if test="sourceTable != null  and sourceTable != ''"> and source_table = #{sourceTable}</if>
+            <if test="sourceColumn != null  and sourceColumn != ''"> and source_column = #{sourceColumn}</if>
+            <if test="proposedTargetTable != null  and proposedTargetTable != ''"> and proposed_target_table = #{proposedTargetTable}</if>
+            <if test="proposedTargetColumn != null  and proposedTargetColumn != ''"> and proposed_target_column = #{proposedTargetColumn}</if>
+            <if test="targetTable != null  and targetTable != ''"> and target_table = #{targetTable}</if>
+            <if test="targetColumn != null  and targetColumn != ''"> and target_column = #{targetColumn}</if>
+            <if test="mappingType != null  and mappingType != ''"> and mapping_type = #{mappingType}</if>
+            <if test="algorithmScore != null "> and algorithm_score = #{algorithmScore}</if>
+            <if test="reviewStatus != null  and reviewStatus != ''"> and review_status = #{reviewStatus}</if>
+            <if test="reviewedBy != null  and reviewedBy != ''"> and reviewed_by = #{reviewedBy}</if>
+            <if test="reviewedAt != null "> and reviewed_at = #{reviewedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectReviewedMatchByReviewId" parameterType="Long" resultMap="ReviewedMatchResult">
+        <include refid="selectReviewedMatchVo"/>
+        where review_id = #{reviewId}
+    </select>
+
+    <select id="selectReviewedMatchByReviewIds" parameterType="Long" resultMap="ReviewedMatchResult">
+        <include refid="selectReviewedMatchVo"/>
+        where review_id in
+        <foreach item="reviewId" collection="array" open="(" separator="," close=")">
+            #{reviewId}
+        </foreach>
+    </select>
+
+    <insert id="insertReviewedMatch" parameterType="ReviewedMatch" useGeneratedKeys="true" keyProperty="reviewId">
+        insert into p1p_reviewed_match
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">task_id,</if>
+            <if test="versionId != null">version_id,</if>
+            <if test="recordId != null">record_id,</if>
+            <if test="resultSetId != null">result_set_id,</if>
+            <if test="resultRowId != null">result_row_id,</if>
+            <if test="sourceDatasourceId != null">source_datasource_id,</if>
+            <if test="sourceDatabase != null">source_database,</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table,</if>
+            <if test="sourceColumn != null and sourceColumn != ''">source_column,</if>
+            <if test="proposedTargetTable != null">proposed_target_table,</if>
+            <if test="proposedTargetColumn != null">proposed_target_column,</if>
+            <if test="targetTable != null and targetTable != ''">target_table,</if>
+            <if test="targetColumn != null and targetColumn != ''">target_column,</if>
+            <if test="mappingType != null">mapping_type,</if>
+            <if test="algorithmScore != null">algorithm_score,</if>
+            <if test="reviewStatus != null">review_status,</if>
+            <if test="reviewedBy != null">reviewed_by,</if>
+            <if test="reviewedAt != null">reviewed_at,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">#{taskId},</if>
+            <if test="versionId != null">#{versionId},</if>
+            <if test="recordId != null">#{recordId},</if>
+            <if test="resultSetId != null">#{resultSetId},</if>
+            <if test="resultRowId != null">#{resultRowId},</if>
+            <if test="sourceDatasourceId != null">#{sourceDatasourceId},</if>
+            <if test="sourceDatabase != null">#{sourceDatabase},</if>
+            <if test="sourceTable != null and sourceTable != ''">#{sourceTable},</if>
+            <if test="sourceColumn != null and sourceColumn != ''">#{sourceColumn},</if>
+            <if test="proposedTargetTable != null">#{proposedTargetTable},</if>
+            <if test="proposedTargetColumn != null">#{proposedTargetColumn},</if>
+            <if test="targetTable != null and targetTable != ''">#{targetTable},</if>
+            <if test="targetColumn != null and targetColumn != ''">#{targetColumn},</if>
+            <if test="mappingType != null">#{mappingType},</if>
+            <if test="algorithmScore != null">#{algorithmScore},</if>
+            <if test="reviewStatus != null">#{reviewStatus},</if>
+            <if test="reviewedBy != null">#{reviewedBy},</if>
+            <if test="reviewedAt != null">#{reviewedAt},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateReviewedMatch" parameterType="ReviewedMatch">
+        update p1p_reviewed_match
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="versionId != null">version_id = #{versionId},</if>
+            <if test="recordId != null">record_id = #{recordId},</if>
+            <if test="resultSetId != null">result_set_id = #{resultSetId},</if>
+            <if test="resultRowId != null">result_row_id = #{resultRowId},</if>
+            <if test="sourceDatasourceId != null">source_datasource_id = #{sourceDatasourceId},</if>
+            <if test="sourceDatabase != null">source_database = #{sourceDatabase},</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table = #{sourceTable},</if>
+            <if test="sourceColumn != null and sourceColumn != ''">source_column = #{sourceColumn},</if>
+            <if test="proposedTargetTable != null">proposed_target_table = #{proposedTargetTable},</if>
+            <if test="proposedTargetColumn != null">proposed_target_column = #{proposedTargetColumn},</if>
+            <if test="targetTable != null and targetTable != ''">target_table = #{targetTable},</if>
+            <if test="targetColumn != null and targetColumn != ''">target_column = #{targetColumn},</if>
+            <if test="mappingType != null">mapping_type = #{mappingType},</if>
+            <if test="algorithmScore != null">algorithm_score = #{algorithmScore},</if>
+            <if test="reviewStatus != null">review_status = #{reviewStatus},</if>
+            <if test="reviewedBy != null">reviewed_by = #{reviewedBy},</if>
+            <if test="reviewedAt != null">reviewed_at = #{reviewedAt},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where review_id = #{reviewId}
+    </update>
+
+    <delete id="deleteReviewedMatchByReviewId" parameterType="Long">
+        delete from p1p_reviewed_match where review_id = #{reviewId}
+    </delete>
+
+    <delete id="deleteReviewedMatchByReviewIds" parameterType="String">
+        delete from p1p_reviewed_match where review_id in 
+        <foreach item="reviewId" collection="array" open="(" separator="," close=")">
+            #{reviewId}
+        </foreach>
+    </delete>
+</mapper>

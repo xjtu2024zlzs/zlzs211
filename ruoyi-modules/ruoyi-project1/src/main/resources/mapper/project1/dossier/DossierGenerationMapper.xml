@@ -1,0 +1,929 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.dossier.mapper.DossierGenerationMapper">
+
+    <select id="selectModelList" resultType="java.util.HashMap">
+        select am.id as modelId,
+               am.model_code as modelCode,
+               am.name as modelName,
+               count(pa.id) as aircraftCount
+        from t1_ac_model am
+        left join t1_physical_aircraft pa on pa.model_id = am.id
+        group by am.id, am.model_code, am.name
+        order by am.model_code
+    </select>
+
+    <select id="selectAircraftList" resultType="java.util.HashMap">
+        select pa.id as aircraftId,
+               pa.tail_number as tailNumber,
+               pa.msn,
+               pa.registration_number as registrationNumber,
+               pa.aircraft_type as aircraftType,
+               pa.operational_status as operationalStatus,
+               pa.total_fh as totalFh,
+               pa.total_fc as totalFc,
+               am.id as modelId,
+               am.model_code as modelCode,
+               am.name as modelName
+        from t1_physical_aircraft pa
+        left join t1_ac_model am on am.id = pa.model_id
+        <where>
+            <if test="modelId != null and modelId != ''">
+                pa.model_id = #{modelId}
+            </if>
+        </where>
+        order by pa.tail_number
+    </select>
+
+    <select id="selectAircraftById" resultType="java.util.HashMap">
+        select pa.id as aircraftId,
+               pa.tail_number as tailNumber,
+               pa.msn,
+               pa.registration_number as registrationNumber,
+               pa.aircraft_type as aircraftType,
+               pa.variant,
+               pa.engine_type as engineType,
+               pa.manufacturer,
+               pa.delivery_date as deliveryDate,
+               pa.operational_status as operationalStatus,
+               pa.total_fh as totalFh,
+               pa.total_fc as totalFc,
+               pa.current_operator as currentOperator,
+               am.id as modelId,
+               am.model_code as modelCode,
+               am.name as modelName
+        from t1_physical_aircraft pa
+        left join t1_ac_model am on am.id = pa.model_id
+        where pa.id = #{aircraftId}
+    </select>
+
+    <select id="selectActiveTemplate" resultType="java.util.HashMap">
+        select id as templateId,
+               template_code as templateCode,
+               template_version as templateVersion,
+               name as templateName,
+               description,
+               template_type as templateType,
+               applicable_object_type as applicableObjectType,
+               status,
+               is_default as isDefault
+        from t1_dossier_template
+        where status = 'active'
+          and applicable_object_type = 'aircraft'
+        order by is_default desc, updated_at desc, created_at desc
+        limit 1
+    </select>
+
+    <select id="selectTemplateMetrics" resultType="java.util.HashMap">
+        select
+            (select count(1) from t1_dossier_template_chapter where template_id = #{templateId} and enabled_flag = 1 and node_kind = 'chapter') as chapterCount,
+            (select count(1) from t1_dossier_template_data_source where template_id = #{templateId} and enabled_flag = 1) as sourceCount,
+            (select count(1) from t1_dossier_template_rule where template_id = #{templateId} and enabled_flag = 1) as ruleCount,
+            (select count(1) from t1_dossier_template_param where template_id = #{templateId} and enabled_flag = 1) as paramCount
+    </select>
+
+    <select id="selectTemplateChapters" resultType="java.util.HashMap">
+        select id as chapterId,
+               parent_id as parentId,
+               chapter_code as chapterCode,
+               chapter_name as chapterName,
+               chapter_level as chapterLevel,
+               chapter_path as chapterPath,
+               node_kind as nodeKind,
+               sort_order as sortOrder,
+               required_flag as requiredFlag,
+               completeness_requirement as completenessRequirement,
+               cast(attrs_json as char) as attrsJson
+        from t1_dossier_template_chapter
+        where template_id = #{templateId}
+          and enabled_flag = 1
+        order by sort_order, chapter_code
+    </select>
+
+    <select id="selectChapterSources" resultType="java.util.HashMap">
+        select ds.id as sourceId,
+               ds.chapter_id as chapterId,
+               ch.chapter_name as chapterName,
+               ds.source_code as sourceCode,
+               ds.source_system as sourceSystem,
+               ds.source_table as sourceTable,
+               ds.source_name as sourceName,
+               ds.lifecycle_stage as lifecycleStage,
+               ds.apply_object_type as applyObjectType,
+               ds.required_flag as requiredFlag,
+               ds.sort_order as sortOrder
+        from t1_dossier_template_data_source ds
+        left join t1_dossier_template_chapter ch on ch.id = ds.chapter_id
+        where ds.template_id = #{templateId}
+          and ds.enabled_flag = 1
+        order by ch.sort_order, ds.sort_order
+    </select>
+
+    <select id="selectTemplateRules" resultType="java.util.HashMap">
+        select r.id as ruleId,
+               r.chapter_id as chapterId,
+               ch.chapter_name as chapterName,
+               r.rule_code as ruleCode,
+               r.rule_name as ruleName,
+               r.rule_type as ruleType,
+               r.severity,
+               r.error_message as errorMessage,
+               r.remediation_hint as remediationHint,
+               r.apply_object_type as applyObjectType,
+               r.sort_order as sortOrder
+        from t1_dossier_template_rule r
+        left join t1_dossier_template_chapter ch on ch.id = r.chapter_id
+        where r.template_id = #{templateId}
+          and r.enabled_flag = 1
+        order by r.sort_order, r.rule_code
+    </select>
+
+    <select id="selectTemplateParams" resultType="java.util.HashMap">
+        select param_code as paramCode,
+               param_name as paramName,
+               param_type as paramType,
+               param_value as paramValue,
+               default_value as defaultValue,
+               editable_flag as editableFlag,
+               sort_order as sortOrder
+        from t1_dossier_template_param
+        where template_id = #{templateId}
+          and enabled_flag = 1
+        order by sort_order, param_code
+    </select>
+
+    <select id="selectKeyNodeChain" resultType="java.util.HashMap">
+        select id as nodeId,
+               parent_id as parentId,
+               node_level as nodeLevel,
+               node_type as nodeType,
+               part_number as partNumber,
+               part_name as partName,
+               serial_number as serialNumber,
+               position_code as positionCode,
+               ata_chapter as ataChapter,
+               manufacturer,
+               install_date as installDate,
+               tsn_fh as tsnFh,
+               tsn_fc as tsnFc,
+               part_instance_id as partInstanceId
+        from t1_aircraft_bom_node
+        where aircraft_id = #{aircraftId}
+          and is_active = 1
+        order by node_level, parent_id, position_code, part_number
+    </select>
+
+    <select id="selectGenerationDataFingerprint" resultType="java.util.HashMap">
+        select
+            (select count(1) from t1_object_lifecycle_record where aircraft_id = #{aircraftId}) as lifecycleCount,
+            (select max(updated_at) from t1_object_lifecycle_record where aircraft_id = #{aircraftId}) as lifecycleMaxUpdatedAt,
+            (select count(1) from t1_object_technical_status where aircraft_id = #{aircraftId}) as technicalStatusCount,
+            (select max(updated_at) from t1_object_technical_status where aircraft_id = #{aircraftId}) as technicalStatusMaxUpdatedAt,
+            (select count(1) from t1_object_status_history where aircraft_id = #{aircraftId}) as statusHistoryCount,
+            (select max(created_at) from t1_object_status_history where aircraft_id = #{aircraftId}) as statusHistoryMaxCreatedAt,
+            (select count(1) from t1_object_interface where aircraft_id = #{aircraftId}) as interfaceCount,
+            (select max(updated_at) from t1_object_interface where aircraft_id = #{aircraftId}) as interfaceMaxUpdatedAt,
+            (select count(1) from t1_life_usage_record where aircraft_id = #{aircraftId}) as usageCount,
+            (select max(created_at) from t1_life_usage_record where aircraft_id = #{aircraftId}) as usageMaxCreatedAt,
+            (select count(1) from t1_work_order where aircraft_id = #{aircraftId}) as workOrderCount,
+            (select max(created_at) from t1_work_order where aircraft_id = #{aircraftId}) as workOrderMaxCreatedAt,
+            (select count(1) from t1_fault_event where aircraft_id = #{aircraftId}) as faultCount,
+            (select max(updated_at) from t1_fault_event where aircraft_id = #{aircraftId}) as faultMaxUpdatedAt,
+            (select count(1) from t1_event_flight_leg where aircraft_id = #{aircraftId}) as flightLegCount,
+            (select max(created_at) from t1_event_flight_leg where aircraft_id = #{aircraftId}) as flightLegMaxCreatedAt,
+            (select count(1) from t1_inspection_record where aircraft_id = #{aircraftId}) as inspectionRecordCount,
+            (select max(created_at) from t1_inspection_record where aircraft_id = #{aircraftId}) as inspectionRecordMaxCreatedAt,
+            (select count(1) from t1_inspection_measurement where aircraft_id = #{aircraftId}) as inspectionMeasurementCount,
+            (
+                select count(1)
+                from t1_part_document pd
+                inner join (
+                    select distinct part_number
+                    from t1_aircraft_bom_node
+                    where aircraft_id = #{aircraftId}
+                      and is_active = 1
+                ) pn on pn.part_number = pd.part_number
+            ) as partDocumentCount,
+            (
+                select max(pd.created_at)
+                from t1_part_document pd
+                inner join (
+                    select distinct part_number
+                    from t1_aircraft_bom_node
+                    where aircraft_id = #{aircraftId}
+                      and is_active = 1
+                ) pn on pn.part_number = pd.part_number
+            ) as partDocumentMaxCreatedAt
+    </select>
+
+    <select id="selectNodeDataRollup" resultType="java.util.HashMap">
+        with recursive subtree as (
+            select id, part_number
+            from t1_aircraft_bom_node
+            where aircraft_id = #{aircraftId}
+              and id = #{nodeId}
+              and is_active = 1
+            union all
+            select c.id, c.part_number
+            from t1_aircraft_bom_node c
+            inner join subtree p on p.id = c.parent_id
+            where c.aircraft_id = #{aircraftId}
+              and c.is_active = 1
+        )
+        select
+            (select count(1) from subtree) as subtreeNodeCount,
+            (select count(1) from t1_object_lifecycle_record lr
+              where lr.aircraft_id = #{aircraftId}
+                and lr.bom_node_id in (select id from subtree)) as lifecycleCount,
+            (select count(1) from t1_object_lifecycle_record lr
+              where lr.aircraft_id = #{aircraftId}
+                and lr.lifecycle_stage = 'design'
+                and lr.bom_node_id in (select id from subtree)) as designLifecycleCount,
+            (select count(1) from t1_object_lifecycle_record lr
+              where lr.aircraft_id = #{aircraftId}
+                and lr.lifecycle_stage = 'manufacturing'
+                and lr.bom_node_id in (select id from subtree)) as manufacturingLifecycleCount,
+            (select count(1) from t1_object_lifecycle_record lr
+              where lr.aircraft_id = #{aircraftId}
+                and lr.lifecycle_stage = 'inspection'
+                and lr.bom_node_id in (select id from subtree)) as inspectionLifecycleCount,
+            (select count(1) from t1_object_lifecycle_record lr
+              where lr.aircraft_id = #{aircraftId}
+                and lr.lifecycle_stage = 'installation'
+                and lr.bom_node_id in (select id from subtree)) as installationLifecycleCount,
+            (select count(1) from t1_object_lifecycle_record lr
+              where lr.aircraft_id = #{aircraftId}
+                and lr.lifecycle_stage = 'service'
+                and lr.bom_node_id in (select id from subtree)) as serviceLifecycleCount,
+            (select count(1) from t1_object_lifecycle_record lr
+              where lr.aircraft_id = #{aircraftId}
+                and lr.lifecycle_stage = 'fault'
+                and lr.bom_node_id in (select id from subtree)) as faultLifecycleCount,
+            (select count(1) from t1_object_lifecycle_record lr
+              where lr.aircraft_id = #{aircraftId}
+                and lr.lifecycle_stage = 'technical_status'
+                and lr.bom_node_id in (select id from subtree)) as technicalLifecycleCount,
+            (select count(1) from t1_object_technical_status ts
+              where ts.aircraft_id = #{aircraftId}
+                and ts.bom_node_id in (select id from subtree)) as technicalStatusCount,
+            (select count(1) from t1_object_status_history sh
+              where sh.aircraft_id = #{aircraftId}
+                and sh.bom_node_id in (select id from subtree)) as statusHistoryCount,
+            (select count(1) from t1_object_interface oi
+              where oi.aircraft_id = #{aircraftId}
+                and (oi.source_bom_node_id in (select id from subtree)
+                     or oi.target_bom_node_id in (select id from subtree))) as interfaceCount,
+            (select count(1) from t1_life_usage_record lu
+              where lu.aircraft_id = #{aircraftId}
+                and lu.bom_node_id in (select id from subtree)) as usageCount,
+            (select count(1) from t1_work_order wo
+              where wo.aircraft_id = #{aircraftId}
+                and wo.bom_node_id in (select id from subtree)) as workOrderCount,
+            (select count(1) from t1_fault_event fe
+              where fe.aircraft_id = #{aircraftId}
+                and fe.bom_node_id in (select id from subtree)) as faultCount,
+            (select count(1) from t1_part_document pd
+              where pd.part_number in (select part_number from subtree where part_number is not null)) as partDocumentCount,
+            (select lr.event_title from t1_object_lifecycle_record lr
+              where lr.aircraft_id = #{aircraftId}
+                and lr.bom_node_id in (select id from subtree)
+              order by lr.event_time desc, lr.created_at desc
+              limit 1) as latestLifecycleTitle,
+            (select date_format(lr.event_time, '%Y-%m-%d') from t1_object_lifecycle_record lr
+              where lr.aircraft_id = #{aircraftId}
+                and lr.bom_node_id in (select id from subtree)
+              order by lr.event_time desc, lr.created_at desc
+              limit 1) as latestLifecycleDate
+    </select>
+
+    <select id="selectNodeLifecycleSnapshotRows" resultType="java.util.HashMap">
+        select *
+        from (
+            select lr.source_system as sourceSystem,
+                   lr.source_table as sourceTable,
+                   lr.id as sourceRecordId,
+                   coalesce(lr.business_record_key, lr.source_record_id, lr.id) as sourceRecordKey,
+                   lr.business_record_type as itemType,
+                   upper(lr.lifecycle_stage) as lifecycleStage,
+                   coalesce(lr.event_title, lr.business_record_type) as itemName,
+                   lr.event_summary as contentSummary,
+                   null as fileStorageKey,
+                   cast(lr.source_trace_json as char) as sourceTraceJson,
+                   cast(json_object(
+                       'eventTime', lr.event_time,
+                       'resultStatus', lr.result_status,
+                       'businessRecordType', lr.business_record_type,
+                       'businessRecordKey', lr.business_record_key
+                   ) as char) as attrsJson,
+                   lr.event_time as eventTime,
+                   10 as sortGroup
+            from t1_object_lifecycle_record lr
+            where lr.aircraft_id = #{aircraftId}
+              and lr.bom_node_id = #{nodeId}
+            union all
+            select coalesce(ts.source_system, 'PLM') as sourceSystem,
+                   coalesce(ts.source_table, 't1_object_technical_status') as sourceTable,
+                   ts.id as sourceRecordId,
+                   ts.status_code as sourceRecordKey,
+                   'technical_status' as itemType,
+                   'TECHNICAL_STATUS' as lifecycleStage,
+                   coalesce(ts.status_name, ts.status_code) as itemName,
+                   concat_ws('，',
+                       concat('基线：', coalesce(ts.baseline_code, '-')),
+                       concat('图纸版次：', coalesce(ts.drawing_revision, '-')),
+                       concat('验证：', coalesce(ts.verification_status, '-')),
+                       concat('发布：', coalesce(ts.release_status, '-'))
+                   ) as contentSummary,
+                   null as fileStorageKey,
+                   cast(json_object(
+                       'sourceSystem', coalesce(ts.source_system, 'PLM'),
+                       'sourceTable', coalesce(ts.source_table, 't1_object_technical_status'),
+                       'sourceRecordId', ts.id,
+                       'sourceRecordKey', ts.status_code,
+                       'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
+                   ) as char) as sourceTraceJson,
+                   cast(json_object(
+                       'baselineCode', ts.baseline_code,
+                       'bomVersion', ts.bom_version,
+                       'drawingRevision', ts.drawing_revision,
+                       'processRevision', ts.process_revision,
+                       'modificationStatus', ts.modification_status,
+                       'deviationStatus', ts.deviation_status,
+                       'verificationStatus', ts.verification_status,
+                       'releaseStatus', ts.release_status,
+                       'effectiveFrom', ts.effective_from
+                   ) as char) as attrsJson,
+                   ts.effective_from as eventTime,
+                   20 as sortGroup
+            from t1_object_technical_status ts
+            where ts.aircraft_id = #{aircraftId}
+              and ts.bom_node_id = #{nodeId}
+            union all
+            select 'CONFIG' as sourceSystem,
+                   coalesce(sh.source_table, 't1_object_status_history') as sourceTable,
+                   sh.id as sourceRecordId,
+                   coalesce(sh.source_record_id, sh.id) as sourceRecordKey,
+                   'status_history' as itemType,
+                   'TECHNICAL_STATUS' as lifecycleStage,
+                   concat(sh.status_category, '：', coalesce(sh.old_status, '-'), ' -> ', sh.new_status) as itemName,
+                   sh.change_reason as contentSummary,
+                   null as fileStorageKey,
+                   cast(json_object(
+                       'sourceSystem', 'CONFIG',
+                       'sourceTable', coalesce(sh.source_table, 't1_object_status_history'),
+                       'sourceRecordId', sh.id,
+                       'sourceRecordKey', coalesce(sh.source_record_id, sh.id),
+                       'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
+                   ) as char) as sourceTraceJson,
+                   cast(json_object(
+                       'statusCategory', sh.status_category,
+                       'oldStatus', sh.old_status,
+                       'newStatus', sh.new_status,
+                       'changedBy', sh.changed_by,
+                       'changeTime', sh.change_time
+                   ) as char) as attrsJson,
+                   sh.change_time as eventTime,
+                   30 as sortGroup
+            from t1_object_status_history sh
+            where sh.aircraft_id = #{aircraftId}
+              and sh.bom_node_id = #{nodeId}
+            union all
+            select 'ICD' as sourceSystem,
+                   't1_object_interface' as sourceTable,
+                   oi.id as sourceRecordId,
+                   oi.interface_code as sourceRecordKey,
+                   'interface' as itemType,
+                   'INTERFACE' as lifecycleStage,
+                   oi.interface_name as itemName,
+                   concat_ws('，', oi.interface_summary, oi.requirement_summary) as contentSummary,
+                   null as fileStorageKey,
+                   cast(json_object(
+                       'sourceSystem', 'ICD',
+                       'sourceTable', 't1_object_interface',
+                       'sourceRecordId', oi.id,
+                       'sourceRecordKey', oi.interface_code,
+                       'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
+                   ) as char) as sourceTraceJson,
+                   cast(json_object(
+                       'interfaceType', oi.interface_type,
+                       'sourceBomNodeId', oi.source_bom_node_id,
+                       'targetBomNodeId', oi.target_bom_node_id,
+                       'maturityStatus', oi.maturity_status,
+                       'verificationStatus', oi.verification_status
+                   ) as char) as attrsJson,
+                   oi.updated_at as eventTime,
+                   40 as sortGroup
+            from t1_object_interface oi
+            where oi.aircraft_id = #{aircraftId}
+              and (oi.source_bom_node_id = #{nodeId} or oi.target_bom_node_id = #{nodeId})
+            union all
+            select 'MRO' as sourceSystem,
+                   't1_life_usage_record' as sourceTable,
+                   lu.id as sourceRecordId,
+                   coalesce(lu.usage_source_id, lu.id) as sourceRecordKey,
+                   'life_usage' as itemType,
+                   'SERVICE' as lifecycleStage,
+                   concat('使用履历：', lu.usage_source_type) as itemName,
+                   concat_ws('，',
+                       concat('FH+', lu.fh_delta),
+                       concat('FC+', lu.fc_delta),
+                       concat('累计FH ', coalesce(lu.total_fh_after, 0)),
+                       concat('累计FC ', coalesce(lu.total_fc_after, 0)),
+                       concat('剩余寿命 ', coalesce(lu.remaining_life_value, '-'), coalesce(lu.remaining_life_unit, ''))
+                   ) as contentSummary,
+                   null as fileStorageKey,
+                   cast(json_object(
+                       'sourceSystem', 'MRO',
+                       'sourceTable', 't1_life_usage_record',
+                       'sourceRecordId', lu.id,
+                       'sourceRecordKey', coalesce(lu.usage_source_id, lu.id),
+                       'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
+                   ) as char) as sourceTraceJson,
+                   cast(json_object(
+                       'usageSourceType', lu.usage_source_type,
+                       'fhDelta', lu.fh_delta,
+                       'fcDelta', lu.fc_delta,
+                       'landingDelta', lu.landing_delta,
+                       'totalFhAfter', lu.total_fh_after,
+                       'totalFcAfter', lu.total_fc_after,
+                       'remainingLifeValue', lu.remaining_life_value,
+                       'remainingLifeUnit', lu.remaining_life_unit,
+                       'calculatedBy', lu.calculated_by
+                   ) as char) as attrsJson,
+                   lu.event_time as eventTime,
+                   50 as sortGroup
+            from t1_life_usage_record lu
+            where lu.aircraft_id = #{aircraftId}
+              and lu.bom_node_id = #{nodeId}
+            union all
+            select 'MRO' as sourceSystem,
+                   't1_work_order' as sourceTable,
+                   wo.id as sourceRecordId,
+                   wo.wo_number as sourceRecordKey,
+                   't1_work_order' as itemType,
+                   'SERVICE' as lifecycleStage,
+                   concat('维修工单：', wo.wo_number) as itemName,
+                   concat_ws('，',
+                       concat('类型：', wo.wo_type),
+                       concat('状态：', wo.wo_status),
+                       concat('站点：', coalesce(wo.station, '-')),
+                       coalesce(wo.remark, '')
+                   ) as contentSummary,
+                   null as fileStorageKey,
+                   cast(json_object(
+                       'sourceSystem', 'MRO',
+                       'sourceTable', 't1_work_order',
+                       'sourceRecordId', wo.id,
+                       'sourceRecordKey', wo.wo_number,
+                       'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
+                   ) as char) as sourceTraceJson,
+                   cast(json_object(
+                       'woType', wo.wo_type,
+                       'woStatus', wo.wo_status,
+                       'openDate', wo.open_date,
+                       'closeDate', wo.close_date,
+                       'station', wo.station,
+                       'mroOrg', wo.mro_org,
+                       'crsNumber', wo.crs_number
+                   ) as char) as attrsJson,
+                   coalesce(wo.close_date, wo.open_date) as eventTime,
+                   60 as sortGroup
+            from t1_work_order wo
+            where wo.aircraft_id = #{aircraftId}
+              and wo.bom_node_id = #{nodeId}
+            union all
+            select 'MRO' as sourceSystem,
+                   't1_fault_event' as sourceTable,
+                   fe.id as sourceRecordId,
+                   coalesce(fe.node_id, fe.instance_id, fe.id) as sourceRecordKey,
+                   't1_fault_event' as itemType,
+                   'FAULT' as lifecycleStage,
+                   concat('故障事件：', coalesce(fe.severity, '-')) as itemName,
+                   fe.fault_description as contentSummary,
+                   null as fileStorageKey,
+                   cast(json_object(
+                       'sourceSystem', 'MRO',
+                       'sourceTable', 't1_fault_event',
+                       'sourceRecordId', fe.id,
+                       'sourceRecordKey', coalesce(fe.node_id, fe.instance_id, fe.id),
+                       'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
+                   ) as char) as sourceTraceJson,
+                   cast(json_object(
+                       'reportedAt', fe.reported_at,
+                       'severity', fe.severity,
+                       'faultSource', fe.fault_source,
+                       'status', fe.status,
+                       'resolutionType', fe.resolution_type,
+                       'deferralRef', fe.deferral_ref
+                   ) as char) as attrsJson,
+                   fe.reported_at as eventTime,
+                   70 as sortGroup
+            from t1_fault_event fe
+            where fe.aircraft_id = #{aircraftId}
+              and fe.bom_node_id = #{nodeId}
+            union all
+            select 'MES' as sourceSystem,
+                   't1_inspection_record' as sourceTable,
+                   ir.id as sourceRecordId,
+                   coalesce(ir.inspection_std_doc, ir.id) as sourceRecordKey,
+                   't1_inspection_record' as itemType,
+                   'INSPECTION' as lifecycleStage,
+                   concat('检验记录：', ir.inspection_type) as itemName,
+                   concat_ws('，',
+                       concat('标准：', coalesce(ir.inspection_std_doc, '-')),
+                       concat('结果：', ir.result),
+                       coalesce(ir.remarks, '')
+                   ) as contentSummary,
+                   null as fileStorageKey,
+                   cast(json_object(
+                       'sourceSystem', 'MES',
+                       'sourceTable', 't1_inspection_record',
+                       'sourceRecordId', ir.id,
+                       'sourceRecordKey', coalesce(ir.inspection_std_doc, ir.id),
+                       'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
+                   ) as char) as sourceTraceJson,
+                   cast(json_object(
+                       'inspectionType', ir.inspection_type,
+                       'inspectionStdDoc', ir.inspection_std_doc,
+                       'measurementValues', ir.measurement_values,
+                       'result', ir.result,
+                       'inspectorId', ir.inspector_id,
+                       'inspectionDate', ir.inspection_date,
+                       'concessionNumber', ir.concession_number
+                   ) as char) as attrsJson,
+                   ir.inspection_date as eventTime,
+                   80 as sortGroup
+            from t1_inspection_record ir
+            where ir.aircraft_id = #{aircraftId}
+              and ir.bom_node_id = #{nodeId}
+            union all
+            select 'MES' as sourceSystem,
+                   't1_inspection_measurement' as sourceTable,
+                   im.id as sourceRecordId,
+                   im.indicator_code as sourceRecordKey,
+                   't1_inspection_measurement' as itemType,
+                   'INSPECTION' as lifecycleStage,
+                   coalesce(im.indicator_name, im.indicator_code) as itemName,
+                   concat_ws('，',
+                       concat('实测：', coalesce(im.measured_value, '-'), coalesce(im.unit, '')),
+                       concat('上限：', coalesce(im.upper_limit, '-')),
+                       concat('下限：', coalesce(im.lower_limit, '-')),
+                       concat('结论：', coalesce(im.result_flag, '-')),
+                       coalesce(im.remark, '')
+                   ) as contentSummary,
+                   null as fileStorageKey,
+                   cast(json_object(
+                       'sourceSystem', 'MES',
+                       'sourceTable', 't1_inspection_measurement',
+                       'sourceRecordId', im.id,
+                       'sourceRecordKey', im.indicator_code,
+                       'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
+                   ) as char) as sourceTraceJson,
+                   cast(json_object(
+                       'inspectionRecordId', im.inspection_record_id,
+                       'indicatorCode', im.indicator_code,
+                       'indicatorName', im.indicator_name,
+                       'nominalValue', im.nominal_value,
+                       'upperLimit', im.upper_limit,
+                       'lowerLimit', im.lower_limit,
+                       'measuredValue', im.measured_value,
+                       'unit', im.unit,
+                       'resultFlag', im.result_flag,
+                       'defectCode', im.defect_code,
+                       'defectLevel', im.defect_level
+                   ) as char) as attrsJson,
+                   null as eventTime,
+                   90 as sortGroup
+            from t1_inspection_measurement im
+            where im.aircraft_id = #{aircraftId}
+              and im.bom_node_id = #{nodeId}
+            union all
+            select 'DOC' as sourceSystem,
+                   't1_part_document' as sourceTable,
+                   pd.id as sourceRecordId,
+                   pd.doc_number as sourceRecordKey,
+                   't1_part_document' as itemType,
+                   'DOCUMENT' as lifecycleStage,
+                   coalesce(pd.doc_title, pd.doc_number) as itemName,
+                   concat_ws('，',
+                       concat('类型：', pd.doc_type),
+                       concat('版次：', coalesce(pd.doc_revision, '-')),
+                       concat('生效：', coalesce(pd.effective_date, '-'))
+                   ) as contentSummary,
+                   pd.file_path as fileStorageKey,
+                   cast(json_object(
+                       'sourceSystem', 'DOC',
+                       'sourceTable', 't1_part_document',
+                       'sourceRecordId', pd.id,
+                       'sourceRecordKey', pd.doc_number,
+                       'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
+                   ) as char) as sourceTraceJson,
+                   cast(json_object(
+                       'partNumber', pd.part_number,
+                       'docType', pd.doc_type,
+                       'docNumber', pd.doc_number,
+                       'docRevision', pd.doc_revision,
+                       'effectiveDate', pd.effective_date,
+                       'isCurrent', pd.is_current
+                   ) as char) as attrsJson,
+                   pd.created_at as eventTime,
+                   100 as sortGroup
+            from t1_part_document pd
+            where pd.part_number = #{partNumber}
+        ) x
+        order by sortGroup, eventTime desc, sourceRecordKey
+    </select>
+
+    <select id="selectDossierInstance" resultType="java.util.HashMap">
+        select id as instanceId,
+               current_version_id as currentVersionId,
+               current_version_no as currentVersionNo,
+               instance_label as instanceLabel,
+               status
+        from t1_dossier_instance
+        where aircraft_id = #{aircraftId}
+          and template_id = #{templateId}
+          and deleted_at is null
+        order by created_at desc
+        limit 1
+    </select>
+
+    <insert id="insertDossierInstance">
+        insert into t1_dossier_instance
+        (id, template_id, aircraft_id, current_version_no, instance_label, status, instance_options_json)
+        values
+        (#{instanceId}, #{templateId}, #{aircraftId}, 0, #{instanceLabel}, 'building', #{instanceOptionsJson})
+    </insert>
+
+    <select id="selectLatestVersion" resultType="java.util.HashMap">
+        select id as versionId,
+               version_no as versionNo,
+               version_label as versionLabel,
+               major_version_no as majorVersionNo,
+               minor_version_no as minorVersionNo,
+               template_code as templateCode,
+               template_version as templateVersion,
+               content_hash as contentHash
+        from t1_dossier_version
+        where dossier_instance_id = #{instanceId}
+        order by version_no desc
+        limit 1
+    </select>
+
+    <select id="selectDuplicateVersion" resultType="java.util.HashMap">
+        select dv.id as versionId,
+               dv.dossier_instance_id as instanceId,
+               dv.version_no as versionNo,
+               dv.version_label as versionLabel,
+               dv.major_version_no as majorVersionNo,
+               dv.minor_version_no as minorVersionNo,
+               dv.version_level as versionLevel,
+               dv.version_reason as versionReason,
+               dv.template_code as templateCode,
+               dv.template_version as templateVersion,
+               dv.generation_job_id as generationJobId,
+               dv.data_snapshot_id as dataSnapshotId,
+               dv.content_hash as contentHash,
+               dv.created_at as createdAt
+        from t1_dossier_version dv
+        where dv.dossier_instance_id = #{instanceId}
+          and dv.template_code = #{templateCode}
+          and dv.template_version = #{templateVersion}
+          and (
+              (dv.content_hash is not null and dv.content_hash = #{contentHash})
+              or (
+                  (dv.content_hash is null or dv.content_hash = '')
+                  and
+                  (select count(1)
+                     from t1_dossier_structure_node sn
+                    where sn.dossier_version_id = dv.id
+                      and sn.node_kind != 'chapter'
+                      and sn.chapter_status = 'normal'
+                      and sn.bom_node_id is not null) = #{bomNodeCount}
+                  and not exists (
+                      select 1
+                        from t1_aircraft_bom_node abn
+                        left join t1_dossier_structure_node sn
+                          on sn.dossier_version_id = dv.id
+                         and sn.bom_node_id = abn.id
+                         and coalesce(sn.parent_bom_node_id, '') = coalesce(abn.parent_id, '')
+                         and coalesce(sn.bom_node_code, '') = coalesce(abn.part_number, '')
+                         and coalesce(sn.name, '') = coalesce(abn.part_name, '')
+                         and coalesce(sn.part_instance_id, '') = coalesce(abn.part_instance_id, '')
+                         and coalesce(nullif(json_unquote(json_extract(sn.attrs_json, '$.serialNumber')), 'null'), '') = coalesce(abn.serial_number, '')
+                         and coalesce(nullif(json_unquote(json_extract(sn.attrs_json, '$.positionCode')), 'null'), '') = coalesce(abn.position_code, '')
+                         and coalesce(nullif(json_unquote(json_extract(sn.attrs_json, '$.ataChapter')), 'null'), '') = coalesce(abn.ata_chapter, '')
+                       where abn.aircraft_id = #{aircraftId}
+                         and abn.is_active = 1
+                         and sn.id is null
+                  )
+                  and not exists (
+                      select 1
+                        from t1_dossier_structure_node sn
+                        left join t1_aircraft_bom_node abn
+                          on abn.id = sn.bom_node_id
+                         and abn.aircraft_id = #{aircraftId}
+                         and abn.is_active = 1
+                       where sn.dossier_version_id = dv.id
+                         and sn.node_kind != 'chapter'
+                         and sn.chapter_status = 'normal'
+                         and sn.bom_node_id is not null
+                         and abn.id is null
+                  )
+              )
+          )
+        order by dv.is_current desc, dv.version_no desc
+        limit 1
+    </select>
+
+    <update id="updateVersionContentHash">
+        update t1_dossier_version
+        set content_hash = #{contentHash}
+        where id = #{versionId}
+          and (content_hash is null or content_hash = '')
+    </update>
+
+    <update id="clearCurrentVersion">
+        update t1_dossier_version
+        set is_current = 0
+        where dossier_instance_id = #{instanceId}
+          and is_current = 1
+    </update>
+
+    <insert id="insertDossierVersion">
+        insert into t1_dossier_version
+        (id, dossier_instance_id, template_id, template_code, template_version, template_snapshot_json,
+         version_no, version_label, major_version_no, minor_version_no, version_level,
+         previous_version_id, generation_job_id, data_snapshot_id, version_reason, is_current,
+         change_summary, content_hash, content_summary_json, generation_params_json, created_by)
+        values
+        (#{versionId}, #{instanceId}, #{templateId}, #{templateCode}, #{templateVersion}, #{templateSnapshotJson},
+         #{versionNo}, #{versionLabel}, #{majorVersionNo}, #{minorVersionNo}, #{versionLevel},
+         #{previousVersionId}, #{generationJobId}, #{dataSnapshotId}, #{versionReason}, 1,
+         #{changeSummary}, #{contentHash}, #{contentSummaryJson}, #{generationParamsJson}, #{createdBy})
+    </insert>
+
+    <update id="updateDossierInstanceCurrent">
+        update t1_dossier_instance
+        set current_version_id = #{versionId},
+            current_version_no = #{versionNo},
+            status = 'ready',
+            updated_at = sysdate(6)
+        where id = #{instanceId}
+    </update>
+
+    <insert id="insertInspectionRun">
+        insert into t1_data_inspection_run
+        (id, dossier_instance_id, dossier_version_id, check_scope_type, run_code, trigger_type,
+         run_status, scope_description, rule_set_version, checked_object_count, issue_count,
+         initiated_by, summary_json, finished_at)
+        values
+        (#{runId}, #{instanceId}, #{versionId}, 'dossier', #{runCode}, 'manual',
+         #{runStatus}, #{scopeDescription}, #{ruleSetVersion}, #{checkedObjectCount}, #{issueCount},
+         #{initiatedBy}, #{summaryJson}, sysdate(6))
+    </insert>
+
+    <insert id="insertDataSnapshot">
+        insert into t1_data_snapshot
+        (id, dossier_instance_id, snapshot_code, snapshot_type, subject_type, subject_id,
+         snapshot_data_json, created_by)
+        values
+        (#{snapshotId}, #{instanceId}, #{snapshotCode}, 'checkpoint', 'dossier', #{instanceId},
+         #{snapshotDataJson}, #{createdBy})
+    </insert>
+
+    <insert id="insertGenerationJob">
+        insert into t1_generation_job
+        (id, job_code, job_type, dossier_instance_id, dossier_version_id, precheck_run_id,
+         job_status, current_stage, progress_percent, pull_strategy_json, generator_params_json,
+         source_system, requested_by, started_at, result_summary_json, output_json)
+        values
+        (#{jobId}, #{jobCode}, 'generate', #{instanceId}, null, #{precheckRunId},
+         'running', 'precheck_passed', 35.00, #{pullStrategyJson}, #{generatorParamsJson},
+         'DOSSIER', #{requestedBy}, sysdate(6), json_object(), json_object())
+    </insert>
+
+    <update id="updateGenerationJobVersion">
+        update t1_generation_job
+        set dossier_version_id = #{versionId},
+            current_stage = 'version_created',
+            progress_percent = 70.00
+        where id = #{jobId}
+    </update>
+
+    <update id="finishGenerationJob">
+        update t1_generation_job
+        set job_status = 'succeeded',
+            current_stage = 'finished',
+            progress_percent = 100.00,
+            result_summary_json = #{resultSummaryJson},
+            output_json = #{outputJson},
+            finished_at = sysdate(6)
+        where id = #{jobId}
+    </update>
+
+    <select id="selectDocumentCategoryId" resultType="java.lang.String">
+        select id
+        from t1_document_category
+        <where>
+            <if test="categoryName != null and categoryName != ''">
+                name = #{categoryName}
+            </if>
+        </where>
+        order by sort_order, id
+        limit 1
+    </select>
+
+    <insert id="insertStructureNode">
+        insert into t1_dossier_structure_node
+        (id, dossier_instance_id, dossier_version_id, aircraft_id, bom_node_id, parent_bom_node_id,
+         bom_node_code, object_level, part_instance_id, parent_id, node_kind, code, name,
+         node_path, sort_order, chapter_status, completeness_status, content_count,
+         missing_count, required_flag, attrs_json, source_trace_json)
+        values
+        (#{structureNodeId}, #{instanceId}, #{versionId}, #{aircraftId}, #{bomNodeId}, #{parentBomNodeId},
+         #{bomNodeCode}, #{objectLevel}, #{partInstanceId}, #{parentId}, #{nodeKind}, #{code}, #{name},
+         #{nodePath}, #{sortOrder}, #{chapterStatus}, #{completenessStatus}, #{contentCount},
+         #{missingCount}, #{requiredFlag}, #{attrsJson}, #{sourceTraceJson})
+    </insert>
+
+    <insert id="insertContentItem">
+        insert into t1_dossier_content_item
+        (id, dossier_instance_id, dossier_version_id, structure_node_id, item_code, item_name,
+         item_type, lifecycle_stage, aircraft_id, bom_node_id, part_instance_id, is_key_part,
+         supply_mode, source_system, source_table, source_record_id, source_record_key,
+         include_design_data, include_manufacturing_data, include_service_data, include_source_proof,
+         required_flag, included_flag, completeness_status, item_status, sort_order,
+         content_summary, file_storage_key, source_trace_json, attrs_json)
+        values
+        (#{contentItemId}, #{instanceId}, #{versionId}, #{structureNodeId}, #{itemCode}, #{itemName},
+         #{itemType}, #{lifecycleStage}, #{aircraftId}, #{bomNodeId}, #{partInstanceId}, #{isKeyPart},
+         #{supplyMode}, #{sourceSystem}, #{sourceTable}, #{sourceRecordId}, #{sourceRecordKey},
+         #{includeDesignData}, #{includeManufacturingData}, #{includeServiceData}, #{includeSourceProof},
+         #{requiredFlag}, #{includedFlag}, #{completenessStatus}, #{itemStatus}, #{sortOrder},
+         #{contentSummary}, #{fileStorageKey}, #{sourceTraceJson}, #{attrsJson})
+    </insert>
+
+    <insert id="insertDocumentEntry">
+        insert into t1_document_entry
+        (id, dossier_instance_id, dossier_version_id, category_id, structure_node_id, doc_no,
+         title, file_storage_key, source_trace_json, source_system, source_table, source_record_id,
+         source_record_key, document_status, completeness_status, required_flag, included_flag, attrs_json)
+        values
+        (#{documentEntryId}, #{instanceId}, #{versionId}, #{categoryId}, #{structureNodeId}, #{docNo},
+         #{title}, #{fileStorageKey}, #{sourceTraceJson}, #{sourceSystem}, #{sourceTable}, #{sourceRecordId},
+         #{sourceRecordKey}, #{documentStatus}, #{completenessStatus}, #{requiredFlag}, #{includedFlag}, #{attrsJson})
+    </insert>
+
+    <insert id="insertOperationLog">
+        insert into t1_dossier_operation_log
+        (id, dossier_instance_id, dossier_version_id, operation_type, operation_name, operation_status,
+         business_subject_type, business_subject_id, operator_id, operator_name, source_ip,
+         detail_json, result_message)
+        values
+        (#{operationLogId}, #{instanceId}, #{versionId}, #{operationType}, #{operationName}, #{operationStatus},
+         #{businessSubjectType}, #{businessSubjectId}, #{operatorId}, #{operatorName}, #{sourceIp},
+         #{detailJson}, #{resultMessage})
+    </insert>
+
+    <select id="selectJob" resultType="java.util.HashMap">
+        select id as jobId,
+               job_code as jobCode,
+               job_type as jobType,
+               dossier_instance_id as instanceId,
+               dossier_version_id as versionId,
+               precheck_run_id as precheckRunId,
+               job_status as jobStatus,
+               current_stage as currentStage,
+               progress_percent as progressPercent,
+               cast(result_summary_json as char) as resultSummaryJson,
+               cast(output_json as char) as outputJson,
+               started_at as startedAt,
+               finished_at as finishedAt,
+               created_at as createdAt
+        from t1_generation_job
+        where id = #{jobId}
+    </select>
+
+    <select id="selectJobOutput" resultType="java.util.HashMap">
+        select gj.id as jobId,
+               gj.job_code as jobCode,
+               gj.job_status as jobStatus,
+               gj.progress_percent as progressPercent,
+               gj.dossier_instance_id as instanceId,
+               gj.dossier_version_id as versionId,
+               dv.version_label as versionLabel,
+               dv.version_level as versionLevel,
+               dv.major_version_no as majorVersionNo,
+               dv.minor_version_no as minorVersionNo,
+               di.instance_label as instanceLabel,
+               cast(gj.result_summary_json as char) as resultSummaryJson,
+               cast(gj.output_json as char) as outputJson
+        from t1_generation_job gj
+        left join t1_dossier_version dv on dv.id = gj.dossier_version_id
+        left join t1_dossier_instance di on di.id = gj.dossier_instance_id
+        where gj.id = #{jobId}
+    </select>
+</mapper>

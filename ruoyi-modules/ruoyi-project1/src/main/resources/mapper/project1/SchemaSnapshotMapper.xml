@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.SchemaSnapshotMapper">
+    
+    <resultMap type="SchemaSnapshot" id="SchemaSnapshotResult">
+        <result property="snapshotId"    column="snapshot_id"    />
+        <result property="datasourceId"    column="datasource_id"    />
+        <result property="snapshotName"    column="snapshot_name"    />
+        <result property="readStatus"    column="read_status"    />
+        <result property="entityCount"    column="entity_count"    />
+        <result property="fieldCount"    column="field_count"    />
+        <result property="schemaJson"    column="schema_json"    />
+        <result property="errorMessage"    column="error_message"    />
+        <result property="readBy"    column="read_by"    />
+        <result property="readTime"    column="read_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSchemaSnapshotVo">
+        select snapshot_id, datasource_id, snapshot_name, read_status, entity_count, field_count, schema_json, error_message, read_by, read_time, create_time, remark from p1p_schema_snapshot
+    </sql>
+
+    <select id="selectSchemaSnapshotList" parameterType="SchemaSnapshot" resultMap="SchemaSnapshotResult">
+        <include refid="selectSchemaSnapshotVo"/>
+        <where>  
+            <if test="datasourceId != null "> and datasource_id = #{datasourceId}</if>
+            <if test="snapshotName != null  and snapshotName != ''"> and snapshot_name like concat('%', #{snapshotName}, '%')</if>
+            <if test="readStatus != null  and readStatus != ''"> and read_status = #{readStatus}</if>
+            <if test="entityCount != null "> and entity_count = #{entityCount}</if>
+            <if test="fieldCount != null "> and field_count = #{fieldCount}</if>
+            <if test="schemaJson != null  and schemaJson != ''"> and schema_json = #{schemaJson}</if>
+            <if test="errorMessage != null  and errorMessage != ''"> and error_message = #{errorMessage}</if>
+            <if test="readBy != null  and readBy != ''"> and read_by = #{readBy}</if>
+            <if test="readTime != null "> and read_time = #{readTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectSchemaSnapshotBySnapshotId" parameterType="Long" resultMap="SchemaSnapshotResult">
+        <include refid="selectSchemaSnapshotVo"/>
+        where snapshot_id = #{snapshotId}
+    </select>
+
+    <insert id="insertSchemaSnapshot" parameterType="SchemaSnapshot" useGeneratedKeys="true" keyProperty="snapshotId">
+        insert into p1p_schema_snapshot
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="datasourceId != null">datasource_id,</if>
+            <if test="snapshotName != null">snapshot_name,</if>
+            <if test="readStatus != null and readStatus != ''">read_status,</if>
+            <if test="entityCount != null">entity_count,</if>
+            <if test="fieldCount != null">field_count,</if>
+            <if test="schemaJson != null">schema_json,</if>
+            <if test="errorMessage != null">error_message,</if>
+            <if test="readBy != null">read_by,</if>
+            <if test="readTime != null">read_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="datasourceId != null">#{datasourceId},</if>
+            <if test="snapshotName != null">#{snapshotName},</if>
+            <if test="readStatus != null and readStatus != ''">#{readStatus},</if>
+            <if test="entityCount != null">#{entityCount},</if>
+            <if test="fieldCount != null">#{fieldCount},</if>
+            <if test="schemaJson != null">#{schemaJson},</if>
+            <if test="errorMessage != null">#{errorMessage},</if>
+            <if test="readBy != null">#{readBy},</if>
+            <if test="readTime != null">#{readTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSchemaSnapshot" parameterType="SchemaSnapshot">
+        update p1p_schema_snapshot
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="datasourceId != null">datasource_id = #{datasourceId},</if>
+            <if test="snapshotName != null">snapshot_name = #{snapshotName},</if>
+            <if test="readStatus != null and readStatus != ''">read_status = #{readStatus},</if>
+            <if test="entityCount != null">entity_count = #{entityCount},</if>
+            <if test="fieldCount != null">field_count = #{fieldCount},</if>
+            <if test="schemaJson != null">schema_json = #{schemaJson},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="readBy != null">read_by = #{readBy},</if>
+            <if test="readTime != null">read_time = #{readTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where snapshot_id = #{snapshotId}
+    </update>
+
+    <delete id="deleteSchemaSnapshotBySnapshotId" parameterType="Long">
+        delete from p1p_schema_snapshot where snapshot_id = #{snapshotId}
+    </delete>
+
+    <delete id="deleteSchemaSnapshotBySnapshotIds" parameterType="String">
+        delete from p1p_schema_snapshot where snapshot_id in 
+        <foreach item="snapshotId" collection="array" open="(" separator="," close=")">
+            #{snapshotId}
+        </foreach>
+    </delete>
+</mapper>

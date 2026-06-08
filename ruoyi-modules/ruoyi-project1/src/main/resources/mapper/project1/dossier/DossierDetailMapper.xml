@@ -1,0 +1,705 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.dossier.mapper.DossierDetailMapper">
+
+    <select id="selectLatestInstance" resultType="java.util.HashMap">
+        select di.id as instanceId,
+               di.template_id as templateId,
+               di.aircraft_id as aircraftId,
+               di.current_version_id as currentVersionId,
+               di.current_version_no as currentVersionNo,
+               di.instance_label as instanceLabel,
+               di.status as instanceStatus,
+               di.updated_at as instanceUpdatedAt,
+               pa.tail_number as tailNumber,
+               pa.msn,
+               pa.registration_number as registrationNumber,
+               pa.aircraft_type as aircraftType,
+               pa.variant,
+               pa.engine_type as engineType,
+               pa.manufacturer,
+               pa.delivery_date as deliveryDate,
+               pa.operational_status as operationalStatus,
+               pa.total_fh as totalFh,
+               pa.total_fc as totalFc,
+               pa.current_operator as currentOperator,
+               am.model_code as modelCode,
+               am.name as modelName,
+               dt.template_code as templateCode,
+               dt.template_version as templateVersion,
+               dt.name as templateName
+        from t1_dossier_instance di
+        left join t1_physical_aircraft pa on pa.id = di.aircraft_id
+        left join t1_ac_model am on am.id = pa.model_id
+        left join t1_dossier_template dt on dt.id = di.template_id
+        <where>
+            di.deleted_at is null
+            <if test="instanceId != null and instanceId != ''">
+                and di.id = #{instanceId}
+            </if>
+            <if test="aircraftId != null and aircraftId != ''">
+                and di.aircraft_id = #{aircraftId}
+            </if>
+        </where>
+        order by case when pa.tail_number = 'B-1234' then 0 else 1 end,
+                 case when di.status in ('ready','published') then 0 else 1 end,
+                 di.updated_at desc
+        limit 1
+    </select>
+
+    <select id="selectVersion" resultType="java.util.HashMap">
+        select dv.id as versionId,
+               dv.dossier_instance_id as instanceId,
+               dv.template_id as templateId,
+               dv.template_code as templateCode,
+               dv.template_version as templateVersion,
+               dv.version_no as versionNo,
+               dv.version_label as versionLabel,
+               dv.major_version_no as majorVersionNo,
+               dv.minor_version_no as minorVersionNo,
+               dv.version_level as versionLevel,
+               dv.previous_version_id as previousVersionId,
+               dv.generation_job_id as generationJobId,
+               dv.data_snapshot_id as dataSnapshotId,
+               dv.version_reason as versionReason,
+               dv.is_current as isCurrent,
+               dv.change_summary as changeSummary,
+               cast(dv.content_summary_json as char) as contentSummaryJson,
+               cast(dv.generation_params_json as char) as generationParamsJson,
+               dv.created_by as createdBy,
+               dv.created_at as createdAt,
+               dv.published_at as publishedAt,
+               gj.job_code as jobCode,
+               gj.job_status as jobStatus,
+               gj.progress_percent as progressPercent,
+               cast(gj.output_json as char) as outputJson,
+               ds.snapshot_code as snapshotCode
+        from t1_dossier_version dv
+        left join t1_generation_job gj on gj.id = dv.generation_job_id
+        left join t1_data_snapshot ds on ds.id = dv.data_snapshot_id
+        where dv.dossier_instance_id = #{instanceId}
+        <if test="versionId != null and versionId != ''">
+            and dv.id = #{versionId}
+        </if>
+        order by case when dv.is_current = 1 then 0 else 1 end, dv.version_no desc
+        limit 1
+    </select>
+
+    <select id="selectVersionList" resultType="java.util.HashMap">
+        select id as versionId,
+               version_label as versionLabel,
+               version_no as versionNo,
+               version_level as versionLevel,
+               version_reason as versionReason,
+               template_code as templateCode,
+               template_version as templateVersion,
+               is_current as isCurrent,
+               change_summary as changeSummary,
+               created_at as createdAt,
+               published_at as publishedAt
+        from t1_dossier_version
+        where dossier_instance_id = #{instanceId}
+        order by version_no desc
+    </select>
+
+    <select id="selectBomMetrics" resultType="java.util.HashMap">
+        select count(1) as totalCount,
+               sum(case when node_level = 2 then 1 else 0 end) as systemCount,
+               sum(case when node_level = 3 then 1 else 0 end) as subsystemCount,
+               sum(case when node_level = 4 then 1 else 0 end) as equipmentCount,
+               sum(case when node_level = 5 then 1 else 0 end) as componentCount,
+               sum(case when node_level >= 6 then 1 else 0 end) as partCount
+        from t1_aircraft_bom_node
+        where aircraft_id = #{aircraftId}
+          and is_active = 1
+    </select>
+
+    <select id="selectRootBomNode" resultType="java.util.HashMap">
+        select abn.id as nodeId,
+               abn.parent_id as parentId,
+               abn.aircraft_id as aircraftId,
+               abn.node_level as nodeLevel,
+               abn.node_type as nodeType,
+               abn.part_number as partNumber,
+               abn.part_name as partName,
+               abn.serial_number as serialNumber,
+               abn.position_code as positionCode,
+               abn.ata_chapter as ataChapter,
+               abn.manufacturer,
+               abn.install_date as installDate,
+               abn.tsn_fh as tsnFh,
+               abn.tsn_fc as tsnFc,
+               abn.part_instance_id as partInstanceId,
+               (select count(1) from t1_aircraft_bom_node c where c.parent_id = abn.id and c.is_active = 1) as childCount
+        from t1_aircraft_bom_node abn
+        where abn.aircraft_id = #{aircraftId}
+          and abn.parent_id is null
+          and abn.is_active = 1
+        order by abn.node_level, abn.position_code
+        limit 1
+    </select>
+
+    <select id="selectBomNode" resultType="java.util.HashMap">
+        select abn.id as nodeId,
+               abn.parent_id as parentId,
+               abn.aircraft_id as aircraftId,
+               abn.node_level as nodeLevel,
+               abn.node_type as nodeType,
+               abn.part_number as partNumber,
+               abn.part_name as partName,
+               abn.serial_number as serialNumber,
+               abn.position_code as positionCode,
+               abn.ata_chapter as ataChapter,
+               abn.manufacturer,
+               abn.install_date as installDate,
+               abn.tsn_fh as tsnFh,
+               abn.tsn_fc as tsnFc,
+               abn.part_instance_id as partInstanceId,
+               (select count(1) from t1_aircraft_bom_node c where c.parent_id = abn.id and c.is_active = 1) as childCount
+        from t1_aircraft_bom_node abn
+        where abn.id = #{nodeId}
+    </select>
+
+    <select id="selectBomChildren" resultType="java.util.HashMap">
+        select abn.id as nodeId,
+               abn.parent_id as parentId,
+               abn.aircraft_id as aircraftId,
+               abn.node_level as nodeLevel,
+               abn.node_type as nodeType,
+               abn.part_number as partNumber,
+               abn.part_name as partName,
+               abn.serial_number as serialNumber,
+               abn.position_code as positionCode,
+               abn.ata_chapter as ataChapter,
+               abn.manufacturer,
+               abn.install_date as installDate,
+               abn.tsn_fh as tsnFh,
+               abn.tsn_fc as tsnFc,
+               abn.part_instance_id as partInstanceId,
+               (select count(1) from t1_aircraft_bom_node c where c.parent_id = abn.id and c.is_active = 1) as childCount
+        from t1_aircraft_bom_node abn
+        where abn.aircraft_id = #{aircraftId}
+          and abn.is_active = 1
+        <choose>
+            <when test="parentId != null and parentId != ''">
+                and abn.parent_id = #{parentId}
+            </when>
+            <otherwise>
+                and abn.parent_id is null
+            </otherwise>
+        </choose>
+        order by abn.node_level, abn.position_code, abn.part_number
+        limit 200
+    </select>
+
+    <select id="searchBomNodes" resultType="java.util.HashMap">
+        select abn.id as nodeId,
+               abn.parent_id as parentId,
+               abn.aircraft_id as aircraftId,
+               abn.node_level as nodeLevel,
+               abn.node_type as nodeType,
+               abn.part_number as partNumber,
+               abn.part_name as partName,
+               abn.serial_number as serialNumber,
+               abn.position_code as positionCode,
+               abn.ata_chapter as ataChapter,
+               abn.manufacturer,
+               abn.install_date as installDate,
+               abn.tsn_fh as tsnFh,
+               abn.tsn_fc as tsnFc,
+               abn.part_instance_id as partInstanceId,
+               (select count(1) from t1_aircraft_bom_node c where c.parent_id = abn.id and c.is_active = 1) as childCount
+        from t1_aircraft_bom_node abn
+        where abn.aircraft_id = #{aircraftId}
+          and abn.is_active = 1
+          and (
+            abn.part_number like concat('%', #{keyword}, '%')
+            or abn.part_name like concat('%', #{keyword}, '%')
+            or abn.serial_number like concat('%', #{keyword}, '%')
+            or abn.position_code like concat('%', #{keyword}, '%')
+            or abn.ata_chapter like concat('%', #{keyword}, '%')
+          )
+        order by case when abn.part_number = #{keyword} then 0 else 1 end,
+                 abn.node_level, abn.part_number
+        limit 60
+    </select>
+
+    <select id="selectBomPath" resultType="java.util.HashMap">
+        with recursive bom_path as (
+            select abn.id as nodeId,
+                   abn.parent_id as parentId,
+                   abn.aircraft_id as aircraftId,
+                   abn.node_level as nodeLevel,
+                   abn.node_type as nodeType,
+                   abn.part_number as partNumber,
+                   abn.part_name as partName,
+                   abn.serial_number as serialNumber,
+                   abn.position_code as positionCode,
+                   abn.ata_chapter as ataChapter,
+                   abn.manufacturer,
+                   abn.install_date as installDate,
+                   abn.tsn_fh as tsnFh,
+                   abn.tsn_fc as tsnFc,
+                   abn.part_instance_id as partInstanceId,
+                   (select count(1) from t1_aircraft_bom_node c where c.parent_id = abn.id and c.is_active = 1) as childCount,
+                   0 as depth
+            from t1_aircraft_bom_node abn
+            where abn.id = #{nodeId}
+            union all
+            select p.id as nodeId,
+                   p.parent_id as parentId,
+                   p.aircraft_id as aircraftId,
+                   p.node_level as nodeLevel,
+                   p.node_type as nodeType,
+                   p.part_number as partNumber,
+                   p.part_name as partName,
+                   p.serial_number as serialNumber,
+                   p.position_code as positionCode,
+                   p.ata_chapter as ataChapter,
+                   p.manufacturer,
+                   p.install_date as installDate,
+                   p.tsn_fh as tsnFh,
+                   p.tsn_fc as tsnFc,
+                   p.part_instance_id as partInstanceId,
+                   (select count(1) from t1_aircraft_bom_node c where c.parent_id = p.id and c.is_active = 1) as childCount,
+                   bp.depth + 1 as depth
+            from t1_aircraft_bom_node p
+            inner join bom_path bp on bp.parentId = p.id
+        )
+        select *
+        from bom_path
+        order by depth desc
+    </select>
+
+    <select id="selectStructureBomMetrics" resultType="java.util.HashMap">
+        select count(1) as totalCount,
+               sum(case when object_level = 'system' then 1 else 0 end) as systemCount,
+               sum(case when object_level = 'subsystem' then 1 else 0 end) as subsystemCount,
+               sum(case when object_level = 'equipment' then 1 else 0 end) as equipmentCount,
+               sum(case when object_level = 'component' then 1 else 0 end) as componentCount,
+               sum(case when object_level = 'part' then 1 else 0 end) as partCount
+        from t1_dossier_structure_node
+        where dossier_version_id = #{versionId}
+          and node_kind != 'chapter'
+          and chapter_status = 'normal'
+          and bom_node_id is not null
+    </select>
+
+    <select id="selectRootStructureBomNode" resultType="java.util.HashMap">
+        select sn.bom_node_id as nodeId,
+               sn.parent_bom_node_id as parentId,
+               sn.aircraft_id as aircraftId,
+               case sn.object_level
+                   when 'aircraft' then 1
+                   when 'system' then 2
+                   when 'subsystem' then 3
+                   when 'equipment' then 4
+                   when 'component' then 5
+                   else 6
+               end as nodeLevel,
+               upper(sn.object_level) as nodeType,
+               sn.bom_node_code as partNumber,
+               sn.name as partName,
+               json_unquote(json_extract(sn.attrs_json, '$.serialNumber')) as serialNumber,
+               json_unquote(json_extract(sn.attrs_json, '$.positionCode')) as positionCode,
+               json_unquote(json_extract(sn.attrs_json, '$.ataChapter')) as ataChapter,
+               json_unquote(json_extract(sn.attrs_json, '$.manufacturer')) as manufacturer,
+               json_unquote(json_extract(sn.attrs_json, '$.installDate')) as installDate,
+               json_unquote(json_extract(sn.attrs_json, '$.tsnFh')) as tsnFh,
+               json_unquote(json_extract(sn.attrs_json, '$.tsnFc')) as tsnFc,
+               sn.part_instance_id as partInstanceId,
+               (select count(1)
+                  from t1_dossier_structure_node c
+                 where c.dossier_version_id = sn.dossier_version_id
+                   and c.parent_bom_node_id = sn.bom_node_id
+                   and c.node_kind != 'chapter'
+                   and c.chapter_status = 'normal'
+                   and c.bom_node_id is not null) as childCount
+        from t1_dossier_structure_node sn
+        where sn.dossier_version_id = #{versionId}
+          and sn.parent_bom_node_id is null
+          and sn.node_kind != 'chapter'
+          and sn.chapter_status = 'normal'
+          and sn.bom_node_id is not null
+        order by sn.sort_order, sn.code
+        limit 1
+    </select>
+
+    <select id="selectStructureBomNode" resultType="java.util.HashMap">
+        select sn.bom_node_id as nodeId,
+               sn.parent_bom_node_id as parentId,
+               sn.aircraft_id as aircraftId,
+               case sn.object_level
+                   when 'aircraft' then 1
+                   when 'system' then 2
+                   when 'subsystem' then 3
+                   when 'equipment' then 4
+                   when 'component' then 5
+                   else 6
+               end as nodeLevel,
+               upper(sn.object_level) as nodeType,
+               sn.bom_node_code as partNumber,
+               sn.name as partName,
+               json_unquote(json_extract(sn.attrs_json, '$.serialNumber')) as serialNumber,
+               json_unquote(json_extract(sn.attrs_json, '$.positionCode')) as positionCode,
+               json_unquote(json_extract(sn.attrs_json, '$.ataChapter')) as ataChapter,
+               json_unquote(json_extract(sn.attrs_json, '$.manufacturer')) as manufacturer,
+               json_unquote(json_extract(sn.attrs_json, '$.installDate')) as installDate,
+               json_unquote(json_extract(sn.attrs_json, '$.tsnFh')) as tsnFh,
+               json_unquote(json_extract(sn.attrs_json, '$.tsnFc')) as tsnFc,
+               sn.part_instance_id as partInstanceId,
+               (select count(1)
+                  from t1_dossier_structure_node c
+                 where c.dossier_version_id = sn.dossier_version_id
+                   and c.parent_bom_node_id = sn.bom_node_id
+                   and c.node_kind != 'chapter'
+                   and c.chapter_status = 'normal'
+                   and c.bom_node_id is not null) as childCount
+        from t1_dossier_structure_node sn
+        where sn.dossier_version_id = #{versionId}
+          and sn.bom_node_id = #{bomNodeId}
+          and sn.node_kind != 'chapter'
+          and sn.chapter_status = 'normal'
+        order by sn.sort_order, sn.code
+        limit 1
+    </select>
+
+    <select id="selectStructureBomChildren" resultType="java.util.HashMap">
+        select sn.bom_node_id as nodeId,
+               sn.parent_bom_node_id as parentId,
+               sn.aircraft_id as aircraftId,
+               case sn.object_level
+                   when 'aircraft' then 1
+                   when 'system' then 2
+                   when 'subsystem' then 3
+                   when 'equipment' then 4
+                   when 'component' then 5
+                   else 6
+               end as nodeLevel,
+               upper(sn.object_level) as nodeType,
+               sn.bom_node_code as partNumber,
+               sn.name as partName,
+               json_unquote(json_extract(sn.attrs_json, '$.serialNumber')) as serialNumber,
+               json_unquote(json_extract(sn.attrs_json, '$.positionCode')) as positionCode,
+               json_unquote(json_extract(sn.attrs_json, '$.ataChapter')) as ataChapter,
+               json_unquote(json_extract(sn.attrs_json, '$.manufacturer')) as manufacturer,
+               json_unquote(json_extract(sn.attrs_json, '$.installDate')) as installDate,
+               json_unquote(json_extract(sn.attrs_json, '$.tsnFh')) as tsnFh,
+               json_unquote(json_extract(sn.attrs_json, '$.tsnFc')) as tsnFc,
+               sn.part_instance_id as partInstanceId,
+               (select count(1)
+                  from t1_dossier_structure_node c
+                 where c.dossier_version_id = sn.dossier_version_id
+                   and c.parent_bom_node_id = sn.bom_node_id
+                   and c.node_kind != 'chapter'
+                   and c.chapter_status = 'normal'
+                   and c.bom_node_id is not null) as childCount
+        from t1_dossier_structure_node sn
+        where sn.dossier_version_id = #{versionId}
+          and sn.node_kind != 'chapter'
+          and sn.chapter_status = 'normal'
+          and sn.bom_node_id is not null
+        <choose>
+            <when test="parentId != null and parentId != ''">
+                and sn.parent_bom_node_id = #{parentId}
+            </when>
+            <otherwise>
+                and sn.parent_bom_node_id is null
+            </otherwise>
+        </choose>
+        order by sn.sort_order, sn.code
+    </select>
+
+    <select id="searchStructureBomNodes" resultType="java.util.HashMap">
+        select sn.bom_node_id as nodeId,
+               sn.parent_bom_node_id as parentId,
+               sn.aircraft_id as aircraftId,
+               case sn.object_level
+                   when 'aircraft' then 1
+                   when 'system' then 2
+                   when 'subsystem' then 3
+                   when 'equipment' then 4
+                   when 'component' then 5
+                   else 6
+               end as nodeLevel,
+               upper(sn.object_level) as nodeType,
+               sn.bom_node_code as partNumber,
+               sn.name as partName,
+               json_unquote(json_extract(sn.attrs_json, '$.serialNumber')) as serialNumber,
+               json_unquote(json_extract(sn.attrs_json, '$.positionCode')) as positionCode,
+               json_unquote(json_extract(sn.attrs_json, '$.ataChapter')) as ataChapter,
+               json_unquote(json_extract(sn.attrs_json, '$.manufacturer')) as manufacturer,
+               json_unquote(json_extract(sn.attrs_json, '$.installDate')) as installDate,
+               json_unquote(json_extract(sn.attrs_json, '$.tsnFh')) as tsnFh,
+               json_unquote(json_extract(sn.attrs_json, '$.tsnFc')) as tsnFc,
+               sn.part_instance_id as partInstanceId,
+               (select count(1)
+                  from t1_dossier_structure_node c
+                 where c.dossier_version_id = sn.dossier_version_id
+                   and c.parent_bom_node_id = sn.bom_node_id
+                   and c.node_kind != 'chapter'
+                   and c.chapter_status = 'normal'
+                   and c.bom_node_id is not null) as childCount
+        from t1_dossier_structure_node sn
+        where sn.dossier_version_id = #{versionId}
+          and sn.node_kind != 'chapter'
+          and sn.chapter_status = 'normal'
+          and sn.bom_node_id is not null
+          and (
+            sn.bom_node_code like concat('%', #{keyword}, '%')
+            or sn.name like concat('%', #{keyword}, '%')
+            or json_unquote(json_extract(sn.attrs_json, '$.serialNumber')) like concat('%', #{keyword}, '%')
+            or json_unquote(json_extract(sn.attrs_json, '$.positionCode')) like concat('%', #{keyword}, '%')
+            or json_unquote(json_extract(sn.attrs_json, '$.ataChapter')) like concat('%', #{keyword}, '%')
+          )
+        order by case when sn.bom_node_code = #{keyword} then 0 else 1 end,
+                 sn.sort_order, sn.code
+        limit 60
+    </select>
+
+    <select id="selectStructureBomPath" resultType="java.util.HashMap">
+        with recursive bom_path as (
+            select sn.bom_node_id as nodeId,
+                   sn.parent_bom_node_id as parentId,
+                   sn.aircraft_id as aircraftId,
+                   case sn.object_level
+                       when 'aircraft' then 1
+                       when 'system' then 2
+                       when 'subsystem' then 3
+                       when 'equipment' then 4
+                       when 'component' then 5
+                       else 6
+                   end as nodeLevel,
+                   upper(sn.object_level) as nodeType,
+                   sn.bom_node_code as partNumber,
+                   sn.name as partName,
+                   json_unquote(json_extract(sn.attrs_json, '$.serialNumber')) as serialNumber,
+                   json_unquote(json_extract(sn.attrs_json, '$.positionCode')) as positionCode,
+                   json_unquote(json_extract(sn.attrs_json, '$.ataChapter')) as ataChapter,
+                   json_unquote(json_extract(sn.attrs_json, '$.manufacturer')) as manufacturer,
+                   json_unquote(json_extract(sn.attrs_json, '$.installDate')) as installDate,
+                   json_unquote(json_extract(sn.attrs_json, '$.tsnFh')) as tsnFh,
+                   json_unquote(json_extract(sn.attrs_json, '$.tsnFc')) as tsnFc,
+                   sn.part_instance_id as partInstanceId,
+                   (select count(1)
+                      from t1_dossier_structure_node c
+                     where c.dossier_version_id = sn.dossier_version_id
+                       and c.parent_bom_node_id = sn.bom_node_id
+                       and c.node_kind != 'chapter'
+                       and c.chapter_status = 'normal'
+                       and c.bom_node_id is not null) as childCount,
+                   0 as depth
+            from t1_dossier_structure_node sn
+            where sn.dossier_version_id = #{versionId}
+              and sn.bom_node_id = #{bomNodeId}
+              and sn.node_kind != 'chapter'
+              and sn.chapter_status = 'normal'
+            union all
+            select p.bom_node_id as nodeId,
+                   p.parent_bom_node_id as parentId,
+                   p.aircraft_id as aircraftId,
+                   case p.object_level
+                       when 'aircraft' then 1
+                       when 'system' then 2
+                       when 'subsystem' then 3
+                       when 'equipment' then 4
+                       when 'component' then 5
+                       else 6
+                   end as nodeLevel,
+                   upper(p.object_level) as nodeType,
+                   p.bom_node_code as partNumber,
+                   p.name as partName,
+                   json_unquote(json_extract(p.attrs_json, '$.serialNumber')) as serialNumber,
+                   json_unquote(json_extract(p.attrs_json, '$.positionCode')) as positionCode,
+                   json_unquote(json_extract(p.attrs_json, '$.ataChapter')) as ataChapter,
+                   json_unquote(json_extract(p.attrs_json, '$.manufacturer')) as manufacturer,
+                   json_unquote(json_extract(p.attrs_json, '$.installDate')) as installDate,
+                   json_unquote(json_extract(p.attrs_json, '$.tsnFh')) as tsnFh,
+                   json_unquote(json_extract(p.attrs_json, '$.tsnFc')) as tsnFc,
+                   p.part_instance_id as partInstanceId,
+                   (select count(1)
+                      from t1_dossier_structure_node c
+                     where c.dossier_version_id = p.dossier_version_id
+                       and c.parent_bom_node_id = p.bom_node_id
+                       and c.node_kind != 'chapter'
+                       and c.chapter_status = 'normal'
+                       and c.bom_node_id is not null) as childCount,
+                   bp.depth + 1 as depth
+            from t1_dossier_structure_node p
+            inner join bom_path bp on bp.parentId = p.bom_node_id
+            where p.dossier_version_id = #{versionId}
+              and p.node_kind != 'chapter'
+              and p.chapter_status = 'normal'
+        )
+        select *
+        from bom_path
+        order by depth desc
+    </select>
+
+    <select id="selectStructureNodeByBom" resultType="java.util.HashMap">
+        select id as structureNodeId,
+               dossier_instance_id as instanceId,
+               dossier_version_id as versionId,
+               aircraft_id as aircraftId,
+               bom_node_id as bomNodeId,
+               parent_bom_node_id as parentBomNodeId,
+               bom_node_code as bomNodeCode,
+               object_level as objectLevel,
+               part_instance_id as partInstanceId,
+               parent_id as parentId,
+               node_kind as nodeKind,
+               code,
+               name,
+               node_path as nodePath,
+               sort_order as sortOrder,
+               chapter_status as chapterStatus,
+               completeness_status as completenessStatus,
+               content_count as contentCount,
+               missing_count as missingCount,
+               required_flag as requiredFlag,
+               cast(attrs_json as char) as attrsJson,
+               cast(source_trace_json as char) as sourceTraceJson
+        from t1_dossier_structure_node
+        where dossier_version_id = #{versionId}
+          and bom_node_id = #{bomNodeId}
+        order by sort_order
+        limit 1
+    </select>
+
+    <select id="selectStructureNodes" resultType="java.util.HashMap">
+        select id as structureNodeId,
+               bom_node_id as bomNodeId,
+               parent_bom_node_id as parentBomNodeId,
+               bom_node_code as bomNodeCode,
+               object_level as objectLevel,
+               node_kind as nodeKind,
+               code,
+               name,
+               node_path as nodePath,
+               completeness_status as completenessStatus,
+               content_count as contentCount,
+               missing_count as missingCount,
+               cast(attrs_json as char) as attrsJson,
+               cast(source_trace_json as char) as sourceTraceJson
+        from t1_dossier_structure_node
+        where dossier_version_id = #{versionId}
+        order by sort_order, code
+    </select>
+
+    <select id="selectContentItems" resultType="java.util.HashMap">
+        select id as contentItemId,
+               structure_node_id as structureNodeId,
+               item_code as itemCode,
+               item_name as itemName,
+               item_type as itemType,
+               lifecycle_stage as lifecycleStage,
+               aircraft_id as aircraftId,
+               bom_node_id as bomNodeId,
+               part_instance_id as partInstanceId,
+               is_key_part as isKeyPart,
+               supply_mode as supplyMode,
+               source_system as sourceSystem,
+               source_table as sourceTable,
+               source_record_key as sourceRecordKey,
+               completeness_status as completenessStatus,
+               content_summary as contentSummary,
+               file_storage_key as fileStorageKey,
+               cast(source_trace_json as char) as sourceTraceJson,
+               cast(attrs_json as char) as attrsJson
+        from t1_dossier_content_item
+        where dossier_version_id = #{versionId}
+        <if test="bomNodeId != null and bomNodeId != ''">
+            and bom_node_id = #{bomNodeId}
+        </if>
+        order by sort_order, item_code
+    </select>
+
+    <select id="selectDocuments" resultType="java.util.HashMap">
+        select id as documentEntryId,
+               structure_node_id as structureNodeId,
+               doc_no as docNo,
+               title,
+               file_storage_key as fileStorageKey,
+               source_system as sourceSystem,
+               source_table as sourceTable,
+               source_record_key as sourceRecordKey,
+               document_status as documentStatus,
+               completeness_status as completenessStatus,
+               required_flag as requiredFlag,
+               included_flag as includedFlag,
+               cast(source_trace_json as char) as sourceTraceJson,
+               cast(attrs_json as char) as attrsJson
+        from t1_document_entry
+        where dossier_version_id = #{versionId}
+        <if test="structureNodeId != null and structureNodeId != ''">
+            and structure_node_id = #{structureNodeId}
+        </if>
+        order by required_flag desc, title
+    </select>
+
+    <select id="selectAllDocuments" resultType="java.util.HashMap">
+        select id as documentEntryId,
+               structure_node_id as structureNodeId,
+               doc_no as docNo,
+               title,
+               file_storage_key as fileStorageKey,
+               source_system as sourceSystem,
+               source_table as sourceTable,
+               source_record_key as sourceRecordKey,
+               document_status as documentStatus,
+               completeness_status as completenessStatus,
+               required_flag as requiredFlag,
+               included_flag as includedFlag,
+               cast(source_trace_json as char) as sourceTraceJson,
+               cast(attrs_json as char) as attrsJson
+        from t1_document_entry
+        where dossier_version_id = #{versionId}
+        order by required_flag desc, title
+    </select>
+
+    <select id="selectDataSources" resultType="java.util.HashMap">
+        select sourceSystem,
+               sourceTable,
+               sum(recordCount) as recordCount
+        from (
+            select source_system as sourceSystem,
+                   source_table as sourceTable,
+                   count(1) as recordCount
+            from t1_dossier_content_item
+            where dossier_version_id = #{versionId}
+            group by source_system, source_table
+            union all
+            select source_system as sourceSystem,
+                   source_table as sourceTable,
+                   count(1) as recordCount
+            from t1_document_entry
+            where dossier_version_id = #{versionId}
+            group by source_system, source_table
+        ) t
+        where sourceSystem is not null
+        group by sourceSystem, sourceTable
+        order by recordCount desc, sourceSystem
+    </select>
+
+    <select id="selectOperationLogs" resultType="java.util.HashMap">
+        select id as operationLogId,
+               operation_type as operationType,
+               operation_name as operationName,
+               operation_status as operationStatus,
+               business_subject_type as businessSubjectType,
+               business_subject_id as businessSubjectId,
+               operator_name as operatorName,
+               result_message as resultMessage,
+               operated_at as operatedAt,
+               cast(detail_json as char) as detailJson
+        from t1_dossier_operation_log
+        where dossier_instance_id = #{instanceId}
+        <if test="versionId != null and versionId != ''">
+            and (dossier_version_id = #{versionId} or dossier_version_id is null)
+        </if>
+        order by operated_at desc
+        limit 20
+    </select>
+</mapper>

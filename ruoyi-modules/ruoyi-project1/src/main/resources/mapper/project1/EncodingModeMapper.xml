@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.EncodingModeMapper">
+    
+    <resultMap type="EncodingMode" id="EncodingModeResult">
+        <result property="encodingModeKey"    column="encoding_mode_key"    />
+        <result property="modeName"    column="mode_name"    />
+        <result property="description"    column="description"    />
+        <result property="enabled"    column="enabled"    />
+        <result property="sortOrder"    column="sort_order"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectEncodingModeVo">
+        select encoding_mode_key, mode_name, description, enabled, sort_order, create_time, update_time, remark from p1p_encoding_mode
+    </sql>
+
+    <select id="selectEncodingModeList" parameterType="EncodingMode" resultMap="EncodingModeResult">
+        <include refid="selectEncodingModeVo"/>
+        <where>  
+            <if test="modeName != null  and modeName != ''"> and mode_name like concat('%', #{modeName}, '%')</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="enabled != null "> and enabled = #{enabled}</if>
+            <if test="sortOrder != null "> and sort_order = #{sortOrder}</if>
+        </where>
+    </select>
+    
+    <select id="selectEncodingModeByEncodingModeKey" parameterType="String" resultMap="EncodingModeResult">
+        <include refid="selectEncodingModeVo"/>
+        where encoding_mode_key = #{encodingModeKey}
+    </select>
+
+    <insert id="insertEncodingMode" parameterType="EncodingMode">
+        insert into p1p_encoding_mode
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="encodingModeKey != null">encoding_mode_key,</if>
+            <if test="modeName != null and modeName != ''">mode_name,</if>
+            <if test="description != null">description,</if>
+            <if test="enabled != null">enabled,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="encodingModeKey != null">#{encodingModeKey},</if>
+            <if test="modeName != null and modeName != ''">#{modeName},</if>
+            <if test="description != null">#{description},</if>
+            <if test="enabled != null">#{enabled},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateEncodingMode" parameterType="EncodingMode">
+        update p1p_encoding_mode
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="modeName != null and modeName != ''">mode_name = #{modeName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where encoding_mode_key = #{encodingModeKey}
+    </update>
+
+    <delete id="deleteEncodingModeByEncodingModeKey" parameterType="String">
+        delete from p1p_encoding_mode where encoding_mode_key = #{encodingModeKey}
+    </delete>
+
+    <delete id="deleteEncodingModeByEncodingModeKeys" parameterType="String">
+        delete from p1p_encoding_mode where encoding_mode_key in 
+        <foreach item="encodingModeKey" collection="array" open="(" separator="," close=")">
+            #{encodingModeKey}
+        </foreach>
+    </delete>
+</mapper>

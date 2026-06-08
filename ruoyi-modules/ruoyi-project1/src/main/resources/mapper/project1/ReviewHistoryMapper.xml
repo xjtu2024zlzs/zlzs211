@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.ReviewHistoryMapper">
+    
+    <resultMap type="ReviewHistory" id="ReviewHistoryResult">
+        <result property="historyId"    column="history_id"    />
+        <result property="reviewId"    column="review_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="versionId"    column="version_id"    />
+        <result property="recordId"    column="record_id"    />
+        <result property="oldStatus"    column="old_status"    />
+        <result property="newStatus"    column="new_status"    />
+        <result property="oldTargetTable"    column="old_target_table"    />
+        <result property="oldTargetColumn"    column="old_target_column"    />
+        <result property="newTargetTable"    column="new_target_table"    />
+        <result property="newTargetColumn"    column="new_target_column"    />
+        <result property="actor"    column="actor"    />
+        <result property="actionType"    column="action_type"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectReviewHistoryVo">
+        select history_id, review_id, task_id, version_id, record_id, old_status, new_status, old_target_table, old_target_column, new_target_table, new_target_column, actor, action_type, create_time, remark from p1p_review_history
+    </sql>
+
+    <select id="selectReviewHistoryList" parameterType="ReviewHistory" resultMap="ReviewHistoryResult">
+        <include refid="selectReviewHistoryVo"/>
+        <where>  
+            <if test="reviewId != null "> and review_id = #{reviewId}</if>
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="versionId != null "> and version_id = #{versionId}</if>
+            <if test="recordId != null "> and record_id = #{recordId}</if>
+            <if test="oldStatus != null  and oldStatus != ''"> and old_status = #{oldStatus}</if>
+            <if test="newStatus != null  and newStatus != ''"> and new_status = #{newStatus}</if>
+            <if test="oldTargetTable != null  and oldTargetTable != ''"> and old_target_table = #{oldTargetTable}</if>
+            <if test="oldTargetColumn != null  and oldTargetColumn != ''"> and old_target_column = #{oldTargetColumn}</if>
+            <if test="newTargetTable != null  and newTargetTable != ''"> and new_target_table = #{newTargetTable}</if>
+            <if test="newTargetColumn != null  and newTargetColumn != ''"> and new_target_column = #{newTargetColumn}</if>
+            <if test="actor != null  and actor != ''"> and actor = #{actor}</if>
+            <if test="actionType != null  and actionType != ''"> and action_type = #{actionType}</if>
+        </where>
+        order by create_time desc, history_id desc
+    </select>
+    
+    <select id="selectReviewHistoryByHistoryId" parameterType="Long" resultMap="ReviewHistoryResult">
+        <include refid="selectReviewHistoryVo"/>
+        where history_id = #{historyId}
+    </select>
+
+    <insert id="insertReviewHistory" parameterType="ReviewHistory" useGeneratedKeys="true" keyProperty="historyId">
+        insert into p1p_review_history
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="reviewId != null">review_id,</if>
+            <if test="taskId != null">task_id,</if>
+            <if test="versionId != null">version_id,</if>
+            <if test="recordId != null">record_id,</if>
+            <if test="oldStatus != null">old_status,</if>
+            <if test="newStatus != null">new_status,</if>
+            <if test="oldTargetTable != null">old_target_table,</if>
+            <if test="oldTargetColumn != null">old_target_column,</if>
+            <if test="newTargetTable != null">new_target_table,</if>
+            <if test="newTargetColumn != null">new_target_column,</if>
+            <if test="actor != null">actor,</if>
+            <if test="actionType != null">action_type,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="reviewId != null">#{reviewId},</if>
+            <if test="taskId != null">#{taskId},</if>
+            <if test="versionId != null">#{versionId},</if>
+            <if test="recordId != null">#{recordId},</if>
+            <if test="oldStatus != null">#{oldStatus},</if>
+            <if test="newStatus != null">#{newStatus},</if>
+            <if test="oldTargetTable != null">#{oldTargetTable},</if>
+            <if test="oldTargetColumn != null">#{oldTargetColumn},</if>
+            <if test="newTargetTable != null">#{newTargetTable},</if>
+            <if test="newTargetColumn != null">#{newTargetColumn},</if>
+            <if test="actor != null">#{actor},</if>
+            <if test="actionType != null">#{actionType},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateReviewHistory" parameterType="ReviewHistory">
+        update p1p_review_history
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="reviewId != null">review_id = #{reviewId},</if>
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="versionId != null">version_id = #{versionId},</if>
+            <if test="recordId != null">record_id = #{recordId},</if>
+            <if test="oldStatus != null">old_status = #{oldStatus},</if>
+            <if test="newStatus != null">new_status = #{newStatus},</if>
+            <if test="oldTargetTable != null">old_target_table = #{oldTargetTable},</if>
+            <if test="oldTargetColumn != null">old_target_column = #{oldTargetColumn},</if>
+            <if test="newTargetTable != null">new_target_table = #{newTargetTable},</if>
+            <if test="newTargetColumn != null">new_target_column = #{newTargetColumn},</if>
+            <if test="actor != null">actor = #{actor},</if>
+            <if test="actionType != null">action_type = #{actionType},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where history_id = #{historyId}
+    </update>
+
+    <delete id="deleteReviewHistoryByHistoryId" parameterType="Long">
+        delete from p1p_review_history where history_id = #{historyId}
+    </delete>
+
+    <delete id="deleteReviewHistoryByHistoryIds" parameterType="String">
+        delete from p1p_review_history where history_id in 
+        <foreach item="historyId" collection="array" open="(" separator="," close=")">
+            #{historyId}
+        </foreach>
+    </delete>
+</mapper>

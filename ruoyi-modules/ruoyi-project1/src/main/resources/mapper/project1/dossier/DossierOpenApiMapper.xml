@@ -1,0 +1,762 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.dossier.mapper.DossierOpenApiMapper">
+
+    <sql id="DossierColumnList">
+        instance_id as instanceId,
+        instance_code as instanceCode,
+        instance_name as instanceName,
+        instance_label as instanceLabel,
+        instance_status as instanceStatus,
+        status_name as statusName,
+        template_id as templateId,
+        template_code as templateCode,
+        template_name as templateName,
+        template_version as templateVersion,
+        aircraft_id as aircraftId,
+        model_id as modelId,
+        model_code as modelCode,
+        model_name as modelName,
+        tail_number as tailNumber,
+        msn,
+        aircraft_type as aircraftType,
+        operational_status as operationalStatus,
+        current_version_id as currentVersionId,
+        current_version_no as currentVersionNo,
+        current_version_label as currentVersionLabel,
+        version_level as versionLevel,
+        generation_job_id as generationJobId,
+        generation_job_code as generationJobCode,
+        generation_job_status as generationJobStatus,
+        generate_time as generateTime,
+        page_count as pageCount,
+        file_count as fileCount,
+        data_record_count as dataRecordCount,
+        document_entry_count as documentEntryCount,
+        content_item_count as contentItemCount,
+        created_at as createdAt,
+        updated_at as updatedAt,
+        published_at as publishedAt,
+        archived_at as archivedAt
+    </sql>
+
+    <sql id="DossierWhere">
+        from t1_v_dossier_instance_manage
+        <where>
+            deleted_at is null
+            <if test="modelId != null and modelId != ''">
+                and model_id = #{modelId}
+            </if>
+            <if test="aircraftId != null and aircraftId != ''">
+                and aircraft_id = #{aircraftId}
+            </if>
+            <if test="tailNumber != null and tailNumber != ''">
+                and tail_number like concat('%', #{tailNumber}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                and instance_status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (
+                    instance_code like concat('%', #{keyword}, '%')
+                    or instance_name like concat('%', #{keyword}, '%')
+                    or instance_label like concat('%', #{keyword}, '%')
+                    or tail_number like concat('%', #{keyword}, '%')
+                    or msn like concat('%', #{keyword}, '%')
+                    or template_name like concat('%', #{keyword}, '%')
+                    or generation_job_code like concat('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectDossierCount" resultType="java.lang.Integer">
+        select count(1)
+        <include refid="DossierWhere" />
+    </select>
+
+    <select id="selectDossierList" resultType="java.util.HashMap">
+        select
+        <include refid="DossierColumnList" />
+        <include refid="DossierWhere" />
+        order by generate_time ${sortOrder}, updated_at ${sortOrder}, instance_code desc
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectDossierDetail" resultType="java.util.HashMap">
+        select
+        <include refid="DossierColumnList" />
+        from t1_v_dossier_instance_manage
+        where instance_id = #{instanceId}
+          and deleted_at is null
+    </select>
+
+    <select id="selectDossierVersions" resultType="java.util.HashMap">
+        select dv.id as versionId,
+               dv.dossier_instance_id as instanceId,
+               dv.template_id as templateId,
+               dv.template_code as templateCode,
+               dv.template_version as templateVersion,
+               dv.version_no as versionNo,
+               dv.version_label as versionLabel,
+               dv.version_level as versionLevel,
+               dv.version_reason as versionReason,
+               dv.is_current as isCurrent,
+               dv.previous_version_id as previousVersionId,
+               dv.generation_job_id as generationJobId,
+               gj.job_code as generationJobCode,
+               gj.job_status as generationJobStatus,
+               cast(dv.content_summary_json as char) as contentSummaryJson,
+               cast(dv.generation_params_json as char) as generationParamsJson,
+               cast(gj.result_summary_json as char) as resultSummaryJson,
+               cast(gj.output_json as char) as outputJson,
+               dv.change_summary as changeSummary,
+               dv.created_by as createdBy,
+               dv.created_at as createdAt,
+               dv.published_at as publishedAt
+        from t1_dossier_version dv
+        left join t1_generation_job gj on gj.id = dv.generation_job_id
+        where dv.dossier_instance_id = #{instanceId}
+        order by dv.version_no desc
+    </select>
+
+    <select id="selectDossierSummary" resultType="java.util.HashMap">
+        select di.id as instanceId,
+               di.aircraft_id as aircraftId,
+               di.current_version_id as currentVersionId,
+               count(distinct sn.id) as structureNodeCount,
+               count(distinct dci.id) as contentItemCount,
+               count(distinct de.id) as documentCount,
+               coalesce(sum(case when dci.completeness_status = 'missing' then 1 else 0 end), 0) as missingCount,
+               coalesce(sum(case when dci.completeness_status = 'warning' then 1 else 0 end), 0) as warningCount,
+               coalesce(sum(case when dci.is_key_part = 1 then 1 else 0 end), 0) as keyPartCount,
+               max(dv.created_at) as latestVersionTime
+        from t1_dossier_instance di
+        left join t1_dossier_version dv on dv.id = di.current_version_id
+        left join t1_dossier_structure_node sn on sn.dossier_version_id = dv.id
+        left join t1_dossier_content_item dci on dci.dossier_version_id = dv.id
+        left join t1_document_entry de on de.dossier_version_id = dv.id
+        where di.id = #{instanceId}
+          and di.deleted_at is null
+        group by di.id, di.aircraft_id, di.current_version_id
+    </select>
+
+    <sql id="BomColumnList">
+        abn.id as nodeId,
+        abn.parent_id as parentId,
+        abn.aircraft_id as aircraftId,
+        abn.node_level as nodeLevel,
+        abn.node_type as nodeType,
+        abn.part_number as partNumber,
+        abn.part_name as partName,
+        abn.serial_number as serialNumber,
+        abn.position_code as positionCode,
+        abn.ata_chapter as ataChapter,
+        abn.manufacturer,
+        abn.install_date as installDate,
+        abn.tsn_fh as tsnFh,
+        abn.tsn_fc as tsnFc,
+        abn.part_instance_id as partInstanceId,
+        (select count(1) from t1_aircraft_bom_node c where c.parent_id = abn.id and c.is_active = 1) as childCount
+    </sql>
+
+    <select id="selectBomNode" resultType="java.util.HashMap">
+        select
+        <include refid="BomColumnList" />
+        from t1_aircraft_bom_node abn
+        where abn.id = #{nodeId}
+          and abn.is_active = 1
+    </select>
+
+    <select id="selectBomChildren" resultType="java.util.HashMap">
+        select
+        <include refid="BomColumnList" />
+        from t1_aircraft_bom_node abn
+        where abn.aircraft_id = #{aircraftId}
+          and abn.is_active = 1
+        <choose>
+            <when test="parentId != null and parentId != ''">
+                and abn.parent_id = #{parentId}
+            </when>
+            <otherwise>
+                and abn.parent_id is null
+            </otherwise>
+        </choose>
+        order by abn.node_level, abn.position_code, abn.part_number
+        limit 200
+    </select>
+
+    <select id="searchBomNodes" resultType="java.util.HashMap">
+        select
+        <include refid="BomColumnList" />
+        from t1_aircraft_bom_node abn
+        where abn.aircraft_id = #{aircraftId}
+          and abn.is_active = 1
+          and (
+            abn.part_number like concat('%', #{keyword}, '%')
+            or abn.part_name like concat('%', #{keyword}, '%')
+            or abn.serial_number like concat('%', #{keyword}, '%')
+            or abn.position_code like concat('%', #{keyword}, '%')
+            or abn.ata_chapter like concat('%', #{keyword}, '%')
+          )
+        order by case when abn.part_number = #{keyword} then 0 else 1 end,
+                 abn.node_level, abn.part_number
+        limit 60
+    </select>
+
+    <select id="selectBomPath" resultType="java.util.HashMap">
+        with recursive bom_path as (
+            select abn.id as nodeId,
+                   abn.parent_id as parentId,
+                   abn.aircraft_id as aircraftId,
+                   abn.node_level as nodeLevel,
+                   abn.node_type as nodeType,
+                   abn.part_number as partNumber,
+                   abn.part_name as partName,
+                   abn.serial_number as serialNumber,
+                   abn.position_code as positionCode,
+                   abn.ata_chapter as ataChapter,
+                   abn.manufacturer,
+                   abn.install_date as installDate,
+                   abn.tsn_fh as tsnFh,
+                   abn.tsn_fc as tsnFc,
+                   abn.part_instance_id as partInstanceId,
+                   (select count(1) from t1_aircraft_bom_node c where c.parent_id = abn.id and c.is_active = 1) as childCount,
+                   0 as depth
+            from t1_aircraft_bom_node abn
+            where abn.id = #{nodeId}
+              and abn.is_active = 1
+            union all
+            select p.id as nodeId,
+                   p.parent_id as parentId,
+                   p.aircraft_id as aircraftId,
+                   p.node_level as nodeLevel,
+                   p.node_type as nodeType,
+                   p.part_number as partNumber,
+                   p.part_name as partName,
+                   p.serial_number as serialNumber,
+                   p.position_code as positionCode,
+                   p.ata_chapter as ataChapter,
+                   p.manufacturer,
+                   p.install_date as installDate,
+                   p.tsn_fh as tsnFh,
+                   p.tsn_fc as tsnFc,
+                   p.part_instance_id as partInstanceId,
+                   (select count(1) from t1_aircraft_bom_node c where c.parent_id = p.id and c.is_active = 1) as childCount,
+                   bp.depth + 1 as depth
+            from t1_aircraft_bom_node p
+            inner join bom_path bp on bp.parentId = p.id
+            where p.is_active = 1
+        )
+        select *
+        from bom_path
+        order by depth desc
+    </select>
+
+    <select id="selectBomRelations" resultType="java.util.HashMap">
+        select 'parent' as relationType,
+               p.id as nodeId,
+               p.parent_id as parentId,
+               p.aircraft_id as aircraftId,
+               p.node_level as nodeLevel,
+               p.node_type as nodeType,
+               p.part_number as partNumber,
+               p.part_name as partName,
+               p.serial_number as serialNumber,
+               p.position_code as positionCode,
+               p.ata_chapter as ataChapter,
+               p.manufacturer,
+               p.install_date as installDate,
+               p.tsn_fh as tsnFh,
+               p.tsn_fc as tsnFc,
+               p.part_instance_id as partInstanceId,
+               (select count(1) from t1_aircraft_bom_node pc where pc.parent_id = p.id and pc.is_active = 1) as childCount
+        from t1_aircraft_bom_node n
+        inner join t1_aircraft_bom_node p on p.id = n.parent_id
+        where n.id = #{nodeId}
+          and p.is_active = 1
+        union all
+        select 'child' as relationType,
+               c.id as nodeId,
+               c.parent_id as parentId,
+               c.aircraft_id as aircraftId,
+               c.node_level as nodeLevel,
+               c.node_type as nodeType,
+               c.part_number as partNumber,
+               c.part_name as partName,
+               c.serial_number as serialNumber,
+               c.position_code as positionCode,
+               c.ata_chapter as ataChapter,
+               c.manufacturer,
+               c.install_date as installDate,
+               c.tsn_fh as tsnFh,
+               c.tsn_fc as tsnFc,
+               c.part_instance_id as partInstanceId,
+               (select count(1) from t1_aircraft_bom_node cc where cc.parent_id = c.id and cc.is_active = 1) as childCount
+        from t1_aircraft_bom_node c
+        where c.parent_id = #{nodeId}
+          and c.is_active = 1
+        order by relationType desc, nodeLevel, positionCode, partNumber
+    </select>
+
+    <select id="selectNodeQualityCharacteristics" resultType="java.util.HashMap">
+        select dci.id as characteristicId,
+               dci.item_code as characteristicCode,
+               dci.item_name as characteristicName,
+               dci.lifecycle_stage as lifecycleStage,
+               dci.source_system as sourceSystem,
+               dci.source_table as sourceTable,
+               dci.completeness_status as completenessStatus,
+               dci.content_summary as contentSummary,
+               cast(dci.attrs_json as char) as attrsJson
+        from t1_aircraft_bom_node abn
+        inner join t1_dossier_instance di on di.aircraft_id = abn.aircraft_id and di.deleted_at is null
+        inner join t1_dossier_version dv on dv.id = di.current_version_id
+        inner join t1_dossier_content_item dci on dci.dossier_version_id = dv.id and dci.bom_node_id = abn.id
+        where abn.id = #{nodeId}
+          and dci.item_status = 'active'
+          and (
+            dci.is_key_part = 1
+            or dci.include_design_data = 1
+            or dci.include_manufacturing_data = 1
+            or dci.include_service_data = 1
+          )
+        order by dci.is_key_part desc, dci.sort_order, dci.item_code
+    </select>
+
+    <select id="selectProductQualityFeatures" resultType="java.util.HashMap">
+        select dci.id as characteristicId,
+               dci.item_code as characteristicCode,
+               dci.item_name as characteristicName,
+               dci.lifecycle_stage as lifecycleStage,
+               dci.aircraft_id as aircraftId,
+               dci.bom_node_id as bomNodeId,
+               dci.part_instance_id as partInstanceId,
+               dci.is_key_part as isKeyPart,
+               dci.source_system as sourceSystem,
+               dci.source_table as sourceTable,
+               dci.completeness_status as completenessStatus,
+               dci.content_summary as contentSummary,
+               cast(dci.attrs_json as char) as attrsJson,
+               dci.created_at as createdAt,
+               dci.updated_at as updatedAt
+        from t1_dossier_instance di
+        inner join t1_dossier_version dv on dv.id = di.current_version_id
+        inner join t1_dossier_content_item dci on dci.dossier_version_id = dv.id
+        where di.deleted_at is null
+          and dci.item_status = 'active'
+          and (
+            dci.is_key_part = 1
+            or dci.include_design_data = 1
+            or dci.include_manufacturing_data = 1
+            or dci.include_service_data = 1
+          )
+        <if test="productId != null and productId != ''">
+            and di.aircraft_id = #{productId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                dci.item_code like concat('%', #{keyword}, '%')
+                or dci.item_name like concat('%', #{keyword}, '%')
+                or dci.content_summary like concat('%', #{keyword}, '%')
+            )
+        </if>
+        order by dci.is_key_part desc, dci.lifecycle_stage, dci.sort_order, dci.item_code
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectNodeLifecycleData" resultType="java.util.HashMap">
+        select dci.id as contentItemId,
+               dci.dossier_instance_id as instanceId,
+               dci.dossier_version_id as versionId,
+               dci.structure_node_id as structureNodeId,
+               dci.item_code as itemCode,
+               dci.item_name as itemName,
+               dci.item_type as itemType,
+               dci.lifecycle_stage as lifecycleStage,
+               dci.aircraft_id as aircraftId,
+               dci.bom_node_id as bomNodeId,
+               dci.part_instance_id as partInstanceId,
+               dci.is_key_part as isKeyPart,
+               dci.supply_mode as supplyMode,
+               dci.source_system as sourceSystem,
+               dci.source_table as sourceTable,
+               dci.source_record_key as sourceRecordKey,
+               dci.completeness_status as completenessStatus,
+               dci.content_summary as contentSummary,
+               dci.file_storage_key as fileStorageKey,
+               cast(dci.source_trace_json as char) as sourceTraceJson,
+               cast(dci.attrs_json as char) as attrsJson,
+               dci.created_at as createdAt,
+               dci.updated_at as updatedAt
+        from t1_aircraft_bom_node abn
+        inner join t1_dossier_instance di on di.aircraft_id = abn.aircraft_id and di.deleted_at is null
+        inner join t1_dossier_version dv on dv.id = di.current_version_id
+        inner join t1_dossier_content_item dci on dci.dossier_version_id = dv.id and dci.bom_node_id = abn.id
+        where abn.id = #{nodeId}
+          and dci.item_status = 'active'
+        <choose>
+            <when test="dataType == 'design'">
+                and (dci.include_design_data = 1 or dci.lifecycle_stage = 'DESIGN')
+            </when>
+            <when test="dataType == 'manufacturing'">
+                and (dci.include_manufacturing_data = 1 or dci.lifecycle_stage = 'MANUFACTURING')
+            </when>
+            <when test="dataType == 'inspection'">
+                and dci.item_type in ('INSPECTION', 'TEST', 'QUALITY_CHECK')
+            </when>
+            <when test="dataType == 'installation'">
+                and dci.item_type in ('INSTALLATION', 'ASSEMBLY')
+            </when>
+            <when test="dataType == 'service'">
+                and (dci.include_service_data = 1 or dci.lifecycle_stage = 'SERVICE')
+            </when>
+            <when test="dataType == 'fault'">
+                and dci.item_type in ('FAULT', 'FAILURE')
+            </when>
+        </choose>
+        order by dci.sort_order, dci.item_code
+    </select>
+
+    <select id="selectLifecycleDataByProduct" resultType="java.util.HashMap">
+        select dci.id as contentItemId,
+               dci.dossier_instance_id as instanceId,
+               dci.dossier_version_id as versionId,
+               dci.structure_node_id as structureNodeId,
+               dci.item_code as itemCode,
+               dci.item_name as itemName,
+               dci.item_type as itemType,
+               dci.lifecycle_stage as lifecycleStage,
+               dci.aircraft_id as aircraftId,
+               dci.bom_node_id as bomNodeId,
+               dci.part_instance_id as partInstanceId,
+               dci.is_key_part as isKeyPart,
+               dci.supply_mode as supplyMode,
+               dci.source_system as sourceSystem,
+               dci.source_table as sourceTable,
+               dci.source_record_key as sourceRecordKey,
+               dci.completeness_status as completenessStatus,
+               dci.content_summary as contentSummary,
+               dci.file_storage_key as fileStorageKey,
+               cast(dci.source_trace_json as char) as sourceTraceJson,
+               cast(dci.attrs_json as char) as attrsJson,
+               dci.created_at as createdAt,
+               dci.updated_at as updatedAt
+        from t1_dossier_instance di
+        inner join t1_dossier_version dv on dv.id = di.current_version_id
+        inner join t1_dossier_content_item dci on dci.dossier_version_id = dv.id
+        where di.deleted_at is null
+          and dci.item_status = 'active'
+        <if test="productId != null and productId != ''">
+            and di.aircraft_id = #{productId}
+        </if>
+        <if test="nodeId != null and nodeId != ''">
+            and dci.bom_node_id = #{nodeId}
+        </if>
+        <if test="itemType != null and itemType != ''">
+            and dci.item_type = #{itemType}
+        </if>
+        <if test="lifecycleStage != null and lifecycleStage != ''">
+            and dci.lifecycle_stage = #{lifecycleStage}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                dci.item_code like concat('%', #{keyword}, '%')
+                or dci.item_name like concat('%', #{keyword}, '%')
+                or dci.content_summary like concat('%', #{keyword}, '%')
+                or dci.source_record_key like concat('%', #{keyword}, '%')
+            )
+        </if>
+        <choose>
+            <when test="dataGroup == 'manufacturing'">
+                and (
+                    dci.include_manufacturing_data = 1
+                    or dci.lifecycle_stage = 'MANUFACTURING'
+                    or dci.item_type in ('PROCESS', 'ROUTE', 'AO', 'FO', 'WORK_ORDER', 'INSPECTION', 'TEST', 'QUALITY_CHECK', 'EQUIPMENT', 'RESOURCE')
+                )
+            </when>
+            <when test="dataGroup == 'operation_maintenance'">
+                and (
+                    dci.include_service_data = 1
+                    or dci.lifecycle_stage = 'SERVICE'
+                    or dci.item_type in ('SERVICE', 'OPERATION', 'MAINTENANCE', 'REPAIR', 'FAULT', 'FAILURE', 'INSPECTION')
+                )
+            </when>
+        </choose>
+        order by dci.lifecycle_stage, dci.sort_order, dci.item_code
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectNodeFiles" resultType="java.util.HashMap">
+        select de.id as documentEntryId,
+               de.dossier_instance_id as instanceId,
+               de.dossier_version_id as versionId,
+               de.structure_node_id as structureNodeId,
+               de.doc_no as docNo,
+               de.title,
+               de.file_storage_key as fileStorageKey,
+               de.source_system as sourceSystem,
+               de.source_table as sourceTable,
+               de.source_record_key as sourceRecordKey,
+               de.document_status as documentStatus,
+               de.completeness_status as completenessStatus,
+               de.required_flag as requiredFlag,
+               de.included_flag as includedFlag,
+               cast(de.source_trace_json as char) as sourceTraceJson,
+               cast(de.attrs_json as char) as attrsJson
+        from t1_aircraft_bom_node abn
+        inner join t1_dossier_instance di on di.aircraft_id = abn.aircraft_id and di.deleted_at is null
+        inner join t1_dossier_version dv on dv.id = di.current_version_id
+        inner join t1_dossier_structure_node sn on sn.dossier_version_id = dv.id and sn.bom_node_id = abn.id
+        inner join t1_document_entry de on de.dossier_version_id = dv.id and de.structure_node_id = sn.id
+        where abn.id = #{nodeId}
+          and de.included_flag = 1
+        order by de.required_flag desc, de.title
+    </select>
+
+    <select id="selectFilesAndModels" resultType="java.util.HashMap">
+        select de.id as documentEntryId,
+               de.dossier_instance_id as instanceId,
+               de.dossier_version_id as versionId,
+               de.structure_node_id as structureNodeId,
+               sn.bom_node_id as bomNodeId,
+               de.doc_no as docNo,
+               de.title,
+               de.file_storage_key as fileStorageKey,
+               de.source_system as sourceSystem,
+               de.source_table as sourceTable,
+               de.source_record_key as sourceRecordKey,
+               de.document_status as documentStatus,
+               de.completeness_status as completenessStatus,
+               de.required_flag as requiredFlag,
+               de.included_flag as includedFlag,
+               cast(de.source_trace_json as char) as sourceTraceJson,
+               cast(de.attrs_json as char) as attrsJson
+        from t1_dossier_instance di
+        inner join t1_dossier_version dv on dv.id = di.current_version_id
+        inner join t1_document_entry de on de.dossier_version_id = dv.id
+        left join t1_dossier_structure_node sn on sn.id = de.structure_node_id
+        where di.deleted_at is null
+          and de.included_flag = 1
+        <if test="productId != null and productId != ''">
+            and di.aircraft_id = #{productId}
+        </if>
+        <if test="nodeId != null and nodeId != ''">
+            and sn.bom_node_id = #{nodeId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                de.doc_no like concat('%', #{keyword}, '%')
+                or de.title like concat('%', #{keyword}, '%')
+                or de.file_storage_key like concat('%', #{keyword}, '%')
+                or de.source_record_key like concat('%', #{keyword}, '%')
+            )
+        </if>
+        <if test="fileType != null and fileType != ''">
+            and (
+                de.title like concat('%', #{fileType}, '%')
+                or de.file_storage_key like concat('%', #{fileType}, '%')
+                or de.source_table like concat('%', #{fileType}, '%')
+            )
+        </if>
+        order by de.required_flag desc, de.title, de.doc_no
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCurrentDossierByBomNode" resultType="java.util.HashMap">
+        select di.id as instanceId,
+               di.current_version_id as versionId,
+               di.aircraft_id as aircraftId,
+               abn.id as bomNodeId
+        from t1_aircraft_bom_node abn
+        inner join t1_dossier_instance di on di.aircraft_id = abn.aircraft_id and di.deleted_at is null
+        where abn.id = #{nodeId}
+        order by case when di.status in ('ready','published') then 0 else 1 end, di.updated_at desc
+        limit 1
+    </select>
+
+    <insert id="insertAnalysisTask">
+        insert into t1_analysis_task
+        (id, task_code, task_name, analysis_type, scope_type, scope_json, task_status,
+         algorithm_code, algorithm_version, params_json, started_at, finished_at, created_by)
+        values
+        (#{taskId}, #{taskCode}, #{taskName}, 'cross_domain', #{scopeType}, #{scopeJson}, 'succeeded',
+         #{algorithmCode}, #{algorithmVersion}, #{paramsJson}, sysdate(6), sysdate(6), #{createdBy})
+    </insert>
+
+    <insert id="insertAnalysisResult">
+        insert into t1_analysis_result
+        (id, task_id, result_type, result_title, result_summary, result_value_json,
+         confidence, rank_no, related_object_type, related_object_id, evidence_json)
+        values
+        (#{resultId}, #{taskId}, #{resultType}, #{resultTitle}, #{resultSummary}, #{resultValueJson},
+         #{confidence}, #{rankNo}, #{relatedObjectType}, #{relatedObjectId}, #{evidenceJson})
+    </insert>
+
+    <insert id="insertOperationLog">
+        insert into t1_dossier_operation_log
+        (id, dossier_instance_id, dossier_version_id, operation_type, operation_name, operation_status,
+         business_subject_type, business_subject_id, operator_id, operator_name, detail_json, result_message, operated_at)
+        values
+        (#{operationLogId}, #{instanceId}, #{versionId}, 'writeback', #{operationName}, 'succeeded',
+         #{businessSubjectType}, #{businessSubjectId}, #{operatorId}, #{operatorName}, #{detailJson},
+         #{resultMessage}, sysdate(6))
+    </insert>
+
+    <sql id="ChangeWhere">
+        from t1_dossier_operation_log dol
+        <where>
+            <if test="instanceId != null and instanceId != ''">
+                and dol.dossier_instance_id = #{instanceId}
+            </if>
+            <if test="subjectType != null and subjectType != ''">
+                and dol.business_subject_type = #{subjectType}
+            </if>
+            <if test="beginTime != null and beginTime != ''">
+                and dol.operated_at &gt;= #{beginTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and dol.operated_at &lt;= #{endTime}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (
+                    dol.operation_name like concat('%', #{keyword}, '%')
+                    or dol.result_message like concat('%', #{keyword}, '%')
+                    or dol.business_subject_id like concat('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectChangeCount" resultType="java.lang.Integer">
+        select count(1)
+        <include refid="ChangeWhere" />
+    </select>
+
+    <select id="selectChangeList" resultType="java.util.HashMap">
+        select dol.id as changeId,
+               dol.dossier_instance_id as instanceId,
+               dol.dossier_version_id as versionId,
+               dol.operation_type as changeType,
+               dol.operation_name as changeName,
+               dol.operation_status as changeStatus,
+               dol.business_subject_type as subjectType,
+               dol.business_subject_id as subjectId,
+               dol.operator_name as operatorName,
+               dol.result_message as resultMessage,
+               dol.operated_at as changedAt,
+               cast(dol.detail_json as char) as detailJson
+        <include refid="ChangeWhere" />
+        order by dol.operated_at desc
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectChangeDetail" resultType="java.util.HashMap">
+        select dol.id as changeId,
+               dol.dossier_instance_id as instanceId,
+               dol.dossier_version_id as versionId,
+               dol.operation_type as changeType,
+               dol.operation_name as changeName,
+               dol.operation_status as changeStatus,
+               dol.business_subject_type as subjectType,
+               dol.business_subject_id as subjectId,
+               dol.operator_id as operatorId,
+               dol.operator_name as operatorName,
+               dol.result_message as resultMessage,
+               dol.operated_at as changedAt,
+               cast(dol.detail_json as char) as detailJson
+        from t1_dossier_operation_log dol
+        where dol.id = #{changeId}
+    </select>
+
+    <sql id="OperationLogWhere">
+        from t1_dossier_operation_log dol
+        <where>
+            <if test="instanceId != null and instanceId != ''">
+                and dol.dossier_instance_id = #{instanceId}
+            </if>
+            <if test="operationType != null and operationType != ''">
+                and dol.operation_type = #{operationType}
+            </if>
+            <if test="operatorName != null and operatorName != ''">
+                and dol.operator_name like concat('%', #{operatorName}, '%')
+            </if>
+            <if test="beginTime != null and beginTime != ''">
+                and dol.operated_at &gt;= #{beginTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and dol.operated_at &lt;= #{endTime}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (
+                    dol.operation_name like concat('%', #{keyword}, '%')
+                    or dol.result_message like concat('%', #{keyword}, '%')
+                    or dol.business_subject_id like concat('%', #{keyword}, '%')
+                    or dol.operator_name like concat('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectOperationLogCount" resultType="java.lang.Integer">
+        select count(1)
+        <include refid="OperationLogWhere" />
+    </select>
+
+    <select id="selectOperationLogList" resultType="java.util.HashMap">
+        select dol.id as logId,
+               dol.dossier_instance_id as instanceId,
+               dol.dossier_version_id as versionId,
+               dol.operation_type as operationType,
+               dol.operation_name as operationName,
+               dol.operation_status as operationStatus,
+               dol.business_subject_type as subjectType,
+               dol.business_subject_id as subjectId,
+               dol.operator_id as operatorId,
+               dol.operator_name as operatorName,
+               dol.source_ip as sourceIp,
+               dol.result_message as resultMessage,
+               dol.operated_at as changedAt,
+               cast(dol.detail_json as char) as detailJson
+        <include refid="OperationLogWhere" />
+        order by dol.operated_at desc
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectOperationLogDetail" resultType="java.util.HashMap">
+        select dol.id as logId,
+               dol.dossier_instance_id as instanceId,
+               dol.dossier_version_id as versionId,
+               dol.operation_type as operationType,
+               dol.operation_name as operationName,
+               dol.operation_status as operationStatus,
+               dol.business_subject_type as subjectType,
+               dol.business_subject_id as subjectId,
+               dol.operator_id as operatorId,
+               dol.operator_name as operatorName,
+               dol.source_ip as sourceIp,
+               dol.result_message as resultMessage,
+               dol.operated_at as changedAt,
+               cast(dol.detail_json as char) as detailJson
+        from t1_dossier_operation_log dol
+        where dol.id = #{logId}
+    </select>
+
+    <insert id="insertSubscription">
+        insert into t1_push_rule
+        (id, rule_code, rule_name, trigger_type, target_domain, condition_json,
+         receiver_type, receiver_ref, message_template, rule_status, created_by)
+        values
+        (#{subscriptionId}, #{subscriptionCode}, #{subscriptionName}, 'openapi_change', #{targetDomain},
+         #{conditionJson}, #{receiverType}, #{receiverRef}, #{messageTemplate}, 'active', #{createdBy})
+    </insert>
+
+    <update id="disableSubscription">
+        update t1_push_rule
+        set rule_status = 'disabled',
+            updated_at = sysdate(6)
+        where id = #{subscriptionId}
+    </update>
+</mapper>

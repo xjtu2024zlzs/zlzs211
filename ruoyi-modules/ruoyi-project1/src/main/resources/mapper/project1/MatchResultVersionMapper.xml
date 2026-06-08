@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.MatchResultVersionMapper">
+    
+    <resultMap type="MatchResultVersion" id="MatchResultVersionResult">
+        <result property="resultVersionId"    column="result_version_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="versionId"    column="version_id"    />
+        <result property="recordId"    column="record_id"    />
+        <result property="versionLabel"    column="version_label"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectMatchResultVersionVo">
+        select result_version_id, task_id, version_id, record_id, version_label, create_time, remark from p1p_match_result_version
+    </sql>
+
+    <select id="selectMatchResultVersionList" parameterType="MatchResultVersion" resultMap="MatchResultVersionResult">
+        <include refid="selectMatchResultVersionVo"/>
+        <where>  
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="versionId != null "> and version_id = #{versionId}</if>
+            <if test="recordId != null "> and record_id = #{recordId}</if>
+            <if test="versionLabel != null  and versionLabel != ''"> and version_label = #{versionLabel}</if>
+        </where>
+    </select>
+    
+    <select id="selectMatchResultVersionByResultVersionId" parameterType="Long" resultMap="MatchResultVersionResult">
+        <include refid="selectMatchResultVersionVo"/>
+        where result_version_id = #{resultVersionId}
+    </select>
+
+    <insert id="insertMatchResultVersion" parameterType="MatchResultVersion" useGeneratedKeys="true" keyProperty="resultVersionId">
+        insert into p1p_match_result_version
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">task_id,</if>
+            <if test="versionId != null">version_id,</if>
+            <if test="recordId != null">record_id,</if>
+            <if test="versionLabel != null">version_label,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">#{taskId},</if>
+            <if test="versionId != null">#{versionId},</if>
+            <if test="recordId != null">#{recordId},</if>
+            <if test="versionLabel != null">#{versionLabel},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMatchResultVersion" parameterType="MatchResultVersion">
+        update p1p_match_result_version
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="versionId != null">version_id = #{versionId},</if>
+            <if test="recordId != null">record_id = #{recordId},</if>
+            <if test="versionLabel != null">version_label = #{versionLabel},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where result_version_id = #{resultVersionId}
+    </update>
+
+    <delete id="deleteMatchResultVersionByResultVersionId" parameterType="Long">
+        delete from p1p_match_result_version where result_version_id = #{resultVersionId}
+    </delete>
+
+    <delete id="deleteMatchResultVersionByResultVersionIds" parameterType="String">
+        delete from p1p_match_result_version where result_version_id in 
+        <foreach item="resultVersionId" collection="array" open="(" separator="," close=")">
+            #{resultVersionId}
+        </foreach>
+    </delete>
+</mapper>
