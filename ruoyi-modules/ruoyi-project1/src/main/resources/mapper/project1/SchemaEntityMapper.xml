@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.SchemaEntityMapper">
+    
+    <resultMap type="SchemaEntity" id="SchemaEntityResult">
+        <result property="entityId"    column="entity_id"    />
+        <result property="snapshotId"    column="snapshot_id"    />
+        <result property="datasourceId"    column="datasource_id"    />
+        <result property="entityName"    column="entity_name"    />
+        <result property="sourceDatabase"    column="source_database"    />
+        <result property="sourceSchema"    column="source_schema"    />
+        <result property="sourceTable"    column="source_table"    />
+        <result property="entityType"    column="entity_type"    />
+        <result property="rowCount"    column="row_count"    />
+        <result property="metadata"    column="metadata"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSchemaEntityVo">
+        select entity_id, snapshot_id, datasource_id, entity_name, source_database, source_schema, source_table, entity_type, row_count, metadata, create_time, remark from p1p_schema_entity
+    </sql>
+
+    <select id="selectSchemaEntityList" parameterType="SchemaEntity" resultMap="SchemaEntityResult">
+        <include refid="selectSchemaEntityVo"/>
+        <where>  
+            <if test="snapshotId != null "> and snapshot_id = #{snapshotId}</if>
+            <if test="datasourceId != null "> and datasource_id = #{datasourceId}</if>
+            <if test="entityName != null  and entityName != ''"> and entity_name like concat('%', #{entityName}, '%')</if>
+            <if test="sourceDatabase != null  and sourceDatabase != ''"> and source_database = #{sourceDatabase}</if>
+            <if test="sourceSchema != null  and sourceSchema != ''"> and source_schema = #{sourceSchema}</if>
+            <if test="sourceTable != null  and sourceTable != ''"> and source_table = #{sourceTable}</if>
+            <if test="entityType != null  and entityType != ''"> and entity_type = #{entityType}</if>
+            <if test="rowCount != null "> and row_count = #{rowCount}</if>
+            <if test="metadata != null  and metadata != ''"> and metadata = #{metadata}</if>
+        </where>
+    </select>
+    
+    <select id="selectSchemaEntityByEntityId" parameterType="Long" resultMap="SchemaEntityResult">
+        <include refid="selectSchemaEntityVo"/>
+        where entity_id = #{entityId}
+    </select>
+
+    <insert id="insertSchemaEntity" parameterType="SchemaEntity" useGeneratedKeys="true" keyProperty="entityId">
+        insert into p1p_schema_entity
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="snapshotId != null">snapshot_id,</if>
+            <if test="datasourceId != null">datasource_id,</if>
+            <if test="entityName != null and entityName != ''">entity_name,</if>
+            <if test="sourceDatabase != null">source_database,</if>
+            <if test="sourceSchema != null">source_schema,</if>
+            <if test="sourceTable != null">source_table,</if>
+            <if test="entityType != null">entity_type,</if>
+            <if test="rowCount != null">row_count,</if>
+            <if test="metadata != null">metadata,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="snapshotId != null">#{snapshotId},</if>
+            <if test="datasourceId != null">#{datasourceId},</if>
+            <if test="entityName != null and entityName != ''">#{entityName},</if>
+            <if test="sourceDatabase != null">#{sourceDatabase},</if>
+            <if test="sourceSchema != null">#{sourceSchema},</if>
+            <if test="sourceTable != null">#{sourceTable},</if>
+            <if test="entityType != null">#{entityType},</if>
+            <if test="rowCount != null">#{rowCount},</if>
+            <if test="metadata != null">#{metadata},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSchemaEntity" parameterType="SchemaEntity">
+        update p1p_schema_entity
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="snapshotId != null">snapshot_id = #{snapshotId},</if>
+            <if test="datasourceId != null">datasource_id = #{datasourceId},</if>
+            <if test="entityName != null and entityName != ''">entity_name = #{entityName},</if>
+            <if test="sourceDatabase != null">source_database = #{sourceDatabase},</if>
+            <if test="sourceSchema != null">source_schema = #{sourceSchema},</if>
+            <if test="sourceTable != null">source_table = #{sourceTable},</if>
+            <if test="entityType != null">entity_type = #{entityType},</if>
+            <if test="rowCount != null">row_count = #{rowCount},</if>
+            <if test="metadata != null">metadata = #{metadata},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where entity_id = #{entityId}
+    </update>
+
+    <delete id="deleteSchemaEntityByEntityId" parameterType="Long">
+        delete from p1p_schema_entity where entity_id = #{entityId}
+    </delete>
+
+    <delete id="deleteSchemaEntityByEntityIds" parameterType="String">
+        delete from p1p_schema_entity where entity_id in 
+        <foreach item="entityId" collection="array" open="(" separator="," close=")">
+            #{entityId}
+        </foreach>
+    </delete>
+</mapper>

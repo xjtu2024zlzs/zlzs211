@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.MatchTaskVersionMapper">
+    
+    <resultMap type="MatchTaskVersion" id="MatchTaskVersionResult">
+        <result property="versionId"    column="version_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="versionNo"    column="version_no"    />
+        <result property="sourceDatasourceId"    column="source_datasource_id"    />
+        <result property="schemaSnapshotId"    column="schema_snapshot_id"    />
+        <result property="targetKey"    column="target_key"    />
+        <result property="encodingModeKey"    column="encoding_mode_key"    />
+        <result property="embeddingModelKey"    column="embedding_model_key"    />
+        <result property="evalModeKey"    column="eval_mode_key"    />
+        <result property="llmConfigId"    column="llm_config_id"    />
+        <result property="autoApproveThreshold"    column="auto_approve_threshold"    />
+        <result property="algorithmParamsJson"    column="algorithm_params_json"    />
+        <result property="changeSummary"    column="change_summary"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectMatchTaskVersionVo">
+        select version_id, task_id, version_no, source_datasource_id, schema_snapshot_id, target_key, encoding_mode_key, embedding_model_key, eval_mode_key, llm_config_id, auto_approve_threshold, algorithm_params_json, change_summary, create_by, create_time, update_by, update_time, remark from p1p_match_task_version
+    </sql>
+
+    <select id="selectMatchTaskVersionList" parameterType="MatchTaskVersion" resultMap="MatchTaskVersionResult">
+        <include refid="selectMatchTaskVersionVo"/>
+        <where>  
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="versionNo != null "> and version_no = #{versionNo}</if>
+            <if test="sourceDatasourceId != null "> and source_datasource_id = #{sourceDatasourceId}</if>
+            <if test="schemaSnapshotId != null "> and schema_snapshot_id = #{schemaSnapshotId}</if>
+            <if test="targetKey != null  and targetKey != ''"> and target_key = #{targetKey}</if>
+            <if test="encodingModeKey != null  and encodingModeKey != ''"> and encoding_mode_key = #{encodingModeKey}</if>
+            <if test="embeddingModelKey != null  and embeddingModelKey != ''"> and embedding_model_key = #{embeddingModelKey}</if>
+            <if test="evalModeKey != null  and evalModeKey != ''"> and eval_mode_key = #{evalModeKey}</if>
+            <if test="llmConfigId != null "> and llm_config_id = #{llmConfigId}</if>
+            <if test="autoApproveThreshold != null "> and auto_approve_threshold = #{autoApproveThreshold}</if>
+            <if test="algorithmParamsJson != null  and algorithmParamsJson != ''"> and algorithm_params_json = #{algorithmParamsJson}</if>
+            <if test="changeSummary != null  and changeSummary != ''"> and change_summary = #{changeSummary}</if>
+        </where>
+    </select>
+    
+    <select id="selectMatchTaskVersionByVersionId" parameterType="Long" resultMap="MatchTaskVersionResult">
+        <include refid="selectMatchTaskVersionVo"/>
+        where version_id = #{versionId}
+    </select>
+
+    <insert id="insertMatchTaskVersion" parameterType="MatchTaskVersion" useGeneratedKeys="true" keyProperty="versionId">
+        insert into p1p_match_task_version
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">task_id,</if>
+            <if test="versionNo != null">version_no,</if>
+            <if test="sourceDatasourceId != null">source_datasource_id,</if>
+            <if test="schemaSnapshotId != null">schema_snapshot_id,</if>
+            <if test="targetKey != null and targetKey != ''">target_key,</if>
+            <if test="encodingModeKey != null and encodingModeKey != ''">encoding_mode_key,</if>
+            <if test="embeddingModelKey != null and embeddingModelKey != ''">embedding_model_key,</if>
+            <if test="evalModeKey != null and evalModeKey != ''">eval_mode_key,</if>
+            <if test="llmConfigId != null">llm_config_id,</if>
+            <if test="autoApproveThreshold != null">auto_approve_threshold,</if>
+            <if test="algorithmParamsJson != null">algorithm_params_json,</if>
+            <if test="changeSummary != null">change_summary,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">#{taskId},</if>
+            <if test="versionNo != null">#{versionNo},</if>
+            <if test="sourceDatasourceId != null">#{sourceDatasourceId},</if>
+            <if test="schemaSnapshotId != null">#{schemaSnapshotId},</if>
+            <if test="targetKey != null and targetKey != ''">#{targetKey},</if>
+            <if test="encodingModeKey != null and encodingModeKey != ''">#{encodingModeKey},</if>
+            <if test="embeddingModelKey != null and embeddingModelKey != ''">#{embeddingModelKey},</if>
+            <if test="evalModeKey != null and evalModeKey != ''">#{evalModeKey},</if>
+            <if test="llmConfigId != null">#{llmConfigId},</if>
+            <if test="autoApproveThreshold != null">#{autoApproveThreshold},</if>
+            <if test="algorithmParamsJson != null">#{algorithmParamsJson},</if>
+            <if test="changeSummary != null">#{changeSummary},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMatchTaskVersion" parameterType="MatchTaskVersion">
+        update p1p_match_task_version
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="versionNo != null">version_no = #{versionNo},</if>
+            <if test="sourceDatasourceId != null">source_datasource_id = #{sourceDatasourceId},</if>
+            <if test="schemaSnapshotId != null">schema_snapshot_id = #{schemaSnapshotId},</if>
+            <if test="targetKey != null and targetKey != ''">target_key = #{targetKey},</if>
+            <if test="encodingModeKey != null and encodingModeKey != ''">encoding_mode_key = #{encodingModeKey},</if>
+            <if test="embeddingModelKey != null and embeddingModelKey != ''">embedding_model_key = #{embeddingModelKey},</if>
+            <if test="evalModeKey != null and evalModeKey != ''">eval_mode_key = #{evalModeKey},</if>
+            <if test="llmConfigId != null">llm_config_id = #{llmConfigId},</if>
+            <if test="autoApproveThreshold != null">auto_approve_threshold = #{autoApproveThreshold},</if>
+            <if test="algorithmParamsJson != null">algorithm_params_json = #{algorithmParamsJson},</if>
+            <if test="changeSummary != null">change_summary = #{changeSummary},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where version_id = #{versionId}
+    </update>
+
+    <delete id="deleteMatchTaskVersionByVersionId" parameterType="Long">
+        delete from p1p_match_task_version where version_id = #{versionId}
+    </delete>
+
+    <delete id="deleteMatchTaskVersionByVersionIds" parameterType="String">
+        delete from p1p_match_task_version where version_id in 
+        <foreach item="versionId" collection="array" open="(" separator="," close=")">
+            #{versionId}
+        </foreach>
+    </delete>
+</mapper>

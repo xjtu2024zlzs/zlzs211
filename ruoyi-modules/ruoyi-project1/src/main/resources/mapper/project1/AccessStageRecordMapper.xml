@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project1.mapper.AccessStageRecordMapper">
+    
+    <resultMap type="AccessStageRecord" id="AccessStageRecordResult">
+        <result property="stageRecordId"    column="stage_record_id"    />
+        <result property="accessBatchId"    column="access_batch_id"    />
+        <result property="accessPlanId"    column="access_plan_id"    />
+        <result property="scopeTableId"    column="scope_table_id"    />
+        <result property="sourceDatasourceId"    column="source_datasource_id"    />
+        <result property="sourceDatabase"    column="source_database"    />
+        <result property="sourceTable"    column="source_table"    />
+        <result property="sourcePk"    column="source_pk"    />
+        <result property="sourceOperation"    column="source_operation"    />
+        <result property="rawData"    column="raw_data"    />
+        <result property="readStatus"    column="read_status"    />
+        <result property="readTime"    column="read_time"    />
+        <result property="errorMessage"    column="error_message"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectAccessStageRecordVo">
+        select stage_record_id, access_batch_id, access_plan_id, scope_table_id, source_datasource_id, source_database, source_table, source_pk, source_operation, raw_data, read_status, read_time, error_message, create_time, remark from p1p_access_stage_record
+    </sql>
+
+    <select id="selectAccessStageRecordList" parameterType="AccessStageRecord" resultMap="AccessStageRecordResult">
+        <include refid="selectAccessStageRecordVo"/>
+        <where>  
+            <if test="accessBatchId != null "> and access_batch_id = #{accessBatchId}</if>
+            <if test="accessPlanId != null "> and access_plan_id = #{accessPlanId}</if>
+            <if test="scopeTableId != null "> and scope_table_id = #{scopeTableId}</if>
+            <if test="sourceDatasourceId != null "> and source_datasource_id = #{sourceDatasourceId}</if>
+            <if test="sourceDatabase != null  and sourceDatabase != ''"> and source_database = #{sourceDatabase}</if>
+            <if test="sourceTable != null  and sourceTable != ''"> and source_table = #{sourceTable}</if>
+            <if test="sourcePk != null  and sourcePk != ''"> and source_pk = #{sourcePk}</if>
+            <if test="sourceOperation != null  and sourceOperation != ''"> and source_operation = #{sourceOperation}</if>
+            <if test="rawData != null  and rawData != ''"> and raw_data = #{rawData}</if>
+            <if test="readStatus != null  and readStatus != ''"> and read_status = #{readStatus}</if>
+            <if test="readTime != null "> and read_time = #{readTime}</if>
+            <if test="errorMessage != null  and errorMessage != ''"> and error_message = #{errorMessage}</if>
+        </where>
+    </select>
+    
+    <select id="selectAccessStageRecordByStageRecordId" parameterType="Long" resultMap="AccessStageRecordResult">
+        <include refid="selectAccessStageRecordVo"/>
+        where stage_record_id = #{stageRecordId}
+    </select>
+
+    <insert id="insertAccessStageRecord" parameterType="AccessStageRecord" useGeneratedKeys="true" keyProperty="stageRecordId">
+        insert into p1p_access_stage_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="accessBatchId != null">access_batch_id,</if>
+            <if test="accessPlanId != null">access_plan_id,</if>
+            <if test="scopeTableId != null">scope_table_id,</if>
+            <if test="sourceDatasourceId != null">source_datasource_id,</if>
+            <if test="sourceDatabase != null">source_database,</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table,</if>
+            <if test="sourcePk != null">source_pk,</if>
+            <if test="sourceOperation != null">source_operation,</if>
+            <if test="rawData != null and rawData != ''">raw_data,</if>
+            <if test="readStatus != null and readStatus != ''">read_status,</if>
+            <if test="readTime != null">read_time,</if>
+            <if test="errorMessage != null">error_message,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="accessBatchId != null">#{accessBatchId},</if>
+            <if test="accessPlanId != null">#{accessPlanId},</if>
+            <if test="scopeTableId != null">#{scopeTableId},</if>
+            <if test="sourceDatasourceId != null">#{sourceDatasourceId},</if>
+            <if test="sourceDatabase != null">#{sourceDatabase},</if>
+            <if test="sourceTable != null and sourceTable != ''">#{sourceTable},</if>
+            <if test="sourcePk != null">#{sourcePk},</if>
+            <if test="sourceOperation != null">#{sourceOperation},</if>
+            <if test="rawData != null and rawData != ''">#{rawData},</if>
+            <if test="readStatus != null and readStatus != ''">#{readStatus},</if>
+            <if test="readTime != null">#{readTime},</if>
+            <if test="errorMessage != null">#{errorMessage},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAccessStageRecord" parameterType="AccessStageRecord">
+        update p1p_access_stage_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="accessBatchId != null">access_batch_id = #{accessBatchId},</if>
+            <if test="accessPlanId != null">access_plan_id = #{accessPlanId},</if>
+            <if test="scopeTableId != null">scope_table_id = #{scopeTableId},</if>
+            <if test="sourceDatasourceId != null">source_datasource_id = #{sourceDatasourceId},</if>
+            <if test="sourceDatabase != null">source_database = #{sourceDatabase},</if>
+            <if test="sourceTable != null and sourceTable != ''">source_table = #{sourceTable},</if>
+            <if test="sourcePk != null">source_pk = #{sourcePk},</if>
+            <if test="sourceOperation != null">source_operation = #{sourceOperation},</if>
+            <if test="rawData != null and rawData != ''">raw_data = #{rawData},</if>
+            <if test="readStatus != null and readStatus != ''">read_status = #{readStatus},</if>
+            <if test="readTime != null">read_time = #{readTime},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where stage_record_id = #{stageRecordId}
+    </update>
+
+    <delete id="deleteAccessStageRecordByStageRecordId" parameterType="Long">
+        delete from p1p_access_stage_record where stage_record_id = #{stageRecordId}
+    </delete>
+
+    <delete id="deleteAccessStageRecordByStageRecordIds" parameterType="String">
+        delete from p1p_access_stage_record where stage_record_id in 
+        <foreach item="stageRecordId" collection="array" open="(" separator="," close=")">
+            #{stageRecordId}
+        </foreach>
+    </delete>
+</mapper>

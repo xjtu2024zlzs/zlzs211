@@ -1,0 +1,119 @@
+# ----------------------------------------------------------------------------
+# magneto-test-1 项目的 compose 只负责集成平台自身依赖：
+#
+#   * pgvector    —— 承载 meta / integration_staging / match_result_store
+#                    三个逻辑库（后端启动时自动建库建表）
+#   * neo4j       —— 图增强匹配的可选依赖
+#   * mock_adapter_{plm,erp,mes,mro}  —— 参考适配器，演示 api_pull / api_push
+#
+# 4 个源库（aviation_plm/erp/mes/mro）和目标库 aviation_dossier 由 **fkp**
+# 项目提供（ports 5461-5465 已在宿主暴露），本 compose 不再重复定义，避免端口
+# 冲突。mock_adapter 通过 host.docker.internal 回指宿主端口访问 fkp 容器。
+# ----------------------------------------------------------------------------
+
+x-mock-adapter-defaults: &mock-adapter-defaults
+  build:
+    context: .
+    dockerfile: mock_adapters/Dockerfile
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+services:
+  pgvector:
+    image: pgvector/pgvector:pg17
+    container_name: magneto_pgvector
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: magneto_vectors
+      POSTGRES_USER: magneto
+      POSTGRES_PASSWORD: magneto123
+    volumes:
+      - pgvector_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/00_init.sql
+      - ./docker/staging_init.sql:/docker-entrypoint-initdb.d/10_staging.sql
+      - ./docker/result_init.sql:/docker-entrypoint-initdb.d/20_result.sql
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: magneto_neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/magneto123
+      NEO4J_PLUGINS: '["apoc"]'
+    volumes:
+      - neo4j_data:/data
+
+  mock_adapter_plm:
+    <<: *mock-adapter-defaults
+    container_name: mock_adapter_plm
+    environment:
+      ADAPTER_SYSTEM: plm
+      ADAPTER_PORT: "9001"
+      DB_HOST: ${PLM_DB_HOST:-host.docker.internal}
+      DB_PORT: ${PLM_DB_PORT:-5461}
+      DB_NAME: ${PLM_DB_NAME:-aviation_plm}
+      DB_USER: ${SOURCE_DB_USER:-aviation}
+      DB_PASSWORD: ${SOURCE_DB_PASSWORD:-aviation123}
+      INTEGRATION_BASE_URL: ${INTEGRATION_BASE_URL:-http://host.docker.internal:8000}
+      PUSH_DATASOURCE_ID: ${PLM_PUSH_DATASOURCE_ID:-}
+      PUSH_API_KEY: ${PLM_PUSH_API_KEY:-}
+    ports:
+      - "9001:9001"
+
+  mock_adapter_erp:
+    <<: *mock-adapter-defaults
+    container_name: mock_adapter_erp
+    environment:
+      ADAPTER_SYSTEM: erp
+      ADAPTER_PORT: "9002"
+      DB_HOST: ${ERP_DB_HOST:-host.docker.internal}
+      DB_PORT: ${ERP_DB_PORT:-5462}
+      DB_NAME: ${ERP_DB_NAME:-aviation_erp}
+      DB_USER: ${SOURCE_DB_USER:-aviation}
+      DB_PASSWORD: ${SOURCE_DB_PASSWORD:-aviation123}
+      INTEGRATION_BASE_URL: ${INTEGRATION_BASE_URL:-http://host.docker.internal:8000}
+      PUSH_DATASOURCE_ID: ${ERP_PUSH_DATASOURCE_ID:-}
+      PUSH_API_KEY: ${ERP_PUSH_API_KEY:-}
+    ports:
+      - "9002:9002"
+
+  mock_adapter_mes:
+    <<: *mock-adapter-defaults
+    container_name: mock_adapter_mes
+    environment:
+      ADAPTER_SYSTEM: mes
+      ADAPTER_PORT: "9003"
+      DB_HOST: ${MES_DB_HOST:-host.docker.internal}
+      DB_PORT: ${MES_DB_PORT:-5463}
+      DB_NAME: ${MES_DB_NAME:-aviation_mes}
+      DB_USER: ${SOURCE_DB_USER:-aviation}
+      DB_PASSWORD: ${SOURCE_DB_PASSWORD:-aviation123}
+      INTEGRATION_BASE_URL: ${INTEGRATION_BASE_URL:-http://host.docker.internal:8000}
+      PUSH_DATASOURCE_ID: ${MES_PUSH_DATASOURCE_ID:-}
+      PUSH_API_KEY: ${MES_PUSH_API_KEY:-}
+    ports:
+      - "9003:9003"
+
+  mock_adapter_mro:
+    <<: *mock-adapter-defaults
+    container_name: mock_adapter_mro
+    environment:
+      ADAPTER_SYSTEM: mro
+      ADAPTER_PORT: "9004"
+      DB_HOST: ${MRO_DB_HOST:-host.docker.internal}
+      DB_PORT: ${MRO_DB_PORT:-5464}
+      DB_NAME: ${MRO_DB_NAME:-aviation_mro}
+      DB_USER: ${SOURCE_DB_USER:-aviation}
+      DB_PASSWORD: ${SOURCE_DB_PASSWORD:-aviation123}
+      INTEGRATION_BASE_URL: ${INTEGRATION_BASE_URL:-http://host.docker.internal:8000}
+      PUSH_DATASOURCE_ID: ${MRO_PUSH_DATASOURCE_ID:-}
+      PUSH_API_KEY: ${MRO_PUSH_API_KEY:-}
+    ports:
+      - "9004:9004"
+
+volumes:
+  pgvector_data:
+  neo4j_data:
