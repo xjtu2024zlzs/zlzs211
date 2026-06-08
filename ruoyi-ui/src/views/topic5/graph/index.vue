@@ -164,20 +164,6 @@
             placeholder="尚未运行算法"
           />
         </el-form-item>
-
-        <el-form-item label="人工确认状态">
-          <el-tag :type="confirmStatusTagType(currentTrace.secondAlgorithmConfirmStatus)">
-            {{ confirmStatusName(currentTrace.secondAlgorithmConfirmStatus) }}
-          </el-tag>
-        </el-form-item>
-
-        <el-form-item label="人工确认备注">
-          <el-input
-            v-model="currentTrace.secondAlgorithmConfirmRemark"
-            readonly
-            placeholder="暂无人工确认备注"
-          />
-        </el-form-item>
       </el-form>
 
       <div class="graph-title mt15">第二部分算法运行结果</div>
@@ -264,80 +250,6 @@
         </el-collapse>
       </div>
     </el-card>
-
-    <!-- 人工判定区域 -->
-    <el-card class="box-card mt15">
-      <template #header>
-        <div class="card-header">
-          <span>人工判定</span>
-          <span class="header-tip">请确认是否保存算法输出结果</span>
-        </div>
-      </template>
-
-      <el-alert
-        title="如果选择保存，则保留当前算法输出结果；如果选择不保存，则删除当前算法输出结果，并提示需要重新运行算法。"
-        type="warning"
-        show-icon
-        :closable="false"
-      />
-
-      <div class="mt15">
-        <el-button type="primary" icon="Check" @click="handleOpenConfirm">
-          人工判定
-        </el-button>
-
-        <el-tag
-          style="margin-left: 12px;"
-          :type="confirmStatusTagType(currentTrace.secondAlgorithmConfirmStatus)"
-        >
-          {{ confirmStatusName(currentTrace.secondAlgorithmConfirmStatus) }}
-        </el-tag>
-      </div>
-    </el-card>
-
-    <!-- 人工判定弹窗 -->
-    <el-dialog
-      title="人工判定第二部分算法结果"
-      v-model="confirmOpen"
-      width="560px"
-      append-to-body
-    >
-      <el-alert
-        title="请选择是否保存当前第二部分算法输出结果。选择“不保存”后，系统会删除当前算法输出结果，需要重新运行算法。"
-        type="warning"
-        show-icon
-        :closable="false"
-        style="margin-bottom: 15px;"
-      />
-
-      <el-form :model="confirmForm" label-width="120px">
-        <el-form-item label="是否保存">
-          <el-radio-group v-model="confirmForm.saveFlag">
-            <el-radio :label="true">保存结果</el-radio>
-            <el-radio :label="false">不保存，重新运行</el-radio>
-          </el-radio-group>
-        </el-form-item>
-
-        <el-form-item label="判定备注">
-          <el-input
-            v-model="confirmForm.remark"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入人工判定说明，可选"
-          />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="confirmOpen = false">取消</el-button>
-          <el-button type="primary" @click="submitConfirmSecondAlgorithm">
-            确认
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
-
   </div>
 </template>
 
@@ -351,7 +263,6 @@ import {
   pullTopic1Kg,
   runSecondAlgorithm,
   getTraceKg,
-  confirmSecondAlgorithm
 } from '@/api/topic5/graph'
 
 const { proxy } = getCurrentInstance()
@@ -365,16 +276,11 @@ const originGraphRef = ref(null)
 let originChart = null
 
 const secondAlgorithmRunning = ref(false)
-const confirmOpen = ref(false)
 
 const algorithmForm = reactive({
   algorithmName: null
 })
 
-const confirmForm = reactive({
-  saveFlag: true,
-  remark: ''
-})
 
 const secondResultObj = computed(() => {
   return parseSecondResultObject(currentTrace.value.secondAlgorithmResultJson)
@@ -385,7 +291,10 @@ const summaryRows = computed(() => {
 })
 
 const componentDiagnosisTop3 = computed(() => {
-  return normalizeComponentDiagnosisRows(secondResultObj.value.componentDiagnosisTop3 || [])
+  return normalizeComponentDiagnosisRows(
+      secondResultObj.value.componentDiagnosisTop3 || [],
+      secondResultObj.value.subtypeTop5 || []
+  )
 })
 
 const subtypeTop5 = computed(() => {
@@ -418,12 +327,7 @@ function handleTraceChange(id) {
   getGraphTrace(id).then(res => {
     currentTrace.value = res.data || {}
 
-    if (Number(currentTrace.value.secondAlgorithmConfirmStatus) === 2) {
-      algorithmForm.algorithmName = null
-      currentTrace.value.secondAlgorithmResultJson = null
-    } else {
-      algorithmForm.algorithmName = currentTrace.value.secondAlgorithmName || null
-    }
+    algorithmForm.algorithmName = currentTrace.value.secondAlgorithmName || null
 
     loadTraceKg(id)
   })
@@ -512,67 +416,12 @@ function handleRunSecondAlgorithm() {
   })
 }
 
-function handleOpenConfirm() {
-  if (!selectedTraceId.value) {
-    proxy.$modal.msgWarning('请先选择追溯任务')
-    return
-  }
-
-  if (Number(currentTrace.value.secondAlgorithmStatus) !== 2) {
-    proxy.$modal.msgWarning('第二部分算法尚未运行完成，不能进行人工判定')
-    return
-  }
-
-  confirmForm.saveFlag = true
-  confirmForm.remark = ''
-  confirmOpen.value = true
-}
-
-function submitConfirmSecondAlgorithm() {
-  if (!selectedTraceId.value) {
-    proxy.$modal.msgWarning('请先选择追溯任务')
-    return
-  }
-
-  confirmSecondAlgorithm(selectedTraceId.value, {
-    saveFlag: confirmForm.saveFlag,
-    remark: confirmForm.remark
-  }).then(() => {
-    confirmOpen.value = false
-
-    if (confirmForm.saveFlag) {
-      proxy.$modal.msgSuccess('人工确认完成，算法结果已保存')
-      refreshCurrentTrace()
-      loadTraceKg(selectedTraceId.value)
-    } else {
-      proxy.$modal.msgWarning('已删除当前算法输出结果，请重新运行第二部分算法')
-
-      algorithmForm.algorithmName = null
-      currentTrace.value.secondAlgorithmName = null
-      currentTrace.value.secondAlgorithmStatus = 0
-      currentTrace.value.secondAlgorithmResultJson = null
-      currentTrace.value.secondAlgorithmConfirmStatus = 2
-      currentTrace.value.secondAlgorithmConfirmRemark = confirmForm.remark
-      currentTrace.value.workflowStage = 4
-
-      refreshCurrentTrace()
-    }
-  })
-}
-
 function refreshCurrentTrace() {
   if (!selectedTraceId.value) return
 
   getGraphTrace(selectedTraceId.value).then(res => {
     currentTrace.value = res.data || {}
-
-    if (Number(currentTrace.value.secondAlgorithmConfirmStatus) === 2) {
-      algorithmForm.algorithmName = null
-      currentTrace.value.secondAlgorithmResultJson = null
-    } else {
       algorithmForm.algorithmName = currentTrace.value.secondAlgorithmName || algorithmForm.algorithmName
-    }
-
     getTraceList()
   })
 }
@@ -586,69 +435,244 @@ function parseSecondResultObject(value) {
     }
   }
 
-  if (typeof value === 'object') {
-    return {
-      summaryRows: value.summaryRows || value.rows || [],
-      componentDiagnosisTop3: value.componentDiagnosisTop3 || [],
-      subtypeTop5: value.subtypeTop5 || []
-    }
-  }
+  let obj = {}
 
   try {
-    const obj = JSON.parse(value)
-
-    if (Array.isArray(obj)) {
-      return {
-        summaryRows: obj,
-        componentDiagnosisTop3: [],
-        subtypeTop5: []
-      }
-    }
-
-    return {
-      summaryRows: obj.summaryRows || obj.rows || [],
-      componentDiagnosisTop3: obj.componentDiagnosisTop3 || [],
-      subtypeTop5: obj.subtypeTop5 || []
-    }
+    obj = typeof value === 'string' ? JSON.parse(value) : value
   } catch (e) {
+    console.error('第二部分算法结果 JSON 解析失败：', e)
     return {
       summaryRows: [],
       componentDiagnosisTop3: [],
       subtypeTop5: []
     }
   }
+
+  const pythonResponse =
+      obj.pythonResponse ||
+      obj.python_response ||
+      obj
+
+  const reasoning = pythonResponse.reasoning || {}
+  const rcaContext = reasoning.rca_context || reasoning.rcaContext || {}
+
+  const firstContext =
+      pythonResponse.first_algorithm_context ||
+      pythonResponse.firstAlgorithmContext ||
+      obj.first_algorithm_context ||
+      obj.firstAlgorithmContext ||
+      {}
+
+  const rawContext =
+      firstContext.raw && typeof firstContext.raw === 'object'
+          ? firstContext.raw
+          : {}
+
+  const componentDiagnosisTop3 =
+      obj.componentDiagnosisTop3 ||
+      obj.component_diagnosis_top3 ||
+      rcaContext.component_diagnosis_top3 ||
+      rcaContext.componentDiagnosisTop3 ||
+      firstContext.component_diagnosis_top3 ||
+      firstContext.componentDiagnostics ||
+      rawContext.component_diagnosis_top3 ||
+      rawContext.componentDiagnostics ||
+      []
+
+  const subtypeTop5 =
+      obj.subtypeTop5 ||
+      obj.subtype_top5 ||
+      rcaContext.subtype_top5 ||
+      rcaContext.subtypeTop5 ||
+      rcaContext.root_component_subtype_topk ||
+      firstContext.subtype_top5 ||
+      firstContext.root_component_subtype_topk ||
+      firstContext.subtypeProbabilities ||
+      rawContext.subtype_top5 ||
+      rawContext.root_component_subtype_topk ||
+      rawContext.subtypeProbabilities ||
+      []
+
+  const summaryRows =
+      obj.summaryRows ||
+      obj.summary_rows ||
+      []
+
+  return {
+    summaryRows,
+    componentDiagnosisTop3,
+    subtypeTop5
+  }
 }
 
-function normalizeComponentDiagnosisRows(list) {
-  if (!Array.isArray(list)) {
-    return []
+function getComponentCodeFromRow(item) {
+  const directCode =
+      item.componentCode ||
+      item.component_id ||
+      item.component_code ||
+      item.componentId ||
+      item.root_component_code ||
+      ''
+
+  if (directCode) {
+    return directCode
   }
 
-  return list.map((item, index) => {
-    if (!item || typeof item !== 'object') {
-      return {
-        rank: index + 1,
-        componentCode: '-',
-        componentName: String(item || '-'),
-        faultType: '-',
-        confidence: null
-      }
-    }
+  const subTypeId =
+      item.sub_type_id ||
+      item.subtype_id ||
+      item.subTypeId ||
+      item.id ||
+      ''
 
-    return {
-      rank: item.rank || item.top || index + 1,
-      componentCode: item.componentCode || item.component_code || item.component_id || item.code || '-',
-      componentName: item.componentName || item.component_name || item.name || item.part_name || '-',
-      faultType: item.faultType || item.fault_type || item.type || item.reason || '-',
-      confidence: item.confidence !== undefined
-        ? item.confidence
-        : (item.score !== undefined
-          ? item.score
-          : (item.probability !== undefined
-            ? item.probability
-            : (item.severity !== undefined ? item.severity : null)))
-    }
-  })
+  // 例如 C003-S2 -> C003
+  const match = String(subTypeId).match(/^(C\d{3})-/)
+  if (match) {
+    return match[1]
+  }
+
+  return ''
+}
+
+function getComponentNameByCode(code) {
+  const map = {
+    C001: '液压泵总成',
+    C002: '方向控制阀',
+    C003: '作动筒',
+    C004: '溢流阀',
+    C005: '蓄能器',
+    C006: '冷却器',
+    C007: '过滤器',
+    C008: '液压油箱',
+    C009: '单向阀',
+    C010: '节流阀',
+    C011: '管路总成',
+    C012: '卸荷阀'
+  }
+
+  return map[code] || ''
+}
+function normalizeComponentDiagnosisRows(componentList, subtypeList = []) {
+  const rows = []
+
+  if (Array.isArray(componentList)) {
+    componentList.forEach(item => {
+      const score = Number(
+          item.confidence ??
+          item.probability ??
+          item.score ??
+          item.severity ??
+          item.component_confidence ??
+          item.rca_confidence ??
+          0
+      )
+
+      const componentCode = getComponentCodeFromRow(item)
+      const componentName =
+          item.componentName ||
+          item.component_name ||
+          item.root_component_name ||
+          getComponentNameByCode(componentCode) ||
+          '-'
+
+      rows.push({
+        ...item,
+        rank: 0,
+
+        // 同时给两套字段，避免模板 prop 不一致导致空白
+        componentId: componentCode,
+        componentCode: componentCode,
+        component_id: componentCode,
+
+        componentName: componentName,
+        component_name: componentName,
+
+        faultType:
+            item.faultType ||
+            item.fault_type ||
+            item.sub_type_name ||
+            item.subtypeName ||
+            '-',
+
+        confidence: Number.isNaN(score) ? 0 : score
+      })
+    })
+  }
+
+  if (Array.isArray(subtypeList)) {
+    subtypeList.forEach(item => {
+      const score = Number(
+          item.confidence ??
+          item.probability ??
+          item.score ??
+          item.severity ??
+          0
+      )
+
+      const componentCode = getComponentCodeFromRow(item)
+      const componentName =
+          item.componentName ||
+          item.component_name ||
+          getComponentNameByCode(componentCode) ||
+          '-'
+
+      rows.push({
+        ...item,
+        rank: 0,
+
+        componentId: componentCode,
+        componentCode: componentCode,
+        component_id: componentCode,
+
+        componentName: componentName,
+        component_name: componentName,
+
+        faultType:
+            item.faultType ||
+            item.fault_type ||
+            item.sub_type_name ||
+            item.subtypeName ||
+            item.subTypeName ||
+            '-',
+
+        confidence: Number.isNaN(score) ? 0 : score
+      })
+    })
+  }
+
+  const uniqueRows = []
+  const seen = new Set()
+
+  rows
+      .filter(item => item.componentCode || item.componentId || item.component_id)
+      .sort((a, b) => b.confidence - a.confidence)
+      .forEach(item => {
+        const componentCode =
+            item.componentCode ||
+            item.componentId ||
+            item.component_id ||
+            ''
+
+        const faultType =
+            item.faultType ||
+            item.fault_type ||
+            ''
+
+        // 用“部件编码 + 故障类型”去重
+        const key = `${componentCode}_${faultType}`
+
+        if (!seen.has(key)) {
+          seen.add(key)
+          uniqueRows.push(item)
+        }
+      })
+
+  return uniqueRows
+      .slice(0, 3)
+      .map((item, index) => ({
+        ...item,
+        rank: index + 1
+      }))
 }
 
 function normalizeSubtypeRows(list) {
@@ -656,41 +680,63 @@ function normalizeSubtypeRows(list) {
     return []
   }
 
-  return list.map((item, index) => {
-    if (!item || typeof item !== 'object') {
-      return {
-        rank: index + 1,
-        subtypeName: String(item || '-'),
-        confidence: null,
-        relatedComponent: '-',
-        description: '-'
-      }
-    }
+  return list
+      .map(item => {
+        const score = Number(
+            item.confidence ??
+            item.probability ??
+            item.score ??
+            item.severity ??
+            0
+        )
 
-    const subtypeName =
-      item.subtype_name ||
-      item.subtypeName ||
-      item.name ||
-      item.fault_type ||
-      item.type ||
-      '-'
+        const componentCode = getComponentCodeFromRow(item)
 
-    return {
-      rank: item.rank || item.top || index + 1,
-      subtypeName: subtypeName,
-      confidence: item.confidence !== undefined
-        ? item.confidence
-        : (item.score !== undefined
-          ? item.score
-          : (item.probability !== undefined
-            ? item.probability
-            : (item.prob !== undefined ? item.prob : null))),
-      relatedComponent: item.relatedComponent || item.related_component || item.component || item.component_name || '-',
+        const componentName =
+            item.relatedComponent ||
+            item.component_name ||
+            item.componentName ||
+            getComponentNameByCode(componentCode) ||
+            componentCode ||
+            '-'
 
-      // 说明列只展示 Python 返回中的 subtype_name 字段
-      description: item.subtype_name || '-'
-    }
-  })
+        return {
+          ...item,
+          rank: 0,
+
+          // 表格用字段
+          subtypeName:
+              item.subtypeName ||
+              item.sub_type_name ||
+              item.subtype_name ||
+              item.subTypeName ||
+              item.fault_type ||
+              item.sub_type_id ||
+              '-',
+
+          confidence: Number.isNaN(score) ? 0 : score,
+
+          relatedComponent: componentName,
+
+          description:
+              item.description ||
+              item.fault_part ||
+              item.faultPart ||
+              item.sub_type_id ||
+              '-',
+
+          // 兼容字段，后面如果表格 prop 换名字也不会空
+          componentCode,
+          componentId: componentCode,
+          componentName
+        }
+      })
+      .sort((a, b) => b.confidence - a.confidence)
+      .slice(0, 5)
+      .map((item, index) => ({
+        ...item,
+        rank: index + 1
+      }))
 }
 
 function formatResultValue(value) {
@@ -813,7 +859,7 @@ function formatConfidence(value) {
     return (num * 100).toFixed(2) + '%'
   }
 
-  return num.toFixed(2)
+  return num.toFixed(2) + '%'
 }
 
 function workflowName(stage) {
@@ -844,22 +890,6 @@ function secondAlgorithmTagType(status) {
   if (value === 1) return 'warning'
   if (value === 2) return 'success'
   if (value === 3) return 'danger'
-  return 'info'
-}
-
-function confirmStatusName(status) {
-  const value = Number(status)
-  if (value === 0) return '未人工确认'
-  if (value === 1) return '已确认保存'
-  if (value === 2) return '已驳回，需重跑'
-  return '未人工确认'
-}
-
-function confirmStatusTagType(status) {
-  const value = Number(status)
-  if (value === 0) return 'info'
-  if (value === 1) return 'success'
-  if (value === 2) return 'danger'
   return 'info'
 }
 

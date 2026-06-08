@@ -69,13 +69,4 @@ public class Topic5GraphController extends BaseController
         return success(traceProblemService.getTraceKg(id));
     }
 
-    /**
-     * 人工判定第二部分算法结果
-     */
-    @PostMapping("/{id}/confirm-second-algorithm")
-    public AjaxResult confirmSecondAlgorithm(@PathVariable Long id, @RequestBody SecondAlgorithmConfirmDTO dto)
-    {
-        traceProblemService.confirmSecondAlgorithmResult(id, dto.getSaveFlag(), dto.getRemark());
-        return success("人工判定完成");
-    }
 }

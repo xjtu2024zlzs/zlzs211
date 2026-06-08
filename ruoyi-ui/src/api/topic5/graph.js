@@ -41,11 +41,3 @@ export function getTraceKg(id) {
     method: 'get'
   })
 }
-// 人工判定第二部分算法结果
-export function confirmSecondAlgorithm(id, data) {
-  return request({
-    url: '/topic5/graph/' + id + '/confirm-second-algorithm',
-    method: 'post',
-    data: data
-  })
-}

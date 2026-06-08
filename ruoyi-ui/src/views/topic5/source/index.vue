@@ -288,7 +288,7 @@
             v-if="currentTrace.traceReportUrl"
             link
             type="primary"
-            @click="openReport(currentTrace.traceReportUrl)"
+            @click="openReport"
           >
             查看已导出报告
           </el-button>
@@ -341,6 +341,7 @@ import {
   getSourceResult,
   runSourceAlgorithm,
   exportSourceReport,
+  downloadSourceReport,
   pushTopic2,
   pushTopic3
 } from '@/api/topic5/source'
@@ -789,14 +790,51 @@ function formatConfidence(value) {
   return numberValue.toFixed(2)
 }
 
-function openReport(url) {
-  if (!url) {
-    proxy.$modal.msgWarning('报告路径为空')
+function openReport() {
+  if (!selectedTraceId.value) {
+    proxy.$modal.msgWarning('请先选择追溯任务')
     return
   }
 
-  const finalUrl = buildFileUrl(url)
-  window.open(finalUrl, '_blank')
+  if (!currentTrace.value.traceReportUrl) {
+    proxy.$modal.msgWarning('当前追溯任务尚未生成报告')
+    return
+  }
+
+  downloadSourceReport(selectedTraceId.value).then(res => {
+    const blob = new Blob([res], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    })
+
+    const fileName = getReportFileName(currentTrace.value.traceReportUrl)
+
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }).catch(err => {
+    console.error('下载报告失败：', err)
+    proxy.$modal.msgError('下载报告失败，请检查报告文件是否存在')
+  })
+}
+
+function getReportFileName(reportUrl) {
+  if (!reportUrl) {
+    return '最终溯源报告.docx'
+  }
+
+  const index = reportUrl.lastIndexOf('/')
+  if (index >= 0) {
+    return reportUrl.substring(index + 1)
+  }
+
+  return reportUrl
 }
 
 function buildFileUrl(url) {

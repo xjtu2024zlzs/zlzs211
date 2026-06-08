@@ -125,10 +125,6 @@ public interface ITopic5TraceProblemService
     public Map<String, Object> getTraceKg(Long id);
 
     /**
-     * 人工判定第二部分算法结果
-     */
-    public void confirmSecondAlgorithmResult(Long id, Boolean saveFlag, String remark);
-    /**
      * 运行最终溯源算法
      */
     public Map<String, Object> runSourceAlgorithm(Long id, String algorithmName);

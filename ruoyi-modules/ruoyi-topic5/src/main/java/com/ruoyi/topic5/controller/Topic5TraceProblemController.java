@@ -19,6 +19,16 @@ import com.ruoyi.topic5.service.ITopic5TraceProblemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import com.ruoyi.topic5.domain.dto.AttachmentSavePathDTO;
+
+import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.springframework.beans.factory.annotation.Value;
+import com.ruoyi.common.core.exception.ServiceException;
 /**
  * 课题五追溯问题Controller
  */
@@ -176,5 +186,68 @@ public class Topic5TraceProblemController extends BaseController
     {
         traceProblemService.saveDossierAttachmentsWithPath(id, dto.getAttachmentSavePath());
         return success("附件保存成功，保存位置已同步到追溯问题表");
+    }
+
+    @Value("${ruoyi.profile:D:/2.11/topic5_code}")
+    private String ruoyiProfile;
+    /**
+     * 下载最终溯源报告
+     */
+    @GetMapping("/{id}/report/download")
+    public void downloadTraceReport(@PathVariable Long id, HttpServletResponse response)
+    {
+        Topic5TraceProblem problem = traceProblemService.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在，无法下载报告");
+        }
+
+        String reportUrl = problem.getTraceReportUrl();
+
+        if (reportUrl == null || "".equals(reportUrl.trim()))
+        {
+            throw new ServiceException("当前追溯任务尚未生成报告");
+        }
+
+        try
+        {
+            // reportUrl 当前类似：/profile/topic5/report/trace_report_xxx.docx
+            String fileName = reportUrl.substring(reportUrl.lastIndexOf("/") + 1);
+
+            Path reportPath = Paths.get(
+                    ruoyiProfile.replace("\\", "/"),
+                    "topic5",
+                    "report",
+                    fileName
+            );
+
+            if (!Files.exists(reportPath))
+            {
+                throw new ServiceException("报告文件不存在：" + reportPath);
+            }
+
+            String encodedFileName = URLEncoder
+                    .encode(fileName, StandardCharsets.UTF_8.toString())
+                    .replaceAll("\\+", "%20");
+
+            response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            response.setCharacterEncoding("utf-8");
+            response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + encodedFileName);
+
+            try (OutputStream outputStream = response.getOutputStream())
+            {
+                Files.copy(reportPath, outputStream);
+                outputStream.flush();
+            }
+        }
+        catch (ServiceException e)
+        {
+            throw e;
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("下载报告失败：" + e.getMessage());
+        }
     }
 }
