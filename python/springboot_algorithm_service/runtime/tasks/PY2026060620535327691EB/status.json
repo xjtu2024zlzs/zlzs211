@@ -1,0 +1,278 @@
+{
+  "success": true,
+  "taskId": "PY2026060620535327691EB",
+  "algorithmType": "KQC_MINING",
+  "status": "SUCCESS",
+  "progress": 100,
+  "message": "任务完成",
+  "createdAt": "2026-06-06T20:53:53",
+  "startedAt": "2026-06-06T20:53:53",
+  "finishedAt": "2026-06-06T20:54:00",
+  "result": {
+    "success": true,
+    "code": 0,
+    "message": "Bosch KQC mining completed",
+    "taskId": "KQC20260606205353209",
+    "taskType": "KQC_MINING",
+    "status": "SUCCESS",
+    "data": {
+      "taskId": "KQC20260606205353209",
+      "status": "SUCCESS",
+      "result": {
+        "taskId": "KQC20260606205353209",
+        "taskType": "KQC_MINING",
+        "status": "SUCCESS",
+        "message": "Bosch KQC mining completed",
+        "targetKqc": "Response",
+        "selectedFeatureCount": 2,
+        "influenceCount": 1,
+        "topInfluences": [
+          {
+            "source_variable": "L0_S3_F76",
+            "station": "L0_S3",
+            "target_kqc": "Response",
+            "weight": -0.0010442789792218339,
+            "frequency": 0.8
+          }
+        ],
+        "graphData": {
+          "nodes": [
+            {
+              "id": "L0_S3_F72",
+              "name": "L0_S3_F72",
+              "station": "L0_S3",
+              "category": 0,
+              "symbolSize": 22,
+              "value": 0
+            },
+            {
+              "id": "L0_S3_F76",
+              "name": "L0_S3_F76",
+              "station": "L0_S3",
+              "category": 0,
+              "symbolSize": 22,
+              "value": 0
+            },
+            {
+              "id": "Response",
+              "name": "Response",
+              "station": null,
+              "category": 1,
+              "symbolSize": 34,
+              "value": 1
+            }
+          ],
+          "links": [
+            {
+              "source": "L0_S3_F76",
+              "target": "Response",
+              "weight": -0.0010442789792218339,
+              "frequency": 0.8,
+              "lineStyle": {
+                "color": "#c94a4a",
+                "width": 1.0
+              }
+            }
+          ],
+          "categories": [
+            {
+              "name": "质量特性"
+            },
+            {
+              "name": "响应结果"
+            }
+          ]
+        },
+        "responseGraphData": {
+          "nodes": [
+            {
+              "id": "Response",
+              "name": "Response",
+              "station": null,
+              "category": 1,
+              "symbolSize": 34,
+              "value": 1
+            },
+            {
+              "id": "L0_S3_F76",
+              "name": "L0_S3_F76",
+              "station": "L0_S3",
+              "category": 0,
+              "symbolSize": 22,
+              "value": 0
+            }
+          ],
+          "links": [
+            {
+              "source": "L0_S3_F76",
+              "target": "Response",
+              "weight": -0.0010442789792218339,
+              "frequency": 0.8,
+              "lineStyle": {
+                "color": "#c94a4a",
+                "width": 1.0
+              }
+            }
+          ],
+          "categories": [
+            {
+              "name": "质量特性"
+            },
+            {
+              "name": "响应结果"
+            }
+          ]
+        },
+        "cvScore": {
+          "mean": 0.5155912875682324,
+          "std": 0.007601377909342289,
+          "splits": 5
+        },
+        "adjPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_adj_matrix_selected.csv",
+        "freqPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_edge_frequency.csv",
+        "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209",
+        "outputFiles": {
+          "bosch_adj_matrix_raw": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_adj_matrix_raw.csv",
+          "bosch_edge_frequency": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_edge_frequency.csv",
+          "bosch_adj_matrix_selected": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_adj_matrix_selected.csv",
+          "bosch_influences_on_response": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_influences_on_response.csv",
+          "bosch_debug_stats": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_debug_stats.txt",
+          "bosch_kqc_cv_score": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_kqc_cv_score.txt"
+        }
+      },
+      "logs": []
+    },
+    "payload": {
+      "taskId": "KQC20260606205353209",
+      "taskType": "KQC_MINING",
+      "status": "SUCCESS",
+      "message": "Bosch KQC mining completed",
+      "targetKqc": "Response",
+      "selectedFeatureCount": 2,
+      "influenceCount": 1,
+      "topInfluences": [
+        {
+          "source_variable": "L0_S3_F76",
+          "station": "L0_S3",
+          "target_kqc": "Response",
+          "weight": -0.0010442789792218339,
+          "frequency": 0.8
+        }
+      ],
+      "graphData": {
+        "nodes": [
+          {
+            "id": "L0_S3_F72",
+            "name": "L0_S3_F72",
+            "station": "L0_S3",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S3_F76",
+            "name": "L0_S3_F76",
+            "station": "L0_S3",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "Response",
+            "name": "Response",
+            "station": null,
+            "category": 1,
+            "symbolSize": 34,
+            "value": 1
+          }
+        ],
+        "links": [
+          {
+            "source": "L0_S3_F76",
+            "target": "Response",
+            "weight": -0.0010442789792218339,
+            "frequency": 0.8,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          }
+        ],
+        "categories": [
+          {
+            "name": "质量特性"
+          },
+          {
+            "name": "响应结果"
+          }
+        ]
+      },
+      "responseGraphData": {
+        "nodes": [
+          {
+            "id": "Response",
+            "name": "Response",
+            "station": null,
+            "category": 1,
+            "symbolSize": 34,
+            "value": 1
+          },
+          {
+            "id": "L0_S3_F76",
+            "name": "L0_S3_F76",
+            "station": "L0_S3",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          }
+        ],
+        "links": [
+          {
+            "source": "L0_S3_F76",
+            "target": "Response",
+            "weight": -0.0010442789792218339,
+            "frequency": 0.8,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          }
+        ],
+        "categories": [
+          {
+            "name": "质量特性"
+          },
+          {
+            "name": "响应结果"
+          }
+        ]
+      },
+      "cvScore": {
+        "mean": 0.5155912875682324,
+        "std": 0.007601377909342289,
+        "splits": 5
+      },
+      "adjPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_adj_matrix_selected.csv",
+      "freqPath": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_edge_frequency.csv",
+      "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209",
+      "outputFiles": {
+        "bosch_adj_matrix_raw": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_adj_matrix_raw.csv",
+        "bosch_edge_frequency": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_edge_frequency.csv",
+        "bosch_adj_matrix_selected": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_adj_matrix_selected.csv",
+        "bosch_influences_on_response": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_influences_on_response.csv",
+        "bosch_debug_stats": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_debug_stats.txt",
+        "bosch_kqc_cv_score": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209/bosch_kqc_cv_score.txt"
+      }
+    }
+  },
+  "error": "",
+  "payload": {
+    "trainNumericPath": "F:\\new_BOS\\L0\\S3.csv",
+    "maxRows": 200000,
+    "maxFeatures": 80,
+    "perStation": 2,
+    "selectionMode": "response_assoc",
+    "ssRuns": 5,
+    "taskId": "KQC20260606205353209"
+  }
+}

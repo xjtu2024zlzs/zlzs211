@@ -68,6 +68,15 @@
         order by created_at asc, id asc
     </select>
 
+    <select id="getActiveTasksByType" resultMap="AlgTaskResultMap">
+        select <include refid="BaseColumnList"/>
+        from t3_algorithm_task_results
+        where task_type = #{taskType}
+          and status in ('PENDING', 'RUNNING')
+        order by updated_at asc, id asc
+        limit #{limit}
+    </select>
+
     <delete id="deleteByFlowTaskId">
         delete from t3_algorithm_task_results
         where task_id = #{flowTaskId}
@@ -197,6 +206,8 @@
             and (
                 task_id like concat('%', #{keyword}, '%')
                 or task_name like concat('%', #{keyword}, '%')
+                or business_object_id like concat('%', #{keyword}, '%')
+                or business_object_name like concat('%', #{keyword}, '%')
                 or summary_result like concat('%', #{keyword}, '%')
                 or result_value like concat('%', #{keyword}, '%')
                 or error_message like concat('%', #{keyword}, '%')

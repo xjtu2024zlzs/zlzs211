@@ -5,6 +5,7 @@ import com.ruoyi.project3.config.PythonAlgorithmProperties;
 import com.ruoyi.project3.config.faultiden.FaultIdenFileProps;
 import com.ruoyi.project3.domain.algorithm.warning.WarningDetectReq;
 import com.ruoyi.project3.domain.faultiden.FaultIdenFilePackage;
+import com.ruoyi.project3.domain.faultiden.FaultIdenSampleFile;
 import com.ruoyi.project3.service.FaultIdenFileService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,8 @@ public class WarningDetectReqAssembler
 {
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private static final String USAGE_WARNING = "PROCESS_ANOMALY";
+    private static final String USAGE_BOSCH_WARNING = "BOSCH_PROCESS_ANOMALY";
+    private static final String USAGE_MANUFACTURE_COMMON = "MANUFACTURE_COMMON";
     private static final String RAW_SINGLE = "RAW_SINGLE";
 
     @Resource
@@ -49,6 +52,10 @@ public class WarningDetectReqAssembler
 
         List<Long> trainIds = sampleIds(reqMap, "trainSampleIds", "train_sample_ids");
         List<Long> detectIds = sampleIds(reqMap, "detectSampleIds", "detect_sample_ids");
+        if (boschPath == null && USAGE_BOSCH_WARNING.equals(text(first(reqMap, "dataUsage", "data_usage"))))
+        {
+            boschPath = boschPathFromSample(firstNonEmpty(trainIds, sampleIds(reqMap)));
+        }
         FaultIdenFilePackage legacyPack = null;
         FaultIdenFilePackage trainPack = null;
         FaultIdenFilePackage detectPack = null;
@@ -91,7 +98,7 @@ public class WarningDetectReqAssembler
         if (boschPath != null)
         {
             Map<String, Object> info = new LinkedHashMap<>();
-            info.put("fileName", "train_numeric.csv");
+            info.put("fileName", Paths.get(boschPath).getFileName().toString());
             info.put("fileUrl", boschPath);
             info.put("fileType", "csv");
             info.put("fileMode", "bosch_train_numeric");
@@ -134,12 +141,41 @@ public class WarningDetectReqAssembler
         req.setDevice(device == null ? "auto" : device);
     }
 
+    private List<Long> firstNonEmpty(List<Long> primary, List<Long> fallback)
+    {
+        return primary == null || primary.isEmpty() ? fallback : primary;
+    }
+
+    private String boschPathFromSample(List<Long> ids)
+    {
+        if (ids == null || ids.isEmpty())
+        {
+            throw new ServiceException("请选择工序异常检测数据文件");
+        }
+        FaultIdenSampleFile sample = faultIdenFileService.sample(ids.get(0));
+        String usage = text(sample.getDataUsage());
+        if (!USAGE_WARNING.equals(usage) && !USAGE_MANUFACTURE_COMMON.equals(usage))
+        {
+            throw new ServiceException("工序异常检测只能使用工序异常检测或制造周期通用数据");
+        }
+        String sourceFile = text(sample.getSourceFile());
+        if (sourceFile == null)
+        {
+            throw new ServiceException("选中的数据文件路径为空");
+        }
+        return sourceFile;
+    }
+
     private Map<String, Object> ctx(Map<String, Object> req, String partId, String partName, String processId, String processName)
     {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("partId", partId);
         out.put("partName", partName);
         out.put("partCode", text(first(req, "partCode", "part_code")));
+        out.put("aircraftId", text(first(req, "aircraftId", "aircraft_id")));
+        out.put("subsystemId", text(first(req, "subsystemId", "subsystem_id")));
+        out.put("equipmentId", text(first(req, "equipmentId", "equipment_id")));
+        out.put("componentId", text(first(req, "componentId", "component_id")));
         out.put("processId", processId);
         out.put("processName", processName);
         out.put("processOrder", first(req, "processOrder", "process_order"));

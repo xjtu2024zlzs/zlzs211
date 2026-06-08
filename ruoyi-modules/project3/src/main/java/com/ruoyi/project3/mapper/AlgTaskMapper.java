@@ -16,6 +16,11 @@ public interface AlgTaskMapper
 
     List<AlgTaskResult> getTasksByFlowTaskId(@Param("flowTaskId") String flowTaskId);
 
+    List<AlgTaskResult> getActiveTasksByType(
+            @Param("taskType") String taskType,
+            @Param("limit") Integer limit
+    );
+
     int deleteByFlowTaskId(@Param("flowTaskId") String flowTaskId);
 
     AlgTaskResult getLatestFeatureProcessingByFlowTaskId(@Param("flowTaskId") String flowTaskId);

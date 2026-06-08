@@ -1,0 +1,137 @@
+{
+  "success": true,
+  "taskId": "PY202606062054181626FC9",
+  "algorithmType": "KEY_PROCESS",
+  "status": "SUCCESS",
+  "progress": 100,
+  "message": "任务完成",
+  "createdAt": "2026-06-06T20:54:18",
+  "startedAt": "2026-06-06T20:54:18",
+  "finishedAt": "2026-06-06T20:54:18",
+  "result": {
+    "success": true,
+    "code": 0,
+    "message": "Bosch key station identification completed",
+    "taskId": "KP20260606205418138",
+    "taskType": "KEY_PROCESS_IDENTIFY",
+    "status": "SUCCESS",
+    "data": {
+      "taskId": "KP20260606205418138",
+      "status": "SUCCESS",
+      "result": {
+        "taskId": "KP20260606205418138",
+        "taskType": "KEY_PROCESS_IDENTIFY",
+        "status": "SUCCESS",
+        "message": "Bosch key station identification completed",
+        "keyProcessCode": "L0_S3",
+        "keyProcessName": "L0_S3",
+        "confidence": 0.0,
+        "score": 0.0,
+        "reason": "根据KQC加权的直接响应影响、路径响应影响和工序PageRank综合排序。",
+        "suggestion": "建议优先对排名最高的工序进行工艺复核和质量控制检查。",
+        "candidateProcesses": [
+          {
+            "rank": 1,
+            "processCode": "L0_S3",
+            "processName": "L0_S3",
+            "score": 0.0,
+            "directResponseScore": 0.00083542318337744,
+            "pathResponseScore": 1.0,
+            "pagerankScore": 1.0
+          }
+        ],
+        "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260606205418138/key_station",
+        "outputFiles": {
+          "bosch_key_station_ranking": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260606205418138/key_station/bosch_key_station_ranking.csv",
+          "bosch_key_station_evidence": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260606205418138/key_station/bosch_key_station_evidence.csv",
+          "bosch_station_network": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260606205418138/key_station/bosch_station_network.csv"
+        }
+      },
+      "logs": []
+    },
+    "payload": {
+      "taskId": "KP20260606205418138",
+      "taskType": "KEY_PROCESS_IDENTIFY",
+      "status": "SUCCESS",
+      "message": "Bosch key station identification completed",
+      "keyProcessCode": "L0_S3",
+      "keyProcessName": "L0_S3",
+      "confidence": 0.0,
+      "score": 0.0,
+      "reason": "根据KQC加权的直接响应影响、路径响应影响和工序PageRank综合排序。",
+      "suggestion": "建议优先对排名最高的工序进行工艺复核和质量控制检查。",
+      "candidateProcesses": [
+        {
+          "rank": 1,
+          "processCode": "L0_S3",
+          "processName": "L0_S3",
+          "score": 0.0,
+          "directResponseScore": 0.00083542318337744,
+          "pathResponseScore": 1.0,
+          "pagerankScore": 1.0
+        }
+      ],
+      "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260606205418138/key_station",
+      "outputFiles": {
+        "bosch_key_station_ranking": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260606205418138/key_station/bosch_key_station_ranking.csv",
+        "bosch_key_station_evidence": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260606205418138/key_station/bosch_key_station_evidence.csv",
+        "bosch_station_network": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260606205418138/key_station/bosch_station_network.csv"
+      }
+    }
+  },
+  "error": "",
+  "payload": {
+    "authCode": "ALGO_KEY_PROCESS_IDENTIFY_EXECUTE",
+    "requestId": "ff2691ddb88240afbf482f7b6d513643",
+    "taskId": "KP20260606205418138",
+    "algorithmVersion": "v1.0",
+    "requestTime": "2026-06-06 20:54:18",
+    "targetType": "part",
+    "targetId": "PT1",
+    "targetName": "液压泵轴",
+    "targetNodeId": "part_template:PT1",
+    "hierarchyContext": {
+      "aircraftId": "A1",
+      "aircraftName": "C919-01",
+      "subsystemId": "S1",
+      "subsystemName": "机翼",
+      "deviceId": "E1",
+      "deviceName": "液压系统",
+      "equipmentId": "E1",
+      "equipmentName": "液压系统",
+      "componentId": "C1",
+      "componentName": "液压泵",
+      "partId": "PT1",
+      "partName": "液压泵轴",
+      "breadcrumb": [
+        "C919-01",
+        "机翼",
+        "液压系统",
+        "液压泵",
+        "液压泵轴"
+      ]
+    },
+    "fileInfo": {
+      "fileName": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209",
+      "fileUrl": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209",
+      "fileType": "bosch",
+      "fileMode": "bosch",
+      "dataUsage": "BOSCH_KEY_PROCESS"
+    },
+    "dbExportInfo": {},
+    "params": {
+      "dataSelectionMode": "BOSCH",
+      "sampleIds": [],
+      "fileMode": "bosch",
+      "topN": 10.0,
+      "threshold": 0.7,
+      "samplingRate": 25600.0,
+      "kqcTaskId": "KQC20260606205353209",
+      "kqcOutputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_kqc/KQC20260606205353209",
+      "adjPath": "F:\\TotalData\\FaultIdentifyData\\AlgorithmData\\bosch_kqc\\KQC20260606205353209\\bosch_adj_matrix_selected.csv",
+      "freqPath": "F:\\TotalData\\FaultIdentifyData\\AlgorithmData\\bosch_kqc\\KQC20260606205353209\\bosch_edge_frequency.csv",
+      "keepFreq": 0.6,
+      "weightThresh": 0.0001
+    }
+  }
+}

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS `fault_iden_sample` (
     `component_id` VARCHAR(50) NULL COMMENT 'component id',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     UNIQUE KEY `uk_fault_iden_sample` (`condition_label`, `bearing_code`, `sample_no`, `data_usage`),
+    UNIQUE KEY `uk_fault_iden_sample_file` (`condition_label`, `bearing_code`, `file_name`, `data_usage`),
     KEY `idx_condition_bearing` (`condition_label`, `bearing_code`),
     KEY `idx_fault_iden_sample_data_usage` (`data_usage`),
     KEY `idx_file_name` (`file_name`),

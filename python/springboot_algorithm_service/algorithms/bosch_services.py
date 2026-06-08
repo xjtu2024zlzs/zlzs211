@@ -199,7 +199,7 @@ def run_bosch_process_anomaly(
         "abnormalLevel": _level(abnormal_score),
         "abnormalScore": abnormal_score,
         "abnormalTime": str(top_points[0].get("Id")) if top_points else None,
-        "suggestion": "Review alarm points with the largest EWMA excess and trace the selected station feature.",
+        "suggestion": "建议复核EWMA超限最大的告警点，并追溯所选工序特征。",
         "curveData": [{"x": int(i), "value": float(v)} for i, v in enumerate(scores["ewma_stat"].head(200).tolist())],
         "summary": summary,
         "topAlarmPoints": top_points,

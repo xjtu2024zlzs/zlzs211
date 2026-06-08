@@ -1,0 +1,9 @@
+{
+  "taskId": "WA20260606205551827",
+  "taskType": "PROCESS_ANOMALY_DETECT",
+  "sourceTaskId": null,
+  "datasetId": null,
+  "status": "FAILED",
+  "message": "No Bosch numeric features found for station='L3_S36'.",
+  "errorCode": "PROCESS_ANOMALY_FAILED"
+}
