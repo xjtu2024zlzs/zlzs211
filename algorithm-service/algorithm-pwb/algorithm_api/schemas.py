@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+
+MethodName = Literal["Magneto", "MagnetoBoost", "MagnetoGPT"]
+VariantName = Literal["all", "one2one"]
 
 
 class SourceRequest(BaseModel):
@@ -28,7 +32,9 @@ class GroundTruthRequest(BaseModel):
 
 
 class AlgorithmRequest(BaseModel):
-    method: Literal["Magneto", "MagnetoBoost", "MagnetoGPT"] = "Magneto"
+    method: MethodName | None = None
+    methods: list[MethodName] = Field(default_factory=list)
+    variants: list[VariantName] = Field(default_factory=lambda: ["all", "one2one"])
     embeddingModel: str = "mpnet"
     encodingMode: str = "header_values_verbose_with_table"
     samplingMode: str = "mixed"
@@ -40,6 +46,19 @@ class AlgorithmRequest(BaseModel):
     llmModelKwargs: dict[str, Any] = Field(default_factory=dict)
     boostThreshold: float = Field(default=0.8, ge=0.0, le=1.0)
     boostAlpha: float = Field(default=0.15, ge=0.0, le=1.0)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_legacy_method(cls, data):
+        if not isinstance(data, dict):
+            return data
+        normalized = dict(data)
+        if "methods" not in normalized:
+            if normalized.get("useLlmReranker"):
+                normalized["methods"] = ["MagnetoGPT"]
+            elif normalized.get("method"):
+                normalized["methods"] = [normalized["method"]]
+        return normalized
 
 
 class MatchRunRequest(BaseModel):

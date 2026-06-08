@@ -479,8 +479,9 @@ function handleHistory(row) {
 }
 
 function resultSetLabel(item) {
-  const suffix = item.isDefault === 1 ? ' / 默认' : ''
-  return `${item.resultSetName || item.resultSetId} / ${item.totalRows || 0}条${suffix}`
+  const displaySuffix = item.isDefault === 1 ? ' / 默认' : ''
+  const displayF1 = item.f1Score !== null && item.f1Score !== undefined ? ` / F1 ${formatMetricValue(item.f1Score)}` : ''
+  return `${item.resultSetName || item.resultSetId}${displayF1} / ${item.totalRows || 0}条${displaySuffix}`
 }
 
 function recordLabel(item) {

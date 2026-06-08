@@ -80,6 +80,16 @@ public class MatchTaskController extends BaseController
     }
 
     /**
+     * 查询单次运行记录状态，用于前端进度条轮询。
+     */
+    @RequiresPermissions("project1:matchTask:query")
+    @GetMapping("/record/status/{recordId}")
+    public AjaxResult recordStatus(@PathVariable("recordId") Long recordId)
+    {
+        return success(matchTaskService.recordStatus(recordId));
+    }
+
+    /**
      * 获取模式映射任务创建详细信息
      */
     @RequiresPermissions("project1:matchTask:query")
@@ -119,7 +129,7 @@ public class MatchTaskController extends BaseController
     @PostMapping("/run/{taskId}")
     public AjaxResult run(@PathVariable("taskId") Long taskId)
     {
-        return success(matchTaskService.runWithoutAlgorithm(taskId));
+        return success(matchTaskService.runMatchTask(taskId));
     }
 
     /**

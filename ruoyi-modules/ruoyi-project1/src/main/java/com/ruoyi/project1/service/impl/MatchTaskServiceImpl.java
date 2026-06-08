@@ -1,13 +1,15 @@
 package com.ruoyi.project1.service.impl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import com.ruoyi.common.core.exception.ServiceException;
 import com.ruoyi.common.core.utils.DateUtils;
 import com.ruoyi.project1.domain.ApiPullDatasource;
@@ -60,6 +63,7 @@ public class MatchTaskServiceImpl implements IMatchTaskService
     private static final String DEFAULT_PROVIDER = "deepseek";
     private static final String DEFAULT_MODEL = "deepseek-chat";
     private static final BigDecimal DEFAULT_THRESHOLD = new BigDecimal("0.9000");
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {};
 
     @Autowired
     private MatchTaskMapper matchTaskMapper;
@@ -100,7 +104,8 @@ public class MatchTaskServiceImpl implements IMatchTaskService
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {};
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     @Override
     public MatchTask selectMatchTaskByTaskId(Long taskId)
@@ -187,8 +192,7 @@ public class MatchTaskServiceImpl implements IMatchTaskService
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> runWithoutAlgorithm(Long taskId)
+    public Map<String, Object> runMatchTask(Long taskId)
     {
         MatchTask task = requireTask(taskId);
         MatchTaskVersion version = resolveCurrentVersion(task);
@@ -215,52 +219,42 @@ public class MatchTaskServiceImpl implements IMatchTaskService
 
         Map<String, Object> requestPayload = buildAlgorithmRequest(task, version, datasource, apiPull);
         MatchTaskRecord record = createRunningRecord(task, version, requestPayload);
-        try
+        CompletableFuture.runAsync(() -> executeMatchTaskInBackground(task.getTaskId(), version.getVersionId(),
+                datasource.getDatasourceId(), record.getRecordId(), requestPayload));
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("taskId", task.getTaskId());
+        payload.put("recordId", record.getRecordId());
+        payload.put("executionStatus", record.getExecutionStatus());
+        payload.put("progress", record.getProgress());
+        payload.put("currentStage", record.getCurrentStage());
+        payload.put("message", "模式映射任务已开始运行，正在生成候选结果集");
+        return payload;
+    }
+
+    @Override
+    public Map<String, Object> recordStatus(Long recordId)
+    {
+        MatchTaskRecord record = matchTaskRecordMapper.selectMatchTaskRecordByRecordId(recordId);
+        if (record == null)
         {
-            Map<String, Object> response = algorithmMatchClient.run(requestPayload);
-            MatchResultSet resultSet = persistAlgorithmResult(task, version, record, datasource, response);
-
-            record.setDefaultResultSetId(resultSet.getResultSetId());
-            record.setExecutionStatus("success");
-            record.setCurrentStage("算法结果已入库");
-            record.setProgress(100L);
-            record.setResultsDir(asString(response.get("requestId")));
-            record.setFinishedAt(DateUtils.getNowDate());
-            matchTaskRecordMapper.updateMatchTaskRecord(record);
-
-            MatchTask taskUpdate = new MatchTask();
-            taskUpdate.setTaskId(task.getTaskId());
-            taskUpdate.setLastRecordStatus("success");
-            taskUpdate.setLastRecordStage("算法结果已入库");
-            taskUpdate.setUpdateTime(DateUtils.getNowDate());
-            matchTaskMapper.updateMatchTask(taskUpdate);
-
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("taskId", task.getTaskId());
-            payload.put("recordId", record.getRecordId());
-            payload.put("resultSetId", resultSet.getResultSetId());
-            payload.put("resultSetName", resultSet.getResultSetName());
-            payload.put("rowCount", resultSet.getTotalRows());
-            payload.put("message", "模式匹配算法运行完成，结果已写入若依业务表");
-            return payload;
+            throw new ServiceException("运行记录不存在，请刷新页面后重试");
         }
-        catch (RuntimeException e)
-        {
-            record.setExecutionStatus("failed");
-            record.setCurrentStage("算法运行失败");
-            record.setProgress(100L);
-            record.setErrorMessage(e.getMessage());
-            record.setFinishedAt(DateUtils.getNowDate());
-            matchTaskRecordMapper.updateMatchTaskRecord(record);
 
-            MatchTask taskUpdate = new MatchTask();
-            taskUpdate.setTaskId(task.getTaskId());
-            taskUpdate.setLastRecordStatus("failed");
-            taskUpdate.setLastRecordStage("算法运行失败");
-            taskUpdate.setUpdateTime(DateUtils.getNowDate());
-            matchTaskMapper.updateMatchTask(taskUpdate);
-            throw e;
-        }
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("recordId", record.getRecordId());
+        payload.put("taskId", record.getTaskId());
+        payload.put("versionId", record.getVersionId());
+        payload.put("executionStatus", record.getExecutionStatus());
+        payload.put("progress", record.getProgress());
+        payload.put("currentStage", record.getCurrentStage());
+        String recordMessage = record.getErrorMessage();
+        payload.put("noticeMessage", noticeMessage(recordMessage));
+        payload.put("errorMessage", noticeMessage(recordMessage) == null ? recordMessage : null);
+        payload.put("resultSetCount", countResultSets(recordId));
+        payload.put("startedAt", record.getStartedAt());
+        payload.put("finishedAt", record.getFinishedAt());
+        return payload;
     }
 
     @Override
@@ -311,6 +305,58 @@ public class MatchTaskServiceImpl implements IMatchTaskService
         return payload;
     }
 
+    private void executeMatchTaskInBackground(Long taskId, Long versionId, Long datasourceId, Long recordId,
+            Map<String, Object> requestPayload)
+    {
+        MatchTask task = matchTaskMapper.selectMatchTaskByTaskId(taskId);
+        MatchTaskVersion version = matchTaskVersionMapper.selectMatchTaskVersionByVersionId(versionId);
+        Datasource datasource = datasourceMapper.selectDatasourceByDatasourceId(datasourceId);
+        MatchTaskRecord record = matchTaskRecordMapper.selectMatchTaskRecordByRecordId(recordId);
+        if (task == null || version == null || datasource == null || record == null)
+        {
+            markRecordFailed(recordId, taskId, "任务上下文缺失，无法继续执行");
+            return;
+        }
+
+        try
+        {
+            updateRunProgress(recordId, taskId, 15L, "构造源模式和目标模式", null);
+            updateRunProgress(recordId, taskId, 30L, "调用模式匹配算法", null);
+            Map<String, Object> response = algorithmMatchClient.run(requestPayload);
+            int resultSetCount = asNumber(response.get("resultSetCount"), mapList(response.get("resultSets")).size());
+            updateRunProgress(recordId, taskId, 55L, "解析 " + resultSetCount + " 个候选结果集", null);
+
+            transactionTemplate.execute(status -> {
+                persistAlgorithmResultSets(task, version, record, datasource, response);
+                return null;
+            });
+
+            updateRunProgress(recordId, taskId, 90L, "初始化审核记录", null);
+            String successStage = "算法结果已入库，生成 " + resultSetCount + " 个候选结果集";
+            String notice = firstWarningMessage(response);
+            MatchTaskRecord finishedRecord = new MatchTaskRecord();
+            finishedRecord.setRecordId(recordId);
+            finishedRecord.setExecutionStatus("success");
+            finishedRecord.setCurrentStage(successStage);
+            finishedRecord.setProgress(100L);
+            finishedRecord.setResultsDir(asString(response.get("requestId")));
+            finishedRecord.setErrorMessage(StringUtils.isBlank(notice) ? null : "NOTICE:" + notice);
+            finishedRecord.setFinishedAt(DateUtils.getNowDate());
+            matchTaskRecordMapper.updateMatchTaskRecord(finishedRecord);
+
+            MatchTask taskUpdate = new MatchTask();
+            taskUpdate.setTaskId(taskId);
+            taskUpdate.setLastRecordStatus("success");
+            taskUpdate.setLastRecordStage(successStage);
+            taskUpdate.setUpdateTime(DateUtils.getNowDate());
+            matchTaskMapper.updateMatchTask(taskUpdate);
+        }
+        catch (RuntimeException e)
+        {
+            markRecordFailed(recordId, taskId, e.getMessage());
+        }
+    }
+
     private Map<String, Object> buildAlgorithmRequest(MatchTask task, MatchTaskVersion version, Datasource datasource, ApiPullDatasource apiPull)
     {
         String requestId = "match-" + task.getTaskId() + "-" + System.currentTimeMillis();
@@ -333,14 +379,21 @@ public class MatchTaskServiceImpl implements IMatchTaskService
         groundTruth.put("mode", "file");
 
         Map<String, Object> algorithm = new LinkedHashMap<>();
-        algorithm.put("method", defaultString(asString(params.get("method")), "Magneto"));
+        algorithm.put("methods", List.of("Magneto", "MagnetoBoost", "MagnetoGPT"));
+        algorithm.put("variants", List.of("all", "one2one"));
         algorithm.put("embeddingModel", defaultString(version.getEmbeddingModelKey(), DEFAULT_EMBEDDING_MODEL));
         algorithm.put("encodingMode", defaultString(version.getEncodingModeKey(), DEFAULT_ENCODING_MODE));
+        algorithm.put("evalMode", defaultString(version.getEvalModeKey(), DEFAULT_EVAL_MODE));
+        String llmModel = resolveLlmModel(version);
+        if (StringUtils.isNotBlank(llmModel))
+        {
+            algorithm.put("llmModel", llmModel);
+        }
         algorithm.put("samplingMode", defaultString(asString(params.get("samplingMode")), "mixed"));
         algorithm.put("samplingSize", asNumber(params.get("samplingSize"), 10));
         algorithm.put("topk", asNumber(params.get("topk"), 20));
         algorithm.put("threshold", asDouble(params.get("threshold"), 0.0D));
-        algorithm.put("useLlmReranker", false);
+        algorithm.put("useLlmReranker", StringUtils.isNotBlank(llmModel));
         algorithm.put("boostThreshold", asDouble(params.get("boostThreshold"), 0.8D));
         algorithm.put("boostAlpha", asDouble(params.get("boostAlpha"), 0.15D));
 
@@ -360,8 +413,8 @@ public class MatchTaskServiceImpl implements IMatchTaskService
         record.setVersionId(version.getVersionId());
         record.setSchemaSnapshotId(version.getSchemaSnapshotId());
         record.setExecutionStatus("running");
-        record.setCurrentStage("调用模式匹配算法");
-        record.setProgress(20L);
+        record.setCurrentStage("创建运行记录");
+        record.setProgress(5L);
         record.setAlgorithmParamsSnapshot(toJson(requestPayload));
         record.setStartedAt(DateUtils.getNowDate());
         record.setCreateTime(DateUtils.getNowDate());
@@ -370,23 +423,23 @@ public class MatchTaskServiceImpl implements IMatchTaskService
         MatchTask taskUpdate = new MatchTask();
         taskUpdate.setTaskId(task.getTaskId());
         taskUpdate.setLastRecordStatus("running");
-        taskUpdate.setLastRecordStage("调用模式匹配算法");
+        taskUpdate.setLastRecordStage(record.getCurrentStage());
         taskUpdate.setUpdateTime(DateUtils.getNowDate());
         matchTaskMapper.updateMatchTask(taskUpdate);
         return record;
     }
 
-    private MatchResultSet persistAlgorithmResult(MatchTask task, MatchTaskVersion version, MatchTaskRecord record, Datasource datasource, Map<String, Object> response)
+    private List<MatchResultSet> persistAlgorithmResultSets(MatchTask task, MatchTaskVersion version, MatchTaskRecord record,
+            Datasource datasource, Map<String, Object> response)
     {
-        Map<String, Object> summary = asMap(response.get("summary"));
-        List<Map<String, Object>> selectedRows = mapList(response.get("oneToOneRows"));
-        if (selectedRows.isEmpty())
+        List<Map<String, Object>> resultSetPayloads = mapList(response.get("resultSets"));
+        if (resultSetPayloads.isEmpty())
         {
-            selectedRows = mapList(response.get("rows"));
+            resultSetPayloads = legacyResultSets(response);
         }
-        if (selectedRows.isEmpty())
+        if (resultSetPayloads.isEmpty())
         {
-            throw new ServiceException("算法服务未返回字段匹配结果");
+            throw new ServiceException("算法服务未返回 resultSets，无法生成候选结果集");
         }
 
         MatchResultVersion resultVersion = new MatchResultVersion();
@@ -397,31 +450,51 @@ public class MatchTaskServiceImpl implements IMatchTaskService
         resultVersion.setCreateTime(DateUtils.getNowDate());
         matchResultVersionMapper.insertMatchResultVersion(resultVersion);
 
+        List<MatchResultSet> resultSets = new ArrayList<>();
+        for (Map<String, Object> resultSetPayload : resultSetPayloads)
+        {
+            MatchResultSet resultSet = persistOneResultSet(task, version, record, datasource, resultVersion, response, resultSetPayload);
+            resultSets.add(resultSet);
+        }
+        return resultSets;
+    }
+
+    private MatchResultSet persistOneResultSet(MatchTask task, MatchTaskVersion version, MatchTaskRecord record,
+            Datasource datasource, MatchResultVersion resultVersion, Map<String, Object> response, Map<String, Object> resultSetPayload)
+    {
+        Map<String, Object> summary = asMap(resultSetPayload.get("summary"));
+        List<Map<String, Object>> rows = mapList(resultSetPayload.get("rows"));
+
+        String method = defaultString(asString(resultSetPayload.get("method")), "Magneto");
+        String variant = defaultString(asString(resultSetPayload.get("variant")), "one2one");
+        String resultSetName = defaultString(asString(resultSetPayload.get("resultSetName")), method + " CF-SF " + variant);
+
         MatchResultSet resultSet = new MatchResultSet();
         resultSet.setResultVersionId(resultVersion.getResultVersionId());
         resultSet.setTaskId(task.getTaskId());
         resultSet.setVersionId(version.getVersionId());
         resultSet.setRecordId(record.getRecordId());
         resultSet.setSourceDatasourceId(datasource.getDatasourceId());
-        resultSet.setMethod(defaultString(asString(response.get("method")), "Magneto"));
-        resultSet.setVariant(defaultString(version.getEncodingModeKey(), DEFAULT_ENCODING_MODE));
-        resultSet.setResultSetName(resultSet.getMethod() + " CF-SF one2one");
+        resultSet.setMethod(method);
+        resultSet.setVariant(variant);
+        resultSet.setResultSetName(resultSetName);
         resultSet.setIsDefault(0);
-        resultSet.setTotalRows((long) selectedRows.size());
-        resultSet.setAvgScore(asBigDecimal(summary.get("avgScore"), averageScore(selectedRows)));
+        resultSet.setTotalRows(asLong(summary.get("totalRows"), rows.size()));
+        resultSet.setAvgScore(asBigDecimal(summary.get("avgScore"), averageScore(rows)));
         resultSet.setCreateTime(DateUtils.getNowDate());
         matchResultSetMapper.insertMatchResultSet(resultSet);
 
-        long rowNo = 1L;
-        for (Map<String, Object> rowPayload : selectedRows)
+        long fallbackRowNo = 1L;
+        for (Map<String, Object> rowPayload : rows)
         {
             MatchResultRow row = new MatchResultRow();
             row.setResultSetId(resultSet.getResultSetId());
-            row.setRowNo(rowNo++);
+            row.setRowNo(asLong(rowPayload.get("rowNo"), fallbackRowNo++));
             row.setSourceDatabase(asString(rowPayload.get("sourceDatabase")));
             row.setSourceTable(asString(rowPayload.get("sourceTable")));
             row.setSourceColumn(asString(rowPayload.get("sourceColumn")));
-            row.setTargetTable(normalizeTargetTableForBusiness(asString(rowPayload.get("targetTable"))));
+            row.setTargetTable(normalizeTargetTableForBusiness(firstNonBlank(asString(rowPayload.get("targetTable")),
+                    asString(rowPayload.get("targetPhysicalTable")))));
             row.setTargetColumn(asString(rowPayload.get("targetColumn")));
             row.setScore(asBigDecimal(rowPayload.get("score"), BigDecimal.ZERO));
             row.setRawPayload(toJson(rowPayload));
@@ -431,7 +504,7 @@ public class MatchTaskServiceImpl implements IMatchTaskService
             persistInitialReview(task, version, record, datasource, resultSet, row);
         }
 
-        persistMetrics(task, version, record, resultSet, response);
+        persistMetrics(task, version, record, resultSet, response, resultSetPayload);
         return resultSet;
     }
 
@@ -464,31 +537,69 @@ public class MatchTaskServiceImpl implements IMatchTaskService
         reviewedMatchMapper.insertReviewedMatch(review);
     }
 
-    private void persistMetrics(MatchTask task, MatchTaskVersion version, MatchTaskRecord record, MatchResultSet resultSet, Map<String, Object> response)
+    private void persistMetrics(MatchTask task, MatchTaskVersion version, MatchTaskRecord record, MatchResultSet resultSet,
+            Map<String, Object> response, Map<String, Object> resultSetPayload)
     {
-        for (Map<String, Object> metricPayload : mapList(response.get("metrics")))
+        String resultDir = asString(response.get("requestId"));
+        Map<String, Object> summary = asMap(resultSetPayload.get("metricsSummary"));
+        insertSummaryMetric(task, version, record, resultSet, "mrr", "MRR", summary.get("mrr"), resultDir);
+        insertSummaryMetric(task, version, record, resultSet, "recallAt20", "Recall@20", summary.get("recallAt20"), resultDir);
+        insertSummaryMetric(task, version, record, resultSet, "precision", "Precision", summary.get("precision"), resultDir);
+        insertSummaryMetric(task, version, record, resultSet, "recall", "Recall", summary.get("recall"), resultDir);
+        insertSummaryMetric(task, version, record, resultSet, "f1Score", "F1 Score", summary.get("f1Score"), resultDir);
+        insertSummaryMetric(task, version, record, resultSet, "matchCount", "匹配数", summary.get("matchCount"), resultDir);
+
+        for (Map<String, Object> metricPayload : mapList(resultSetPayload.get("metrics")))
         {
+            String metricKey = firstNonBlank(asString(metricPayload.get("metricKey")), asString(metricPayload.get("key")));
+            if (StringUtils.isBlank(metricKey) || hasMetric(resultSet.getResultSetId(), metricKey))
+            {
+                continue;
+            }
             TaskMetric metric = new TaskMetric();
             metric.setTaskId(task.getTaskId());
             metric.setVersionId(version.getVersionId());
             metric.setRecordId(record.getRecordId());
             metric.setResultSetId(resultSet.getResultSetId());
-            metric.setMetricKey(firstNonBlank(asString(metricPayload.get("metricKey")), asString(metricPayload.get("key"))));
-            metric.setMetricName(firstNonBlank(asString(metricPayload.get("metricName")), asString(metricPayload.get("name")), metric.getMetricKey()));
+            metric.setMetricKey(metricKey);
+            metric.setMetricName(firstNonBlank(asString(metricPayload.get("metricName")), asString(metricPayload.get("name")), metricKey));
             metric.setMetricValue(asBigDecimal(firstNonNull(metricPayload.get("metricValue"), metricPayload.get("value")), BigDecimal.ZERO));
             metric.setChartType("summary");
-            metric.setResultDir(asString(response.get("requestId")));
+            metric.setResultDir(resultDir);
             metric.setCreateTime(DateUtils.getNowDate());
             taskMetricMapper.insertTaskMetric(metric);
         }
 
-        Map<String, Object> charts = asMap(response.get("charts"));
-        insertChartMetric(task, version, record, resultSet, "scoreDistribution", "匹配分数分布", "bar", charts.get("scoreDistribution"), response);
-        insertChartMetric(task, version, record, resultSet, "targetTopDistribution", "目标表 Top 分布", "bar", charts.get("targetTopDistribution"), response);
+        Map<String, Object> charts = asMap(resultSetPayload.get("charts"));
+        insertChartMetric(task, version, record, resultSet, "scoreDistribution", "匹配分数分布", "bar",
+                charts.get("scoreDistribution"), resultDir);
+        insertChartMetric(task, version, record, resultSet, "targetTopDistribution", "目标表 Top 分布", "bar",
+                charts.get("targetTopDistribution"), resultDir);
+    }
+
+    private void insertSummaryMetric(MatchTask task, MatchTaskVersion version, MatchTaskRecord record, MatchResultSet resultSet,
+            String key, String name, Object value, String resultDir)
+    {
+        if (value == null)
+        {
+            return;
+        }
+        TaskMetric metric = new TaskMetric();
+        metric.setTaskId(task.getTaskId());
+        metric.setVersionId(version.getVersionId());
+        metric.setRecordId(record.getRecordId());
+        metric.setResultSetId(resultSet.getResultSetId());
+        metric.setMetricKey(key);
+        metric.setMetricName(name);
+        metric.setMetricValue(asBigDecimal(value, BigDecimal.ZERO));
+        metric.setChartType("card");
+        metric.setResultDir(resultDir);
+        metric.setCreateTime(DateUtils.getNowDate());
+        taskMetricMapper.insertTaskMetric(metric);
     }
 
     private void insertChartMetric(MatchTask task, MatchTaskVersion version, MatchTaskRecord record, MatchResultSet resultSet,
-            String key, String name, String chartType, Object chartData, Map<String, Object> response)
+            String key, String name, String chartType, Object chartData, String resultDir)
     {
         if (chartData == null)
         {
@@ -503,9 +614,110 @@ public class MatchTaskServiceImpl implements IMatchTaskService
         metric.setMetricName(name);
         metric.setChartType(chartType);
         metric.setChartData(toJson(chartData));
-        metric.setResultDir(asString(response.get("requestId")));
+        metric.setResultDir(resultDir);
         metric.setCreateTime(DateUtils.getNowDate());
         taskMetricMapper.insertTaskMetric(metric);
+    }
+
+    private boolean hasMetric(Long resultSetId, String metricKey)
+    {
+        TaskMetric query = new TaskMetric();
+        query.setResultSetId(resultSetId);
+        query.setMetricKey(metricKey);
+        return !taskMetricMapper.selectTaskMetricList(query).isEmpty();
+    }
+
+    private List<Map<String, Object>> legacyResultSets(Map<String, Object> response)
+    {
+        List<Map<String, Object>> rows = mapList(firstNonNull(response.get("oneToOneRows"), response.get("rows")));
+        if (rows.isEmpty())
+        {
+            return Collections.emptyList();
+        }
+        Map<String, Object> legacy = new LinkedHashMap<>();
+        String method = defaultString(asString(response.get("method")), "Magneto");
+        legacy.put("method", method);
+        legacy.put("variant", "one2one");
+        legacy.put("resultSetName", method + " CF-SF one2one");
+        legacy.put("summary", response.get("summary"));
+        legacy.put("metricsSummary", response.get("metricsSummary"));
+        legacy.put("metrics", response.get("metrics"));
+        legacy.put("charts", response.get("charts"));
+        legacy.put("rows", rows);
+        return List.of(legacy);
+    }
+
+    private String firstWarningMessage(Map<String, Object> response)
+    {
+        for (Map<String, Object> warning : mapList(response.get("warnings")))
+        {
+            String message = asString(warning.get("message"));
+            if (StringUtils.isNotBlank(message))
+            {
+                return message;
+            }
+        }
+        return null;
+    }
+
+    private String noticeMessage(String message)
+    {
+        if (StringUtils.isBlank(message) || !message.startsWith("NOTICE:"))
+        {
+            return null;
+        }
+        return message.substring("NOTICE:".length());
+    }
+
+    private int countResultSets(Long recordId)
+    {
+        if (recordId == null)
+        {
+            return 0;
+        }
+        MatchResultSet query = new MatchResultSet();
+        query.setRecordId(recordId);
+        return matchResultSetMapper.selectMatchResultSetList(query).size();
+    }
+
+    private void updateRunProgress(Long recordId, Long taskId, Long progress, String stage, String errorMessage)
+    {
+        MatchTaskRecord record = new MatchTaskRecord();
+        record.setRecordId(recordId);
+        record.setExecutionStatus("running");
+        record.setCurrentStage(stage);
+        record.setProgress(progress);
+        record.setErrorMessage(errorMessage);
+        matchTaskRecordMapper.updateMatchTaskRecord(record);
+
+        MatchTask taskUpdate = new MatchTask();
+        taskUpdate.setTaskId(taskId);
+        taskUpdate.setLastRecordStatus("running");
+        taskUpdate.setLastRecordStage(stage);
+        taskUpdate.setUpdateTime(DateUtils.getNowDate());
+        matchTaskMapper.updateMatchTask(taskUpdate);
+    }
+
+    private void markRecordFailed(Long recordId, Long taskId, String message)
+    {
+        MatchTaskRecord record = new MatchTaskRecord();
+        record.setRecordId(recordId);
+        record.setExecutionStatus("failed");
+        record.setCurrentStage("算法运行失败");
+        record.setProgress(100L);
+        record.setErrorMessage(defaultString(message, "算法运行失败"));
+        record.setFinishedAt(DateUtils.getNowDate());
+        matchTaskRecordMapper.updateMatchTaskRecord(record);
+
+        if (taskId != null)
+        {
+            MatchTask taskUpdate = new MatchTask();
+            taskUpdate.setTaskId(taskId);
+            taskUpdate.setLastRecordStatus("failed");
+            taskUpdate.setLastRecordStage("算法运行失败");
+            taskUpdate.setUpdateTime(DateUtils.getNowDate());
+            matchTaskMapper.updateMatchTask(taskUpdate);
+        }
     }
 
     private String normalizeApiPullBaseUrl(String baseUrl)
@@ -607,13 +819,18 @@ public class MatchTaskServiceImpl implements IMatchTaskService
 
     private Long resolveLlmConfigId(MatchTaskVersion version)
     {
-        if (version.getLlmConfigId() != null)
+        String provider = StringUtils.trimToNull(version.getLlmProvider());
+        String model = StringUtils.trimToNull(version.getLlmModel());
+        boolean hasPageLlmChoice = provider != null || model != null;
+        if (StringUtils.isBlank(provider) || StringUtils.isBlank(model)
+                || "none".equalsIgnoreCase(provider) || "none".equalsIgnoreCase(model))
         {
-            return version.getLlmConfigId();
+            if (!hasPageLlmChoice && version.getLlmConfigId() != null)
+            {
+                return version.getLlmConfigId();
+            }
+            return null;
         }
-
-        String provider = defaultString(version.getLlmProvider(), DEFAULT_PROVIDER);
-        String model = defaultString(version.getLlmModel(), DEFAULT_MODEL);
 
         LlmConfig query = new LlmConfig();
         query.setProvider(provider);
@@ -637,9 +854,27 @@ public class MatchTaskServiceImpl implements IMatchTaskService
         return config.getLlmConfigId();
     }
 
+    private String resolveLlmModel(MatchTaskVersion version)
+    {
+        decorateVersion(version, version.getVersionId());
+        String provider = version.getLlmProvider();
+        String model = version.getLlmModel();
+        if (StringUtils.isBlank(provider) || StringUtils.isBlank(model)
+                || "none".equalsIgnoreCase(provider) || "none".equalsIgnoreCase(model))
+        {
+            return null;
+        }
+        if (model.contains("/"))
+        {
+            return model;
+        }
+        return provider + "/" + model;
+    }
+
     private String buildAlgorithmParamsJson(MatchTaskVersion version)
     {
-        return "{\"method\":\"Magneto\","
+        return "{\"methods\":[\"Magneto\",\"MagnetoBoost\",\"MagnetoGPT\"],"
+            + "\"variants\":[\"all\",\"one2one\"],"
             + "\"externalAlgorithm\":true,"
             + "\"encodingMode\":\"" + escapeJson(version.getEncodingModeKey()) + "\","
             + "\"embeddingModel\":\"" + escapeJson(version.getEmbeddingModelKey()) + "\","
@@ -709,8 +944,6 @@ public class MatchTaskServiceImpl implements IMatchTaskService
                 version.setLlmModel(config.getModelName());
             }
         }
-        version.setLlmProvider(defaultString(version.getLlmProvider(), DEFAULT_PROVIDER));
-        version.setLlmModel(defaultString(version.getLlmModel(), DEFAULT_MODEL));
         version.setCurrent(currentVersionId != null && currentVersionId.equals(version.getVersionId()));
     }
 
@@ -819,6 +1052,26 @@ public class MatchTaskServiceImpl implements IMatchTaskService
         return defaultValue;
     }
 
+    private long asLong(Object value, long defaultValue)
+    {
+        if (value instanceof Number)
+        {
+            return ((Number) value).longValue();
+        }
+        if (value != null)
+        {
+            try
+            {
+                return Long.parseLong(String.valueOf(value));
+            }
+            catch (NumberFormatException ignored)
+            {
+                return defaultValue;
+            }
+        }
+        return defaultValue;
+    }
+
     private double asDouble(Object value, double defaultValue)
     {
         if (value instanceof Number)
@@ -874,7 +1127,7 @@ public class MatchTaskServiceImpl implements IMatchTaskService
         {
             total = total.add(asBigDecimal(row.get("score"), BigDecimal.ZERO));
         }
-        return total.divide(BigDecimal.valueOf(rows.size()), 6, java.math.RoundingMode.HALF_UP);
+        return total.divide(BigDecimal.valueOf(rows.size()), 6, RoundingMode.HALF_UP);
     }
 
     private Object firstNonNull(Object... values)

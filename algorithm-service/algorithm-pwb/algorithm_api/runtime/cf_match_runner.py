@@ -40,6 +40,7 @@ class RunnerConfig:
 
 @dataclass(frozen=True)
 class RunnerResult:
+    method: str
     rows: list[MatchRow]
     metrics: MetricBundle
     runtime_seconds: float
@@ -67,7 +68,26 @@ class CfMatchRunner:
         target_schema: Any,
         ground_truth: list[GroundTruthRow],
     ) -> RunnerResult:
-        start = time.time()
+        return self.run_methods(
+            source_bundle=source_bundle,
+            target_bundle=target_bundle,
+            source_schema=source_schema,
+            target_schema=target_schema,
+            ground_truth=ground_truth,
+            methods=[self.config.method],
+        )[0]
+
+    def run_methods(
+        self,
+        *,
+        source_bundle: DataBundle,
+        target_bundle: DataBundle,
+        source_schema: Any,
+        target_schema: Any,
+        ground_truth: list[GroundTruthRow],
+        methods: list[str],
+    ) -> list[RunnerResult]:
+        common_start = time.time()
         source_dfs = _non_empty_dataframes(source_bundle.dataframes)
         target_dfs = _non_empty_dataframes(target_bundle.dataframes)
         if not source_dfs:
@@ -78,20 +98,47 @@ class CfMatchRunner:
         source_refs, target_refs = self._build_refs(source_dfs, target_dfs)
         embeddings = self._encode_refs(source_refs + target_refs, source_dfs, target_dfs)
         topk_map = self._compute_topk(source_refs, target_refs, embeddings)
+        common_runtime = time.time() - common_start
 
-        if self.config.method == "MagnetoBoost":
-            rows = self._match_boost(source_bundle, target_bundle, source_schema, topk_map)
-        elif self.config.method == "MagnetoGPT":
-            rows = self._match_gpt(source_bundle, target_bundle, source_dfs, target_dfs, topk_map)
-        else:
-            rows = self._match_magneto(source_bundle, target_bundle, topk_map)
+        results: list[RunnerResult] = []
+        for method in methods:
+            method_start = time.time()
+            rows = self._run_method(
+                method,
+                source_bundle=source_bundle,
+                target_bundle=target_bundle,
+                source_schema=source_schema,
+                source_dfs=source_dfs,
+                target_dfs=target_dfs,
+                topk_map=topk_map,
+            )
+            metrics = evaluate_matches(rows, ground_truth)
+            results.append(
+                RunnerResult(
+                    method=method,
+                    rows=rows,
+                    metrics=metrics,
+                    runtime_seconds=common_runtime + time.time() - method_start,
+                )
+            )
+        return results
 
-        metrics = evaluate_matches(rows, ground_truth)
-        return RunnerResult(
-            rows=rows,
-            metrics=metrics,
-            runtime_seconds=time.time() - start,
-        )
+    def _run_method(
+        self,
+        method: str,
+        *,
+        source_bundle: DataBundle,
+        target_bundle: DataBundle,
+        source_schema: Any,
+        source_dfs: dict[str, pd.DataFrame],
+        target_dfs: dict[str, pd.DataFrame],
+        topk_map: dict[_ColumnRef, list[tuple[_ColumnRef, float]]],
+    ) -> list[MatchRow]:
+        if method == "MagnetoBoost":
+            return self._match_boost(source_bundle, target_bundle, source_schema, topk_map, method=method)
+        if method == "MagnetoGPT":
+            return self._match_gpt(source_bundle, target_bundle, source_dfs, target_dfs, topk_map, method=method)
+        return self._match_magneto(source_bundle, target_bundle, topk_map, method=method)
 
     def _build_refs(
         self,
@@ -179,8 +226,10 @@ class CfMatchRunner:
         source_bundle: DataBundle,
         target_bundle: DataBundle,
         topk_map: dict[_ColumnRef, list[tuple[_ColumnRef, float]]],
+        *,
+        method: str,
     ) -> list[MatchRow]:
-        return self._rows_from_topk(source_bundle, target_bundle, topk_map, method=self.config.method)
+        return self._rows_from_topk(source_bundle, target_bundle, topk_map, method=method)
 
     def _match_boost(
         self,
@@ -188,6 +237,8 @@ class CfMatchRunner:
         target_bundle: DataBundle,
         source_schema: Any,
         topk_map: dict[_ColumnRef, list[tuple[_ColumnRef, float]]],
+        *,
+        method: str,
     ) -> list[MatchRow]:
         table_boost: dict[tuple[str, str], float] = {}
         for source_ref, candidates in topk_map.items():
@@ -207,7 +258,7 @@ class CfMatchRunner:
             adjusted.sort(key=lambda item: item[1], reverse=True)
             boosted[source_ref] = adjusted[: self.config.topk]
 
-        return self._rows_from_topk(source_bundle, target_bundle, boosted, method=self.config.method)
+        return self._rows_from_topk(source_bundle, target_bundle, boosted, method=method)
 
     def _match_gpt(
         self,
@@ -216,12 +267,14 @@ class CfMatchRunner:
         source_dfs: dict[str, pd.DataFrame],
         target_dfs: dict[str, pd.DataFrame],
         topk_map: dict[_ColumnRef, list[tuple[_ColumnRef, float]]],
+        *,
+        method: str,
     ) -> list[MatchRow]:
         from magneto.llm_reranker import LLMReranker  # type: ignore
         from magneto.utils.utils import get_samples  # type: ignore
 
         if not self.config.llm_model:
-            return self._rows_from_topk(source_bundle, target_bundle, topk_map, method="Magneto")
+            raise ValueError("llmModel is required when MagnetoGPT is requested.")
 
         reranker = LLMReranker(
             llm_model=self.config.llm_model,
@@ -250,7 +303,7 @@ class CfMatchRunner:
                 for table, column, score in result
                 if (table, column) in ref_lookup
             ]
-        return self._rows_from_topk(source_bundle, target_bundle, reranked, method=self.config.method)
+        return self._rows_from_topk(source_bundle, target_bundle, reranked, method=method)
 
     def _rows_from_topk(
         self,

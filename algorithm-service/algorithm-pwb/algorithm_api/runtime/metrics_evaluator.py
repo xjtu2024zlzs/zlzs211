@@ -1,10 +1,23 @@
 from __future__ import annotations
 
-from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
 
 from ..domain import GroundTruthRow, MatchRow
+from .legacy_cf_metrics import (
+    calculate_recall_at_k,
+    calculate_recall_hit_count,
+    compute_mean_ranking_reciprocal_adjusted,
+    ground_truth_to_legacy_pairs,
+    matcher_results_to_rows,
+    rows_to_matcher_results,
+)
+
+
+@dataclass(frozen=True)
+class ResultSetMetricBundle:
+    metrics: list[dict[str, Any]]
+    summary: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -13,156 +26,111 @@ class MetricBundle:
     one_to_one_rows: list[MatchRow]
     ground_truth_count: int
     matched_ground_truth_count: int
+    all_metrics: list[dict[str, Any]]
+    one_to_one_metrics: list[dict[str, Any]]
+    all_summary: dict[str, Any]
+    one_to_one_summary: dict[str, Any]
 
 
 def evaluate_matches(rows: list[MatchRow], ground_truth: list[GroundTruthRow]) -> MetricBundle:
-    gt_set = {
-        (
-            gt.source_database.upper(),
-            gt.source_table,
-            gt.source_column,
-            gt.target_table,
-            gt.target_column,
-        )
-        for gt in ground_truth
-    }
-    pred_set = {row.key for row in rows}
-    tp = len(pred_set & gt_set)
+    _ensure_ground_truth(ground_truth)
+    matches, row_lookup = rows_to_matcher_results(rows)
+    one_to_one_matches = matches.one_to_one()
+    one_to_one_rows = matcher_results_to_rows(one_to_one_matches, row_lookup)
 
-    precision = tp / len(pred_set) if pred_set else 0.0
-    recall = tp / len(gt_set) if gt_set else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-
-    mrr = _mean_reciprocal_rank(rows, ground_truth)
-    recall_at_20 = _recall_at_k(rows, ground_truth, 20)
-    precision_top_10_percent = _precision_top_fraction(rows, gt_set, 0.10)
-    recall_at_gt = _recall_at_size_of_ground_truth(rows, gt_set)
-
-    one_to_one = make_one_to_one(rows)
-    one_to_one_set = {row.key for row in one_to_one}
-    one_tp = len(one_to_one_set & gt_set)
-    one_precision = one_tp / len(one_to_one_set) if one_to_one_set else 0.0
-    one_recall = one_tp / len(gt_set) if gt_set else 0.0
-    one_f1 = (
-        2 * one_precision * one_recall / (one_precision + one_recall)
-        if one_precision + one_recall
-        else 0.0
-    )
-    one_precision_top_10_percent = _precision_top_fraction(one_to_one, gt_set, 0.10)
-    one_recall_at_gt = _recall_at_size_of_ground_truth(one_to_one, gt_set)
+    all_result = evaluate_result_set(rows, ground_truth)
+    one_to_one_result = evaluate_result_set(one_to_one_rows, ground_truth)
 
     metrics = [
-        _metric("MRR", "MRR", mrr),
-        _metric("Recall@20", "Recall@20", recall_at_20),
-        _metric("All_Precision", "All Precision", precision),
-        _metric("All_F1Score", "All F1 Score", f1),
-        _metric("All_Recall", "All Recall", recall),
-        _metric("All_PrecisionTop10Percent", "All Precision Top 10 Percent", precision_top_10_percent),
-        _metric("All_RecallAtSizeofGroundTruth", "All Recall At Size of Ground Truth", recall_at_gt),
-        _metric("One2One_Count", "One2One match count", float(len(one_to_one))),
-        _metric("One2One_Precision", "One2One Precision", one_precision),
-        _metric("One2One_F1Score", "One2One F1 Score", one_f1),
-        _metric("One2One_Recall", "One2One Recall", one_recall),
-        _metric("One2One_PrecisionTop10Percent", "One2One Precision Top 10 Percent", one_precision_top_10_percent),
-        _metric("One2One_RecallAtSizeofGroundTruth", "One2One Recall At Size of Ground Truth", one_recall_at_gt),
+        _metric("MRR", "MRR", all_result.summary["mrr"]),
+        _metric("Recall@20", "Recall@20", all_result.summary["recallAt20"]),
+        _metric("All_Precision", "All Precision", all_result.summary["precision"]),
+        _metric("All_F1Score", "All F1 Score", all_result.summary["f1Score"]),
+        _metric("All_Recall", "All Recall", all_result.summary["recall"]),
+        _metric("All_PrecisionTop10Percent", "All Precision Top 10 Percent", all_result.summary["precisionTop10Percent"]),
+        _metric("All_RecallAtSizeofGroundTruth", "All Recall At Size of Ground Truth", all_result.summary["recallAtSizeofGroundTruth"]),
+        _metric("One2One_Count", "One2One match count", one_to_one_result.summary["matchCount"]),
+        _metric("One2One_Precision", "One2One Precision", one_to_one_result.summary["precision"]),
+        _metric("One2One_F1Score", "One2One F1 Score", one_to_one_result.summary["f1Score"]),
+        _metric("One2One_Recall", "One2One Recall", one_to_one_result.summary["recall"]),
+        _metric("One2One_PrecisionTop10Percent", "One2One Precision Top 10 Percent", one_to_one_result.summary["precisionTop10Percent"]),
+        _metric("One2One_RecallAtSizeofGroundTruth", "One2One Recall At Size of Ground Truth", one_to_one_result.summary["recallAtSizeofGroundTruth"]),
     ]
 
     return MetricBundle(
         metrics=metrics,
-        one_to_one_rows=one_to_one,
-        ground_truth_count=len(gt_set),
-        matched_ground_truth_count=tp,
+        one_to_one_rows=one_to_one_rows,
+        ground_truth_count=all_result.summary["groundTruthCount"],
+        matched_ground_truth_count=all_result.summary["matchedGroundTruthCount"],
+        all_metrics=all_result.metrics,
+        one_to_one_metrics=one_to_one_result.metrics,
+        all_summary=all_result.summary,
+        one_to_one_summary=one_to_one_result.summary,
+    )
+
+
+def evaluate_result_set(rows: list[MatchRow], ground_truth: list[GroundTruthRow]) -> ResultSetMetricBundle:
+    _ensure_ground_truth(ground_truth)
+    matches, _ = rows_to_matcher_results(rows)
+    legacy_ground_truth = ground_truth_to_legacy_pairs(ground_truth)
+    valentine_metrics = matches.get_metrics(legacy_ground_truth) if matches else _empty_valentine_metrics()
+
+    summary = {
+        "mrr": _as_float(compute_mean_ranking_reciprocal_adjusted(matches, legacy_ground_truth)),
+        "recallAt20": _as_float(calculate_recall_at_k(matches, legacy_ground_truth)),
+        "precision": _as_float(valentine_metrics["Precision"]),
+        "recall": _as_float(valentine_metrics["Recall"]),
+        "f1Score": _as_float(valentine_metrics["F1Score"]),
+        "precisionTop10Percent": _as_float(valentine_metrics["PrecisionTop10Percent"]),
+        "recallAtSizeofGroundTruth": _as_float(valentine_metrics["RecallAtSizeofGroundTruth"]),
+        "matchCount": len(rows),
+        "groundTruthCount": len(legacy_ground_truth),
+        "matchedGroundTruthCount": calculate_recall_hit_count(matches, legacy_ground_truth),
+    }
+    return ResultSetMetricBundle(
+        metrics=[
+            _metric("MRR", "MRR", summary["mrr"]),
+            _metric("Recall@20", "Recall@20", summary["recallAt20"]),
+            _metric("Precision", "Precision", summary["precision"]),
+            _metric("Recall", "Recall", summary["recall"]),
+            _metric("F1Score", "F1 Score", summary["f1Score"]),
+            _metric("PrecisionTop10Percent", "Precision Top 10 Percent", summary["precisionTop10Percent"]),
+            _metric("RecallAtSizeofGroundTruth", "Recall At Size of Ground Truth", summary["recallAtSizeofGroundTruth"]),
+            _metric("matchCount", "Match Count", summary["matchCount"]),
+            _metric("groundTruthCount", "Ground Truth Count", summary["groundTruthCount"]),
+            _metric("matchedGroundTruthCount", "Matched Ground Truth Count", summary["matchedGroundTruthCount"]),
+        ],
+        summary=summary,
     )
 
 
 def make_one_to_one(rows: list[MatchRow]) -> list[MatchRow]:
-    selected: list[MatchRow] = []
-    used_sources: set[tuple[str, str, str]] = set()
-    used_targets: set[tuple[str, str]] = set()
-    for row in sorted(rows, key=lambda item: item.score, reverse=True):
-        source_key = (row.source_database.upper(), row.source_table, row.source_column)
-        target_key = (row.target_table, row.target_column)
-        if source_key in used_sources or target_key in used_targets:
-            continue
-        selected.append(row)
-        used_sources.add(source_key)
-        used_targets.add(target_key)
-    return selected
+    matches, row_lookup = rows_to_matcher_results(rows)
+    return matcher_results_to_rows(matches.one_to_one(), row_lookup)
 
 
-def _mean_reciprocal_rank(rows: list[MatchRow], ground_truth: list[GroundTruthRow]) -> float:
-    gt_by_source: dict[tuple[str, str, str], set[tuple[str, str]]] = defaultdict(set)
-    for gt in ground_truth:
-        gt_by_source[(gt.source_database.upper(), gt.source_table, gt.source_column)].add(
-            (gt.target_table, gt.target_column)
-        )
-
-    rows_by_source: dict[tuple[str, str, str], list[MatchRow]] = defaultdict(list)
-    for row in rows:
-        rows_by_source[(row.source_database.upper(), row.source_table, row.source_column)].append(row)
-
-    total = 0.0
-    query_count = 0
-    for source_key, gt_targets in gt_by_source.items():
-        ranked = sorted(rows_by_source.get(source_key, []), key=lambda item: item.score, reverse=True)
-        if not ranked:
-            query_count += 1
-            continue
-        query_count += 1
-        for index, row in enumerate(ranked, start=1):
-            if (row.target_table, row.target_column) in gt_targets:
-                total += 1.0 / index
-                break
-    return total / query_count if query_count else 0.0
-
-
-def _recall_at_k(rows: list[MatchRow], ground_truth: list[GroundTruthRow], k: int) -> float:
-    gt_set = {
-        (
-            gt.source_database.upper(),
-            gt.source_table,
-            gt.source_column,
-            gt.target_table,
-            gt.target_column,
-        )
-        for gt in ground_truth
+def _empty_valentine_metrics() -> dict[str, float]:
+    return {
+        "Precision": 0.0,
+        "F1Score": 0.0,
+        "Recall": 0.0,
+        "PrecisionTop10Percent": 0.0,
+        "RecallAtSizeofGroundTruth": 0.0,
     }
-    if not gt_set:
-        return 0.0
-
-    rows_by_source: dict[tuple[str, str, str], list[MatchRow]] = defaultdict(list)
-    for row in rows:
-        rows_by_source[(row.source_database.upper(), row.source_table, row.source_column)].append(row)
-
-    hits: set[tuple[str, str, str, str, str]] = set()
-    for ranked_rows in rows_by_source.values():
-        for row in sorted(ranked_rows, key=lambda item: item.score, reverse=True)[:k]:
-            if row.key in gt_set:
-                hits.add(row.key)
-    return len(hits) / len(gt_set)
 
 
-def _precision_top_fraction(rows: list[MatchRow], gt_set: set[tuple[str, str, str, str, str]], fraction: float) -> float:
-    if not rows:
-        return 0.0
-    count = max(1, int(len(rows) * fraction))
-    top_rows = sorted(rows, key=lambda item: item.score, reverse=True)[:count]
-    hits = sum(1 for row in top_rows if row.key in gt_set)
-    return hits / len(top_rows)
+def _ensure_ground_truth(ground_truth: list[GroundTruthRow]) -> None:
+    if not ground_truth:
+        raise ValueError("Ground truth is required to compute CF schema matching metrics.")
 
 
-def _recall_at_size_of_ground_truth(rows: list[MatchRow], gt_set: set[tuple[str, str, str, str, str]]) -> float:
-    if not gt_set:
-        return 0.0
-    top_rows = sorted(rows, key=lambda item: item.score, reverse=True)[: len(gt_set)]
-    hits = len({row.key for row in top_rows} & gt_set)
-    return hits / len(gt_set)
-
-
-def _metric(key: str, name: str, value: float) -> dict[str, Any]:
+def _metric(key: str, name: str, value: float | int) -> dict[str, Any]:
     return {
         "metricKey": key,
         "metricName": name,
         "metricValue": round(float(value), 6),
     }
 
+
+def _as_float(value: Any) -> float:
+    return float(value)
