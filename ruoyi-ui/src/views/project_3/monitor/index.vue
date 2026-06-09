@@ -406,7 +406,7 @@
       <div class="context-menu-item danger" @click.stop="handleDeleteModule">{{ deleteEntryText }}</div>
     </div>
 
-    <el-dialog v-model="nodeDetailDialog.visible" width="620px" :title="`对象详情 - ${nodeDetailDialog.node?.name || ''}`" :close-on-click-modal="false">
+    <el-dialog v-model="nodeDetailDialog.visible" width="980px" :title="`对象详情 - ${nodeDetailDialog.node?.name || ''}`" :close-on-click-modal="false">
       <el-form v-if="nodeDetailDialog.type === 'part_template'" v-loading="nodeDetailDialog.loading" label-width="110px">
         <el-form-item label="零件模板ID">
           <el-input v-model="nodeDetailDialog.partForm.part_template_id" disabled />
@@ -438,14 +438,90 @@
           <el-input :model-value="nodeDetailDialog.node?.parent_id || '-'" disabled />
         </el-form-item>
       </el-form>
+      <div v-loading="nodeDetailDialog.lifecycle.loading" class="lifecycle-result-wrap">
+        <div class="quality-stage-title">制造周期结果与建议</div>
+        <div class="algorithm-section-grid">
+          <div v-for="section in nodeDetailDialog.lifecycle.manufacturing" :key="section.key" class="algorithm-result-section">
+            <div class="algorithm-section-title">{{ section.title }}</div>
+            <el-empty v-if="!section.rows.length" description="暂无结果数据" :image-size="60" />
+            <div v-for="row in section.rows" :key="row.key" class="algorithm-result-card">
+              <div class="algorithm-result-head">
+                <span>{{ row.taskId || '--' }}</span>
+                <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success' : 'info'">{{ row.status || '--' }}</el-tag>
+              </div>
+              <el-descriptions :column="2" border size="small">
+                <el-descriptions-item v-for="field in row.fields" :key="field.label" :label="field.label" :span="field.span || 1">
+                  {{ val(field.value) }}
+                </el-descriptions-item>
+              </el-descriptions>
+            </div>
+          </div>
+        </div>
+        <div class="quality-stage-title">服役周期结果与建议</div>
+        <div class="algorithm-section-grid">
+          <div v-for="section in nodeDetailDialog.lifecycle.service" :key="section.key" class="algorithm-result-section">
+            <div class="algorithm-section-title">{{ section.title }}</div>
+            <el-empty v-if="!section.rows.length" description="暂无结果数据" :image-size="60" />
+            <div v-for="row in section.rows" :key="row.key" class="algorithm-result-card">
+              <div class="algorithm-result-head">
+                <span>{{ row.taskId || '--' }}</span>
+                <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success' : 'info'">{{ row.status || '--' }}</el-tag>
+              </div>
+              <el-descriptions :column="2" border size="small">
+                <el-descriptions-item v-for="field in row.fields" :key="field.label" :label="field.label" :span="field.span || 1">
+                  {{ val(field.value) }}
+                </el-descriptions-item>
+              </el-descriptions>
+            </div>
+          </div>
+        </div>
+      </div>
       <template #footer>
         <el-button @click="nodeDetailDialog.visible = false">取消</el-button>
         <el-button type="primary" :loading="nodeDetailDialog.loading" @click="submitNodeDetail">保存</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="partQualityDialog.visible" width="900px" :title="`零件质量详情 - ${partQualityDialog.part_name || partQualityDialog.part_code || ''}`">
+    <el-dialog v-model="partQualityDialog.visible" width="1100px" :title="`零件质量详情 - ${partQualityDialog.part_name || partQualityDialog.part_code || ''}`">
       <div v-loading="partQualityDialog.loading" class="quality-detail-wrap">
+        <div v-loading="partQualityDialog.lifecycle.loading" class="lifecycle-result-wrap">
+          <div class="quality-stage-title">制造周期结果与建议</div>
+          <div class="algorithm-section-grid">
+            <div v-for="section in partQualityDialog.lifecycle.manufacturing" :key="section.key" class="algorithm-result-section">
+              <div class="algorithm-section-title">{{ section.title }}</div>
+              <el-empty v-if="!section.rows.length" description="暂无结果数据" :image-size="60" />
+              <div v-for="row in section.rows" :key="row.key" class="algorithm-result-card">
+                <div class="algorithm-result-head">
+                  <span>{{ row.taskId || '--' }}</span>
+                  <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success' : 'info'">{{ row.status || '--' }}</el-tag>
+                </div>
+                <el-descriptions :column="2" border size="small">
+                  <el-descriptions-item v-for="field in row.fields" :key="field.label" :label="field.label" :span="field.span || 1">
+                    {{ val(field.value) }}
+                  </el-descriptions-item>
+                </el-descriptions>
+              </div>
+            </div>
+          </div>
+          <div class="quality-stage-title">服役周期结果与建议</div>
+          <div class="algorithm-section-grid">
+            <div v-for="section in partQualityDialog.lifecycle.service" :key="section.key" class="algorithm-result-section">
+              <div class="algorithm-section-title">{{ section.title }}</div>
+              <el-empty v-if="!section.rows.length" description="暂无结果数据" :image-size="60" />
+              <div v-for="row in section.rows" :key="row.key" class="algorithm-result-card">
+                <div class="algorithm-result-head">
+                  <span>{{ row.taskId || '--' }}</span>
+                  <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success' : 'info'">{{ row.status || '--' }}</el-tag>
+                </div>
+                <el-descriptions :column="2" border size="small">
+                  <el-descriptions-item v-for="field in row.fields" :key="field.label" :label="field.label" :span="field.span || 1">
+                    {{ val(field.value) }}
+                  </el-descriptions-item>
+                </el-descriptions>
+              </div>
+            </div>
+          </div>
+        </div>
         <div v-for="table in partQualityDialog.tables" :key="table.table_name" class="quality-stage-block">
           <div class="quality-stage-title">{{ table.table_label }}</div>
           <el-table :data="table.rows || []" border size="small" class="quality-dynamic-table" empty-text="暂无数据">
@@ -1573,6 +1649,20 @@ const keyProcessRows = computed(() => {
     }))
     : []
 })
+function createLifecycleResultState() {
+  return {
+    loading: false,
+    manufacturing: [
+      { key: 'kqc', title: '关键质量特征挖掘', rows: [] },
+      { key: 'keyProcess', title: '关键工序识别', rows: [] },
+      { key: 'processAnomaly', title: '工序异常检测', rows: [] }
+    ],
+    service: [
+      { key: 'earlyFault', title: '早期故障点', rows: [] },
+      { key: 'faultPrediction', title: '故障预测', rows: [] }
+    ]
+  }
+}
 const nodeDetailDialog = reactive({
   visible: false,
   loading: false,
@@ -1588,14 +1678,16 @@ const nodeDetailDialog = reactive({
     component_id: '',
     material: '',
     specification: ''
-  }
+  },
+  lifecycle: createLifecycleResultState()
 })
 const partQualityDialog = reactive({
   visible: false,
   loading: false,
   part_name: '',
   part_code: '',
-  tables: []
+  tables: [],
+  lifecycle: createLifecycleResultState()
 })
 
 const partQualityColumnLabels = {
@@ -2125,10 +2217,18 @@ async function handleViewNodeDetail() {
   nodeDetailDialog.node = { ...node }
   nodeDetailDialog.type = String(node.id || '').startsWith('part_template:') ? 'part_template' : 'module'
   nodeDetailDialog.form.name = node.name || ''
+  resetLifecycleResultState(nodeDetailDialog.lifecycle)
   nodeDetailDialog.visible = true
   if (nodeDetailDialog.type === 'part_template') {
     await loadPartTemplateDetail(node.id)
   }
+  await loadLifecycleResults(nodeDetailDialog.lifecycle, {
+    id: node.id,
+    rawId: rawNodeId(node.id),
+    type: numNodeType(node),
+    name: node.name,
+    ...nodeDetailDialog.partForm
+  })
 }
 
 function rawPartTemplateId(nodeId) {
@@ -2465,16 +2565,21 @@ async function submitProcessAnomaly() {
   detectDialog.error = ''
   detectDialog.result = {}
   try {
-    const partId = rawNodeId(node.id)
+    const nodeType = numNodeType(node)
+    const selectedObjectId = rawNodeId(node.id)
+    const partId = nodeType === 'part_template' ? selectedObjectId : ''
     const hierarchyIds = sampleObjectQuery(node) || {}
     const station = cleanLocalPath(detectDialog.form.station)
     detectDialog.form.station = station
-    const processId = station || `process:${partId}`
+    const processId = station || `process:${selectedObjectId}`
     const payload = {
       partId,
-      partCode: node.part_number || node.code || partId,
-      partName: node.name || node.part_name || partId,
+      partCode: partId ? (node.part_number || node.code || partId) : '',
+      partName: partId ? (node.name || node.part_name || partId) : '',
       ...hierarchyIds,
+      targetType: nodeType || 'object',
+      targetId: selectedObjectId,
+      targetName: node.name || node.code || selectedObjectId,
       pathText: currentPathText.value,
       processId,
       processName: station || '工序异常检测',
@@ -3105,6 +3210,225 @@ function pickValue(source, keys) {
   return undefined
 }
 
+function resetLifecycleResultState(state) {
+  state.loading = false
+  ;[...state.manufacturing, ...state.service].forEach(section => {
+    section.rows = []
+  })
+}
+
+function setLifecycleSectionRows(state, key, rows) {
+  const section = [...state.manufacturing, ...state.service].find(item => item.key === key)
+  if (section) section.rows = rows
+}
+
+function rowTaskId(row) {
+  return row?.taskId || row?.task_id || ''
+}
+
+function rowStatus(row) {
+  return row?.status || row?.taskStatus || row?.task_status || ''
+}
+
+function rowResult(row) {
+  const result = row?.result && typeof row.result === 'object' ? row.result : row || {}
+  return result?.result && typeof result.result === 'object' ? result.result : result
+}
+
+function pickAlgorithmValue(row, keys) {
+  const sources = [rowResult(row), row, row?.summary && typeof row.summary === 'object' ? row.summary : {}]
+  for (const source of sources) {
+    const value = pickValue(source, keys)
+    if (value !== undefined && value !== null && value !== '') return value
+  }
+  return undefined
+}
+
+function algorithmNumberText(value, digits = 3) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number.toFixed(digits) : value
+}
+
+function normalizeAdvice(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).join('；')
+  return value
+}
+
+function buildTargetKeywords(target = {}) {
+  const values = [
+    target.id,
+    target.rawId,
+    target.name,
+    target.part_template_id,
+    target.part_number,
+    target.part_name,
+    target.part_instance_id,
+    target.part_code,
+    target.serial_number,
+    target.batch_number
+  ]
+    .map(item => String(item || '').replace(/^part_template:/, '').trim())
+    .filter(Boolean)
+  const expanded = []
+  values.forEach(value => {
+    expanded.push(value)
+    if (!value.includes(':') && target.type) expanded.push(`${target.type}:${value}`)
+  })
+  return Array.from(new Set(expanded))
+}
+
+function rowSearchText(row) {
+  const pieces = [
+    rowTaskId(row),
+    row?.targetId,
+    row?.target_id,
+    row?.targetName,
+    row?.target_name,
+    row?.bizName,
+    row?.biz_name,
+    row?.summary,
+    row?.resultValue,
+    row?.result_value,
+    row?.request,
+    row?.requestJson,
+    row?.request_json,
+    row?.result
+  ]
+  return pieces.map(item => {
+    if (item === undefined || item === null) return ''
+    return typeof item === 'object' ? JSON.stringify(item) : String(item)
+  }).join(' ').toLowerCase()
+}
+
+function filterLifecycleRows(rows, keywords) {
+  const list = Array.isArray(rows) ? rows : []
+  const words = (Array.isArray(keywords) ? keywords : []).map(item => String(item).toLowerCase()).filter(Boolean)
+  if (!words.length) return list.slice(0, 3)
+  const matched = list.filter(row => {
+    const text = rowSearchText(row)
+    return words.some(word => text.includes(word))
+  })
+  return (matched.length ? matched : list).slice(0, 3)
+}
+
+function kqcLifecycleRows(rows) {
+  return rows.map((row, index) => {
+    const result = rowResult(row)
+    const influences = Array.isArray(result.topInfluences || result.top_influences) ? (result.topInfluences || result.top_influences) : []
+    const top = influences[0] || {}
+    return {
+      key: `kqc-${rowTaskId(row) || index}`,
+      taskId: rowTaskId(row),
+      status: rowStatus(row),
+      fields: [
+        { label: '挖掘对象', value: row.targetName || row.target_name || row.bizName || row.biz_name },
+        { label: '特征数量', value: row.kqcCount || row.kqc_count || influences.length },
+        { label: 'Top特征', value: top.source_variable || top.feature || top.name },
+        { label: '工序', value: top.station || top.process || top.processName },
+        { label: '影响权重', value: algorithmNumberText(top.weight, 6) },
+        { label: '建议', value: normalizeAdvice(pickAlgorithmValue(row, ['suggestion', 'advice', 'recommendation'])), span: 2 }
+      ]
+    }
+  })
+}
+
+function keyProcessLifecycleRows(rows) {
+  return rows.map((row, index) => ({
+    key: `key-${rowTaskId(row) || index}`,
+    taskId: rowTaskId(row),
+    status: rowStatus(row),
+    fields: [
+      { label: '识别对象', value: row.targetName || row.target_name || row.bizName || row.biz_name },
+      { label: '关键工序', value: pickAlgorithmValue(row, ['keyProcessName', 'key_process_name', 'processName', 'process_name']) },
+      { label: '工序编码', value: pickAlgorithmValue(row, ['keyProcessCode', 'key_process_code', 'processCode', 'process_code']) },
+      { label: '分数', value: algorithmNumberText(pickAlgorithmValue(row, ['score', 'confidence']), 4) },
+      { label: '原因', value: translateKeyProcessText(pickAlgorithmValue(row, ['reason'])), span: 2 },
+      { label: '建议', value: translateKeyProcessText(pickAlgorithmValue(row, ['suggestion'])), span: 2 }
+    ]
+  }))
+}
+
+function anomalyLifecycleRows(rows) {
+  return rows.map((row, index) => ({
+    key: `detect-${rowTaskId(row) || index}`,
+    taskId: rowTaskId(row),
+    status: rowStatus(row),
+    fields: [
+      { label: '检测对象', value: row.targetName || row.target_name || row.bizName || row.biz_name },
+      { label: '是否异常', value: pickAlgorithmValue(row, ['isAbnormal', 'is_abnormal']) },
+      { label: '异常分数', value: algorithmNumberText(pickAlgorithmValue(row, ['abnormalScore', 'abnormal_score']), 4) },
+      { label: '异常时间', value: pickAlgorithmValue(row, ['abnormalTime', 'abnormal_time']) },
+      { label: '建议', value: translateDetectText(pickAlgorithmValue(row, ['suggestion'])), span: 2 }
+    ]
+  }))
+}
+
+function earlyFaultLifecycleRows(rows) {
+  return rows.map((row, index) => ({
+    key: `early-${rowTaskId(row) || index}`,
+    taskId: rowTaskId(row),
+    status: rowStatus(row),
+    fields: [
+      { label: '识别对象', value: row.targetName || row.target_name || row.bizName || row.biz_name },
+      { label: '早期故障点', value: pickAlgorithmValue(row, ['earlyDegradationPoint', 'early_degradation_point', 'earlyDegradationTime', 'early_degradation_time', 'degradationPoint', 'degradation_point']) },
+      { label: '单位', value: pickAlgorithmValue(row, ['degradationPointUnit', 'degradation_point_unit', 'unit']) },
+      { label: '检测时间', value: pickAlgorithmValue(row, ['detectTime', 'detect_time', 'detectionTime', 'detection_time']) },
+      { label: '结果摘要', value: row.summary || row.resultValue || row.result_value, span: 2 }
+    ]
+  }))
+}
+
+function faultPredictionLifecycleRows(rows) {
+  return rows.map((row, index) => ({
+    key: `predict-${rowTaskId(row) || index}`,
+    taskId: rowTaskId(row),
+    status: rowStatus(row),
+    fields: [
+      { label: '预测对象', value: row.targetName || row.target_name || row.bizName || row.biz_name },
+      { label: '风险评估', value: pickAlgorithmValue(row, ['riskLevel', 'risk_level', 'riskLevelCode', 'risk_level_code']) },
+      { label: '风险评分', value: algorithmNumberText(pickAlgorithmValue(row, ['riskScore', 'risk_score', 'score']), 2) },
+      { label: '剩余寿命', value: algorithmNumberText(pickAlgorithmValue(row, ['predictedRemainingLife', 'predicted_remaining_life', 'remainingLife', 'remaining_life', 'remainingTime', 'remaining_time']), 2) },
+      { label: '建议信息', value: normalizeAdvice(pickAlgorithmValue(row, ['maintenanceAdvice', 'maintenance_advice', 'suggestions', 'advice'])), span: 2 }
+    ]
+  }))
+}
+
+async function fetchLifecycleRows(url, params = {}) {
+  const response = await request({
+    url,
+    method: 'get',
+    params
+  })
+  const data = getKqcPayload(response)
+  return Array.isArray(data.rows) ? data.rows : (Array.isArray(data) ? data : [])
+}
+
+async function loadLifecycleResults(state, target = {}) {
+  resetLifecycleResultState(state)
+  state.loading = true
+  const keywords = buildTargetKeywords(target)
+  const keyword = keywords[0] || ''
+  const baseQuery = { keyword, page_num: 1, page_size: 20 }
+  const serviceQuery = { page_num: 1, page_size: 1000 }
+  const requests = [
+    ['kqc', '/feedback/warning/kqc-mining/results', baseQuery, kqcLifecycleRows],
+    ['keyProcess', '/service/identify/key_process_results', baseQuery, keyProcessLifecycleRows],
+    ['processAnomaly', '/feedback/warning/detect/results', baseQuery, anomalyLifecycleRows],
+    ['earlyFault', '/service/identify/results', { ...serviceQuery, task_type: 'EARLY_DEGRADATION_POINT_DETECT' }, earlyFaultLifecycleRows],
+    ['faultPrediction', '/service/identify/results', { ...serviceQuery, task_type: 'FAULT_PREDICT' }, faultPredictionLifecycleRows]
+  ]
+  try {
+    const settled = await Promise.allSettled(requests.map(([, url, params]) => fetchLifecycleRows(url, params)))
+    settled.forEach((item, index) => {
+      if (item.status !== 'fulfilled') return
+      const [key, , , formatter] = requests[index]
+      setLifecycleSectionRows(state, key, formatter(filterLifecycleRows(item.value, keywords)))
+    })
+  } finally {
+    state.loading = false
+  }
+}
+
 function getErrorMessage(error, fallback) {
   return error?.response?.data?.msg || error?.response?.data?.message || error?.message || fallback
 }
@@ -3470,9 +3794,20 @@ async function openPartQualityDialog(row) {
   partQualityDialog.part_name = row.part_name || ''
   partQualityDialog.part_code = row.part_code || ''
   partQualityDialog.tables = []
+  resetLifecycleResultState(partQualityDialog.lifecycle)
 
   try {
-    const res = await fetchPartQualityTables(row.part_instance_id)
+    const [qualityResult] = await Promise.all([
+      fetchPartQualityTables(row.part_instance_id),
+      loadLifecycleResults(partQualityDialog.lifecycle, {
+        ...row,
+        id: row.part_instance_id,
+        name: row.part_name || row.part_code || row.part_instance_id,
+        rawId: row.part_instance_id,
+        type: 'part_instance'
+      })
+    ])
+    const res = qualityResult
     partQualityDialog.tables = normalizePartQualityTables(res)
   } catch {
     partQualityDialog.tables = []
@@ -5501,6 +5836,54 @@ onBeforeUnmount(() => {
 .quality-detail-wrap {
   max-height: 560px;
   overflow: auto;
+}
+
+.lifecycle-result-wrap {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5edf6;
+}
+
+.algorithm-section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.algorithm-result-section {
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #fbfdff;
+}
+
+.algorithm-section-title {
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+
+.algorithm-result-card {
+  padding: 10px;
+  border: 1px solid #e3ebf4;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.algorithm-result-card + .algorithm-result-card {
+  margin-top: 10px;
+}
+
+.algorithm-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: #304156;
+  font-weight: 600;
 }
 
 

@@ -394,13 +394,14 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             String uploadBatchId,
             Integer fileIndex,
             Integer totalFiles,
-            MultipartFile file
+            MultipartFile file,
+            String relativePath
     )
     {
         UploadContext ctx = uploadContext(purpose, executionObject, conditionLabel, bearingNo, airId, subId, eqpId, cmpId, ptId);
         log.info("数值型数据单文件上传开始，batchId={}，fileIndex={}，totalFiles={}，fileName={}",
                 text(uploadBatchId), fileIndex, totalFiles, file == null ? null : file.getOriginalFilename());
-        Map<String, Object> ret = saveNumericSample(ctx, file, uploadBatchId, fileIndex, totalFiles);
+        Map<String, Object> ret = saveNumericSample(ctx, file, uploadBatchId, fileIndex, totalFiles, relativePath);
         log.info("数值型数据单文件上传完成，batchId={}，sampleId={}，fileName={}，status={}",
                 text(uploadBatchId), ret.get("sampleId"), ret.get("fileName"), ret.get("uploadStatus"));
         return ret;
@@ -593,12 +594,14 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             String uploadBatchId,
             String uploadId,
             String fileName,
-            Integer totalFiles
+            Integer totalFiles,
+            String relativePath
     )
     {
         String id = safeToken(uploadId, "uploadId");
-        String cleanName = cleanFileName(fileName);
-        if (!isDataFile(cleanName))
+        String storedName = relativeDataPath(relativePath, fileName);
+        String cleanName = Paths.get(storedName).getFileName().toString();
+        if (!isDataFile(storedName))
         {
             throw new ServiceException("仅支持上传 CSV/TXT 文件");
         }
@@ -633,7 +636,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                 }
             }
 
-            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, cleanName, ctx.dataUsage);
+            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, storedName, ctx.dataUsage);
             if (existing != null)
             {
                 deleteChunkDirectory(dir);
@@ -645,7 +648,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             }
 
             Path targetDir = uploadTargetDir(ctx, uploadBatchId);
-            Path target = stableTarget(targetDir, cleanName);
+            Path target = relativeTarget(targetDir, storedName);
             try (OutputStream out = Files.newOutputStream(target))
             {
                 for (Path part : parts)
@@ -655,7 +658,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             }
             try
             {
-                Map<String, Object> ret = saveNumericSample(ctx, target, uploadBatchId, null, totalFiles);
+                Map<String, Object> ret = saveNumericSample(ctx, target, uploadBatchId, null, totalFiles, storedName);
                 deleteChunkDirectory(dir);
                 log.info("数值型数据分片合并并清理完成，uploadId={}，fileName={}，chunkCount={}，target={}", id, cleanName, parts.size(), target);
                 ret.put("uploadId", id);
@@ -774,11 +777,16 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
 
     private Map<String, Object> saveNumericSample(UploadContext ctx, MultipartFile file, String uploadBatchId, Integer fileIndex, Integer totalFiles)
     {
+        return saveNumericSample(ctx, file, uploadBatchId, fileIndex, totalFiles, null);
+    }
+
+    private Map<String, Object> saveNumericSample(UploadContext ctx, MultipartFile file, String uploadBatchId, Integer fileIndex, Integer totalFiles, String relativePath)
+    {
         if (file == null || file.isEmpty())
         {
             throw new ServiceException("上传文件不能为空");
         }
-        String fileName = cleanFileName(file.getOriginalFilename());
+        String fileName = relativeDataPath(relativePath, file.getOriginalFilename());
         if (!isDataFile(fileName))
         {
             throw new ServiceException("仅支持上传 CSV/TXT 文件");
@@ -794,9 +802,9 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                 ret.put("message", "同名文件已存在");
                 return ret;
             }
-            target = stableTarget(dir, fileName);
+            target = relativeTarget(dir, fileName);
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-            return saveNumericSample(ctx, target, uploadBatchId, fileIndex, totalFiles);
+            return saveNumericSample(ctx, target, uploadBatchId, fileIndex, totalFiles, fileName);
         }
         catch (ServiceException e)
         {
@@ -812,9 +820,14 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
 
     private Map<String, Object> saveNumericSample(UploadContext ctx, Path target, String uploadBatchId, Integer fileIndex, Integer totalFiles)
     {
+        return saveNumericSample(ctx, target, uploadBatchId, fileIndex, totalFiles, null);
+    }
+
+    private Map<String, Object> saveNumericSample(UploadContext ctx, Path target, String uploadBatchId, Integer fileIndex, Integer totalFiles, String storedName)
+    {
         try
         {
-            String fileName = target.getFileName().toString();
+            String fileName = text(storedName) == null ? target.getFileName().toString() : storedName.replace("\\", "/");
             FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage);
             if (existing != null)
             {
@@ -872,6 +885,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         ret.put("fileName", target == null ? null : target.getFileName().toString());
         ret.put("filePath", target == null ? null : target.toAbsolutePath().normalize().toString());
         ret.put("sourceFile", target == null ? null : target.toAbsolutePath().normalize().toString());
+        ret.put("relativePath", sample == null ? null : sample.getFileName());
+        ret.put("batchPath", uploadTargetDir(ctx, uploadBatchId).toAbsolutePath().normalize().toString());
         try
         {
             ret.put("fileSize", target == null ? null : Files.size(target));
@@ -1039,6 +1054,41 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         return clean;
     }
 
+    private String relativeDataPath(String relativePath, String fallbackName)
+    {
+        String raw = text(relativePath);
+        if (raw == null)
+        {
+            return cleanFileName(fallbackName);
+        }
+        String normalized = raw.replace("\\", "/");
+        while (normalized.startsWith("/"))
+        {
+            normalized = normalized.substring(1);
+        }
+        if (normalized.isEmpty() || normalized.contains("..") || normalized.contains(":"))
+        {
+            throw new ServiceException("相对路径不合法：" + relativePath);
+        }
+        String[] parts = normalized.split("/");
+        List<String> cleaned = new ArrayList<>();
+        for (String part : parts)
+        {
+            String value = part == null ? "" : part.trim();
+            if (value.isEmpty() || ".".equals(value) || "..".equals(value))
+            {
+                throw new ServiceException("相对路径不合法：" + relativePath);
+            }
+            cleaned.add(cleanFileName(value));
+        }
+        String result = String.join("/", cleaned);
+        if (!isDataFile(result))
+        {
+            throw new ServiceException("仅支持上传 CSV/TXT 文件");
+        }
+        return result;
+    }
+
     private String apiFileName(String fileName)
     {
         String clean = text(fileName);
@@ -1104,6 +1154,21 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         if (!target.startsWith(dir))
         {
             throw new ServiceException("上传文件路径不合法：" + fileName);
+        }
+        return target;
+    }
+
+    private Path relativeTarget(Path dir, String relativePath) throws Exception
+    {
+        String safe = relativeDataPath(relativePath, relativePath);
+        Path target = dir.resolve(safe).normalize();
+        if (!target.startsWith(dir))
+        {
+            throw new ServiceException("上传文件路径不合法：" + relativePath);
+        }
+        if (target.getParent() != null)
+        {
+            Files.createDirectories(target.getParent());
         }
         return target;
     }

@@ -161,13 +161,12 @@ public class KeyProcessReqAssembler
     private Map<String, Object> target(String nodeId)
     {
         String type = nodeType(nodeId);
+        String targetType;
         if ("aircraft".equals(type))
         {
-            throw new ServiceException("飞机不能直接作为关键工序识别目标，请选择分系统、设备、组件或零件");
+            targetType = "aircraft";
         }
-
-        String targetType;
-        if ("subsystem".equals(type))
+        else if ("subsystem".equals(type))
         {
             targetType = "subsystem";
         }

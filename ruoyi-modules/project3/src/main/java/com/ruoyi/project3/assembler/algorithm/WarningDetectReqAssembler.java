@@ -42,11 +42,17 @@ public class WarningDetectReqAssembler
 
     public WarningDetectReq assemble(Map<String, Object> reqMap, String taskId, String requestId)
     {
-        String partId = AlgorithmParamReader.requiredText(reqMap, "partId", "partId", "part_id");
+        String partId = AlgorithmParamReader.optionalText(reqMap, "partId", "part_id");
         String partName = AlgorithmParamReader.optionalText(reqMap, "partName", "part_name");
+        String targetType = AlgorithmParamReader.optionalText(reqMap, "targetType", "target_type", "targetLevel", "target_level");
+        String targetId = AlgorithmParamReader.optionalText(reqMap, "targetId", "target_id");
+        String targetName = AlgorithmParamReader.optionalText(reqMap, "targetName", "target_name");
         // snake_case/processExecId 兼容后端列表返回字段，warning.vue 会透传 process_exec_id。
         String processId = AlgorithmParamReader.requiredText(reqMap, "processId", "processId", "process_id", "processExecId", "process_exec_id");
         String processName = AlgorithmParamReader.optionalText(reqMap, "processName", "process_name");
+        targetType = targetType == null ? "process" : targetType;
+        targetId = targetId == null ? processId : targetId;
+        targetName = targetName == null ? (processName == null ? partName : processName) : targetName;
         Integer featureCol = featureCol(reqMap);
         String boschPath = text(first(reqMap, "boschTrainNumericPath", "bosch_train_numeric_path", "trainNumericPath", "train_numeric_path"));
 
@@ -86,14 +92,14 @@ public class WarningDetectReqAssembler
         req.setRequestId(requestId);
         req.setTaskId(taskId);
         req.setRequestTime(new SimpleDateFormat(DATE_TIME_PATTERN).format(new Date()));
-        req.setTargetType("process");
-        req.setTargetId(processId);
-        req.setTargetName(processName == null ? partName : processName);
+        req.setTargetType(targetType);
+        req.setTargetId(targetId);
+        req.setTargetName(targetName);
         req.setPartId(partId);
         req.setProcessId(processId);
         req.setProcessName(processName);
         req.setFeatureCol(featureCol);
-        req.setHierarchyContext(ctx(reqMap, partId, partName, processId, processName));
+        req.setHierarchyContext(ctx(reqMap, partId, partName, processId, processName, targetType, targetId, targetName));
         applyBoschParams(req, reqMap, boschPath);
         if (boschPath != null)
         {
@@ -166,9 +172,13 @@ public class WarningDetectReqAssembler
         return sourceFile;
     }
 
-    private Map<String, Object> ctx(Map<String, Object> req, String partId, String partName, String processId, String processName)
+    private Map<String, Object> ctx(Map<String, Object> req, String partId, String partName, String processId, String processName,
+                                    String targetType, String targetId, String targetName)
     {
         Map<String, Object> out = new LinkedHashMap<>();
+        out.put("targetType", targetType);
+        out.put("targetId", targetId);
+        out.put("targetName", targetName);
         out.put("partId", partId);
         out.put("partName", partName);
         out.put("partCode", text(first(req, "partCode", "part_code")));

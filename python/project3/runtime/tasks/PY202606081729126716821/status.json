@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "taskId": "PY202606081729126716821",
+  "algorithmType": "KQC_MINING",
+  "status": "FAILED",
+  "progress": 100,
+  "message": "任务执行失败",
+  "createdAt": "2026-06-08T17:29:12",
+  "startedAt": "2026-06-08T17:29:12",
+  "finishedAt": "2026-06-08T17:29:12",
+  "result": null,
+  "error": "未找到 train_numeric.csv 文件：F:\\TotalData\\FaultIdentifyData\\ObjectNumericData\\aircraft\\A1\\NUM_1780888716330_y0iujj\\train_numeric.csv",
+  "payload": {
+    "dataSelectionMode": "SELECTED_FILES",
+    "dataUsage": "KQC_MINING",
+    "sampleIds": [
+      597
+    ],
+    "targetType": "aircraft",
+    "targetId": "A1",
+    "targetName": "C919-01",
+    "aircraftId": "A1",
+    "subsystemId": "",
+    "equipmentId": "",
+    "componentId": "",
+    "partId": "",
+    "maxRows": 200000,
+    "maxFeatures": 80,
+    "perStation": 2,
+    "selectionMode": "response_assoc",
+    "ssRuns": 5,
+    "trainNumericPath": "F:\\TotalData\\FaultIdentifyData\\ObjectNumericData\\aircraft\\A1\\NUM_1780888716330_y0iujj\\train_numeric.csv",
+    "taskId": "KQC20260608172912665"
+  }
+}

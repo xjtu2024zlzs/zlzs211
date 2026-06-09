@@ -80,6 +80,7 @@ public class FaultIdenCatalogController
             @RequestParam(value = "uploadBatchId", required = false) String uploadBatchId,
             @RequestParam(value = "fileIndex", required = false) Integer fileIndex,
             @RequestParam(value = "totalFiles", required = false) Integer totalFiles,
+            @RequestParam(value = "relativePath", required = false) String relativePath,
             @RequestParam("file") MultipartFile file
     )
     {
@@ -96,7 +97,8 @@ public class FaultIdenCatalogController
                 uploadBatchId,
                 fileIndex,
                 totalFiles,
-                file
+                file,
+                relativePath
         ));
     }
 
@@ -132,12 +134,13 @@ public class FaultIdenCatalogController
             @RequestParam(value = "uploadBatchId", required = false) String uploadBatchId,
             @RequestParam("uploadId") String uploadId,
             @RequestParam("fileName") String fileName,
-            @RequestParam(value = "totalFiles", required = false) Integer totalFiles
+            @RequestParam(value = "totalFiles", required = false) Integer totalFiles,
+            @RequestParam(value = "relativePath", required = false) String relativePath
     )
     {
         return AjaxResult.success("合并完成", faultIdenCatalogService.mergeNumericChunks(
                 purpose, executionObject, conditionLabel, bearingNo,
-                airId, subId, eqpId, cmpId, ptId, uploadBatchId, uploadId, fileName, totalFiles
+                airId, subId, eqpId, cmpId, ptId, uploadBatchId, uploadId, fileName, totalFiles, relativePath
         ));
     }
 

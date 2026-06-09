@@ -130,6 +130,19 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/frame-beam-crack-identify',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/project_3/service/FrameBeamCrackIdentify.vue'),
+        name: 'FrameBeamCrackIdentify',
+        meta: { title: '飞机框梁裂纹早期故障识别', icon: 'skill' }
+      }
+    ]
+  },
+  {
     path: '/project_4',
     component: Layout,
     hidden: true,

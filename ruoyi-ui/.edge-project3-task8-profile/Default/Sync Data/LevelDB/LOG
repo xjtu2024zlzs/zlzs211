@@ -1,0 +1,11 @@
+2026/06/01-16:19:23.376 5454 Creating DB D:\重点研发质量追溯\zlzs211\ruoyi-ui\.edge-project3-task8-profile\Default\Sync Data\LevelDB since it was missing.
+2026/06/01-16:19:23.418 5454 Reusing MANIFEST D:\重点研发质量追溯\zlzs211\ruoyi-ui\.edge-project3-task8-profile\Default\Sync Data\LevelDB/MANIFEST-000001
+2026/06/01-16:31:07.754 6b00 Level-0 table #5: started
+2026/06/01-16:31:07.759 6b00 Level-0 table #5: 99484 bytes OK
+2026/06/01-16:31:07.768 6b00 Delete type=0 #3
+2026/06/01-16:47:04.318 6b00 Level-0 table #7: started
+2026/06/01-16:47:04.325 6b00 Level-0 table #7: 79073 bytes OK
+2026/06/01-16:47:04.335 6b00 Delete type=0 #4
+2026/06/01-17:18:40.342 616c Level-0 table #9: started
+2026/06/01-17:18:40.353 616c Level-0 table #9: 93996 bytes OK
+2026/06/01-17:18:40.366 616c Delete type=0 #6

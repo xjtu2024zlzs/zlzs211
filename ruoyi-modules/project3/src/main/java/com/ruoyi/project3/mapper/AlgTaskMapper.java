@@ -9,6 +9,11 @@ public interface AlgTaskMapper
 {
     AlgTaskResult getByTaskId(@Param("taskId") String taskId);
 
+    AlgTaskResult getByRequestIdAndType(
+            @Param("requestId") String requestId,
+            @Param("taskType") String taskType
+    );
+
     AlgTaskResult getRunningTaskByRemark(
             @Param("taskType") String taskType,
             @Param("remark") String remark
@@ -92,5 +97,26 @@ public interface AlgTaskMapper
             @Param("status") String status,
             @Param("targetType") String targetType,
             @Param("targetId") String targetId
+    );
+
+    List<AlgTaskResult> getFrameBeamCrackResult(
+            @Param("taskType") String taskType,
+            @Param("keyword") String keyword,
+            @Param("status") String status,
+            @Param("result") String result,
+            @Param("offset") Integer offset,
+            @Param("limit") Integer limit
+    );
+
+    Long countFrameBeamCrackResult(
+            @Param("taskType") String taskType,
+            @Param("keyword") String keyword,
+            @Param("status") String status,
+            @Param("result") String result
+    );
+
+    int deleteByTaskIdAndType(
+            @Param("taskId") String taskId,
+            @Param("taskType") String taskType
     );
 }

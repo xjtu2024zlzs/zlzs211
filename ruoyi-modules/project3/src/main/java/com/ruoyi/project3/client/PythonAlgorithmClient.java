@@ -506,7 +506,7 @@ public class PythonAlgorithmClient
         String message = python_error_message(body);
         if (statusCode == 404)
         {
-            return new ServiceException("Python算法服务未注册当前接口，请确认8000端口启动的是最新的 springboot_algorithm_service/main.py，并已重启服务。接口：" + url);
+            return new ServiceException("Python算法服务未注册当前接口，请确认9741端口启动的是最新的 python/project3/main.py，并已重启服务。接口：" + url);
         }
         if (statusCode == 422)
         {

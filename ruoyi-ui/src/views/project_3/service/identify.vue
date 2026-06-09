@@ -320,10 +320,8 @@
         />
         <el-select v-model="history_query.task_type" placeholder="任务类型" clearable class="history-select">
           <el-option label="全部类型" value="" />
-          <el-option label="特征分析" value="FEATURE_ANALYSIS" />
           <el-option label="早期故障识别" value="EARLY_DEGRADATION_POINT_DETECT" />
           <el-option label="故障预防" value="FAULT_PREDICT" />
-          <el-option label="关键工序识别" value="KEY_PROCESS_IDENTIFY" />
         </el-select>
         <el-select v-model="history_query.status" placeholder="任务状态" clearable class="history-select">
           <el-option label="全部状态" value="" />
@@ -655,6 +653,7 @@ const history_query = reactive({
   page_num: 1,
   page_size: 20
 })
+const IDENTIFY_HISTORY_TASK_TYPES = ['EARLY_DEGRADATION_POINT_DETECT', 'FAULT_PREDICT']
 
 const summary_items = computed(() => {
   const summary = feat_data.value?.summary || {}
@@ -2075,19 +2074,64 @@ function renderPredictionLineChart(chart, config) {
   }, true)
 }
 
+function identifyHistoryTaskType(row) {
+  return row?.taskType || row?.task_type || ''
+}
+
+function isIdentifyHistoryRow(row) {
+  return IDENTIFY_HISTORY_TASK_TYPES.includes(identifyHistoryTaskType(row))
+}
+
+function sortIdentifyHistoryRows(rows) {
+  return [...rows].sort((a, b) => {
+    const left = new Date(a?.createTime || a?.create_time || 0).getTime()
+    const right = new Date(b?.createTime || b?.create_time || 0).getTime()
+    return (Number.isFinite(right) ? right : 0) - (Number.isFinite(left) ? left : 0)
+  })
+}
+
+async function loadIdentifyHistoryByType(taskType, pageSize = 1000) {
+  const res = await listFaultIdentifyResults({
+    keyword: history_query.keyword,
+    task_type: taskType,
+    status: history_query.status,
+    page_num: 1,
+    page_size: pageSize
+  })
+  const data = getApiPayload(res)
+  return Array.isArray(data?.rows) ? data.rows.filter(isIdentifyHistoryRow) : []
+}
+
 async function loadIdentifyHistory(options = {}) {
   history_loading.value = true
   try {
-    const res = await listFaultIdentifyResults({
-      keyword: history_query.keyword,
-      task_type: history_query.task_type,
-      status: history_query.status,
-      page_num: history_query.page_num,
-      page_size: history_query.page_size
-    })
-    const data = getApiPayload(res)
-    history_rows.value = Array.isArray(data?.rows) ? data.rows : []
-    history_total.value = Number(data?.total || 0)
+    const selectedTaskType = IDENTIFY_HISTORY_TASK_TYPES.includes(history_query.task_type)
+      ? history_query.task_type
+      : ''
+    if (history_query.task_type !== selectedTaskType) {
+      history_query.task_type = selectedTaskType
+    }
+
+    if (selectedTaskType) {
+      const res = await listFaultIdentifyResults({
+        keyword: history_query.keyword,
+        task_type: selectedTaskType,
+        status: history_query.status,
+        page_num: history_query.page_num,
+        page_size: history_query.page_size
+      })
+      const data = getApiPayload(res)
+      const rows = Array.isArray(data?.rows) ? data.rows.filter(isIdentifyHistoryRow) : []
+      history_rows.value = rows
+      history_total.value = Number(data?.total || rows.length)
+    } else {
+      const rows = sortIdentifyHistoryRows((await Promise.all(
+        IDENTIFY_HISTORY_TASK_TYPES.map(taskType => loadIdentifyHistoryByType(taskType))
+      )).flat())
+      history_total.value = rows.length
+      const start = (history_query.page_num - 1) * history_query.page_size
+      history_rows.value = rows.slice(start, start + history_query.page_size)
+    }
     if (options?.restoreLatest === true) {
       await restoreLatestResults()
     }

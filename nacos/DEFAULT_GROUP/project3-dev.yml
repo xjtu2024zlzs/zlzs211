@@ -64,10 +64,18 @@ mybatis:
 project3:
   profile: ${user.dir}/uploadPath
 
+# 飞机框梁裂纹识别算法服务
+frame-beam-crack:
+  algorithm:
+    base-url: http://localhost:9741
+    predict-path: /frame-beam-crack/predict
+    connect-timeout: 5000
+    read-timeout: 3600000
+
 # Python算法服务配置
 python:
   algorithm:
-    baseUrl: http://localhost:8000
+    baseUrl: http://localhost:9741
     keyProcessPath: /api/v1/key-process/identify
     kqc-mining-path: /algorithm/bosch/kqc-mining/execute
     feature-analysis-path: /python/data-analysis
