@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://ruoyi.com/design/optimization">
+  <process id="design_optimization_process" name="起落架舱门优化流程" isExecutable="true">
+    <startEvent id="start_event" name="任务发起" flowable:initiator="initiator"/>
+
+    <userTask id="structure_select" name="结构工程师目标约束选择" flowable:assignee="${structureUserId}"/>
+    <userTask id="layout_select" name="布局工程师目标约束选择" flowable:assignee="${layoutUserId}"/>
+    <userTask id="aero_select" name="气动工程师目标约束选择" flowable:assignee="${aeroUserId}"/>
+    <userTask id="hydraulic_select" name="液压工程师目标约束选择" flowable:assignee="${hydraulicUserId}"/>
+    <userTask id="manufacturing_select" name="制造工程师目标约束选择" flowable:assignee="${manufacturingUserId}"/>
+    <userTask id="conflict_check" name="目标约束冲突校验" flowable:assignee="${ownerUserId}"/>
+
+    <exclusiveGateway id="gateway_conflict" name="冲突校验结果"/>
+    <userTask id="model_decompose_solve" name="模型分解求解" flowable:assignee="${ownerUserId}"/>
+
+    <exclusiveGateway id="gateway_solve" name="求解结果判断"/>
+    <userTask id="simulation_confirm" name="仿真验证确认" flowable:assignee="${manufacturingUserId}"/>
+
+    <exclusiveGateway id="gateway_simulation" name="仿真验证结果"/>
+    <userTask id="leader_approve" name="领导审批" flowable:assignee="${leaderUserId}"/>
+
+    <exclusiveGateway id="gateway_approval" name="审批结果"/>
+    <endEvent id="end_event" name="流程结束"/>
+
+    <sequenceFlow id="flow_start_structure" sourceRef="start_event" targetRef="structure_select"/>
+    <sequenceFlow id="flow_structure_layout" sourceRef="structure_select" targetRef="layout_select"/>
+    <sequenceFlow id="flow_layout_aero" sourceRef="layout_select" targetRef="aero_select"/>
+    <sequenceFlow id="flow_aero_hydraulic" sourceRef="aero_select" targetRef="hydraulic_select"/>
+    <sequenceFlow id="flow_hydraulic_manufacturing" sourceRef="hydraulic_select" targetRef="manufacturing_select"/>
+    <sequenceFlow id="flow_manufacturing_conflict" sourceRef="manufacturing_select" targetRef="conflict_check"/>
+    <sequenceFlow id="flow_conflict_gateway" sourceRef="conflict_check" targetRef="gateway_conflict"/>
+
+    <sequenceFlow id="flow_conflict_pass" sourceRef="gateway_conflict" targetRef="model_decompose_solve">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${conflictPassed == true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow_conflict_fail" sourceRef="gateway_conflict" targetRef="structure_select">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${conflictPassed != true}]]></conditionExpression>
+    </sequenceFlow>
+
+    <sequenceFlow id="flow_model_gateway" sourceRef="model_decompose_solve" targetRef="gateway_solve"/>
+    <sequenceFlow id="flow_solve_to_objective" sourceRef="gateway_solve" targetRef="structure_select">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${returnToObjectiveSelection == true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow_solve_to_simulation" sourceRef="gateway_solve" targetRef="simulation_confirm">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${returnToObjectiveSelection != true}]]></conditionExpression>
+    </sequenceFlow>
+
+    <sequenceFlow id="flow_simulation_gateway" sourceRef="simulation_confirm" targetRef="gateway_simulation"/>
+    <sequenceFlow id="flow_simulation_pass" sourceRef="gateway_simulation" targetRef="leader_approve">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${simulationPassed == true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow_simulation_fail" sourceRef="gateway_simulation" targetRef="model_decompose_solve">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${simulationPassed != true}]]></conditionExpression>
+    </sequenceFlow>
+
+    <sequenceFlow id="flow_leader_gateway" sourceRef="leader_approve" targetRef="gateway_approval"/>
+    <sequenceFlow id="flow_approval_pass" sourceRef="gateway_approval" targetRef="end_event">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approvalPassed == true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow_approval_reject" sourceRef="gateway_approval" targetRef="model_decompose_solve">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approvalPassed != true}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_design_optimization_process">
+    <bpmndi:BPMNPlane id="BPMNPlane_design_optimization_process" bpmnElement="design_optimization_process">
+      <bpmndi:BPMNShape id="shape_start_event" bpmnElement="start_event"><omgdc:Bounds x="60" y="110" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_structure_select" bpmnElement="structure_select"><omgdc:Bounds x="140" y="88" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_layout_select" bpmnElement="layout_select"><omgdc:Bounds x="300" y="88" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_aero_select" bpmnElement="aero_select"><omgdc:Bounds x="460" y="88" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_hydraulic_select" bpmnElement="hydraulic_select"><omgdc:Bounds x="620" y="88" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_manufacturing_select" bpmnElement="manufacturing_select"><omgdc:Bounds x="780" y="88" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_conflict_check" bpmnElement="conflict_check"><omgdc:Bounds x="940" y="88" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_gateway_conflict" bpmnElement="gateway_conflict" isMarkerVisible="true"><omgdc:Bounds x="1110" y="103" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_model_decompose_solve" bpmnElement="model_decompose_solve"><omgdc:Bounds x="1210" y="88" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_gateway_solve" bpmnElement="gateway_solve" isMarkerVisible="true"><omgdc:Bounds x="1380" y="103" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_simulation_confirm" bpmnElement="simulation_confirm"><omgdc:Bounds x="1480" y="88" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_gateway_simulation" bpmnElement="gateway_simulation" isMarkerVisible="true"><omgdc:Bounds x="1650" y="103" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_leader_approve" bpmnElement="leader_approve"><omgdc:Bounds x="1750" y="88" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_gateway_approval" bpmnElement="gateway_approval" isMarkerVisible="true"><omgdc:Bounds x="1920" y="103" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape_end_event" bpmnElement="end_event"><omgdc:Bounds x="2020" y="110" width="36" height="36"/></bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

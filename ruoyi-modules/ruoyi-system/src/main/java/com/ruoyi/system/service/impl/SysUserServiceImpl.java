@@ -128,9 +128,29 @@ public class SysUserServiceImpl implements ISysUserService
         return userMapper.selectUserById(userId);
     }
 
+    @Override
+    public List<SysUser> selectUserListByRoleIds(List<Long> roleIds)
+    {
+        if (CollectionUtils.isEmpty(roleIds))
+        {
+            return new ArrayList<>();
+        }
+        return userMapper.selectUserListByRoleIds(roleIds);
+    }
+
+    @Override
+    public List<SysUser> selectUserListByDeptIds(List<Long> deptIds)
+    {
+        if (CollectionUtils.isEmpty(deptIds))
+        {
+            return new ArrayList<>();
+        }
+        return userMapper.selectUserListByDeptIds(deptIds);
+    }
+
     /**
      * 查询用户所属角色组
-     * 
+     *
      * @param userName 用户名
      * @return 结果
      */

@@ -73,6 +73,27 @@ public class SysUserController extends BaseController
     @Autowired
     private TokenService tokenService;
 
+    @InnerAuth
+    @GetMapping("/inner/{userId}")
+    public R<SysUser> innerUser(@PathVariable Long userId)
+    {
+        return R.ok(userService.selectUserById(userId));
+    }
+
+    @InnerAuth
+    @PostMapping("/inner/listByRoleIds")
+    public R<List<SysUser>> innerListByRoleIds(@RequestBody List<Long> roleIds)
+    {
+        return R.ok(userService.selectUserListByRoleIds(roleIds));
+    }
+
+    @InnerAuth
+    @PostMapping("/inner/listByDeptIds")
+    public R<List<SysUser>> innerListByDeptIds(@RequestBody List<Long> deptIds)
+    {
+        return R.ok(userService.selectUserListByDeptIds(deptIds));
+    }
+
     /**
      * 获取用户列表
      */

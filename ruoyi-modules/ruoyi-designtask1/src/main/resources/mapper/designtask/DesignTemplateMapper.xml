@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.designtask1.mapper.DesignTemplateMapper">
+
+    <resultMap type="DesignTemplate" id="DesignTemplateResult">
+        <id property="templateId" column="template_id" />
+        <result property="templateName" column="template_name" />
+        <result property="templateDesc" column="template_desc" />
+        <result property="templateConfig" column="template_config" />
+        <result property="isDefault" column="is_default" />
+        <result property="status" column="status" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectTemplateVo">
+        select template_id, template_name, template_desc, template_config, is_default, status, create_by, create_time, update_by, update_time, remark
+        from p2_design_template
+    </sql>
+
+    <select id="selectTemplateList" parameterType="DesignTemplate" resultMap="DesignTemplateResult">
+        <include refid="selectTemplateVo"/>
+        <where>
+            <if test="templateName != null and templateName != ''">
+                AND template_name like concat('%', #{templateName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectTemplateById" parameterType="Long" resultMap="DesignTemplateResult">
+        <include refid="selectTemplateVo"/>
+        where template_id = #{templateId}
+    </select>
+
+    <select id="selectTemplateAll" resultMap="DesignTemplateResult">
+        <include refid="selectTemplateVo"/>
+        where status = '0'
+        order by template_id
+    </select>
+
+    <select id="selectDefaultTemplate" resultMap="DesignTemplateResult">
+        <include refid="selectTemplateVo"/>
+        where is_default = '1' and status = '0'
+    </select>
+
+    <select id="checkTemplateNameUnique" parameterType="String" resultMap="DesignTemplateResult">
+        <include refid="selectTemplateVo"/>
+        where template_name = #{templateName}
+    </select>
+
+    <insert id="insertTemplate" parameterType="DesignTemplate" useGeneratedKeys="true" keyProperty="templateId">
+        insert into p2_design_template(
+            <if test="templateId != null and templateId != 0">template_id,</if>
+            <if test="templateName != null and templateName != ''">template_name,</if>
+            <if test="templateDesc != null">template_desc,</if>
+            <if test="templateConfig != null">template_config,</if>
+            <if test="isDefault != null and isDefault != ''">is_default,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="templateId != null and templateId != 0">#{templateId},</if>
+            <if test="templateName != null and templateName != ''">#{templateName},</if>
+            <if test="templateDesc != null">#{templateDesc},</if>
+            <if test="templateConfig != null">#{templateConfig},</if>
+            <if test="isDefault != null and isDefault != ''">#{isDefault},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTemplate" parameterType="DesignTemplate">
+        update p2_design_template
+        <set>
+            <if test="templateName != null and templateName != ''">template_name = #{templateName},</if>
+            <if test="templateDesc != null">template_desc = #{templateDesc},</if>
+            <if test="templateConfig != null">template_config = #{templateConfig},</if>
+            <if test="isDefault != null and isDefault != ''">is_default = #{isDefault},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where template_id = #{templateId}
+    </update>
+
+    <delete id="deleteTemplateById" parameterType="Long">
+        delete from p2_design_template where template_id = #{templateId}
+    </delete>
+
+    <delete id="deleteTemplateByIds" parameterType="Long">
+        delete from p2_design_template where template_id in
+        <foreach collection="array" item="templateId" open="(" separator="," close=")">
+            #{templateId}
+        </foreach>
+    </delete>
+
+</mapper>

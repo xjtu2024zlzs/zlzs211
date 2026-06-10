@@ -1,0 +1,359 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任务发起 - 页面预览</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.4/dist/index.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f7fa; min-height: 100vh; }
+    .task-create-container { padding: 20px; background-color: #f5f7fa; min-height: calc(100vh - 40px); }
+    .steps-wrapper { background: #fff; padding: 20px 40px; border-radius: 8px; margin-bottom: 20px; }
+    .step-card { margin-bottom: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; }
+    .card-header span:first-child { font-size: 16px; font-weight: 600; }
+    .header-tip { font-size: 12px; color: #909399; font-weight: normal; }
+    .step-content { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .task-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 10px; }
+    .task-type-item { position: relative; display: flex; align-items: center; padding: 20px; border: 2px solid #e4e7ed; border-radius: 8px; cursor: pointer; transition: all 0.3s; background: #fff; }
+    .task-type-item:hover { border-color: #409eff; box-shadow: 0 2px 12px rgba(64, 158, 255, 0.2); }
+    .task-type-item.is-active { border-color: #409eff; background-color: #ecf5ff; }
+    .type-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0; font-size: 28px; color: #fff; }
+    .type-info { flex: 1; }
+    .type-info h4 { margin: 0 0 8px 0; font-size: 16px; color: #303133; }
+    .type-info p { margin: 0; font-size: 13px; color: #909399; line-height: 1.5; }
+    .selected-badge { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; background-color: #409eff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; }
+    .type-detail { margin-top: 24px; padding: 16px; background-color: #f5f7fa; border-radius: 8px; }
+    .detail-content p { margin: 8px 0; line-height: 1.8; }
+    .detail-content strong { color: #409eff; margin-right: 8px; }
+    .flow-preview { margin-top: 20px; }
+    .flow-nodes { display: flex; align-items: center; flex-wrap: wrap; padding: 20px; background-color: #f5f7fa; border-radius: 8px; gap: 0; }
+    .flow-node { display: flex; align-items: center; }
+    .flow-node.is-parallel .node-circle { border-style: dashed; }
+    .node-circle { width: 36px; height: 36px; border-radius: 50%; background-color: #409eff; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0; border: 2px solid #409eff; }
+    .node-info { display: flex; flex-direction: column; margin-left: 8px; }
+    .node-name { font-size: 14px; color: #303133; font-weight: 500; }
+    .flow-connector { width: 40px; height: 2px; background: #c0c4cc; margin: 0 8px; flex-shrink: 0; }
+    .collab-roles { margin-top: 20px; }
+    .role-tags { padding: 12px; background-color: #f5f7fa; border-radius: 4px; }
+    .role-tag { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 13px; margin-right: 8px; margin-bottom: 8px; }
+    .role-tag.success { background: #f0f9eb; color: #67c23a; }
+    .role-tag.warning { background: #fdf6ec; color: #e6a23c; }
+    .role-tag.info { background: #f4f4f5; color: #909399; }
+    .role-tag.primary { background: #ecf5ff; color: #409eff; }
+    .modify-btn { color: #409eff; font-size: 13px; cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; }
+    .modify-btn:hover { text-decoration: underline; }
+    .confirm-info { margin-bottom: 20px; }
+    .confirm-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .confirm-table th, .confirm-table td { padding: 12px 16px; border: 1px solid #ebeef5; text-align: left; }
+    .confirm-table th { background: #fafafa; color: #606266; font-weight: 600; width: 140px; }
+    .confirm-table td { color: #303133; }
+    .confirm-tip { margin-top: 20px; padding: 12px 16px; background: #f4f4f5; border-left: 4px solid #409eff; border-radius: 4px; font-size: 13px; color: #606266; display: flex; align-items: center; gap: 8px; }
+    .confirm-tip .tip-icon { width: 16px; height: 16px; background: #409eff; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+    .priority-options { display: flex; gap: 20px; }
+    .priority-option { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 16px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; transition: all 0.2s; }
+    .priority-option input { display: none; }
+    .priority-option:hover { border-color: #409eff; }
+    .priority-option.is-selected { border-color: #409eff; background: #ecf5ff; color: #409eff; }
+    .priority-option.is-selected .priority-dot { background: #409eff; }
+    .priority-dot { width: 8px; height: 8px; border-radius: 50%; background: #dcdfe6; }
+    .priority-option[data-priority="3"].is-selected { border-color: #f56c6c; background: #fef0f0; color: #f56c6c; }
+    .priority-option[data-priority="3"].is-selected .priority-dot { background: #f56c6c; }
+    .priority-option[data-priority="1"].is-selected { border-color: #909399; background: #f4f4f5; color: #909399; }
+    .priority-option[data-priority="1"].is-selected .priority-dot { background: #909399; }
+    .upload-area { border: 2px dashed #dcdfe6; border-radius: 8px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fafafa; }
+    .upload-area:hover { border-color: #409eff; background: #ecf5ff; }
+    .upload-icon { font-size: 40px; color: #c0c4cc; margin-bottom: 10px; }
+    .upload-text { color: #606266; font-size: 14px; }
+    .upload-text strong { color: #409eff; }
+    .upload-hint { color: #909399; font-size: 12px; margin-top: 6px; }
+    .file-list { margin-top: 16px; }
+    .file-item { display: flex; align-items: center; padding: 8px 12px; background: #f4f4f5; border-radius: 4px; margin-bottom: 8px; font-size: 13px; color: #606266; }
+    .file-item .file-name { flex: 1; }
+    .file-item .file-size { margin-left: 12px; color: #909399; font-size: 12px; }
+    .file-item .file-remove { margin-left: 12px; color: #f56c6c; cursor: pointer; font-size: 16px; }
+    .file-item .file-remove:hover { color: #c0392b; }
+    .bottom-actions { display: flex; justify-content: center; gap: 16px; padding: 20px; background: #fff; border-radius: 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 24px; border-radius: 4px; font-size: 14px; cursor: pointer; border: 1px solid #dcdfe6; background: #fff; color: #606266; transition: all 0.2s; }
+    .btn:hover { border-color: #409eff; color: #409eff; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #409eff; border-color: #409eff; color: #fff; }
+    .btn-primary:hover { background: #66b1ff; border-color: #66b1ff; }
+    .btn-primary:disabled { background: #a0cfff; border-color: #a0cfff; cursor: not-allowed; }
+    .btn-text { border: none; background: none; padding: 8px 16px; }
+    .btn-text:hover { color: #409eff; }
+    .el-tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; }
+    .el-tag.success { background: #f0f9eb; color: #67c23a; border-color: #e1f3d8; }
+    .el-tag.warning { background: #fdf6ec; color: #e6a23c; border-color: #fdf6ec; }
+    .el-tag.danger { background: #fef0f0; color: #f56c6c; border-color: #fef0f0; }
+    .el-tag.info { background: #f4f4f5; color: #909399; border-color: #f4f4f5; }
+    .dialog-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+    .dialog { background: #fff; border-radius: 8px; width: 600px; max-width: 90vw; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .dialog-header { padding: 16px 20px; border-bottom: 1px solid #ebeef5; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+    .dialog-close { cursor: pointer; color: #909399; font-size: 18px; }
+    .dialog-close:hover { color: #409eff; }
+    .dialog-body { padding: 20px; }
+    .dialog-footer { padding: 12px 20px; border-top: 1px solid #ebeef5; display: flex; justify-content: flex-end; gap: 12px; }
+    .divider { height: 1px; background: #ebeef5; margin: 16px 0; }
+    .divider-label { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #606266; margin-bottom: 12px; }
+    .divider-label::before { content: ''; width: 4px; height: 16px; background: #409eff; border-radius: 2px; }
+    .form-item { margin-bottom: 18px; }
+    .form-label { font-size: 14px; color: #606266; margin-bottom: 8px; display: block; }
+    .form-label .required { color: #f56c6c; margin-right: 4px; }
+    .form-input { padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; width: 600px; max-width: 100%; transition: border-color 0.2s; }
+    .form-input:focus { outline: none; border-color: #409eff; }
+    .form-textarea { padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; width: 600px; max-width: 100%; resize: vertical; font-family: inherit; transition: border-color 0.2s; }
+    .form-textarea:focus { outline: none; border-color: #409eff; }
+    .form-select { padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; width: 400px; max-width: 100%; background: #fff; cursor: pointer; }
+    .form-select:focus { outline: none; border-color: #409eff; }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 16px; }
+    .checkbox-item { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #606266; }
+    .checkbox-item input { cursor: pointer; }
+    .hidden { display: none; }
+    .preview-banner { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 12px 24px; text-align: center; font-size: 14px; border-radius: 8px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+<div id="app" class="task-create-container">
+  <div class="preview-banner">页面预览模式 - 这是我为你设计的新页面效果，完整功能需要后端接口支持</div>
+  <div class="steps-wrapper">
+    <div class="steps" style="display:flex;align-items:center;justify-content:center;">
+      <div v-for="(name, idx) in stepNames" :key="idx" style="display:flex;align-items:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;min-width:120px;">
+          <div :style="{ width: '32px', height: '32px', borderRadius: '50%', background: idx <= step ? '#67c23a' : '#c0c4cc', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '600', marginBottom: '8px', transition: 'all 0.3s' }">
+            <span v-if="idx < step">&#10003;</span>
+            <span v-else>{{ idx + 1 }}</span>
+          </div>
+          <span style="font-size:13px;color:idx<=step?'#303133':'#c0c4cc';font-weight:500;">{{ name }}</span>
+        </div>
+        <div v-if="idx < stepNames.length - 1" style="width:80px;height:2px;background:#e4e7ed;margin:0 16px;margin-bottom:28px;flex-shrink:0;" :style="idx < step ? 'background:#67c23a' : ''"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 步骤1 -->
+  <div :class="['step-content', { hidden: step !== 0 }]">
+    <div class="step-card" style="background:#fff;border-radius:8px;padding:0;">
+      <div style="padding:16px 20px;border-bottom:1px solid #ebeef5;" class="card-header">
+        <span>选择任务类型</span>
+        <span class="header-tip">请选择需要处理的优化设计任务类型</span>
+      </div>
+      <div style="padding:20px;">
+        <div class="task-type-grid">
+          <div v-for="type in taskTypes" :key="type.taskType" :class="['task-type-item', { 'is-active': form.taskType === type.taskType }]" @click="selectTaskType(type)">
+            <div class="type-icon" :style="{ backgroundColor: type.color }">{{ type.icon }}</div>
+            <div class="type-info"><h4>{{ type.typeName }}</h4><p>{{ type.typeDesc }}</p></div>
+            <div v-if="form.taskType === type.taskType" class="selected-badge">&#10003;</div>
+          </div>
+        </div>
+        <div v-if="form.taskType" class="type-detail">
+          <div class="divider-label">类型说明</div>
+          <div class="detail-content">
+            <p><strong>负责人:</strong> {{ getResponsibleRoleName(form.taskType) }}</p>
+            <p><strong>协同工程师:</strong> {{ getCollaboratorNames(form.taskType) }}</p>
+            <p><strong>任务说明:</strong> {{ getTaskDescription(form.taskType) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 步骤2 -->
+  <div :class="['step-content', { hidden: step !== 1 }]">
+    <div class="step-card" style="background:#fff;border-radius:8px;padding:0;">
+      <div style="padding:16px 20px;border-bottom:1px solid #ebeef5;" class="card-header">
+        <span>配置流程</span>
+        <span class="header-tip">选择或创建任务的流程模板</span>
+      </div>
+      <div style="padding:20px;">
+        <div class="form-item">
+          <label class="form-label">流程模板</label>
+          <select class="form-select" v-model="form.templateId" @change="handleTemplateChange">
+            <option value="">请选择流程模板</option>
+            <option v-for="t in flowTemplates" :key="t.templateId" :value="t.templateId">{{ t.templateName }}</option>
+          </select>
+          <button class="btn btn-text" style="margin-left:12px;" @click="handleViewTemplate">查看模板</button>
+          <button class="btn btn-text">新建模板</button>
+        </div>
+        <div v-if="selectedTemplate" class="flow-preview">
+          <div class="divider-label">流程预览</div>
+          <div class="flow-nodes">
+            <div v-for="(node, idx) in selectedTemplate.nodes" :key="node.nodeCode" class="flow-node">
+              <div class="node-circle">{{ idx + 1 }}</div>
+              <div class="node-info">
+                <span class="node-name">{{ node.nodeName }}</span>
+                <span v-if="node.collaborators && node.collaborators.length > 0">
+                  <span class="el-tag warning" style="font-size:11px;">含{{ node.collaborators.length }}名协作</span>
+                </span>
+              </div>
+              <div v-if="idx < selectedTemplate.nodes.length - 1" class="flow-connector"></div>
+            </div>
+          </div>
+          <div class="collab-roles">
+            <div class="divider-label">协作角色</div>
+            <div class="role-tags">
+              <span v-for="role in getAllCollaborators()" :key="role" :class="['role-tag', getRoleTagType(role)]">{{ getRoleName(role) }}</span>
+            </div>
+            <div class="modify-btn" @click="showCollabDialog = true">&#9998; 修改协作角色</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 步骤3 -->
+  <div :class="['step-content', { hidden: step !== 2 }]">
+    <div class="step-card" style="background:#fff;border-radius:8px;padding:0;">
+      <div style="padding:16px 20px;border-bottom:1px solid #ebeef5;" class="card-header">
+        <span>填写信息</span>
+        <span class="header-tip">请填写任务的相关信息，便于后续处理</span>
+      </div>
+      <div style="padding:20px;">
+        <div class="form-item">
+          <label class="form-label"><span class="required">*</span>任务名称</label>
+          <input class="form-input" v-model="form.taskName" placeholder="请输入任务名称" maxlength="200">
+        </div>
+        <div class="form-item">
+          <label class="form-label">优先级</label>
+          <div class="priority-options">
+            <label v-for="p in priorities" :key="p.value" :data-priority="p.value" :class="['priority-option', { 'is-selected': form.priority === p.value }]" @click="form.priority = p.value">
+              <span class="priority-dot"></span>
+              <input type="radio" :value="p.value" v-model="form.priority" style="display:none;">{{ p.label }}
+            </label>
+          </div>
+        </div>
+        <div class="form-item">
+          <label class="form-label"><span class="required">*</span>问题描述</label>
+          <textarea class="form-textarea" v-model="form.description" rows="6" placeholder="请详细描述需要解决的问题，包括项目背景、约束条件等" maxlength="2000"></textarea>
+        </div>
+        <div class="form-item">
+          <label class="form-label">附件上传</label>
+          <div class="upload-area" @click="triggerUpload">
+            <div class="upload-icon">&#128206;</div>
+            <div class="upload-text">将文件拖到此处，或 <strong>点击上传</strong></div>
+            <div class="upload-hint">支持 PDF/Word/Excel/图片/模型文件，单个文件不超过 100MB</div>
+          </div>
+          <input type="file" ref="fileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png" style="display:none;" @change="handleFileChange">
+          <div v-if="fileList.length > 0" class="file-list">
+            <div v-for="(file, idx) in fileList" :key="idx" class="file-item">
+              <span class="file-name">&#128196; {{ file.name }}</span>
+              <span class="file-size">{{ formatSize(file.size) }}</span>
+              <span class="file-remove" @click="removeFile(idx)">&times;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 步骤4 -->
+  <div :class="['step-content', { hidden: step !== 3 }]">
+    <div class="step-card" style="background:#fff;border-radius:8px;padding:0;">
+      <div style="padding:16px 20px;border-bottom:1px solid #ebeef5;" class="card-header">
+        <span>确认提交</span>
+        <span class="header-tip">请确认以下信息，确认无误后提交</span>
+      </div>
+      <div style="padding:20px;">
+        <div class="confirm-info">
+          <table class="confirm-table">
+            <tr><th>任务类型</th><td><span class="el-tag" :style="{ background: getSelectedTypeColor(), color: '#fff', border: 'none' }">{{ getSelectedTypeName() }}</span></td><th>流程模板</th><td>{{ getSelectedTemplateName() }}</td></tr>
+            <tr><th>任务名称</th><td>{{ form.taskName || '—' }}</td><th>优先级</th><td><span :class="['el-tag', getPriorityType(form.priority)]">{{ getPriorityName(form.priority) }}</span></td></tr>
+            <tr><th>负责人</th><td>{{ getResponsibleRoleName(form.taskType) }}</td><th>协同工程师</th><td>{{ getCollaboratorNames(form.taskType) }}</td></tr>
+            <tr><th>问题描述</th><td colspan="3">{{ form.description || '无' }}</td></tr>
+            <tr><th>附件数量</th><td colspan="3">{{ fileList.length }} 个文件</td></tr>
+          </table>
+        </div>
+        <div class="confirm-tip">
+          <div class="tip-icon">i</div>
+          <div>确认无误后点击"提交任务"按钮，任务将进入创建阶段。协同工程师将收到最终通知。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部按钮 -->
+  <div class="bottom-actions">
+    <button v-if="step > 0" class="btn" @click="handlePrev">&larr; 上一步</button>
+    <button v-if="step < 3" class="btn btn-primary" :disabled="!canNext" @click="handleNext">下一步 &rarr;</button>
+    <button v-if="step === 3" class="btn" @click="handleSaveDraft">保存草稿</button>
+    <button v-if="step === 3" class="btn btn-primary" :disabled="submitLoading" @click="handleSubmit">{{ submitLoading ? '提交中...' : '提交任务' }}</button>
+  </div>
+
+  <!-- 协作角色对话框 -->
+  <div v-if="showCollabDialog" class="dialog-overlay" @click.self="showCollabDialog = false">
+    <div class="dialog">
+      <div class="dialog-header"><span>修改协作角色</span><span class="dialog-close" @click="showCollabDialog = false">&times;</span></div>
+      <div class="dialog-body">
+        <div class="form-item">
+          <label class="form-label">协作角色</label>
+          <div class="checkbox-group">
+            <label v-for="role in allRoles" :key="role.value" class="checkbox-item">
+              <input type="checkbox" :value="role.value" v-model="form.collaboratorRoles">{{ role.label }}
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn" @click="showCollabDialog = false">取消</button>
+        <button class="btn btn-primary" @click="showCollabDialog = false">确认</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/vue@3.4.15/dist/vue.global.prod.js"></script>
+<script>
+const { createApp, ref, reactive, computed } = Vue
+const app = createApp({
+  setup() {
+    const step = ref(0)
+    const stepNames = ['选择任务类型', '配置流程', '填写信息', '确认提交']
+    const form = reactive({ taskType: '', templateId: '', taskName: '', priority: 2, description: '', collaboratorRoles: [] })
+    const priorities = [{ value: 1, label: '低' }, { value: 2, label: '中' }, { value: 3, label: '高' }]
+    const allRoles = [{ value: 'STRUCTURE', label: '结构设计工程师' }, { value: 'LAYOUT', label: '布局设计工程师' }, { value: 'MANUFACTURE', label: '工艺设计工程师' }, { value: 'HYDRAULIC', label: '液压设计工程师' }]
+    const fileList = ref([])
+    const fileInput = ref(null)
+    const submitLoading = ref(false)
+    const showCollabDialog = ref(false)
+    const taskTypes = ref([
+      { taskType: 'HYDRAULIC', typeName: '液压弯管优化', typeDesc: '针对液压管路系统的布局优化设计', color: '#409eff', icon: '&#128736;' },
+      { taskType: 'STRUCTURE', typeName: '框梁疲劳分析', typeDesc: '基于课题结构优化任务，进行CAE仿真', color: '#e6a23c', icon: '&#127960;' },
+      { taskType: 'LAYOUT', typeName: '线缆布局优化', typeDesc: '基于机电液一体化布局优化任务', color: '#67c23a', icon: '&#9889;' }
+    ])
+    const flowTemplates = ref([
+      { templateId: 1, templateName: '标准液压优化流程', templateDesc: '包含需求分析、方案设计、仿真验证等环节', nodes: [{ nodeCode: 'N1', nodeName: '需求分析', parallelGroup: null, collaborators: ['STRUCTURE'] }, { nodeCode: 'N2', nodeName: '方案设计', parallelGroup: null, collaborators: ['HYDRAULIC', 'LAYOUT'] }, { nodeCode: 'N3', nodeName: '仿真验证', parallelGroup: null, collaborators: ['STRUCTURE', 'MANUFACTURE'] }, { nodeCode: 'N4', nodeName: '优化迭代', parallelGroup: null, collaborators: ['HYDRAULIC'] }, { nodeCode: 'N5', nodeName: '评审归档', parallelGroup: null, collaborators: [] }] },
+      { templateId: 2, templateName: '快速评审流程', templateDesc: '适用于紧急任务的简化流程', nodes: [{ nodeCode: 'N1', nodeName: '紧急评估', parallelGroup: null, collaborators: ['HYDRAULIC'] }, { nodeCode: 'N2', nodeName: '快速验证', parallelGroup: null, collaborators: ['STRUCTURE'] }, { nodeCode: 'N3', nodeName: '评审通过', parallelGroup: null, collaborators: ['MANUFACTURE'] }] },
+      { templateId: 3, templateName: '多学科协同流程', templateDesc: '支持多团队并行协作的复杂流程', nodes: [{ nodeCode: 'N1', nodeName: '任务分解', parallelGroup: null, collaborators: [] }, { nodeCode: 'N2', nodeName: '结构设计', parallelGroup: 'A', collaborators: ['STRUCTURE'] }, { nodeCode: 'N3', nodeName: '液压设计', parallelGroup: 'A', collaborators: ['HYDRAULIC'] }, { nodeCode: 'N4', nodeName: '布局设计', parallelGroup: 'A', collaborators: ['LAYOUT'] }, { nodeCode: 'N5', nodeName: '综合仿真', parallelGroup: null, collaborators: ['STRUCTURE', 'HYDRAULIC', 'MANUFACTURE'] }, { nodeCode: 'N6', nodeName: '最终评审', parallelGroup: null, collaborators: [] }] }
+    ])
+    const selectedTemplate = ref(null)
+    const canNext = computed(() => { switch (step.value) { case 0: return !!form.taskType; case 1: return !!form.templateId; case 2: return !!form.taskName && !!form.description; default: return true } })
+    function selectTaskType(type) { form.taskType = type.taskType }
+    function handleTemplateChange() { selectedTemplate.value = flowTemplates.value.find(t => t.templateId == form.templateId) || null }
+    function handleViewTemplate() { if (selectedTemplate.value) { alert('模板描述: ' + selectedTemplate.value.templateDesc) } }
+    function getAllCollaborators() { if (selectedTemplate.value && selectedTemplate.value.nodes) { const roles = new Set(); selectedTemplate.value.nodes.forEach(node => { if (node.collaborators) { node.collaborators.forEach(role => roles.add(role)) } }); return Array.from(roles) } return [] }
+    function getRoleName(role) { const map = { 'STRUCTURE': '结构设计工程师', 'LAYOUT': '布局设计工程师', 'MANUFACTURE': '工艺设计工程师', 'HYDRAULIC': '液压设计工程师' }; return map[role] || role }
+    function getRoleTagType(role) { const map = { 'STRUCTURE': 'success', 'LAYOUT': 'warning', 'MANUFACTURE': 'info', 'HYDRAULIC': 'primary' }; return map[role] || '' }
+    function getResponsibleRoleName(taskType) { const map = { 'HYDRAULIC': '液压设计工程师', 'STRUCTURE': '结构设计工程师', 'LAYOUT': '布局设计工程师' }; return map[taskType] || '—' }
+    function getCollaboratorNames(taskType) { const map = { 'HYDRAULIC': '结构设计工程师、布局设计工程师、工艺设计工程师', 'STRUCTURE': '液压设计工程师、工艺设计工程师', 'LAYOUT': '结构设计工程师、液压设计工程师、工艺设计工程师' }; return map[taskType] || '—' }
+    function getTaskDescription(taskType) { const map = { 'HYDRAULIC': '负责液压管路系统的出口段优化设计任务发起管理', 'STRUCTURE': '基于课题结构优化任务，进行CAE仿真与结构优化设计', 'LAYOUT': '基于机电液一体化布局优化任务，进行管路布局优化' }; return map[taskType] || '' }
+    function getSelectedTypeColor() { const type = taskTypes.value.find(t => t.taskType === form.taskType); return type?.color || '#409eff' }
+    function getSelectedTypeName() { const type = taskTypes.value.find(t => t.taskType === form.taskType); return type?.typeName || '—' }
+    function getSelectedTemplateName() { const template = flowTemplates.value.find(t => t.templateId == form.templateId); return template?.templateName || '—' }
+    function getPriorityType(priority) { const map = { 1: 'info', 2: 'warning', 3: 'danger' }; return map[priority] || '' }
+    function getPriorityName(priority) { const map = { 1: '低', 2: '中', 3: '高' }; return map[priority] || '' }
+    function handlePrev() { if (step.value > 0) step.value-- }
+    function handleNext() { if (step.value < 3) step.value++ }
+    function handleSaveDraft() { alert('草稿箱暂存功能开发中...') }
+    function handleSubmit() { submitLoading.value = true; setTimeout(() => { submitLoading.value = false; alert('任务创建成功！（预览模式，数据未真实提交）') }, 1500) }
+    function triggerUpload() { fileInput.value?.click() }
+    function handleFileChange(e) { const files = Array.from(e.target.files); files.forEach(f => { if (!fileList.value.find(x => x.name === f.name)) { fileList.value.push(f) } }); e.target.value = '' }
+    function removeFile(idx) { fileList.value.splice(idx, 1) }
+    function formatSize(bytes) { if (!bytes) return '0 B'; const k = 1024; const sizes = ['B', 'KB', 'MB', 'GB']; const i = Math.floor(Math.log(bytes) / Math.log(k)); return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i] }
+    return { step, stepNames, form, priorities, allRoles, fileList, fileInput, submitLoading, showCollabDialog, taskTypes, flowTemplates, selectedTemplate, canNext, selectTaskType, handleTemplateChange, handleViewTemplate, getAllCollaborators, getRoleName, getRoleTagType, getResponsibleRoleName, getCollaboratorNames, getTaskDescription, getSelectedTypeColor, getSelectedTypeName, getSelectedTemplateName, getPriorityType, getPriorityName, handlePrev, handleNext, handleSaveDraft, handleSubmit, triggerUpload, handleFileChange, removeFile, formatSize }
+  }
+})
+app.mount('#app')
+</script>
+</body>
+</html>

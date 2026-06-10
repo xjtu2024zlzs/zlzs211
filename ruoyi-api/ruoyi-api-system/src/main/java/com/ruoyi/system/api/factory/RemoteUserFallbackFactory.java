@@ -1,13 +1,16 @@
 package com.ruoyi.system.api.factory;
 
+import com.ruoyi.common.core.domain.R;
+import com.ruoyi.system.api.RemoteUserService;
+import com.ruoyi.system.api.domain.SysDept;
+import com.ruoyi.system.api.domain.SysRole;
+import com.ruoyi.system.api.domain.SysUser;
+import com.ruoyi.system.api.model.LoginUser;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
-import com.ruoyi.common.core.domain.R;
-import com.ruoyi.system.api.RemoteUserService;
-import com.ruoyi.system.api.domain.SysUser;
-import com.ruoyi.system.api.model.LoginUser;
 
 /**
  * 用户服务降级处理
@@ -29,6 +32,36 @@ public class RemoteUserFallbackFactory implements FallbackFactory<RemoteUserServ
             public R<LoginUser> getUserInfo(String username, String source)
             {
                 return R.fail("获取用户失败:" + throwable.getMessage());
+            }
+
+            @Override
+            public R<SysUser> getUserInfoByUserId(Long userId, String source)
+            {
+                return R.fail("获取用户信息失败:" + throwable.getMessage());
+            }
+
+            @Override
+            public R<SysRole> getRoleByRoleId(Long roleId, String source)
+            {
+                return R.fail("获取角色信息失败:" + throwable.getMessage());
+            }
+
+            @Override
+            public R<SysDept> getDeptByDeptId(Long deptId, String source)
+            {
+                return R.fail("获取部门信息失败:" + throwable.getMessage());
+            }
+
+            @Override
+            public R<List<SysUser>> listByRoleIds(List<Long> roleIds, String source)
+            {
+                return R.fail("根据角色查询用户失败:" + throwable.getMessage());
+            }
+
+            @Override
+            public R<List<SysUser>> listByDeptIds(List<Long> deptIds, String source)
+            {
+                return R.fail("根据部门查询用户失败:" + throwable.getMessage());
             }
 
             @Override

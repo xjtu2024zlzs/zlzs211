@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.designtask1.mapper.DesignTaskFileMapper">
+
+    <resultMap type="DesignTaskFile" id="DesignTaskFileResult">
+        <id property="fileId" column="file_id" />
+        <result property="taskId" column="task_id" />
+        <result property="fileName" column="file_name" />
+        <result property="filePath" column="file_path" />
+        <result property="fileSize" column="file_size" />
+        <result property="fileType" column="file_type" />
+        <result property="fileSuffix" column="file_suffix" />
+        <result property="uploadBy" column="upload_by" />
+        <result property="uploadTime" column="upload_time" />
+    </resultMap>
+
+    <sql id="selectFileVo">
+        select file_id, task_id, file_name, file_path, file_size, file_type, file_suffix, upload_by, upload_time
+        from p2_design_task_file
+    </sql>
+
+    <select id="selectFileList" parameterType="DesignTaskFile" resultMap="DesignTaskFileResult">
+        <include refid="selectFileVo"/>
+        <where>
+            <if test="taskId != null">AND task_id = #{taskId}</if>
+            <if test="fileName != null and fileName != ''">AND file_name like concat('%', #{fileName}, '%')</if>
+        </where>
+    </select>
+
+    <select id="selectFileById" parameterType="Long" resultMap="DesignTaskFileResult">
+        <include refid="selectFileVo"/>
+        where file_id = #{fileId}
+    </select>
+
+    <select id="selectFilesByTaskId" parameterType="Long" resultMap="DesignTaskFileResult">
+        <include refid="selectFileVo"/>
+        where task_id = #{taskId}
+        order by upload_time desc
+    </select>
+
+    <insert id="insertFile" parameterType="DesignTaskFile" useGeneratedKeys="true" keyProperty="fileId">
+        insert into p2_design_task_file(
+            <if test="fileId != null and fileId != 0">file_id,</if>
+            <if test="taskId != null">task_id,</if>
+            <if test="fileName != null and fileName != ''">file_name,</if>
+            <if test="filePath != null and filePath != ''">file_path,</if>
+            <if test="fileSize != null">file_size,</if>
+            <if test="fileType != null">file_type,</if>
+            <if test="fileSuffix != null">file_suffix,</if>
+            <if test="uploadBy != null and uploadBy != ''">upload_by,</if>
+            upload_time
+        )values(
+            <if test="fileId != null and fileId != 0">#{fileId},</if>
+            <if test="taskId != null">#{taskId},</if>
+            <if test="fileName != null and fileName != ''">#{fileName},</if>
+            <if test="filePath != null and filePath != ''">#{filePath},</if>
+            <if test="fileSize != null">#{fileSize},</if>
+            <if test="fileType != null">#{fileType},</if>
+            <if test="fileSuffix != null">#{fileSuffix},</if>
+            <if test="uploadBy != null and uploadBy != ''">#{uploadBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <delete id="deleteFileById" parameterType="Long">
+        delete from p2_design_task_file where file_id = #{fileId}
+    </delete>
+
+    <delete id="deleteFilesByTaskId" parameterType="Long">
+        delete from p2_design_task_file where task_id = #{taskId}
+    </delete>
+
+</mapper>

@@ -16,6 +16,12 @@
 
     <dependencies>
 
+        <!-- SpringCloud OpenFeign -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
         <!-- Spring Web -->
         <dependency>
             <groupId>org.springframework</groupId>

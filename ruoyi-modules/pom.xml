@@ -13,6 +13,8 @@
         <module>ruoyi-gen</module>
         <module>ruoyi-job</module>
         <module>ruoyi-file</module>
+        <module>ruoyi-designtask1</module>
+        <module>ruoyi-flowable</module>
     </modules>
 
     <artifactId>ruoyi-modules</artifactId>

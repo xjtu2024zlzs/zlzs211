@@ -40,6 +40,11 @@ nbdist/
 *.log
 *.xml.versionsBackup
 *.swp
+.codex-tmp/
+.m2/
+maven-repo/
+maven-tmp/
+ruoyi-ui/npm-cache/
 
 !*/build/*.java
 !*/build/*.html

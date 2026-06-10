@@ -44,7 +44,13 @@
         <!-- SpringBoot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webmvc</artifactId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- RuoYi Common Core -->
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>ruoyi-common-core</artifactId>
         </dependency>
         
         <!-- Minio -->
@@ -52,12 +58,6 @@
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>${minio.version}</version>
-        </dependency>
-        
-        <!-- RuoYi Api System -->
-        <dependency>
-            <groupId>com.ruoyi</groupId>
-            <artifactId>ruoyi-api-system</artifactId>
         </dependency>
         
     </dependencies>

@@ -16,6 +16,12 @@
     </description>
 
     <dependencies>
+
+        <!-- SpringCloud OpenFeign -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
 		
         <!-- RuoYi Common Core-->
         <dependency>

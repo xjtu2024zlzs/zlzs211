@@ -2,7 +2,7 @@ package com.ruoyi.auth;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import com.ruoyi.common.security.annotation.EnableRyFeignClients;
 
 /**
@@ -11,7 +11,10 @@ import com.ruoyi.common.security.annotation.EnableRyFeignClients;
  * @author ruoyi
  */
 @EnableRyFeignClients
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })
+@SpringBootApplication(
+        scanBasePackages = { "com.ruoyi.auth", "com.ruoyi.system.api.factory" },
+        exclude = {DataSourceAutoConfiguration.class }
+)
 public class RuoYiAuthApplication
 {
     public static void main(String[] args)

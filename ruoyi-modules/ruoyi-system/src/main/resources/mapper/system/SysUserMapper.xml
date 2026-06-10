@@ -223,5 +223,26 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  			#{userId}
         </foreach> 
  	</delete>
-	
+
+ 	<select id="selectUserListByRoleIds" parameterType="java.util.List" resultMap="SysUserResult">
+        select distinct u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark
+        from sys_user u
+        left join sys_user_role ur on u.user_id = ur.user_id
+        where u.del_flag = '0'
+        and ur.role_id in
+        <foreach collection="list" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+ 	</select>
+
+ 	<select id="selectUserListByDeptIds" parameterType="java.util.List" resultMap="SysUserResult">
+        select distinct u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark
+        from sys_user u
+        where u.del_flag = '0'
+        and u.dept_id in
+        <foreach collection="list" item="deptId" open="(" separator="," close=")">
+            #{deptId}
+        </foreach>
+ 	</select>
+
 </mapper> 
