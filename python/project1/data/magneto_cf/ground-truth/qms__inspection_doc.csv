@@ -1,0 +1,13 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+QMS,inspection_doc,inspection_no,inspection_record,inspection_no,Direct Copy,simple,
+QMS,inspection_doc,spec_code,inspection_record,inspection_spec_id,Joined Copy,medium,
+QMS,inspection_doc,inspection_type_code,inspection_record,inspection_type,Lookup Normalize,simple,
+QMS,inspection_doc,find_date_text,inspection_record,find_date,Rename + Cast,simple,
+QMS,inspection_doc,find_type_code,inspection_record,find_type,Lookup Normalize,medium,
+QMS,inspection_doc,result_code,inspection_record,inspection_result,Lookup Normalize,simple,
+QMS,inspection_doc,component_serial_no,inspection_record,component_instance_id,Joined Copy,medium,
+QMS,inspection_doc,part_serial_no,inspection_record,part_instance_id,Joined Copy,hard,
+QMS,inspection_doc,work_order_no,inspection_record,work_order_id,Joined Copy,medium,
+QMS,inspection_doc,op_no,inspection_record,operation_execution_id,Joined Copy,hard,
+QMS,inspection_doc,inventory_batch_no,inspection_record,inventory_batch_id,Joined Copy,hard,
+QMS,inspection_doc,inspector_no,inspection_record,inspector_id,Joined Copy,medium,

@@ -1,10 +1,14 @@
 package com.ruoyi.project1.service.impl;
 
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import com.ruoyi.common.core.exception.ServiceException;
 import com.ruoyi.common.core.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +28,7 @@ import com.ruoyi.project1.mapper.MappingSpecSetMapper;
 import com.ruoyi.project1.mapper.MatchResultSetMapper;
 import com.ruoyi.project1.service.IAccessPlanService;
 import com.ruoyi.project1.service.support.ApiPullRuntimeService;
+import com.ruoyi.project1.service.support.Project1PresetScenarioService;
 
 /**
  * 数据接入管理 Service 业务层处理
@@ -34,6 +39,8 @@ import com.ruoyi.project1.service.support.ApiPullRuntimeService;
 @Service
 public class AccessPlanServiceImpl implements IAccessPlanService
 {
+    private static final Logger log = LoggerFactory.getLogger(AccessPlanServiceImpl.class);
+
     @Autowired
     private AccessPlanMapper accessPlanMapper;
 
@@ -58,9 +65,13 @@ public class AccessPlanServiceImpl implements IAccessPlanService
     @Autowired
     private ApiPullRuntimeService apiPullRuntimeService;
 
+    @Autowired
+    private Project1PresetScenarioService presetScenarioService;
+
     @Override
     public AccessPlan selectAccessPlanByAccessPlanId(Long accessPlanId)
     {
+        presetScenarioService.ensurePresetScenario();
         AccessPlan plan = accessPlanMapper.selectAccessPlanByAccessPlanId(accessPlanId);
         enrichAccessPlan(plan);
         return plan;
@@ -69,6 +80,7 @@ public class AccessPlanServiceImpl implements IAccessPlanService
     @Override
     public List<AccessPlan> selectAccessPlanList(AccessPlan accessPlan)
     {
+        presetScenarioService.ensurePresetScenario();
         List<AccessPlan> list = accessPlanMapper.selectAccessPlanList(accessPlan);
         for (AccessPlan row : list)
         {
@@ -80,6 +92,7 @@ public class AccessPlanServiceImpl implements IAccessPlanService
     @Override
     public int insertAccessPlan(AccessPlan accessPlan)
     {
+        presetScenarioService.ensurePresetScenario();
         fillAccessPlanDefaults(accessPlan);
         accessPlan.setCreateTime(DateUtils.getNowDate());
         return accessPlanMapper.insertAccessPlan(accessPlan);
@@ -88,6 +101,7 @@ public class AccessPlanServiceImpl implements IAccessPlanService
     @Override
     public int updateAccessPlan(AccessPlan accessPlan)
     {
+        presetScenarioService.ensurePresetScenario();
         fillAccessPlanDefaults(accessPlan);
         accessPlan.setUpdateTime(DateUtils.getNowDate());
         return accessPlanMapper.updateAccessPlan(accessPlan);
@@ -106,11 +120,23 @@ public class AccessPlanServiceImpl implements IAccessPlanService
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> execute(Long accessPlanId)
     {
+        presetScenarioService.ensurePresetScenario();
         AccessPlan plan = requirePlan(accessPlanId);
         Datasource datasource = requireDatasource(plan.getSourceDatasourceId());
+        AccessBatch runningBatch = findRunningBatch(accessPlanId);
+        if (runningBatch != null)
+        {
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("accessPlanId", accessPlanId);
+            result.put("batchId", runningBatch.getAccessBatchId());
+            result.put("batchNo", runningBatch.getBatchNo());
+            result.put("executionStatus", "running");
+            result.put("message", "Access execution is already running. Refresh later or view results.");
+            return result;
+        }
+
         if (plan.getSpecSetId() == null)
         {
             plan.setSpecSetId(resolveDefaultSpecSetId(plan.getSourceDatasourceId()));
@@ -119,7 +145,22 @@ public class AccessPlanServiceImpl implements IAccessPlanService
         ApiPullDatasource apiPullDetail = apiPullDatasourceMapper.selectApiPullDatasourceByDatasourceId(datasource.getDatasourceId());
         if ("api_pull".equals(datasource.getAccessMode()) && apiPullRuntimeService.canCallApiPull(apiPullDetail))
         {
-            return apiPullRuntimeService.executeAccessPlan(plan, datasource, apiPullDetail);
+            CompletableFuture.runAsync(() -> {
+                try
+                {
+                    apiPullRuntimeService.executeAccessPlan(plan, datasource, apiPullDetail);
+                }
+                catch (RuntimeException e)
+                {
+                    log.error("Access plan {} execution failed", accessPlanId, e);
+                }
+            });
+
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("accessPlanId", accessPlanId);
+            result.put("executionStatus", "running");
+            result.put("message", "Access execution has started. Refresh later or view results.");
+            return result;
         }
 
         throw new ServiceException("当前阶段只支持 API Pull 适配器执行，请检查数据源配置");
@@ -227,6 +268,11 @@ public class AccessPlanServiceImpl implements IAccessPlanService
     {
         try
         {
+            Long presetSpecSetId = presetScenarioService.resolvePresetSpecSetId(sourceDatasourceId);
+            if (presetSpecSetId != null)
+            {
+                return presetSpecSetId;
+            }
             MappingSpecSet query = new MappingSpecSet();
             query.setSourceDatasourceId(sourceDatasourceId);
             query.setIsDefault(1);
@@ -300,6 +346,14 @@ public class AccessPlanServiceImpl implements IAccessPlanService
         if (specSet == null)
         {
             return null;
+        }
+        if (presetScenarioService.isPresetSpecSet(specSet))
+        {
+            String visibleResultSetName = presetScenarioService.resolveVisibleResultSetNameForPreset(specSet);
+            if (!isBlank(visibleResultSetName))
+            {
+                return visibleResultSetName;
+            }
         }
         if (specSet.getResultSetId() != null)
         {

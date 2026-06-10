@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+ERP,purchase_order,vendor_id,purchase_order,supplier_id,Joined Copy,simple,
+ERP,purchase_order,po_no,purchase_order,order_no,Direct Copy,simple,
+ERP,purchase_order,task_no,purchase_order,task_code,Direct Copy,simple,
+ERP,purchase_order,order_dt_txt,purchase_order,order_date,Rename + Cast,simple,
+ERP,purchase_order,plan_arrive_yyyymmdd,purchase_order,delivery_date,Rename + Cast,medium,
+ERP,purchase_order,po_stat_cd,purchase_order,order_status,Lookup Normalize,medium,
+ERP,purchase_order,pri_lvl,purchase_order,priority_level,Rename + Cast,hard,
+ERP,purchase_order,urgent_tab,purchase_order,urgent_flag,Rename + Cast,simple,

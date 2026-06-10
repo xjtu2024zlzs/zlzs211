@@ -1,0 +1,8 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+ERP,item_master,item_no,material,material_code,Direct Copy,simple,
+ERP,item_master,item_desc,material,material_name,Direct Copy,simple,
+ERP,item_master,item_grp_cd,material,material_type,Lookup Normalize,hard,
+ERP,item_master,mat_grade,material,trademark,Direct Copy,hard,
+ERP,item_master,spec_model,material,material_spec,Direct Copy,medium,
+ERP,item_master,uom_cd,material,unit,Lookup Normalize,simple,
+ERP,item_master,buy_made_flag,material,purchased_flag,Rename + Cast,hard,

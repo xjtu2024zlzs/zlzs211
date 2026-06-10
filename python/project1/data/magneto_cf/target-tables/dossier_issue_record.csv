@@ -1,0 +1,11 @@
+﻿issue_record_id,inventory_batch_id,work_order_id,issue_no,issue_date,issued_amount,issue_person_name,issue_purpose,issue_status
+1,1,1,ISSUENO-0001,2026-05-09 08:07:00,20.850,Piston Rod Assembly 001,The procurement batch for Piston Rod Assembly has completed receiving inspection and is used for actuator assembly.,NORMAL
+2,2,2,ISSUENO-0002,2026-05-10 08:14:00,0.080,Cylinder Barrel Assembly 002,The procurement batch for Cylinder Barrel Assembly has completed receiving inspection and is used for actuator assembly.,WARNING
+3,3,3,ISSUENO-0003,2026-05-11 08:21:00,155.150,Front End Cap 003,The procurement batch for Front End Cap has completed receiving inspection and is used for actuator assembly.,QUALIFIED
+4,4,4,ISSUENO-0004,2026-05-12 08:28:00,5.100,Rear End Cap 004,The procurement batch for Rear End Cap has completed receiving inspection and is used for actuator assembly.,CLOSED
+5,5,5,ISSUENO-0005,2026-05-13 08:35:00,37.700,Seal Ring Assembly 005,The procurement batch for Seal Ring Assembly has completed receiving inspection and is used for actuator assembly.,NORMAL
+6,6,6,ISSUENO-0006,2026-05-14 08:42:00,0.150,Trunnion Bushing 006,The procurement batch for Trunnion Bushing has completed receiving inspection and is used for actuator assembly.,WARNING
+7,7,7,ISSUENO-0007,2026-05-15 08:49:00,23.400,Spherical Bearing 007,The procurement batch for Spherical Bearing has completed receiving inspection and is used for actuator assembly.,QUALIFIED
+8,8,8,ISSUENO-0008,2026-05-16 08:56:00,0.220,Throttle Connector 008,The procurement batch for Throttle Connector has completed receiving inspection and is used for actuator assembly.,CLOSED
+9,9,9,ISSUENO-0009,2026-05-17 09:03:00,155.300,Displacement Sensor Bracket 009,The procurement batch for Displacement Sensor Bracket has completed receiving inspection and is used for actuator assembly.,NORMAL
+10,10,10,ISSUENO-0010,2026-05-18 09:10:00,4.500,Locking Nut 010,The procurement batch for Locking Nut has completed receiving inspection and is used for actuator assembly.,WARNING

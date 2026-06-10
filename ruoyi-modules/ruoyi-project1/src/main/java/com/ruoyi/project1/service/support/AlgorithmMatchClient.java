@@ -33,7 +33,7 @@ public class AlgorithmMatchClient
             .connectTimeout(Duration.ofSeconds(5))
             .build();
 
-    @Value("${project1.algorithm.base-url:http://127.0.0.1:9204}")
+    @Value("${project1.algorithm.base-url:http://127.0.0.1:9701}")
     private String baseUrl;
 
     @Autowired
@@ -72,7 +72,7 @@ public class AlgorithmMatchClient
         }
         catch (IOException e)
         {
-            throw new ServiceException("算法请求序列化失败: " + e.getMessage());
+            throw new ServiceException("算法请求序列化失败：" + e.getMessage());
         }
     }
 
@@ -95,7 +95,7 @@ public class AlgorithmMatchClient
         }
         catch (IOException e)
         {
-            throw new ServiceException("算法服务调用失败: " + e.getMessage());
+            throw new ServiceException("算法服务调用失败：" + e.getMessage());
         }
         catch (InterruptedException e)
         {
@@ -111,9 +111,9 @@ public class AlgorithmMatchClient
                 + ", response=" + defaultString(responseBody, "");
         if (statusCode == 422)
         {
-            return new ServiceException("算法服务调用失败，HTTP 422，FastAPI 未识别到合法请求体或请求体字段不符合接口要求；" + detail);
+            return new ServiceException("算法服务调用失败，HTTP 422，FastAPI 未识别到合法请求体或请求字段不符合接口要求：" + detail);
         }
-        return new ServiceException("算法服务调用失败，HTTP " + statusCode + "；" + detail);
+        return new ServiceException("算法服务调用失败，HTTP " + statusCode + "：" + detail);
     }
 
     private String buildUrl(String endpoint)

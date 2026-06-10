@@ -1,0 +1,11 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+PLM,product_model,model_code,upper_equipment,equipment_code,Direct Copy,hard,型号编码作为上级装备编号
+PLM,product_model,model_name,upper_equipment,equipment_name,Direct Copy,hard,
+PLM,product_model,model_series,upper_equipment,equipment_type,Lookup Normalize,medium,
+PLM,product_model,model_code,upper_equipment,product_code,Direct Copy,simple,
+PLM,product_model,model_name,upper_equipment,product_name,Direct Copy,simple,
+PLM,product_model,cert_level_cd,upper_equipment,secret_level,Lookup Normalize,hard,
+PLM,product_model,product_line,installed_position,upper_equipment_id,Joined Copy,hard,
+PLM,product_model,model_code,component_type,product_code,Joined Copy,medium,
+PLM,product_model,model_name,component_type,product_name,Joined Copy,medium,
+PLM,product_model,actual_plane_no,upper_equipment,actual_plane_no,Direct Copy,medium,实际架次号直接作为上级装备实际架次

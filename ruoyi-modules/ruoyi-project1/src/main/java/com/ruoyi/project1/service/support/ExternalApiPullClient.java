@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -13,6 +14,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruoyi.common.core.exception.ServiceException;
 import com.ruoyi.project1.domain.ApiPullDatasource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,9 +25,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExternalApiPullClient
 {
+    private static final Logger log = LoggerFactory.getLogger(ExternalApiPullClient.class);
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {};
 
     private final HttpClient httpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(5))
             .build();
 
@@ -49,6 +54,7 @@ public class ExternalApiPullClient
     private Map<String, Object> get(ApiPullDatasource detail, String endpoint)
     {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
                 .uri(URI.create(buildUrl(detail.getBaseUrl(), endpoint)))
                 .timeout(Duration.ofSeconds(30))
                 .GET();
@@ -61,17 +67,23 @@ public class ExternalApiPullClient
         try
         {
             String body = objectMapper.writeValueAsString(payload == null ? Collections.emptyMap() : payload);
+            String url = buildUrl(detail.getBaseUrl(), endpoint);
+            log.info("API Pull POST {} bodyLength={} bodyPreview={}", url,
+                    body.getBytes(StandardCharsets.UTF_8).length, preview(body));
+
             HttpRequest.Builder builder = HttpRequest.newBuilder()
-                    .uri(URI.create(buildUrl(detail.getBaseUrl(), endpoint)))
-                    .timeout(Duration.ofSeconds(60))
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(180))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(body));
+                    .header("Accept", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8));
             applyHeaders(builder, detail);
             return send(builder.build());
         }
         catch (IOException e)
         {
-            throw new ServiceException("API Pull 请求序列化失败: " + e.getMessage());
+            throw new ServiceException("API Pull request serialization failed: " + exceptionDetail(e));
         }
     }
 
@@ -80,9 +92,10 @@ public class ExternalApiPullClient
         try
         {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            log.info("API Pull {} {} -> HTTP {}", request.method(), request.uri(), response.statusCode());
             if (response.statusCode() < 200 || response.statusCode() >= 300)
             {
-                throw new ServiceException("API Pull 调用失败，HTTP " + response.statusCode() + ": " + response.body());
+                throw new ServiceException(normalizeError(response.statusCode(), response.body()));
             }
             if (isBlank(response.body()))
             {
@@ -92,12 +105,12 @@ public class ExternalApiPullClient
         }
         catch (IOException e)
         {
-            throw new ServiceException("API Pull 调用失败: " + e.getMessage());
+            throw new ServiceException("API Pull call failed: " + exceptionDetail(e));
         }
         catch (InterruptedException e)
         {
             Thread.currentThread().interrupt();
-            throw new ServiceException("API Pull 调用被中断");
+            throw new ServiceException("API Pull call was interrupted");
         }
     }
 
@@ -138,7 +151,7 @@ public class ExternalApiPullClient
         }
         catch (IOException e)
         {
-            throw new ServiceException("API Pull headers_config 不是合法 JSON: " + e.getMessage());
+            throw new ServiceException("API Pull headers_config is not valid JSON: " + exceptionDetail(e));
         }
     }
 
@@ -146,7 +159,7 @@ public class ExternalApiPullClient
     {
         if (isBlank(baseUrl))
         {
-            throw new ServiceException("API Pull baseUrl 不能为空");
+            throw new ServiceException("API Pull baseUrl is required");
         }
         String normalizedBase = baseUrl.trim();
         while (normalizedBase.endsWith("/"))
@@ -167,9 +180,61 @@ public class ExternalApiPullClient
         return isBlank(endpoint) ? defaultEndpoint : endpoint.trim();
     }
 
+    private String normalizeError(int statusCode, String responseBody)
+    {
+        String detail = extractDetail(responseBody);
+        if (!isBlank(detail) && detail.startsWith("Unknown source_table"))
+        {
+            return "API Pull source table does not exist: " + detail
+                    + ". Regenerate the default result set or check the final access rules.";
+        }
+        if (!isBlank(detail) && detail.startsWith("Unknown column"))
+        {
+            return "API Pull source column does not exist: " + detail
+                    + ". Regenerate the default result set or check field mappings.";
+        }
+        return "API Pull call failed, HTTP " + statusCode + ": " + (isBlank(detail) ? responseBody : detail);
+    }
+
+    private String extractDetail(String responseBody)
+    {
+        if (isBlank(responseBody))
+        {
+            return "";
+        }
+        try
+        {
+            Map<String, Object> payload = objectMapper.readValue(responseBody, MAP_TYPE);
+            Object detail = payload.get("detail");
+            return detail == null ? responseBody : String.valueOf(detail);
+        }
+        catch (IOException e)
+        {
+            return responseBody;
+        }
+    }
+
+    private String preview(String body)
+    {
+        if (body == null)
+        {
+            return "";
+        }
+        String normalized = body.replaceAll("\\s+", " ");
+        return normalized.length() <= 500 ? normalized : normalized.substring(0, 500) + "...";
+    }
+
+    private String exceptionDetail(Exception e)
+    {
+        if (e == null)
+        {
+            return "unknown";
+        }
+        return isBlank(e.getMessage()) ? e.getClass().getSimpleName() : e.getMessage();
+    }
+
     private boolean isBlank(String value)
     {
         return value == null || value.trim().isEmpty();
     }
 }
-

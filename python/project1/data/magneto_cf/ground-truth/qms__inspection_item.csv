@@ -1,0 +1,11 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+QMS,inspection_item,inspection_doc_id,inspection_item_result,inspection_record_id,Joined Copy,medium,
+QMS,inspection_item,spec_code,inspection_item_result,inspection_spec_id,Joined Copy,medium,
+QMS,inspection_item,item_code,inspection_item_result,item_code,Direct Copy,simple,
+QMS,inspection_item,item_name,inspection_item_result,item_name,Direct Copy,simple,
+QMS,inspection_item,measured_text,inspection_item_result,measured_value,Direct Copy,hard,
+QMS,inspection_item,standard_text,inspection_item_result,standard_value,Direct Copy,hard,
+QMS,inspection_item,lower_limit_text,inspection_item_result,lower_limit,Direct Copy,medium,
+QMS,inspection_item,upper_limit_text,inspection_item_result,upper_limit,Direct Copy,medium,
+QMS,inspection_item,uom,inspection_item_result,unit,Lookup Normalize,simple,
+QMS,inspection_item,judge_code,inspection_item_result,judge_result,Lookup Normalize,simple,

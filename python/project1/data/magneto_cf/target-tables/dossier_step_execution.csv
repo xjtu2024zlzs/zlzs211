@@ -1,0 +1,11 @@
+﻿step_execution_id,operation_execution_id,step_no,step_name,step_sequence,start_time,finish_time,step_status,operator_name
+1,1,STEP02,Piston Rod Assembly 001,2,2026-05-09 08:07:00,2026-05-09 08:07:00,NORMAL,Piston Rod Assembly 001
+2,2,STEP03,Cylinder Barrel Assembly 002,3,2026-05-10 08:14:00,2026-05-10 08:14:00,WARNING,Cylinder Barrel Assembly 002
+3,3,STEP04,Front End Cap 003,4,2026-05-11 08:21:00,2026-05-11 08:21:00,QUALIFIED,Front End Cap 003
+4,4,STEP05,Rear End Cap 004,5,2026-05-12 08:28:00,2026-05-12 08:28:00,CLOSED,Rear End Cap 004
+5,5,STEP06,Seal Ring Assembly 005,6,2026-05-13 08:35:00,2026-05-13 08:35:00,NORMAL,Seal Ring Assembly 005
+6,6,STEP01,Trunnion Bushing 006,7,2026-05-14 08:42:00,2026-05-14 08:42:00,WARNING,Trunnion Bushing 006
+7,7,STEP02,Spherical Bearing 007,8,2026-05-15 08:49:00,2026-05-15 08:49:00,QUALIFIED,Spherical Bearing 007
+8,8,STEP03,Throttle Connector 008,9,2026-05-16 08:56:00,2026-05-16 08:56:00,CLOSED,Throttle Connector 008
+9,9,STEP04,Displacement Sensor Bracket 009,1,2026-05-17 09:03:00,2026-05-17 09:03:00,NORMAL,Displacement Sensor Bracket 009
+10,10,STEP05,Locking Nut 010,2,2026-05-18 09:10:00,2026-05-18 09:10:00,WARNING,Locking Nut 010

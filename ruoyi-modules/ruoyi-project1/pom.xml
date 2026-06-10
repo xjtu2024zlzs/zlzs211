@@ -71,6 +71,13 @@
             <artifactId>ruoyi-common-swagger</artifactId>
         </dependency>
 
+        <!-- Test support -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

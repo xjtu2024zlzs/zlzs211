@@ -1,0 +1,254 @@
+﻿dict_id,dict_type,standard_code,standard_name,standard_desc,enabled,sort_no
+1,equipment_type,NORMAL,Normal,equipment_type standard enumeration value: Normal,True,1
+2,equipment_type,WARNING,Warning,equipment_type standard enumeration value: Warning,True,2
+3,equipment_type,QUALIFIED,Qualified,equipment_type standard enumeration value: Qualified,True,3
+4,equipment_type,CLOSED,Closed,equipment_type standard enumeration value: Closed,True,4
+5,secret_level,NORMAL,Normal,secret_level standard enumeration value: Normal,True,5
+6,secret_level,WARNING,Warning,secret_level standard enumeration value: Warning,True,6
+7,secret_level,QUALIFIED,Qualified,secret_level standard enumeration value: Qualified,True,7
+8,secret_level,CLOSED,Closed,secret_level standard enumeration value: Closed,True,8
+9,system_position,NORMAL,Normal,system_position standard enumeration value: Normal,True,9
+10,system_position,WARNING,Warning,system_position standard enumeration value: Warning,True,10
+11,system_position,QUALIFIED,Qualified,system_position standard enumeration value: Qualified,True,11
+12,system_position,CLOSED,Closed,system_position standard enumeration value: Closed,True,12
+13,technical_status,NORMAL,Normal,technical_status standard enumeration value: Normal,True,13
+14,technical_status,WARNING,Warning,technical_status standard enumeration value: Warning,True,14
+15,technical_status,QUALIFIED,Qualified,technical_status standard enumeration value: Qualified,True,15
+16,technical_status,CLOSED,Closed,technical_status standard enumeration value: Closed,True,16
+17,side_code,NORMAL,Normal,side_code standard enumeration value: Normal,True,17
+18,side_code,WARNING,Warning,side_code standard enumeration value: Warning,True,18
+19,side_code,QUALIFIED,Qualified,side_code standard enumeration value: Qualified,True,19
+20,side_code,CLOSED,Closed,side_code standard enumeration value: Closed,True,20
+21,design_release_status,NORMAL,Normal,design_release_status standard enumeration value: Normal,True,21
+22,design_release_status,WARNING,Warning,design_release_status standard enumeration value: Warning,True,22
+23,design_release_status,QUALIFIED,Qualified,design_release_status standard enumeration value: Qualified,True,23
+24,design_release_status,CLOSED,Closed,design_release_status standard enumeration value: Closed,True,24
+25,material_type,NORMAL,Normal,material_type standard enumeration value: Normal,True,25
+26,material_type,WARNING,Warning,material_type standard enumeration value: Warning,True,26
+27,material_type,QUALIFIED,Qualified,material_type standard enumeration value: Qualified,True,27
+28,material_type,CLOSED,Closed,material_type standard enumeration value: Closed,True,28
+29,unit_code,EA,Each,unit_code standard enumeration value: Each,True,29
+30,unit_code,SET,Set,unit_code standard enumeration value: Set,True,30
+31,unit_code,KG,Kilogram,unit_code standard enumeration value: Kilogram,True,31
+32,unit_code,M,Meter,unit_code standard enumeration value: Meter,True,32
+33,part_type,NORMAL,Normal,part_type standard enumeration value: Normal,True,33
+34,part_type,WARNING,Warning,part_type standard enumeration value: Warning,True,34
+35,part_type,QUALIFIED,Qualified,part_type standard enumeration value: Qualified,True,35
+36,part_type,CLOSED,Closed,part_type standard enumeration value: Closed,True,36
+37,part_source_type,MAKE,Self-made,part_source_type standard enumeration value: Self-made,True,37
+38,part_source_type,BUY,Purchased,part_source_type standard enumeration value: Purchased,True,38
+39,part_source_type,OUTSOURCE,Outsourced,part_source_type standard enumeration value: Outsourced,True,39
+40,part_source_type,REPAIR,Repaired Part,part_source_type standard enumeration value: Repaired Part,True,40
+41,critical_level,NORMAL,Normal,critical_level standard enumeration value: Normal,True,41
+42,critical_level,WARNING,Warning,critical_level standard enumeration value: Warning,True,42
+43,critical_level,QUALIFIED,Qualified,critical_level standard enumeration value: Qualified,True,43
+44,critical_level,CLOSED,Closed,critical_level standard enumeration value: Closed,True,44
+45,route_type,NORMAL,Normal,route_type standard enumeration value: Normal,True,45
+46,route_type,WARNING,Warning,route_type standard enumeration value: Warning,True,46
+47,route_type,QUALIFIED,Qualified,route_type standard enumeration value: Qualified,True,47
+48,route_type,CLOSED,Closed,route_type standard enumeration value: Closed,True,48
+49,route_release_status,NORMAL,Normal,route_release_status standard enumeration value: Normal,True,49
+50,route_release_status,WARNING,Warning,route_release_status standard enumeration value: Warning,True,50
+51,route_release_status,QUALIFIED,Qualified,route_release_status standard enumeration value: Qualified,True,51
+52,route_release_status,CLOSED,Closed,route_release_status standard enumeration value: Closed,True,52
+53,parameter_unit,MPA,Megapascal,parameter_unit standard enumeration value: Megapascal,True,53
+54,parameter_unit,MM,Millimeter,parameter_unit standard enumeration value: Millimeter,True,54
+55,parameter_unit,ML_MIN,Milliliter per Minute,parameter_unit standard enumeration value: Milliliter per Minute,True,55
+56,parameter_unit,SEC,Second,parameter_unit standard enumeration value: Second,True,56
+57,control_level,NORMAL,Normal,control_level standard enumeration value: Normal,True,57
+58,control_level,WARNING,Warning,control_level standard enumeration value: Warning,True,58
+59,control_level,QUALIFIED,Qualified,control_level standard enumeration value: Qualified,True,59
+60,control_level,CLOSED,Closed,control_level standard enumeration value: Closed,True,60
+61,inspection_type,IN_PROCESS,In-process Inspection,inspection_type standard enumeration value: In-process Inspection,True,61
+62,inspection_type,FINAL,Final Inspection,inspection_type standard enumeration value: Final Inspection,True,62
+63,inspection_type,INCOMING,Incoming Inspection,inspection_type standard enumeration value: Incoming Inspection,True,63
+64,inspection_type,SERVICE,In-service Inspection,inspection_type standard enumeration value: In-service Inspection,True,64
+65,supplier_type,NORMAL,Normal,supplier_type standard enumeration value: Normal,True,65
+66,supplier_type,WARNING,Warning,supplier_type standard enumeration value: Warning,True,66
+67,supplier_type,QUALIFIED,Qualified,supplier_type standard enumeration value: Qualified,True,67
+68,supplier_type,CLOSED,Closed,supplier_type standard enumeration value: Closed,True,68
+69,supplier_qualification_level,NORMAL,Normal,supplier_qualification_level standard enumeration value: Normal,True,69
+70,supplier_qualification_level,WARNING,Warning,supplier_qualification_level standard enumeration value: Warning,True,70
+71,supplier_qualification_level,QUALIFIED,Qualified,supplier_qualification_level standard enumeration value: Qualified,True,71
+72,supplier_qualification_level,CLOSED,Closed,supplier_qualification_level standard enumeration value: Closed,True,72
+73,purchase_order_status,NORMAL,Normal,purchase_order_status standard enumeration value: Normal,True,73
+74,purchase_order_status,WARNING,Warning,purchase_order_status standard enumeration value: Warning,True,74
+75,purchase_order_status,QUALIFIED,Qualified,purchase_order_status standard enumeration value: Qualified,True,75
+76,purchase_order_status,CLOSED,Closed,purchase_order_status standard enumeration value: Closed,True,76
+77,purchase_line_status,NORMAL,Normal,purchase_line_status standard enumeration value: Normal,True,77
+78,purchase_line_status,WARNING,Warning,purchase_line_status standard enumeration value: Warning,True,78
+79,purchase_line_status,QUALIFIED,Qualified,purchase_line_status standard enumeration value: Qualified,True,79
+80,purchase_line_status,CLOSED,Closed,purchase_line_status standard enumeration value: Closed,True,80
+81,supplier_batch_status,NORMAL,Normal,supplier_batch_status standard enumeration value: Normal,True,81
+82,supplier_batch_status,WARNING,Warning,supplier_batch_status standard enumeration value: Warning,True,82
+83,supplier_batch_status,QUALIFIED,Qualified,supplier_batch_status standard enumeration value: Qualified,True,83
+84,supplier_batch_status,CLOSED,Closed,supplier_batch_status standard enumeration value: Closed,True,84
+85,inventory_batch_status,NORMAL,Normal,inventory_batch_status standard enumeration value: Normal,True,85
+86,inventory_batch_status,WARNING,Warning,inventory_batch_status standard enumeration value: Warning,True,86
+87,inventory_batch_status,QUALIFIED,Qualified,inventory_batch_status standard enumeration value: Qualified,True,87
+88,inventory_batch_status,CLOSED,Closed,inventory_batch_status standard enumeration value: Closed,True,88
+89,receiving_status,NORMAL,Normal,receiving_status standard enumeration value: Normal,True,89
+90,receiving_status,WARNING,Warning,receiving_status standard enumeration value: Warning,True,90
+91,receiving_status,QUALIFIED,Qualified,receiving_status standard enumeration value: Qualified,True,91
+92,receiving_status,CLOSED,Closed,receiving_status standard enumeration value: Closed,True,92
+93,issue_status,NORMAL,Normal,issue_status standard enumeration value: Normal,True,93
+94,issue_status,WARNING,Warning,issue_status standard enumeration value: Warning,True,94
+95,issue_status,QUALIFIED,Qualified,issue_status standard enumeration value: Qualified,True,95
+96,issue_status,CLOSED,Closed,issue_status standard enumeration value: Closed,True,96
+97,work_order_type,NORMAL,Normal,work_order_type standard enumeration value: Normal,True,97
+98,work_order_type,WARNING,Warning,work_order_type standard enumeration value: Warning,True,98
+99,work_order_type,QUALIFIED,Qualified,work_order_type standard enumeration value: Qualified,True,99
+100,work_order_type,CLOSED,Closed,work_order_type standard enumeration value: Closed,True,100
+101,work_order_status,RELEASED,Released,work_order_status standard enumeration value: Released,True,101
+102,work_order_status,RUNNING,In Progress,work_order_status standard enumeration value: In Progress,True,102
+103,work_order_status,COMPLETED,Completed,work_order_status standard enumeration value: Completed,True,103
+104,work_order_status,CLOSED,Closed,work_order_status standard enumeration value: Closed,True,104
+105,component_status,NORMAL,Normal,component_status standard enumeration value: Normal,True,105
+106,component_status,WARNING,Warning,component_status standard enumeration value: Warning,True,106
+107,component_status,QUALIFIED,Qualified,component_status standard enumeration value: Qualified,True,107
+108,component_status,CLOSED,Closed,component_status standard enumeration value: Closed,True,108
+109,production_batch_status,NORMAL,Normal,production_batch_status standard enumeration value: Normal,True,109
+110,production_batch_status,WARNING,Warning,production_batch_status standard enumeration value: Warning,True,110
+111,production_batch_status,QUALIFIED,Qualified,production_batch_status standard enumeration value: Qualified,True,111
+112,production_batch_status,CLOSED,Closed,production_batch_status standard enumeration value: Closed,True,112
+113,part_status,NORMAL,Normal,part_status standard enumeration value: Normal,True,113
+114,part_status,WARNING,Warning,part_status standard enumeration value: Warning,True,114
+115,part_status,QUALIFIED,Qualified,part_status standard enumeration value: Qualified,True,115
+116,part_status,CLOSED,Closed,part_status standard enumeration value: Closed,True,116
+117,replacement_reason,LEAKAGE,Internal Leakage,replacement_reason standard enumeration value: Internal Leakage,True,117
+118,replacement_reason,WEAR,Wear,replacement_reason standard enumeration value: Wear,True,118
+119,replacement_reason,DAMAGE,Damage,replacement_reason standard enumeration value: Damage,True,119
+120,replacement_reason,LIFE_LIMIT,Life Limit Reached,replacement_reason standard enumeration value: Life Limit Reached,True,120
+121,installation_status,NORMAL,Normal,installation_status standard enumeration value: Normal,True,121
+122,installation_status,WARNING,Warning,installation_status standard enumeration value: Warning,True,122
+123,installation_status,QUALIFIED,Qualified,installation_status standard enumeration value: Qualified,True,123
+124,installation_status,CLOSED,Closed,installation_status standard enumeration value: Closed,True,124
+125,station_status,NORMAL,Normal,station_status standard enumeration value: Normal,True,125
+126,station_status,WARNING,Warning,station_status standard enumeration value: Warning,True,126
+127,station_status,QUALIFIED,Qualified,station_status standard enumeration value: Qualified,True,127
+128,station_status,CLOSED,Closed,station_status standard enumeration value: Closed,True,128
+129,equipment_status,NORMAL,Normal,equipment_status standard enumeration value: Normal,True,129
+130,equipment_status,WARNING,Warning,equipment_status standard enumeration value: Warning,True,130
+131,equipment_status,QUALIFIED,Qualified,equipment_status standard enumeration value: Qualified,True,131
+132,equipment_status,CLOSED,Closed,equipment_status standard enumeration value: Closed,True,132
+133,skill_level,NORMAL,Normal,skill_level standard enumeration value: Normal,True,133
+134,skill_level,WARNING,Warning,skill_level standard enumeration value: Warning,True,134
+135,skill_level,QUALIFIED,Qualified,skill_level standard enumeration value: Qualified,True,135
+136,skill_level,CLOSED,Closed,skill_level standard enumeration value: Closed,True,136
+137,work_type,NORMAL,Normal,work_type standard enumeration value: Normal,True,137
+138,work_type,WARNING,Warning,work_type standard enumeration value: Warning,True,138
+139,work_type,QUALIFIED,Qualified,work_type standard enumeration value: Qualified,True,139
+140,work_type,CLOSED,Closed,work_type standard enumeration value: Closed,True,140
+141,tooling_type,NORMAL,Normal,tooling_type standard enumeration value: Normal,True,141
+142,tooling_type,WARNING,Warning,tooling_type standard enumeration value: Warning,True,142
+143,tooling_type,QUALIFIED,Qualified,tooling_type standard enumeration value: Qualified,True,143
+144,tooling_type,CLOSED,Closed,tooling_type standard enumeration value: Closed,True,144
+145,tooling_status,NORMAL,Normal,tooling_status standard enumeration value: Normal,True,145
+146,tooling_status,WARNING,Warning,tooling_status standard enumeration value: Warning,True,146
+147,tooling_status,QUALIFIED,Qualified,tooling_status standard enumeration value: Qualified,True,147
+148,tooling_status,CLOSED,Closed,tooling_status standard enumeration value: Closed,True,148
+149,operation_status,COMPLETED,Completed,operation_status standard enumeration value: Completed,True,149
+150,operation_status,RUNNING,In Progress,operation_status standard enumeration value: In Progress,True,150
+151,operation_status,HOLD,On Hold,operation_status standard enumeration value: On Hold,True,151
+152,operation_status,REWORK,Under Rework,operation_status standard enumeration value: Under Rework,True,152
+153,step_status,NORMAL,Normal,step_status standard enumeration value: Normal,True,153
+154,step_status,WARNING,Warning,step_status standard enumeration value: Warning,True,154
+155,step_status,QUALIFIED,Qualified,step_status standard enumeration value: Qualified,True,155
+156,step_status,CLOSED,Closed,step_status standard enumeration value: Closed,True,156
+157,resource_usage_status,NORMAL,Normal,resource_usage_status standard enumeration value: Normal,True,157
+158,resource_usage_status,WARNING,Warning,resource_usage_status standard enumeration value: Warning,True,158
+159,resource_usage_status,QUALIFIED,Qualified,resource_usage_status standard enumeration value: Qualified,True,159
+160,resource_usage_status,CLOSED,Closed,resource_usage_status standard enumeration value: Closed,True,160
+161,parameter_judge_result,OK,Qualified,parameter_judge_result standard enumeration value: Qualified,True,161
+162,parameter_judge_result,WARN,Warning,parameter_judge_result standard enumeration value: Warning,True,162
+163,parameter_judge_result,NG,Nonconforming,parameter_judge_result standard enumeration value: Nonconforming,True,163
+164,parameter_judge_result,RECHECK,Reinspection,parameter_judge_result standard enumeration value: Reinspection,True,164
+165,event_source,NORMAL,Normal,event_source standard enumeration value: Normal,True,165
+166,event_source,WARNING,Warning,event_source standard enumeration value: Warning,True,166
+167,event_source,QUALIFIED,Qualified,event_source standard enumeration value: Qualified,True,167
+168,event_source,CLOSED,Closed,event_source standard enumeration value: Closed,True,168
+169,quality_event_type,MANUFACTURING,Manufacturing Anomaly,quality_event_type standard enumeration value: Manufacturing Anomaly,True,169
+170,quality_event_type,PURCHASE,Procurement Anomaly,quality_event_type standard enumeration value: Procurement Anomaly,True,170
+171,quality_event_type,ASSEMBLY,Assembly Anomaly,quality_event_type standard enumeration value: Assembly Anomaly,True,171
+172,quality_event_type,PARAMETER,Parameter Anomaly,quality_event_type standard enumeration value: Parameter Anomaly,True,172
+173,quality_event_type,MRO,In-service Feedback,quality_event_type standard enumeration value: In-service Feedback,True,173
+174,severity_level,MINOR,Minor,severity_level standard enumeration value: Minor,True,174
+175,severity_level,MAJOR,Major,severity_level standard enumeration value: Major,True,175
+176,severity_level,CRITICAL,Critical,severity_level standard enumeration value: Critical,True,176
+177,severity_level,WARNING,Warning,severity_level standard enumeration value: Warning,True,177
+178,event_status,OPEN,Created,event_status standard enumeration value: Created,True,178
+179,event_status,ANALYZING,Under Analysis,event_status standard enumeration value: Under Analysis,True,179
+180,event_status,DISPOSING,Under Disposition,event_status standard enumeration value: Under Disposition,True,180
+181,event_status,CLOSED,Closed,event_status standard enumeration value: Closed,True,181
+182,quality_subject_type,NORMAL,Normal,quality_subject_type standard enumeration value: Normal,True,182
+183,quality_subject_type,WARNING,Warning,quality_subject_type standard enumeration value: Warning,True,183
+184,quality_subject_type,QUALIFIED,Qualified,quality_subject_type standard enumeration value: Qualified,True,184
+185,quality_subject_type,CLOSED,Closed,quality_subject_type standard enumeration value: Closed,True,185
+186,subject_role,NORMAL,Normal,subject_role standard enumeration value: Normal,True,186
+187,subject_role,WARNING,Warning,subject_role standard enumeration value: Warning,True,187
+188,subject_role,QUALIFIED,Qualified,subject_role standard enumeration value: Qualified,True,188
+189,subject_role,CLOSED,Closed,subject_role standard enumeration value: Closed,True,189
+190,find_type,NORMAL,Normal,find_type standard enumeration value: Normal,True,190
+191,find_type,WARNING,Warning,find_type standard enumeration value: Warning,True,191
+192,find_type,QUALIFIED,Qualified,find_type standard enumeration value: Qualified,True,192
+193,find_type,CLOSED,Closed,find_type standard enumeration value: Closed,True,193
+194,inspection_result,PASS,Qualified,inspection_result standard enumeration value: Qualified,True,194
+195,inspection_result,FAIL,Nonconforming,inspection_result standard enumeration value: Nonconforming,True,195
+196,inspection_result,RECHECK,Reinspection,inspection_result standard enumeration value: Reinspection,True,196
+197,inspection_result,WAIT,Pending Judgment,inspection_result standard enumeration value: Pending Judgment,True,197
+198,measurement_unit,MPA,Megapascal,measurement_unit standard enumeration value: Megapascal,True,198
+199,measurement_unit,MM,Millimeter,measurement_unit standard enumeration value: Millimeter,True,199
+200,measurement_unit,ML_MIN,Milliliter per Minute,measurement_unit standard enumeration value: Milliliter per Minute,True,200
+201,measurement_unit,SEC,Second,measurement_unit standard enumeration value: Second,True,201
+202,doc_source,NORMAL,Normal,doc_source standard enumeration value: Normal,True,202
+203,doc_source,WARNING,Warning,doc_source standard enumeration value: Warning,True,203
+204,doc_source,QUALIFIED,Qualified,doc_source standard enumeration value: Qualified,True,204
+205,doc_source,CLOSED,Closed,doc_source standard enumeration value: Closed,True,205
+206,failure_type,PROCESS_NC,Process Nonconformance,failure_type standard enumeration value: Process Nonconformance,True,206
+207,failure_type,INCOMING_NC,Incoming Material Nonconformance,failure_type standard enumeration value: Incoming Material Nonconformance,True,207
+208,failure_type,ASSEMBLY_NC,Assembly Nonconformance,failure_type standard enumeration value: Assembly Nonconformance,True,208
+209,failure_type,SERVICE_FAILURE,In-service Failure,failure_type standard enumeration value: In-service Failure,True,209
+210,document_status,NORMAL,Normal,document_status standard enumeration value: Normal,True,210
+211,document_status,WARNING,Warning,document_status standard enumeration value: Warning,True,211
+212,document_status,QUALIFIED,Qualified,document_status standard enumeration value: Qualified,True,212
+213,document_status,CLOSED,Closed,document_status standard enumeration value: Closed,True,213
+214,finder_type,NORMAL,Normal,finder_type standard enumeration value: Normal,True,214
+215,finder_type,WARNING,Warning,finder_type standard enumeration value: Warning,True,215
+216,finder_type,QUALIFIED,Qualified,finder_type standard enumeration value: Qualified,True,216
+217,finder_type,CLOSED,Closed,finder_type standard enumeration value: Closed,True,217
+218,disposition_type,REWORK,Rework,disposition_type standard enumeration value: Rework,True,218
+219,disposition_type,REPAIR,Repair,disposition_type standard enumeration value: Repair,True,219
+220,disposition_type,SCRAP,Scrap,disposition_type standard enumeration value: Scrap,True,220
+221,disposition_type,CONCESSION,Concession Acceptance,disposition_type standard enumeration value: Concession Acceptance,True,221
+222,disposition_status,NORMAL,Normal,disposition_status standard enumeration value: Normal,True,222
+223,disposition_status,WARNING,Warning,disposition_status standard enumeration value: Warning,True,223
+224,disposition_status,QUALIFIED,Qualified,disposition_status standard enumeration value: Qualified,True,224
+225,disposition_status,CLOSED,Closed,disposition_status standard enumeration value: Closed,True,225
+226,maintenance_event_type,FIELD_REPAIR,Field Repair,maintenance_event_type standard enumeration value: Field Repair,True,226
+227,maintenance_event_type,SHOP_REPAIR,Shop Repair,maintenance_event_type standard enumeration value: Shop Repair,True,227
+228,maintenance_event_type,INSPECTION,In-service Inspection,maintenance_event_type standard enumeration value: In-service Inspection,True,228
+229,maintenance_event_type,RETROFIT,Retrofit,maintenance_event_type standard enumeration value: Retrofit,True,229
+230,maintenance_event_status,NORMAL,Normal,maintenance_event_status standard enumeration value: Normal,True,230
+231,maintenance_event_status,WARNING,Warning,maintenance_event_status standard enumeration value: Warning,True,231
+232,maintenance_event_status,QUALIFIED,Qualified,maintenance_event_status standard enumeration value: Qualified,True,232
+233,maintenance_event_status,CLOSED,Closed,maintenance_event_status standard enumeration value: Closed,True,233
+234,maintenance_order_status,NORMAL,Normal,maintenance_order_status standard enumeration value: Normal,True,234
+235,maintenance_order_status,WARNING,Warning,maintenance_order_status standard enumeration value: Warning,True,235
+236,maintenance_order_status,QUALIFIED,Qualified,maintenance_order_status standard enumeration value: Qualified,True,236
+237,maintenance_order_status,CLOSED,Closed,maintenance_order_status standard enumeration value: Closed,True,237
+238,replacement_status,NORMAL,Normal,replacement_status standard enumeration value: Normal,True,238
+239,replacement_status,WARNING,Warning,replacement_status standard enumeration value: Warning,True,239
+240,replacement_status,QUALIFIED,Qualified,replacement_status standard enumeration value: Qualified,True,240
+241,replacement_status,CLOSED,Closed,replacement_status standard enumeration value: Closed,True,241
+242,feedback_source,NORMAL,Normal,feedback_source standard enumeration value: Normal,True,242
+243,feedback_source,WARNING,Warning,feedback_source standard enumeration value: Warning,True,243
+244,feedback_source,QUALIFIED,Qualified,feedback_source standard enumeration value: Qualified,True,244
+245,feedback_source,CLOSED,Closed,feedback_source standard enumeration value: Closed,True,245
+246,feedback_status,NORMAL,Normal,feedback_status standard enumeration value: Normal,True,246
+247,feedback_status,WARNING,Warning,feedback_status standard enumeration value: Warning,True,247
+248,feedback_status,QUALIFIED,Qualified,feedback_status standard enumeration value: Qualified,True,248
+249,feedback_status,CLOSED,Closed,feedback_status standard enumeration value: Closed,True,249
+250,quality_event_status,NORMAL,Normal,quality_event_status standard enumeration value: Normal,True,250
+251,quality_event_status,WARNING,Warning,quality_event_status standard enumeration value: Warning,True,251
+252,quality_event_status,QUALIFIED,Qualified,quality_event_status standard enumeration value: Qualified,True,252
+253,quality_event_status,CLOSED,Closed,quality_event_status standard enumeration value: Closed,True,253

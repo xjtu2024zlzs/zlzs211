@@ -1,0 +1,13 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MES,work_log,task_id,operation_execution,work_order_id,Joined Copy,hard,
+MES,work_log,workid,operation_execution,operation_definition_id,Joined Copy,hard,
+MES,work_log,zzh,operation_execution,component_instance_id,Joined Copy,hard,
+MES,work_log,part_id,operation_execution,part_instance_id,Joined Copy,hard,
+MES,work_log,station_id,operation_execution,workstation_id,Joined Copy,hard,
+MES,work_log,equipment_asset_id,operation_execution,equipment_id,Joined Copy,hard,
+MES,work_log,op_no,operation_execution,op_no,Direct Copy,simple,
+MES,work_log,workid,operation_execution,work_no,Direct Copy,simple,
+MES,work_log,workname,operation_execution,work_name,Direct Copy,simple,
+MES,work_log,startdate_txt,operation_execution,start_time,Rename + Cast,medium,
+MES,work_log,enddate_txt,operation_execution,finish_time,Rename + Cast,medium,
+MES,work_log,status_code,operation_execution,execution_status,Lookup Normalize,medium,

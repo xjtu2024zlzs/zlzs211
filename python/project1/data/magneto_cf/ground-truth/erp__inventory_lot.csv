@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+ERP,inventory_lot,vendor_batch_id,inventory_batch,supplier_batch_id,Joined Copy,medium,
+ERP,inventory_lot,item_id,inventory_batch,material_id,Joined Copy,medium,
+ERP,inventory_lot,stock_lot_no,inventory_batch,inventory_batch_no,Direct Copy,hard,
+ERP,inventory_lot,wh_code,inventory_batch,warehouse_code,Direct Copy,simple,
+ERP,inventory_lot,bin_code,inventory_batch,location_code,Direct Copy,hard,
+ERP,inventory_lot,onhand_qty_chr,inventory_batch,amount,Rename + Cast,hard,
+ERP,inventory_lot,qty_uom,inventory_batch,unit,Lookup Normalize,simple,
+ERP,inventory_lot,inv_status_cd,inventory_batch,batch_status,Lookup Normalize,hard,

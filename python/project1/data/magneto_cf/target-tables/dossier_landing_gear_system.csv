@@ -1,0 +1,11 @@
+﻿landing_gear_system_id,upper_equipment_id,system_code,system_name,system_position,technical_status,created_at,updated_at
+1,1,SYS-LG-HYD-0001,Landing Gear Extension Retraction Hydraulic System,NORMAL,NORMAL,2026-05-09 08:07:00,2026-05-09 08:07:00
+2,2,SYS-LG-HYD-0002,Landing Gear Extension Retraction Hydraulic System,WARNING,WARNING,2026-05-10 08:14:00,2026-05-10 08:14:00
+3,3,SYS-LG-HYD-0003,Landing Gear Extension Retraction Hydraulic System,QUALIFIED,QUALIFIED,2026-05-11 08:21:00,2026-05-11 08:21:00
+4,4,SYS-LG-HYD-0004,Landing Gear Extension Retraction Hydraulic System,CLOSED,CLOSED,2026-05-12 08:28:00,2026-05-12 08:28:00
+5,5,SYS-LG-HYD-0005,Landing Gear Extension Retraction Hydraulic System,NORMAL,NORMAL,2026-05-13 08:35:00,2026-05-13 08:35:00
+6,6,SYS-LG-HYD-0006,Landing Gear Extension Retraction Hydraulic System,WARNING,WARNING,2026-05-14 08:42:00,2026-05-14 08:42:00
+7,7,SYS-LG-HYD-0007,Landing Gear Extension Retraction Hydraulic System,QUALIFIED,QUALIFIED,2026-05-15 08:49:00,2026-05-15 08:49:00
+8,8,SYS-LG-HYD-0008,Landing Gear Extension Retraction Hydraulic System,CLOSED,CLOSED,2026-05-16 08:56:00,2026-05-16 08:56:00
+9,9,SYS-LG-HYD-0009,Landing Gear Extension Retraction Hydraulic System,NORMAL,NORMAL,2026-05-17 09:03:00,2026-05-17 09:03:00
+10,10,SYS-LG-HYD-0010,Landing Gear Extension Retraction Hydraulic System,WARNING,WARNING,2026-05-18 09:10:00,2026-05-18 09:10:00

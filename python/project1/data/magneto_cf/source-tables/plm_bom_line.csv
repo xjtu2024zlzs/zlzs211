@@ -1,0 +1,201 @@
+﻿bom_line_id,bom_header_id,parent_part_master_id,child_part_master_id,line_no,item_no,qty_per_txt,uom,install_pos_code,find_no,alt_group,line_status_cd
+1,1,1,1,1,MAT-LG-0001,20.850 MPa,PLM_EA,POS-LG-02,FINDNO-0001,Piston Rod Assembly is used for actuator assembly and issued,PLM_OPEN
+2,2,2,2,2,MAT-LG-0002,0.080 mL/min,PLM_SET,POS-LG-03,FINDNO-0002,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_RUNNING
+3,3,3,3,3,MAT-LG-0003,155.150 mm,PLM_KG,POS-LG-04,FINDNO-0003,Front End Cap is used for actuator assembly and issued accor,PLM_CLOSED
+4,4,4,4,4,MAT-LG-0004,5.100 s,PLM_M,POS-LG-05,FINDNO-0004,Rear End Cap is used for actuator assembly and issued accord,PLM_HOLD
+5,5,5,5,5,MAT-LG-0005,37.7 C,PLM_EA,POS-LG-06,FINDNO-0005,Seal Ring Assembly is used for actuator assembly and issued ,PLM_OPEN
+6,6,6,6,6,MAT-LG-0006,0.150 mm,PLM_SET,POS-LG-01,FINDNO-0006,Trunnion Bushing is used for actuator assembly and issued ac,PLM_RUNNING
+7,7,7,7,7,MAT-LG-0007,23.400 MPa,PLM_KG,POS-LG-02,FINDNO-0007,Spherical Bearing is used for actuator assembly and issued a,PLM_CLOSED
+8,8,8,8,8,MAT-LG-0008,0.220 mL/min,PLM_M,POS-LG-03,FINDNO-0008,Throttle Connector is used for actuator assembly and issued ,PLM_HOLD
+9,9,9,9,9,MAT-LG-0009,155.300 mm,PLM_EA,POS-LG-04,FINDNO-0009,Displacement Sensor Bracket is used for actuator assembly an,PLM_OPEN
+10,10,10,10,10,MAT-LG-0010,4.500 s,PLM_SET,POS-LG-05,FINDNO-0010,Locking Nut is used for actuator assembly and issued accordi,PLM_RUNNING
+11,11,11,11,11,MAT-LG-0011,37.9 C,PLM_KG,POS-LG-06,FINDNO-0011,Piston Rod Assembly is used for actuator assembly and issued,PLM_CLOSED
+12,12,12,12,12,MAT-LG-0012,0.180 mm,PLM_M,POS-LG-01,FINDNO-0012,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_HOLD
+13,13,13,13,13,MAT-LG-0013,23.400 MPa,PLM_EA,POS-LG-02,FINDNO-0013,Front End Cap is used for actuator assembly and issued accor,PLM_OPEN
+14,14,14,14,14,MAT-LG-0014,0.140 mL/min,PLM_SET,POS-LG-03,FINDNO-0014,Rear End Cap is used for actuator assembly and issued accord,PLM_RUNNING
+15,15,15,15,15,MAT-LG-0015,154.700 mm,PLM_KG,POS-LG-04,FINDNO-0015,Seal Ring Assembly is used for actuator assembly and issued ,PLM_CLOSED
+16,16,16,16,16,MAT-LG-0016,4.650 s,PLM_M,POS-LG-05,FINDNO-0016,Trunnion Bushing is used for actuator assembly and issued ac,PLM_HOLD
+17,17,17,17,17,MAT-LG-0017,38.0 C,PLM_EA,POS-LG-06,FINDNO-0017,Spherical Bearing is used for actuator assembly and issued a,PLM_OPEN
+18,18,18,18,18,MAT-LG-0018,0.210 mm,PLM_SET,POS-LG-01,FINDNO-0018,Throttle Connector is used for actuator assembly and issued ,PLM_RUNNING
+19,19,19,19,19,MAT-LG-0019,21.300 MPa,PLM_KG,POS-LG-02,FINDNO-0019,Displacement Sensor Bracket is used for actuator assembly an,PLM_CLOSED
+20,20,20,20,20,MAT-LG-0020,0.020 mL/min,PLM_M,POS-LG-03,FINDNO-0020,Locking Nut is used for actuator assembly and issued accordi,PLM_HOLD
+21,21,21,21,21,MAT-LG-0021,154.850 mm,PLM_EA,POS-LG-04,FINDNO-0021,Piston Rod Assembly is used for actuator assembly and issued,PLM_OPEN
+22,22,22,22,22,MAT-LG-0022,4.800 s,PLM_SET,POS-LG-05,FINDNO-0022,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_RUNNING
+23,23,23,23,23,MAT-LG-0023,38.1 C,PLM_KG,POS-LG-06,FINDNO-0023,Front End Cap is used for actuator assembly and issued accor,PLM_CLOSED
+24,24,24,24,24,MAT-LG-0024,0.240 mm,PLM_M,POS-LG-01,FINDNO-0024,Rear End Cap is used for actuator assembly and issued accord,PLM_HOLD
+25,25,25,25,25,MAT-LG-0025,20.700 MPa,PLM_EA,POS-LG-02,FINDNO-0025,Seal Ring Assembly is used for actuator assembly and issued ,PLM_OPEN
+26,26,26,26,26,MAT-LG-0026,0.220 mL/min,PLM_SET,POS-LG-03,FINDNO-0026,Trunnion Bushing is used for actuator assembly and issued ac,PLM_RUNNING
+27,27,27,27,27,MAT-LG-0027,155.000 mm,PLM_KG,POS-LG-04,FINDNO-0027,Spherical Bearing is used for actuator assembly and issued a,PLM_CLOSED
+28,28,28,28,28,MAT-LG-0028,4.950 s,PLM_M,POS-LG-05,FINDNO-0028,Throttle Connector is used for actuator assembly and issued ,PLM_HOLD
+29,29,29,29,29,MAT-LG-0029,38.3 C,PLM_EA,POS-LG-06,FINDNO-0029,Displacement Sensor Bracket is used for actuator assembly an,PLM_OPEN
+30,30,30,30,30,MAT-LG-0030,0.120 mm,PLM_SET,POS-LG-01,FINDNO-0030,Locking Nut is used for actuator assembly and issued accordi,PLM_RUNNING
+31,31,31,31,31,MAT-LG-0031,20.850 MPa,PLM_KG,POS-LG-02,FINDNO-0031,Piston Rod Assembly is used for actuator assembly and issued,PLM_CLOSED
+32,32,32,32,32,MAT-LG-0032,0.080 mL/min,PLM_M,POS-LG-03,FINDNO-0032,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_HOLD
+33,33,33,33,33,MAT-LG-0033,155.150 mm,PLM_EA,POS-LG-04,FINDNO-0033,Front End Cap is used for actuator assembly and issued accor,PLM_OPEN
+34,34,34,34,34,MAT-LG-0034,5.100 s,PLM_SET,POS-LG-05,FINDNO-0034,Rear End Cap is used for actuator assembly and issued accord,PLM_RUNNING
+35,35,35,35,35,MAT-LG-0035,37.7 C,PLM_KG,POS-LG-06,FINDNO-0035,Seal Ring Assembly is used for actuator assembly and issued ,PLM_CLOSED
+36,36,36,36,36,MAT-LG-0036,0.150 mm,PLM_M,POS-LG-01,FINDNO-0036,Trunnion Bushing is used for actuator assembly and issued ac,PLM_HOLD
+37,37,37,37,37,MAT-LG-0037,21.000 MPa,PLM_EA,POS-LG-02,FINDNO-0037,Spherical Bearing is used for actuator assembly and issued a,PLM_OPEN
+38,38,38,38,38,MAT-LG-0038,0.110 mL/min,PLM_SET,POS-LG-03,FINDNO-0038,Throttle Connector is used for actuator assembly and issued ,PLM_RUNNING
+39,39,39,39,39,MAT-LG-0039,158.400 mm,PLM_KG,POS-LG-04,FINDNO-0039,Displacement Sensor Bracket is used for actuator assembly an,PLM_CLOSED
+40,40,40,40,40,MAT-LG-0040,4.500 s,PLM_M,POS-LG-05,FINDNO-0040,Locking Nut is used for actuator assembly and issued accordi,PLM_HOLD
+41,41,41,41,41,MAT-LG-0041,37.9 C,PLM_EA,POS-LG-06,FINDNO-0041,Piston Rod Assembly is used for actuator assembly and issued,PLM_OPEN
+42,42,42,42,42,MAT-LG-0042,0.180 mm,PLM_SET,POS-LG-01,FINDNO-0042,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_RUNNING
+43,43,43,43,43,MAT-LG-0043,21.150 MPa,PLM_KG,POS-LG-02,FINDNO-0043,Front End Cap is used for actuator assembly and issued accor,PLM_CLOSED
+44,44,44,44,44,MAT-LG-0044,0.140 mL/min,PLM_M,POS-LG-03,FINDNO-0044,Rear End Cap is used for actuator assembly and issued accord,PLM_HOLD
+45,45,45,45,45,MAT-LG-0045,154.700 mm,PLM_EA,POS-LG-04,FINDNO-0045,Seal Ring Assembly is used for actuator assembly and issued ,PLM_OPEN
+46,46,46,46,46,MAT-LG-0046,4.650 s,PLM_SET,POS-LG-05,FINDNO-0046,Trunnion Bushing is used for actuator assembly and issued ac,PLM_RUNNING
+47,47,47,47,47,MAT-LG-0047,38.0 C,PLM_KG,POS-LG-06,FINDNO-0047,Spherical Bearing is used for actuator assembly and issued a,PLM_CLOSED
+48,48,48,48,48,MAT-LG-0048,0.210 mm,PLM_M,POS-LG-01,FINDNO-0048,Throttle Connector is used for actuator assembly and issued ,PLM_HOLD
+49,49,49,49,49,MAT-LG-0049,21.300 MPa,PLM_EA,POS-LG-02,FINDNO-0049,Displacement Sensor Bracket is used for actuator assembly an,PLM_OPEN
+50,50,50,50,50,MAT-LG-0050,0.020 mL/min,PLM_SET,POS-LG-03,FINDNO-0050,Locking Nut is used for actuator assembly and issued accordi,PLM_RUNNING
+51,51,51,51,51,MAT-LG-0051,154.850 mm,PLM_KG,POS-LG-04,FINDNO-0051,Piston Rod Assembly is used for actuator assembly and issued,PLM_CLOSED
+52,52,52,52,52,MAT-LG-0052,6.200 s,PLM_M,POS-LG-05,FINDNO-0052,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_HOLD
+53,53,53,53,53,MAT-LG-0053,38.1 C,PLM_EA,POS-LG-06,FINDNO-0053,Front End Cap is used for actuator assembly and issued accor,PLM_OPEN
+54,54,54,54,54,MAT-LG-0054,0.240 mm,PLM_SET,POS-LG-01,FINDNO-0054,Rear End Cap is used for actuator assembly and issued accord,PLM_RUNNING
+55,55,55,55,55,MAT-LG-0055,20.700 MPa,PLM_KG,POS-LG-02,FINDNO-0055,Seal Ring Assembly is used for actuator assembly and issued ,PLM_CLOSED
+56,56,56,56,56,MAT-LG-0056,0.050 mL/min,PLM_M,POS-LG-03,FINDNO-0056,Trunnion Bushing is used for actuator assembly and issued ac,PLM_HOLD
+57,57,57,57,57,MAT-LG-0057,155.000 mm,PLM_EA,POS-LG-04,FINDNO-0057,Spherical Bearing is used for actuator assembly and issued a,PLM_OPEN
+58,58,58,58,58,MAT-LG-0058,4.950 s,PLM_SET,POS-LG-05,FINDNO-0058,Throttle Connector is used for actuator assembly and issued ,PLM_RUNNING
+59,59,59,59,59,MAT-LG-0059,38.3 C,PLM_KG,POS-LG-06,FINDNO-0059,Displacement Sensor Bracket is used for actuator assembly an,PLM_CLOSED
+60,60,60,60,60,MAT-LG-0060,0.120 mm,PLM_M,POS-LG-01,FINDNO-0060,Locking Nut is used for actuator assembly and issued accordi,PLM_HOLD
+61,61,61,61,61,MAT-LG-0061,20.850 MPa,PLM_EA,POS-LG-02,FINDNO-0061,Piston Rod Assembly is used for actuator assembly and issued,PLM_OPEN
+62,62,62,62,62,MAT-LG-0062,0.080 mL/min,PLM_SET,POS-LG-03,FINDNO-0062,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_RUNNING
+63,63,63,63,63,MAT-LG-0063,155.150 mm,PLM_KG,POS-LG-04,FINDNO-0063,Front End Cap is used for actuator assembly and issued accor,PLM_CLOSED
+64,64,64,64,64,MAT-LG-0064,5.100 s,PLM_M,POS-LG-05,FINDNO-0064,Rear End Cap is used for actuator assembly and issued accord,PLM_HOLD
+65,65,65,65,65,MAT-LG-0065,62.0 C,PLM_EA,POS-LG-06,FINDNO-0065,Seal Ring Assembly is used for actuator assembly and issued ,PLM_OPEN
+66,66,66,66,66,MAT-LG-0066,0.150 mm,PLM_SET,POS-LG-01,FINDNO-0066,Trunnion Bushing is used for actuator assembly and issued ac,PLM_RUNNING
+67,67,67,67,67,MAT-LG-0067,21.000 MPa,PLM_KG,POS-LG-02,FINDNO-0067,Spherical Bearing is used for actuator assembly and issued a,PLM_CLOSED
+68,68,68,68,68,MAT-LG-0068,0.110 mL/min,PLM_M,POS-LG-03,FINDNO-0068,Throttle Connector is used for actuator assembly and issued ,PLM_HOLD
+69,69,69,69,69,MAT-LG-0069,155.300 mm,PLM_EA,POS-LG-04,FINDNO-0069,Displacement Sensor Bracket is used for actuator assembly an,PLM_OPEN
+70,70,70,70,70,MAT-LG-0070,4.500 s,PLM_SET,POS-LG-05,FINDNO-0070,Locking Nut is used for actuator assembly and issued accordi,PLM_RUNNING
+71,71,71,71,71,MAT-LG-0071,37.9 C,PLM_KG,POS-LG-06,FINDNO-0071,Piston Rod Assembly is used for actuator assembly and issued,PLM_CLOSED
+72,72,72,72,72,MAT-LG-0072,0.180 mm,PLM_M,POS-LG-01,FINDNO-0072,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_HOLD
+73,73,73,73,73,MAT-LG-0073,21.150 MPa,PLM_EA,POS-LG-02,FINDNO-0073,Front End Cap is used for actuator assembly and issued accor,PLM_OPEN
+74,74,74,74,74,MAT-LG-0074,0.140 mL/min,PLM_SET,POS-LG-03,FINDNO-0074,Rear End Cap is used for actuator assembly and issued accord,PLM_RUNNING
+75,75,75,75,75,MAT-LG-0075,154.700 mm,PLM_KG,POS-LG-04,FINDNO-0075,Seal Ring Assembly is used for actuator assembly and issued ,PLM_CLOSED
+76,76,76,76,76,MAT-LG-0076,4.650 s,PLM_M,POS-LG-05,FINDNO-0076,Trunnion Bushing is used for actuator assembly and issued ac,PLM_HOLD
+77,77,77,77,77,MAT-LG-0077,38.0 C,PLM_EA,POS-LG-06,FINDNO-0077,Spherical Bearing is used for actuator assembly and issued a,PLM_OPEN
+78,78,78,78,78,MAT-LG-0078,0.310 mm,PLM_SET,POS-LG-01,FINDNO-0078,Throttle Connector is used for actuator assembly and issued ,PLM_RUNNING
+79,79,79,79,79,MAT-LG-0079,21.300 MPa,PLM_KG,POS-LG-02,FINDNO-0079,Displacement Sensor Bracket is used for actuator assembly an,PLM_CLOSED
+80,80,80,80,80,MAT-LG-0080,0.020 mL/min,PLM_M,POS-LG-03,FINDNO-0080,Locking Nut is used for actuator assembly and issued accordi,PLM_HOLD
+81,81,81,81,81,MAT-LG-0081,154.850 mm,PLM_EA,POS-LG-04,FINDNO-0081,Piston Rod Assembly is used for actuator assembly and issued,PLM_OPEN
+82,82,82,82,82,MAT-LG-0082,4.800 s,PLM_SET,POS-LG-05,FINDNO-0082,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_RUNNING
+83,83,83,83,83,MAT-LG-0083,38.1 C,PLM_KG,POS-LG-06,FINDNO-0083,Front End Cap is used for actuator assembly and issued accor,PLM_CLOSED
+84,84,84,84,84,MAT-LG-0084,0.240 mm,PLM_M,POS-LG-01,FINDNO-0084,Rear End Cap is used for actuator assembly and issued accord,PLM_HOLD
+85,85,85,85,85,MAT-LG-0085,20.700 MPa,PLM_EA,POS-LG-02,FINDNO-0085,Seal Ring Assembly is used for actuator assembly and issued ,PLM_OPEN
+86,86,86,86,86,MAT-LG-0086,0.050 mL/min,PLM_SET,POS-LG-03,FINDNO-0086,Trunnion Bushing is used for actuator assembly and issued ac,PLM_RUNNING
+87,87,87,87,87,MAT-LG-0087,155.000 mm,PLM_KG,POS-LG-04,FINDNO-0087,Spherical Bearing is used for actuator assembly and issued a,PLM_CLOSED
+88,88,88,88,88,MAT-LG-0088,4.950 s,PLM_M,POS-LG-05,FINDNO-0088,Throttle Connector is used for actuator assembly and issued ,PLM_HOLD
+89,89,89,89,89,MAT-LG-0089,38.3 C,PLM_EA,POS-LG-06,FINDNO-0089,Displacement Sensor Bracket is used for actuator assembly an,PLM_OPEN
+90,90,90,90,90,MAT-LG-0090,0.120 mm,PLM_SET,POS-LG-01,FINDNO-0090,Locking Nut is used for actuator assembly and issued accordi,PLM_RUNNING
+91,91,91,91,91,MAT-LG-0091,23.400 MPa,PLM_KG,POS-LG-02,FINDNO-0091,Piston Rod Assembly is used for actuator assembly and issued,PLM_CLOSED
+92,92,92,92,92,MAT-LG-0092,0.080 mL/min,PLM_M,POS-LG-03,FINDNO-0092,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_HOLD
+93,93,93,93,93,MAT-LG-0093,155.150 mm,PLM_EA,POS-LG-04,FINDNO-0093,Front End Cap is used for actuator assembly and issued accor,PLM_OPEN
+94,94,94,94,94,MAT-LG-0094,5.100 s,PLM_SET,POS-LG-05,FINDNO-0094,Rear End Cap is used for actuator assembly and issued accord,PLM_RUNNING
+95,95,95,95,95,MAT-LG-0095,37.7 C,PLM_KG,POS-LG-06,FINDNO-0095,Seal Ring Assembly is used for actuator assembly and issued ,PLM_CLOSED
+96,96,96,96,96,MAT-LG-0096,0.150 mm,PLM_M,POS-LG-01,FINDNO-0096,Trunnion Bushing is used for actuator assembly and issued ac,PLM_HOLD
+97,97,97,97,97,MAT-LG-0097,21.000 MPa,PLM_EA,POS-LG-02,FINDNO-0097,Spherical Bearing is used for actuator assembly and issued a,PLM_OPEN
+98,98,98,98,98,MAT-LG-0098,0.110 mL/min,PLM_SET,POS-LG-03,FINDNO-0098,Throttle Connector is used for actuator assembly and issued ,PLM_RUNNING
+99,99,99,99,99,MAT-LG-0099,155.300 mm,PLM_KG,POS-LG-04,FINDNO-0099,Displacement Sensor Bracket is used for actuator assembly an,PLM_CLOSED
+100,100,100,100,100,MAT-LG-0100,4.500 s,PLM_M,POS-LG-05,FINDNO-0100,Locking Nut is used for actuator assembly and issued accordi,PLM_HOLD
+101,101,101,101,101,MAT-LG-0101,37.9 C,PLM_EA,POS-LG-06,FINDNO-0101,Piston Rod Assembly is used for actuator assembly and issued,PLM_OPEN
+102,102,102,102,102,MAT-LG-0102,0.180 mm,PLM_SET,POS-LG-01,FINDNO-0102,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_RUNNING
+103,103,103,103,103,MAT-LG-0103,21.150 MPa,PLM_KG,POS-LG-02,FINDNO-0103,Front End Cap is used for actuator assembly and issued accor,PLM_CLOSED
+104,104,104,104,104,MAT-LG-0104,0.220 mL/min,PLM_M,POS-LG-03,FINDNO-0104,Rear End Cap is used for actuator assembly and issued accord,PLM_HOLD
+105,105,105,105,105,MAT-LG-0105,154.700 mm,PLM_EA,POS-LG-04,FINDNO-0105,Seal Ring Assembly is used for actuator assembly and issued ,PLM_OPEN
+106,106,106,106,106,MAT-LG-0106,4.650 s,PLM_SET,POS-LG-05,FINDNO-0106,Trunnion Bushing is used for actuator assembly and issued ac,PLM_RUNNING
+107,107,107,107,107,MAT-LG-0107,38.0 C,PLM_KG,POS-LG-06,FINDNO-0107,Spherical Bearing is used for actuator assembly and issued a,PLM_CLOSED
+108,108,108,108,108,MAT-LG-0108,0.210 mm,PLM_M,POS-LG-01,FINDNO-0108,Throttle Connector is used for actuator assembly and issued ,PLM_HOLD
+109,109,109,109,109,MAT-LG-0109,21.300 MPa,PLM_EA,POS-LG-02,FINDNO-0109,Displacement Sensor Bracket is used for actuator assembly an,PLM_OPEN
+110,110,110,110,110,MAT-LG-0110,0.020 mL/min,PLM_SET,POS-LG-03,FINDNO-0110,Locking Nut is used for actuator assembly and issued accordi,PLM_RUNNING
+111,111,111,111,111,MAT-LG-0111,154.850 mm,PLM_KG,POS-LG-04,FINDNO-0111,Piston Rod Assembly is used for actuator assembly and issued,PLM_CLOSED
+112,112,112,112,112,MAT-LG-0112,4.800 s,PLM_M,POS-LG-05,FINDNO-0112,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_HOLD
+113,113,113,113,113,MAT-LG-0113,38.1 C,PLM_EA,POS-LG-06,FINDNO-0113,Front End Cap is used for actuator assembly and issued accor,PLM_OPEN
+114,114,114,114,114,MAT-LG-0114,0.240 mm,PLM_SET,POS-LG-01,FINDNO-0114,Rear End Cap is used for actuator assembly and issued accord,PLM_RUNNING
+115,115,115,115,115,MAT-LG-0115,20.700 MPa,PLM_KG,POS-LG-02,FINDNO-0115,Seal Ring Assembly is used for actuator assembly and issued ,PLM_CLOSED
+116,116,116,116,116,MAT-LG-0116,0.050 mL/min,PLM_M,POS-LG-03,FINDNO-0116,Trunnion Bushing is used for actuator assembly and issued ac,PLM_HOLD
+117,117,117,117,117,MAT-LG-0117,158.400 mm,PLM_EA,POS-LG-04,FINDNO-0117,Spherical Bearing is used for actuator assembly and issued a,PLM_OPEN
+118,118,118,118,118,MAT-LG-0118,4.950 s,PLM_SET,POS-LG-05,FINDNO-0118,Throttle Connector is used for actuator assembly and issued ,PLM_RUNNING
+119,119,119,119,119,MAT-LG-0119,38.3 C,PLM_KG,POS-LG-06,FINDNO-0119,Displacement Sensor Bracket is used for actuator assembly an,PLM_CLOSED
+120,120,120,120,120,MAT-LG-0120,0.120 mm,PLM_M,POS-LG-01,FINDNO-0120,Locking Nut is used for actuator assembly and issued accordi,PLM_HOLD
+121,121,121,121,121,MAT-LG-0121,20.850 MPa,PLM_EA,POS-LG-02,FINDNO-0121,Piston Rod Assembly is used for actuator assembly and issued,PLM_OPEN
+122,122,122,122,122,MAT-LG-0122,0.080 mL/min,PLM_SET,POS-LG-03,FINDNO-0122,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_RUNNING
+123,123,123,123,123,MAT-LG-0123,155.150 mm,PLM_KG,POS-LG-04,FINDNO-0123,Front End Cap is used for actuator assembly and issued accor,PLM_CLOSED
+124,124,124,124,124,MAT-LG-0124,5.100 s,PLM_M,POS-LG-05,FINDNO-0124,Rear End Cap is used for actuator assembly and issued accord,PLM_HOLD
+125,125,125,125,125,MAT-LG-0125,37.7 C,PLM_EA,POS-LG-06,FINDNO-0125,Seal Ring Assembly is used for actuator assembly and issued ,PLM_OPEN
+126,126,126,126,126,MAT-LG-0126,0.150 mm,PLM_SET,POS-LG-01,FINDNO-0126,Trunnion Bushing is used for actuator assembly and issued ac,PLM_RUNNING
+127,127,127,127,127,MAT-LG-0127,21.000 MPa,PLM_KG,POS-LG-02,FINDNO-0127,Spherical Bearing is used for actuator assembly and issued a,PLM_CLOSED
+128,128,128,128,128,MAT-LG-0128,0.110 mL/min,PLM_M,POS-LG-03,FINDNO-0128,Throttle Connector is used for actuator assembly and issued ,PLM_HOLD
+129,129,129,129,129,MAT-LG-0129,155.300 mm,PLM_EA,POS-LG-04,FINDNO-0129,Displacement Sensor Bracket is used for actuator assembly an,PLM_OPEN
+130,130,130,130,130,MAT-LG-0130,6.200 s,PLM_SET,POS-LG-05,FINDNO-0130,Locking Nut is used for actuator assembly and issued accordi,PLM_RUNNING
+131,131,131,131,131,MAT-LG-0131,37.9 C,PLM_KG,POS-LG-06,FINDNO-0131,Piston Rod Assembly is used for actuator assembly and issued,PLM_CLOSED
+132,132,132,132,132,MAT-LG-0132,0.180 mm,PLM_M,POS-LG-01,FINDNO-0132,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_HOLD
+133,133,133,133,133,MAT-LG-0133,21.150 MPa,PLM_EA,POS-LG-02,FINDNO-0133,Front End Cap is used for actuator assembly and issued accor,PLM_OPEN
+134,134,134,134,134,MAT-LG-0134,0.140 mL/min,PLM_SET,POS-LG-03,FINDNO-0134,Rear End Cap is used for actuator assembly and issued accord,PLM_RUNNING
+135,135,135,135,135,MAT-LG-0135,154.700 mm,PLM_KG,POS-LG-04,FINDNO-0135,Seal Ring Assembly is used for actuator assembly and issued ,PLM_CLOSED
+136,136,136,136,136,MAT-LG-0136,4.650 s,PLM_M,POS-LG-05,FINDNO-0136,Trunnion Bushing is used for actuator assembly and issued ac,PLM_HOLD
+137,137,137,137,137,MAT-LG-0137,38.0 C,PLM_EA,POS-LG-06,FINDNO-0137,Spherical Bearing is used for actuator assembly and issued a,PLM_OPEN
+138,138,138,138,138,MAT-LG-0138,0.210 mm,PLM_SET,POS-LG-01,FINDNO-0138,Throttle Connector is used for actuator assembly and issued ,PLM_RUNNING
+139,139,139,139,139,MAT-LG-0139,21.300 MPa,PLM_KG,POS-LG-02,FINDNO-0139,Displacement Sensor Bracket is used for actuator assembly an,PLM_CLOSED
+140,140,140,140,140,MAT-LG-0140,0.020 mL/min,PLM_M,POS-LG-03,FINDNO-0140,Locking Nut is used for actuator assembly and issued accordi,PLM_HOLD
+141,141,141,141,141,MAT-LG-0141,154.850 mm,PLM_EA,POS-LG-04,FINDNO-0141,Piston Rod Assembly is used for actuator assembly and issued,PLM_OPEN
+142,142,142,142,142,MAT-LG-0142,4.800 s,PLM_SET,POS-LG-05,FINDNO-0142,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_RUNNING
+143,143,143,143,143,MAT-LG-0143,62.0 C,PLM_KG,POS-LG-06,FINDNO-0143,Front End Cap is used for actuator assembly and issued accor,PLM_CLOSED
+144,144,144,144,144,MAT-LG-0144,0.240 mm,PLM_M,POS-LG-01,FINDNO-0144,Rear End Cap is used for actuator assembly and issued accord,PLM_HOLD
+145,145,145,145,145,MAT-LG-0145,20.700 MPa,PLM_EA,POS-LG-02,FINDNO-0145,Seal Ring Assembly is used for actuator assembly and issued ,PLM_OPEN
+146,146,146,146,146,MAT-LG-0146,0.050 mL/min,PLM_SET,POS-LG-03,FINDNO-0146,Trunnion Bushing is used for actuator assembly and issued ac,PLM_RUNNING
+147,147,147,147,147,MAT-LG-0147,155.000 mm,PLM_KG,POS-LG-04,FINDNO-0147,Spherical Bearing is used for actuator assembly and issued a,PLM_CLOSED
+148,148,148,148,148,MAT-LG-0148,4.950 s,PLM_M,POS-LG-05,FINDNO-0148,Throttle Connector is used for actuator assembly and issued ,PLM_HOLD
+149,149,149,149,149,MAT-LG-0149,38.3 C,PLM_EA,POS-LG-06,FINDNO-0149,Displacement Sensor Bracket is used for actuator assembly an,PLM_OPEN
+150,150,150,150,150,MAT-LG-0150,0.120 mm,PLM_SET,POS-LG-01,FINDNO-0150,Locking Nut is used for actuator assembly and issued accordi,PLM_RUNNING
+151,151,151,151,151,MAT-LG-0151,20.850 MPa,PLM_KG,POS-LG-02,FINDNO-0151,Piston Rod Assembly is used for actuator assembly and issued,PLM_CLOSED
+152,152,152,152,152,MAT-LG-0152,0.080 mL/min,PLM_M,POS-LG-03,FINDNO-0152,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_HOLD
+153,153,153,153,153,MAT-LG-0153,155.150 mm,PLM_EA,POS-LG-04,FINDNO-0153,Front End Cap is used for actuator assembly and issued accor,PLM_OPEN
+154,154,154,154,154,MAT-LG-0154,5.100 s,PLM_SET,POS-LG-05,FINDNO-0154,Rear End Cap is used for actuator assembly and issued accord,PLM_RUNNING
+155,155,155,155,155,MAT-LG-0155,37.7 C,PLM_KG,POS-LG-06,FINDNO-0155,Seal Ring Assembly is used for actuator assembly and issued ,PLM_CLOSED
+156,156,156,156,156,MAT-LG-0156,0.310 mm,PLM_M,POS-LG-01,FINDNO-0156,Trunnion Bushing is used for actuator assembly and issued ac,PLM_HOLD
+157,157,157,157,157,MAT-LG-0157,21.000 MPa,PLM_EA,POS-LG-02,FINDNO-0157,Spherical Bearing is used for actuator assembly and issued a,PLM_OPEN
+158,158,158,158,158,MAT-LG-0158,0.110 mL/min,PLM_SET,POS-LG-03,FINDNO-0158,Throttle Connector is used for actuator assembly and issued ,PLM_RUNNING
+159,159,159,159,159,MAT-LG-0159,155.300 mm,PLM_KG,POS-LG-04,FINDNO-0159,Displacement Sensor Bracket is used for actuator assembly an,PLM_CLOSED
+160,160,160,160,160,MAT-LG-0160,4.500 s,PLM_M,POS-LG-05,FINDNO-0160,Locking Nut is used for actuator assembly and issued accordi,PLM_HOLD
+161,161,161,161,161,MAT-LG-0161,37.9 C,PLM_EA,POS-LG-06,FINDNO-0161,Piston Rod Assembly is used for actuator assembly and issued,PLM_OPEN
+162,162,162,162,162,MAT-LG-0162,0.180 mm,PLM_SET,POS-LG-01,FINDNO-0162,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_RUNNING
+163,163,163,163,163,MAT-LG-0163,21.150 MPa,PLM_KG,POS-LG-02,FINDNO-0163,Front End Cap is used for actuator assembly and issued accor,PLM_CLOSED
+164,164,164,164,164,MAT-LG-0164,0.140 mL/min,PLM_M,POS-LG-03,FINDNO-0164,Rear End Cap is used for actuator assembly and issued accord,PLM_HOLD
+165,165,165,165,165,MAT-LG-0165,154.700 mm,PLM_EA,POS-LG-04,FINDNO-0165,Seal Ring Assembly is used for actuator assembly and issued ,PLM_OPEN
+166,166,166,166,166,MAT-LG-0166,4.650 s,PLM_SET,POS-LG-05,FINDNO-0166,Trunnion Bushing is used for actuator assembly and issued ac,PLM_RUNNING
+167,167,167,167,167,MAT-LG-0167,38.0 C,PLM_KG,POS-LG-06,FINDNO-0167,Spherical Bearing is used for actuator assembly and issued a,PLM_CLOSED
+168,168,168,168,168,MAT-LG-0168,0.210 mm,PLM_M,POS-LG-01,FINDNO-0168,Throttle Connector is used for actuator assembly and issued ,PLM_HOLD
+169,169,169,169,169,MAT-LG-0169,23.400 MPa,PLM_EA,POS-LG-02,FINDNO-0169,Displacement Sensor Bracket is used for actuator assembly an,PLM_OPEN
+170,170,170,170,170,MAT-LG-0170,0.020 mL/min,PLM_SET,POS-LG-03,FINDNO-0170,Locking Nut is used for actuator assembly and issued accordi,PLM_RUNNING
+171,171,171,171,171,MAT-LG-0171,154.850 mm,PLM_KG,POS-LG-04,FINDNO-0171,Piston Rod Assembly is used for actuator assembly and issued,PLM_CLOSED
+172,172,172,172,172,MAT-LG-0172,4.800 s,PLM_M,POS-LG-05,FINDNO-0172,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_HOLD
+173,173,173,173,173,MAT-LG-0173,38.1 C,PLM_EA,POS-LG-06,FINDNO-0173,Front End Cap is used for actuator assembly and issued accor,PLM_OPEN
+174,174,174,174,174,MAT-LG-0174,0.240 mm,PLM_SET,POS-LG-01,FINDNO-0174,Rear End Cap is used for actuator assembly and issued accord,PLM_RUNNING
+175,175,175,175,175,MAT-LG-0175,20.700 MPa,PLM_KG,POS-LG-02,FINDNO-0175,Seal Ring Assembly is used for actuator assembly and issued ,PLM_CLOSED
+176,176,176,176,176,MAT-LG-0176,0.050 mL/min,PLM_M,POS-LG-03,FINDNO-0176,Trunnion Bushing is used for actuator assembly and issued ac,PLM_HOLD
+177,177,177,177,177,MAT-LG-0177,155.000 mm,PLM_EA,POS-LG-04,FINDNO-0177,Spherical Bearing is used for actuator assembly and issued a,PLM_OPEN
+178,178,178,178,178,MAT-LG-0178,4.950 s,PLM_SET,POS-LG-05,FINDNO-0178,Throttle Connector is used for actuator assembly and issued ,PLM_RUNNING
+179,179,179,179,179,MAT-LG-0179,38.3 C,PLM_KG,POS-LG-06,FINDNO-0179,Displacement Sensor Bracket is used for actuator assembly an,PLM_CLOSED
+180,180,180,180,180,MAT-LG-0180,0.120 mm,PLM_M,POS-LG-01,FINDNO-0180,Locking Nut is used for actuator assembly and issued accordi,PLM_HOLD
+181,181,181,181,181,MAT-LG-0181,20.850 MPa,PLM_EA,POS-LG-02,FINDNO-0181,Piston Rod Assembly is used for actuator assembly and issued,PLM_OPEN
+182,182,182,182,182,MAT-LG-0182,0.220 mL/min,PLM_SET,POS-LG-03,FINDNO-0182,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_RUNNING
+183,183,183,183,183,MAT-LG-0183,155.150 mm,PLM_KG,POS-LG-04,FINDNO-0183,Front End Cap is used for actuator assembly and issued accor,PLM_CLOSED
+184,184,184,184,184,MAT-LG-0184,5.100 s,PLM_M,POS-LG-05,FINDNO-0184,Rear End Cap is used for actuator assembly and issued accord,PLM_HOLD
+185,185,185,185,185,MAT-LG-0185,37.7 C,PLM_EA,POS-LG-06,FINDNO-0185,Seal Ring Assembly is used for actuator assembly and issued ,PLM_OPEN
+186,186,186,186,186,MAT-LG-0186,0.150 mm,PLM_SET,POS-LG-01,FINDNO-0186,Trunnion Bushing is used for actuator assembly and issued ac,PLM_RUNNING
+187,187,187,187,187,MAT-LG-0187,21.000 MPa,PLM_KG,POS-LG-02,FINDNO-0187,Spherical Bearing is used for actuator assembly and issued a,PLM_CLOSED
+188,188,188,188,188,MAT-LG-0188,0.110 mL/min,PLM_M,POS-LG-03,FINDNO-0188,Throttle Connector is used for actuator assembly and issued ,PLM_HOLD
+189,189,189,189,189,MAT-LG-0189,155.300 mm,PLM_EA,POS-LG-04,FINDNO-0189,Displacement Sensor Bracket is used for actuator assembly an,PLM_OPEN
+190,190,190,190,190,MAT-LG-0190,4.500 s,PLM_SET,POS-LG-05,FINDNO-0190,Locking Nut is used for actuator assembly and issued accordi,PLM_RUNNING
+191,191,191,191,191,MAT-LG-0191,37.9 C,PLM_KG,POS-LG-06,FINDNO-0191,Piston Rod Assembly is used for actuator assembly and issued,PLM_CLOSED
+192,192,192,192,192,MAT-LG-0192,0.180 mm,PLM_M,POS-LG-01,FINDNO-0192,Cylinder Barrel Assembly is used for actuator assembly and i,PLM_HOLD
+193,193,193,193,193,MAT-LG-0193,21.150 MPa,PLM_EA,POS-LG-02,FINDNO-0193,Front End Cap is used for actuator assembly and issued accor,PLM_OPEN
+194,194,194,194,194,MAT-LG-0194,0.140 mL/min,PLM_SET,POS-LG-03,FINDNO-0194,Rear End Cap is used for actuator assembly and issued accord,PLM_RUNNING
+195,195,195,195,195,MAT-LG-0195,158.400 mm,PLM_KG,POS-LG-04,FINDNO-0195,Seal Ring Assembly is used for actuator assembly and issued ,PLM_CLOSED
+196,196,196,196,196,MAT-LG-0196,4.650 s,PLM_M,POS-LG-05,FINDNO-0196,Trunnion Bushing is used for actuator assembly and issued ac,PLM_HOLD
+197,197,197,197,197,MAT-LG-0197,38.0 C,PLM_EA,POS-LG-06,FINDNO-0197,Spherical Bearing is used for actuator assembly and issued a,PLM_OPEN
+198,198,198,198,198,MAT-LG-0198,0.210 mm,PLM_SET,POS-LG-01,FINDNO-0198,Throttle Connector is used for actuator assembly and issued ,PLM_RUNNING
+199,199,199,199,199,MAT-LG-0199,21.300 MPa,PLM_KG,POS-LG-02,FINDNO-0199,Displacement Sensor Bracket is used for actuator assembly an,PLM_CLOSED
+200,200,200,200,200,MAT-LG-0200,0.020 mL/min,PLM_M,POS-LG-03,FINDNO-0200,Locking Nut is used for actuator assembly and issued accordi,PLM_HOLD

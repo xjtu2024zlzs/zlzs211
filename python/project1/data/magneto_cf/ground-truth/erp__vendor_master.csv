@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+ERP,vendor_master,vendor_code,supplier,supplier_code,Direct Copy,simple,
+ERP,vendor_master,vendor_name,supplier,supplier_name,Direct Copy,simple,
+ERP,vendor_master,vendor_kind_cd,supplier,supplier_type,Lookup Normalize,medium,
+ERP,vendor_master,q_level_cd,supplier,qualification_level,Lookup Normalize,hard,
+ERP,vendor_master,contact_name,supplier,contact_person,Direct Copy,simple,
+ERP,vendor_master,tel_no,supplier,phone,Direct Copy,simple,
+ERP,vendor_master,addr_txt,supplier,address,Direct Copy,medium,
+ERP,vendor_master,valid_flag,supplier,enabled,Rename + Cast,medium,

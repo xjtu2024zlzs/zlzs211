@@ -1,0 +1,3282 @@
+{
+  "PLM": {
+    "database": "PLM",
+    "tables": {
+      "product_model": {
+        "table_name": "product_model",
+        "columns": [
+          {
+            "name": "product_model_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "model_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": false
+          },
+          {
+            "name": "model_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "model_series",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "product_line",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "actual_plane_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "model_status_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "cert_level_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "eff_date_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "expire_date_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      },
+      "gear_system_def": {
+        "table_name": "gear_system_def",
+        "columns": [
+          {
+            "name": "gear_system_def_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "product_model_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "sys_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": false
+          },
+          {
+            "name": "sys_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "install_zone",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "station_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "side_mark",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "tech_status_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "eff_date_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      },
+      "actuator_model": {
+        "table_name": "actuator_model",
+        "columns": [
+          {
+            "name": "actuator_model_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "gear_system_def_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "actuator_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "actuator_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "actuator_spec",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "dwg_no",
+            "type": "character varying",
+            "max_length": 120,
+            "nullable": true
+          },
+          {
+            "name": "config_no",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "model_status_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "secret_lvl_cd",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "tech_status_text",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          }
+        ]
+      },
+      "design_revision": {
+        "table_name": "design_revision",
+        "columns": [
+          {
+            "name": "design_revision_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "actuator_model_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "rev_no",
+            "type": "character varying",
+            "max_length": 60,
+            "nullable": false
+          },
+          {
+            "name": "rev_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "dwg_no",
+            "type": "character varying",
+            "max_length": 120,
+            "nullable": true
+          },
+          {
+            "name": "doc_rev",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "issue_status_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "eff_date_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "expire_date_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "released_by",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          }
+        ]
+      },
+      "part_master": {
+        "table_name": "part_master",
+        "columns": [
+          {
+            "name": "part_master_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "design_revision_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "part_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "part_cn_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "part_cat_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "dwg_no",
+            "type": "character varying",
+            "max_length": 120,
+            "nullable": true
+          },
+          {
+            "name": "material_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "mat_grade",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "spec_text",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "uom",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "make_buy_cd",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "key_level_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      },
+      "bom_header": {
+        "table_name": "bom_header",
+        "columns": [
+          {
+            "name": "bom_header_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "actuator_model_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "design_revision_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "root_part_master_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "bom_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "bom_rev",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "bom_status_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "eff_date_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "end_date_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      },
+      "bom_line": {
+        "table_name": "bom_line",
+        "columns": [
+          {
+            "name": "bom_line_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "bom_header_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "parent_part_master_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "child_part_master_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "line_no",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "item_no",
+            "type": "character varying",
+            "max_length": 60,
+            "nullable": false
+          },
+          {
+            "name": "qty_per_txt",
+            "type": "character varying",
+            "max_length": 40,
+            "nullable": false
+          },
+          {
+            "name": "uom",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "install_pos_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "find_no",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "alt_group",
+            "type": "character varying",
+            "max_length": 60,
+            "nullable": true
+          },
+          {
+            "name": "line_status_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      },
+      "route_card": {
+        "table_name": "route_card",
+        "columns": [
+          {
+            "name": "route_card_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "actuator_model_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "part_master_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "design_revision_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "route_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "route_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "route_class_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "proc_doc_rev",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "release_state_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "planned_time_unit",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      },
+      "operation_card": {
+        "table_name": "operation_card",
+        "columns": [
+          {
+            "name": "operation_card_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "route_card_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "op_no",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": false
+          },
+          {
+            "name": "workid",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "op_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "seq_no_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "std_hours_txt",
+            "type": "character varying",
+            "max_length": 40,
+            "nullable": true
+          },
+          {
+            "name": "resource_type",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "special_proc_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "key_op_flag",
+            "type": "character varying",
+            "max_length": 10,
+            "nullable": true
+          }
+        ]
+      },
+      "technical_parameter": {
+        "table_name": "technical_parameter",
+        "columns": [
+          {
+            "name": "technical_parameter_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "operation_card_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "para_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "para_short_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "unit_txt",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "nominal_txt",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "lsl_txt",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "usl_txt",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "ctrl_grade_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "spec_expr",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          }
+        ]
+      },
+      "inspection_standard": {
+        "table_name": "inspection_standard",
+        "columns": [
+          {
+            "name": "inspection_standard_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "operation_card_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "actuator_model_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "part_master_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "insp_spec_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "spec_title",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "insp_kind_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "check_item_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "check_item_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "accept_rule",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "sample_rule_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "result_rule_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      }
+    }
+  },
+  "ERP": {
+    "database": "ERP",
+    "tables": {
+      "item_master": {
+        "table_name": "item_master",
+        "columns": [
+          {
+            "name": "item_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "item_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "item_desc",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "item_grp_cd",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "mat_grade",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "spec_model",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "uom_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "buy_made_flag",
+            "type": "character varying",
+            "max_length": 10,
+            "nullable": true
+          }
+        ]
+      },
+      "vendor_master": {
+        "table_name": "vendor_master",
+        "columns": [
+          {
+            "name": "vendor_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "vendor_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "vendor_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "vendor_kind_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "q_level_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "contact_name",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "tel_no",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "addr_txt",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "valid_flag",
+            "type": "character varying",
+            "max_length": 10,
+            "nullable": true
+          }
+        ]
+      },
+      "purchase_order": {
+        "table_name": "purchase_order",
+        "columns": [
+          {
+            "name": "po_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "vendor_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "po_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "task_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "order_dt_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "plan_arrive_yyyymmdd",
+            "type": "character varying",
+            "max_length": 8,
+            "nullable": true
+          },
+          {
+            "name": "po_stat_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "pri_lvl",
+            "type": "character varying",
+            "max_length": 10,
+            "nullable": true
+          },
+          {
+            "name": "urgent_tab",
+            "type": "character varying",
+            "max_length": 10,
+            "nullable": true
+          }
+        ]
+      },
+      "purchase_line": {
+        "table_name": "purchase_line",
+        "columns": [
+          {
+            "name": "po_line_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "po_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "item_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "line_seq",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": false
+          },
+          {
+            "name": "req_qty_txt",
+            "type": "character varying",
+            "max_length": 40,
+            "nullable": true
+          },
+          {
+            "name": "order_uom",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "need_dt_char",
+            "type": "character varying",
+            "max_length": 12,
+            "nullable": true
+          },
+          {
+            "name": "dlv_dt_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "line_stat_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      },
+      "vendor_batch": {
+        "table_name": "vendor_batch",
+        "columns": [
+          {
+            "name": "vendor_batch_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "po_line_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "vendor_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "item_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "ven_lot_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "cert_doc_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "mfg_dt_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "exp_dt_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "batch_stat_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      },
+      "inventory_lot": {
+        "table_name": "inventory_lot",
+        "columns": [
+          {
+            "name": "inv_lot_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "vendor_batch_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "item_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "stock_lot_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "wh_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "bin_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "onhand_qty_chr",
+            "type": "character varying",
+            "max_length": 40,
+            "nullable": true
+          },
+          {
+            "name": "qty_uom",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "inv_status_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      },
+      "receipt_bill": {
+        "table_name": "receipt_bill",
+        "columns": [
+          {
+            "name": "receipt_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "inv_lot_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "po_line_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "recv_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "recv_time_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "recv_qty_txt",
+            "type": "character varying",
+            "max_length": 40,
+            "nullable": true
+          },
+          {
+            "name": "wh_keeper",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "iqc_flag",
+            "type": "character varying",
+            "max_length": 10,
+            "nullable": true
+          },
+          {
+            "name": "recv_stat_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      },
+      "issue_bill": {
+        "table_name": "issue_bill",
+        "columns": [
+          {
+            "name": "issue_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "inv_lot_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "mo_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "issue_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "issue_time_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "issue_qty_txt",
+            "type": "character varying",
+            "max_length": 40,
+            "nullable": true
+          },
+          {
+            "name": "picker_name",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "use_for",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "issue_stat_cd",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      }
+    }
+  },
+  "MES": {
+    "database": "MES",
+    "tables": {
+      "sys_task": {
+        "table_name": "sys_task",
+        "columns": [
+          {
+            "name": "task_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "workid",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "taskcode",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "worktype",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "workname",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "partno",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "route_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "zzh",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "planqty",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "yxj",
+            "type": "character varying",
+            "max_length": 10,
+            "nullable": true
+          },
+          {
+            "name": "urgent_tab",
+            "type": "character varying",
+            "max_length": 5,
+            "nullable": true
+          },
+          {
+            "name": "plandate",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "delivery_date_char",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "reportman",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "reportdate",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "rwstate",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      },
+      "batch_card": {
+        "table_name": "batch_card",
+        "columns": [
+          {
+            "name": "batch_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "task_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "batchno",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "partno",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "batch_qty",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "starttime_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "fintime_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "zhuangtai",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "quality_code",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          }
+        ]
+      },
+      "part_track": {
+        "table_name": "part_track",
+        "columns": [
+          {
+            "name": "track_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "batch_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "partno",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "part_sn",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "lotno",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "jianhao",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "qcode",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "source_code",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "part_state",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      },
+      "assembly_record": {
+        "table_name": "assembly_record",
+        "columns": [
+          {
+            "name": "assembly_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "task_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "batch_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "part_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "component_sn",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "bom_item_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "position_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "install_dt_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "valid_begin_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "valid_end_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "uninstall_dt_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "remove_reason_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "personname",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "install_state",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      },
+      "sys_station": {
+        "table_name": "sys_station",
+        "columns": [
+          {
+            "name": "station_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "stationid",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": false
+          },
+          {
+            "name": "stationname",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "workshop",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "percount",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "equcount",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "zhuangtai",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      },
+      "equipment_asset": {
+        "table_name": "equipment_asset",
+        "columns": [
+          {
+            "name": "equipment_asset_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "station_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "equipmentid",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "equipmentname",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "equipmentnum",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "eqtype_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "zhuangtai",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "bgcolor",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "indate",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      },
+      "person_info": {
+        "table_name": "person_info",
+        "columns": [
+          {
+            "name": "person_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "station_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "personnum",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "personname",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "workshop",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "phone",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "jndj",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "gz",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "deptid",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "deptname",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          }
+        ]
+      },
+      "tooling_asset": {
+        "table_name": "tooling_asset",
+        "columns": [
+          {
+            "name": "tooling_asset_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "station_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "toolingid",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "toolingname",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "gzzl",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "jzrq_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "zhuangtai",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      },
+      "work_log": {
+        "table_name": "work_log",
+        "columns": [
+          {
+            "name": "worklog_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "task_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "batch_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "part_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "assembly_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "station_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "equipment_asset_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "person_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "zzh",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "op_no",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": false
+          },
+          {
+            "name": "workid",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "workname",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "startdate_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "enddate_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "status_code",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      },
+      "step_log": {
+        "table_name": "step_log",
+        "columns": [
+          {
+            "name": "steplog_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "worklog_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "person_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "tooling_asset_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "stepsid",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": false
+          },
+          {
+            "name": "stepsname",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "stepnum",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "start_time_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "finish_time_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "zhuangtai",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "opername",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          }
+        ]
+      },
+      "resource_usage": {
+        "table_name": "resource_usage",
+        "columns": [
+          {
+            "name": "usage_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "worklog_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "steplog_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "equipment_asset_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "person_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "station_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "tooling_asset_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "use_start_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "use_end_txt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "mastery_txt",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "use_state",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      },
+      "process_param": {
+        "table_name": "process_param",
+        "columns": [
+          {
+            "name": "param_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "worklog_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "steplog_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "equipment_asset_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "param_std_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "paramid",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "paramname",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "lqyl",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "bzval",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "llower",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "uupper",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "unitname",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "collect_dt",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "pdjg",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          }
+        ]
+      }
+    }
+  },
+  "QMS": {
+    "database": "QMS",
+    "tables": {
+      "quality_event_doc": {
+        "table_name": "quality_event_doc",
+        "columns": [
+          {
+            "name": "quality_event_doc_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "quality_event_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "event_source_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "event_type_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "event_title",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "event_desc",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "event_time_text",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "severity_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "event_status_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "trigger_source_no",
+            "type": "character varying",
+            "max_length": 120,
+            "nullable": true
+          },
+          {
+            "name": "component_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "part_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "work_order_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "subject_type_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "subject_role_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "impact_desc",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          }
+        ]
+      },
+      "inspection_doc": {
+        "table_name": "inspection_doc",
+        "columns": [
+          {
+            "name": "inspection_doc_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "quality_event_doc_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "inspection_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "spec_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "inspection_type_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "find_date_text",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "find_type_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "result_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "component_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "part_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "work_order_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "op_no",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "inventory_batch_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "inspector_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          }
+        ]
+      },
+      "inspection_item": {
+        "table_name": "inspection_item",
+        "columns": [
+          {
+            "name": "inspection_item_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "inspection_doc_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "spec_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "item_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "item_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "measured_text",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "standard_text",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "lower_limit_text",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "upper_limit_text",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "uom",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "judge_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          }
+        ]
+      },
+      "defect_log": {
+        "table_name": "defect_log",
+        "columns": [
+          {
+            "name": "defect_log_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "inspection_doc_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "quality_event_doc_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "component_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "part_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "work_order_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "op_no",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "defect_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "defect_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "defect_position_text",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "severity_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "failure_desc",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "find_dept_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "find_dept_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          }
+        ]
+      },
+      "iqs_failure": {
+        "table_name": "iqs_failure",
+        "columns": [
+          {
+            "name": "iqs_failure_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "quality_event_doc_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "inspection_doc_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "defect_log_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "component_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "part_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "work_order_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "op_no",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "supplier_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "maintenance_event_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "doc_source",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "failure_type",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "quality_code",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": false
+          },
+          {
+            "name": "iqs_failure_order",
+            "type": "character varying",
+            "max_length": 120,
+            "nullable": false
+          },
+          {
+            "name": "task_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "product_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "product_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "piece_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "find_dept_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "find_dept_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "doc_status_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "secret_level_code",
+            "type": "character varying",
+            "max_length": 20,
+            "nullable": true
+          },
+          {
+            "name": "starttime_text",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "finishtime_text",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          }
+        ]
+      },
+      "iqs_failure_content": {
+        "table_name": "iqs_failure_content",
+        "columns": [
+          {
+            "name": "iqs_failure_content_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "iqs_failure_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "start_piece_no_text",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "end_piece_no_text",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "failure_desc",
+            "type": "text",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "failure_place_brief",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "find_type_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "find_date_text",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "finder_type_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "find_user_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "find_user_name",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "duty_worksec_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "duty_worksec_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "duty_dept_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "duty_dept_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "actual_method",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "doc_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          }
+        ]
+      },
+      "iqs_failure_duty": {
+        "table_name": "iqs_failure_duty",
+        "columns": [
+          {
+            "name": "iqs_failure_duty_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "iqs_failure_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "iqs_failure_content_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "duty_user_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "duty_user_name",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "duty_dept_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "duty_dept_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "supplier_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "duty_person_ratio_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "responsibility_date_text",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          }
+        ]
+      },
+      "disposal_order": {
+        "table_name": "disposal_order",
+        "columns": [
+          {
+            "name": "disposal_order_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "quality_event_doc_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "iqs_failure_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "iqs_failure_content_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "work_order_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "responsible_user_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "disposal_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "deal_type_find_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "deal_type_pass_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "deal_type_tech_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "disposal_type_code",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "disposal_desc",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "disposal_date_text",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "disposal_status_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          }
+        ]
+      },
+      "recheck_record": {
+        "table_name": "recheck_record",
+        "columns": [
+          {
+            "name": "recheck_record_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "disposal_order_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "inspection_doc_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "inspector_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "recheck_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "recheck_date_text",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "recheck_result_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "conclusion_desc",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          }
+        ]
+      }
+    }
+  },
+  "MRO": {
+    "database": "MRO",
+    "tables": {
+      "service_event": {
+        "table_name": "service_event",
+        "columns": [
+          {
+            "name": "service_event_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "event_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "component_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "install_pos_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "service_time_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "event_kind_code",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "service_unit_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "service_unit_name",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "evt_state",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "event_summary",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          }
+        ]
+      },
+      "repair_order": {
+        "table_name": "repair_order",
+        "columns": [
+          {
+            "name": "repair_order_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "service_event_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "repair_order_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "component_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "wo_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "task_title",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "plan_start_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "plan_finish_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "ro_state",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "report_man",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          }
+        ]
+      },
+      "fault_report": {
+        "table_name": "fault_report",
+        "columns": [
+          {
+            "name": "fault_report_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "service_event_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "repair_order_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "component_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "fault_sym_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "fault_title",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "fault_text",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "fail_pos_desc",
+            "type": "character varying",
+            "max_length": 200,
+            "nullable": true
+          },
+          {
+            "name": "found_at_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "finder_name",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "gzjb",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      },
+      "remove_install_record": {
+        "table_name": "remove_install_record",
+        "columns": [
+          {
+            "name": "remove_install_record_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "service_event_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "repair_order_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "fault_report_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "change_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "component_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "install_pos_code",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "removed_part_sn",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "installed_part_sn",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "source_batch_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "remove_cause",
+            "type": "character varying",
+            "max_length": 80,
+            "nullable": true
+          },
+          {
+            "name": "change_time_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "remove_time_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "install_time_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "new_valid_from_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "operator_name",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "install_person",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "change_state",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "install_state",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      },
+      "field_feedback": {
+        "table_name": "field_feedback",
+        "columns": [
+          {
+            "name": "field_feedback_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": false
+          },
+          {
+            "name": "service_event_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "fault_report_id",
+            "type": "integer",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "quality_event_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "component_serial_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": true
+          },
+          {
+            "name": "feedback_no",
+            "type": "character varying",
+            "max_length": 100,
+            "nullable": false
+          },
+          {
+            "name": "feedback_source_code",
+            "type": "character varying",
+            "max_length": 50,
+            "nullable": true
+          },
+          {
+            "name": "feedback_time_text",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          },
+          {
+            "name": "feedback_content",
+            "type": "text",
+            "max_length": null,
+            "nullable": true
+          },
+          {
+            "name": "feedback_state",
+            "type": "character varying",
+            "max_length": 30,
+            "nullable": true
+          }
+        ]
+      }
+    }
+  }
+}

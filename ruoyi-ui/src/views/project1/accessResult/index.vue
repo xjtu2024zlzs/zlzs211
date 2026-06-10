@@ -5,8 +5,20 @@
         <el-button icon="Back" @click="goBack">返回</el-button>
       </el-form-item>
       <el-form-item label="接入计划" prop="accessPlanId">
-        <el-select v-model="queryParams.accessPlanId" placeholder="请选择接入计划" clearable style="width: 260px" @change="handlePlanChange">
-          <el-option v-for="item in accessPlanOptions" :key="item.accessPlanId" :label="item.planName" :value="item.accessPlanId" />
+        <el-select
+          v-model="queryParams.accessPlanId"
+          placeholder="请选择接入计划"
+          clearable
+          filterable
+          style="width: 260px"
+          @change="handlePlanChange"
+        >
+          <el-option
+            v-for="item in accessPlanOptions"
+            :key="item.accessPlanId"
+            :label="item.planName"
+            :value="item.accessPlanId"
+          />
         </el-select>
       </el-form-item>
       <el-form-item label="执行状态" prop="resultStatus">
@@ -15,7 +27,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="执行批次" prop="accessBatchId">
-        <el-select v-model="queryParams.accessBatchId" placeholder="最近执行批次" clearable style="width: 180px" @change="handleQuery">
+        <el-select v-model="queryParams.accessBatchId" placeholder="最近执行批次" clearable style="width: 220px" @change="handleQuery">
           <el-option label="最近执行批次" :value="undefined" />
           <el-option v-for="item in batchOptions" :key="item.batchId" :label="item.batchName" :value="item.batchId" />
         </el-select>
@@ -34,35 +46,25 @@
     </el-descriptions>
 
     <div class="stat-grid mb12">
-      <div>
-        <div class="stat-card">
-          <div class="stat-value">{{ summary.totalSuccess }}</div>
-          <div class="stat-label">当前计划累计成功数</div>
-        </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ summary.totalSuccess }}</div>
+        <div class="stat-label">当前计划累计成功数</div>
       </div>
-      <div>
-        <div class="stat-card">
-          <div class="stat-value">{{ summary.lastInserted }}</div>
-          <div class="stat-label">当前计划最近新增数</div>
-        </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ summary.lastInserted }}</div>
+        <div class="stat-label">当前计划最近新增数</div>
       </div>
-      <div>
-        <div class="stat-card">
-          <div class="stat-value">{{ summary.lastUpdated }}</div>
-          <div class="stat-label">当前计划最近更新数</div>
-        </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ summary.lastUpdated }}</div>
+        <div class="stat-label">当前计划最近更新数</div>
       </div>
-      <div>
-        <div class="stat-card">
-          <div class="stat-value">{{ summary.lastFailed }}</div>
-          <div class="stat-label">当前计划最近失败数</div>
-        </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ summary.lastFailed }}</div>
+        <div class="stat-label">当前计划最近失败数</div>
       </div>
-      <div>
-        <div class="stat-card">
-          <div class="stat-value">{{ summary.totalFailed }}</div>
-          <div class="stat-label">当前计划累计失败数</div>
-        </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ summary.totalFailed }}</div>
+        <div class="stat-label">当前计划累计失败数</div>
       </div>
     </div>
 
@@ -89,8 +91,8 @@
     <el-table v-loading="loading" :data="accessResultList">
       <el-table-column label="目标表" align="left" prop="targetTable" min-width="170" :show-overflow-tooltip="true" />
       <el-table-column label="源库/源表" align="left" prop="sourceTable" min-width="180" :show-overflow-tooltip="true" />
-      <el-table-column label="最近执行批次" align="center" prop="accessBatchId" min-width="130">
-        <template #default="scope">BATCH-{{ String(scope.row.accessBatchId || 1).padStart(3, "0") }}</template>
+      <el-table-column label="最近执行批次" align="center" prop="accessBatchId" min-width="150">
+        <template #default="scope">{{ batchName(scope.row.accessBatchId) }}</template>
       </el-table-column>
       <el-table-column label="执行状态" align="center" prop="resultStatus" width="110">
         <template #default="scope">
@@ -104,8 +106,8 @@
       <el-table-column label="本次成功数" align="center" prop="successCount" width="110" />
       <el-table-column label="本次失败数" align="center" prop="failedCount" width="110" />
       <el-table-column label="累计成功数" align="center" prop="totalSuccessCount" width="110" />
-      <el-table-column label="最近执行时间" align="center" prop="lastExecuteTime" width="160">
-        <template #default="scope">{{ parseTime(scope.row.lastExecuteTime, '{y}-{m}-{d}') || '-' }}</template>
+      <el-table-column label="最近执行时间" align="center" prop="lastExecuteTime" width="170">
+        <template #default="scope">{{ parseTime(scope.row.lastExecuteTime, '{y}-{m}-{d} {h}:{i}:{s}') || '-' }}</template>
       </el-table-column>
       <el-table-column label="说明" align="left" prop="message" min-width="220" :show-overflow-tooltip="true" />
     </el-table>
@@ -126,7 +128,6 @@ import { listAccessResult, getAccessResultSummary, getAccessResultDashboard } fr
 import { listAccessPlan } from "@/api/project1/accessPlan"
 import { listDatasource } from "@/api/project1/datasource"
 
-const { proxy } = getCurrentInstance()
 const route = useRoute()
 const router = useRouter()
 
@@ -135,7 +136,7 @@ const accessPlanOptions = ref([])
 const datasourceOptions = ref([])
 const resultSummary = ref({})
 const dashboardData = ref({ recentBatches: [], topTables: [], batchOptions: [] })
-const loading = ref(true)
+const loading = ref(false)
 const showSearch = ref(true)
 const total = ref(0)
 
@@ -155,7 +156,8 @@ const resultStatusOptions = [
   { label: "执行中", value: "running" },
   { label: "成功", value: "success" },
   { label: "部分成功", value: "partial" },
-  { label: "失败", value: "failed" }
+  { label: "失败", value: "failed" },
+  { label: "已取消", value: "canceled" }
 ]
 
 const data = reactive({
@@ -198,12 +200,11 @@ const batchOptions = computed(() => dashboardData.value.batchOptions || [])
 
 const accessIncrementChartOption = computed(() => {
   const rows = dashboardData.value.recentBatches || []
-  const labels = rows.map(item => item.batchName)
   return {
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
     legend: { bottom: 0 },
     grid: { left: 36, right: 20, top: 26, bottom: 46, containLabel: true },
-    xAxis: { type: "category", data: labels, axisTick: { show: false }, axisLabel: { color: "#606266" } },
+    xAxis: { type: "category", data: rows.map(item => item.batchName), axisTick: { show: false }, axisLabel: { color: "#606266" } },
     yAxis: { type: "value", axisLine: { show: false }, splitLine: { lineStyle: { color: "#edf2f7" } } },
     series: [
       { name: "新增", type: "bar", stack: "total", barWidth: 28, itemStyle: { color: "#409eff" }, data: rows.map(item => item.insertedCount || 0) },
@@ -219,11 +220,17 @@ const topTableChartOption = computed(() => {
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
     grid: { left: 130, right: 36, top: 12, bottom: 16, containLabel: true },
     xAxis: { type: "value", axisLine: { show: false }, splitLine: { lineStyle: { color: "#edf2f7" } } },
-    yAxis: { type: "category", inverse: true, data: rows.map(item => item.label), axisTick: { show: false }, axisLabel: { color: "#606266" } },
+    yAxis: {
+      type: "category",
+      inverse: true,
+      data: rows.map(item => item.label || item.targetTable || "-"),
+      axisTick: { show: false },
+      axisLabel: { color: "#606266" }
+    },
     series: [{
       type: "bar",
       barWidth: 12,
-      data: rows.map(item => item.value || 0),
+      data: rows.map(item => item.value || item.count || 0),
       itemStyle: { color: "#409eff", borderRadius: [0, 4, 4, 0] },
       label: { show: true, position: "right", color: "#606266" }
     }]
@@ -233,10 +240,12 @@ const topTableChartOption = computed(() => {
 function getList() {
   loading.value = true
   listAccessResult(queryParams.value).then(response => {
-    accessResultList.value = response.rows
-    total.value = response.total
+    accessResultList.value = response.rows || []
+    total.value = response.total || 0
+  }).finally(() => {
     loading.value = false
   })
+
   if (queryParams.value.accessPlanId) {
     getAccessResultSummary(queryParams.value.accessPlanId).then(response => {
       resultSummary.value = response.data || {}
@@ -268,6 +277,7 @@ function loadDatasourceOptions() {
 
 function handlePlanChange() {
   queryParams.value.pageNum = 1
+  queryParams.value.accessBatchId = undefined
   getList()
 }
 
@@ -278,6 +288,11 @@ function handleQuery() {
 
 function goBack() {
   router.push({ path: "/access/accessPlan" })
+}
+
+function batchName(accessBatchId) {
+  const batch = batchOptions.value.find(item => item.batchId === accessBatchId)
+  return batch ? batch.batchName : (accessBatchId ? `BATCH-${String(accessBatchId).padStart(3, "0")}` : "-")
 }
 
 function accessModeLabel(value) {
@@ -315,17 +330,17 @@ loadAccessPlanOptions()
   margin-bottom: 12px;
 }
 
-.stat-card {
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-  padding: 14px 16px;
-  min-height: 76px;
-}
-
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
+}
+
+.stat-card {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  min-height: 76px;
+  padding: 14px 16px;
 }
 
 .stat-value {

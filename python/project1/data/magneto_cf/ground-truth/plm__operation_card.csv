@@ -1,0 +1,8 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+PLM,operation_card,route_card_id,operation_definition,process_route_id,Joined Copy,medium,
+PLM,operation_card,op_no,operation_definition,operation_no,Direct Copy,simple,
+PLM,operation_card,workid,operation_definition,work_no,Direct Copy,simple,
+PLM,operation_card,op_name,operation_definition,work_name,Direct Copy,medium,
+PLM,operation_card,seq_no_txt,operation_definition,work_num,Rename + Cast,medium,
+PLM,operation_card,std_hours_txt,operation_definition,standard_time,Rename + Cast,hard,
+PLM,operation_card,resource_type,operation_definition,required_equipment_type,Lookup Normalize,hard,

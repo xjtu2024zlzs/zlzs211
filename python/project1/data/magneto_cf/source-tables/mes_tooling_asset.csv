@@ -1,0 +1,201 @@
+﻿tooling_asset_id,station_id,toolingid,toolingname,gzzl,jzrq_txt,zhuangtai
+1,1,TOOL-0001,Dedicated Assembly Tooling for Piston Rod Assembly,MES_MAKE,20260509,MES_OPEN
+2,2,TOOL-0002,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_BUY,20260510,MES_RUNNING
+3,3,TOOL-0003,Dedicated Assembly Tooling for Front End Cap,MES_ASSEMBLY,20260511,MES_CLOSED
+4,4,TOOL-0004,Dedicated Assembly Tooling for Rear End Cap,MES_SERVICE,20260512,MES_HOLD
+5,5,TOOL-0005,Dedicated Assembly Tooling for Seal Ring Assembly,MES_MAKE,20260513,MES_OPEN
+6,6,TOOL-0006,Dedicated Assembly Tooling for Trunnion Bushing,MES_BUY,20260514,MES_RUNNING
+7,7,TOOL-0007,Dedicated Assembly Tooling for Spherical Bearing,MES_ASSEMBLY,20260515,MES_CLOSED
+8,8,TOOL-0008,Dedicated Assembly Tooling for Throttle Connector,MES_SERVICE,20260516,MES_HOLD
+9,9,TOOL-0009,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_MAKE,20260517,MES_OPEN
+10,10,TOOL-0010,Dedicated Assembly Tooling for Locking Nut,MES_BUY,20260518,MES_RUNNING
+11,11,TOOL-0011,Dedicated Assembly Tooling for Piston Rod Assembly,MES_ASSEMBLY,20260519,MES_CLOSED
+12,12,TOOL-0012,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_SERVICE,20260520,MES_HOLD
+13,13,TOOL-0013,Dedicated Assembly Tooling for Front End Cap,MES_MAKE,20260521,MES_OPEN
+14,14,TOOL-0014,Dedicated Assembly Tooling for Rear End Cap,MES_BUY,20260522,MES_RUNNING
+15,15,TOOL-0015,Dedicated Assembly Tooling for Seal Ring Assembly,MES_ASSEMBLY,20260523,MES_CLOSED
+16,16,TOOL-0016,Dedicated Assembly Tooling for Trunnion Bushing,MES_SERVICE,20260524,MES_HOLD
+17,17,TOOL-0017,Dedicated Assembly Tooling for Spherical Bearing,MES_MAKE,20260525,MES_OPEN
+18,18,TOOL-0018,Dedicated Assembly Tooling for Throttle Connector,MES_BUY,20260526,MES_RUNNING
+19,19,TOOL-0019,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_ASSEMBLY,20260527,MES_CLOSED
+20,20,TOOL-0020,Dedicated Assembly Tooling for Locking Nut,MES_SERVICE,20260528,MES_HOLD
+21,21,TOOL-0021,Dedicated Assembly Tooling for Piston Rod Assembly,MES_MAKE,20260529,MES_OPEN
+22,22,TOOL-0022,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_BUY,20260530,MES_RUNNING
+23,23,TOOL-0023,Dedicated Assembly Tooling for Front End Cap,MES_ASSEMBLY,20260531,MES_CLOSED
+24,24,TOOL-0024,Dedicated Assembly Tooling for Rear End Cap,MES_SERVICE,20260601,MES_HOLD
+25,25,TOOL-0025,Dedicated Assembly Tooling for Seal Ring Assembly,MES_MAKE,20260602,MES_OPEN
+26,26,TOOL-0026,Dedicated Assembly Tooling for Trunnion Bushing,MES_BUY,20260603,MES_RUNNING
+27,27,TOOL-0027,Dedicated Assembly Tooling for Spherical Bearing,MES_ASSEMBLY,20260604,MES_CLOSED
+28,28,TOOL-0028,Dedicated Assembly Tooling for Throttle Connector,MES_SERVICE,20260605,MES_HOLD
+29,29,TOOL-0029,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_MAKE,20260509,MES_OPEN
+30,30,TOOL-0030,Dedicated Assembly Tooling for Locking Nut,MES_BUY,20260510,MES_RUNNING
+31,31,TOOL-0031,Dedicated Assembly Tooling for Piston Rod Assembly,MES_ASSEMBLY,20260511,MES_CLOSED
+32,32,TOOL-0032,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_SERVICE,20260512,MES_HOLD
+33,33,TOOL-0033,Dedicated Assembly Tooling for Front End Cap,MES_MAKE,20260513,MES_OPEN
+34,34,TOOL-0034,Dedicated Assembly Tooling for Rear End Cap,MES_BUY,20260514,MES_RUNNING
+35,35,TOOL-0035,Dedicated Assembly Tooling for Seal Ring Assembly,MES_ASSEMBLY,20260515,MES_CLOSED
+36,36,TOOL-0036,Dedicated Assembly Tooling for Trunnion Bushing,MES_SERVICE,20260516,MES_HOLD
+37,37,TOOL-0037,Dedicated Assembly Tooling for Spherical Bearing,MES_MAKE,20260517,MES_OPEN
+38,38,TOOL-0038,Dedicated Assembly Tooling for Throttle Connector,MES_BUY,20260518,MES_RUNNING
+39,39,TOOL-0039,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_ASSEMBLY,20260519,MES_CLOSED
+40,40,TOOL-0040,Dedicated Assembly Tooling for Locking Nut,MES_SERVICE,20260520,MES_HOLD
+41,41,TOOL-0041,Dedicated Assembly Tooling for Piston Rod Assembly,MES_MAKE,20260521,MES_OPEN
+42,42,TOOL-0042,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_BUY,20260522,MES_RUNNING
+43,43,TOOL-0043,Dedicated Assembly Tooling for Front End Cap,MES_ASSEMBLY,20260523,MES_CLOSED
+44,44,TOOL-0044,Dedicated Assembly Tooling for Rear End Cap,MES_SERVICE,20260524,MES_HOLD
+45,45,TOOL-0045,Dedicated Assembly Tooling for Seal Ring Assembly,MES_MAKE,20260525,MES_OPEN
+46,46,TOOL-0046,Dedicated Assembly Tooling for Trunnion Bushing,MES_BUY,20260526,MES_RUNNING
+47,47,TOOL-0047,Dedicated Assembly Tooling for Spherical Bearing,MES_ASSEMBLY,20260527,MES_CLOSED
+48,48,TOOL-0048,Dedicated Assembly Tooling for Throttle Connector,MES_SERVICE,20260528,MES_HOLD
+49,49,TOOL-0049,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_MAKE,20260529,MES_OPEN
+50,50,TOOL-0050,Dedicated Assembly Tooling for Locking Nut,MES_BUY,20260530,MES_RUNNING
+51,51,TOOL-0051,Dedicated Assembly Tooling for Piston Rod Assembly,MES_ASSEMBLY,20260531,MES_CLOSED
+52,52,TOOL-0052,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_SERVICE,20260601,MES_HOLD
+53,53,TOOL-0053,Dedicated Assembly Tooling for Front End Cap,MES_MAKE,20260602,MES_OPEN
+54,54,TOOL-0054,Dedicated Assembly Tooling for Rear End Cap,MES_BUY,20260603,MES_RUNNING
+55,55,TOOL-0055,Dedicated Assembly Tooling for Seal Ring Assembly,MES_ASSEMBLY,20260604,MES_CLOSED
+56,56,TOOL-0056,Dedicated Assembly Tooling for Trunnion Bushing,MES_SERVICE,20260605,MES_HOLD
+57,57,TOOL-0057,Dedicated Assembly Tooling for Spherical Bearing,MES_MAKE,20260509,MES_OPEN
+58,58,TOOL-0058,Dedicated Assembly Tooling for Throttle Connector,MES_BUY,20260510,MES_RUNNING
+59,59,TOOL-0059,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_ASSEMBLY,20260511,MES_CLOSED
+60,60,TOOL-0060,Dedicated Assembly Tooling for Locking Nut,MES_SERVICE,20260512,MES_HOLD
+61,61,TOOL-0061,Dedicated Assembly Tooling for Piston Rod Assembly,MES_MAKE,20260513,MES_OPEN
+62,62,TOOL-0062,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_BUY,20260514,MES_RUNNING
+63,63,TOOL-0063,Dedicated Assembly Tooling for Front End Cap,MES_ASSEMBLY,20260515,MES_CLOSED
+64,64,TOOL-0064,Dedicated Assembly Tooling for Rear End Cap,MES_SERVICE,20260516,MES_HOLD
+65,65,TOOL-0065,Dedicated Assembly Tooling for Seal Ring Assembly,MES_MAKE,20260517,MES_OPEN
+66,66,TOOL-0066,Dedicated Assembly Tooling for Trunnion Bushing,MES_BUY,20260518,MES_RUNNING
+67,67,TOOL-0067,Dedicated Assembly Tooling for Spherical Bearing,MES_ASSEMBLY,20260519,MES_CLOSED
+68,68,TOOL-0068,Dedicated Assembly Tooling for Throttle Connector,MES_SERVICE,20260520,MES_HOLD
+69,69,TOOL-0069,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_MAKE,20260521,MES_OPEN
+70,70,TOOL-0070,Dedicated Assembly Tooling for Locking Nut,MES_BUY,20260522,MES_RUNNING
+71,71,TOOL-0071,Dedicated Assembly Tooling for Piston Rod Assembly,MES_ASSEMBLY,20260523,MES_CLOSED
+72,72,TOOL-0072,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_SERVICE,20260524,MES_HOLD
+73,73,TOOL-0073,Dedicated Assembly Tooling for Front End Cap,MES_MAKE,20260525,MES_OPEN
+74,74,TOOL-0074,Dedicated Assembly Tooling for Rear End Cap,MES_BUY,20260526,MES_RUNNING
+75,75,TOOL-0075,Dedicated Assembly Tooling for Seal Ring Assembly,MES_ASSEMBLY,20260527,MES_CLOSED
+76,76,TOOL-0076,Dedicated Assembly Tooling for Trunnion Bushing,MES_SERVICE,20260528,MES_HOLD
+77,77,TOOL-0077,Dedicated Assembly Tooling for Spherical Bearing,MES_MAKE,20260529,MES_OPEN
+78,78,TOOL-0078,Dedicated Assembly Tooling for Throttle Connector,MES_BUY,20260530,MES_RUNNING
+79,79,TOOL-0079,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_ASSEMBLY,20260531,MES_CLOSED
+80,80,TOOL-0080,Dedicated Assembly Tooling for Locking Nut,MES_SERVICE,20260601,MES_HOLD
+81,81,TOOL-0081,Dedicated Assembly Tooling for Piston Rod Assembly,MES_MAKE,20260602,MES_OPEN
+82,82,TOOL-0082,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_BUY,20260603,MES_RUNNING
+83,83,TOOL-0083,Dedicated Assembly Tooling for Front End Cap,MES_ASSEMBLY,20260604,MES_CLOSED
+84,84,TOOL-0084,Dedicated Assembly Tooling for Rear End Cap,MES_SERVICE,20260605,MES_HOLD
+85,85,TOOL-0085,Dedicated Assembly Tooling for Seal Ring Assembly,MES_MAKE,20260509,MES_OPEN
+86,86,TOOL-0086,Dedicated Assembly Tooling for Trunnion Bushing,MES_BUY,20260510,MES_RUNNING
+87,87,TOOL-0087,Dedicated Assembly Tooling for Spherical Bearing,MES_ASSEMBLY,20260511,MES_CLOSED
+88,88,TOOL-0088,Dedicated Assembly Tooling for Throttle Connector,MES_SERVICE,20260512,MES_HOLD
+89,89,TOOL-0089,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_MAKE,20260513,MES_OPEN
+90,90,TOOL-0090,Dedicated Assembly Tooling for Locking Nut,MES_BUY,20260514,MES_RUNNING
+91,91,TOOL-0091,Dedicated Assembly Tooling for Piston Rod Assembly,MES_ASSEMBLY,20260515,MES_CLOSED
+92,92,TOOL-0092,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_SERVICE,20260516,MES_HOLD
+93,93,TOOL-0093,Dedicated Assembly Tooling for Front End Cap,MES_MAKE,20260517,MES_OPEN
+94,94,TOOL-0094,Dedicated Assembly Tooling for Rear End Cap,MES_BUY,20260518,MES_RUNNING
+95,95,TOOL-0095,Dedicated Assembly Tooling for Seal Ring Assembly,MES_ASSEMBLY,20260519,MES_CLOSED
+96,96,TOOL-0096,Dedicated Assembly Tooling for Trunnion Bushing,MES_SERVICE,20260520,MES_HOLD
+97,97,TOOL-0097,Dedicated Assembly Tooling for Spherical Bearing,MES_MAKE,20260521,MES_OPEN
+98,98,TOOL-0098,Dedicated Assembly Tooling for Throttle Connector,MES_BUY,20260522,MES_RUNNING
+99,99,TOOL-0099,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_ASSEMBLY,20260523,MES_CLOSED
+100,100,TOOL-0100,Dedicated Assembly Tooling for Locking Nut,MES_SERVICE,20260524,MES_HOLD
+101,101,TOOL-0101,Dedicated Assembly Tooling for Piston Rod Assembly,MES_MAKE,20260525,MES_OPEN
+102,102,TOOL-0102,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_BUY,20260526,MES_RUNNING
+103,103,TOOL-0103,Dedicated Assembly Tooling for Front End Cap,MES_ASSEMBLY,20260527,MES_CLOSED
+104,104,TOOL-0104,Dedicated Assembly Tooling for Rear End Cap,MES_SERVICE,20260528,MES_HOLD
+105,105,TOOL-0105,Dedicated Assembly Tooling for Seal Ring Assembly,MES_MAKE,20260529,MES_OPEN
+106,106,TOOL-0106,Dedicated Assembly Tooling for Trunnion Bushing,MES_BUY,20260530,MES_RUNNING
+107,107,TOOL-0107,Dedicated Assembly Tooling for Spherical Bearing,MES_ASSEMBLY,20260531,MES_CLOSED
+108,108,TOOL-0108,Dedicated Assembly Tooling for Throttle Connector,MES_SERVICE,20260601,MES_HOLD
+109,109,TOOL-0109,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_MAKE,20260602,MES_OPEN
+110,110,TOOL-0110,Dedicated Assembly Tooling for Locking Nut,MES_BUY,20260603,MES_RUNNING
+111,111,TOOL-0111,Dedicated Assembly Tooling for Piston Rod Assembly,MES_ASSEMBLY,20260604,MES_CLOSED
+112,112,TOOL-0112,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_SERVICE,20260605,MES_HOLD
+113,113,TOOL-0113,Dedicated Assembly Tooling for Front End Cap,MES_MAKE,20260509,MES_OPEN
+114,114,TOOL-0114,Dedicated Assembly Tooling for Rear End Cap,MES_BUY,20260510,MES_RUNNING
+115,115,TOOL-0115,Dedicated Assembly Tooling for Seal Ring Assembly,MES_ASSEMBLY,20260511,MES_CLOSED
+116,116,TOOL-0116,Dedicated Assembly Tooling for Trunnion Bushing,MES_SERVICE,20260512,MES_HOLD
+117,117,TOOL-0117,Dedicated Assembly Tooling for Spherical Bearing,MES_MAKE,20260513,MES_OPEN
+118,118,TOOL-0118,Dedicated Assembly Tooling for Throttle Connector,MES_BUY,20260514,MES_RUNNING
+119,119,TOOL-0119,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_ASSEMBLY,20260515,MES_CLOSED
+120,120,TOOL-0120,Dedicated Assembly Tooling for Locking Nut,MES_SERVICE,20260516,MES_HOLD
+121,121,TOOL-0121,Dedicated Assembly Tooling for Piston Rod Assembly,MES_MAKE,20260517,MES_OPEN
+122,122,TOOL-0122,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_BUY,20260518,MES_RUNNING
+123,123,TOOL-0123,Dedicated Assembly Tooling for Front End Cap,MES_ASSEMBLY,20260519,MES_CLOSED
+124,124,TOOL-0124,Dedicated Assembly Tooling for Rear End Cap,MES_SERVICE,20260520,MES_HOLD
+125,125,TOOL-0125,Dedicated Assembly Tooling for Seal Ring Assembly,MES_MAKE,20260521,MES_OPEN
+126,126,TOOL-0126,Dedicated Assembly Tooling for Trunnion Bushing,MES_BUY,20260522,MES_RUNNING
+127,127,TOOL-0127,Dedicated Assembly Tooling for Spherical Bearing,MES_ASSEMBLY,20260523,MES_CLOSED
+128,128,TOOL-0128,Dedicated Assembly Tooling for Throttle Connector,MES_SERVICE,20260524,MES_HOLD
+129,129,TOOL-0129,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_MAKE,20260525,MES_OPEN
+130,130,TOOL-0130,Dedicated Assembly Tooling for Locking Nut,MES_BUY,20260526,MES_RUNNING
+131,131,TOOL-0131,Dedicated Assembly Tooling for Piston Rod Assembly,MES_ASSEMBLY,20260527,MES_CLOSED
+132,132,TOOL-0132,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_SERVICE,20260528,MES_HOLD
+133,133,TOOL-0133,Dedicated Assembly Tooling for Front End Cap,MES_MAKE,20260529,MES_OPEN
+134,134,TOOL-0134,Dedicated Assembly Tooling for Rear End Cap,MES_BUY,20260530,MES_RUNNING
+135,135,TOOL-0135,Dedicated Assembly Tooling for Seal Ring Assembly,MES_ASSEMBLY,20260531,MES_CLOSED
+136,136,TOOL-0136,Dedicated Assembly Tooling for Trunnion Bushing,MES_SERVICE,20260601,MES_HOLD
+137,137,TOOL-0137,Dedicated Assembly Tooling for Spherical Bearing,MES_MAKE,20260602,MES_OPEN
+138,138,TOOL-0138,Dedicated Assembly Tooling for Throttle Connector,MES_BUY,20260604,MES_RUNNING
+139,139,TOOL-0139,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_ASSEMBLY,20260605,MES_CLOSED
+140,140,TOOL-0140,Dedicated Assembly Tooling for Locking Nut,MES_SERVICE,20260606,MES_HOLD
+141,141,TOOL-0141,Dedicated Assembly Tooling for Piston Rod Assembly,MES_MAKE,20260510,MES_OPEN
+142,142,TOOL-0142,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_BUY,20260511,MES_RUNNING
+143,143,TOOL-0143,Dedicated Assembly Tooling for Front End Cap,MES_ASSEMBLY,20260512,MES_CLOSED
+144,144,TOOL-0144,Dedicated Assembly Tooling for Rear End Cap,MES_SERVICE,20260513,MES_HOLD
+145,145,TOOL-0145,Dedicated Assembly Tooling for Seal Ring Assembly,MES_MAKE,20260514,MES_OPEN
+146,146,TOOL-0146,Dedicated Assembly Tooling for Trunnion Bushing,MES_BUY,20260515,MES_RUNNING
+147,147,TOOL-0147,Dedicated Assembly Tooling for Spherical Bearing,MES_ASSEMBLY,20260516,MES_CLOSED
+148,148,TOOL-0148,Dedicated Assembly Tooling for Throttle Connector,MES_SERVICE,20260517,MES_HOLD
+149,149,TOOL-0149,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_MAKE,20260518,MES_OPEN
+150,150,TOOL-0150,Dedicated Assembly Tooling for Locking Nut,MES_BUY,20260519,MES_RUNNING
+151,151,TOOL-0151,Dedicated Assembly Tooling for Piston Rod Assembly,MES_ASSEMBLY,20260520,MES_CLOSED
+152,152,TOOL-0152,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_SERVICE,20260521,MES_HOLD
+153,153,TOOL-0153,Dedicated Assembly Tooling for Front End Cap,MES_MAKE,20260522,MES_OPEN
+154,154,TOOL-0154,Dedicated Assembly Tooling for Rear End Cap,MES_BUY,20260523,MES_RUNNING
+155,155,TOOL-0155,Dedicated Assembly Tooling for Seal Ring Assembly,MES_ASSEMBLY,20260524,MES_CLOSED
+156,156,TOOL-0156,Dedicated Assembly Tooling for Trunnion Bushing,MES_SERVICE,20260525,MES_HOLD
+157,157,TOOL-0157,Dedicated Assembly Tooling for Spherical Bearing,MES_MAKE,20260526,MES_OPEN
+158,158,TOOL-0158,Dedicated Assembly Tooling for Throttle Connector,MES_BUY,20260527,MES_RUNNING
+159,159,TOOL-0159,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_ASSEMBLY,20260528,MES_CLOSED
+160,160,TOOL-0160,Dedicated Assembly Tooling for Locking Nut,MES_SERVICE,20260529,MES_HOLD
+161,161,TOOL-0161,Dedicated Assembly Tooling for Piston Rod Assembly,MES_MAKE,20260530,MES_OPEN
+162,162,TOOL-0162,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_BUY,20260531,MES_RUNNING
+163,163,TOOL-0163,Dedicated Assembly Tooling for Front End Cap,MES_ASSEMBLY,20260601,MES_CLOSED
+164,164,TOOL-0164,Dedicated Assembly Tooling for Rear End Cap,MES_SERVICE,20260602,MES_HOLD
+165,165,TOOL-0165,Dedicated Assembly Tooling for Seal Ring Assembly,MES_MAKE,20260603,MES_OPEN
+166,166,TOOL-0166,Dedicated Assembly Tooling for Trunnion Bushing,MES_BUY,20260604,MES_RUNNING
+167,167,TOOL-0167,Dedicated Assembly Tooling for Spherical Bearing,MES_ASSEMBLY,20260605,MES_CLOSED
+168,168,TOOL-0168,Dedicated Assembly Tooling for Throttle Connector,MES_SERVICE,20260606,MES_HOLD
+169,169,TOOL-0169,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_MAKE,20260510,MES_OPEN
+170,170,TOOL-0170,Dedicated Assembly Tooling for Locking Nut,MES_BUY,20260511,MES_RUNNING
+171,171,TOOL-0171,Dedicated Assembly Tooling for Piston Rod Assembly,MES_ASSEMBLY,20260512,MES_CLOSED
+172,172,TOOL-0172,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_SERVICE,20260513,MES_HOLD
+173,173,TOOL-0173,Dedicated Assembly Tooling for Front End Cap,MES_MAKE,20260514,MES_OPEN
+174,174,TOOL-0174,Dedicated Assembly Tooling for Rear End Cap,MES_BUY,20260515,MES_RUNNING
+175,175,TOOL-0175,Dedicated Assembly Tooling for Seal Ring Assembly,MES_ASSEMBLY,20260516,MES_CLOSED
+176,176,TOOL-0176,Dedicated Assembly Tooling for Trunnion Bushing,MES_SERVICE,20260517,MES_HOLD
+177,177,TOOL-0177,Dedicated Assembly Tooling for Spherical Bearing,MES_MAKE,20260518,MES_OPEN
+178,178,TOOL-0178,Dedicated Assembly Tooling for Throttle Connector,MES_BUY,20260519,MES_RUNNING
+179,179,TOOL-0179,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_ASSEMBLY,20260520,MES_CLOSED
+180,180,TOOL-0180,Dedicated Assembly Tooling for Locking Nut,MES_SERVICE,20260521,MES_HOLD
+181,181,TOOL-0181,Dedicated Assembly Tooling for Piston Rod Assembly,MES_MAKE,20260522,MES_OPEN
+182,182,TOOL-0182,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_BUY,20260523,MES_RUNNING
+183,183,TOOL-0183,Dedicated Assembly Tooling for Front End Cap,MES_ASSEMBLY,20260524,MES_CLOSED
+184,184,TOOL-0184,Dedicated Assembly Tooling for Rear End Cap,MES_SERVICE,20260525,MES_HOLD
+185,185,TOOL-0185,Dedicated Assembly Tooling for Seal Ring Assembly,MES_MAKE,20260526,MES_OPEN
+186,186,TOOL-0186,Dedicated Assembly Tooling for Trunnion Bushing,MES_BUY,20260527,MES_RUNNING
+187,187,TOOL-0187,Dedicated Assembly Tooling for Spherical Bearing,MES_ASSEMBLY,20260528,MES_CLOSED
+188,188,TOOL-0188,Dedicated Assembly Tooling for Throttle Connector,MES_SERVICE,20260529,MES_HOLD
+189,189,TOOL-0189,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_MAKE,20260530,MES_OPEN
+190,190,TOOL-0190,Dedicated Assembly Tooling for Locking Nut,MES_BUY,20260531,MES_RUNNING
+191,191,TOOL-0191,Dedicated Assembly Tooling for Piston Rod Assembly,MES_ASSEMBLY,20260601,MES_CLOSED
+192,192,TOOL-0192,Dedicated Assembly Tooling for Cylinder Barrel Assembly,MES_SERVICE,20260602,MES_HOLD
+193,193,TOOL-0193,Dedicated Assembly Tooling for Front End Cap,MES_MAKE,20260603,MES_OPEN
+194,194,TOOL-0194,Dedicated Assembly Tooling for Rear End Cap,MES_BUY,20260604,MES_RUNNING
+195,195,TOOL-0195,Dedicated Assembly Tooling for Seal Ring Assembly,MES_ASSEMBLY,20260605,MES_CLOSED
+196,196,TOOL-0196,Dedicated Assembly Tooling for Trunnion Bushing,MES_SERVICE,20260606,MES_HOLD
+197,197,TOOL-0197,Dedicated Assembly Tooling for Spherical Bearing,MES_MAKE,20260510,MES_OPEN
+198,198,TOOL-0198,Dedicated Assembly Tooling for Throttle Connector,MES_BUY,20260511,MES_RUNNING
+199,199,TOOL-0199,Dedicated Assembly Tooling for Displacement Sensor Bracket,MES_ASSEMBLY,20260512,MES_CLOSED
+200,200,TOOL-0200,Dedicated Assembly Tooling for Locking Nut,MES_SERVICE,20260513,MES_HOLD

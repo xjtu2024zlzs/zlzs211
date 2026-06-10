@@ -1,0 +1,13 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MRO,field_feedback,service_event_id,service_feedback,maintenance_event_id,Joined Copy,medium,
+MRO,field_feedback,component_serial_no,service_feedback,component_instance_id,Joined Copy,medium,
+MRO,field_feedback,quality_event_no,service_feedback,quality_event_id,Joined Copy,hard,
+MRO,field_feedback,feedback_no,service_feedback,feedback_no,Direct Copy,simple,
+MRO,field_feedback,feedback_source_code,service_feedback,feedback_source,Lookup Normalize,medium,
+MRO,field_feedback,feedback_time_text,service_feedback,feedback_date,Rename + Cast,simple,
+MRO,field_feedback,feedback_content,service_feedback,feedback_desc,Direct Copy,simple,
+MRO,field_feedback,feedback_state,service_feedback,feedback_status,Lookup Normalize,medium,
+MRO,field_feedback,feedback_no,quality_event,trigger_source_no,Direct Copy,simple,
+MRO,field_feedback,feedback_time_text,quality_event,event_time,Rename + Cast,medium,
+MRO,field_feedback,feedback_content,quality_event,event_desc,Direct Copy,medium,
+MRO,field_feedback,feedback_state,quality_event,event_status,Lookup Normalize,medium,

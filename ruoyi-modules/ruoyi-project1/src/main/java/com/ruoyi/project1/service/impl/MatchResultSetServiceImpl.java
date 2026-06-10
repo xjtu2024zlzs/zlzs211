@@ -24,6 +24,7 @@ import com.ruoyi.project1.mapper.ReviewedMatchMapper;
 import com.ruoyi.project1.mapper.TaskMetricMapper;
 import com.ruoyi.project1.service.IMatchResultSetService;
 import com.ruoyi.project1.service.IReviewedMatchService;
+import com.ruoyi.project1.service.support.Project1PresetScenarioService;
 
 /**
  * Service implementation for mode matching result sets.
@@ -46,6 +47,9 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
     @Autowired
     private IReviewedMatchService reviewedMatchService;
 
+    @Autowired
+    private Project1PresetScenarioService presetScenarioService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final TypeReference<List<Map<String, Object>>> CHART_ROWS_TYPE = new TypeReference<List<Map<String, Object>>>() {};
@@ -59,10 +63,17 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
     @Override
     public List<MatchResultSet> selectMatchResultSetList(MatchResultSet matchResultSet)
     {
-        List<MatchResultSet> rows = matchResultSetMapper.selectMatchResultSetList(matchResultSet);
-        for (MatchResultSet row : rows)
+        presetScenarioService.ensurePresetScenario();
+        List<MatchResultSet> sourceRows = matchResultSetMapper.selectMatchResultSetList(matchResultSet);
+        List<MatchResultSet> rows = new ArrayList<>();
+        for (MatchResultSet row : sourceRows)
         {
+            if (presetScenarioService.isPresetResultSet(row))
+            {
+                continue;
+            }
             row.setF1Score(findMetricValue(row.getResultSetId(), "f1Score"));
+            rows.add(row);
         }
         return rows;
     }
@@ -97,28 +108,50 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> setDefault(Long resultSetId)
     {
+        presetScenarioService.ensurePresetScenario();
         MatchResultSet target = requireResultSet(resultSetId);
+        if (presetScenarioService.isPresetResultSet(target))
+        {
+            throw new ServiceException("GroundTruth 预置结果集不在前端展示，也不能手动设为展示默认结果集");
+        }
         MatchResultSet query = new MatchResultSet();
-        query.setTaskId(target.getTaskId());
+        if (target.getRecordId() != null)
+        {
+            query.setRecordId(target.getRecordId());
+        }
+        else
+        {
+            query.setTaskId(target.getTaskId());
+        }
         List<MatchResultSet> resultSets = matchResultSetMapper.selectMatchResultSetList(query);
         for (MatchResultSet item : resultSets)
         {
+            if (presetScenarioService.isPresetResultSet(item))
+            {
+                continue;
+            }
             item.setIsDefault(item.getResultSetId().equals(resultSetId) ? 1 : 0);
             item.setUpdateTime(DateUtils.getNowDate());
             matchResultSetMapper.updateMatchResultSet(item);
         }
 
-        Map<String, Object> payload = new LinkedHashMap<>(reviewedMatchService.rebuildMappingSpecForResultSet(resultSetId));
+        Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("taskId", target.getTaskId());
         payload.put("sourceDatasourceId", target.getSourceDatasourceId());
-        payload.put("message", "已设为默认结果集，并根据审核通过结果生成最终接入规则集");
+        payload.put("resultSetId", target.getResultSetId());
+        payload.put("message", "已设为展示默认结果集；接入执行继续使用 GroundTruth 预置规则集");
         return payload;
     }
 
     @Override
     public Map<String, Object> detail(Long resultSetId, String reviewStatus, String reviewedBy)
     {
+        presetScenarioService.ensurePresetScenario();
         MatchResultSet resultSet = requireResultSet(resultSetId);
+        if (presetScenarioService.isPresetResultSet(resultSet))
+        {
+            throw new ServiceException("GroundTruth 预置结果集不在前端展示审核明细");
+        }
         MatchResultRow query = new MatchResultRow();
         query.setResultSetId(resultSetId);
         List<MatchResultRow> resultRows = matchResultRowMapper.selectMatchResultRowList(query);
@@ -134,17 +167,102 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
     @Override
     public Map<String, Object> metrics(Long resultSetId)
     {
+        presetScenarioService.ensurePresetScenario();
         MatchResultSet resultSet = requireResultSet(resultSetId);
+        if (presetScenarioService.isPresetResultSet(resultSet))
+        {
+            throw new ServiceException("GroundTruth 预置结果集不在前端展示评估指标");
+        }
         TaskMetric query = new TaskMetric();
         query.setResultSetId(resultSetId);
         List<TaskMetric> metrics = taskMetricMapper.selectTaskMetricList(query);
         Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("cards", toMetricCards(metrics));
+        List<Map<String, Object>> currentCards = currentMetricCards(metrics);
+        payload.put("currentCards", currentCards);
+        payload.put("cards", currentCards);
+        payload.put("candidateF1Comparison", candidateF1Comparison(resultSet));
         payload.put("scoreDistribution", chartRows(metrics, "scoreDistribution"));
-        payload.put("targetDistribution", chartRows(metrics, "targetTopDistribution"));
+        payload.put("targetDistribution", normalizeTargetDistribution(chartRows(metrics, "targetTopDistribution")));
         payload.put("resultSetId", resultSet.getResultSetId());
         payload.put("resultDir", metrics.isEmpty() ? null : metrics.get(0).getResultDir());
         return payload;
+    }
+
+    private List<Map<String, Object>> candidateF1Comparison(MatchResultSet current)
+    {
+        if (current.getRecordId() == null)
+        {
+            List<Map<String, Object>> single = new ArrayList<>();
+            BigDecimal f1Score = findMetricValue(current.getResultSetId(), "f1Score");
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("resultSetId", current.getResultSetId());
+            row.put("label", resultSetComparisonLabel(current));
+            row.put("method", current.getMethod());
+            row.put("variant", current.getVariant());
+            row.put("f1Score", f1Score);
+            row.put("value", f1Score);
+            row.put("isCurrent", true);
+            row.put("isDefault", current.getIsDefault());
+            row.put("totalRows", current.getTotalRows());
+            single.add(row);
+            return single;
+        }
+        MatchResultSet query = new MatchResultSet();
+        query.setRecordId(current.getRecordId());
+        List<MatchResultSet> resultSets = matchResultSetMapper.selectMatchResultSetList(query);
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (MatchResultSet item : resultSets)
+        {
+            if (presetScenarioService.isPresetResultSet(item))
+            {
+                continue;
+            }
+            BigDecimal f1Score = findMetricValue(item.getResultSetId(), "f1Score");
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("resultSetId", item.getResultSetId());
+            row.put("label", resultSetComparisonLabel(item));
+            row.put("method", item.getMethod());
+            row.put("variant", item.getVariant());
+            row.put("f1Score", f1Score);
+            row.put("value", f1Score);
+            row.put("isCurrent", item.getResultSetId() != null && item.getResultSetId().equals(current.getResultSetId()));
+            row.put("isDefault", item.getIsDefault());
+            row.put("totalRows", item.getTotalRows());
+            rows.add(row);
+        }
+        rows.sort((left, right) -> asBigDecimal(right.get("f1Score")).compareTo(asBigDecimal(left.get("f1Score"))));
+        return rows;
+    }
+
+    private String resultSetComparisonLabel(MatchResultSet resultSet)
+    {
+        String method = StringUtils.defaultIfBlank(resultSet.getMethod(), "");
+        String variant = StringUtils.defaultIfBlank(resultSet.getVariant(), "");
+        String label = (method + " " + variant).trim();
+        if (StringUtils.isNotBlank(label))
+        {
+            return label;
+        }
+        return StringUtils.defaultIfBlank(resultSet.getResultSetName(), String.valueOf(resultSet.getResultSetId()));
+    }
+
+    private List<Map<String, Object>> currentMetricCards(List<TaskMetric> metrics)
+    {
+        List<Map<String, Object>> cards = new ArrayList<>();
+        addCurrentMetricCard(cards, metrics, "f1Score", "F1 综合分");
+        addCurrentMetricCard(cards, metrics, "mrr", "MRR");
+        addCurrentMetricCard(cards, metrics, "precision", "Precision");
+        addCurrentMetricCard(cards, metrics, "recallAt20", "Recall@20");
+        return cards;
+    }
+
+    private void addCurrentMetricCard(List<Map<String, Object>> cards, List<TaskMetric> metrics, String key, String label)
+    {
+        Map<String, Object> card = new LinkedHashMap<>();
+        card.put("key", key);
+        card.put("label", label);
+        card.put("value", findMetricValue(metrics, key));
+        cards.add(card);
     }
 
     private List<Map<String, Object>> chartRows(List<TaskMetric> metrics, String metricKey)
@@ -165,6 +283,78 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
             }
         }
         return List.of();
+    }
+
+    private List<Map<String, Object>> normalizeTargetDistribution(List<Map<String, Object>> rows)
+    {
+        List<Map<String, Object>> normalized = new ArrayList<>();
+        for (Map<String, Object> row : rows)
+        {
+            Map<String, Object> item = new LinkedHashMap<>(row);
+            String label = firstChartText(item.get("label"), item.get("targetTable"), item.get("target_table"), item.get("name"), item.get("key"));
+            item.put("label", StringUtils.defaultIfBlank(label, "-"));
+            item.put("value", normalizeChartValue(firstChartValue(item.get("value"), item.get("count"), item.get("total"))));
+            if (!item.containsKey("targetTable") && StringUtils.isNotBlank(label) && !"-".equals(label))
+            {
+                item.put("targetTable", label);
+            }
+            normalized.add(item);
+        }
+        return normalized;
+    }
+
+    private String firstChartText(Object... values)
+    {
+        for (Object value : values)
+        {
+            if (value == null)
+            {
+                continue;
+            }
+            String text = String.valueOf(value).trim();
+            if (StringUtils.isNotBlank(text))
+            {
+                return text;
+            }
+        }
+        return "-";
+    }
+
+    private Object firstChartValue(Object... values)
+    {
+        for (Object value : values)
+        {
+            if (value != null)
+            {
+                return value;
+            }
+        }
+        return 0;
+    }
+
+    private Object normalizeChartValue(Object value)
+    {
+        if (value instanceof Number)
+        {
+            return value;
+        }
+        if (value == null)
+        {
+            return 0;
+        }
+        String text = String.valueOf(value).trim();
+        if (StringUtils.isBlank(text))
+        {
+            return 0;
+        }
+        try
+        {
+            return new BigDecimal(text);
+        }
+        catch (NumberFormatException e)
+        {
+            return 0;
+        }
     }
 
     private List<Map<String, Object>> toPreviewRows(List<MatchResultRow> resultRows, Long resultSetId, String reviewStatus, String reviewedBy)
@@ -255,6 +445,22 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
         return cards;
     }
 
+    private BigDecimal findMetricValue(List<TaskMetric> metrics, String metricKey)
+    {
+        if (metrics == null || StringUtils.isBlank(metricKey))
+        {
+            return null;
+        }
+        for (TaskMetric metric : metrics)
+        {
+            if (metricKey.equals(metric.getMetricKey()))
+            {
+                return metric.getMetricValue();
+            }
+        }
+        return null;
+    }
+
     private BigDecimal findMetricValue(Long resultSetId, String metricKey)
     {
         if (resultSetId == null || StringUtils.isBlank(metricKey))
@@ -266,6 +472,35 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
         query.setMetricKey(metricKey);
         List<TaskMetric> rows = taskMetricMapper.selectTaskMetricList(query);
         return rows.isEmpty() ? null : rows.get(0).getMetricValue();
+    }
+
+    private BigDecimal asBigDecimal(Object value)
+    {
+        if (value instanceof BigDecimal)
+        {
+            return (BigDecimal) value;
+        }
+        if (value instanceof Number)
+        {
+            return BigDecimal.valueOf(((Number) value).doubleValue());
+        }
+        if (value == null)
+        {
+            return BigDecimal.ZERO;
+        }
+        String text = String.valueOf(value).trim();
+        if (StringUtils.isBlank(text))
+        {
+            return BigDecimal.ZERO;
+        }
+        try
+        {
+            return new BigDecimal(text);
+        }
+        catch (NumberFormatException e)
+        {
+            return BigDecimal.ZERO;
+        }
     }
 
     private MatchResultSet requireResultSet(Long resultSetId)

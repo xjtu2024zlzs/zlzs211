@@ -44,6 +44,7 @@ import com.ruoyi.project1.mapper.ReviewedMatchMapper;
 import com.ruoyi.project1.mapper.TaskMetricMapper;
 import com.ruoyi.project1.service.IMatchTaskService;
 import com.ruoyi.project1.service.support.AlgorithmMatchClient;
+import com.ruoyi.project1.service.support.Project1PresetScenarioService;
 
 /**
  * Match task service.
@@ -102,6 +103,9 @@ public class MatchTaskServiceImpl implements IMatchTaskService
     private AlgorithmMatchClient algorithmMatchClient;
 
     @Autowired
+    private Project1PresetScenarioService presetScenarioService;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
@@ -110,6 +114,7 @@ public class MatchTaskServiceImpl implements IMatchTaskService
     @Override
     public MatchTask selectMatchTaskByTaskId(Long taskId)
     {
+        presetScenarioService.ensurePresetScenario();
         MatchTask task = requireTask(taskId);
         decorateTask(task);
         return task;
@@ -118,6 +123,7 @@ public class MatchTaskServiceImpl implements IMatchTaskService
     @Override
     public List<MatchTask> selectMatchTaskList(MatchTask matchTask)
     {
+        presetScenarioService.ensurePresetScenario();
         List<MatchTask> rows = matchTaskMapper.selectMatchTaskList(matchTask);
         for (MatchTask row : rows)
         {

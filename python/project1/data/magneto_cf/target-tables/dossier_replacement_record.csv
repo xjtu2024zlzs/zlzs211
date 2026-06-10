@@ -1,0 +1,11 @@
+﻿replacement_record_id,maintenance_event_id,maintenance_order_id,component_instance_id,installed_position_id,removed_part_instance_id,installed_part_instance_id,inventory_batch_id,replacement_no,replacement_reason,replacement_time,operator_name,replacement_status
+1,1,1,1,1,1,1,1,REP-CF-0001,LEAKAGE,2026-05-09 08:07:00,Zhang Jiancheng,NORMAL
+2,2,2,2,2,2,2,2,REP-CF-0002,WEAR,2026-05-10 08:14:00,Li Hang,WARNING
+3,3,3,3,3,3,3,3,REP-CF-0003,DAMAGE,2026-05-11 08:21:00,Wang Lijun,QUALIFIED
+4,4,4,4,4,4,4,4,REP-CF-0004,LIFE_LIMIT,2026-05-12 08:28:00,Zhao Min,CLOSED
+5,5,5,5,5,5,5,5,REP-CF-0005,LEAKAGE,2026-05-13 08:35:00,Chen Gong,NORMAL
+6,6,6,6,6,6,6,6,REP-CF-0006,WEAR,2026-05-14 08:42:00,Liu Xiaofeng,WARNING
+7,7,7,7,7,7,7,7,REP-CF-0007,DAMAGE,2026-05-15 08:49:00,Zhou Qian,QUALIFIED
+8,8,8,8,8,8,8,8,REP-CF-0008,LIFE_LIMIT,2026-05-16 08:56:00,Huang Zhiqiang,CLOSED
+9,9,9,9,9,9,9,9,REP-CF-0009,LEAKAGE,2026-05-17 09:03:00,Sun Wei,NORMAL
+10,10,10,10,10,10,10,10,REP-CF-0010,WEAR,2026-05-18 09:10:00,Ma Rui,WARNING

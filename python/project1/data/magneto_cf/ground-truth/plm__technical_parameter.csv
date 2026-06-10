@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+PLM,technical_parameter,operation_card_id,parameter_standard,operation_definition_id,Joined Copy,medium,
+PLM,technical_parameter,para_code,parameter_standard,parameter_code,Direct Copy,simple,
+PLM,technical_parameter,para_short_name,parameter_standard,parameter_name,Direct Copy,hard,
+PLM,technical_parameter,unit_txt,parameter_standard,parameter_unit,Lookup Normalize,medium,
+PLM,technical_parameter,nominal_txt,parameter_standard,standard_value,Rename + Cast,hard,
+PLM,technical_parameter,lsl_txt,parameter_standard,lower_limit,Rename + Cast,hard,
+PLM,technical_parameter,usl_txt,parameter_standard,upper_limit,Rename + Cast,hard,
+PLM,technical_parameter,ctrl_grade_cd,parameter_standard,control_level,Lookup Normalize,hard,

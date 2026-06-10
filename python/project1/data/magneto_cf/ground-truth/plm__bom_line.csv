@@ -1,0 +1,7 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+PLM,bom_line,parent_part_master_id,bom_item,parent_bom_item_id,Joined Copy,hard,
+PLM,bom_line,child_part_master_id,bom_item,part_definition_id,Joined Copy,medium,
+PLM,bom_line,item_no,bom_item,bom_item_no,Joined Copy,medium,
+PLM,bom_line,qty_per_txt,bom_item,quantity,Rename + Cast,medium,
+PLM,bom_line,uom,bom_item,unit,Lookup Normalize,medium,
+PLM,bom_line,install_pos_code,bom_item,position_code,Direct Copy,hard,

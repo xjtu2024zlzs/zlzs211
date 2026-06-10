@@ -1,0 +1,8 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+PLM,design_revision,rev_no,design_version,version_code,Direct Copy,simple,
+PLM,design_revision,rev_name,design_version,version_name,Direct Copy,medium,
+PLM,design_revision,dwg_no,design_version,drawing_code,Direct Copy,simple,
+PLM,design_revision,doc_rev,design_version,doc_version,Direct Copy,simple,
+PLM,design_revision,eff_date_txt,design_version,effective_date,Rename + Cast,simple,
+PLM,design_revision,expire_date_txt,design_version,expire_date,Rename + Cast,simple,
+PLM,design_revision,issue_status_cd,design_version,release_status,Lookup Normalize,medium,

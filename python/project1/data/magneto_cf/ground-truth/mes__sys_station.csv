@@ -1,0 +1,7 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MES,sys_station,stationid,workstation,station_no,Direct Copy,simple,
+MES,sys_station,stationname,workstation,station_name,Direct Copy,simple,
+MES,sys_station,workshop,workstation,workshop,Direct Copy,simple,
+MES,sys_station,percount,workstation,person_count,Rename + Cast,simple,
+MES,sys_station,equcount,workstation,equipment_count,Rename + Cast,simple,
+MES,sys_station,zhuangtai,workstation,station_status,Lookup Normalize,medium,

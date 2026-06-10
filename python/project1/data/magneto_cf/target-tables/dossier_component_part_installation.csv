@@ -1,0 +1,11 @@
+﻿installation_id,component_instance_id,part_instance_id,bom_item_id,work_order_id,installed_position_id,replacement_record_id,install_time,valid_from,valid_to,uninstall_time,uninstall_reason,install_person_name,install_status
+1,1,1,1,1,1,1,2026-05-09 08:07:00,2026-05-09 08:07:00,2026-05-09 08:07:00,2026-05-09 08:07:00,LEAKAGE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,NORMAL
+2,2,2,2,2,2,2,2026-05-10 08:14:00,2026-05-10 08:14:00,2026-05-10 08:14:00,2026-05-10 08:14:00,WEAR,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,WARNING
+3,3,3,3,3,3,3,2026-05-11 08:21:00,2026-05-11 08:21:00,2026-05-11 08:21:00,2026-05-11 08:21:00,DAMAGE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QUALIFIED
+4,4,4,4,4,4,4,2026-05-12 08:28:00,2026-05-12 08:28:00,2026-05-12 08:28:00,2026-05-12 08:28:00,LIFE_LIMIT,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,CLOSED
+5,5,5,5,5,5,5,2026-05-13 08:35:00,2026-05-13 08:35:00,2026-05-13 08:35:00,2026-05-13 08:35:00,LEAKAGE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,NORMAL
+6,6,6,6,6,6,6,2026-05-14 08:42:00,2026-05-14 08:42:00,2026-05-14 08:42:00,2026-05-14 08:42:00,WEAR,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,WARNING
+7,7,7,7,7,7,7,2026-05-15 08:49:00,2026-05-15 08:49:00,2026-05-15 08:49:00,2026-05-15 08:49:00,DAMAGE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QUALIFIED
+8,8,8,8,8,8,8,2026-05-16 08:56:00,2026-05-16 08:56:00,2026-05-16 08:56:00,2026-05-16 08:56:00,LIFE_LIMIT,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,CLOSED
+9,9,9,9,9,9,9,2026-05-17 09:03:00,2026-05-17 09:03:00,2026-05-17 09:03:00,2026-05-17 09:03:00,LEAKAGE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,NORMAL
+10,10,10,10,10,10,10,2026-05-18 09:10:00,2026-05-18 09:10:00,2026-05-18 09:10:00,2026-05-18 09:10:00,WEAR,Locking Nut aviation manufacturing business record used for actuator quality traceability.,WARNING
