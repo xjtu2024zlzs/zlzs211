@@ -22,15 +22,41 @@ function Get-ListeningPidByPort {
     } | Sort-Object -Unique
 }
 
-$CondaCommand = $env:CONDA_EXE
-if (-not $CondaCommand) {
-    $cmd = Get-Command conda -ErrorAction SilentlyContinue
-    if ($cmd) {
-        $CondaCommand = $cmd.Source
+function Resolve-CondaPython {
+    param([string]$EnvName)
+
+    if ($env:CONDA_PREFIX) {
+        $activePython = Join-Path $env:CONDA_PREFIX "python.exe"
+        $activeEnvName = Split-Path -Leaf $env:CONDA_PREFIX
+        if (($activeEnvName -ieq $EnvName) -and (Test-Path $activePython)) {
+            return (Resolve-Path $activePython).Path
+        }
     }
-}
-if (-not $CondaCommand) {
-    throw "conda was not found. Start this script from Anaconda Prompt, or set CONDA_EXE."
+
+    $condaCommand = $env:CONDA_EXE
+    if (-not $condaCommand) {
+        $cmd = Get-Command conda -ErrorAction SilentlyContinue
+        if ($cmd) {
+            $condaCommand = $cmd.Source
+        }
+    }
+    if (-not $condaCommand) {
+        throw "conda was not found. Activate $EnvName first, start this script from Anaconda Prompt, or set CONDA_EXE."
+    }
+
+    $probe = & $condaCommand run -n $EnvName python -c "import sys; print(sys.executable)" 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to resolve python.exe for conda env '$EnvName': $($probe -join [Environment]::NewLine)"
+    }
+
+    foreach ($line in $probe) {
+        $candidate = ([string]$line).Trim()
+        if ($candidate -and (Test-Path $candidate)) {
+            return (Resolve-Path $candidate).Path
+        }
+    }
+
+    throw "Failed to resolve python.exe for conda env '$EnvName'. Output: $($probe -join [Environment]::NewLine)"
 }
 
 $Services = @(
@@ -40,6 +66,9 @@ $Services = @(
     @{ Key = "qms"; Label = "QMS"; Port = 9714 },
     @{ Key = "mro"; Label = "MRO"; Port = 9715 }
 )
+
+$PythonCommand = Resolve-CondaPython -EnvName $CondaEnv
+Write-Host "Using Python: $PythonCommand"
 
 foreach ($svc in $Services) {
     $port = [int]$svc.Port
@@ -54,8 +83,8 @@ foreach ($svc in $Services) {
     if (Test-Path $stdout) { Remove-Item -Force -Path $stdout }
     if (Test-Path $stderr) { Remove-Item -Force -Path $stderr }
 
-    $escapedConda = $CondaCommand.Replace("'", "''")
-    $command = "`$env:PROJECTP_SYSTEM_KEY='$($svc.Key)'; & '$escapedConda' run -n '$CondaEnv' python -m uvicorn app.main:app --host '$HostAddress' --port $port --log-level info"
+    $escapedPython = $PythonCommand.Replace("'", "''")
+    $command = "`$env:PROJECTP_SYSTEM_KEY='$($svc.Key)'; & '$escapedPython' -m uvicorn app.main:app --host '$HostAddress' --port $port --log-level info"
     $process = Start-Process `
         -FilePath "powershell.exe" `
         -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", $command) `
@@ -69,8 +98,16 @@ foreach ($svc in $Services) {
     Write-Host "$($svc.Label) projectp adapter starting on http://$HostAddress`:$port, wrapper PID $($process.Id)"
 }
 
+Start-Sleep -Seconds 2
+
 Write-Host ""
 Write-Host "Health check URLs:"
 foreach ($svc in $Services) {
-    Write-Host "  $($svc.Label): http://$HostAddress`:$($svc.Port)/api/health"
+    $port = [int]$svc.Port
+    $listening = @(Get-ListeningPidByPort -Port $port)
+    if ($listening.Count -eq 0) {
+        $stderr = Join-Path $LogDir "$($svc.Key)-stderr.log"
+        Write-Warning "$($svc.Label) projectp adapter is not listening on port $port. Check $stderr"
+    }
+    Write-Host "  $($svc.Label): http://$HostAddress`:$port/api/health"
 }
