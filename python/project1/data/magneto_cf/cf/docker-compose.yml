@@ -1,0 +1,114 @@
+services:
+  cf_postgres_plm:
+    image: postgres:15
+    container_name: cf_aviation_plm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aviation
+      POSTGRES_PASSWORD: aviation123
+      POSTGRES_DB: cf_plm
+    ports:
+      - "5471:5432"
+    volumes:
+      - cf_plm_data:/var/lib/postgresql/data
+      - ./init-scripts/01_cf_plm_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    networks:
+      - cf_aviation_network
+
+  cf_postgres_erp:
+    image: postgres:15
+    container_name: cf_aviation_erp
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aviation
+      POSTGRES_PASSWORD: aviation123
+      POSTGRES_DB: cf_erp
+    ports:
+      - "5472:5432"
+    volumes:
+      - cf_erp_data:/var/lib/postgresql/data
+      - ./init-scripts/02_cf_erp_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    networks:
+      - cf_aviation_network
+
+  cf_postgres_mes:
+    image: postgres:15
+    container_name: cf_aviation_mes
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aviation
+      POSTGRES_PASSWORD: aviation123
+      POSTGRES_DB: cf_mes
+    ports:
+      - "5473:5432"
+    volumes:
+      - cf_mes_data:/var/lib/postgresql/data
+      - ./init-scripts/03_cf_mes_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    networks:
+      - cf_aviation_network
+
+  cf_postgres_qms:
+    image: postgres:15
+    container_name: cf_aviation_qms
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aviation
+      POSTGRES_PASSWORD: aviation123
+      POSTGRES_DB: cf_qms
+    ports:
+      - "5474:5432"
+    volumes:
+      - cf_qms_data:/var/lib/postgresql/data
+      - ./init-scripts/04_cf_qms_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    networks:
+      - cf_aviation_network
+
+  cf_postgres_mro:
+    image: postgres:15
+    container_name: cf_aviation_mro
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aviation
+      POSTGRES_PASSWORD: aviation123
+      POSTGRES_DB: cf_mro
+    ports:
+      - "5475:5432"
+    volumes:
+      - cf_mro_data:/var/lib/postgresql/data
+      - ./init-scripts/05_cf_mro_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    networks:
+      - cf_aviation_network
+
+  cf_postgres_dossier:
+    image: postgres:15
+    container_name: cf_aviation_dossier
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aviation
+      POSTGRES_PASSWORD: aviation123
+      POSTGRES_DB: cf_dossier
+    ports:
+      - "5476:5432"
+    volumes:
+      - cf_dossier_data:/var/lib/postgresql/data
+      - ./init-scripts/06_cf_dossier_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    networks:
+      - cf_aviation_network
+
+networks:
+  cf_aviation_network:
+    name: cf_aviation_network
+
+volumes:
+  cf_plm_data:
+    name: cf_plm_data
+  cf_erp_data:
+    name: cf_erp_data
+  cf_mes_data:
+    name: cf_mes_data
+  cf_qms_data:
+    name: cf_qms_data
+  cf_mro_data:
+    name: cf_mro_data
+  cf_dossier_data:
+    name: cf_dossier_data

@@ -1,0 +1,11 @@
+﻿process_parameter_record_id,operation_execution_id,step_execution_id,parameter_standard_id,equipment_id,parameter_code,parameter_name,measured_value,standard_value,lower_limit,upper_limit,parameter_unit,collect_time,judge_result
+1,1,1,1,1,PAR-HYD-02,Extension and Retraction Pressure,20.850,21.000,19.500,22.500,MPa,2026-05-09 08:07:00,OK
+2,2,2,2,2,PAR-HYD-03,Pressure Holding Leakage Rate,0.080,0.080,0.000,0.150,mL/min,2026-05-10 08:14:00,WARN
+3,3,3,3,3,PAR-HYD-04,Piston Rod Extension Stroke,155.150,155.000,153.000,157.000,mm,2026-05-11 08:21:00,NG
+4,4,4,4,4,PAR-HYD-05,Actuation Time,5.100,4.800,4.000,5.500,s,2026-05-12 08:28:00,RECHECK
+5,5,5,5,5,PAR-HYD-06,Hydraulic Oil Temperature,37.700,38.000,20.000,55.000,C,2026-05-13 08:35:00,OK
+6,6,6,6,6,PAR-HYD-01,Locking Clearance,0.150,0.180,0.100,0.250,mm,2026-05-14 08:42:00,WARN
+7,7,7,7,7,PAR-HYD-02,Extension and Retraction Pressure,23.400,21.000,19.500,22.500,MPa,2026-05-15 08:49:00,NG
+8,8,8,8,8,PAR-HYD-03,Pressure Holding Leakage Rate,0.220,0.080,0.000,0.150,mL/min,2026-05-16 08:56:00,RECHECK
+9,9,9,9,9,PAR-HYD-04,Piston Rod Extension Stroke,155.300,155.000,153.000,157.000,mm,2026-05-17 09:03:00,OK
+10,10,10,10,10,PAR-HYD-05,Actuation Time,4.500,4.800,4.000,5.500,s,2026-05-18 09:10:00,WARN

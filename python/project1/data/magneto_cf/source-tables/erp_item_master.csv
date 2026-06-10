@@ -1,0 +1,201 @@
+﻿item_id,item_no,item_desc,item_grp_cd,mat_grade,spec_model,uom_cd,buy_made_flag
+1,MAT-LG-0001,Piston Rod Assembly,ERP_MAKE,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+2,MAT-LG-0002,Cylinder Barrel Assembly,ERP_BUY,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+3,MAT-LG-0003,Front End Cap,ERP_ASSEMBLY,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+4,MAT-LG-0004,Rear End Cap,ERP_SERVICE,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+5,MAT-LG-0005,Seal Ring Assembly,ERP_MAKE,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+6,MAT-LG-0006,Trunnion Bushing,ERP_BUY,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+7,MAT-LG-0007,Spherical Bearing,ERP_ASSEMBLY,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+8,MAT-LG-0008,Throttle Connector,ERP_SERVICE,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+9,MAT-LG-0009,Displacement Sensor Bracket,ERP_MAKE,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+10,MAT-LG-0010,Locking Nut,ERP_BUY,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+11,MAT-LG-0011,Piston Rod Assembly,ERP_ASSEMBLY,ERP_C,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+12,MAT-LG-0012,Cylinder Barrel Assembly,ERP_SERVICE,ERP_D,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+13,MAT-LG-0013,Front End Cap,ERP_MAKE,ERP_A,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+14,MAT-LG-0014,Rear End Cap,ERP_BUY,ERP_B,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+15,MAT-LG-0015,Seal Ring Assembly,ERP_ASSEMBLY,ERP_C,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+16,MAT-LG-0016,Trunnion Bushing,ERP_SERVICE,ERP_D,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+17,MAT-LG-0017,Spherical Bearing,ERP_MAKE,ERP_A,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+18,MAT-LG-0018,Throttle Connector,ERP_BUY,ERP_B,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+19,MAT-LG-0019,Displacement Sensor Bracket,ERP_ASSEMBLY,ERP_C,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+20,MAT-LG-0020,Locking Nut,ERP_SERVICE,ERP_D,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+21,MAT-LG-0021,Piston Rod Assembly,ERP_MAKE,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+22,MAT-LG-0022,Cylinder Barrel Assembly,ERP_BUY,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+23,MAT-LG-0023,Front End Cap,ERP_ASSEMBLY,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+24,MAT-LG-0024,Rear End Cap,ERP_SERVICE,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+25,MAT-LG-0025,Seal Ring Assembly,ERP_MAKE,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+26,MAT-LG-0026,Trunnion Bushing,ERP_BUY,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+27,MAT-LG-0027,Spherical Bearing,ERP_ASSEMBLY,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+28,MAT-LG-0028,Throttle Connector,ERP_SERVICE,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+29,MAT-LG-0029,Displacement Sensor Bracket,ERP_MAKE,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+30,MAT-LG-0030,Locking Nut,ERP_BUY,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+31,MAT-LG-0031,Piston Rod Assembly,ERP_ASSEMBLY,ERP_C,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+32,MAT-LG-0032,Cylinder Barrel Assembly,ERP_SERVICE,ERP_D,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+33,MAT-LG-0033,Front End Cap,ERP_MAKE,ERP_A,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+34,MAT-LG-0034,Rear End Cap,ERP_BUY,ERP_B,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+35,MAT-LG-0035,Seal Ring Assembly,ERP_ASSEMBLY,ERP_C,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+36,MAT-LG-0036,Trunnion Bushing,ERP_SERVICE,ERP_D,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+37,MAT-LG-0037,Spherical Bearing,ERP_MAKE,ERP_A,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+38,MAT-LG-0038,Throttle Connector,ERP_BUY,ERP_B,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+39,MAT-LG-0039,Displacement Sensor Bracket,ERP_ASSEMBLY,ERP_C,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+40,MAT-LG-0040,Locking Nut,ERP_SERVICE,ERP_D,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+41,MAT-LG-0041,Piston Rod Assembly,ERP_MAKE,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+42,MAT-LG-0042,Cylinder Barrel Assembly,ERP_BUY,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+43,MAT-LG-0043,Front End Cap,ERP_ASSEMBLY,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+44,MAT-LG-0044,Rear End Cap,ERP_SERVICE,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+45,MAT-LG-0045,Seal Ring Assembly,ERP_MAKE,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+46,MAT-LG-0046,Trunnion Bushing,ERP_BUY,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+47,MAT-LG-0047,Spherical Bearing,ERP_ASSEMBLY,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+48,MAT-LG-0048,Throttle Connector,ERP_SERVICE,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+49,MAT-LG-0049,Displacement Sensor Bracket,ERP_MAKE,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+50,MAT-LG-0050,Locking Nut,ERP_BUY,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+51,MAT-LG-0051,Piston Rod Assembly,ERP_ASSEMBLY,ERP_C,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+52,MAT-LG-0052,Cylinder Barrel Assembly,ERP_SERVICE,ERP_D,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+53,MAT-LG-0053,Front End Cap,ERP_MAKE,ERP_A,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+54,MAT-LG-0054,Rear End Cap,ERP_BUY,ERP_B,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+55,MAT-LG-0055,Seal Ring Assembly,ERP_ASSEMBLY,ERP_C,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+56,MAT-LG-0056,Trunnion Bushing,ERP_SERVICE,ERP_D,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+57,MAT-LG-0057,Spherical Bearing,ERP_MAKE,ERP_A,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+58,MAT-LG-0058,Throttle Connector,ERP_BUY,ERP_B,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+59,MAT-LG-0059,Displacement Sensor Bracket,ERP_ASSEMBLY,ERP_C,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+60,MAT-LG-0060,Locking Nut,ERP_SERVICE,ERP_D,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+61,MAT-LG-0061,Piston Rod Assembly,ERP_MAKE,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+62,MAT-LG-0062,Cylinder Barrel Assembly,ERP_BUY,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+63,MAT-LG-0063,Front End Cap,ERP_ASSEMBLY,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+64,MAT-LG-0064,Rear End Cap,ERP_SERVICE,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+65,MAT-LG-0065,Seal Ring Assembly,ERP_MAKE,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+66,MAT-LG-0066,Trunnion Bushing,ERP_BUY,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+67,MAT-LG-0067,Spherical Bearing,ERP_ASSEMBLY,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+68,MAT-LG-0068,Throttle Connector,ERP_SERVICE,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+69,MAT-LG-0069,Displacement Sensor Bracket,ERP_MAKE,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+70,MAT-LG-0070,Locking Nut,ERP_BUY,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+71,MAT-LG-0071,Piston Rod Assembly,ERP_ASSEMBLY,ERP_C,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+72,MAT-LG-0072,Cylinder Barrel Assembly,ERP_SERVICE,ERP_D,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+73,MAT-LG-0073,Front End Cap,ERP_MAKE,ERP_A,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+74,MAT-LG-0074,Rear End Cap,ERP_BUY,ERP_B,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+75,MAT-LG-0075,Seal Ring Assembly,ERP_ASSEMBLY,ERP_C,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+76,MAT-LG-0076,Trunnion Bushing,ERP_SERVICE,ERP_D,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+77,MAT-LG-0077,Spherical Bearing,ERP_MAKE,ERP_A,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+78,MAT-LG-0078,Throttle Connector,ERP_BUY,ERP_B,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+79,MAT-LG-0079,Displacement Sensor Bracket,ERP_ASSEMBLY,ERP_C,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+80,MAT-LG-0080,Locking Nut,ERP_SERVICE,ERP_D,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+81,MAT-LG-0081,Piston Rod Assembly,ERP_MAKE,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+82,MAT-LG-0082,Cylinder Barrel Assembly,ERP_BUY,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+83,MAT-LG-0083,Front End Cap,ERP_ASSEMBLY,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+84,MAT-LG-0084,Rear End Cap,ERP_SERVICE,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+85,MAT-LG-0085,Seal Ring Assembly,ERP_MAKE,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+86,MAT-LG-0086,Trunnion Bushing,ERP_BUY,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+87,MAT-LG-0087,Spherical Bearing,ERP_ASSEMBLY,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+88,MAT-LG-0088,Throttle Connector,ERP_SERVICE,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+89,MAT-LG-0089,Displacement Sensor Bracket,ERP_MAKE,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+90,MAT-LG-0090,Locking Nut,ERP_BUY,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+91,MAT-LG-0091,Piston Rod Assembly,ERP_ASSEMBLY,ERP_C,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+92,MAT-LG-0092,Cylinder Barrel Assembly,ERP_SERVICE,ERP_D,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+93,MAT-LG-0093,Front End Cap,ERP_MAKE,ERP_A,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+94,MAT-LG-0094,Rear End Cap,ERP_BUY,ERP_B,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+95,MAT-LG-0095,Seal Ring Assembly,ERP_ASSEMBLY,ERP_C,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+96,MAT-LG-0096,Trunnion Bushing,ERP_SERVICE,ERP_D,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+97,MAT-LG-0097,Spherical Bearing,ERP_MAKE,ERP_A,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+98,MAT-LG-0098,Throttle Connector,ERP_BUY,ERP_B,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+99,MAT-LG-0099,Displacement Sensor Bracket,ERP_ASSEMBLY,ERP_C,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+100,MAT-LG-0100,Locking Nut,ERP_SERVICE,ERP_D,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+101,MAT-LG-0101,Piston Rod Assembly,ERP_MAKE,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+102,MAT-LG-0102,Cylinder Barrel Assembly,ERP_BUY,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+103,MAT-LG-0103,Front End Cap,ERP_ASSEMBLY,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+104,MAT-LG-0104,Rear End Cap,ERP_SERVICE,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+105,MAT-LG-0105,Seal Ring Assembly,ERP_MAKE,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+106,MAT-LG-0106,Trunnion Bushing,ERP_BUY,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+107,MAT-LG-0107,Spherical Bearing,ERP_ASSEMBLY,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+108,MAT-LG-0108,Throttle Connector,ERP_SERVICE,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+109,MAT-LG-0109,Displacement Sensor Bracket,ERP_MAKE,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+110,MAT-LG-0110,Locking Nut,ERP_BUY,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+111,MAT-LG-0111,Piston Rod Assembly,ERP_ASSEMBLY,ERP_C,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+112,MAT-LG-0112,Cylinder Barrel Assembly,ERP_SERVICE,ERP_D,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+113,MAT-LG-0113,Front End Cap,ERP_MAKE,ERP_A,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+114,MAT-LG-0114,Rear End Cap,ERP_BUY,ERP_B,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+115,MAT-LG-0115,Seal Ring Assembly,ERP_ASSEMBLY,ERP_C,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+116,MAT-LG-0116,Trunnion Bushing,ERP_SERVICE,ERP_D,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+117,MAT-LG-0117,Spherical Bearing,ERP_MAKE,ERP_A,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+118,MAT-LG-0118,Throttle Connector,ERP_BUY,ERP_B,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+119,MAT-LG-0119,Displacement Sensor Bracket,ERP_ASSEMBLY,ERP_C,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+120,MAT-LG-0120,Locking Nut,ERP_SERVICE,ERP_D,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+121,MAT-LG-0121,Piston Rod Assembly,ERP_MAKE,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+122,MAT-LG-0122,Cylinder Barrel Assembly,ERP_BUY,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+123,MAT-LG-0123,Front End Cap,ERP_ASSEMBLY,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+124,MAT-LG-0124,Rear End Cap,ERP_SERVICE,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+125,MAT-LG-0125,Seal Ring Assembly,ERP_MAKE,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+126,MAT-LG-0126,Trunnion Bushing,ERP_BUY,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+127,MAT-LG-0127,Spherical Bearing,ERP_ASSEMBLY,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+128,MAT-LG-0128,Throttle Connector,ERP_SERVICE,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+129,MAT-LG-0129,Displacement Sensor Bracket,ERP_MAKE,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+130,MAT-LG-0130,Locking Nut,ERP_BUY,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+131,MAT-LG-0131,Piston Rod Assembly,ERP_ASSEMBLY,ERP_C,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+132,MAT-LG-0132,Cylinder Barrel Assembly,ERP_SERVICE,ERP_D,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+133,MAT-LG-0133,Front End Cap,ERP_MAKE,ERP_A,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+134,MAT-LG-0134,Rear End Cap,ERP_BUY,ERP_B,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+135,MAT-LG-0135,Seal Ring Assembly,ERP_ASSEMBLY,ERP_C,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+136,MAT-LG-0136,Trunnion Bushing,ERP_SERVICE,ERP_D,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+137,MAT-LG-0137,Spherical Bearing,ERP_MAKE,ERP_A,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+138,MAT-LG-0138,Throttle Connector,ERP_BUY,ERP_B,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+139,MAT-LG-0139,Displacement Sensor Bracket,ERP_ASSEMBLY,ERP_C,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+140,MAT-LG-0140,Locking Nut,ERP_SERVICE,ERP_D,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+141,MAT-LG-0141,Piston Rod Assembly,ERP_MAKE,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+142,MAT-LG-0142,Cylinder Barrel Assembly,ERP_BUY,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+143,MAT-LG-0143,Front End Cap,ERP_ASSEMBLY,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+144,MAT-LG-0144,Rear End Cap,ERP_SERVICE,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+145,MAT-LG-0145,Seal Ring Assembly,ERP_MAKE,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+146,MAT-LG-0146,Trunnion Bushing,ERP_BUY,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+147,MAT-LG-0147,Spherical Bearing,ERP_ASSEMBLY,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+148,MAT-LG-0148,Throttle Connector,ERP_SERVICE,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+149,MAT-LG-0149,Displacement Sensor Bracket,ERP_MAKE,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+150,MAT-LG-0150,Locking Nut,ERP_BUY,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+151,MAT-LG-0151,Piston Rod Assembly,ERP_ASSEMBLY,ERP_C,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+152,MAT-LG-0152,Cylinder Barrel Assembly,ERP_SERVICE,ERP_D,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+153,MAT-LG-0153,Front End Cap,ERP_MAKE,ERP_A,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+154,MAT-LG-0154,Rear End Cap,ERP_BUY,ERP_B,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+155,MAT-LG-0155,Seal Ring Assembly,ERP_ASSEMBLY,ERP_C,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+156,MAT-LG-0156,Trunnion Bushing,ERP_SERVICE,ERP_D,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+157,MAT-LG-0157,Spherical Bearing,ERP_MAKE,ERP_A,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+158,MAT-LG-0158,Throttle Connector,ERP_BUY,ERP_B,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+159,MAT-LG-0159,Displacement Sensor Bracket,ERP_ASSEMBLY,ERP_C,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+160,MAT-LG-0160,Locking Nut,ERP_SERVICE,ERP_D,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+161,MAT-LG-0161,Piston Rod Assembly,ERP_MAKE,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+162,MAT-LG-0162,Cylinder Barrel Assembly,ERP_BUY,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+163,MAT-LG-0163,Front End Cap,ERP_ASSEMBLY,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+164,MAT-LG-0164,Rear End Cap,ERP_SERVICE,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+165,MAT-LG-0165,Seal Ring Assembly,ERP_MAKE,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+166,MAT-LG-0166,Trunnion Bushing,ERP_BUY,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+167,MAT-LG-0167,Spherical Bearing,ERP_ASSEMBLY,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+168,MAT-LG-0168,Throttle Connector,ERP_SERVICE,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+169,MAT-LG-0169,Displacement Sensor Bracket,ERP_MAKE,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+170,MAT-LG-0170,Locking Nut,ERP_BUY,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+171,MAT-LG-0171,Piston Rod Assembly,ERP_ASSEMBLY,ERP_C,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+172,MAT-LG-0172,Cylinder Barrel Assembly,ERP_SERVICE,ERP_D,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+173,MAT-LG-0173,Front End Cap,ERP_MAKE,ERP_A,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+174,MAT-LG-0174,Rear End Cap,ERP_BUY,ERP_B,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+175,MAT-LG-0175,Seal Ring Assembly,ERP_ASSEMBLY,ERP_C,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+176,MAT-LG-0176,Trunnion Bushing,ERP_SERVICE,ERP_D,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+177,MAT-LG-0177,Spherical Bearing,ERP_MAKE,ERP_A,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+178,MAT-LG-0178,Throttle Connector,ERP_BUY,ERP_B,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+179,MAT-LG-0179,Displacement Sensor Bracket,ERP_ASSEMBLY,ERP_C,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+180,MAT-LG-0180,Locking Nut,ERP_SERVICE,ERP_D,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+181,MAT-LG-0181,Piston Rod Assembly,ERP_MAKE,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+182,MAT-LG-0182,Cylinder Barrel Assembly,ERP_BUY,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+183,MAT-LG-0183,Front End Cap,ERP_ASSEMBLY,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+184,MAT-LG-0184,Rear End Cap,ERP_SERVICE,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+185,MAT-LG-0185,Seal Ring Assembly,ERP_MAKE,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+186,MAT-LG-0186,Trunnion Bushing,ERP_BUY,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+187,MAT-LG-0187,Spherical Bearing,ERP_ASSEMBLY,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+188,MAT-LG-0188,Throttle Connector,ERP_SERVICE,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+189,MAT-LG-0189,Displacement Sensor Bracket,ERP_MAKE,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_EA,N
+190,MAT-LG-0190,Locking Nut,ERP_BUY,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+191,MAT-LG-0191,Piston Rod Assembly,ERP_ASSEMBLY,ERP_C,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+192,MAT-LG-0192,Cylinder Barrel Assembly,ERP_SERVICE,ERP_D,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_M,N
+193,MAT-LG-0193,Front End Cap,ERP_MAKE,ERP_A,Front End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+194,MAT-LG-0194,Rear End Cap,ERP_BUY,ERP_B,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,ERP_SET,Y
+195,MAT-LG-0195,Seal Ring Assembly,ERP_ASSEMBLY,ERP_C,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,ERP_KG,N
+196,MAT-LG-0196,Trunnion Bushing,ERP_SERVICE,ERP_D,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y
+197,MAT-LG-0197,Spherical Bearing,ERP_MAKE,ERP_A,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,ERP_EA,Y
+198,MAT-LG-0198,Throttle Connector,ERP_BUY,ERP_B,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,ERP_SET,N
+199,MAT-LG-0199,Displacement Sensor Bracket,ERP_ASSEMBLY,ERP_C,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,ERP_KG,Y
+200,MAT-LG-0200,Locking Nut,ERP_SERVICE,ERP_D,Locking Nut aviation manufacturing business record used for actuator quality traceability.,ERP_M,Y

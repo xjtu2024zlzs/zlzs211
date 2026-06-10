@@ -1,0 +1,201 @@
+﻿product_model_id,model_code,model_name,model_series,product_line,actual_plane_no,model_status_cd,cert_level_cd,eff_date_txt,expire_date_txt
+1,AC-LGACT-260A-0001,Piston Rod Assembly 001,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1001,PLM_OPEN,PLM_A,2026/05/09 08:07:00,2026/05/09 08:07:00
+2,AC-LGACT-260A-0002,Cylinder Barrel Assembly 002,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1002,PLM_RUNNING,PLM_B,2026/05/10 08:14:00,2026/05/10 08:14:00
+3,AC-LGACT-260A-0003,Front End Cap 003,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1003,PLM_CLOSED,PLM_C,2026/05/11 08:21:00,2026/05/11 08:21:00
+4,AC-LGACT-260A-0004,Rear End Cap 004,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1004,PLM_HOLD,PLM_D,2026/05/12 08:28:00,2026/05/12 08:28:00
+5,AC-LGACT-260A-0005,Seal Ring Assembly 005,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1005,PLM_OPEN,PLM_A,2026/05/13 08:35:00,2026/05/13 08:35:00
+6,AC-LGACT-260A-0006,Trunnion Bushing 006,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1006,PLM_RUNNING,PLM_B,2026/05/14 08:42:00,2026/05/14 08:42:00
+7,AC-LGACT-260A-0007,Spherical Bearing 007,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1007,PLM_CLOSED,PLM_C,2026/05/15 08:49:00,2026/05/15 08:49:00
+8,AC-LGACT-260A-0008,Throttle Connector 008,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1008,PLM_HOLD,PLM_D,2026/05/16 08:56:00,2026/05/16 08:56:00
+9,AC-LGACT-260A-0009,Displacement Sensor Bracket 009,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1009,PLM_OPEN,PLM_A,2026/05/17 09:03:00,2026/05/17 09:03:00
+10,AC-LGACT-260A-0010,Locking Nut 010,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1010,PLM_RUNNING,PLM_B,2026/05/18 09:10:00,2026/05/18 09:10:00
+11,AC-LGACT-260A-0011,Piston Rod Assembly 011,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1011,PLM_CLOSED,PLM_C,2026/05/19 09:17:00,2026/05/19 09:17:00
+12,AC-LGACT-260A-0012,Cylinder Barrel Assembly 012,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1012,PLM_HOLD,PLM_D,2026/05/20 09:24:00,2026/05/20 09:24:00
+13,AC-LGACT-260A-0013,Front End Cap 013,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1013,PLM_OPEN,PLM_A,2026/05/21 09:31:00,2026/05/21 09:31:00
+14,AC-LGACT-260A-0014,Rear End Cap 014,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1014,PLM_RUNNING,PLM_B,2026/05/22 09:38:00,2026/05/22 09:38:00
+15,AC-LGACT-260A-0015,Seal Ring Assembly 015,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1015,PLM_CLOSED,PLM_C,2026/05/23 09:45:00,2026/05/23 09:45:00
+16,AC-LGACT-260A-0016,Trunnion Bushing 016,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1016,PLM_HOLD,PLM_D,2026/05/24 09:52:00,2026/05/24 09:52:00
+17,AC-LGACT-260A-0017,Spherical Bearing 017,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1017,PLM_OPEN,PLM_A,2026/05/25 09:59:00,2026/05/25 09:59:00
+18,AC-LGACT-260A-0018,Throttle Connector 018,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1018,PLM_RUNNING,PLM_B,2026/05/26 10:06:00,2026/05/26 10:06:00
+19,AC-LGACT-260A-0019,Displacement Sensor Bracket 019,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1019,PLM_CLOSED,PLM_C,2026/05/27 10:13:00,2026/05/27 10:13:00
+20,AC-LGACT-260A-0020,Locking Nut 020,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1020,PLM_HOLD,PLM_D,2026/05/28 10:20:00,2026/05/28 10:20:00
+21,AC-LGACT-260A-0021,Piston Rod Assembly 021,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1021,PLM_OPEN,PLM_A,2026/05/29 10:27:00,2026/05/29 10:27:00
+22,AC-LGACT-260A-0022,Cylinder Barrel Assembly 022,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1022,PLM_RUNNING,PLM_B,2026/05/30 10:34:00,2026/05/30 10:34:00
+23,AC-LGACT-260A-0023,Front End Cap 023,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1023,PLM_CLOSED,PLM_C,2026/05/31 10:41:00,2026/05/31 10:41:00
+24,AC-LGACT-260A-0024,Rear End Cap 024,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1024,PLM_HOLD,PLM_D,2026/06/01 10:48:00,2026/06/01 10:48:00
+25,AC-LGACT-260A-0025,Seal Ring Assembly 025,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1025,PLM_OPEN,PLM_A,2026/06/02 10:55:00,2026/06/02 10:55:00
+26,AC-LGACT-260A-0026,Trunnion Bushing 026,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1026,PLM_RUNNING,PLM_B,2026/06/03 11:02:00,2026/06/03 11:02:00
+27,AC-LGACT-260A-0027,Spherical Bearing 027,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1027,PLM_CLOSED,PLM_C,2026/06/04 11:09:00,2026/06/04 11:09:00
+28,AC-LGACT-260A-0028,Throttle Connector 028,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1028,PLM_HOLD,PLM_D,2026/06/05 11:16:00,2026/06/05 11:16:00
+29,AC-LGACT-260A-0029,Displacement Sensor Bracket 029,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1029,PLM_OPEN,PLM_A,2026/05/09 11:23:00,2026/05/09 11:23:00
+30,AC-LGACT-260A-0030,Locking Nut 030,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1030,PLM_RUNNING,PLM_B,2026/05/10 11:30:00,2026/05/10 11:30:00
+31,AC-LGACT-260A-0031,Piston Rod Assembly 031,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1031,PLM_CLOSED,PLM_C,2026/05/11 11:37:00,2026/05/11 11:37:00
+32,AC-LGACT-260A-0032,Cylinder Barrel Assembly 032,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1032,PLM_HOLD,PLM_D,2026/05/12 11:44:00,2026/05/12 11:44:00
+33,AC-LGACT-260A-0033,Front End Cap 033,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1033,PLM_OPEN,PLM_A,2026/05/13 11:51:00,2026/05/13 11:51:00
+34,AC-LGACT-260A-0034,Rear End Cap 034,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1034,PLM_RUNNING,PLM_B,2026/05/14 11:58:00,2026/05/14 11:58:00
+35,AC-LGACT-260A-0035,Seal Ring Assembly 035,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1035,PLM_CLOSED,PLM_C,2026/05/15 12:05:00,2026/05/15 12:05:00
+36,AC-LGACT-260A-0036,Trunnion Bushing 036,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1036,PLM_HOLD,PLM_D,2026/05/16 12:12:00,2026/05/16 12:12:00
+37,AC-LGACT-260A-0037,Spherical Bearing 037,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1037,PLM_OPEN,PLM_A,2026/05/17 12:19:00,2026/05/17 12:19:00
+38,AC-LGACT-260A-0038,Throttle Connector 038,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1038,PLM_RUNNING,PLM_B,2026/05/18 12:26:00,2026/05/18 12:26:00
+39,AC-LGACT-260A-0039,Displacement Sensor Bracket 039,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1039,PLM_CLOSED,PLM_C,2026/05/19 12:33:00,2026/05/19 12:33:00
+40,AC-LGACT-260A-0040,Locking Nut 040,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1040,PLM_HOLD,PLM_D,2026/05/20 12:40:00,2026/05/20 12:40:00
+41,AC-LGACT-260A-0041,Piston Rod Assembly 041,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1041,PLM_OPEN,PLM_A,2026/05/21 12:47:00,2026/05/21 12:47:00
+42,AC-LGACT-260A-0042,Cylinder Barrel Assembly 042,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1042,PLM_RUNNING,PLM_B,2026/05/22 12:54:00,2026/05/22 12:54:00
+43,AC-LGACT-260A-0043,Front End Cap 043,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1043,PLM_CLOSED,PLM_C,2026/05/23 13:01:00,2026/05/23 13:01:00
+44,AC-LGACT-260A-0044,Rear End Cap 044,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1044,PLM_HOLD,PLM_D,2026/05/24 13:08:00,2026/05/24 13:08:00
+45,AC-LGACT-260A-0045,Seal Ring Assembly 045,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1045,PLM_OPEN,PLM_A,2026/05/25 13:15:00,2026/05/25 13:15:00
+46,AC-LGACT-260A-0046,Trunnion Bushing 046,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1046,PLM_RUNNING,PLM_B,2026/05/26 13:22:00,2026/05/26 13:22:00
+47,AC-LGACT-260A-0047,Spherical Bearing 047,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1047,PLM_CLOSED,PLM_C,2026/05/27 13:29:00,2026/05/27 13:29:00
+48,AC-LGACT-260A-0048,Throttle Connector 048,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1048,PLM_HOLD,PLM_D,2026/05/28 13:36:00,2026/05/28 13:36:00
+49,AC-LGACT-260A-0049,Displacement Sensor Bracket 049,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1049,PLM_OPEN,PLM_A,2026/05/29 13:43:00,2026/05/29 13:43:00
+50,AC-LGACT-260A-0050,Locking Nut 050,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1050,PLM_RUNNING,PLM_B,2026/05/30 13:50:00,2026/05/30 13:50:00
+51,AC-LGACT-260A-0051,Piston Rod Assembly 051,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1051,PLM_CLOSED,PLM_C,2026/05/31 13:57:00,2026/05/31 13:57:00
+52,AC-LGACT-260A-0052,Cylinder Barrel Assembly 052,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1052,PLM_HOLD,PLM_D,2026/06/01 14:04:00,2026/06/01 14:04:00
+53,AC-LGACT-260A-0053,Front End Cap 053,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1053,PLM_OPEN,PLM_A,2026/06/02 14:11:00,2026/06/02 14:11:00
+54,AC-LGACT-260A-0054,Rear End Cap 054,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1054,PLM_RUNNING,PLM_B,2026/06/03 14:18:00,2026/06/03 14:18:00
+55,AC-LGACT-260A-0055,Seal Ring Assembly 055,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1055,PLM_CLOSED,PLM_C,2026/06/04 14:25:00,2026/06/04 14:25:00
+56,AC-LGACT-260A-0056,Trunnion Bushing 056,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1056,PLM_HOLD,PLM_D,2026/06/05 14:32:00,2026/06/05 14:32:00
+57,AC-LGACT-260A-0057,Spherical Bearing 057,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1057,PLM_OPEN,PLM_A,2026/05/09 14:39:00,2026/05/09 14:39:00
+58,AC-LGACT-260A-0058,Throttle Connector 058,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1058,PLM_RUNNING,PLM_B,2026/05/10 14:46:00,2026/05/10 14:46:00
+59,AC-LGACT-260A-0059,Displacement Sensor Bracket 059,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1059,PLM_CLOSED,PLM_C,2026/05/11 14:53:00,2026/05/11 14:53:00
+60,AC-LGACT-260A-0060,Locking Nut 060,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1060,PLM_HOLD,PLM_D,2026/05/12 15:00:00,2026/05/12 15:00:00
+61,AC-LGACT-260A-0061,Piston Rod Assembly 061,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1061,PLM_OPEN,PLM_A,2026/05/13 15:07:00,2026/05/13 15:07:00
+62,AC-LGACT-260A-0062,Cylinder Barrel Assembly 062,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1062,PLM_RUNNING,PLM_B,2026/05/14 15:14:00,2026/05/14 15:14:00
+63,AC-LGACT-260A-0063,Front End Cap 063,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1063,PLM_CLOSED,PLM_C,2026/05/15 15:21:00,2026/05/15 15:21:00
+64,AC-LGACT-260A-0064,Rear End Cap 064,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1064,PLM_HOLD,PLM_D,2026/05/16 15:28:00,2026/05/16 15:28:00
+65,AC-LGACT-260A-0065,Seal Ring Assembly 065,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1065,PLM_OPEN,PLM_A,2026/05/17 15:35:00,2026/05/17 15:35:00
+66,AC-LGACT-260A-0066,Trunnion Bushing 066,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1066,PLM_RUNNING,PLM_B,2026/05/18 15:42:00,2026/05/18 15:42:00
+67,AC-LGACT-260A-0067,Spherical Bearing 067,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1067,PLM_CLOSED,PLM_C,2026/05/19 15:49:00,2026/05/19 15:49:00
+68,AC-LGACT-260A-0068,Throttle Connector 068,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1068,PLM_HOLD,PLM_D,2026/05/20 15:56:00,2026/05/20 15:56:00
+69,AC-LGACT-260A-0069,Displacement Sensor Bracket 069,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1069,PLM_OPEN,PLM_A,2026/05/21 16:03:00,2026/05/21 16:03:00
+70,AC-LGACT-260A-0070,Locking Nut 070,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1070,PLM_RUNNING,PLM_B,2026/05/22 16:10:00,2026/05/22 16:10:00
+71,AC-LGACT-260A-0071,Piston Rod Assembly 071,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1071,PLM_CLOSED,PLM_C,2026/05/23 16:17:00,2026/05/23 16:17:00
+72,AC-LGACT-260A-0072,Cylinder Barrel Assembly 072,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1072,PLM_HOLD,PLM_D,2026/05/24 16:24:00,2026/05/24 16:24:00
+73,AC-LGACT-260A-0073,Front End Cap 073,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1073,PLM_OPEN,PLM_A,2026/05/25 16:31:00,2026/05/25 16:31:00
+74,AC-LGACT-260A-0074,Rear End Cap 074,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1074,PLM_RUNNING,PLM_B,2026/05/26 16:38:00,2026/05/26 16:38:00
+75,AC-LGACT-260A-0075,Seal Ring Assembly 075,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1075,PLM_CLOSED,PLM_C,2026/05/27 16:45:00,2026/05/27 16:45:00
+76,AC-LGACT-260A-0076,Trunnion Bushing 076,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1076,PLM_HOLD,PLM_D,2026/05/28 16:52:00,2026/05/28 16:52:00
+77,AC-LGACT-260A-0077,Spherical Bearing 077,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1077,PLM_OPEN,PLM_A,2026/05/29 16:59:00,2026/05/29 16:59:00
+78,AC-LGACT-260A-0078,Throttle Connector 078,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1078,PLM_RUNNING,PLM_B,2026/05/30 17:06:00,2026/05/30 17:06:00
+79,AC-LGACT-260A-0079,Displacement Sensor Bracket 079,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1079,PLM_CLOSED,PLM_C,2026/05/31 17:13:00,2026/05/31 17:13:00
+80,AC-LGACT-260A-0080,Locking Nut 080,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1080,PLM_HOLD,PLM_D,2026/06/01 17:20:00,2026/06/01 17:20:00
+81,AC-LGACT-260A-0081,Piston Rod Assembly 081,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1081,PLM_OPEN,PLM_A,2026/06/02 17:27:00,2026/06/02 17:27:00
+82,AC-LGACT-260A-0082,Cylinder Barrel Assembly 082,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1082,PLM_RUNNING,PLM_B,2026/06/03 17:34:00,2026/06/03 17:34:00
+83,AC-LGACT-260A-0083,Front End Cap 083,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1083,PLM_CLOSED,PLM_C,2026/06/04 17:41:00,2026/06/04 17:41:00
+84,AC-LGACT-260A-0084,Rear End Cap 084,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1084,PLM_HOLD,PLM_D,2026/06/05 17:48:00,2026/06/05 17:48:00
+85,AC-LGACT-260A-0085,Seal Ring Assembly 085,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1085,PLM_OPEN,PLM_A,2026/05/09 17:55:00,2026/05/09 17:55:00
+86,AC-LGACT-260A-0086,Trunnion Bushing 086,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1086,PLM_RUNNING,PLM_B,2026/05/10 18:02:00,2026/05/10 18:02:00
+87,AC-LGACT-260A-0087,Spherical Bearing 087,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1087,PLM_CLOSED,PLM_C,2026/05/11 18:09:00,2026/05/11 18:09:00
+88,AC-LGACT-260A-0088,Throttle Connector 088,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1088,PLM_HOLD,PLM_D,2026/05/12 18:16:00,2026/05/12 18:16:00
+89,AC-LGACT-260A-0089,Displacement Sensor Bracket 089,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1089,PLM_OPEN,PLM_A,2026/05/13 18:23:00,2026/05/13 18:23:00
+90,AC-LGACT-260A-0090,Locking Nut 090,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1090,PLM_RUNNING,PLM_B,2026/05/14 18:30:00,2026/05/14 18:30:00
+91,AC-LGACT-260A-0091,Piston Rod Assembly 091,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1091,PLM_CLOSED,PLM_C,2026/05/15 18:37:00,2026/05/15 18:37:00
+92,AC-LGACT-260A-0092,Cylinder Barrel Assembly 092,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1092,PLM_HOLD,PLM_D,2026/05/16 18:44:00,2026/05/16 18:44:00
+93,AC-LGACT-260A-0093,Front End Cap 093,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1093,PLM_OPEN,PLM_A,2026/05/17 18:51:00,2026/05/17 18:51:00
+94,AC-LGACT-260A-0094,Rear End Cap 094,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1094,PLM_RUNNING,PLM_B,2026/05/18 18:58:00,2026/05/18 18:58:00
+95,AC-LGACT-260A-0095,Seal Ring Assembly 095,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1095,PLM_CLOSED,PLM_C,2026/05/19 19:05:00,2026/05/19 19:05:00
+96,AC-LGACT-260A-0096,Trunnion Bushing 096,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1096,PLM_HOLD,PLM_D,2026/05/20 19:12:00,2026/05/20 19:12:00
+97,AC-LGACT-260A-0097,Spherical Bearing 097,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1097,PLM_OPEN,PLM_A,2026/05/21 19:19:00,2026/05/21 19:19:00
+98,AC-LGACT-260A-0098,Throttle Connector 098,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1098,PLM_RUNNING,PLM_B,2026/05/22 19:26:00,2026/05/22 19:26:00
+99,AC-LGACT-260A-0099,Displacement Sensor Bracket 099,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1099,PLM_CLOSED,PLM_C,2026/05/23 19:33:00,2026/05/23 19:33:00
+100,AC-LGACT-260A-0100,Locking Nut 100,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1100,PLM_HOLD,PLM_D,2026/05/24 19:40:00,2026/05/24 19:40:00
+101,AC-LGACT-260A-0101,Piston Rod Assembly 101,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1101,PLM_OPEN,PLM_A,2026/05/25 19:47:00,2026/05/25 19:47:00
+102,AC-LGACT-260A-0102,Cylinder Barrel Assembly 102,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1102,PLM_RUNNING,PLM_B,2026/05/26 19:54:00,2026/05/26 19:54:00
+103,AC-LGACT-260A-0103,Front End Cap 103,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1103,PLM_CLOSED,PLM_C,2026/05/27 20:01:00,2026/05/27 20:01:00
+104,AC-LGACT-260A-0104,Rear End Cap 104,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1104,PLM_HOLD,PLM_D,2026/05/28 20:08:00,2026/05/28 20:08:00
+105,AC-LGACT-260A-0105,Seal Ring Assembly 105,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1105,PLM_OPEN,PLM_A,2026/05/29 20:15:00,2026/05/29 20:15:00
+106,AC-LGACT-260A-0106,Trunnion Bushing 106,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1106,PLM_RUNNING,PLM_B,2026/05/30 20:22:00,2026/05/30 20:22:00
+107,AC-LGACT-260A-0107,Spherical Bearing 107,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1107,PLM_CLOSED,PLM_C,2026/05/31 20:29:00,2026/05/31 20:29:00
+108,AC-LGACT-260A-0108,Throttle Connector 108,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1108,PLM_HOLD,PLM_D,2026/06/01 20:36:00,2026/06/01 20:36:00
+109,AC-LGACT-260A-0109,Displacement Sensor Bracket 109,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1109,PLM_OPEN,PLM_A,2026/06/02 20:43:00,2026/06/02 20:43:00
+110,AC-LGACT-260A-0110,Locking Nut 110,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1110,PLM_RUNNING,PLM_B,2026/06/03 20:50:00,2026/06/03 20:50:00
+111,AC-LGACT-260A-0111,Piston Rod Assembly 111,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1111,PLM_CLOSED,PLM_C,2026/06/04 20:57:00,2026/06/04 20:57:00
+112,AC-LGACT-260A-0112,Cylinder Barrel Assembly 112,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1112,PLM_HOLD,PLM_D,2026/06/05 21:04:00,2026/06/05 21:04:00
+113,AC-LGACT-260A-0113,Front End Cap 113,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1113,PLM_OPEN,PLM_A,2026/05/09 21:11:00,2026/05/09 21:11:00
+114,AC-LGACT-260A-0114,Rear End Cap 114,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1114,PLM_RUNNING,PLM_B,2026/05/10 21:18:00,2026/05/10 21:18:00
+115,AC-LGACT-260A-0115,Seal Ring Assembly 115,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1115,PLM_CLOSED,PLM_C,2026/05/11 21:25:00,2026/05/11 21:25:00
+116,AC-LGACT-260A-0116,Trunnion Bushing 116,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1116,PLM_HOLD,PLM_D,2026/05/12 21:32:00,2026/05/12 21:32:00
+117,AC-LGACT-260A-0117,Spherical Bearing 117,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1117,PLM_OPEN,PLM_A,2026/05/13 21:39:00,2026/05/13 21:39:00
+118,AC-LGACT-260A-0118,Throttle Connector 118,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1118,PLM_RUNNING,PLM_B,2026/05/14 21:46:00,2026/05/14 21:46:00
+119,AC-LGACT-260A-0119,Displacement Sensor Bracket 119,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1119,PLM_CLOSED,PLM_C,2026/05/15 21:53:00,2026/05/15 21:53:00
+120,AC-LGACT-260A-0120,Locking Nut 120,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1120,PLM_HOLD,PLM_D,2026/05/16 22:00:00,2026/05/16 22:00:00
+121,AC-LGACT-260A-0121,Piston Rod Assembly 121,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1121,PLM_OPEN,PLM_A,2026/05/17 22:07:00,2026/05/17 22:07:00
+122,AC-LGACT-260A-0122,Cylinder Barrel Assembly 122,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1122,PLM_RUNNING,PLM_B,2026/05/18 22:14:00,2026/05/18 22:14:00
+123,AC-LGACT-260A-0123,Front End Cap 123,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1123,PLM_CLOSED,PLM_C,2026/05/19 22:21:00,2026/05/19 22:21:00
+124,AC-LGACT-260A-0124,Rear End Cap 124,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1124,PLM_HOLD,PLM_D,2026/05/20 22:28:00,2026/05/20 22:28:00
+125,AC-LGACT-260A-0125,Seal Ring Assembly 125,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1125,PLM_OPEN,PLM_A,2026/05/21 22:35:00,2026/05/21 22:35:00
+126,AC-LGACT-260A-0126,Trunnion Bushing 126,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1126,PLM_RUNNING,PLM_B,2026/05/22 22:42:00,2026/05/22 22:42:00
+127,AC-LGACT-260A-0127,Spherical Bearing 127,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1127,PLM_CLOSED,PLM_C,2026/05/23 22:49:00,2026/05/23 22:49:00
+128,AC-LGACT-260A-0128,Throttle Connector 128,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1128,PLM_HOLD,PLM_D,2026/05/24 22:56:00,2026/05/24 22:56:00
+129,AC-LGACT-260A-0129,Displacement Sensor Bracket 129,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1129,PLM_OPEN,PLM_A,2026/05/25 23:03:00,2026/05/25 23:03:00
+130,AC-LGACT-260A-0130,Locking Nut 130,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1130,PLM_RUNNING,PLM_B,2026/05/26 23:10:00,2026/05/26 23:10:00
+131,AC-LGACT-260A-0131,Piston Rod Assembly 131,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1131,PLM_CLOSED,PLM_C,2026/05/27 23:17:00,2026/05/27 23:17:00
+132,AC-LGACT-260A-0132,Cylinder Barrel Assembly 132,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1132,PLM_HOLD,PLM_D,2026/05/28 23:24:00,2026/05/28 23:24:00
+133,AC-LGACT-260A-0133,Front End Cap 133,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1133,PLM_OPEN,PLM_A,2026/05/29 23:31:00,2026/05/29 23:31:00
+134,AC-LGACT-260A-0134,Rear End Cap 134,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1134,PLM_RUNNING,PLM_B,2026/05/30 23:38:00,2026/05/30 23:38:00
+135,AC-LGACT-260A-0135,Seal Ring Assembly 135,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1135,PLM_CLOSED,PLM_C,2026/05/31 23:45:00,2026/05/31 23:45:00
+136,AC-LGACT-260A-0136,Trunnion Bushing 136,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1136,PLM_HOLD,PLM_D,2026/06/01 23:52:00,2026/06/01 23:52:00
+137,AC-LGACT-260A-0137,Spherical Bearing 137,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1137,PLM_OPEN,PLM_A,2026/06/02 23:59:00,2026/06/02 23:59:00
+138,AC-LGACT-260A-0138,Throttle Connector 138,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1138,PLM_RUNNING,PLM_B,2026/06/04 00:06:00,2026/06/04 00:06:00
+139,AC-LGACT-260A-0139,Displacement Sensor Bracket 139,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1139,PLM_CLOSED,PLM_C,2026/06/05 00:13:00,2026/06/05 00:13:00
+140,AC-LGACT-260A-0140,Locking Nut 140,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1140,PLM_HOLD,PLM_D,2026/06/06 00:20:00,2026/06/06 00:20:00
+141,AC-LGACT-260A-0141,Piston Rod Assembly 141,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1141,PLM_OPEN,PLM_A,2026/05/10 00:27:00,2026/05/10 00:27:00
+142,AC-LGACT-260A-0142,Cylinder Barrel Assembly 142,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1142,PLM_RUNNING,PLM_B,2026/05/11 00:34:00,2026/05/11 00:34:00
+143,AC-LGACT-260A-0143,Front End Cap 143,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1143,PLM_CLOSED,PLM_C,2026/05/12 00:41:00,2026/05/12 00:41:00
+144,AC-LGACT-260A-0144,Rear End Cap 144,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1144,PLM_HOLD,PLM_D,2026/05/13 00:48:00,2026/05/13 00:48:00
+145,AC-LGACT-260A-0145,Seal Ring Assembly 145,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1145,PLM_OPEN,PLM_A,2026/05/14 00:55:00,2026/05/14 00:55:00
+146,AC-LGACT-260A-0146,Trunnion Bushing 146,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1146,PLM_RUNNING,PLM_B,2026/05/15 01:02:00,2026/05/15 01:02:00
+147,AC-LGACT-260A-0147,Spherical Bearing 147,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1147,PLM_CLOSED,PLM_C,2026/05/16 01:09:00,2026/05/16 01:09:00
+148,AC-LGACT-260A-0148,Throttle Connector 148,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1148,PLM_HOLD,PLM_D,2026/05/17 01:16:00,2026/05/17 01:16:00
+149,AC-LGACT-260A-0149,Displacement Sensor Bracket 149,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1149,PLM_OPEN,PLM_A,2026/05/18 01:23:00,2026/05/18 01:23:00
+150,AC-LGACT-260A-0150,Locking Nut 150,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1150,PLM_RUNNING,PLM_B,2026/05/19 01:30:00,2026/05/19 01:30:00
+151,AC-LGACT-260A-0151,Piston Rod Assembly 151,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1151,PLM_CLOSED,PLM_C,2026/05/20 01:37:00,2026/05/20 01:37:00
+152,AC-LGACT-260A-0152,Cylinder Barrel Assembly 152,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1152,PLM_HOLD,PLM_D,2026/05/21 01:44:00,2026/05/21 01:44:00
+153,AC-LGACT-260A-0153,Front End Cap 153,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1153,PLM_OPEN,PLM_A,2026/05/22 01:51:00,2026/05/22 01:51:00
+154,AC-LGACT-260A-0154,Rear End Cap 154,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1154,PLM_RUNNING,PLM_B,2026/05/23 01:58:00,2026/05/23 01:58:00
+155,AC-LGACT-260A-0155,Seal Ring Assembly 155,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1155,PLM_CLOSED,PLM_C,2026/05/24 02:05:00,2026/05/24 02:05:00
+156,AC-LGACT-260A-0156,Trunnion Bushing 156,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1156,PLM_HOLD,PLM_D,2026/05/25 02:12:00,2026/05/25 02:12:00
+157,AC-LGACT-260A-0157,Spherical Bearing 157,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1157,PLM_OPEN,PLM_A,2026/05/26 02:19:00,2026/05/26 02:19:00
+158,AC-LGACT-260A-0158,Throttle Connector 158,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1158,PLM_RUNNING,PLM_B,2026/05/27 02:26:00,2026/05/27 02:26:00
+159,AC-LGACT-260A-0159,Displacement Sensor Bracket 159,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1159,PLM_CLOSED,PLM_C,2026/05/28 02:33:00,2026/05/28 02:33:00
+160,AC-LGACT-260A-0160,Locking Nut 160,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1160,PLM_HOLD,PLM_D,2026/05/29 02:40:00,2026/05/29 02:40:00
+161,AC-LGACT-260A-0161,Piston Rod Assembly 161,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1161,PLM_OPEN,PLM_A,2026/05/30 02:47:00,2026/05/30 02:47:00
+162,AC-LGACT-260A-0162,Cylinder Barrel Assembly 162,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1162,PLM_RUNNING,PLM_B,2026/05/31 02:54:00,2026/05/31 02:54:00
+163,AC-LGACT-260A-0163,Front End Cap 163,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1163,PLM_CLOSED,PLM_C,2026/06/01 03:01:00,2026/06/01 03:01:00
+164,AC-LGACT-260A-0164,Rear End Cap 164,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1164,PLM_HOLD,PLM_D,2026/06/02 03:08:00,2026/06/02 03:08:00
+165,AC-LGACT-260A-0165,Seal Ring Assembly 165,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1165,PLM_OPEN,PLM_A,2026/06/03 03:15:00,2026/06/03 03:15:00
+166,AC-LGACT-260A-0166,Trunnion Bushing 166,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1166,PLM_RUNNING,PLM_B,2026/06/04 03:22:00,2026/06/04 03:22:00
+167,AC-LGACT-260A-0167,Spherical Bearing 167,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1167,PLM_CLOSED,PLM_C,2026/06/05 03:29:00,2026/06/05 03:29:00
+168,AC-LGACT-260A-0168,Throttle Connector 168,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1168,PLM_HOLD,PLM_D,2026/06/06 03:36:00,2026/06/06 03:36:00
+169,AC-LGACT-260A-0169,Displacement Sensor Bracket 169,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1169,PLM_OPEN,PLM_A,2026/05/10 03:43:00,2026/05/10 03:43:00
+170,AC-LGACT-260A-0170,Locking Nut 170,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1170,PLM_RUNNING,PLM_B,2026/05/11 03:50:00,2026/05/11 03:50:00
+171,AC-LGACT-260A-0171,Piston Rod Assembly 171,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1171,PLM_CLOSED,PLM_C,2026/05/12 03:57:00,2026/05/12 03:57:00
+172,AC-LGACT-260A-0172,Cylinder Barrel Assembly 172,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1172,PLM_HOLD,PLM_D,2026/05/13 04:04:00,2026/05/13 04:04:00
+173,AC-LGACT-260A-0173,Front End Cap 173,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1173,PLM_OPEN,PLM_A,2026/05/14 04:11:00,2026/05/14 04:11:00
+174,AC-LGACT-260A-0174,Rear End Cap 174,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1174,PLM_RUNNING,PLM_B,2026/05/15 04:18:00,2026/05/15 04:18:00
+175,AC-LGACT-260A-0175,Seal Ring Assembly 175,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1175,PLM_CLOSED,PLM_C,2026/05/16 04:25:00,2026/05/16 04:25:00
+176,AC-LGACT-260A-0176,Trunnion Bushing 176,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1176,PLM_HOLD,PLM_D,2026/05/17 04:32:00,2026/05/17 04:32:00
+177,AC-LGACT-260A-0177,Spherical Bearing 177,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1177,PLM_OPEN,PLM_A,2026/05/18 04:39:00,2026/05/18 04:39:00
+178,AC-LGACT-260A-0178,Throttle Connector 178,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1178,PLM_RUNNING,PLM_B,2026/05/19 04:46:00,2026/05/19 04:46:00
+179,AC-LGACT-260A-0179,Displacement Sensor Bracket 179,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1179,PLM_CLOSED,PLM_C,2026/05/20 04:53:00,2026/05/20 04:53:00
+180,AC-LGACT-260A-0180,Locking Nut 180,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1180,PLM_HOLD,PLM_D,2026/05/21 05:00:00,2026/05/21 05:00:00
+181,AC-LGACT-260A-0181,Piston Rod Assembly 181,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1181,PLM_OPEN,PLM_A,2026/05/22 05:07:00,2026/05/22 05:07:00
+182,AC-LGACT-260A-0182,Cylinder Barrel Assembly 182,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1182,PLM_RUNNING,PLM_B,2026/05/23 05:14:00,2026/05/23 05:14:00
+183,AC-LGACT-260A-0183,Front End Cap 183,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1183,PLM_CLOSED,PLM_C,2026/05/24 05:21:00,2026/05/24 05:21:00
+184,AC-LGACT-260A-0184,Rear End Cap 184,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1184,PLM_HOLD,PLM_D,2026/05/25 05:28:00,2026/05/25 05:28:00
+185,AC-LGACT-260A-0185,Seal Ring Assembly 185,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1185,PLM_OPEN,PLM_A,2026/05/26 05:35:00,2026/05/26 05:35:00
+186,AC-LGACT-260A-0186,Trunnion Bushing 186,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1186,PLM_RUNNING,PLM_B,2026/05/27 05:42:00,2026/05/27 05:42:00
+187,AC-LGACT-260A-0187,Spherical Bearing 187,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1187,PLM_CLOSED,PLM_C,2026/05/28 05:49:00,2026/05/28 05:49:00
+188,AC-LGACT-260A-0188,Throttle Connector 188,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1188,PLM_HOLD,PLM_D,2026/05/29 05:56:00,2026/05/29 05:56:00
+189,AC-LGACT-260A-0189,Displacement Sensor Bracket 189,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1189,PLM_OPEN,PLM_A,2026/05/30 06:03:00,2026/05/30 06:03:00
+190,AC-LGACT-260A-0190,Locking Nut 190,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1190,PLM_RUNNING,PLM_B,2026/05/31 06:10:00,2026/05/31 06:10:00
+191,AC-LGACT-260A-0191,Piston Rod Assembly 191,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1191,PLM_CLOSED,PLM_C,2026/06/01 06:17:00,2026/06/01 06:17:00
+192,AC-LGACT-260A-0192,Cylinder Barrel Assembly 192,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1192,PLM_HOLD,PLM_D,2026/06/02 06:24:00,2026/06/02 06:24:00
+193,AC-LGACT-260A-0193,Front End Cap 193,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1193,PLM_OPEN,PLM_A,2026/06/03 06:31:00,2026/06/03 06:31:00
+194,AC-LGACT-260A-0194,Rear End Cap 194,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1194,PLM_RUNNING,PLM_B,2026/06/04 06:38:00,2026/06/04 06:38:00
+195,AC-LGACT-260A-0195,Seal Ring Assembly 195,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1195,PLM_CLOSED,PLM_C,2026/06/05 06:45:00,2026/06/05 06:45:00
+196,AC-LGACT-260A-0196,Trunnion Bushing 196,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1196,PLM_HOLD,PLM_D,2026/06/06 06:52:00,2026/06/06 06:52:00
+197,AC-LGACT-260A-0197,Spherical Bearing 197,PLM_MAKE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1197,PLM_OPEN,PLM_A,2026/05/10 06:59:00,2026/05/10 06:59:00
+198,AC-LGACT-260A-0198,Throttle Connector 198,PLM_BUY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1198,PLM_RUNNING,PLM_B,2026/05/11 07:06:00,2026/05/11 07:06:00
+199,AC-LGACT-260A-0199,Displacement Sensor Bracket 199,PLM_ASSEMBLY,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1199,PLM_CLOSED,PLM_C,2026/05/12 07:13:00,2026/05/12 07:13:00
+200,AC-LGACT-260A-0200,Locking Nut 200,PLM_SERVICE,Landing Gear Extension Retraction Hydraulic System Product Line,AC-C919-1200,PLM_HOLD,PLM_D,2026/05/13 07:20:00,2026/05/13 07:20:00

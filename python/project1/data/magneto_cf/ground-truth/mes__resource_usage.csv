@@ -1,0 +1,11 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MES,resource_usage,worklog_id,resource_usage,operation_execution_id,Joined Copy,hard,
+MES,resource_usage,steplog_id,resource_usage,step_execution_id,Joined Copy,hard,
+MES,resource_usage,equipment_asset_id,resource_usage,equipment_id,Joined Copy,hard,
+MES,resource_usage,person_id,resource_usage,personnel_id,Joined Copy,hard,
+MES,resource_usage,station_id,resource_usage,workstation_id,Joined Copy,medium,
+MES,resource_usage,tooling_asset_id,resource_usage,tooling_id,Joined Copy,hard,
+MES,resource_usage,use_start_txt,resource_usage,usage_start_time,Rename + Cast,medium,
+MES,resource_usage,use_end_txt,resource_usage,usage_finish_time,Rename + Cast,medium,
+MES,resource_usage,mastery_txt,resource_usage,mastery,Rename + Cast,hard,
+MES,resource_usage,use_state,resource_usage,usage_status,Lookup Normalize,medium,

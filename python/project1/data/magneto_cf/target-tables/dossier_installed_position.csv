@@ -1,0 +1,11 @@
+﻿installed_position_id,upper_equipment_id,landing_gear_system_id,position_code,position_name,station_no,side_code,created_at,updated_at
+1,1,1,POS-LG-02,Landing Gear Extension Retraction Hydraulic System,ST-CF-0001,NORMAL,2026-05-09 08:07:00,2026-05-09 08:07:00
+2,2,2,POS-LG-03,Landing Gear Extension Retraction Hydraulic System,ST-CF-0002,WARNING,2026-05-10 08:14:00,2026-05-10 08:14:00
+3,3,3,POS-LG-04,Landing Gear Extension Retraction Hydraulic System,ST-CF-0003,QUALIFIED,2026-05-11 08:21:00,2026-05-11 08:21:00
+4,4,4,POS-LG-05,Landing Gear Extension Retraction Hydraulic System,ST-CF-0004,CLOSED,2026-05-12 08:28:00,2026-05-12 08:28:00
+5,5,5,POS-LG-06,Landing Gear Extension Retraction Hydraulic System,ST-CF-0005,NORMAL,2026-05-13 08:35:00,2026-05-13 08:35:00
+6,6,6,POS-LG-01,Landing Gear Extension Retraction Hydraulic System,ST-CF-0006,WARNING,2026-05-14 08:42:00,2026-05-14 08:42:00
+7,7,7,POS-LG-02,Landing Gear Extension Retraction Hydraulic System,ST-CF-0007,QUALIFIED,2026-05-15 08:49:00,2026-05-15 08:49:00
+8,8,8,POS-LG-03,Landing Gear Extension Retraction Hydraulic System,ST-CF-0008,CLOSED,2026-05-16 08:56:00,2026-05-16 08:56:00
+9,9,9,POS-LG-04,Landing Gear Extension Retraction Hydraulic System,ST-CF-0009,NORMAL,2026-05-17 09:03:00,2026-05-17 09:03:00
+10,10,10,POS-LG-05,Landing Gear Extension Retraction Hydraulic System,ST-CF-0010,WARNING,2026-05-18 09:10:00,2026-05-18 09:10:00

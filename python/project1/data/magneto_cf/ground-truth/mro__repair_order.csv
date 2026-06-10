@@ -1,0 +1,10 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MRO,repair_order,service_event_id,maintenance_order,maintenance_event_id,Joined Copy,medium,
+MRO,repair_order,component_serial_no,maintenance_order,component_instance_id,Joined Copy,medium,
+MRO,repair_order,wo_no,maintenance_order,work_order_id,Joined Copy,hard,
+MRO,repair_order,repair_order_no,maintenance_order,maintenance_order_no,Direct Copy,simple,
+MRO,repair_order,task_title,maintenance_order,task_name,Direct Copy,simple,
+MRO,repair_order,plan_start_text,maintenance_order,plan_start_time,Rename + Cast,simple,
+MRO,repair_order,plan_finish_text,maintenance_order,plan_finish_time,Rename + Cast,simple,
+MRO,repair_order,ro_state,maintenance_order,order_status,Lookup Normalize,medium,
+MRO,repair_order,report_man,maintenance_order,report_person_name,Direct Copy,simple,

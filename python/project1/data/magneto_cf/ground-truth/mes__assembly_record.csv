@@ -1,0 +1,13 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MES,assembly_record,component_sn,component_part_installation,component_instance_id,Joined Copy,hard,
+MES,assembly_record,part_id,component_part_installation,part_instance_id,Joined Copy,hard,
+MES,assembly_record,bom_item_code,component_part_installation,bom_item_id,Joined Copy,hard,
+MES,assembly_record,task_id,component_part_installation,work_order_id,Joined Copy,medium,
+MES,assembly_record,position_code,component_part_installation,installed_position_id,Joined Copy,hard,
+MES,assembly_record,install_dt_txt,component_part_installation,install_time,Rename + Cast,medium,
+MES,assembly_record,valid_begin_txt,component_part_installation,valid_from,Rename + Cast,medium,
+MES,assembly_record,valid_end_txt,component_part_installation,valid_to,Rename + Cast,medium,
+MES,assembly_record,uninstall_dt_txt,component_part_installation,uninstall_time,Rename + Cast,medium,
+MES,assembly_record,remove_reason_code,component_part_installation,uninstall_reason,Lookup Normalize,hard,
+MES,assembly_record,personname,component_part_installation,install_person_name,Direct Copy,medium,
+MES,assembly_record,install_state,component_part_installation,install_status,Lookup Normalize,medium,

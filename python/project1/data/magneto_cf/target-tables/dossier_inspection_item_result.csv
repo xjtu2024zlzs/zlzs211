@@ -1,0 +1,11 @@
+﻿inspection_item_result_id,inspection_record_id,inspection_spec_id,item_code,item_name,measured_value,standard_value,lower_limit,upper_limit,unit,judge_result
+1,1,1,CHK-02,Piston Rod Chrome Plating Visual Inspection,20.850 MPa,21.000 MPa,19.500 MPa,22.500 MPa,MPA,PASS
+2,2,2,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.080 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,MM,FAIL
+3,3,3,CHK-04,Sealing Performance Inspection,155.150 mm,155.000 mm,153.000 mm,157.000 mm,ML_MIN,RECHECK
+4,4,4,CHK-05,Pressure Holding Leakage Rate Recheck,5.100 s,4.800 s,4.000 s,5.500 s,SEC,WAIT
+5,5,5,CHK-06,Extension and Retraction Stroke Measurement,37.7 C,38.0 C,20.0 C,55.0 C,MPA,PASS
+6,6,6,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.150 mm,0.180 mm,0.100 mm,0.250 mm,MM,FAIL
+7,7,7,CHK-08,Hydraulic Fitting Leakage Inspection,23.400 MPa,21.000 MPa,19.500 MPa,22.500 MPa,ML_MIN,RECHECK
+8,8,8,CHK-01,Final Functional Test,0.220 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,SEC,WAIT
+9,9,9,CHK-02,Piston Rod Chrome Plating Visual Inspection,155.300 mm,155.000 mm,153.000 mm,157.000 mm,MPA,PASS
+10,10,10,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,4.500 s,4.800 s,4.000 s,5.500 s,MM,FAIL

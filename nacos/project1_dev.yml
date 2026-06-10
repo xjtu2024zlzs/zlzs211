@@ -1,0 +1,37 @@
+# project1 topic configuration for Nacos.
+# Import this file as dataId: project1_dev.yml, group: DEFAULT_GROUP.
+
+server:
+  port: 9210
+
+spring:
+  application:
+    name: ruoyi-project1
+
+project1:
+  algorithm:
+    # Project team assigned FastAPI port for project1.
+    base-url: http://127.0.0.1:9701
+    connect-timeout-seconds: 5
+    read-timeout-seconds: 180
+  access:
+    target-table-prefix: p1p_dossier_
+    max-pull-limit-per-table: 5000
+    default-cycle-hours: 1
+  adapters:
+    api-pull:
+      plm:
+        label: PLM
+        base-url: http://127.0.0.1:9711
+      erp:
+        label: ERP
+        base-url: http://127.0.0.1:9712
+      mes:
+        label: MES
+        base-url: http://127.0.0.1:9713
+      qms:
+        label: QMS
+        base-url: http://127.0.0.1:9714
+      mro:
+        label: MRO
+        base-url: http://127.0.0.1:9715

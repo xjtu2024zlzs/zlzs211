@@ -1,0 +1,11 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+QMS,iqs_failure_duty,iqs_failure_id,iqs_failure_duty,iqs_failure_id,Joined Copy,medium,
+QMS,iqs_failure_duty,iqs_failure_content_id,iqs_failure_duty,iqs_failure_content_id,Joined Copy,medium,
+QMS,iqs_failure_duty,duty_user_code,iqs_failure_duty,duty_personnel_id,Joined Copy,hard,
+QMS,iqs_failure_duty,supplier_code,iqs_failure_duty,supplier_id,Joined Copy,medium,
+QMS,iqs_failure_duty,duty_dept_code,iqs_failure_duty,duty_dept_code,Direct Copy,simple,
+QMS,iqs_failure_duty,duty_dept_name,iqs_failure_duty,duty_dept_name,Direct Copy,simple,
+QMS,iqs_failure_duty,duty_user_code,iqs_failure_duty,duty_user_code,Direct Copy,simple,
+QMS,iqs_failure_duty,duty_user_name,iqs_failure_duty,duty_user_name,Direct Copy,simple,
+QMS,iqs_failure_duty,duty_person_ratio_text,iqs_failure_duty,duty_person_ratio,Rename + Cast,medium,
+QMS,iqs_failure_duty,responsibility_date_text,iqs_failure_duty,responsibility_date,Rename + Cast,medium,

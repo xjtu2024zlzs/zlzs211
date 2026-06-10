@@ -1,0 +1,11 @@
+﻿tooling_id,tooling_no,tooling_name,tooling_type,calibration_due_date,tooling_status
+1,TOOL-0001,Dedicated Assembly Tooling for Piston Rod Assembly,NORMAL,2026-05-09,NORMAL
+2,TOOL-0002,Dedicated Assembly Tooling for Cylinder Barrel Assembly,WARNING,2026-05-10,WARNING
+3,TOOL-0003,Dedicated Assembly Tooling for Front End Cap,QUALIFIED,2026-05-11,QUALIFIED
+4,TOOL-0004,Dedicated Assembly Tooling for Rear End Cap,CLOSED,2026-05-12,CLOSED
+5,TOOL-0005,Dedicated Assembly Tooling for Seal Ring Assembly,NORMAL,2026-05-13,NORMAL
+6,TOOL-0006,Dedicated Assembly Tooling for Trunnion Bushing,WARNING,2026-05-14,WARNING
+7,TOOL-0007,Dedicated Assembly Tooling for Spherical Bearing,QUALIFIED,2026-05-15,QUALIFIED
+8,TOOL-0008,Dedicated Assembly Tooling for Throttle Connector,CLOSED,2026-05-16,CLOSED
+9,TOOL-0009,Dedicated Assembly Tooling for Displacement Sensor Bracket,NORMAL,2026-05-17,NORMAL
+10,TOOL-0010,Dedicated Assembly Tooling for Locking Nut,WARNING,2026-05-18,WARNING

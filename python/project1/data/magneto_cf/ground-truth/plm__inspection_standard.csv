@@ -1,0 +1,10 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+PLM,inspection_standard,operation_card_id,inspection_spec,operation_definition_id,Joined Copy,medium,
+PLM,inspection_standard,actuator_model_id,inspection_spec,component_type_id,Joined Copy,medium,
+PLM,inspection_standard,part_master_id,inspection_spec,part_definition_id,Joined Copy,medium,
+PLM,inspection_standard,insp_spec_no,inspection_spec,spec_code,Direct Copy,medium,
+PLM,inspection_standard,spec_title,inspection_spec,spec_name,Direct Copy,hard,
+PLM,inspection_standard,insp_kind_cd,inspection_spec,inspection_type,Lookup Normalize,hard,
+PLM,inspection_standard,check_item_code,inspection_spec,item_code,Direct Copy,simple,
+PLM,inspection_standard,check_item_name,inspection_spec,item_name,Direct Copy,hard,
+PLM,inspection_standard,accept_rule,inspection_spec,acceptance_criteria,Direct Copy,hard,

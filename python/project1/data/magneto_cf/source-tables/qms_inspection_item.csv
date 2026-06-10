@@ -1,0 +1,201 @@
+﻿inspection_item_id,inspection_doc_id,spec_code,item_code,item_name,measured_text,standard_text,lower_limit_text,upper_limit_text,uom,judge_code
+1,1,SPEC-HYD-0001,CHK-02,Piston Rod Chrome Plating Visual Inspection,20.850 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+2,2,SPEC-HYD-0002,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.080 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+3,3,SPEC-HYD-0003,CHK-04,Sealing Performance Inspection,155.150 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+4,4,SPEC-HYD-0004,CHK-05,Pressure Holding Leakage Rate Recheck,5.100 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+5,5,SPEC-HYD-0005,CHK-06,Extension and Retraction Stroke Measurement,37.7 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+6,6,SPEC-HYD-0006,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.150 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+7,7,SPEC-HYD-0007,CHK-08,Hydraulic Fitting Leakage Inspection,23.400 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+8,8,SPEC-HYD-0008,CHK-01,Final Functional Test,0.220 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+9,9,SPEC-HYD-0009,CHK-02,Piston Rod Chrome Plating Visual Inspection,155.300 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+10,10,SPEC-HYD-0010,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,4.500 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+11,11,SPEC-HYD-0011,CHK-04,Sealing Performance Inspection,37.9 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+12,12,SPEC-HYD-0012,CHK-05,Pressure Holding Leakage Rate Recheck,0.180 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+13,13,SPEC-HYD-0013,CHK-06,Extension and Retraction Stroke Measurement,23.400 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+14,14,SPEC-HYD-0014,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.140 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+15,15,SPEC-HYD-0015,CHK-08,Hydraulic Fitting Leakage Inspection,154.700 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+16,16,SPEC-HYD-0016,CHK-01,Final Functional Test,4.650 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+17,17,SPEC-HYD-0017,CHK-02,Piston Rod Chrome Plating Visual Inspection,38.0 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+18,18,SPEC-HYD-0018,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.210 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+19,19,SPEC-HYD-0019,CHK-04,Sealing Performance Inspection,21.300 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+20,20,SPEC-HYD-0020,CHK-05,Pressure Holding Leakage Rate Recheck,0.020 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+21,21,SPEC-HYD-0021,CHK-06,Extension and Retraction Stroke Measurement,154.850 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+22,22,SPEC-HYD-0022,CHK-07,Trunnion Bushing Fit Clearance Inspection,4.800 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+23,23,SPEC-HYD-0023,CHK-08,Hydraulic Fitting Leakage Inspection,38.1 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+24,24,SPEC-HYD-0024,CHK-01,Final Functional Test,0.240 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+25,25,SPEC-HYD-0025,CHK-02,Piston Rod Chrome Plating Visual Inspection,20.700 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+26,26,SPEC-HYD-0026,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.220 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+27,27,SPEC-HYD-0027,CHK-04,Sealing Performance Inspection,155.000 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+28,28,SPEC-HYD-0028,CHK-05,Pressure Holding Leakage Rate Recheck,4.950 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+29,29,SPEC-HYD-0029,CHK-06,Extension and Retraction Stroke Measurement,38.3 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+30,30,SPEC-HYD-0030,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.120 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+31,31,SPEC-HYD-0031,CHK-08,Hydraulic Fitting Leakage Inspection,20.850 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+32,32,SPEC-HYD-0032,CHK-01,Final Functional Test,0.080 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+33,33,SPEC-HYD-0033,CHK-02,Piston Rod Chrome Plating Visual Inspection,155.150 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+34,34,SPEC-HYD-0034,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,5.100 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+35,35,SPEC-HYD-0035,CHK-04,Sealing Performance Inspection,37.7 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+36,36,SPEC-HYD-0036,CHK-05,Pressure Holding Leakage Rate Recheck,0.150 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+37,37,SPEC-HYD-0037,CHK-06,Extension and Retraction Stroke Measurement,21.000 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+38,38,SPEC-HYD-0038,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.110 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+39,39,SPEC-HYD-0039,CHK-08,Hydraulic Fitting Leakage Inspection,158.400 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+40,40,SPEC-HYD-0040,CHK-01,Final Functional Test,4.500 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+41,41,SPEC-HYD-0041,CHK-02,Piston Rod Chrome Plating Visual Inspection,37.9 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+42,42,SPEC-HYD-0042,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.180 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+43,43,SPEC-HYD-0043,CHK-04,Sealing Performance Inspection,21.150 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+44,44,SPEC-HYD-0044,CHK-05,Pressure Holding Leakage Rate Recheck,0.140 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+45,45,SPEC-HYD-0045,CHK-06,Extension and Retraction Stroke Measurement,154.700 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+46,46,SPEC-HYD-0046,CHK-07,Trunnion Bushing Fit Clearance Inspection,4.650 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+47,47,SPEC-HYD-0047,CHK-08,Hydraulic Fitting Leakage Inspection,38.0 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+48,48,SPEC-HYD-0048,CHK-01,Final Functional Test,0.210 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+49,49,SPEC-HYD-0049,CHK-02,Piston Rod Chrome Plating Visual Inspection,21.300 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+50,50,SPEC-HYD-0050,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.020 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+51,51,SPEC-HYD-0051,CHK-04,Sealing Performance Inspection,154.850 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+52,52,SPEC-HYD-0052,CHK-05,Pressure Holding Leakage Rate Recheck,6.200 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+53,53,SPEC-HYD-0053,CHK-06,Extension and Retraction Stroke Measurement,38.1 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+54,54,SPEC-HYD-0054,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.240 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+55,55,SPEC-HYD-0055,CHK-08,Hydraulic Fitting Leakage Inspection,20.700 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+56,56,SPEC-HYD-0056,CHK-01,Final Functional Test,0.050 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+57,57,SPEC-HYD-0057,CHK-02,Piston Rod Chrome Plating Visual Inspection,155.000 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+58,58,SPEC-HYD-0058,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,4.950 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+59,59,SPEC-HYD-0059,CHK-04,Sealing Performance Inspection,38.3 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+60,60,SPEC-HYD-0060,CHK-05,Pressure Holding Leakage Rate Recheck,0.120 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+61,61,SPEC-HYD-0061,CHK-06,Extension and Retraction Stroke Measurement,20.850 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+62,62,SPEC-HYD-0062,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.080 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+63,63,SPEC-HYD-0063,CHK-08,Hydraulic Fitting Leakage Inspection,155.150 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+64,64,SPEC-HYD-0064,CHK-01,Final Functional Test,5.100 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+65,65,SPEC-HYD-0065,CHK-02,Piston Rod Chrome Plating Visual Inspection,62.0 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+66,66,SPEC-HYD-0066,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.150 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+67,67,SPEC-HYD-0067,CHK-04,Sealing Performance Inspection,21.000 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+68,68,SPEC-HYD-0068,CHK-05,Pressure Holding Leakage Rate Recheck,0.110 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+69,69,SPEC-HYD-0069,CHK-06,Extension and Retraction Stroke Measurement,155.300 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+70,70,SPEC-HYD-0070,CHK-07,Trunnion Bushing Fit Clearance Inspection,4.500 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+71,71,SPEC-HYD-0071,CHK-08,Hydraulic Fitting Leakage Inspection,37.9 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+72,72,SPEC-HYD-0072,CHK-01,Final Functional Test,0.180 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+73,73,SPEC-HYD-0073,CHK-02,Piston Rod Chrome Plating Visual Inspection,21.150 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+74,74,SPEC-HYD-0074,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.140 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+75,75,SPEC-HYD-0075,CHK-04,Sealing Performance Inspection,154.700 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+76,76,SPEC-HYD-0076,CHK-05,Pressure Holding Leakage Rate Recheck,4.650 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+77,77,SPEC-HYD-0077,CHK-06,Extension and Retraction Stroke Measurement,38.0 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+78,78,SPEC-HYD-0078,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.310 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+79,79,SPEC-HYD-0079,CHK-08,Hydraulic Fitting Leakage Inspection,21.300 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+80,80,SPEC-HYD-0080,CHK-01,Final Functional Test,0.020 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+81,81,SPEC-HYD-0081,CHK-02,Piston Rod Chrome Plating Visual Inspection,154.850 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+82,82,SPEC-HYD-0082,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,4.800 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+83,83,SPEC-HYD-0083,CHK-04,Sealing Performance Inspection,38.1 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+84,84,SPEC-HYD-0084,CHK-05,Pressure Holding Leakage Rate Recheck,0.240 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+85,85,SPEC-HYD-0085,CHK-06,Extension and Retraction Stroke Measurement,20.700 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+86,86,SPEC-HYD-0086,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.050 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+87,87,SPEC-HYD-0087,CHK-08,Hydraulic Fitting Leakage Inspection,155.000 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+88,88,SPEC-HYD-0088,CHK-01,Final Functional Test,4.950 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+89,89,SPEC-HYD-0089,CHK-02,Piston Rod Chrome Plating Visual Inspection,38.3 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+90,90,SPEC-HYD-0090,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.120 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+91,91,SPEC-HYD-0091,CHK-04,Sealing Performance Inspection,23.400 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+92,92,SPEC-HYD-0092,CHK-05,Pressure Holding Leakage Rate Recheck,0.080 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+93,93,SPEC-HYD-0093,CHK-06,Extension and Retraction Stroke Measurement,155.150 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+94,94,SPEC-HYD-0094,CHK-07,Trunnion Bushing Fit Clearance Inspection,5.100 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+95,95,SPEC-HYD-0095,CHK-08,Hydraulic Fitting Leakage Inspection,37.7 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+96,96,SPEC-HYD-0096,CHK-01,Final Functional Test,0.150 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+97,97,SPEC-HYD-0097,CHK-02,Piston Rod Chrome Plating Visual Inspection,21.000 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+98,98,SPEC-HYD-0098,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.110 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+99,99,SPEC-HYD-0099,CHK-04,Sealing Performance Inspection,155.300 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+100,100,SPEC-HYD-0100,CHK-05,Pressure Holding Leakage Rate Recheck,4.500 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+101,101,SPEC-HYD-0101,CHK-06,Extension and Retraction Stroke Measurement,37.9 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+102,102,SPEC-HYD-0102,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.180 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+103,103,SPEC-HYD-0103,CHK-08,Hydraulic Fitting Leakage Inspection,21.150 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+104,104,SPEC-HYD-0104,CHK-01,Final Functional Test,0.220 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+105,105,SPEC-HYD-0105,CHK-02,Piston Rod Chrome Plating Visual Inspection,154.700 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+106,106,SPEC-HYD-0106,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,4.650 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+107,107,SPEC-HYD-0107,CHK-04,Sealing Performance Inspection,38.0 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+108,108,SPEC-HYD-0108,CHK-05,Pressure Holding Leakage Rate Recheck,0.210 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+109,109,SPEC-HYD-0109,CHK-06,Extension and Retraction Stroke Measurement,21.300 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+110,110,SPEC-HYD-0110,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.020 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+111,111,SPEC-HYD-0111,CHK-08,Hydraulic Fitting Leakage Inspection,154.850 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+112,112,SPEC-HYD-0112,CHK-01,Final Functional Test,4.800 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+113,113,SPEC-HYD-0113,CHK-02,Piston Rod Chrome Plating Visual Inspection,38.1 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+114,114,SPEC-HYD-0114,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.240 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+115,115,SPEC-HYD-0115,CHK-04,Sealing Performance Inspection,20.700 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+116,116,SPEC-HYD-0116,CHK-05,Pressure Holding Leakage Rate Recheck,0.050 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+117,117,SPEC-HYD-0117,CHK-06,Extension and Retraction Stroke Measurement,158.400 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+118,118,SPEC-HYD-0118,CHK-07,Trunnion Bushing Fit Clearance Inspection,4.950 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+119,119,SPEC-HYD-0119,CHK-08,Hydraulic Fitting Leakage Inspection,38.3 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+120,120,SPEC-HYD-0120,CHK-01,Final Functional Test,0.120 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+121,121,SPEC-HYD-0121,CHK-02,Piston Rod Chrome Plating Visual Inspection,20.850 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+122,122,SPEC-HYD-0122,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.080 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+123,123,SPEC-HYD-0123,CHK-04,Sealing Performance Inspection,155.150 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+124,124,SPEC-HYD-0124,CHK-05,Pressure Holding Leakage Rate Recheck,5.100 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+125,125,SPEC-HYD-0125,CHK-06,Extension and Retraction Stroke Measurement,37.7 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+126,126,SPEC-HYD-0126,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.150 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+127,127,SPEC-HYD-0127,CHK-08,Hydraulic Fitting Leakage Inspection,21.000 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+128,128,SPEC-HYD-0128,CHK-01,Final Functional Test,0.110 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+129,129,SPEC-HYD-0129,CHK-02,Piston Rod Chrome Plating Visual Inspection,155.300 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+130,130,SPEC-HYD-0130,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,6.200 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+131,131,SPEC-HYD-0131,CHK-04,Sealing Performance Inspection,37.9 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+132,132,SPEC-HYD-0132,CHK-05,Pressure Holding Leakage Rate Recheck,0.180 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+133,133,SPEC-HYD-0133,CHK-06,Extension and Retraction Stroke Measurement,21.150 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+134,134,SPEC-HYD-0134,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.140 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+135,135,SPEC-HYD-0135,CHK-08,Hydraulic Fitting Leakage Inspection,154.700 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+136,136,SPEC-HYD-0136,CHK-01,Final Functional Test,4.650 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+137,137,SPEC-HYD-0137,CHK-02,Piston Rod Chrome Plating Visual Inspection,38.0 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+138,138,SPEC-HYD-0138,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.210 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+139,139,SPEC-HYD-0139,CHK-04,Sealing Performance Inspection,21.300 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+140,140,SPEC-HYD-0140,CHK-05,Pressure Holding Leakage Rate Recheck,0.020 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+141,141,SPEC-HYD-0141,CHK-06,Extension and Retraction Stroke Measurement,154.850 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+142,142,SPEC-HYD-0142,CHK-07,Trunnion Bushing Fit Clearance Inspection,4.800 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+143,143,SPEC-HYD-0143,CHK-08,Hydraulic Fitting Leakage Inspection,62.0 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+144,144,SPEC-HYD-0144,CHK-01,Final Functional Test,0.240 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+145,145,SPEC-HYD-0145,CHK-02,Piston Rod Chrome Plating Visual Inspection,20.700 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+146,146,SPEC-HYD-0146,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.050 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+147,147,SPEC-HYD-0147,CHK-04,Sealing Performance Inspection,155.000 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+148,148,SPEC-HYD-0148,CHK-05,Pressure Holding Leakage Rate Recheck,4.950 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+149,149,SPEC-HYD-0149,CHK-06,Extension and Retraction Stroke Measurement,38.3 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+150,150,SPEC-HYD-0150,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.120 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+151,151,SPEC-HYD-0151,CHK-08,Hydraulic Fitting Leakage Inspection,20.850 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+152,152,SPEC-HYD-0152,CHK-01,Final Functional Test,0.080 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+153,153,SPEC-HYD-0153,CHK-02,Piston Rod Chrome Plating Visual Inspection,155.150 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+154,154,SPEC-HYD-0154,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,5.100 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+155,155,SPEC-HYD-0155,CHK-04,Sealing Performance Inspection,37.7 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+156,156,SPEC-HYD-0156,CHK-05,Pressure Holding Leakage Rate Recheck,0.310 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+157,157,SPEC-HYD-0157,CHK-06,Extension and Retraction Stroke Measurement,21.000 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+158,158,SPEC-HYD-0158,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.110 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+159,159,SPEC-HYD-0159,CHK-08,Hydraulic Fitting Leakage Inspection,155.300 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+160,160,SPEC-HYD-0160,CHK-01,Final Functional Test,4.500 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+161,161,SPEC-HYD-0161,CHK-02,Piston Rod Chrome Plating Visual Inspection,37.9 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+162,162,SPEC-HYD-0162,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.180 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+163,163,SPEC-HYD-0163,CHK-04,Sealing Performance Inspection,21.150 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+164,164,SPEC-HYD-0164,CHK-05,Pressure Holding Leakage Rate Recheck,0.140 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+165,165,SPEC-HYD-0165,CHK-06,Extension and Retraction Stroke Measurement,154.700 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+166,166,SPEC-HYD-0166,CHK-07,Trunnion Bushing Fit Clearance Inspection,4.650 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+167,167,SPEC-HYD-0167,CHK-08,Hydraulic Fitting Leakage Inspection,38.0 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+168,168,SPEC-HYD-0168,CHK-01,Final Functional Test,0.210 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+169,169,SPEC-HYD-0169,CHK-02,Piston Rod Chrome Plating Visual Inspection,23.400 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+170,170,SPEC-HYD-0170,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.020 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+171,171,SPEC-HYD-0171,CHK-04,Sealing Performance Inspection,154.850 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+172,172,SPEC-HYD-0172,CHK-05,Pressure Holding Leakage Rate Recheck,4.800 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+173,173,SPEC-HYD-0173,CHK-06,Extension and Retraction Stroke Measurement,38.1 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+174,174,SPEC-HYD-0174,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.240 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+175,175,SPEC-HYD-0175,CHK-08,Hydraulic Fitting Leakage Inspection,20.700 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+176,176,SPEC-HYD-0176,CHK-01,Final Functional Test,0.050 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+177,177,SPEC-HYD-0177,CHK-02,Piston Rod Chrome Plating Visual Inspection,155.000 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+178,178,SPEC-HYD-0178,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,4.950 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+179,179,SPEC-HYD-0179,CHK-04,Sealing Performance Inspection,38.3 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+180,180,SPEC-HYD-0180,CHK-05,Pressure Holding Leakage Rate Recheck,0.120 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+181,181,SPEC-HYD-0181,CHK-06,Extension and Retraction Stroke Measurement,20.850 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+182,182,SPEC-HYD-0182,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.220 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+183,183,SPEC-HYD-0183,CHK-08,Hydraulic Fitting Leakage Inspection,155.150 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+184,184,SPEC-HYD-0184,CHK-01,Final Functional Test,5.100 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+185,185,SPEC-HYD-0185,CHK-02,Piston Rod Chrome Plating Visual Inspection,37.7 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+186,186,SPEC-HYD-0186,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.150 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+187,187,SPEC-HYD-0187,CHK-04,Sealing Performance Inspection,21.000 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+188,188,SPEC-HYD-0188,CHK-05,Pressure Holding Leakage Rate Recheck,0.110 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT
+189,189,SPEC-HYD-0189,CHK-06,Extension and Retraction Stroke Measurement,155.300 mm,155.000 mm,153.000 mm,157.000 mm,QMS_MPA,QMS_Q_PASS
+190,190,SPEC-HYD-0190,CHK-07,Trunnion Bushing Fit Clearance Inspection,4.500 s,4.800 s,4.000 s,5.500 s,QMS_MM,QMS_Q_FAIL
+191,191,SPEC-HYD-0191,CHK-08,Hydraulic Fitting Leakage Inspection,37.9 C,38.0 C,20.0 C,55.0 C,QMS_ML_MIN,QMS_Q_RECHECK
+192,192,SPEC-HYD-0192,CHK-01,Final Functional Test,0.180 mm,0.180 mm,0.100 mm,0.250 mm,QMS_SEC,QMS_Q_WAIT
+193,193,SPEC-HYD-0193,CHK-02,Piston Rod Chrome Plating Visual Inspection,21.150 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_MPA,QMS_Q_PASS
+194,194,SPEC-HYD-0194,CHK-03,Cylinder Barrel Inner Bore Dimension Measurement,0.140 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_MM,QMS_Q_FAIL
+195,195,SPEC-HYD-0195,CHK-04,Sealing Performance Inspection,158.400 mm,155.000 mm,153.000 mm,157.000 mm,QMS_ML_MIN,QMS_Q_RECHECK
+196,196,SPEC-HYD-0196,CHK-05,Pressure Holding Leakage Rate Recheck,4.650 s,4.800 s,4.000 s,5.500 s,QMS_SEC,QMS_Q_WAIT
+197,197,SPEC-HYD-0197,CHK-06,Extension and Retraction Stroke Measurement,38.0 C,38.0 C,20.0 C,55.0 C,QMS_MPA,QMS_Q_PASS
+198,198,SPEC-HYD-0198,CHK-07,Trunnion Bushing Fit Clearance Inspection,0.210 mm,0.180 mm,0.100 mm,0.250 mm,QMS_MM,QMS_Q_FAIL
+199,199,SPEC-HYD-0199,CHK-08,Hydraulic Fitting Leakage Inspection,21.300 MPa,21.000 MPa,19.500 MPa,22.500 MPa,QMS_ML_MIN,QMS_Q_RECHECK
+200,200,SPEC-HYD-0200,CHK-01,Final Functional Test,0.020 mL/min,0.080 mL/min,0.000 mL/min,0.150 mL/min,QMS_SEC,QMS_Q_WAIT

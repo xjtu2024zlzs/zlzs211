@@ -1,0 +1,11 @@
+﻿iqs_failure_duty_id,iqs_failure_id,iqs_failure_content_id,duty_personnel_id,supplier_id,duty_dept_code,duty_dept_name,duty_user_code,duty_user_name,duty_person_ratio,responsibility_date
+1,1,1,1,1,DEPT-QA-02,Quality Management Department,PERS-0001,Piston Rod Assembly 001,51.000,2026-05-09 08:07:00
+2,2,2,2,2,DEPT-QA-03,Hydraulic Assembly Workshop,PERS-0002,Cylinder Barrel Assembly 002,52.000,2026-05-10 08:14:00
+3,3,3,3,3,DEPT-QA-04,Precision Machining Workshop,PERS-0003,Front End Cap 003,53.000,2026-05-11 08:21:00
+4,4,4,4,4,DEPT-QA-05,Outsourcing Quality Office,PERS-0004,Rear End Cap 004,54.000,2026-05-12 08:28:00
+5,5,5,5,5,DEPT-QA-06,Aviation Materials Procurement Department,PERS-0005,Seal Ring Assembly 005,55.000,2026-05-13 08:35:00
+6,6,6,6,6,DEPT-QA-01,Field Support Department,PERS-0006,Trunnion Bushing 006,56.000,2026-05-14 08:42:00
+7,7,7,7,7,DEPT-QA-02,Quality Management Department,PERS-0007,Spherical Bearing 007,57.000,2026-05-15 08:49:00
+8,8,8,8,8,DEPT-QA-03,Hydraulic Assembly Workshop,PERS-0008,Throttle Connector 008,58.000,2026-05-16 08:56:00
+9,9,9,9,9,DEPT-QA-04,Precision Machining Workshop,PERS-0009,Displacement Sensor Bracket 009,59.000,2026-05-17 09:03:00
+10,10,10,10,10,DEPT-QA-05,Outsourcing Quality Office,PERS-0010,Locking Nut 010,60.000,2026-05-18 09:10:00

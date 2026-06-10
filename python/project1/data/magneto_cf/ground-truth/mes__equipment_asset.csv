@@ -1,0 +1,8 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MES,equipment_asset,station_id,equipment,workstation_id,Joined Copy,hard,
+MES,equipment_asset,equipmentid,equipment,equipment_no,Direct Copy,simple,
+MES,equipment_asset,equipmentname,equipment,equipment_name,Direct Copy,simple,
+MES,equipment_asset,equipmentnum,equipment,equipment_num,Rename + Cast,simple,
+MES,equipment_asset,eqtype_code,equipment,equipment_type,Lookup Normalize,medium,
+MES,equipment_asset,zhuangtai,equipment,status_code,Lookup Normalize,simple,
+MES,equipment_asset,bgcolor,equipment,color_flag,Direct Copy,hard,

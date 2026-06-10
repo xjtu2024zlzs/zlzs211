@@ -40,9 +40,20 @@ nbdist/
 *.log
 *.xml.versionsBackup
 *.swp
+.env
+**/.env
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+python/**/run/
+python/**/logs/
+tmp_*
 
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
 
 docx/
+AGENTS.md
+algorithm-service/

@@ -1,0 +1,11 @@
+﻿reinspection_record_id,disposition_record_id,inspection_record_id,inspector_id,reinspection_no,reinspection_date,reinspection_result,conclusion_desc
+1,1,1,1,RCHK-CF-0001,2026-05-09 08:07:00,PASS,"Piston Rod Chrome Plating Visual Inspection result is qualified, with recorded value 20.850 MPa."
+2,2,2,2,RCHK-CF-0002,2026-05-10 08:14:00,FAIL,"Cylinder Barrel Inner Bore Dimension Measurement result is qualified, with recorded value 0.080 mL/min."
+3,3,3,3,RCHK-CF-0003,2026-05-11 08:21:00,RECHECK,"Sealing Performance Inspection result is qualified, with recorded value 155.150 mm."
+4,4,4,4,RCHK-CF-0004,2026-05-12 08:28:00,WAIT,"Pressure Holding Leakage Rate Recheck result is qualified, with recorded value 5.100 s."
+5,5,5,5,RCHK-CF-0005,2026-05-13 08:35:00,PASS,"Extension and Retraction Stroke Measurement result is qualified, with recorded value 37.7 C."
+6,6,6,6,RCHK-CF-0006,2026-05-14 08:42:00,FAIL,"Trunnion Bushing Fit Clearance Inspection result is qualified, with recorded value 0.150 mm."
+7,7,7,7,RCHK-CF-0007,2026-05-15 08:49:00,RECHECK,"Hydraulic Fitting Leakage Inspection result is nonconforming, with recorded value 23.400 MPa."
+8,8,8,8,RCHK-CF-0008,2026-05-16 08:56:00,WAIT,"Final Functional Test result is nonconforming, with recorded value 0.220 mL/min."
+9,9,9,9,RCHK-CF-0009,2026-05-17 09:03:00,PASS,"Piston Rod Chrome Plating Visual Inspection result is qualified, with recorded value 155.300 mm."
+10,10,10,10,RCHK-CF-0010,2026-05-18 09:10:00,FAIL,"Cylinder Barrel Inner Bore Dimension Measurement result is qualified, with recorded value 4.500 s."

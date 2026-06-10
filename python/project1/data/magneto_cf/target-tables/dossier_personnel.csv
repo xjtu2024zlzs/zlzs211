@@ -1,0 +1,11 @@
+﻿personnel_id,person_no,person_name,workshop,phone,skill_level,work_type,dept_code,dept_name
+1,PERS-0001,Zhang Jiancheng,Machining Section 1,13800000001,NORMAL,NORMAL,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 001
+2,PERS-0002,Li Hang,Precision Grinding Section,13800000002,WARNING,WARNING,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 002
+3,PERS-0003,Wang Lijun,Hydraulic Assembly Section,13800000003,QUALIFIED,QUALIFIED,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 003
+4,PERS-0004,Zhao Min,Pressure Test Section,13800000004,CLOSED,CLOSED,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 004
+5,PERS-0005,Chen Gong,Final Inspection Section,13800000005,NORMAL,NORMAL,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 005
+6,PERS-0006,Liu Xiaofeng,Repair Processing Section,13800000006,WARNING,WARNING,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 006
+7,PERS-0007,Zhou Qian,Machining Section 1,13800000007,QUALIFIED,QUALIFIED,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 007
+8,PERS-0008,Huang Zhiqiang,Precision Grinding Section,13800000008,CLOSED,CLOSED,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 008
+9,PERS-0009,Sun Wei,Hydraulic Assembly Section,13800000009,NORMAL,NORMAL,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 009
+10,PERS-0010,Ma Rui,Pressure Test Section,13800000010,WARNING,WARNING,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 010

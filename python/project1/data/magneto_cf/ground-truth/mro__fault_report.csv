@@ -1,0 +1,10 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MRO,fault_report,service_event_id,fault_record,maintenance_event_id,Joined Copy,medium,
+MRO,fault_report,component_serial_no,fault_record,component_instance_id,Joined Copy,medium,
+MRO,fault_report,fault_sym_code,fault_record,fault_code,Direct Copy,hard,
+MRO,fault_report,fault_title,fault_record,fault_name,Direct Copy,simple,
+MRO,fault_report,fault_text,fault_record,fault_desc,Direct Copy,medium,
+MRO,fault_report,fail_pos_desc,fault_record,fault_position,Direct Copy,hard,
+MRO,fault_report,found_at_text,fault_record,find_date,Rename + Cast,medium,
+MRO,fault_report,finder_name,fault_record,finder_name,Direct Copy,simple,
+MRO,fault_report,gzjb,fault_record,severity_level,Lookup Normalize,simple,

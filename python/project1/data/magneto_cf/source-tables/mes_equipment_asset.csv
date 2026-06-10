@@ -1,0 +1,201 @@
+﻿equipment_asset_id,station_id,equipmentid,equipmentname,equipmentnum,eqtype_code,zhuangtai,bgcolor,indate
+1,1,EQ-CF-0001,Hydraulic Integrated Test Bench,002,MES_MAKE,MES_OPEN,Piston Rod Assembly aviation manufacturing busines,2026/05/09 08:07:00
+2,2,EQ-CF-0002,CNC Cylindrical Grinder,003,MES_BUY,MES_RUNNING,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/10 08:14:00
+3,3,EQ-CF-0003,Inner Bore Honing Machine,004,MES_ASSEMBLY,MES_CLOSED,Front End Cap aviation manufacturing business reco,2026/05/11 08:21:00
+4,4,EQ-CF-0004,Chrome Plating Thickness Gauge,005,MES_SERVICE,MES_HOLD,Rear End Cap aviation manufacturing business recor,2026/05/12 08:28:00
+5,5,EQ-CF-0005,Coordinate Measuring Machine,006,MES_MAKE,MES_OPEN,Seal Ring Assembly aviation manufacturing business,2026/05/13 08:35:00
+6,6,EQ-CF-0006,Seal Assembly Press,007,MES_BUY,MES_RUNNING,Trunnion Bushing aviation manufacturing business r,2026/05/14 08:42:00
+7,7,EQ-CF-0007,Hydraulic Pulse Test Bench,008,MES_ASSEMBLY,MES_CLOSED,Spherical Bearing aviation manufacturing business ,2026/05/15 08:49:00
+8,8,EQ-CF-0008,Ultrasonic Cleaning Machine,009,MES_SERVICE,MES_HOLD,Throttle Connector aviation manufacturing business,2026/05/16 08:56:00
+9,9,EQ-CF-0009,Hydraulic Integrated Test Bench,001,MES_MAKE,MES_OPEN,Displacement Sensor Bracket aviation manufacturing,2026/05/17 09:03:00
+10,10,EQ-CF-0010,CNC Cylindrical Grinder,002,MES_BUY,MES_RUNNING,Locking Nut aviation manufacturing business record,2026/05/18 09:10:00
+11,11,EQ-CF-0011,Inner Bore Honing Machine,003,MES_ASSEMBLY,MES_CLOSED,Piston Rod Assembly aviation manufacturing busines,2026/05/19 09:17:00
+12,12,EQ-CF-0012,Chrome Plating Thickness Gauge,004,MES_SERVICE,MES_HOLD,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/20 09:24:00
+13,13,EQ-CF-0013,Coordinate Measuring Machine,005,MES_MAKE,MES_OPEN,Front End Cap aviation manufacturing business reco,2026/05/21 09:31:00
+14,14,EQ-CF-0014,Seal Assembly Press,006,MES_BUY,MES_RUNNING,Rear End Cap aviation manufacturing business recor,2026/05/22 09:38:00
+15,15,EQ-CF-0015,Hydraulic Pulse Test Bench,007,MES_ASSEMBLY,MES_CLOSED,Seal Ring Assembly aviation manufacturing business,2026/05/23 09:45:00
+16,16,EQ-CF-0016,Ultrasonic Cleaning Machine,008,MES_SERVICE,MES_HOLD,Trunnion Bushing aviation manufacturing business r,2026/05/24 09:52:00
+17,17,EQ-CF-0017,Hydraulic Integrated Test Bench,009,MES_MAKE,MES_OPEN,Spherical Bearing aviation manufacturing business ,2026/05/25 09:59:00
+18,18,EQ-CF-0018,CNC Cylindrical Grinder,001,MES_BUY,MES_RUNNING,Throttle Connector aviation manufacturing business,2026/05/26 10:06:00
+19,19,EQ-CF-0019,Inner Bore Honing Machine,002,MES_ASSEMBLY,MES_CLOSED,Displacement Sensor Bracket aviation manufacturing,2026/05/27 10:13:00
+20,20,EQ-CF-0020,Chrome Plating Thickness Gauge,003,MES_SERVICE,MES_HOLD,Locking Nut aviation manufacturing business record,2026/05/28 10:20:00
+21,21,EQ-CF-0021,Coordinate Measuring Machine,004,MES_MAKE,MES_OPEN,Piston Rod Assembly aviation manufacturing busines,2026/05/29 10:27:00
+22,22,EQ-CF-0022,Seal Assembly Press,005,MES_BUY,MES_RUNNING,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/30 10:34:00
+23,23,EQ-CF-0023,Hydraulic Pulse Test Bench,006,MES_ASSEMBLY,MES_CLOSED,Front End Cap aviation manufacturing business reco,2026/05/31 10:41:00
+24,24,EQ-CF-0024,Ultrasonic Cleaning Machine,007,MES_SERVICE,MES_HOLD,Rear End Cap aviation manufacturing business recor,2026/06/01 10:48:00
+25,25,EQ-CF-0025,Hydraulic Integrated Test Bench,008,MES_MAKE,MES_OPEN,Seal Ring Assembly aviation manufacturing business,2026/06/02 10:55:00
+26,26,EQ-CF-0026,CNC Cylindrical Grinder,009,MES_BUY,MES_RUNNING,Trunnion Bushing aviation manufacturing business r,2026/06/03 11:02:00
+27,27,EQ-CF-0027,Inner Bore Honing Machine,001,MES_ASSEMBLY,MES_CLOSED,Spherical Bearing aviation manufacturing business ,2026/06/04 11:09:00
+28,28,EQ-CF-0028,Chrome Plating Thickness Gauge,002,MES_SERVICE,MES_HOLD,Throttle Connector aviation manufacturing business,2026/06/05 11:16:00
+29,29,EQ-CF-0029,Coordinate Measuring Machine,003,MES_MAKE,MES_OPEN,Displacement Sensor Bracket aviation manufacturing,2026/05/09 11:23:00
+30,30,EQ-CF-0030,Seal Assembly Press,004,MES_BUY,MES_RUNNING,Locking Nut aviation manufacturing business record,2026/05/10 11:30:00
+31,31,EQ-CF-0031,Hydraulic Pulse Test Bench,005,MES_ASSEMBLY,MES_CLOSED,Piston Rod Assembly aviation manufacturing busines,2026/05/11 11:37:00
+32,32,EQ-CF-0032,Ultrasonic Cleaning Machine,006,MES_SERVICE,MES_HOLD,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/12 11:44:00
+33,33,EQ-CF-0033,Hydraulic Integrated Test Bench,007,MES_MAKE,MES_OPEN,Front End Cap aviation manufacturing business reco,2026/05/13 11:51:00
+34,34,EQ-CF-0034,CNC Cylindrical Grinder,008,MES_BUY,MES_RUNNING,Rear End Cap aviation manufacturing business recor,2026/05/14 11:58:00
+35,35,EQ-CF-0035,Inner Bore Honing Machine,009,MES_ASSEMBLY,MES_CLOSED,Seal Ring Assembly aviation manufacturing business,2026/05/15 12:05:00
+36,36,EQ-CF-0036,Chrome Plating Thickness Gauge,001,MES_SERVICE,MES_HOLD,Trunnion Bushing aviation manufacturing business r,2026/05/16 12:12:00
+37,37,EQ-CF-0037,Coordinate Measuring Machine,002,MES_MAKE,MES_OPEN,Spherical Bearing aviation manufacturing business ,2026/05/17 12:19:00
+38,38,EQ-CF-0038,Seal Assembly Press,003,MES_BUY,MES_RUNNING,Throttle Connector aviation manufacturing business,2026/05/18 12:26:00
+39,39,EQ-CF-0039,Hydraulic Pulse Test Bench,004,MES_ASSEMBLY,MES_CLOSED,Displacement Sensor Bracket aviation manufacturing,2026/05/19 12:33:00
+40,40,EQ-CF-0040,Ultrasonic Cleaning Machine,005,MES_SERVICE,MES_HOLD,Locking Nut aviation manufacturing business record,2026/05/20 12:40:00
+41,41,EQ-CF-0041,Hydraulic Integrated Test Bench,006,MES_MAKE,MES_OPEN,Piston Rod Assembly aviation manufacturing busines,2026/05/21 12:47:00
+42,42,EQ-CF-0042,CNC Cylindrical Grinder,007,MES_BUY,MES_RUNNING,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/22 12:54:00
+43,43,EQ-CF-0043,Inner Bore Honing Machine,008,MES_ASSEMBLY,MES_CLOSED,Front End Cap aviation manufacturing business reco,2026/05/23 13:01:00
+44,44,EQ-CF-0044,Chrome Plating Thickness Gauge,009,MES_SERVICE,MES_HOLD,Rear End Cap aviation manufacturing business recor,2026/05/24 13:08:00
+45,45,EQ-CF-0045,Coordinate Measuring Machine,001,MES_MAKE,MES_OPEN,Seal Ring Assembly aviation manufacturing business,2026/05/25 13:15:00
+46,46,EQ-CF-0046,Seal Assembly Press,002,MES_BUY,MES_RUNNING,Trunnion Bushing aviation manufacturing business r,2026/05/26 13:22:00
+47,47,EQ-CF-0047,Hydraulic Pulse Test Bench,003,MES_ASSEMBLY,MES_CLOSED,Spherical Bearing aviation manufacturing business ,2026/05/27 13:29:00
+48,48,EQ-CF-0048,Ultrasonic Cleaning Machine,004,MES_SERVICE,MES_HOLD,Throttle Connector aviation manufacturing business,2026/05/28 13:36:00
+49,49,EQ-CF-0049,Hydraulic Integrated Test Bench,005,MES_MAKE,MES_OPEN,Displacement Sensor Bracket aviation manufacturing,2026/05/29 13:43:00
+50,50,EQ-CF-0050,CNC Cylindrical Grinder,006,MES_BUY,MES_RUNNING,Locking Nut aviation manufacturing business record,2026/05/30 13:50:00
+51,51,EQ-CF-0051,Inner Bore Honing Machine,007,MES_ASSEMBLY,MES_CLOSED,Piston Rod Assembly aviation manufacturing busines,2026/05/31 13:57:00
+52,52,EQ-CF-0052,Chrome Plating Thickness Gauge,008,MES_SERVICE,MES_HOLD,Cylinder Barrel Assembly aviation manufacturing bu,2026/06/01 14:04:00
+53,53,EQ-CF-0053,Coordinate Measuring Machine,009,MES_MAKE,MES_OPEN,Front End Cap aviation manufacturing business reco,2026/06/02 14:11:00
+54,54,EQ-CF-0054,Seal Assembly Press,001,MES_BUY,MES_RUNNING,Rear End Cap aviation manufacturing business recor,2026/06/03 14:18:00
+55,55,EQ-CF-0055,Hydraulic Pulse Test Bench,002,MES_ASSEMBLY,MES_CLOSED,Seal Ring Assembly aviation manufacturing business,2026/06/04 14:25:00
+56,56,EQ-CF-0056,Ultrasonic Cleaning Machine,003,MES_SERVICE,MES_HOLD,Trunnion Bushing aviation manufacturing business r,2026/06/05 14:32:00
+57,57,EQ-CF-0057,Hydraulic Integrated Test Bench,004,MES_MAKE,MES_OPEN,Spherical Bearing aviation manufacturing business ,2026/05/09 14:39:00
+58,58,EQ-CF-0058,CNC Cylindrical Grinder,005,MES_BUY,MES_RUNNING,Throttle Connector aviation manufacturing business,2026/05/10 14:46:00
+59,59,EQ-CF-0059,Inner Bore Honing Machine,006,MES_ASSEMBLY,MES_CLOSED,Displacement Sensor Bracket aviation manufacturing,2026/05/11 14:53:00
+60,60,EQ-CF-0060,Chrome Plating Thickness Gauge,007,MES_SERVICE,MES_HOLD,Locking Nut aviation manufacturing business record,2026/05/12 15:00:00
+61,61,EQ-CF-0061,Coordinate Measuring Machine,008,MES_MAKE,MES_OPEN,Piston Rod Assembly aviation manufacturing busines,2026/05/13 15:07:00
+62,62,EQ-CF-0062,Seal Assembly Press,009,MES_BUY,MES_RUNNING,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/14 15:14:00
+63,63,EQ-CF-0063,Hydraulic Pulse Test Bench,001,MES_ASSEMBLY,MES_CLOSED,Front End Cap aviation manufacturing business reco,2026/05/15 15:21:00
+64,64,EQ-CF-0064,Ultrasonic Cleaning Machine,002,MES_SERVICE,MES_HOLD,Rear End Cap aviation manufacturing business recor,2026/05/16 15:28:00
+65,65,EQ-CF-0065,Hydraulic Integrated Test Bench,003,MES_MAKE,MES_OPEN,Seal Ring Assembly aviation manufacturing business,2026/05/17 15:35:00
+66,66,EQ-CF-0066,CNC Cylindrical Grinder,004,MES_BUY,MES_RUNNING,Trunnion Bushing aviation manufacturing business r,2026/05/18 15:42:00
+67,67,EQ-CF-0067,Inner Bore Honing Machine,005,MES_ASSEMBLY,MES_CLOSED,Spherical Bearing aviation manufacturing business ,2026/05/19 15:49:00
+68,68,EQ-CF-0068,Chrome Plating Thickness Gauge,006,MES_SERVICE,MES_HOLD,Throttle Connector aviation manufacturing business,2026/05/20 15:56:00
+69,69,EQ-CF-0069,Coordinate Measuring Machine,007,MES_MAKE,MES_OPEN,Displacement Sensor Bracket aviation manufacturing,2026/05/21 16:03:00
+70,70,EQ-CF-0070,Seal Assembly Press,008,MES_BUY,MES_RUNNING,Locking Nut aviation manufacturing business record,2026/05/22 16:10:00
+71,71,EQ-CF-0071,Hydraulic Pulse Test Bench,009,MES_ASSEMBLY,MES_CLOSED,Piston Rod Assembly aviation manufacturing busines,2026/05/23 16:17:00
+72,72,EQ-CF-0072,Ultrasonic Cleaning Machine,001,MES_SERVICE,MES_HOLD,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/24 16:24:00
+73,73,EQ-CF-0073,Hydraulic Integrated Test Bench,002,MES_MAKE,MES_OPEN,Front End Cap aviation manufacturing business reco,2026/05/25 16:31:00
+74,74,EQ-CF-0074,CNC Cylindrical Grinder,003,MES_BUY,MES_RUNNING,Rear End Cap aviation manufacturing business recor,2026/05/26 16:38:00
+75,75,EQ-CF-0075,Inner Bore Honing Machine,004,MES_ASSEMBLY,MES_CLOSED,Seal Ring Assembly aviation manufacturing business,2026/05/27 16:45:00
+76,76,EQ-CF-0076,Chrome Plating Thickness Gauge,005,MES_SERVICE,MES_HOLD,Trunnion Bushing aviation manufacturing business r,2026/05/28 16:52:00
+77,77,EQ-CF-0077,Coordinate Measuring Machine,006,MES_MAKE,MES_OPEN,Spherical Bearing aviation manufacturing business ,2026/05/29 16:59:00
+78,78,EQ-CF-0078,Seal Assembly Press,007,MES_BUY,MES_RUNNING,Throttle Connector aviation manufacturing business,2026/05/30 17:06:00
+79,79,EQ-CF-0079,Hydraulic Pulse Test Bench,008,MES_ASSEMBLY,MES_CLOSED,Displacement Sensor Bracket aviation manufacturing,2026/05/31 17:13:00
+80,80,EQ-CF-0080,Ultrasonic Cleaning Machine,009,MES_SERVICE,MES_HOLD,Locking Nut aviation manufacturing business record,2026/06/01 17:20:00
+81,81,EQ-CF-0081,Hydraulic Integrated Test Bench,001,MES_MAKE,MES_OPEN,Piston Rod Assembly aviation manufacturing busines,2026/06/02 17:27:00
+82,82,EQ-CF-0082,CNC Cylindrical Grinder,002,MES_BUY,MES_RUNNING,Cylinder Barrel Assembly aviation manufacturing bu,2026/06/03 17:34:00
+83,83,EQ-CF-0083,Inner Bore Honing Machine,003,MES_ASSEMBLY,MES_CLOSED,Front End Cap aviation manufacturing business reco,2026/06/04 17:41:00
+84,84,EQ-CF-0084,Chrome Plating Thickness Gauge,004,MES_SERVICE,MES_HOLD,Rear End Cap aviation manufacturing business recor,2026/06/05 17:48:00
+85,85,EQ-CF-0085,Coordinate Measuring Machine,005,MES_MAKE,MES_OPEN,Seal Ring Assembly aviation manufacturing business,2026/05/09 17:55:00
+86,86,EQ-CF-0086,Seal Assembly Press,006,MES_BUY,MES_RUNNING,Trunnion Bushing aviation manufacturing business r,2026/05/10 18:02:00
+87,87,EQ-CF-0087,Hydraulic Pulse Test Bench,007,MES_ASSEMBLY,MES_CLOSED,Spherical Bearing aviation manufacturing business ,2026/05/11 18:09:00
+88,88,EQ-CF-0088,Ultrasonic Cleaning Machine,008,MES_SERVICE,MES_HOLD,Throttle Connector aviation manufacturing business,2026/05/12 18:16:00
+89,89,EQ-CF-0089,Hydraulic Integrated Test Bench,009,MES_MAKE,MES_OPEN,Displacement Sensor Bracket aviation manufacturing,2026/05/13 18:23:00
+90,90,EQ-CF-0090,CNC Cylindrical Grinder,001,MES_BUY,MES_RUNNING,Locking Nut aviation manufacturing business record,2026/05/14 18:30:00
+91,91,EQ-CF-0091,Inner Bore Honing Machine,002,MES_ASSEMBLY,MES_CLOSED,Piston Rod Assembly aviation manufacturing busines,2026/05/15 18:37:00
+92,92,EQ-CF-0092,Chrome Plating Thickness Gauge,003,MES_SERVICE,MES_HOLD,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/16 18:44:00
+93,93,EQ-CF-0093,Coordinate Measuring Machine,004,MES_MAKE,MES_OPEN,Front End Cap aviation manufacturing business reco,2026/05/17 18:51:00
+94,94,EQ-CF-0094,Seal Assembly Press,005,MES_BUY,MES_RUNNING,Rear End Cap aviation manufacturing business recor,2026/05/18 18:58:00
+95,95,EQ-CF-0095,Hydraulic Pulse Test Bench,006,MES_ASSEMBLY,MES_CLOSED,Seal Ring Assembly aviation manufacturing business,2026/05/19 19:05:00
+96,96,EQ-CF-0096,Ultrasonic Cleaning Machine,007,MES_SERVICE,MES_HOLD,Trunnion Bushing aviation manufacturing business r,2026/05/20 19:12:00
+97,97,EQ-CF-0097,Hydraulic Integrated Test Bench,008,MES_MAKE,MES_OPEN,Spherical Bearing aviation manufacturing business ,2026/05/21 19:19:00
+98,98,EQ-CF-0098,CNC Cylindrical Grinder,009,MES_BUY,MES_RUNNING,Throttle Connector aviation manufacturing business,2026/05/22 19:26:00
+99,99,EQ-CF-0099,Inner Bore Honing Machine,001,MES_ASSEMBLY,MES_CLOSED,Displacement Sensor Bracket aviation manufacturing,2026/05/23 19:33:00
+100,100,EQ-CF-0100,Chrome Plating Thickness Gauge,002,MES_SERVICE,MES_HOLD,Locking Nut aviation manufacturing business record,2026/05/24 19:40:00
+101,101,EQ-CF-0101,Coordinate Measuring Machine,003,MES_MAKE,MES_OPEN,Piston Rod Assembly aviation manufacturing busines,2026/05/25 19:47:00
+102,102,EQ-CF-0102,Seal Assembly Press,004,MES_BUY,MES_RUNNING,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/26 19:54:00
+103,103,EQ-CF-0103,Hydraulic Pulse Test Bench,005,MES_ASSEMBLY,MES_CLOSED,Front End Cap aviation manufacturing business reco,2026/05/27 20:01:00
+104,104,EQ-CF-0104,Ultrasonic Cleaning Machine,006,MES_SERVICE,MES_HOLD,Rear End Cap aviation manufacturing business recor,2026/05/28 20:08:00
+105,105,EQ-CF-0105,Hydraulic Integrated Test Bench,007,MES_MAKE,MES_OPEN,Seal Ring Assembly aviation manufacturing business,2026/05/29 20:15:00
+106,106,EQ-CF-0106,CNC Cylindrical Grinder,008,MES_BUY,MES_RUNNING,Trunnion Bushing aviation manufacturing business r,2026/05/30 20:22:00
+107,107,EQ-CF-0107,Inner Bore Honing Machine,009,MES_ASSEMBLY,MES_CLOSED,Spherical Bearing aviation manufacturing business ,2026/05/31 20:29:00
+108,108,EQ-CF-0108,Chrome Plating Thickness Gauge,001,MES_SERVICE,MES_HOLD,Throttle Connector aviation manufacturing business,2026/06/01 20:36:00
+109,109,EQ-CF-0109,Coordinate Measuring Machine,002,MES_MAKE,MES_OPEN,Displacement Sensor Bracket aviation manufacturing,2026/06/02 20:43:00
+110,110,EQ-CF-0110,Seal Assembly Press,003,MES_BUY,MES_RUNNING,Locking Nut aviation manufacturing business record,2026/06/03 20:50:00
+111,111,EQ-CF-0111,Hydraulic Pulse Test Bench,004,MES_ASSEMBLY,MES_CLOSED,Piston Rod Assembly aviation manufacturing busines,2026/06/04 20:57:00
+112,112,EQ-CF-0112,Ultrasonic Cleaning Machine,005,MES_SERVICE,MES_HOLD,Cylinder Barrel Assembly aviation manufacturing bu,2026/06/05 21:04:00
+113,113,EQ-CF-0113,Hydraulic Integrated Test Bench,006,MES_MAKE,MES_OPEN,Front End Cap aviation manufacturing business reco,2026/05/09 21:11:00
+114,114,EQ-CF-0114,CNC Cylindrical Grinder,007,MES_BUY,MES_RUNNING,Rear End Cap aviation manufacturing business recor,2026/05/10 21:18:00
+115,115,EQ-CF-0115,Inner Bore Honing Machine,008,MES_ASSEMBLY,MES_CLOSED,Seal Ring Assembly aviation manufacturing business,2026/05/11 21:25:00
+116,116,EQ-CF-0116,Chrome Plating Thickness Gauge,009,MES_SERVICE,MES_HOLD,Trunnion Bushing aviation manufacturing business r,2026/05/12 21:32:00
+117,117,EQ-CF-0117,Coordinate Measuring Machine,001,MES_MAKE,MES_OPEN,Spherical Bearing aviation manufacturing business ,2026/05/13 21:39:00
+118,118,EQ-CF-0118,Seal Assembly Press,002,MES_BUY,MES_RUNNING,Throttle Connector aviation manufacturing business,2026/05/14 21:46:00
+119,119,EQ-CF-0119,Hydraulic Pulse Test Bench,003,MES_ASSEMBLY,MES_CLOSED,Displacement Sensor Bracket aviation manufacturing,2026/05/15 21:53:00
+120,120,EQ-CF-0120,Ultrasonic Cleaning Machine,004,MES_SERVICE,MES_HOLD,Locking Nut aviation manufacturing business record,2026/05/16 22:00:00
+121,121,EQ-CF-0121,Hydraulic Integrated Test Bench,005,MES_MAKE,MES_OPEN,Piston Rod Assembly aviation manufacturing busines,2026/05/17 22:07:00
+122,122,EQ-CF-0122,CNC Cylindrical Grinder,006,MES_BUY,MES_RUNNING,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/18 22:14:00
+123,123,EQ-CF-0123,Inner Bore Honing Machine,007,MES_ASSEMBLY,MES_CLOSED,Front End Cap aviation manufacturing business reco,2026/05/19 22:21:00
+124,124,EQ-CF-0124,Chrome Plating Thickness Gauge,008,MES_SERVICE,MES_HOLD,Rear End Cap aviation manufacturing business recor,2026/05/20 22:28:00
+125,125,EQ-CF-0125,Coordinate Measuring Machine,009,MES_MAKE,MES_OPEN,Seal Ring Assembly aviation manufacturing business,2026/05/21 22:35:00
+126,126,EQ-CF-0126,Seal Assembly Press,001,MES_BUY,MES_RUNNING,Trunnion Bushing aviation manufacturing business r,2026/05/22 22:42:00
+127,127,EQ-CF-0127,Hydraulic Pulse Test Bench,002,MES_ASSEMBLY,MES_CLOSED,Spherical Bearing aviation manufacturing business ,2026/05/23 22:49:00
+128,128,EQ-CF-0128,Ultrasonic Cleaning Machine,003,MES_SERVICE,MES_HOLD,Throttle Connector aviation manufacturing business,2026/05/24 22:56:00
+129,129,EQ-CF-0129,Hydraulic Integrated Test Bench,004,MES_MAKE,MES_OPEN,Displacement Sensor Bracket aviation manufacturing,2026/05/25 23:03:00
+130,130,EQ-CF-0130,CNC Cylindrical Grinder,005,MES_BUY,MES_RUNNING,Locking Nut aviation manufacturing business record,2026/05/26 23:10:00
+131,131,EQ-CF-0131,Inner Bore Honing Machine,006,MES_ASSEMBLY,MES_CLOSED,Piston Rod Assembly aviation manufacturing busines,2026/05/27 23:17:00
+132,132,EQ-CF-0132,Chrome Plating Thickness Gauge,007,MES_SERVICE,MES_HOLD,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/28 23:24:00
+133,133,EQ-CF-0133,Coordinate Measuring Machine,008,MES_MAKE,MES_OPEN,Front End Cap aviation manufacturing business reco,2026/05/29 23:31:00
+134,134,EQ-CF-0134,Seal Assembly Press,009,MES_BUY,MES_RUNNING,Rear End Cap aviation manufacturing business recor,2026/05/30 23:38:00
+135,135,EQ-CF-0135,Hydraulic Pulse Test Bench,001,MES_ASSEMBLY,MES_CLOSED,Seal Ring Assembly aviation manufacturing business,2026/05/31 23:45:00
+136,136,EQ-CF-0136,Ultrasonic Cleaning Machine,002,MES_SERVICE,MES_HOLD,Trunnion Bushing aviation manufacturing business r,2026/06/01 23:52:00
+137,137,EQ-CF-0137,Hydraulic Integrated Test Bench,003,MES_MAKE,MES_OPEN,Spherical Bearing aviation manufacturing business ,2026/06/02 23:59:00
+138,138,EQ-CF-0138,CNC Cylindrical Grinder,004,MES_BUY,MES_RUNNING,Throttle Connector aviation manufacturing business,2026/06/04 00:06:00
+139,139,EQ-CF-0139,Inner Bore Honing Machine,005,MES_ASSEMBLY,MES_CLOSED,Displacement Sensor Bracket aviation manufacturing,2026/06/05 00:13:00
+140,140,EQ-CF-0140,Chrome Plating Thickness Gauge,006,MES_SERVICE,MES_HOLD,Locking Nut aviation manufacturing business record,2026/06/06 00:20:00
+141,141,EQ-CF-0141,Coordinate Measuring Machine,007,MES_MAKE,MES_OPEN,Piston Rod Assembly aviation manufacturing busines,2026/05/10 00:27:00
+142,142,EQ-CF-0142,Seal Assembly Press,008,MES_BUY,MES_RUNNING,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/11 00:34:00
+143,143,EQ-CF-0143,Hydraulic Pulse Test Bench,009,MES_ASSEMBLY,MES_CLOSED,Front End Cap aviation manufacturing business reco,2026/05/12 00:41:00
+144,144,EQ-CF-0144,Ultrasonic Cleaning Machine,001,MES_SERVICE,MES_HOLD,Rear End Cap aviation manufacturing business recor,2026/05/13 00:48:00
+145,145,EQ-CF-0145,Hydraulic Integrated Test Bench,002,MES_MAKE,MES_OPEN,Seal Ring Assembly aviation manufacturing business,2026/05/14 00:55:00
+146,146,EQ-CF-0146,CNC Cylindrical Grinder,003,MES_BUY,MES_RUNNING,Trunnion Bushing aviation manufacturing business r,2026/05/15 01:02:00
+147,147,EQ-CF-0147,Inner Bore Honing Machine,004,MES_ASSEMBLY,MES_CLOSED,Spherical Bearing aviation manufacturing business ,2026/05/16 01:09:00
+148,148,EQ-CF-0148,Chrome Plating Thickness Gauge,005,MES_SERVICE,MES_HOLD,Throttle Connector aviation manufacturing business,2026/05/17 01:16:00
+149,149,EQ-CF-0149,Coordinate Measuring Machine,006,MES_MAKE,MES_OPEN,Displacement Sensor Bracket aviation manufacturing,2026/05/18 01:23:00
+150,150,EQ-CF-0150,Seal Assembly Press,007,MES_BUY,MES_RUNNING,Locking Nut aviation manufacturing business record,2026/05/19 01:30:00
+151,151,EQ-CF-0151,Hydraulic Pulse Test Bench,008,MES_ASSEMBLY,MES_CLOSED,Piston Rod Assembly aviation manufacturing busines,2026/05/20 01:37:00
+152,152,EQ-CF-0152,Ultrasonic Cleaning Machine,009,MES_SERVICE,MES_HOLD,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/21 01:44:00
+153,153,EQ-CF-0153,Hydraulic Integrated Test Bench,001,MES_MAKE,MES_OPEN,Front End Cap aviation manufacturing business reco,2026/05/22 01:51:00
+154,154,EQ-CF-0154,CNC Cylindrical Grinder,002,MES_BUY,MES_RUNNING,Rear End Cap aviation manufacturing business recor,2026/05/23 01:58:00
+155,155,EQ-CF-0155,Inner Bore Honing Machine,003,MES_ASSEMBLY,MES_CLOSED,Seal Ring Assembly aviation manufacturing business,2026/05/24 02:05:00
+156,156,EQ-CF-0156,Chrome Plating Thickness Gauge,004,MES_SERVICE,MES_HOLD,Trunnion Bushing aviation manufacturing business r,2026/05/25 02:12:00
+157,157,EQ-CF-0157,Coordinate Measuring Machine,005,MES_MAKE,MES_OPEN,Spherical Bearing aviation manufacturing business ,2026/05/26 02:19:00
+158,158,EQ-CF-0158,Seal Assembly Press,006,MES_BUY,MES_RUNNING,Throttle Connector aviation manufacturing business,2026/05/27 02:26:00
+159,159,EQ-CF-0159,Hydraulic Pulse Test Bench,007,MES_ASSEMBLY,MES_CLOSED,Displacement Sensor Bracket aviation manufacturing,2026/05/28 02:33:00
+160,160,EQ-CF-0160,Ultrasonic Cleaning Machine,008,MES_SERVICE,MES_HOLD,Locking Nut aviation manufacturing business record,2026/05/29 02:40:00
+161,161,EQ-CF-0161,Hydraulic Integrated Test Bench,009,MES_MAKE,MES_OPEN,Piston Rod Assembly aviation manufacturing busines,2026/05/30 02:47:00
+162,162,EQ-CF-0162,CNC Cylindrical Grinder,001,MES_BUY,MES_RUNNING,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/31 02:54:00
+163,163,EQ-CF-0163,Inner Bore Honing Machine,002,MES_ASSEMBLY,MES_CLOSED,Front End Cap aviation manufacturing business reco,2026/06/01 03:01:00
+164,164,EQ-CF-0164,Chrome Plating Thickness Gauge,003,MES_SERVICE,MES_HOLD,Rear End Cap aviation manufacturing business recor,2026/06/02 03:08:00
+165,165,EQ-CF-0165,Coordinate Measuring Machine,004,MES_MAKE,MES_OPEN,Seal Ring Assembly aviation manufacturing business,2026/06/03 03:15:00
+166,166,EQ-CF-0166,Seal Assembly Press,005,MES_BUY,MES_RUNNING,Trunnion Bushing aviation manufacturing business r,2026/06/04 03:22:00
+167,167,EQ-CF-0167,Hydraulic Pulse Test Bench,006,MES_ASSEMBLY,MES_CLOSED,Spherical Bearing aviation manufacturing business ,2026/06/05 03:29:00
+168,168,EQ-CF-0168,Ultrasonic Cleaning Machine,007,MES_SERVICE,MES_HOLD,Throttle Connector aviation manufacturing business,2026/06/06 03:36:00
+169,169,EQ-CF-0169,Hydraulic Integrated Test Bench,008,MES_MAKE,MES_OPEN,Displacement Sensor Bracket aviation manufacturing,2026/05/10 03:43:00
+170,170,EQ-CF-0170,CNC Cylindrical Grinder,009,MES_BUY,MES_RUNNING,Locking Nut aviation manufacturing business record,2026/05/11 03:50:00
+171,171,EQ-CF-0171,Inner Bore Honing Machine,001,MES_ASSEMBLY,MES_CLOSED,Piston Rod Assembly aviation manufacturing busines,2026/05/12 03:57:00
+172,172,EQ-CF-0172,Chrome Plating Thickness Gauge,002,MES_SERVICE,MES_HOLD,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/13 04:04:00
+173,173,EQ-CF-0173,Coordinate Measuring Machine,003,MES_MAKE,MES_OPEN,Front End Cap aviation manufacturing business reco,2026/05/14 04:11:00
+174,174,EQ-CF-0174,Seal Assembly Press,004,MES_BUY,MES_RUNNING,Rear End Cap aviation manufacturing business recor,2026/05/15 04:18:00
+175,175,EQ-CF-0175,Hydraulic Pulse Test Bench,005,MES_ASSEMBLY,MES_CLOSED,Seal Ring Assembly aviation manufacturing business,2026/05/16 04:25:00
+176,176,EQ-CF-0176,Ultrasonic Cleaning Machine,006,MES_SERVICE,MES_HOLD,Trunnion Bushing aviation manufacturing business r,2026/05/17 04:32:00
+177,177,EQ-CF-0177,Hydraulic Integrated Test Bench,007,MES_MAKE,MES_OPEN,Spherical Bearing aviation manufacturing business ,2026/05/18 04:39:00
+178,178,EQ-CF-0178,CNC Cylindrical Grinder,008,MES_BUY,MES_RUNNING,Throttle Connector aviation manufacturing business,2026/05/19 04:46:00
+179,179,EQ-CF-0179,Inner Bore Honing Machine,009,MES_ASSEMBLY,MES_CLOSED,Displacement Sensor Bracket aviation manufacturing,2026/05/20 04:53:00
+180,180,EQ-CF-0180,Chrome Plating Thickness Gauge,001,MES_SERVICE,MES_HOLD,Locking Nut aviation manufacturing business record,2026/05/21 05:00:00
+181,181,EQ-CF-0181,Coordinate Measuring Machine,002,MES_MAKE,MES_OPEN,Piston Rod Assembly aviation manufacturing busines,2026/05/22 05:07:00
+182,182,EQ-CF-0182,Seal Assembly Press,003,MES_BUY,MES_RUNNING,Cylinder Barrel Assembly aviation manufacturing bu,2026/05/23 05:14:00
+183,183,EQ-CF-0183,Hydraulic Pulse Test Bench,004,MES_ASSEMBLY,MES_CLOSED,Front End Cap aviation manufacturing business reco,2026/05/24 05:21:00
+184,184,EQ-CF-0184,Ultrasonic Cleaning Machine,005,MES_SERVICE,MES_HOLD,Rear End Cap aviation manufacturing business recor,2026/05/25 05:28:00
+185,185,EQ-CF-0185,Hydraulic Integrated Test Bench,006,MES_MAKE,MES_OPEN,Seal Ring Assembly aviation manufacturing business,2026/05/26 05:35:00
+186,186,EQ-CF-0186,CNC Cylindrical Grinder,007,MES_BUY,MES_RUNNING,Trunnion Bushing aviation manufacturing business r,2026/05/27 05:42:00
+187,187,EQ-CF-0187,Inner Bore Honing Machine,008,MES_ASSEMBLY,MES_CLOSED,Spherical Bearing aviation manufacturing business ,2026/05/28 05:49:00
+188,188,EQ-CF-0188,Chrome Plating Thickness Gauge,009,MES_SERVICE,MES_HOLD,Throttle Connector aviation manufacturing business,2026/05/29 05:56:00
+189,189,EQ-CF-0189,Coordinate Measuring Machine,001,MES_MAKE,MES_OPEN,Displacement Sensor Bracket aviation manufacturing,2026/05/30 06:03:00
+190,190,EQ-CF-0190,Seal Assembly Press,002,MES_BUY,MES_RUNNING,Locking Nut aviation manufacturing business record,2026/05/31 06:10:00
+191,191,EQ-CF-0191,Hydraulic Pulse Test Bench,003,MES_ASSEMBLY,MES_CLOSED,Piston Rod Assembly aviation manufacturing busines,2026/06/01 06:17:00
+192,192,EQ-CF-0192,Ultrasonic Cleaning Machine,004,MES_SERVICE,MES_HOLD,Cylinder Barrel Assembly aviation manufacturing bu,2026/06/02 06:24:00
+193,193,EQ-CF-0193,Hydraulic Integrated Test Bench,005,MES_MAKE,MES_OPEN,Front End Cap aviation manufacturing business reco,2026/06/03 06:31:00
+194,194,EQ-CF-0194,CNC Cylindrical Grinder,006,MES_BUY,MES_RUNNING,Rear End Cap aviation manufacturing business recor,2026/06/04 06:38:00
+195,195,EQ-CF-0195,Inner Bore Honing Machine,007,MES_ASSEMBLY,MES_CLOSED,Seal Ring Assembly aviation manufacturing business,2026/06/05 06:45:00
+196,196,EQ-CF-0196,Chrome Plating Thickness Gauge,008,MES_SERVICE,MES_HOLD,Trunnion Bushing aviation manufacturing business r,2026/06/06 06:52:00
+197,197,EQ-CF-0197,Coordinate Measuring Machine,009,MES_MAKE,MES_OPEN,Spherical Bearing aviation manufacturing business ,2026/05/10 06:59:00
+198,198,EQ-CF-0198,Seal Assembly Press,001,MES_BUY,MES_RUNNING,Throttle Connector aviation manufacturing business,2026/05/11 07:06:00
+199,199,EQ-CF-0199,Hydraulic Pulse Test Bench,002,MES_ASSEMBLY,MES_CLOSED,Displacement Sensor Bracket aviation manufacturing,2026/05/12 07:13:00
+200,200,EQ-CF-0200,Ultrasonic Cleaning Machine,003,MES_SERVICE,MES_HOLD,Locking Nut aviation manufacturing business record,2026/05/13 07:20:00

@@ -1,0 +1,201 @@
+﻿station_id,stationid,stationname,workshop,percount,equcount,zhuangtai
+1,ST-CF-0001,Machining Station 1,Machining Section 1,002,002,MES_OPEN
+2,ST-CF-0002,Precision Grinding Station,Precision Grinding Section,003,003,MES_RUNNING
+3,ST-CF-0003,Honing Station,Hydraulic Assembly Section,004,004,MES_CLOSED
+4,ST-CF-0004,Surface Treatment Station,Pressure Test Section,005,005,MES_HOLD
+5,ST-CF-0005,Hydraulic Assembly Station,Final Inspection Section,006,006,MES_OPEN
+6,ST-CF-0006,Pressure Test Station,Repair Processing Section,007,007,MES_RUNNING
+7,ST-CF-0007,Final Inspection Station,Machining Section 1,008,008,MES_CLOSED
+8,ST-CF-0008,Repair Processing Station,Precision Grinding Section,009,009,MES_HOLD
+9,ST-CF-0009,Machining Station 1,Hydraulic Assembly Section,001,001,MES_OPEN
+10,ST-CF-0010,Precision Grinding Station,Pressure Test Section,002,002,MES_RUNNING
+11,ST-CF-0011,Honing Station,Final Inspection Section,003,003,MES_CLOSED
+12,ST-CF-0012,Surface Treatment Station,Repair Processing Section,004,004,MES_HOLD
+13,ST-CF-0013,Hydraulic Assembly Station,Machining Section 1,005,005,MES_OPEN
+14,ST-CF-0014,Pressure Test Station,Precision Grinding Section,006,006,MES_RUNNING
+15,ST-CF-0015,Final Inspection Station,Hydraulic Assembly Section,007,007,MES_CLOSED
+16,ST-CF-0016,Repair Processing Station,Pressure Test Section,008,008,MES_HOLD
+17,ST-CF-0017,Machining Station 1,Final Inspection Section,009,009,MES_OPEN
+18,ST-CF-0018,Precision Grinding Station,Repair Processing Section,001,001,MES_RUNNING
+19,ST-CF-0019,Honing Station,Machining Section 1,002,002,MES_CLOSED
+20,ST-CF-0020,Surface Treatment Station,Precision Grinding Section,003,003,MES_HOLD
+21,ST-CF-0021,Hydraulic Assembly Station,Hydraulic Assembly Section,004,004,MES_OPEN
+22,ST-CF-0022,Pressure Test Station,Pressure Test Section,005,005,MES_RUNNING
+23,ST-CF-0023,Final Inspection Station,Final Inspection Section,006,006,MES_CLOSED
+24,ST-CF-0024,Repair Processing Station,Repair Processing Section,007,007,MES_HOLD
+25,ST-CF-0025,Machining Station 1,Machining Section 1,008,008,MES_OPEN
+26,ST-CF-0026,Precision Grinding Station,Precision Grinding Section,009,009,MES_RUNNING
+27,ST-CF-0027,Honing Station,Hydraulic Assembly Section,001,001,MES_CLOSED
+28,ST-CF-0028,Surface Treatment Station,Pressure Test Section,002,002,MES_HOLD
+29,ST-CF-0029,Hydraulic Assembly Station,Final Inspection Section,003,003,MES_OPEN
+30,ST-CF-0030,Pressure Test Station,Repair Processing Section,004,004,MES_RUNNING
+31,ST-CF-0031,Final Inspection Station,Machining Section 1,005,005,MES_CLOSED
+32,ST-CF-0032,Repair Processing Station,Precision Grinding Section,006,006,MES_HOLD
+33,ST-CF-0033,Machining Station 1,Hydraulic Assembly Section,007,007,MES_OPEN
+34,ST-CF-0034,Precision Grinding Station,Pressure Test Section,008,008,MES_RUNNING
+35,ST-CF-0035,Honing Station,Final Inspection Section,009,009,MES_CLOSED
+36,ST-CF-0036,Surface Treatment Station,Repair Processing Section,001,001,MES_HOLD
+37,ST-CF-0037,Hydraulic Assembly Station,Machining Section 1,002,002,MES_OPEN
+38,ST-CF-0038,Pressure Test Station,Precision Grinding Section,003,003,MES_RUNNING
+39,ST-CF-0039,Final Inspection Station,Hydraulic Assembly Section,004,004,MES_CLOSED
+40,ST-CF-0040,Repair Processing Station,Pressure Test Section,005,005,MES_HOLD
+41,ST-CF-0041,Machining Station 1,Final Inspection Section,006,006,MES_OPEN
+42,ST-CF-0042,Precision Grinding Station,Repair Processing Section,007,007,MES_RUNNING
+43,ST-CF-0043,Honing Station,Machining Section 1,008,008,MES_CLOSED
+44,ST-CF-0044,Surface Treatment Station,Precision Grinding Section,009,009,MES_HOLD
+45,ST-CF-0045,Hydraulic Assembly Station,Hydraulic Assembly Section,001,001,MES_OPEN
+46,ST-CF-0046,Pressure Test Station,Pressure Test Section,002,002,MES_RUNNING
+47,ST-CF-0047,Final Inspection Station,Final Inspection Section,003,003,MES_CLOSED
+48,ST-CF-0048,Repair Processing Station,Repair Processing Section,004,004,MES_HOLD
+49,ST-CF-0049,Machining Station 1,Machining Section 1,005,005,MES_OPEN
+50,ST-CF-0050,Precision Grinding Station,Precision Grinding Section,006,006,MES_RUNNING
+51,ST-CF-0051,Honing Station,Hydraulic Assembly Section,007,007,MES_CLOSED
+52,ST-CF-0052,Surface Treatment Station,Pressure Test Section,008,008,MES_HOLD
+53,ST-CF-0053,Hydraulic Assembly Station,Final Inspection Section,009,009,MES_OPEN
+54,ST-CF-0054,Pressure Test Station,Repair Processing Section,001,001,MES_RUNNING
+55,ST-CF-0055,Final Inspection Station,Machining Section 1,002,002,MES_CLOSED
+56,ST-CF-0056,Repair Processing Station,Precision Grinding Section,003,003,MES_HOLD
+57,ST-CF-0057,Machining Station 1,Hydraulic Assembly Section,004,004,MES_OPEN
+58,ST-CF-0058,Precision Grinding Station,Pressure Test Section,005,005,MES_RUNNING
+59,ST-CF-0059,Honing Station,Final Inspection Section,006,006,MES_CLOSED
+60,ST-CF-0060,Surface Treatment Station,Repair Processing Section,007,007,MES_HOLD
+61,ST-CF-0061,Hydraulic Assembly Station,Machining Section 1,008,008,MES_OPEN
+62,ST-CF-0062,Pressure Test Station,Precision Grinding Section,009,009,MES_RUNNING
+63,ST-CF-0063,Final Inspection Station,Hydraulic Assembly Section,001,001,MES_CLOSED
+64,ST-CF-0064,Repair Processing Station,Pressure Test Section,002,002,MES_HOLD
+65,ST-CF-0065,Machining Station 1,Final Inspection Section,003,003,MES_OPEN
+66,ST-CF-0066,Precision Grinding Station,Repair Processing Section,004,004,MES_RUNNING
+67,ST-CF-0067,Honing Station,Machining Section 1,005,005,MES_CLOSED
+68,ST-CF-0068,Surface Treatment Station,Precision Grinding Section,006,006,MES_HOLD
+69,ST-CF-0069,Hydraulic Assembly Station,Hydraulic Assembly Section,007,007,MES_OPEN
+70,ST-CF-0070,Pressure Test Station,Pressure Test Section,008,008,MES_RUNNING
+71,ST-CF-0071,Final Inspection Station,Final Inspection Section,009,009,MES_CLOSED
+72,ST-CF-0072,Repair Processing Station,Repair Processing Section,001,001,MES_HOLD
+73,ST-CF-0073,Machining Station 1,Machining Section 1,002,002,MES_OPEN
+74,ST-CF-0074,Precision Grinding Station,Precision Grinding Section,003,003,MES_RUNNING
+75,ST-CF-0075,Honing Station,Hydraulic Assembly Section,004,004,MES_CLOSED
+76,ST-CF-0076,Surface Treatment Station,Pressure Test Section,005,005,MES_HOLD
+77,ST-CF-0077,Hydraulic Assembly Station,Final Inspection Section,006,006,MES_OPEN
+78,ST-CF-0078,Pressure Test Station,Repair Processing Section,007,007,MES_RUNNING
+79,ST-CF-0079,Final Inspection Station,Machining Section 1,008,008,MES_CLOSED
+80,ST-CF-0080,Repair Processing Station,Precision Grinding Section,009,009,MES_HOLD
+81,ST-CF-0081,Machining Station 1,Hydraulic Assembly Section,001,001,MES_OPEN
+82,ST-CF-0082,Precision Grinding Station,Pressure Test Section,002,002,MES_RUNNING
+83,ST-CF-0083,Honing Station,Final Inspection Section,003,003,MES_CLOSED
+84,ST-CF-0084,Surface Treatment Station,Repair Processing Section,004,004,MES_HOLD
+85,ST-CF-0085,Hydraulic Assembly Station,Machining Section 1,005,005,MES_OPEN
+86,ST-CF-0086,Pressure Test Station,Precision Grinding Section,006,006,MES_RUNNING
+87,ST-CF-0087,Final Inspection Station,Hydraulic Assembly Section,007,007,MES_CLOSED
+88,ST-CF-0088,Repair Processing Station,Pressure Test Section,008,008,MES_HOLD
+89,ST-CF-0089,Machining Station 1,Final Inspection Section,009,009,MES_OPEN
+90,ST-CF-0090,Precision Grinding Station,Repair Processing Section,001,001,MES_RUNNING
+91,ST-CF-0091,Honing Station,Machining Section 1,002,002,MES_CLOSED
+92,ST-CF-0092,Surface Treatment Station,Precision Grinding Section,003,003,MES_HOLD
+93,ST-CF-0093,Hydraulic Assembly Station,Hydraulic Assembly Section,004,004,MES_OPEN
+94,ST-CF-0094,Pressure Test Station,Pressure Test Section,005,005,MES_RUNNING
+95,ST-CF-0095,Final Inspection Station,Final Inspection Section,006,006,MES_CLOSED
+96,ST-CF-0096,Repair Processing Station,Repair Processing Section,007,007,MES_HOLD
+97,ST-CF-0097,Machining Station 1,Machining Section 1,008,008,MES_OPEN
+98,ST-CF-0098,Precision Grinding Station,Precision Grinding Section,009,009,MES_RUNNING
+99,ST-CF-0099,Honing Station,Hydraulic Assembly Section,001,001,MES_CLOSED
+100,ST-CF-0100,Surface Treatment Station,Pressure Test Section,002,002,MES_HOLD
+101,ST-CF-0101,Hydraulic Assembly Station,Final Inspection Section,003,003,MES_OPEN
+102,ST-CF-0102,Pressure Test Station,Repair Processing Section,004,004,MES_RUNNING
+103,ST-CF-0103,Final Inspection Station,Machining Section 1,005,005,MES_CLOSED
+104,ST-CF-0104,Repair Processing Station,Precision Grinding Section,006,006,MES_HOLD
+105,ST-CF-0105,Machining Station 1,Hydraulic Assembly Section,007,007,MES_OPEN
+106,ST-CF-0106,Precision Grinding Station,Pressure Test Section,008,008,MES_RUNNING
+107,ST-CF-0107,Honing Station,Final Inspection Section,009,009,MES_CLOSED
+108,ST-CF-0108,Surface Treatment Station,Repair Processing Section,001,001,MES_HOLD
+109,ST-CF-0109,Hydraulic Assembly Station,Machining Section 1,002,002,MES_OPEN
+110,ST-CF-0110,Pressure Test Station,Precision Grinding Section,003,003,MES_RUNNING
+111,ST-CF-0111,Final Inspection Station,Hydraulic Assembly Section,004,004,MES_CLOSED
+112,ST-CF-0112,Repair Processing Station,Pressure Test Section,005,005,MES_HOLD
+113,ST-CF-0113,Machining Station 1,Final Inspection Section,006,006,MES_OPEN
+114,ST-CF-0114,Precision Grinding Station,Repair Processing Section,007,007,MES_RUNNING
+115,ST-CF-0115,Honing Station,Machining Section 1,008,008,MES_CLOSED
+116,ST-CF-0116,Surface Treatment Station,Precision Grinding Section,009,009,MES_HOLD
+117,ST-CF-0117,Hydraulic Assembly Station,Hydraulic Assembly Section,001,001,MES_OPEN
+118,ST-CF-0118,Pressure Test Station,Pressure Test Section,002,002,MES_RUNNING
+119,ST-CF-0119,Final Inspection Station,Final Inspection Section,003,003,MES_CLOSED
+120,ST-CF-0120,Repair Processing Station,Repair Processing Section,004,004,MES_HOLD
+121,ST-CF-0121,Machining Station 1,Machining Section 1,005,005,MES_OPEN
+122,ST-CF-0122,Precision Grinding Station,Precision Grinding Section,006,006,MES_RUNNING
+123,ST-CF-0123,Honing Station,Hydraulic Assembly Section,007,007,MES_CLOSED
+124,ST-CF-0124,Surface Treatment Station,Pressure Test Section,008,008,MES_HOLD
+125,ST-CF-0125,Hydraulic Assembly Station,Final Inspection Section,009,009,MES_OPEN
+126,ST-CF-0126,Pressure Test Station,Repair Processing Section,001,001,MES_RUNNING
+127,ST-CF-0127,Final Inspection Station,Machining Section 1,002,002,MES_CLOSED
+128,ST-CF-0128,Repair Processing Station,Precision Grinding Section,003,003,MES_HOLD
+129,ST-CF-0129,Machining Station 1,Hydraulic Assembly Section,004,004,MES_OPEN
+130,ST-CF-0130,Precision Grinding Station,Pressure Test Section,005,005,MES_RUNNING
+131,ST-CF-0131,Honing Station,Final Inspection Section,006,006,MES_CLOSED
+132,ST-CF-0132,Surface Treatment Station,Repair Processing Section,007,007,MES_HOLD
+133,ST-CF-0133,Hydraulic Assembly Station,Machining Section 1,008,008,MES_OPEN
+134,ST-CF-0134,Pressure Test Station,Precision Grinding Section,009,009,MES_RUNNING
+135,ST-CF-0135,Final Inspection Station,Hydraulic Assembly Section,001,001,MES_CLOSED
+136,ST-CF-0136,Repair Processing Station,Pressure Test Section,002,002,MES_HOLD
+137,ST-CF-0137,Machining Station 1,Final Inspection Section,003,003,MES_OPEN
+138,ST-CF-0138,Precision Grinding Station,Repair Processing Section,004,004,MES_RUNNING
+139,ST-CF-0139,Honing Station,Machining Section 1,005,005,MES_CLOSED
+140,ST-CF-0140,Surface Treatment Station,Precision Grinding Section,006,006,MES_HOLD
+141,ST-CF-0141,Hydraulic Assembly Station,Hydraulic Assembly Section,007,007,MES_OPEN
+142,ST-CF-0142,Pressure Test Station,Pressure Test Section,008,008,MES_RUNNING
+143,ST-CF-0143,Final Inspection Station,Final Inspection Section,009,009,MES_CLOSED
+144,ST-CF-0144,Repair Processing Station,Repair Processing Section,001,001,MES_HOLD
+145,ST-CF-0145,Machining Station 1,Machining Section 1,002,002,MES_OPEN
+146,ST-CF-0146,Precision Grinding Station,Precision Grinding Section,003,003,MES_RUNNING
+147,ST-CF-0147,Honing Station,Hydraulic Assembly Section,004,004,MES_CLOSED
+148,ST-CF-0148,Surface Treatment Station,Pressure Test Section,005,005,MES_HOLD
+149,ST-CF-0149,Hydraulic Assembly Station,Final Inspection Section,006,006,MES_OPEN
+150,ST-CF-0150,Pressure Test Station,Repair Processing Section,007,007,MES_RUNNING
+151,ST-CF-0151,Final Inspection Station,Machining Section 1,008,008,MES_CLOSED
+152,ST-CF-0152,Repair Processing Station,Precision Grinding Section,009,009,MES_HOLD
+153,ST-CF-0153,Machining Station 1,Hydraulic Assembly Section,001,001,MES_OPEN
+154,ST-CF-0154,Precision Grinding Station,Pressure Test Section,002,002,MES_RUNNING
+155,ST-CF-0155,Honing Station,Final Inspection Section,003,003,MES_CLOSED
+156,ST-CF-0156,Surface Treatment Station,Repair Processing Section,004,004,MES_HOLD
+157,ST-CF-0157,Hydraulic Assembly Station,Machining Section 1,005,005,MES_OPEN
+158,ST-CF-0158,Pressure Test Station,Precision Grinding Section,006,006,MES_RUNNING
+159,ST-CF-0159,Final Inspection Station,Hydraulic Assembly Section,007,007,MES_CLOSED
+160,ST-CF-0160,Repair Processing Station,Pressure Test Section,008,008,MES_HOLD
+161,ST-CF-0161,Machining Station 1,Final Inspection Section,009,009,MES_OPEN
+162,ST-CF-0162,Precision Grinding Station,Repair Processing Section,001,001,MES_RUNNING
+163,ST-CF-0163,Honing Station,Machining Section 1,002,002,MES_CLOSED
+164,ST-CF-0164,Surface Treatment Station,Precision Grinding Section,003,003,MES_HOLD
+165,ST-CF-0165,Hydraulic Assembly Station,Hydraulic Assembly Section,004,004,MES_OPEN
+166,ST-CF-0166,Pressure Test Station,Pressure Test Section,005,005,MES_RUNNING
+167,ST-CF-0167,Final Inspection Station,Final Inspection Section,006,006,MES_CLOSED
+168,ST-CF-0168,Repair Processing Station,Repair Processing Section,007,007,MES_HOLD
+169,ST-CF-0169,Machining Station 1,Machining Section 1,008,008,MES_OPEN
+170,ST-CF-0170,Precision Grinding Station,Precision Grinding Section,009,009,MES_RUNNING
+171,ST-CF-0171,Honing Station,Hydraulic Assembly Section,001,001,MES_CLOSED
+172,ST-CF-0172,Surface Treatment Station,Pressure Test Section,002,002,MES_HOLD
+173,ST-CF-0173,Hydraulic Assembly Station,Final Inspection Section,003,003,MES_OPEN
+174,ST-CF-0174,Pressure Test Station,Repair Processing Section,004,004,MES_RUNNING
+175,ST-CF-0175,Final Inspection Station,Machining Section 1,005,005,MES_CLOSED
+176,ST-CF-0176,Repair Processing Station,Precision Grinding Section,006,006,MES_HOLD
+177,ST-CF-0177,Machining Station 1,Hydraulic Assembly Section,007,007,MES_OPEN
+178,ST-CF-0178,Precision Grinding Station,Pressure Test Section,008,008,MES_RUNNING
+179,ST-CF-0179,Honing Station,Final Inspection Section,009,009,MES_CLOSED
+180,ST-CF-0180,Surface Treatment Station,Repair Processing Section,001,001,MES_HOLD
+181,ST-CF-0181,Hydraulic Assembly Station,Machining Section 1,002,002,MES_OPEN
+182,ST-CF-0182,Pressure Test Station,Precision Grinding Section,003,003,MES_RUNNING
+183,ST-CF-0183,Final Inspection Station,Hydraulic Assembly Section,004,004,MES_CLOSED
+184,ST-CF-0184,Repair Processing Station,Pressure Test Section,005,005,MES_HOLD
+185,ST-CF-0185,Machining Station 1,Final Inspection Section,006,006,MES_OPEN
+186,ST-CF-0186,Precision Grinding Station,Repair Processing Section,007,007,MES_RUNNING
+187,ST-CF-0187,Honing Station,Machining Section 1,008,008,MES_CLOSED
+188,ST-CF-0188,Surface Treatment Station,Precision Grinding Section,009,009,MES_HOLD
+189,ST-CF-0189,Hydraulic Assembly Station,Hydraulic Assembly Section,001,001,MES_OPEN
+190,ST-CF-0190,Pressure Test Station,Pressure Test Section,002,002,MES_RUNNING
+191,ST-CF-0191,Final Inspection Station,Final Inspection Section,003,003,MES_CLOSED
+192,ST-CF-0192,Repair Processing Station,Repair Processing Section,004,004,MES_HOLD
+193,ST-CF-0193,Machining Station 1,Machining Section 1,005,005,MES_OPEN
+194,ST-CF-0194,Precision Grinding Station,Precision Grinding Section,006,006,MES_RUNNING
+195,ST-CF-0195,Honing Station,Hydraulic Assembly Section,007,007,MES_CLOSED
+196,ST-CF-0196,Surface Treatment Station,Pressure Test Section,008,008,MES_HOLD
+197,ST-CF-0197,Hydraulic Assembly Station,Final Inspection Section,009,009,MES_OPEN
+198,ST-CF-0198,Pressure Test Station,Repair Processing Section,001,001,MES_RUNNING
+199,ST-CF-0199,Final Inspection Station,Machining Section 1,002,002,MES_CLOSED
+200,ST-CF-0200,Repair Processing Station,Precision Grinding Section,003,003,MES_HOLD

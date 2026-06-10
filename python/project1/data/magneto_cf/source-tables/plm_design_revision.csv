@@ -1,0 +1,201 @@
+﻿design_revision_id,actuator_model_id,rev_no,rev_name,dwg_no,doc_rev,issue_status_cd,eff_date_txt,expire_date_txt,released_by
+1,1,REV-2.0,Piston Rod Assembly 001,DWG-LGACT-0001,REV-2.0,PLM_OPEN,20260509,20260509,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+2,2,REV-3.0,Cylinder Barrel Assembly 002,DWG-LGACT-0002,REV-3.0,PLM_RUNNING,20260510,20260510,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+3,3,REV-4.0,Front End Cap 003,DWG-LGACT-0003,REV-4.0,PLM_CLOSED,20260511,20260511,Front End Cap aviation manufacturing business record used for actuator quality t
+4,4,REV-5.0,Rear End Cap 004,DWG-LGACT-0004,REV-5.0,PLM_HOLD,20260512,20260512,Rear End Cap aviation manufacturing business record used for actuator quality tr
+5,5,REV-1.0,Seal Ring Assembly 005,DWG-LGACT-0005,REV-1.0,PLM_OPEN,20260513,20260513,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+6,6,REV-2.0,Trunnion Bushing 006,DWG-LGACT-0006,REV-2.0,PLM_RUNNING,20260514,20260514,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+7,7,REV-3.0,Spherical Bearing 007,DWG-LGACT-0007,REV-3.0,PLM_CLOSED,20260515,20260515,Spherical Bearing aviation manufacturing business record used for actuator quali
+8,8,REV-4.0,Throttle Connector 008,DWG-LGACT-0008,REV-4.0,PLM_HOLD,20260516,20260516,Throttle Connector aviation manufacturing business record used for actuator qual
+9,9,REV-5.0,Displacement Sensor Bracket 009,DWG-LGACT-0009,REV-5.0,PLM_OPEN,20260517,20260517,Displacement Sensor Bracket aviation manufacturing business record used for actu
+10,10,REV-1.0,Locking Nut 010,DWG-LGACT-0010,REV-1.0,PLM_RUNNING,20260518,20260518,Locking Nut aviation manufacturing business record used for actuator quality tra
+11,11,REV-2.0,Piston Rod Assembly 011,DWG-LGACT-0011,REV-2.0,PLM_CLOSED,20260519,20260519,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+12,12,REV-3.0,Cylinder Barrel Assembly 012,DWG-LGACT-0012,REV-3.0,PLM_HOLD,20260520,20260520,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+13,13,REV-4.0,Front End Cap 013,DWG-LGACT-0013,REV-4.0,PLM_OPEN,20260521,20260521,Front End Cap aviation manufacturing business record used for actuator quality t
+14,14,REV-5.0,Rear End Cap 014,DWG-LGACT-0014,REV-5.0,PLM_RUNNING,20260522,20260522,Rear End Cap aviation manufacturing business record used for actuator quality tr
+15,15,REV-1.0,Seal Ring Assembly 015,DWG-LGACT-0015,REV-1.0,PLM_CLOSED,20260523,20260523,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+16,16,REV-2.0,Trunnion Bushing 016,DWG-LGACT-0016,REV-2.0,PLM_HOLD,20260524,20260524,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+17,17,REV-3.0,Spherical Bearing 017,DWG-LGACT-0017,REV-3.0,PLM_OPEN,20260525,20260525,Spherical Bearing aviation manufacturing business record used for actuator quali
+18,18,REV-4.0,Throttle Connector 018,DWG-LGACT-0018,REV-4.0,PLM_RUNNING,20260526,20260526,Throttle Connector aviation manufacturing business record used for actuator qual
+19,19,REV-5.0,Displacement Sensor Bracket 019,DWG-LGACT-0019,REV-5.0,PLM_CLOSED,20260527,20260527,Displacement Sensor Bracket aviation manufacturing business record used for actu
+20,20,REV-1.0,Locking Nut 020,DWG-LGACT-0020,REV-1.0,PLM_HOLD,20260528,20260528,Locking Nut aviation manufacturing business record used for actuator quality tra
+21,21,REV-2.0,Piston Rod Assembly 021,DWG-LGACT-0021,REV-2.0,PLM_OPEN,20260529,20260529,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+22,22,REV-3.0,Cylinder Barrel Assembly 022,DWG-LGACT-0022,REV-3.0,PLM_RUNNING,20260530,20260530,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+23,23,REV-4.0,Front End Cap 023,DWG-LGACT-0023,REV-4.0,PLM_CLOSED,20260531,20260531,Front End Cap aviation manufacturing business record used for actuator quality t
+24,24,REV-5.0,Rear End Cap 024,DWG-LGACT-0024,REV-5.0,PLM_HOLD,20260601,20260601,Rear End Cap aviation manufacturing business record used for actuator quality tr
+25,25,REV-1.0,Seal Ring Assembly 025,DWG-LGACT-0025,REV-1.0,PLM_OPEN,20260602,20260602,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+26,26,REV-2.0,Trunnion Bushing 026,DWG-LGACT-0026,REV-2.0,PLM_RUNNING,20260603,20260603,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+27,27,REV-3.0,Spherical Bearing 027,DWG-LGACT-0027,REV-3.0,PLM_CLOSED,20260604,20260604,Spherical Bearing aviation manufacturing business record used for actuator quali
+28,28,REV-4.0,Throttle Connector 028,DWG-LGACT-0028,REV-4.0,PLM_HOLD,20260605,20260605,Throttle Connector aviation manufacturing business record used for actuator qual
+29,29,REV-5.0,Displacement Sensor Bracket 029,DWG-LGACT-0029,REV-5.0,PLM_OPEN,20260509,20260509,Displacement Sensor Bracket aviation manufacturing business record used for actu
+30,30,REV-1.0,Locking Nut 030,DWG-LGACT-0030,REV-1.0,PLM_RUNNING,20260510,20260510,Locking Nut aviation manufacturing business record used for actuator quality tra
+31,31,REV-2.0,Piston Rod Assembly 031,DWG-LGACT-0031,REV-2.0,PLM_CLOSED,20260511,20260511,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+32,32,REV-3.0,Cylinder Barrel Assembly 032,DWG-LGACT-0032,REV-3.0,PLM_HOLD,20260512,20260512,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+33,33,REV-4.0,Front End Cap 033,DWG-LGACT-0033,REV-4.0,PLM_OPEN,20260513,20260513,Front End Cap aviation manufacturing business record used for actuator quality t
+34,34,REV-5.0,Rear End Cap 034,DWG-LGACT-0034,REV-5.0,PLM_RUNNING,20260514,20260514,Rear End Cap aviation manufacturing business record used for actuator quality tr
+35,35,REV-1.0,Seal Ring Assembly 035,DWG-LGACT-0035,REV-1.0,PLM_CLOSED,20260515,20260515,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+36,36,REV-2.0,Trunnion Bushing 036,DWG-LGACT-0036,REV-2.0,PLM_HOLD,20260516,20260516,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+37,37,REV-3.0,Spherical Bearing 037,DWG-LGACT-0037,REV-3.0,PLM_OPEN,20260517,20260517,Spherical Bearing aviation manufacturing business record used for actuator quali
+38,38,REV-4.0,Throttle Connector 038,DWG-LGACT-0038,REV-4.0,PLM_RUNNING,20260518,20260518,Throttle Connector aviation manufacturing business record used for actuator qual
+39,39,REV-5.0,Displacement Sensor Bracket 039,DWG-LGACT-0039,REV-5.0,PLM_CLOSED,20260519,20260519,Displacement Sensor Bracket aviation manufacturing business record used for actu
+40,40,REV-1.0,Locking Nut 040,DWG-LGACT-0040,REV-1.0,PLM_HOLD,20260520,20260520,Locking Nut aviation manufacturing business record used for actuator quality tra
+41,41,REV-2.0,Piston Rod Assembly 041,DWG-LGACT-0041,REV-2.0,PLM_OPEN,20260521,20260521,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+42,42,REV-3.0,Cylinder Barrel Assembly 042,DWG-LGACT-0042,REV-3.0,PLM_RUNNING,20260522,20260522,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+43,43,REV-4.0,Front End Cap 043,DWG-LGACT-0043,REV-4.0,PLM_CLOSED,20260523,20260523,Front End Cap aviation manufacturing business record used for actuator quality t
+44,44,REV-5.0,Rear End Cap 044,DWG-LGACT-0044,REV-5.0,PLM_HOLD,20260524,20260524,Rear End Cap aviation manufacturing business record used for actuator quality tr
+45,45,REV-1.0,Seal Ring Assembly 045,DWG-LGACT-0045,REV-1.0,PLM_OPEN,20260525,20260525,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+46,46,REV-2.0,Trunnion Bushing 046,DWG-LGACT-0046,REV-2.0,PLM_RUNNING,20260526,20260526,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+47,47,REV-3.0,Spherical Bearing 047,DWG-LGACT-0047,REV-3.0,PLM_CLOSED,20260527,20260527,Spherical Bearing aviation manufacturing business record used for actuator quali
+48,48,REV-4.0,Throttle Connector 048,DWG-LGACT-0048,REV-4.0,PLM_HOLD,20260528,20260528,Throttle Connector aviation manufacturing business record used for actuator qual
+49,49,REV-5.0,Displacement Sensor Bracket 049,DWG-LGACT-0049,REV-5.0,PLM_OPEN,20260529,20260529,Displacement Sensor Bracket aviation manufacturing business record used for actu
+50,50,REV-1.0,Locking Nut 050,DWG-LGACT-0050,REV-1.0,PLM_RUNNING,20260530,20260530,Locking Nut aviation manufacturing business record used for actuator quality tra
+51,51,REV-2.0,Piston Rod Assembly 051,DWG-LGACT-0051,REV-2.0,PLM_CLOSED,20260531,20260531,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+52,52,REV-3.0,Cylinder Barrel Assembly 052,DWG-LGACT-0052,REV-3.0,PLM_HOLD,20260601,20260601,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+53,53,REV-4.0,Front End Cap 053,DWG-LGACT-0053,REV-4.0,PLM_OPEN,20260602,20260602,Front End Cap aviation manufacturing business record used for actuator quality t
+54,54,REV-5.0,Rear End Cap 054,DWG-LGACT-0054,REV-5.0,PLM_RUNNING,20260603,20260603,Rear End Cap aviation manufacturing business record used for actuator quality tr
+55,55,REV-1.0,Seal Ring Assembly 055,DWG-LGACT-0055,REV-1.0,PLM_CLOSED,20260604,20260604,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+56,56,REV-2.0,Trunnion Bushing 056,DWG-LGACT-0056,REV-2.0,PLM_HOLD,20260605,20260605,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+57,57,REV-3.0,Spherical Bearing 057,DWG-LGACT-0057,REV-3.0,PLM_OPEN,20260509,20260509,Spherical Bearing aviation manufacturing business record used for actuator quali
+58,58,REV-4.0,Throttle Connector 058,DWG-LGACT-0058,REV-4.0,PLM_RUNNING,20260510,20260510,Throttle Connector aviation manufacturing business record used for actuator qual
+59,59,REV-5.0,Displacement Sensor Bracket 059,DWG-LGACT-0059,REV-5.0,PLM_CLOSED,20260511,20260511,Displacement Sensor Bracket aviation manufacturing business record used for actu
+60,60,REV-1.0,Locking Nut 060,DWG-LGACT-0060,REV-1.0,PLM_HOLD,20260512,20260512,Locking Nut aviation manufacturing business record used for actuator quality tra
+61,61,REV-2.0,Piston Rod Assembly 061,DWG-LGACT-0061,REV-2.0,PLM_OPEN,20260513,20260513,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+62,62,REV-3.0,Cylinder Barrel Assembly 062,DWG-LGACT-0062,REV-3.0,PLM_RUNNING,20260514,20260514,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+63,63,REV-4.0,Front End Cap 063,DWG-LGACT-0063,REV-4.0,PLM_CLOSED,20260515,20260515,Front End Cap aviation manufacturing business record used for actuator quality t
+64,64,REV-5.0,Rear End Cap 064,DWG-LGACT-0064,REV-5.0,PLM_HOLD,20260516,20260516,Rear End Cap aviation manufacturing business record used for actuator quality tr
+65,65,REV-1.0,Seal Ring Assembly 065,DWG-LGACT-0065,REV-1.0,PLM_OPEN,20260517,20260517,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+66,66,REV-2.0,Trunnion Bushing 066,DWG-LGACT-0066,REV-2.0,PLM_RUNNING,20260518,20260518,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+67,67,REV-3.0,Spherical Bearing 067,DWG-LGACT-0067,REV-3.0,PLM_CLOSED,20260519,20260519,Spherical Bearing aviation manufacturing business record used for actuator quali
+68,68,REV-4.0,Throttle Connector 068,DWG-LGACT-0068,REV-4.0,PLM_HOLD,20260520,20260520,Throttle Connector aviation manufacturing business record used for actuator qual
+69,69,REV-5.0,Displacement Sensor Bracket 069,DWG-LGACT-0069,REV-5.0,PLM_OPEN,20260521,20260521,Displacement Sensor Bracket aviation manufacturing business record used for actu
+70,70,REV-1.0,Locking Nut 070,DWG-LGACT-0070,REV-1.0,PLM_RUNNING,20260522,20260522,Locking Nut aviation manufacturing business record used for actuator quality tra
+71,71,REV-2.0,Piston Rod Assembly 071,DWG-LGACT-0071,REV-2.0,PLM_CLOSED,20260523,20260523,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+72,72,REV-3.0,Cylinder Barrel Assembly 072,DWG-LGACT-0072,REV-3.0,PLM_HOLD,20260524,20260524,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+73,73,REV-4.0,Front End Cap 073,DWG-LGACT-0073,REV-4.0,PLM_OPEN,20260525,20260525,Front End Cap aviation manufacturing business record used for actuator quality t
+74,74,REV-5.0,Rear End Cap 074,DWG-LGACT-0074,REV-5.0,PLM_RUNNING,20260526,20260526,Rear End Cap aviation manufacturing business record used for actuator quality tr
+75,75,REV-1.0,Seal Ring Assembly 075,DWG-LGACT-0075,REV-1.0,PLM_CLOSED,20260527,20260527,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+76,76,REV-2.0,Trunnion Bushing 076,DWG-LGACT-0076,REV-2.0,PLM_HOLD,20260528,20260528,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+77,77,REV-3.0,Spherical Bearing 077,DWG-LGACT-0077,REV-3.0,PLM_OPEN,20260529,20260529,Spherical Bearing aviation manufacturing business record used for actuator quali
+78,78,REV-4.0,Throttle Connector 078,DWG-LGACT-0078,REV-4.0,PLM_RUNNING,20260530,20260530,Throttle Connector aviation manufacturing business record used for actuator qual
+79,79,REV-5.0,Displacement Sensor Bracket 079,DWG-LGACT-0079,REV-5.0,PLM_CLOSED,20260531,20260531,Displacement Sensor Bracket aviation manufacturing business record used for actu
+80,80,REV-1.0,Locking Nut 080,DWG-LGACT-0080,REV-1.0,PLM_HOLD,20260601,20260601,Locking Nut aviation manufacturing business record used for actuator quality tra
+81,81,REV-2.0,Piston Rod Assembly 081,DWG-LGACT-0081,REV-2.0,PLM_OPEN,20260602,20260602,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+82,82,REV-3.0,Cylinder Barrel Assembly 082,DWG-LGACT-0082,REV-3.0,PLM_RUNNING,20260603,20260603,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+83,83,REV-4.0,Front End Cap 083,DWG-LGACT-0083,REV-4.0,PLM_CLOSED,20260604,20260604,Front End Cap aviation manufacturing business record used for actuator quality t
+84,84,REV-5.0,Rear End Cap 084,DWG-LGACT-0084,REV-5.0,PLM_HOLD,20260605,20260605,Rear End Cap aviation manufacturing business record used for actuator quality tr
+85,85,REV-1.0,Seal Ring Assembly 085,DWG-LGACT-0085,REV-1.0,PLM_OPEN,20260509,20260509,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+86,86,REV-2.0,Trunnion Bushing 086,DWG-LGACT-0086,REV-2.0,PLM_RUNNING,20260510,20260510,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+87,87,REV-3.0,Spherical Bearing 087,DWG-LGACT-0087,REV-3.0,PLM_CLOSED,20260511,20260511,Spherical Bearing aviation manufacturing business record used for actuator quali
+88,88,REV-4.0,Throttle Connector 088,DWG-LGACT-0088,REV-4.0,PLM_HOLD,20260512,20260512,Throttle Connector aviation manufacturing business record used for actuator qual
+89,89,REV-5.0,Displacement Sensor Bracket 089,DWG-LGACT-0089,REV-5.0,PLM_OPEN,20260513,20260513,Displacement Sensor Bracket aviation manufacturing business record used for actu
+90,90,REV-1.0,Locking Nut 090,DWG-LGACT-0090,REV-1.0,PLM_RUNNING,20260514,20260514,Locking Nut aviation manufacturing business record used for actuator quality tra
+91,91,REV-2.0,Piston Rod Assembly 091,DWG-LGACT-0091,REV-2.0,PLM_CLOSED,20260515,20260515,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+92,92,REV-3.0,Cylinder Barrel Assembly 092,DWG-LGACT-0092,REV-3.0,PLM_HOLD,20260516,20260516,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+93,93,REV-4.0,Front End Cap 093,DWG-LGACT-0093,REV-4.0,PLM_OPEN,20260517,20260517,Front End Cap aviation manufacturing business record used for actuator quality t
+94,94,REV-5.0,Rear End Cap 094,DWG-LGACT-0094,REV-5.0,PLM_RUNNING,20260518,20260518,Rear End Cap aviation manufacturing business record used for actuator quality tr
+95,95,REV-1.0,Seal Ring Assembly 095,DWG-LGACT-0095,REV-1.0,PLM_CLOSED,20260519,20260519,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+96,96,REV-2.0,Trunnion Bushing 096,DWG-LGACT-0096,REV-2.0,PLM_HOLD,20260520,20260520,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+97,97,REV-3.0,Spherical Bearing 097,DWG-LGACT-0097,REV-3.0,PLM_OPEN,20260521,20260521,Spherical Bearing aviation manufacturing business record used for actuator quali
+98,98,REV-4.0,Throttle Connector 098,DWG-LGACT-0098,REV-4.0,PLM_RUNNING,20260522,20260522,Throttle Connector aviation manufacturing business record used for actuator qual
+99,99,REV-5.0,Displacement Sensor Bracket 099,DWG-LGACT-0099,REV-5.0,PLM_CLOSED,20260523,20260523,Displacement Sensor Bracket aviation manufacturing business record used for actu
+100,100,REV-1.0,Locking Nut 100,DWG-LGACT-0100,REV-1.0,PLM_HOLD,20260524,20260524,Locking Nut aviation manufacturing business record used for actuator quality tra
+101,101,REV-2.0,Piston Rod Assembly 101,DWG-LGACT-0101,REV-2.0,PLM_OPEN,20260525,20260525,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+102,102,REV-3.0,Cylinder Barrel Assembly 102,DWG-LGACT-0102,REV-3.0,PLM_RUNNING,20260526,20260526,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+103,103,REV-4.0,Front End Cap 103,DWG-LGACT-0103,REV-4.0,PLM_CLOSED,20260527,20260527,Front End Cap aviation manufacturing business record used for actuator quality t
+104,104,REV-5.0,Rear End Cap 104,DWG-LGACT-0104,REV-5.0,PLM_HOLD,20260528,20260528,Rear End Cap aviation manufacturing business record used for actuator quality tr
+105,105,REV-1.0,Seal Ring Assembly 105,DWG-LGACT-0105,REV-1.0,PLM_OPEN,20260529,20260529,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+106,106,REV-2.0,Trunnion Bushing 106,DWG-LGACT-0106,REV-2.0,PLM_RUNNING,20260530,20260530,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+107,107,REV-3.0,Spherical Bearing 107,DWG-LGACT-0107,REV-3.0,PLM_CLOSED,20260531,20260531,Spherical Bearing aviation manufacturing business record used for actuator quali
+108,108,REV-4.0,Throttle Connector 108,DWG-LGACT-0108,REV-4.0,PLM_HOLD,20260601,20260601,Throttle Connector aviation manufacturing business record used for actuator qual
+109,109,REV-5.0,Displacement Sensor Bracket 109,DWG-LGACT-0109,REV-5.0,PLM_OPEN,20260602,20260602,Displacement Sensor Bracket aviation manufacturing business record used for actu
+110,110,REV-1.0,Locking Nut 110,DWG-LGACT-0110,REV-1.0,PLM_RUNNING,20260603,20260603,Locking Nut aviation manufacturing business record used for actuator quality tra
+111,111,REV-2.0,Piston Rod Assembly 111,DWG-LGACT-0111,REV-2.0,PLM_CLOSED,20260604,20260604,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+112,112,REV-3.0,Cylinder Barrel Assembly 112,DWG-LGACT-0112,REV-3.0,PLM_HOLD,20260605,20260605,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+113,113,REV-4.0,Front End Cap 113,DWG-LGACT-0113,REV-4.0,PLM_OPEN,20260509,20260509,Front End Cap aviation manufacturing business record used for actuator quality t
+114,114,REV-5.0,Rear End Cap 114,DWG-LGACT-0114,REV-5.0,PLM_RUNNING,20260510,20260510,Rear End Cap aviation manufacturing business record used for actuator quality tr
+115,115,REV-1.0,Seal Ring Assembly 115,DWG-LGACT-0115,REV-1.0,PLM_CLOSED,20260511,20260511,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+116,116,REV-2.0,Trunnion Bushing 116,DWG-LGACT-0116,REV-2.0,PLM_HOLD,20260512,20260512,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+117,117,REV-3.0,Spherical Bearing 117,DWG-LGACT-0117,REV-3.0,PLM_OPEN,20260513,20260513,Spherical Bearing aviation manufacturing business record used for actuator quali
+118,118,REV-4.0,Throttle Connector 118,DWG-LGACT-0118,REV-4.0,PLM_RUNNING,20260514,20260514,Throttle Connector aviation manufacturing business record used for actuator qual
+119,119,REV-5.0,Displacement Sensor Bracket 119,DWG-LGACT-0119,REV-5.0,PLM_CLOSED,20260515,20260515,Displacement Sensor Bracket aviation manufacturing business record used for actu
+120,120,REV-1.0,Locking Nut 120,DWG-LGACT-0120,REV-1.0,PLM_HOLD,20260516,20260516,Locking Nut aviation manufacturing business record used for actuator quality tra
+121,121,REV-2.0,Piston Rod Assembly 121,DWG-LGACT-0121,REV-2.0,PLM_OPEN,20260517,20260517,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+122,122,REV-3.0,Cylinder Barrel Assembly 122,DWG-LGACT-0122,REV-3.0,PLM_RUNNING,20260518,20260518,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+123,123,REV-4.0,Front End Cap 123,DWG-LGACT-0123,REV-4.0,PLM_CLOSED,20260519,20260519,Front End Cap aviation manufacturing business record used for actuator quality t
+124,124,REV-5.0,Rear End Cap 124,DWG-LGACT-0124,REV-5.0,PLM_HOLD,20260520,20260520,Rear End Cap aviation manufacturing business record used for actuator quality tr
+125,125,REV-1.0,Seal Ring Assembly 125,DWG-LGACT-0125,REV-1.0,PLM_OPEN,20260521,20260521,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+126,126,REV-2.0,Trunnion Bushing 126,DWG-LGACT-0126,REV-2.0,PLM_RUNNING,20260522,20260522,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+127,127,REV-3.0,Spherical Bearing 127,DWG-LGACT-0127,REV-3.0,PLM_CLOSED,20260523,20260523,Spherical Bearing aviation manufacturing business record used for actuator quali
+128,128,REV-4.0,Throttle Connector 128,DWG-LGACT-0128,REV-4.0,PLM_HOLD,20260524,20260524,Throttle Connector aviation manufacturing business record used for actuator qual
+129,129,REV-5.0,Displacement Sensor Bracket 129,DWG-LGACT-0129,REV-5.0,PLM_OPEN,20260525,20260525,Displacement Sensor Bracket aviation manufacturing business record used for actu
+130,130,REV-1.0,Locking Nut 130,DWG-LGACT-0130,REV-1.0,PLM_RUNNING,20260526,20260526,Locking Nut aviation manufacturing business record used for actuator quality tra
+131,131,REV-2.0,Piston Rod Assembly 131,DWG-LGACT-0131,REV-2.0,PLM_CLOSED,20260527,20260527,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+132,132,REV-3.0,Cylinder Barrel Assembly 132,DWG-LGACT-0132,REV-3.0,PLM_HOLD,20260528,20260528,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+133,133,REV-4.0,Front End Cap 133,DWG-LGACT-0133,REV-4.0,PLM_OPEN,20260529,20260529,Front End Cap aviation manufacturing business record used for actuator quality t
+134,134,REV-5.0,Rear End Cap 134,DWG-LGACT-0134,REV-5.0,PLM_RUNNING,20260530,20260530,Rear End Cap aviation manufacturing business record used for actuator quality tr
+135,135,REV-1.0,Seal Ring Assembly 135,DWG-LGACT-0135,REV-1.0,PLM_CLOSED,20260531,20260531,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+136,136,REV-2.0,Trunnion Bushing 136,DWG-LGACT-0136,REV-2.0,PLM_HOLD,20260601,20260601,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+137,137,REV-3.0,Spherical Bearing 137,DWG-LGACT-0137,REV-3.0,PLM_OPEN,20260602,20260602,Spherical Bearing aviation manufacturing business record used for actuator quali
+138,138,REV-4.0,Throttle Connector 138,DWG-LGACT-0138,REV-4.0,PLM_RUNNING,20260604,20260604,Throttle Connector aviation manufacturing business record used for actuator qual
+139,139,REV-5.0,Displacement Sensor Bracket 139,DWG-LGACT-0139,REV-5.0,PLM_CLOSED,20260605,20260605,Displacement Sensor Bracket aviation manufacturing business record used for actu
+140,140,REV-1.0,Locking Nut 140,DWG-LGACT-0140,REV-1.0,PLM_HOLD,20260606,20260606,Locking Nut aviation manufacturing business record used for actuator quality tra
+141,141,REV-2.0,Piston Rod Assembly 141,DWG-LGACT-0141,REV-2.0,PLM_OPEN,20260510,20260510,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+142,142,REV-3.0,Cylinder Barrel Assembly 142,DWG-LGACT-0142,REV-3.0,PLM_RUNNING,20260511,20260511,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+143,143,REV-4.0,Front End Cap 143,DWG-LGACT-0143,REV-4.0,PLM_CLOSED,20260512,20260512,Front End Cap aviation manufacturing business record used for actuator quality t
+144,144,REV-5.0,Rear End Cap 144,DWG-LGACT-0144,REV-5.0,PLM_HOLD,20260513,20260513,Rear End Cap aviation manufacturing business record used for actuator quality tr
+145,145,REV-1.0,Seal Ring Assembly 145,DWG-LGACT-0145,REV-1.0,PLM_OPEN,20260514,20260514,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+146,146,REV-2.0,Trunnion Bushing 146,DWG-LGACT-0146,REV-2.0,PLM_RUNNING,20260515,20260515,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+147,147,REV-3.0,Spherical Bearing 147,DWG-LGACT-0147,REV-3.0,PLM_CLOSED,20260516,20260516,Spherical Bearing aviation manufacturing business record used for actuator quali
+148,148,REV-4.0,Throttle Connector 148,DWG-LGACT-0148,REV-4.0,PLM_HOLD,20260517,20260517,Throttle Connector aviation manufacturing business record used for actuator qual
+149,149,REV-5.0,Displacement Sensor Bracket 149,DWG-LGACT-0149,REV-5.0,PLM_OPEN,20260518,20260518,Displacement Sensor Bracket aviation manufacturing business record used for actu
+150,150,REV-1.0,Locking Nut 150,DWG-LGACT-0150,REV-1.0,PLM_RUNNING,20260519,20260519,Locking Nut aviation manufacturing business record used for actuator quality tra
+151,151,REV-2.0,Piston Rod Assembly 151,DWG-LGACT-0151,REV-2.0,PLM_CLOSED,20260520,20260520,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+152,152,REV-3.0,Cylinder Barrel Assembly 152,DWG-LGACT-0152,REV-3.0,PLM_HOLD,20260521,20260521,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+153,153,REV-4.0,Front End Cap 153,DWG-LGACT-0153,REV-4.0,PLM_OPEN,20260522,20260522,Front End Cap aviation manufacturing business record used for actuator quality t
+154,154,REV-5.0,Rear End Cap 154,DWG-LGACT-0154,REV-5.0,PLM_RUNNING,20260523,20260523,Rear End Cap aviation manufacturing business record used for actuator quality tr
+155,155,REV-1.0,Seal Ring Assembly 155,DWG-LGACT-0155,REV-1.0,PLM_CLOSED,20260524,20260524,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+156,156,REV-2.0,Trunnion Bushing 156,DWG-LGACT-0156,REV-2.0,PLM_HOLD,20260525,20260525,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+157,157,REV-3.0,Spherical Bearing 157,DWG-LGACT-0157,REV-3.0,PLM_OPEN,20260526,20260526,Spherical Bearing aviation manufacturing business record used for actuator quali
+158,158,REV-4.0,Throttle Connector 158,DWG-LGACT-0158,REV-4.0,PLM_RUNNING,20260527,20260527,Throttle Connector aviation manufacturing business record used for actuator qual
+159,159,REV-5.0,Displacement Sensor Bracket 159,DWG-LGACT-0159,REV-5.0,PLM_CLOSED,20260528,20260528,Displacement Sensor Bracket aviation manufacturing business record used for actu
+160,160,REV-1.0,Locking Nut 160,DWG-LGACT-0160,REV-1.0,PLM_HOLD,20260529,20260529,Locking Nut aviation manufacturing business record used for actuator quality tra
+161,161,REV-2.0,Piston Rod Assembly 161,DWG-LGACT-0161,REV-2.0,PLM_OPEN,20260530,20260530,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+162,162,REV-3.0,Cylinder Barrel Assembly 162,DWG-LGACT-0162,REV-3.0,PLM_RUNNING,20260531,20260531,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+163,163,REV-4.0,Front End Cap 163,DWG-LGACT-0163,REV-4.0,PLM_CLOSED,20260601,20260601,Front End Cap aviation manufacturing business record used for actuator quality t
+164,164,REV-5.0,Rear End Cap 164,DWG-LGACT-0164,REV-5.0,PLM_HOLD,20260602,20260602,Rear End Cap aviation manufacturing business record used for actuator quality tr
+165,165,REV-1.0,Seal Ring Assembly 165,DWG-LGACT-0165,REV-1.0,PLM_OPEN,20260603,20260603,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+166,166,REV-2.0,Trunnion Bushing 166,DWG-LGACT-0166,REV-2.0,PLM_RUNNING,20260604,20260604,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+167,167,REV-3.0,Spherical Bearing 167,DWG-LGACT-0167,REV-3.0,PLM_CLOSED,20260605,20260605,Spherical Bearing aviation manufacturing business record used for actuator quali
+168,168,REV-4.0,Throttle Connector 168,DWG-LGACT-0168,REV-4.0,PLM_HOLD,20260606,20260606,Throttle Connector aviation manufacturing business record used for actuator qual
+169,169,REV-5.0,Displacement Sensor Bracket 169,DWG-LGACT-0169,REV-5.0,PLM_OPEN,20260510,20260510,Displacement Sensor Bracket aviation manufacturing business record used for actu
+170,170,REV-1.0,Locking Nut 170,DWG-LGACT-0170,REV-1.0,PLM_RUNNING,20260511,20260511,Locking Nut aviation manufacturing business record used for actuator quality tra
+171,171,REV-2.0,Piston Rod Assembly 171,DWG-LGACT-0171,REV-2.0,PLM_CLOSED,20260512,20260512,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+172,172,REV-3.0,Cylinder Barrel Assembly 172,DWG-LGACT-0172,REV-3.0,PLM_HOLD,20260513,20260513,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+173,173,REV-4.0,Front End Cap 173,DWG-LGACT-0173,REV-4.0,PLM_OPEN,20260514,20260514,Front End Cap aviation manufacturing business record used for actuator quality t
+174,174,REV-5.0,Rear End Cap 174,DWG-LGACT-0174,REV-5.0,PLM_RUNNING,20260515,20260515,Rear End Cap aviation manufacturing business record used for actuator quality tr
+175,175,REV-1.0,Seal Ring Assembly 175,DWG-LGACT-0175,REV-1.0,PLM_CLOSED,20260516,20260516,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+176,176,REV-2.0,Trunnion Bushing 176,DWG-LGACT-0176,REV-2.0,PLM_HOLD,20260517,20260517,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+177,177,REV-3.0,Spherical Bearing 177,DWG-LGACT-0177,REV-3.0,PLM_OPEN,20260518,20260518,Spherical Bearing aviation manufacturing business record used for actuator quali
+178,178,REV-4.0,Throttle Connector 178,DWG-LGACT-0178,REV-4.0,PLM_RUNNING,20260519,20260519,Throttle Connector aviation manufacturing business record used for actuator qual
+179,179,REV-5.0,Displacement Sensor Bracket 179,DWG-LGACT-0179,REV-5.0,PLM_CLOSED,20260520,20260520,Displacement Sensor Bracket aviation manufacturing business record used for actu
+180,180,REV-1.0,Locking Nut 180,DWG-LGACT-0180,REV-1.0,PLM_HOLD,20260521,20260521,Locking Nut aviation manufacturing business record used for actuator quality tra
+181,181,REV-2.0,Piston Rod Assembly 181,DWG-LGACT-0181,REV-2.0,PLM_OPEN,20260522,20260522,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+182,182,REV-3.0,Cylinder Barrel Assembly 182,DWG-LGACT-0182,REV-3.0,PLM_RUNNING,20260523,20260523,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+183,183,REV-4.0,Front End Cap 183,DWG-LGACT-0183,REV-4.0,PLM_CLOSED,20260524,20260524,Front End Cap aviation manufacturing business record used for actuator quality t
+184,184,REV-5.0,Rear End Cap 184,DWG-LGACT-0184,REV-5.0,PLM_HOLD,20260525,20260525,Rear End Cap aviation manufacturing business record used for actuator quality tr
+185,185,REV-1.0,Seal Ring Assembly 185,DWG-LGACT-0185,REV-1.0,PLM_OPEN,20260526,20260526,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+186,186,REV-2.0,Trunnion Bushing 186,DWG-LGACT-0186,REV-2.0,PLM_RUNNING,20260527,20260527,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+187,187,REV-3.0,Spherical Bearing 187,DWG-LGACT-0187,REV-3.0,PLM_CLOSED,20260528,20260528,Spherical Bearing aviation manufacturing business record used for actuator quali
+188,188,REV-4.0,Throttle Connector 188,DWG-LGACT-0188,REV-4.0,PLM_HOLD,20260529,20260529,Throttle Connector aviation manufacturing business record used for actuator qual
+189,189,REV-5.0,Displacement Sensor Bracket 189,DWG-LGACT-0189,REV-5.0,PLM_OPEN,20260530,20260530,Displacement Sensor Bracket aviation manufacturing business record used for actu
+190,190,REV-1.0,Locking Nut 190,DWG-LGACT-0190,REV-1.0,PLM_RUNNING,20260531,20260531,Locking Nut aviation manufacturing business record used for actuator quality tra
+191,191,REV-2.0,Piston Rod Assembly 191,DWG-LGACT-0191,REV-2.0,PLM_CLOSED,20260601,20260601,Piston Rod Assembly aviation manufacturing business record used for actuator qua
+192,192,REV-3.0,Cylinder Barrel Assembly 192,DWG-LGACT-0192,REV-3.0,PLM_HOLD,20260602,20260602,Cylinder Barrel Assembly aviation manufacturing business record used for actuato
+193,193,REV-4.0,Front End Cap 193,DWG-LGACT-0193,REV-4.0,PLM_OPEN,20260603,20260603,Front End Cap aviation manufacturing business record used for actuator quality t
+194,194,REV-5.0,Rear End Cap 194,DWG-LGACT-0194,REV-5.0,PLM_RUNNING,20260604,20260604,Rear End Cap aviation manufacturing business record used for actuator quality tr
+195,195,REV-1.0,Seal Ring Assembly 195,DWG-LGACT-0195,REV-1.0,PLM_CLOSED,20260605,20260605,Seal Ring Assembly aviation manufacturing business record used for actuator qual
+196,196,REV-2.0,Trunnion Bushing 196,DWG-LGACT-0196,REV-2.0,PLM_HOLD,20260606,20260606,Trunnion Bushing aviation manufacturing business record used for actuator qualit
+197,197,REV-3.0,Spherical Bearing 197,DWG-LGACT-0197,REV-3.0,PLM_OPEN,20260510,20260510,Spherical Bearing aviation manufacturing business record used for actuator quali
+198,198,REV-4.0,Throttle Connector 198,DWG-LGACT-0198,REV-4.0,PLM_RUNNING,20260511,20260511,Throttle Connector aviation manufacturing business record used for actuator qual
+199,199,REV-5.0,Displacement Sensor Bracket 199,DWG-LGACT-0199,REV-5.0,PLM_CLOSED,20260512,20260512,Displacement Sensor Bracket aviation manufacturing business record used for actu
+200,200,REV-1.0,Locking Nut 200,DWG-LGACT-0200,REV-1.0,PLM_HOLD,20260513,20260513,Locking Nut aviation manufacturing business record used for actuator quality tra

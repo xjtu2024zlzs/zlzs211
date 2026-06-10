@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MES,person_info,personnum,personnel,person_no,Direct Copy,simple,
+MES,person_info,personname,personnel,person_name,Direct Copy,simple,
+MES,person_info,workshop,personnel,workshop,Direct Copy,simple,
+MES,person_info,phone,personnel,phone,Direct Copy,simple,
+MES,person_info,jndj,personnel,skill_level,Lookup Normalize,simple,
+MES,person_info,gz,personnel,work_type,Lookup Normalize,simple,
+MES,person_info,deptid,personnel,dept_code,Direct Copy,hard,
+MES,person_info,deptname,personnel,dept_name,Direct Copy,simple,

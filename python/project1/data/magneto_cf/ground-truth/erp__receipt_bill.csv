@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+ERP,receipt_bill,inv_lot_id,receiving_record,inventory_batch_id,Joined Copy,medium,
+ERP,receipt_bill,po_line_id,receiving_record,purchase_order_line_id,Joined Copy,medium,
+ERP,receipt_bill,recv_no,receiving_record,receiving_no,Direct Copy,simple,
+ERP,receipt_bill,recv_time_txt,receiving_record,receiving_date,Rename + Cast,hard,
+ERP,receipt_bill,recv_qty_txt,receiving_record,received_amount,Rename + Cast,hard,
+ERP,receipt_bill,wh_keeper,receiving_record,receiver_name,Direct Copy,hard,
+ERP,receipt_bill,iqc_flag,receiving_record,inspection_required,Rename + Cast,medium,
+ERP,receipt_bill,recv_stat_cd,receiving_record,receiving_status,Lookup Normalize,hard,

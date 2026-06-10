@@ -1,0 +1,11 @@
+﻿operation_definition_id,process_route_id,operation_no,work_no,work_name,work_num,standard_time,required_equipment_type
+1,1,OP020,WO-LG-2026-0001,Cylinder Barrel Rough Machining,2,21.000,NORMAL
+2,2,OP030,WO-LG-2026-0002,Piston Rod Precision Grinding,3,0.080,WARNING
+3,3,OP040,WO-LG-2026-0003,Inner Bore Honing,4,155.000,QUALIFIED
+4,4,OP050,WO-LG-2026-0004,Chrome Plating Layer Grinding,5,4.800,CLOSED
+5,5,OP060,WO-LG-2026-0005,Seal Component Assembly,6,38.000,NORMAL
+6,6,OP070,WO-LG-2026-0006,Actuator Final Assembly,7,0.180,WARNING
+7,7,OP080,WO-LG-2026-0007,Pressure Holding Test,8,21.000,QUALIFIED
+8,8,OP010,WO-LG-2026-0008,Extension and Retraction Function Test,9,0.080,CLOSED
+9,9,OP020,WO-LG-2026-0009,Cylinder Barrel Rough Machining,1,155.000,NORMAL
+10,10,OP030,WO-LG-2026-0010,Piston Rod Precision Grinding,2,4.800,WARNING

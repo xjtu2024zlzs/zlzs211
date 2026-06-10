@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+ERP,issue_bill,inv_lot_id,issue_record,inventory_batch_id,Joined Copy,medium,
+ERP,issue_bill,mo_no,issue_record,work_order_id,Joined Copy,hard,
+ERP,issue_bill,issue_no,issue_record,issue_no,Direct Copy,simple,
+ERP,issue_bill,issue_time_txt,issue_record,issue_date,Rename + Cast,hard,
+ERP,issue_bill,issue_qty_txt,issue_record,issued_amount,Rename + Cast,hard,
+ERP,issue_bill,picker_name,issue_record,issue_person_name,Direct Copy,medium,
+ERP,issue_bill,use_for,issue_record,issue_purpose,Direct Copy,hard,
+ERP,issue_bill,issue_stat_cd,issue_record,issue_status,Lookup Normalize,hard,

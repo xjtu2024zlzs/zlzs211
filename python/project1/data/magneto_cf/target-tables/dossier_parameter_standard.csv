@@ -1,0 +1,11 @@
+﻿parameter_standard_id,operation_definition_id,parameter_code,parameter_name,parameter_unit,standard_value,lower_limit,upper_limit,control_level
+1,1,PAR-HYD-02,Extension and Retraction Pressure,MPA,21.000,19.500,22.500,NORMAL
+2,2,PAR-HYD-03,Pressure Holding Leakage Rate,MM,0.080,0.000,0.150,WARNING
+3,3,PAR-HYD-04,Piston Rod Extension Stroke,ML_MIN,155.000,153.000,157.000,QUALIFIED
+4,4,PAR-HYD-05,Actuation Time,SEC,4.800,4.000,5.500,CLOSED
+5,5,PAR-HYD-06,Hydraulic Oil Temperature,MPA,38.000,20.000,55.000,NORMAL
+6,6,PAR-HYD-01,Locking Clearance,MM,0.180,0.100,0.250,WARNING
+7,7,PAR-HYD-02,Extension and Retraction Pressure,ML_MIN,21.000,19.500,22.500,QUALIFIED
+8,8,PAR-HYD-03,Pressure Holding Leakage Rate,SEC,0.080,0.000,0.150,CLOSED
+9,9,PAR-HYD-04,Piston Rod Extension Stroke,MPA,155.000,153.000,157.000,NORMAL
+10,10,PAR-HYD-05,Actuation Time,MM,4.800,4.000,5.500,WARNING

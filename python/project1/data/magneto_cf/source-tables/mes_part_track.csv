@@ -1,0 +1,201 @@
+﻿track_id,batch_id,partno,part_sn,lotno,jianhao,qcode,source_code,part_state
+1,1,LGACT-PART-002,PIN-2026-0001,LOTNO-0001,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0001,MES_MAKE,MES_OPEN
+2,2,LGACT-PART-003,PIN-2026-0002,LOTNO-0002,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0002,MES_BUY,MES_RUNNING
+3,3,LGACT-PART-004,PIN-2026-0003,LOTNO-0003,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0003,MES_OUTSOURCE,MES_CLOSED
+4,4,LGACT-PART-005,PIN-2026-0004,LOTNO-0004,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0004,MES_REPAIR,MES_HOLD
+5,5,LGACT-PART-006,PIN-2026-0005,LOTNO-0005,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0005,MES_MAKE,MES_OPEN
+6,6,LGACT-PART-007,PIN-2026-0006,LOTNO-0006,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0006,MES_BUY,MES_RUNNING
+7,7,LGACT-PART-008,PIN-2026-0007,LOTNO-0007,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0007,MES_OUTSOURCE,MES_CLOSED
+8,8,LGACT-PART-009,PIN-2026-0008,LOTNO-0008,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0008,MES_REPAIR,MES_HOLD
+9,9,LGACT-PART-010,PIN-2026-0009,LOTNO-0009,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0009,MES_MAKE,MES_OPEN
+10,10,LGACT-PART-011,PIN-2026-0010,LOTNO-0010,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0010,MES_BUY,MES_RUNNING
+11,11,LGACT-PART-012,PIN-2026-0011,LOTNO-0011,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0011,MES_OUTSOURCE,MES_CLOSED
+12,12,LGACT-PART-013,PIN-2026-0012,LOTNO-0012,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0012,MES_REPAIR,MES_HOLD
+13,13,LGACT-PART-014,PIN-2026-0013,LOTNO-0013,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0013,MES_MAKE,MES_OPEN
+14,14,LGACT-PART-015,PIN-2026-0014,LOTNO-0014,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0014,MES_BUY,MES_RUNNING
+15,15,LGACT-PART-016,PIN-2026-0015,LOTNO-0015,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0015,MES_OUTSOURCE,MES_CLOSED
+16,16,LGACT-PART-017,PIN-2026-0016,LOTNO-0016,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0016,MES_REPAIR,MES_HOLD
+17,17,LGACT-PART-018,PIN-2026-0017,LOTNO-0017,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0017,MES_MAKE,MES_OPEN
+18,18,LGACT-PART-019,PIN-2026-0018,LOTNO-0018,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0018,MES_BUY,MES_RUNNING
+19,19,LGACT-PART-020,PIN-2026-0019,LOTNO-0019,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0019,MES_OUTSOURCE,MES_CLOSED
+20,20,LGACT-PART-001,PIN-2026-0020,LOTNO-0020,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0020,MES_REPAIR,MES_HOLD
+21,21,LGACT-PART-002,PIN-2026-0021,LOTNO-0021,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0021,MES_MAKE,MES_OPEN
+22,22,LGACT-PART-003,PIN-2026-0022,LOTNO-0022,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0022,MES_BUY,MES_RUNNING
+23,23,LGACT-PART-004,PIN-2026-0023,LOTNO-0023,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0023,MES_OUTSOURCE,MES_CLOSED
+24,24,LGACT-PART-005,PIN-2026-0024,LOTNO-0024,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0024,MES_REPAIR,MES_HOLD
+25,25,LGACT-PART-006,PIN-2026-0025,LOTNO-0025,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0025,MES_MAKE,MES_OPEN
+26,26,LGACT-PART-007,PIN-2026-0026,LOTNO-0026,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0026,MES_BUY,MES_RUNNING
+27,27,LGACT-PART-008,PIN-2026-0027,LOTNO-0027,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0027,MES_OUTSOURCE,MES_CLOSED
+28,28,LGACT-PART-009,PIN-2026-0028,LOTNO-0028,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0028,MES_REPAIR,MES_HOLD
+29,29,LGACT-PART-010,PIN-2026-0029,LOTNO-0029,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0029,MES_MAKE,MES_OPEN
+30,30,LGACT-PART-011,PIN-2026-0030,LOTNO-0030,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0030,MES_BUY,MES_RUNNING
+31,31,LGACT-PART-012,PIN-2026-0031,LOTNO-0031,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0031,MES_OUTSOURCE,MES_CLOSED
+32,32,LGACT-PART-013,PIN-2026-0032,LOTNO-0032,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0032,MES_REPAIR,MES_HOLD
+33,33,LGACT-PART-014,PIN-2026-0033,LOTNO-0033,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0033,MES_MAKE,MES_OPEN
+34,34,LGACT-PART-015,PIN-2026-0034,LOTNO-0034,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0034,MES_BUY,MES_RUNNING
+35,35,LGACT-PART-016,PIN-2026-0035,LOTNO-0035,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0035,MES_OUTSOURCE,MES_CLOSED
+36,36,LGACT-PART-017,PIN-2026-0036,LOTNO-0036,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0036,MES_REPAIR,MES_HOLD
+37,37,LGACT-PART-018,PIN-2026-0037,LOTNO-0037,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0037,MES_MAKE,MES_OPEN
+38,38,LGACT-PART-019,PIN-2026-0038,LOTNO-0038,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0038,MES_BUY,MES_RUNNING
+39,39,LGACT-PART-020,PIN-2026-0039,LOTNO-0039,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0039,MES_OUTSOURCE,MES_CLOSED
+40,40,LGACT-PART-001,PIN-2026-0040,LOTNO-0040,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0040,MES_REPAIR,MES_HOLD
+41,41,LGACT-PART-002,PIN-2026-0041,LOTNO-0041,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0041,MES_MAKE,MES_OPEN
+42,42,LGACT-PART-003,PIN-2026-0042,LOTNO-0042,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0042,MES_BUY,MES_RUNNING
+43,43,LGACT-PART-004,PIN-2026-0043,LOTNO-0043,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0043,MES_OUTSOURCE,MES_CLOSED
+44,44,LGACT-PART-005,PIN-2026-0044,LOTNO-0044,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0044,MES_REPAIR,MES_HOLD
+45,45,LGACT-PART-006,PIN-2026-0045,LOTNO-0045,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0045,MES_MAKE,MES_OPEN
+46,46,LGACT-PART-007,PIN-2026-0046,LOTNO-0046,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0046,MES_BUY,MES_RUNNING
+47,47,LGACT-PART-008,PIN-2026-0047,LOTNO-0047,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0047,MES_OUTSOURCE,MES_CLOSED
+48,48,LGACT-PART-009,PIN-2026-0048,LOTNO-0048,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0048,MES_REPAIR,MES_HOLD
+49,49,LGACT-PART-010,PIN-2026-0049,LOTNO-0049,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0049,MES_MAKE,MES_OPEN
+50,50,LGACT-PART-011,PIN-2026-0050,LOTNO-0050,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0050,MES_BUY,MES_RUNNING
+51,51,LGACT-PART-012,PIN-2026-0051,LOTNO-0051,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0051,MES_OUTSOURCE,MES_CLOSED
+52,52,LGACT-PART-013,PIN-2026-0052,LOTNO-0052,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0052,MES_REPAIR,MES_HOLD
+53,53,LGACT-PART-014,PIN-2026-0053,LOTNO-0053,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0053,MES_MAKE,MES_OPEN
+54,54,LGACT-PART-015,PIN-2026-0054,LOTNO-0054,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0054,MES_BUY,MES_RUNNING
+55,55,LGACT-PART-016,PIN-2026-0055,LOTNO-0055,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0055,MES_OUTSOURCE,MES_CLOSED
+56,56,LGACT-PART-017,PIN-2026-0056,LOTNO-0056,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0056,MES_REPAIR,MES_HOLD
+57,57,LGACT-PART-018,PIN-2026-0057,LOTNO-0057,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0057,MES_MAKE,MES_OPEN
+58,58,LGACT-PART-019,PIN-2026-0058,LOTNO-0058,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0058,MES_BUY,MES_RUNNING
+59,59,LGACT-PART-020,PIN-2026-0059,LOTNO-0059,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0059,MES_OUTSOURCE,MES_CLOSED
+60,60,LGACT-PART-001,PIN-2026-0060,LOTNO-0060,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0060,MES_REPAIR,MES_HOLD
+61,61,LGACT-PART-002,PIN-2026-0061,LOTNO-0061,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0061,MES_MAKE,MES_OPEN
+62,62,LGACT-PART-003,PIN-2026-0062,LOTNO-0062,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0062,MES_BUY,MES_RUNNING
+63,63,LGACT-PART-004,PIN-2026-0063,LOTNO-0063,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0063,MES_OUTSOURCE,MES_CLOSED
+64,64,LGACT-PART-005,PIN-2026-0064,LOTNO-0064,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0064,MES_REPAIR,MES_HOLD
+65,65,LGACT-PART-006,PIN-2026-0065,LOTNO-0065,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0065,MES_MAKE,MES_OPEN
+66,66,LGACT-PART-007,PIN-2026-0066,LOTNO-0066,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0066,MES_BUY,MES_RUNNING
+67,67,LGACT-PART-008,PIN-2026-0067,LOTNO-0067,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0067,MES_OUTSOURCE,MES_CLOSED
+68,68,LGACT-PART-009,PIN-2026-0068,LOTNO-0068,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0068,MES_REPAIR,MES_HOLD
+69,69,LGACT-PART-010,PIN-2026-0069,LOTNO-0069,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0069,MES_MAKE,MES_OPEN
+70,70,LGACT-PART-011,PIN-2026-0070,LOTNO-0070,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0070,MES_BUY,MES_RUNNING
+71,71,LGACT-PART-012,PIN-2026-0071,LOTNO-0071,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0071,MES_OUTSOURCE,MES_CLOSED
+72,72,LGACT-PART-013,PIN-2026-0072,LOTNO-0072,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0072,MES_REPAIR,MES_HOLD
+73,73,LGACT-PART-014,PIN-2026-0073,LOTNO-0073,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0073,MES_MAKE,MES_OPEN
+74,74,LGACT-PART-015,PIN-2026-0074,LOTNO-0074,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0074,MES_BUY,MES_RUNNING
+75,75,LGACT-PART-016,PIN-2026-0075,LOTNO-0075,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0075,MES_OUTSOURCE,MES_CLOSED
+76,76,LGACT-PART-017,PIN-2026-0076,LOTNO-0076,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0076,MES_REPAIR,MES_HOLD
+77,77,LGACT-PART-018,PIN-2026-0077,LOTNO-0077,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0077,MES_MAKE,MES_OPEN
+78,78,LGACT-PART-019,PIN-2026-0078,LOTNO-0078,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0078,MES_BUY,MES_RUNNING
+79,79,LGACT-PART-020,PIN-2026-0079,LOTNO-0079,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0079,MES_OUTSOURCE,MES_CLOSED
+80,80,LGACT-PART-001,PIN-2026-0080,LOTNO-0080,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0080,MES_REPAIR,MES_HOLD
+81,81,LGACT-PART-002,PIN-2026-0081,LOTNO-0081,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0081,MES_MAKE,MES_OPEN
+82,82,LGACT-PART-003,PIN-2026-0082,LOTNO-0082,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0082,MES_BUY,MES_RUNNING
+83,83,LGACT-PART-004,PIN-2026-0083,LOTNO-0083,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0083,MES_OUTSOURCE,MES_CLOSED
+84,84,LGACT-PART-005,PIN-2026-0084,LOTNO-0084,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0084,MES_REPAIR,MES_HOLD
+85,85,LGACT-PART-006,PIN-2026-0085,LOTNO-0085,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0085,MES_MAKE,MES_OPEN
+86,86,LGACT-PART-007,PIN-2026-0086,LOTNO-0086,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0086,MES_BUY,MES_RUNNING
+87,87,LGACT-PART-008,PIN-2026-0087,LOTNO-0087,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0087,MES_OUTSOURCE,MES_CLOSED
+88,88,LGACT-PART-009,PIN-2026-0088,LOTNO-0088,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0088,MES_REPAIR,MES_HOLD
+89,89,LGACT-PART-010,PIN-2026-0089,LOTNO-0089,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0089,MES_MAKE,MES_OPEN
+90,90,LGACT-PART-011,PIN-2026-0090,LOTNO-0090,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0090,MES_BUY,MES_RUNNING
+91,91,LGACT-PART-012,PIN-2026-0091,LOTNO-0091,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0091,MES_OUTSOURCE,MES_CLOSED
+92,92,LGACT-PART-013,PIN-2026-0092,LOTNO-0092,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0092,MES_REPAIR,MES_HOLD
+93,93,LGACT-PART-014,PIN-2026-0093,LOTNO-0093,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0093,MES_MAKE,MES_OPEN
+94,94,LGACT-PART-015,PIN-2026-0094,LOTNO-0094,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0094,MES_BUY,MES_RUNNING
+95,95,LGACT-PART-016,PIN-2026-0095,LOTNO-0095,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0095,MES_OUTSOURCE,MES_CLOSED
+96,96,LGACT-PART-017,PIN-2026-0096,LOTNO-0096,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0096,MES_REPAIR,MES_HOLD
+97,97,LGACT-PART-018,PIN-2026-0097,LOTNO-0097,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0097,MES_MAKE,MES_OPEN
+98,98,LGACT-PART-019,PIN-2026-0098,LOTNO-0098,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0098,MES_BUY,MES_RUNNING
+99,99,LGACT-PART-020,PIN-2026-0099,LOTNO-0099,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0099,MES_OUTSOURCE,MES_CLOSED
+100,100,LGACT-PART-001,PIN-2026-0100,LOTNO-0100,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0100,MES_REPAIR,MES_HOLD
+101,101,LGACT-PART-002,PIN-2026-0101,LOTNO-0101,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0101,MES_MAKE,MES_OPEN
+102,102,LGACT-PART-003,PIN-2026-0102,LOTNO-0102,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0102,MES_BUY,MES_RUNNING
+103,103,LGACT-PART-004,PIN-2026-0103,LOTNO-0103,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0103,MES_OUTSOURCE,MES_CLOSED
+104,104,LGACT-PART-005,PIN-2026-0104,LOTNO-0104,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0104,MES_REPAIR,MES_HOLD
+105,105,LGACT-PART-006,PIN-2026-0105,LOTNO-0105,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0105,MES_MAKE,MES_OPEN
+106,106,LGACT-PART-007,PIN-2026-0106,LOTNO-0106,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0106,MES_BUY,MES_RUNNING
+107,107,LGACT-PART-008,PIN-2026-0107,LOTNO-0107,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0107,MES_OUTSOURCE,MES_CLOSED
+108,108,LGACT-PART-009,PIN-2026-0108,LOTNO-0108,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0108,MES_REPAIR,MES_HOLD
+109,109,LGACT-PART-010,PIN-2026-0109,LOTNO-0109,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0109,MES_MAKE,MES_OPEN
+110,110,LGACT-PART-011,PIN-2026-0110,LOTNO-0110,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0110,MES_BUY,MES_RUNNING
+111,111,LGACT-PART-012,PIN-2026-0111,LOTNO-0111,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0111,MES_OUTSOURCE,MES_CLOSED
+112,112,LGACT-PART-013,PIN-2026-0112,LOTNO-0112,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0112,MES_REPAIR,MES_HOLD
+113,113,LGACT-PART-014,PIN-2026-0113,LOTNO-0113,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0113,MES_MAKE,MES_OPEN
+114,114,LGACT-PART-015,PIN-2026-0114,LOTNO-0114,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0114,MES_BUY,MES_RUNNING
+115,115,LGACT-PART-016,PIN-2026-0115,LOTNO-0115,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0115,MES_OUTSOURCE,MES_CLOSED
+116,116,LGACT-PART-017,PIN-2026-0116,LOTNO-0116,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0116,MES_REPAIR,MES_HOLD
+117,117,LGACT-PART-018,PIN-2026-0117,LOTNO-0117,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0117,MES_MAKE,MES_OPEN
+118,118,LGACT-PART-019,PIN-2026-0118,LOTNO-0118,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0118,MES_BUY,MES_RUNNING
+119,119,LGACT-PART-020,PIN-2026-0119,LOTNO-0119,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0119,MES_OUTSOURCE,MES_CLOSED
+120,120,LGACT-PART-001,PIN-2026-0120,LOTNO-0120,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0120,MES_REPAIR,MES_HOLD
+121,121,LGACT-PART-002,PIN-2026-0121,LOTNO-0121,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0121,MES_MAKE,MES_OPEN
+122,122,LGACT-PART-003,PIN-2026-0122,LOTNO-0122,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0122,MES_BUY,MES_RUNNING
+123,123,LGACT-PART-004,PIN-2026-0123,LOTNO-0123,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0123,MES_OUTSOURCE,MES_CLOSED
+124,124,LGACT-PART-005,PIN-2026-0124,LOTNO-0124,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0124,MES_REPAIR,MES_HOLD
+125,125,LGACT-PART-006,PIN-2026-0125,LOTNO-0125,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0125,MES_MAKE,MES_OPEN
+126,126,LGACT-PART-007,PIN-2026-0126,LOTNO-0126,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0126,MES_BUY,MES_RUNNING
+127,127,LGACT-PART-008,PIN-2026-0127,LOTNO-0127,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0127,MES_OUTSOURCE,MES_CLOSED
+128,128,LGACT-PART-009,PIN-2026-0128,LOTNO-0128,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0128,MES_REPAIR,MES_HOLD
+129,129,LGACT-PART-010,PIN-2026-0129,LOTNO-0129,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0129,MES_MAKE,MES_OPEN
+130,130,LGACT-PART-011,PIN-2026-0130,LOTNO-0130,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0130,MES_BUY,MES_RUNNING
+131,131,LGACT-PART-012,PIN-2026-0131,LOTNO-0131,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0131,MES_OUTSOURCE,MES_CLOSED
+132,132,LGACT-PART-013,PIN-2026-0132,LOTNO-0132,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0132,MES_REPAIR,MES_HOLD
+133,133,LGACT-PART-014,PIN-2026-0133,LOTNO-0133,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0133,MES_MAKE,MES_OPEN
+134,134,LGACT-PART-015,PIN-2026-0134,LOTNO-0134,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0134,MES_BUY,MES_RUNNING
+135,135,LGACT-PART-016,PIN-2026-0135,LOTNO-0135,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0135,MES_OUTSOURCE,MES_CLOSED
+136,136,LGACT-PART-017,PIN-2026-0136,LOTNO-0136,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0136,MES_REPAIR,MES_HOLD
+137,137,LGACT-PART-018,PIN-2026-0137,LOTNO-0137,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0137,MES_MAKE,MES_OPEN
+138,138,LGACT-PART-019,PIN-2026-0138,LOTNO-0138,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0138,MES_BUY,MES_RUNNING
+139,139,LGACT-PART-020,PIN-2026-0139,LOTNO-0139,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0139,MES_OUTSOURCE,MES_CLOSED
+140,140,LGACT-PART-001,PIN-2026-0140,LOTNO-0140,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0140,MES_REPAIR,MES_HOLD
+141,141,LGACT-PART-002,PIN-2026-0141,LOTNO-0141,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0141,MES_MAKE,MES_OPEN
+142,142,LGACT-PART-003,PIN-2026-0142,LOTNO-0142,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0142,MES_BUY,MES_RUNNING
+143,143,LGACT-PART-004,PIN-2026-0143,LOTNO-0143,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0143,MES_OUTSOURCE,MES_CLOSED
+144,144,LGACT-PART-005,PIN-2026-0144,LOTNO-0144,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0144,MES_REPAIR,MES_HOLD
+145,145,LGACT-PART-006,PIN-2026-0145,LOTNO-0145,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0145,MES_MAKE,MES_OPEN
+146,146,LGACT-PART-007,PIN-2026-0146,LOTNO-0146,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0146,MES_BUY,MES_RUNNING
+147,147,LGACT-PART-008,PIN-2026-0147,LOTNO-0147,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0147,MES_OUTSOURCE,MES_CLOSED
+148,148,LGACT-PART-009,PIN-2026-0148,LOTNO-0148,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0148,MES_REPAIR,MES_HOLD
+149,149,LGACT-PART-010,PIN-2026-0149,LOTNO-0149,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0149,MES_MAKE,MES_OPEN
+150,150,LGACT-PART-011,PIN-2026-0150,LOTNO-0150,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0150,MES_BUY,MES_RUNNING
+151,151,LGACT-PART-012,PIN-2026-0151,LOTNO-0151,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0151,MES_OUTSOURCE,MES_CLOSED
+152,152,LGACT-PART-013,PIN-2026-0152,LOTNO-0152,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0152,MES_REPAIR,MES_HOLD
+153,153,LGACT-PART-014,PIN-2026-0153,LOTNO-0153,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0153,MES_MAKE,MES_OPEN
+154,154,LGACT-PART-015,PIN-2026-0154,LOTNO-0154,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0154,MES_BUY,MES_RUNNING
+155,155,LGACT-PART-016,PIN-2026-0155,LOTNO-0155,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0155,MES_OUTSOURCE,MES_CLOSED
+156,156,LGACT-PART-017,PIN-2026-0156,LOTNO-0156,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0156,MES_REPAIR,MES_HOLD
+157,157,LGACT-PART-018,PIN-2026-0157,LOTNO-0157,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0157,MES_MAKE,MES_OPEN
+158,158,LGACT-PART-019,PIN-2026-0158,LOTNO-0158,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0158,MES_BUY,MES_RUNNING
+159,159,LGACT-PART-020,PIN-2026-0159,LOTNO-0159,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0159,MES_OUTSOURCE,MES_CLOSED
+160,160,LGACT-PART-001,PIN-2026-0160,LOTNO-0160,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0160,MES_REPAIR,MES_HOLD
+161,161,LGACT-PART-002,PIN-2026-0161,LOTNO-0161,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0161,MES_MAKE,MES_OPEN
+162,162,LGACT-PART-003,PIN-2026-0162,LOTNO-0162,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0162,MES_BUY,MES_RUNNING
+163,163,LGACT-PART-004,PIN-2026-0163,LOTNO-0163,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0163,MES_OUTSOURCE,MES_CLOSED
+164,164,LGACT-PART-005,PIN-2026-0164,LOTNO-0164,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0164,MES_REPAIR,MES_HOLD
+165,165,LGACT-PART-006,PIN-2026-0165,LOTNO-0165,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0165,MES_MAKE,MES_OPEN
+166,166,LGACT-PART-007,PIN-2026-0166,LOTNO-0166,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0166,MES_BUY,MES_RUNNING
+167,167,LGACT-PART-008,PIN-2026-0167,LOTNO-0167,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0167,MES_OUTSOURCE,MES_CLOSED
+168,168,LGACT-PART-009,PIN-2026-0168,LOTNO-0168,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0168,MES_REPAIR,MES_HOLD
+169,169,LGACT-PART-010,PIN-2026-0169,LOTNO-0169,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0169,MES_MAKE,MES_OPEN
+170,170,LGACT-PART-011,PIN-2026-0170,LOTNO-0170,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0170,MES_BUY,MES_RUNNING
+171,171,LGACT-PART-012,PIN-2026-0171,LOTNO-0171,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0171,MES_OUTSOURCE,MES_CLOSED
+172,172,LGACT-PART-013,PIN-2026-0172,LOTNO-0172,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0172,MES_REPAIR,MES_HOLD
+173,173,LGACT-PART-014,PIN-2026-0173,LOTNO-0173,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0173,MES_MAKE,MES_OPEN
+174,174,LGACT-PART-015,PIN-2026-0174,LOTNO-0174,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0174,MES_BUY,MES_RUNNING
+175,175,LGACT-PART-016,PIN-2026-0175,LOTNO-0175,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0175,MES_OUTSOURCE,MES_CLOSED
+176,176,LGACT-PART-017,PIN-2026-0176,LOTNO-0176,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0176,MES_REPAIR,MES_HOLD
+177,177,LGACT-PART-018,PIN-2026-0177,LOTNO-0177,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0177,MES_MAKE,MES_OPEN
+178,178,LGACT-PART-019,PIN-2026-0178,LOTNO-0178,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0178,MES_BUY,MES_RUNNING
+179,179,LGACT-PART-020,PIN-2026-0179,LOTNO-0179,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0179,MES_OUTSOURCE,MES_CLOSED
+180,180,LGACT-PART-001,PIN-2026-0180,LOTNO-0180,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0180,MES_REPAIR,MES_HOLD
+181,181,LGACT-PART-002,PIN-2026-0181,LOTNO-0181,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0181,MES_MAKE,MES_OPEN
+182,182,LGACT-PART-003,PIN-2026-0182,LOTNO-0182,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0182,MES_BUY,MES_RUNNING
+183,183,LGACT-PART-004,PIN-2026-0183,LOTNO-0183,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0183,MES_OUTSOURCE,MES_CLOSED
+184,184,LGACT-PART-005,PIN-2026-0184,LOTNO-0184,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0184,MES_REPAIR,MES_HOLD
+185,185,LGACT-PART-006,PIN-2026-0185,LOTNO-0185,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0185,MES_MAKE,MES_OPEN
+186,186,LGACT-PART-007,PIN-2026-0186,LOTNO-0186,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0186,MES_BUY,MES_RUNNING
+187,187,LGACT-PART-008,PIN-2026-0187,LOTNO-0187,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0187,MES_OUTSOURCE,MES_CLOSED
+188,188,LGACT-PART-009,PIN-2026-0188,LOTNO-0188,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0188,MES_REPAIR,MES_HOLD
+189,189,LGACT-PART-010,PIN-2026-0189,LOTNO-0189,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0189,MES_MAKE,MES_OPEN
+190,190,LGACT-PART-011,PIN-2026-0190,LOTNO-0190,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0190,MES_BUY,MES_RUNNING
+191,191,LGACT-PART-012,PIN-2026-0191,LOTNO-0191,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0191,MES_OUTSOURCE,MES_CLOSED
+192,192,LGACT-PART-013,PIN-2026-0192,LOTNO-0192,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0192,MES_REPAIR,MES_HOLD
+193,193,LGACT-PART-014,PIN-2026-0193,LOTNO-0193,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0193,MES_MAKE,MES_OPEN
+194,194,LGACT-PART-015,PIN-2026-0194,LOTNO-0194,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0194,MES_BUY,MES_RUNNING
+195,195,LGACT-PART-016,PIN-2026-0195,LOTNO-0195,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0195,MES_OUTSOURCE,MES_CLOSED
+196,196,LGACT-PART-017,PIN-2026-0196,LOTNO-0196,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0196,MES_REPAIR,MES_HOLD
+197,197,LGACT-PART-018,PIN-2026-0197,LOTNO-0197,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0197,MES_MAKE,MES_OPEN
+198,198,LGACT-PART-019,PIN-2026-0198,LOTNO-0198,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0198,MES_BUY,MES_RUNNING
+199,199,LGACT-PART-020,PIN-2026-0199,LOTNO-0199,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0199,MES_OUTSOURCE,MES_CLOSED
+200,200,LGACT-PART-001,PIN-2026-0200,LOTNO-0200,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0200,MES_REPAIR,MES_HOLD

@@ -1,0 +1,8 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+QMS,recheck_record,disposal_order_id,reinspection_record,disposition_record_id,Joined Copy,medium,
+QMS,recheck_record,inspection_doc_id,reinspection_record,inspection_record_id,Joined Copy,medium,
+QMS,recheck_record,inspector_no,reinspection_record,inspector_id,Joined Copy,medium,
+QMS,recheck_record,recheck_no,reinspection_record,reinspection_no,Direct Copy,simple,
+QMS,recheck_record,recheck_date_text,reinspection_record,reinspection_date,Rename + Cast,simple,
+QMS,recheck_record,recheck_result_code,reinspection_record,reinspection_result,Lookup Normalize,simple,
+QMS,recheck_record,conclusion_desc,reinspection_record,conclusion_desc,Direct Copy,medium,
