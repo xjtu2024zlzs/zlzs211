@@ -1,0 +1,11 @@
+﻿process_route_id,component_type_id,part_definition_id,design_version_id,route_code,route_name,route_type,doc_version,release_status,created_at,updated_at
+1,1,1,1,RT-LGACT-0001,Piston Rod Assembly Manufacturing Process Route,NORMAL,REV-2.0,NORMAL,2026-05-09 08:07:00,2026-05-09 08:07:00
+2,2,2,2,RT-LGACT-0002,Cylinder Barrel Assembly Manufacturing Process Route,WARNING,REV-3.0,WARNING,2026-05-10 08:14:00,2026-05-10 08:14:00
+3,3,3,3,RT-LGACT-0003,Front End Cap Manufacturing Process Route,QUALIFIED,REV-4.0,QUALIFIED,2026-05-11 08:21:00,2026-05-11 08:21:00
+4,4,4,4,RT-LGACT-0004,Rear End Cap Manufacturing Process Route,CLOSED,REV-5.0,CLOSED,2026-05-12 08:28:00,2026-05-12 08:28:00
+5,5,5,5,RT-LGACT-0005,Seal Ring Assembly Manufacturing Process Route,NORMAL,REV-1.0,NORMAL,2026-05-13 08:35:00,2026-05-13 08:35:00
+6,6,6,6,RT-LGACT-0006,Trunnion Bushing Manufacturing Process Route,WARNING,REV-2.0,WARNING,2026-05-14 08:42:00,2026-05-14 08:42:00
+7,7,7,7,RT-LGACT-0007,Spherical Bearing Manufacturing Process Route,QUALIFIED,REV-3.0,QUALIFIED,2026-05-15 08:49:00,2026-05-15 08:49:00
+8,8,8,8,RT-LGACT-0008,Throttle Connector Manufacturing Process Route,CLOSED,REV-4.0,CLOSED,2026-05-16 08:56:00,2026-05-16 08:56:00
+9,9,9,9,RT-LGACT-0009,Displacement Sensor Bracket Manufacturing Process Route,NORMAL,REV-5.0,NORMAL,2026-05-17 09:03:00,2026-05-17 09:03:00
+10,10,10,10,RT-LGACT-0010,Locking Nut Manufacturing Process Route,WARNING,REV-1.0,WARNING,2026-05-18 09:10:00,2026-05-18 09:10:00

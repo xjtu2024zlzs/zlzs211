@@ -1,0 +1,10 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MRO,service_event,event_no,maintenance_event,event_no,Direct Copy,simple,
+MRO,service_event,component_serial_no,maintenance_event,component_instance_id,Joined Copy,medium,
+MRO,service_event,install_pos_code,maintenance_event,installed_position_id,Joined Copy,medium,
+MRO,service_event,service_time_text,maintenance_event,service_date,Rename + Cast,medium,
+MRO,service_event,event_kind_code,maintenance_event,event_type,Lookup Normalize,medium,
+MRO,service_event,service_unit_code,maintenance_event,service_unit_code,Direct Copy,simple,
+MRO,service_event,service_unit_name,maintenance_event,service_unit_name,Direct Copy,simple,
+MRO,service_event,evt_state,maintenance_event,event_status,Lookup Normalize,medium,
+MRO,service_event,install_pos_code,installed_position,position_code,Direct Copy,hard,

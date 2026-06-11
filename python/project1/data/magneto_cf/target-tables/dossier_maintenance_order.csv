@@ -1,0 +1,11 @@
+﻿maintenance_order_id,maintenance_event_id,component_instance_id,work_order_id,maintenance_order_no,task_name,plan_start_time,plan_finish_time,order_status,report_person_name
+1,1,1,1,WO-LG-2026-0001,Piston Rod Assembly 001,2026-05-09 08:07:00,2026-05-09 08:07:00,NORMAL,Field feedback reported Chrome Plating Scratch on Piston Rod; the maintenance record has been linked
+2,2,2,2,WO-LG-2026-0002,Cylinder Barrel Assembly 002,2026-05-10 08:14:00,2026-05-10 08:14:00,WARNING,Field feedback reported Seal Ring Compression Damage; the maintenance record has been linked to the 
+3,3,3,3,WO-LG-2026-0003,Front End Cap 003,2026-05-11 08:21:00,2026-05-11 08:21:00,QUALIFIED,Field feedback reported Scratch on Cylinder Barrel Inner Wall; the maintenance record has been linke
+4,4,4,4,WO-LG-2026-0004,Rear End Cap 004,2026-05-12 08:28:00,2026-05-12 08:28:00,CLOSED,Field feedback reported Pressure Holding Leakage Rate Out of Tolerance; the maintenance record has b
+5,5,5,5,WO-LG-2026-0005,Seal Ring Assembly 005,2026-05-13 08:35:00,2026-05-13 08:35:00,NORMAL,Field feedback reported Actuation Hysteresis; the maintenance record has been linked to the replaced
+6,6,6,6,WO-LG-2026-0006,Trunnion Bushing 006,2026-05-14 08:42:00,2026-05-14 08:42:00,WARNING,Field feedback reported Minor Leakage at Hydraulic Fitting; the maintenance record has been linked t
+7,7,7,7,WO-LG-2026-0007,Spherical Bearing 007,2026-05-15 08:49:00,2026-05-15 08:49:00,QUALIFIED,Field feedback reported Excessive Trunnion Bushing Clearance; the maintenance record has been linked
+8,8,8,8,WO-LG-2026-0008,Throttle Connector 008,2026-05-16 08:56:00,2026-05-16 08:56:00,CLOSED,Field feedback reported Loose Displacement Sensor Bracket; the maintenance record has been linked to
+9,9,9,9,WO-LG-2026-0009,Displacement Sensor Bracket 009,2026-05-17 09:03:00,2026-05-17 09:03:00,NORMAL,Field feedback reported Chrome Plating Scratch on Piston Rod; the maintenance record has been linked
+10,10,10,10,WO-LG-2026-0010,Locking Nut 010,2026-05-18 09:10:00,2026-05-18 09:10:00,WARNING,Field feedback reported Seal Ring Compression Damage; the maintenance record has been linked to the 

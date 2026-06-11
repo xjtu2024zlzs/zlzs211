@@ -1,0 +1,11 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+PLM,gear_system_def,product_model_id,landing_gear_system,upper_equipment_id,Joined Copy,medium,
+PLM,gear_system_def,sys_code,landing_gear_system,system_code,Direct Copy,simple,
+PLM,gear_system_def,sys_name,landing_gear_system,system_name,Direct Copy,simple,
+PLM,gear_system_def,install_zone,landing_gear_system,system_position,Lookup Normalize,hard,
+PLM,gear_system_def,tech_status_cd,landing_gear_system,technical_status,Lookup Normalize,medium,
+PLM,gear_system_def,gear_system_def_id,installed_position,landing_gear_system_id,Joined Copy,medium,
+PLM,gear_system_def,install_zone,installed_position,position_code,Direct Copy,hard,
+PLM,gear_system_def,sys_name,installed_position,position_name,Direct Copy,medium,
+PLM,gear_system_def,side_mark,installed_position,side_code,Lookup Normalize,medium,
+PLM,gear_system_def,station_no,installed_position,station_no,Direct Copy,medium,设计站位号直接作为装机位置站位号

@@ -38,18 +38,18 @@
           clearable
           filterable
           style="width: 260px"
-          @change="loadResultVisual"
+          @change="handleResultSetChange"
         >
           <el-option v-for="item in resultSetOptions" :key="item.resultSetId" :label="resultSetLabel(item)" :value="item.resultSetId" />
         </el-select>
       </el-form-item>
       <el-form-item label="审核状态" prop="reviewStatus">
-        <el-select v-model="queryParams.reviewStatus" placeholder="全部" style="width: 140px" @change="loadReviewRows">
+        <el-select v-model="queryParams.reviewStatus" placeholder="全部" style="width: 140px" @change="handleReviewFilterChange">
           <el-option v-for="item in reviewStatusOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="审核人" prop="reviewedBy">
-        <el-select v-model="queryParams.reviewedBy" placeholder="全部" clearable style="width: 140px" @change="loadReviewRows">
+        <el-select v-model="queryParams.reviewedBy" placeholder="全部" clearable style="width: 140px" @change="handleReviewFilterChange">
           <el-option label="全部" value="all" />
           <el-option label="系统自动" value="system" />
           <el-option label="当前用户" :value="currentReviewer" />
@@ -87,7 +87,7 @@
 
     <el-table
       v-loading="loading"
-      :data="reviewRows"
+      :data="pagedReviewRows"
       @selection-change="handleSelectionChange"
       border
       class="compact-table"
@@ -157,7 +157,56 @@
       </el-table-column>
     </el-table>
 
-    <el-card class="mt16" shadow="never">
+    <pagination
+      v-show="total > 0"
+      :total="total"
+      v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize"
+      @pagination="handlePagination"
+    />
+
+    <el-card class="mt16 metric-visual-card" shadow="never">
+      <template #header>
+        <div class="card-header">
+          <span>评估指标可视化</span>
+          <span class="muted" v-if="metricPayload.resultDir">运行目录：{{ metricPayload.resultDir }}</span>
+        </div>
+      </template>
+      <el-row :gutter="16">
+        <el-col :xs="24" :sm="24" :lg="13">
+          <div class="metric-panel">
+            <div class="metric-panel-title">候选结果集 F1 对比</div>
+            <div v-if="candidateRows.length" class="candidate-list">
+              <div v-for="item in candidateRows" :key="item.resultSetId" class="candidate-row">
+                <div class="candidate-name">{{ item.label }}</div>
+                <div class="candidate-score">{{ formatMetricValue(item.f1Score) }}</div>
+                <div class="candidate-track">
+                  <div
+                    class="candidate-bar"
+                    :class="{ current: item.isCurrent, all: item.variant === 'all' }"
+                    :style="{ width: item.barPercent + '%' }"
+                  />
+                </div>
+              </div>
+            </div>
+            <el-empty v-else description="暂无候选结果集指标" :image-size="80" />
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="24" :lg="11">
+          <div class="metric-panel">
+            <div class="metric-panel-title">当前结果集指标</div>
+            <div class="metric-card-grid">
+              <div class="metric-card" v-for="metric in metricCards" :key="metric.key || metric.label">
+                <div class="metric-value">{{ formatMetricValue(metric.value) }}</div>
+                <div class="metric-label">{{ metric.label }}</div>
+              </div>
+            </div>
+          </div>
+        </el-col>
+      </el-row>
+    </el-card>
+
+    <el-card v-if="false" class="mt16" shadow="never">
       <template #header>
         <div class="card-header">
           <span>评估指标可视化</span>
@@ -248,7 +297,15 @@ const recordOptions = ref([])
 const resultSetOptions = ref([])
 const reviewRows = ref([])
 const selectedRows = ref([])
-const metricPayload = ref({ cards: [], scoreDistribution: [], targetDistribution: [] })
+const total = ref(0)
+const emptyMetricPayload = () => ({
+  currentCards: [],
+  cards: [],
+  candidateF1Comparison: [],
+  scoreDistribution: [],
+  targetDistribution: []
+})
+const metricPayload = ref(emptyMetricPayload())
 const detailOpen = ref(false)
 const detailRow = ref({})
 const historyOpen = ref(false)
@@ -260,7 +317,9 @@ const queryParams = reactive({
   recordId: undefined,
   resultSetId: undefined,
   reviewStatus: 'all',
-  reviewedBy: 'all'
+  reviewedBy: 'all',
+  pageNum: 1,
+  pageSize: 10
 })
 
 const reviewStatusOptions = [
@@ -271,17 +330,70 @@ const reviewStatusOptions = [
   { label: '审核未通过', value: 'rejected' }
 ]
 
-const metricCards = computed(() => metricPayload.value.cards || [])
+const metricCards = computed(() => metricPayload.value.currentCards || metricPayload.value.cards || [])
+
+const candidateRows = computed(() => {
+  const rows = (metricPayload.value.candidateF1Comparison || []).filter(item => !isPresetResultSet(item))
+  const maxScore = rows.reduce((max, row) => {
+    const value = Number(row.f1Score ?? row.value ?? 0)
+    return Number.isNaN(value) ? max : Math.max(max, value)
+  }, 0)
+  return rows.map(row => {
+    const score = Number(row.f1Score ?? row.value ?? 0)
+    return {
+      ...row,
+      f1Score: row.f1Score ?? row.value,
+      barPercent: maxScore > 0 && !Number.isNaN(score) ? Math.round((score / maxScore) * 100) : 0
+    }
+  })
+})
+
+const pagedReviewRows = computed(() => {
+  const pageNum = Number(queryParams.pageNum || 1)
+  const pageSize = Number(queryParams.pageSize || 10)
+  const start = (pageNum - 1) * pageSize
+  return reviewRows.value.slice(start, start + pageSize)
+})
 
 const scoreChartOption = computed(() => {
   const rows = metricPayload.value.scoreDistribution || []
-  return buildBarOption(rows.map(item => item.label), rows.map(item => Number(item.value || 0)), false)
+  return buildBarOption(rows.map(chartLabel), rows.map(chartValue), false)
 })
 
 const targetChartOption = computed(() => {
   const rows = metricPayload.value.targetDistribution || []
-  return buildBarOption(rows.map(item => item.label), rows.map(item => Number(item.value || 0)), true)
+  return buildBarOption(rows.map(chartLabel), rows.map(chartValue), true)
 })
+
+function chartLabel(item) {
+  if (!item) {
+    return '-'
+  }
+  return item.label || item.targetTable || item.target_table || item.name || item.key || '-'
+}
+
+function chartValue(item) {
+  if (!item) {
+    return 0
+  }
+  const value = item.value ?? item.count ?? item.total ?? 0
+  return Number(value || 0)
+}
+
+function resetReviewPage() {
+  queryParams.pageNum = 1
+  selectedRows.value = []
+}
+
+function isPresetResultSet(item) {
+  if (!item) {
+    return false
+  }
+  const method = String(item.method || '').toLowerCase()
+  const variant = String(item.variant || '').toLowerCase()
+  const remark = String(item.remark || '')
+  return method === 'groundtruth' || variant === 'preset' || remark.includes('[PRESET_EXECUTABLE]')
+}
 
 onMounted(() => {
   loadTasks()
@@ -303,11 +415,13 @@ function loadResultSetOptions() {
     params.recordId = queryParams.recordId
   }
   return listMatchResult(params).then(response => {
-    resultSetOptions.value = response.rows || []
+    resultSetOptions.value = (response.rows || []).filter(item => !isPresetResultSet(item))
     if (!resultSetOptions.value.length) {
       queryParams.resultSetId = undefined
       reviewRows.value = []
-      metricPayload.value = { cards: [], scoreDistribution: [], targetDistribution: [] }
+      total.value = 0
+      selectedRows.value = []
+      metricPayload.value = emptyMetricPayload()
       return
     }
     const current = resultSetOptions.value.find(item => item.resultSetId === queryParams.resultSetId)
@@ -320,6 +434,7 @@ function loadResultSetOptions() {
 }
 
 function handleTaskChange(taskId) {
+  resetReviewPage()
   queryParams.recordId = undefined
   queryParams.resultSetId = undefined
   recordOptions.value = []
@@ -333,11 +448,23 @@ function handleTaskChange(taskId) {
 }
 
 function handleRecordChange() {
+  resetReviewPage()
   queryParams.resultSetId = undefined
   loadResultSetOptions()
 }
 
+function handleResultSetChange() {
+  resetReviewPage()
+  loadResultVisual()
+}
+
+function handleReviewFilterChange() {
+  resetReviewPage()
+  loadReviewRows()
+}
+
 function handleQuery() {
+  resetReviewPage()
   if (queryParams.resultSetId) {
     loadResultVisual()
   } else {
@@ -346,6 +473,7 @@ function handleQuery() {
 }
 
 function resetQuery() {
+  resetReviewPage()
   queryParams.taskId = undefined
   queryParams.recordId = undefined
   queryParams.resultSetId = undefined
@@ -358,7 +486,9 @@ function resetQuery() {
 function loadResultVisual() {
   if (!queryParams.resultSetId) {
     reviewRows.value = []
-    metricPayload.value = { cards: [], scoreDistribution: [], targetDistribution: [] }
+    total.value = 0
+    selectedRows.value = []
+    metricPayload.value = emptyMetricPayload()
     return
   }
   loading.value = true
@@ -370,6 +500,8 @@ function loadResultVisual() {
 function loadReviewRows() {
   if (!queryParams.resultSetId) {
     reviewRows.value = []
+    total.value = 0
+    selectedRows.value = []
     return Promise.resolve()
   }
   return getMatchResultDetail(queryParams.resultSetId, {
@@ -377,6 +509,8 @@ function loadReviewRows() {
     reviewedBy: queryParams.reviewedBy
   }).then(response => {
     reviewRows.value = response.data?.rows || []
+    total.value = reviewRows.value.length
+    selectedRows.value = []
   })
 }
 
@@ -385,12 +519,16 @@ function loadMetrics() {
     return Promise.resolve()
   }
   return getMatchResultMetrics(queryParams.resultSetId).then(response => {
-    metricPayload.value = response.data || { cards: [], scoreDistribution: [], targetDistribution: [] }
+    metricPayload.value = response.data || emptyMetricPayload()
   })
 }
 
 function handleSelectionChange(selection) {
   selectedRows.value = selection || []
+}
+
+function handlePagination() {
+  selectedRows.value = []
 }
 
 function handleSetDefault() {
@@ -533,7 +671,7 @@ function formatScore(value) {
   if (value === null || value === undefined || value === '') {
     return '-'
   }
-  return Number(value).toFixed(2)
+  return Number(value).toFixed(3)
 }
 
 function formatMetricValue(value) {
@@ -603,18 +741,90 @@ function buildBarOption(labels, values, horizontal) {
   font-size: 12px;
 }
 
+.metric-visual-card :deep(.el-card__body) {
+  padding: 16px 20px 18px;
+}
+
+.metric-panel {
+  min-height: 270px;
+  padding: 18px 22px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.metric-panel-title {
+  margin-bottom: 18px;
+  color: #303133;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.candidate-row {
+  display: grid;
+  grid-template-columns: 160px 58px minmax(180px, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.candidate-name {
+  color: #606266;
+  line-height: 18px;
+  word-break: break-word;
+}
+
+.candidate-score {
+  color: #303133;
+  font-weight: 600;
+  text-align: right;
+}
+
+.candidate-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf2f7;
+}
+
+.candidate-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: #409eff;
+}
+
+.candidate-bar.all {
+  background: #e6a23c;
+}
+
+.candidate-bar.current {
+  background: #409eff;
+}
+
+.metric-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
 .metric-card {
   border: 1px solid #ebeef5;
   border-radius: 4px;
-  padding: 14px 16px;
-  background: #fff;
+  min-height: 96px;
+  padding: 20px 22px;
+  background: #fafafa;
 }
 
 .metric-value {
   color: #303133;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 600;
-  line-height: 30px;
+  line-height: 34px;
 }
 
 .metric-label {
@@ -625,5 +835,26 @@ function buildBarOption(labels, values, horizontal) {
 
 .chart-card {
   height: 292px;
+}
+
+@media (max-width: 1200px) {
+  .candidate-row {
+    grid-template-columns: 130px 52px minmax(140px, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .candidate-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .candidate-score {
+    text-align: left;
+  }
+
+  .metric-card-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

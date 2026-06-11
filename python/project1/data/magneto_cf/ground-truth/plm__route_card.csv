@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+PLM,route_card,actuator_model_id,process_route,component_type_id,Joined Copy,medium,
+PLM,route_card,part_master_id,process_route,part_definition_id,Joined Copy,medium,
+PLM,route_card,design_revision_id,process_route,design_version_id,Joined Copy,medium,
+PLM,route_card,route_no,process_route,route_code,Direct Copy,simple,
+PLM,route_card,route_name,process_route,route_name,Direct Copy,simple,
+PLM,route_card,route_class_cd,process_route,route_type,Lookup Normalize,hard,
+PLM,route_card,proc_doc_rev,process_route,doc_version,Direct Copy,simple,
+PLM,route_card,release_state_cd,process_route,release_status,Lookup Normalize,medium,

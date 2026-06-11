@@ -1,0 +1,11 @@
+﻿equipment_id,workstation_id,equipment_no,equipment_name,equipment_num,equipment_type,status_code,color_flag,created_at
+1,1,EQ-CF-0001,Hydraulic Integrated Test Bench,2,NORMAL,NORMAL,Piston Rod Assembly aviation manufacturing busines,2026-05-09 08:07:00
+2,2,EQ-CF-0002,CNC Cylindrical Grinder,3,WARNING,WARNING,Cylinder Barrel Assembly aviation manufacturing bu,2026-05-10 08:14:00
+3,3,EQ-CF-0003,Inner Bore Honing Machine,4,QUALIFIED,QUALIFIED,Front End Cap aviation manufacturing business reco,2026-05-11 08:21:00
+4,4,EQ-CF-0004,Chrome Plating Thickness Gauge,5,CLOSED,CLOSED,Rear End Cap aviation manufacturing business recor,2026-05-12 08:28:00
+5,5,EQ-CF-0005,Coordinate Measuring Machine,6,NORMAL,NORMAL,Seal Ring Assembly aviation manufacturing business,2026-05-13 08:35:00
+6,6,EQ-CF-0006,Seal Assembly Press,7,WARNING,WARNING,Trunnion Bushing aviation manufacturing business r,2026-05-14 08:42:00
+7,7,EQ-CF-0007,Hydraulic Pulse Test Bench,8,QUALIFIED,QUALIFIED,Spherical Bearing aviation manufacturing business ,2026-05-15 08:49:00
+8,8,EQ-CF-0008,Ultrasonic Cleaning Machine,9,CLOSED,CLOSED,Throttle Connector aviation manufacturing business,2026-05-16 08:56:00
+9,9,EQ-CF-0009,Hydraulic Integrated Test Bench,1,NORMAL,NORMAL,Displacement Sensor Bracket aviation manufacturing,2026-05-17 09:03:00
+10,10,EQ-CF-0010,CNC Cylindrical Grinder,2,WARNING,WARNING,Locking Nut aviation manufacturing business record,2026-05-18 09:10:00

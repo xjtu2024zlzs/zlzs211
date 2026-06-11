@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+ERP,purchase_line,po_id,purchase_order_line,purchase_order_id,Joined Copy,simple,
+ERP,purchase_line,item_id,purchase_order_line,material_id,Joined Copy,simple,
+ERP,purchase_line,line_seq,purchase_order_line,line_no,Rename + Cast,simple,
+ERP,purchase_line,req_qty_txt,purchase_order_line,amount,Rename + Cast,hard,
+ERP,purchase_line,order_uom,purchase_order_line,unit,Lookup Normalize,simple,
+ERP,purchase_line,need_dt_char,purchase_order_line,required_date,Rename + Cast,simple,
+ERP,purchase_line,dlv_dt_txt,purchase_order_line,delivery_date,Rename + Cast,medium,
+ERP,purchase_line,line_stat_cd,purchase_order_line,line_status,Lookup Normalize,hard,

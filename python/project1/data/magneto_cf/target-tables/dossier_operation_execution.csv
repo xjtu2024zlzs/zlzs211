@@ -1,0 +1,11 @@
+﻿operation_execution_id,work_order_id,operation_definition_id,component_instance_id,part_instance_id,workstation_id,equipment_id,op_no,work_no,work_name,start_time,finish_time,execution_status
+1,1,1,1,1,1,1,OP020,WO-LG-2026-0001,Cylinder Barrel Rough Machining,2026-05-09 08:07:00,2026-05-09 08:07:00,COMPLETED
+2,2,2,2,2,2,2,OP030,WO-LG-2026-0002,Piston Rod Precision Grinding,2026-05-10 08:14:00,2026-05-10 08:14:00,RUNNING
+3,3,3,3,3,3,3,OP040,WO-LG-2026-0003,Inner Bore Honing,2026-05-11 08:21:00,2026-05-11 08:21:00,HOLD
+4,4,4,4,4,4,4,OP050,WO-LG-2026-0004,Chrome Plating Layer Grinding,2026-05-12 08:28:00,2026-05-12 08:28:00,REWORK
+5,5,5,5,5,5,5,OP060,WO-LG-2026-0005,Seal Component Assembly,2026-05-13 08:35:00,2026-05-13 08:35:00,COMPLETED
+6,6,6,6,6,6,6,OP070,WO-LG-2026-0006,Actuator Final Assembly,2026-05-14 08:42:00,2026-05-14 08:42:00,RUNNING
+7,7,7,7,7,7,7,OP080,WO-LG-2026-0007,Pressure Holding Test,2026-05-15 08:49:00,2026-05-15 08:49:00,HOLD
+8,8,8,8,8,8,8,OP010,WO-LG-2026-0008,Extension and Retraction Function Test,2026-05-16 08:56:00,2026-05-16 08:56:00,REWORK
+9,9,9,9,9,9,9,OP020,WO-LG-2026-0009,Cylinder Barrel Rough Machining,2026-05-17 09:03:00,2026-05-17 09:03:00,COMPLETED
+10,10,10,10,10,10,10,OP030,WO-LG-2026-0010,Piston Rod Precision Grinding,2026-05-18 09:10:00,2026-05-18 09:10:00,RUNNING

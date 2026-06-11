@@ -1,0 +1,11 @@
+﻿material_id,material_code,material_name,material_type,trademark,material_spec,unit,purchased_flag,created_at,updated_at
+1,MAT-LG-0001,Piston Rod Assembly,NORMAL,ERP_A,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,EA,True,2026-05-09 08:07:00,2026-05-09 08:07:00
+2,MAT-LG-0002,Cylinder Barrel Assembly,WARNING,ERP_B,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceability.,SET,True,2026-05-10 08:14:00,2026-05-10 08:14:00
+3,MAT-LG-0003,Front End Cap,QUALIFIED,ERP_C,Front End Cap aviation manufacturing business record used for actuator quality traceability.,KG,False,2026-05-11 08:21:00,2026-05-11 08:21:00
+4,MAT-LG-0004,Rear End Cap,CLOSED,ERP_D,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,M,True,2026-05-12 08:28:00,2026-05-12 08:28:00
+5,MAT-LG-0005,Seal Ring Assembly,NORMAL,ERP_A,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,EA,True,2026-05-13 08:35:00,2026-05-13 08:35:00
+6,MAT-LG-0006,Trunnion Bushing,WARNING,ERP_B,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,SET,False,2026-05-14 08:42:00,2026-05-14 08:42:00
+7,MAT-LG-0007,Spherical Bearing,QUALIFIED,ERP_C,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,KG,True,2026-05-15 08:49:00,2026-05-15 08:49:00
+8,MAT-LG-0008,Throttle Connector,CLOSED,ERP_D,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,M,True,2026-05-16 08:56:00,2026-05-16 08:56:00
+9,MAT-LG-0009,Displacement Sensor Bracket,NORMAL,ERP_A,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceability.,EA,False,2026-05-17 09:03:00,2026-05-17 09:03:00
+10,MAT-LG-0010,Locking Nut,WARNING,ERP_B,Locking Nut aviation manufacturing business record used for actuator quality traceability.,SET,True,2026-05-18 09:10:00,2026-05-18 09:10:00

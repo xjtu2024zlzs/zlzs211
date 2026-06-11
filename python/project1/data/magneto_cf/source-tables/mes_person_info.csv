@@ -1,0 +1,201 @@
+﻿person_id,station_id,personnum,personname,workshop,phone,jndj,gz,deptid,deptname
+1,1,PERS-0001,Zhang Jiancheng,Machining Section 1,13800000001,MES_A,MES_MAKE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 001
+2,2,PERS-0002,Li Hang,Precision Grinding Section,13800000002,MES_B,MES_BUY,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 002
+3,3,PERS-0003,Wang Lijun,Hydraulic Assembly Section,13800000003,MES_C,MES_ASSEMBLY,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 003
+4,4,PERS-0004,Zhao Min,Pressure Test Section,13800000004,MES_D,MES_SERVICE,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 004
+5,5,PERS-0005,Chen Gong,Final Inspection Section,13800000005,MES_A,MES_MAKE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 005
+6,6,PERS-0006,Liu Xiaofeng,Repair Processing Section,13800000006,MES_B,MES_BUY,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 006
+7,7,PERS-0007,Zhou Qian,Machining Section 1,13800000007,MES_C,MES_ASSEMBLY,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 007
+8,8,PERS-0008,Huang Zhiqiang,Precision Grinding Section,13800000008,MES_D,MES_SERVICE,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 008
+9,9,PERS-0009,Sun Wei,Hydraulic Assembly Section,13800000009,MES_A,MES_MAKE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 009
+10,10,PERS-0010,Ma Rui,Pressure Test Section,13800000010,MES_B,MES_BUY,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 010
+11,11,PERS-0011,Zhang Jiancheng,Final Inspection Section,13800000011,MES_C,MES_ASSEMBLY,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 011
+12,12,PERS-0012,Li Hang,Repair Processing Section,13800000012,MES_D,MES_SERVICE,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 012
+13,13,PERS-0013,Wang Lijun,Machining Section 1,13800000013,MES_A,MES_MAKE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 013
+14,14,PERS-0014,Zhao Min,Precision Grinding Section,13800000014,MES_B,MES_BUY,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 014
+15,15,PERS-0015,Chen Gong,Hydraulic Assembly Section,13800000015,MES_C,MES_ASSEMBLY,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 015
+16,16,PERS-0016,Liu Xiaofeng,Pressure Test Section,13800000016,MES_D,MES_SERVICE,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 016
+17,17,PERS-0017,Zhou Qian,Final Inspection Section,13800000017,MES_A,MES_MAKE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 017
+18,18,PERS-0018,Huang Zhiqiang,Repair Processing Section,13800000018,MES_B,MES_BUY,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 018
+19,19,PERS-0019,Sun Wei,Machining Section 1,13800000019,MES_C,MES_ASSEMBLY,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 019
+20,20,PERS-0020,Ma Rui,Precision Grinding Section,13800000020,MES_D,MES_SERVICE,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 020
+21,21,PERS-0021,Zhang Jiancheng,Hydraulic Assembly Section,13800000021,MES_A,MES_MAKE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 021
+22,22,PERS-0022,Li Hang,Pressure Test Section,13800000022,MES_B,MES_BUY,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 022
+23,23,PERS-0023,Wang Lijun,Final Inspection Section,13800000023,MES_C,MES_ASSEMBLY,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 023
+24,24,PERS-0024,Zhao Min,Repair Processing Section,13800000024,MES_D,MES_SERVICE,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 024
+25,25,PERS-0025,Chen Gong,Machining Section 1,13800000025,MES_A,MES_MAKE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 025
+26,26,PERS-0026,Liu Xiaofeng,Precision Grinding Section,13800000026,MES_B,MES_BUY,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 026
+27,27,PERS-0027,Zhou Qian,Hydraulic Assembly Section,13800000027,MES_C,MES_ASSEMBLY,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 027
+28,28,PERS-0028,Huang Zhiqiang,Pressure Test Section,13800000028,MES_D,MES_SERVICE,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 028
+29,29,PERS-0029,Sun Wei,Final Inspection Section,13800000029,MES_A,MES_MAKE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 029
+30,30,PERS-0030,Ma Rui,Repair Processing Section,13800000030,MES_B,MES_BUY,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 030
+31,31,PERS-0031,Zhang Jiancheng,Machining Section 1,13800000031,MES_C,MES_ASSEMBLY,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 031
+32,32,PERS-0032,Li Hang,Precision Grinding Section,13800000032,MES_D,MES_SERVICE,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 032
+33,33,PERS-0033,Wang Lijun,Hydraulic Assembly Section,13800000033,MES_A,MES_MAKE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 033
+34,34,PERS-0034,Zhao Min,Pressure Test Section,13800000034,MES_B,MES_BUY,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 034
+35,35,PERS-0035,Chen Gong,Final Inspection Section,13800000035,MES_C,MES_ASSEMBLY,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 035
+36,36,PERS-0036,Liu Xiaofeng,Repair Processing Section,13800000036,MES_D,MES_SERVICE,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 036
+37,37,PERS-0037,Zhou Qian,Machining Section 1,13800000037,MES_A,MES_MAKE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 037
+38,38,PERS-0038,Huang Zhiqiang,Precision Grinding Section,13800000038,MES_B,MES_BUY,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 038
+39,39,PERS-0039,Sun Wei,Hydraulic Assembly Section,13800000039,MES_C,MES_ASSEMBLY,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 039
+40,40,PERS-0040,Ma Rui,Pressure Test Section,13800000040,MES_D,MES_SERVICE,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 040
+41,41,PERS-0041,Zhang Jiancheng,Final Inspection Section,13800000041,MES_A,MES_MAKE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 041
+42,42,PERS-0042,Li Hang,Repair Processing Section,13800000042,MES_B,MES_BUY,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 042
+43,43,PERS-0043,Wang Lijun,Machining Section 1,13800000043,MES_C,MES_ASSEMBLY,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 043
+44,44,PERS-0044,Zhao Min,Precision Grinding Section,13800000044,MES_D,MES_SERVICE,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 044
+45,45,PERS-0045,Chen Gong,Hydraulic Assembly Section,13800000045,MES_A,MES_MAKE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 045
+46,46,PERS-0046,Liu Xiaofeng,Pressure Test Section,13800000046,MES_B,MES_BUY,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 046
+47,47,PERS-0047,Zhou Qian,Final Inspection Section,13800000047,MES_C,MES_ASSEMBLY,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 047
+48,48,PERS-0048,Huang Zhiqiang,Repair Processing Section,13800000048,MES_D,MES_SERVICE,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 048
+49,49,PERS-0049,Sun Wei,Machining Section 1,13800000049,MES_A,MES_MAKE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 049
+50,50,PERS-0050,Ma Rui,Precision Grinding Section,13800000050,MES_B,MES_BUY,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 050
+51,51,PERS-0051,Zhang Jiancheng,Hydraulic Assembly Section,13800000051,MES_C,MES_ASSEMBLY,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 051
+52,52,PERS-0052,Li Hang,Pressure Test Section,13800000052,MES_D,MES_SERVICE,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 052
+53,53,PERS-0053,Wang Lijun,Final Inspection Section,13800000053,MES_A,MES_MAKE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 053
+54,54,PERS-0054,Zhao Min,Repair Processing Section,13800000054,MES_B,MES_BUY,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 054
+55,55,PERS-0055,Chen Gong,Machining Section 1,13800000055,MES_C,MES_ASSEMBLY,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 055
+56,56,PERS-0056,Liu Xiaofeng,Precision Grinding Section,13800000056,MES_D,MES_SERVICE,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 056
+57,57,PERS-0057,Zhou Qian,Hydraulic Assembly Section,13800000057,MES_A,MES_MAKE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 057
+58,58,PERS-0058,Huang Zhiqiang,Pressure Test Section,13800000058,MES_B,MES_BUY,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 058
+59,59,PERS-0059,Sun Wei,Final Inspection Section,13800000059,MES_C,MES_ASSEMBLY,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 059
+60,60,PERS-0060,Ma Rui,Repair Processing Section,13800000060,MES_D,MES_SERVICE,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 060
+61,61,PERS-0061,Zhang Jiancheng,Machining Section 1,13800000061,MES_A,MES_MAKE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 061
+62,62,PERS-0062,Li Hang,Precision Grinding Section,13800000062,MES_B,MES_BUY,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 062
+63,63,PERS-0063,Wang Lijun,Hydraulic Assembly Section,13800000063,MES_C,MES_ASSEMBLY,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 063
+64,64,PERS-0064,Zhao Min,Pressure Test Section,13800000064,MES_D,MES_SERVICE,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 064
+65,65,PERS-0065,Chen Gong,Final Inspection Section,13800000065,MES_A,MES_MAKE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 065
+66,66,PERS-0066,Liu Xiaofeng,Repair Processing Section,13800000066,MES_B,MES_BUY,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 066
+67,67,PERS-0067,Zhou Qian,Machining Section 1,13800000067,MES_C,MES_ASSEMBLY,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 067
+68,68,PERS-0068,Huang Zhiqiang,Precision Grinding Section,13800000068,MES_D,MES_SERVICE,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 068
+69,69,PERS-0069,Sun Wei,Hydraulic Assembly Section,13800000069,MES_A,MES_MAKE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 069
+70,70,PERS-0070,Ma Rui,Pressure Test Section,13800000070,MES_B,MES_BUY,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 070
+71,71,PERS-0071,Zhang Jiancheng,Final Inspection Section,13800000071,MES_C,MES_ASSEMBLY,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 071
+72,72,PERS-0072,Li Hang,Repair Processing Section,13800000072,MES_D,MES_SERVICE,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 072
+73,73,PERS-0073,Wang Lijun,Machining Section 1,13800000073,MES_A,MES_MAKE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 073
+74,74,PERS-0074,Zhao Min,Precision Grinding Section,13800000074,MES_B,MES_BUY,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 074
+75,75,PERS-0075,Chen Gong,Hydraulic Assembly Section,13800000075,MES_C,MES_ASSEMBLY,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 075
+76,76,PERS-0076,Liu Xiaofeng,Pressure Test Section,13800000076,MES_D,MES_SERVICE,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 076
+77,77,PERS-0077,Zhou Qian,Final Inspection Section,13800000077,MES_A,MES_MAKE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 077
+78,78,PERS-0078,Huang Zhiqiang,Repair Processing Section,13800000078,MES_B,MES_BUY,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 078
+79,79,PERS-0079,Sun Wei,Machining Section 1,13800000079,MES_C,MES_ASSEMBLY,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 079
+80,80,PERS-0080,Ma Rui,Precision Grinding Section,13800000080,MES_D,MES_SERVICE,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 080
+81,81,PERS-0081,Zhang Jiancheng,Hydraulic Assembly Section,13800000081,MES_A,MES_MAKE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 081
+82,82,PERS-0082,Li Hang,Pressure Test Section,13800000082,MES_B,MES_BUY,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 082
+83,83,PERS-0083,Wang Lijun,Final Inspection Section,13800000083,MES_C,MES_ASSEMBLY,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 083
+84,84,PERS-0084,Zhao Min,Repair Processing Section,13800000084,MES_D,MES_SERVICE,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 084
+85,85,PERS-0085,Chen Gong,Machining Section 1,13800000085,MES_A,MES_MAKE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 085
+86,86,PERS-0086,Liu Xiaofeng,Precision Grinding Section,13800000086,MES_B,MES_BUY,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 086
+87,87,PERS-0087,Zhou Qian,Hydraulic Assembly Section,13800000087,MES_C,MES_ASSEMBLY,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 087
+88,88,PERS-0088,Huang Zhiqiang,Pressure Test Section,13800000088,MES_D,MES_SERVICE,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 088
+89,89,PERS-0089,Sun Wei,Final Inspection Section,13800000089,MES_A,MES_MAKE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 089
+90,90,PERS-0090,Ma Rui,Repair Processing Section,13800000090,MES_B,MES_BUY,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 090
+91,91,PERS-0091,Zhang Jiancheng,Machining Section 1,13800000091,MES_C,MES_ASSEMBLY,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 091
+92,92,PERS-0092,Li Hang,Precision Grinding Section,13800000092,MES_D,MES_SERVICE,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 092
+93,93,PERS-0093,Wang Lijun,Hydraulic Assembly Section,13800000093,MES_A,MES_MAKE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 093
+94,94,PERS-0094,Zhao Min,Pressure Test Section,13800000094,MES_B,MES_BUY,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 094
+95,95,PERS-0095,Chen Gong,Final Inspection Section,13800000095,MES_C,MES_ASSEMBLY,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 095
+96,96,PERS-0096,Liu Xiaofeng,Repair Processing Section,13800000096,MES_D,MES_SERVICE,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 096
+97,97,PERS-0097,Zhou Qian,Machining Section 1,13800000097,MES_A,MES_MAKE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 097
+98,98,PERS-0098,Huang Zhiqiang,Precision Grinding Section,13800000098,MES_B,MES_BUY,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 098
+99,99,PERS-0099,Sun Wei,Hydraulic Assembly Section,13800000099,MES_C,MES_ASSEMBLY,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 099
+100,100,PERS-0100,Ma Rui,Pressure Test Section,13800000100,MES_D,MES_SERVICE,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 100
+101,101,PERS-0101,Zhang Jiancheng,Final Inspection Section,13800000101,MES_A,MES_MAKE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 101
+102,102,PERS-0102,Li Hang,Repair Processing Section,13800000102,MES_B,MES_BUY,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 102
+103,103,PERS-0103,Wang Lijun,Machining Section 1,13800000103,MES_C,MES_ASSEMBLY,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 103
+104,104,PERS-0104,Zhao Min,Precision Grinding Section,13800000104,MES_D,MES_SERVICE,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 104
+105,105,PERS-0105,Chen Gong,Hydraulic Assembly Section,13800000105,MES_A,MES_MAKE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 105
+106,106,PERS-0106,Liu Xiaofeng,Pressure Test Section,13800000106,MES_B,MES_BUY,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 106
+107,107,PERS-0107,Zhou Qian,Final Inspection Section,13800000107,MES_C,MES_ASSEMBLY,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 107
+108,108,PERS-0108,Huang Zhiqiang,Repair Processing Section,13800000108,MES_D,MES_SERVICE,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 108
+109,109,PERS-0109,Sun Wei,Machining Section 1,13800000109,MES_A,MES_MAKE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 109
+110,110,PERS-0110,Ma Rui,Precision Grinding Section,13800000110,MES_B,MES_BUY,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 110
+111,111,PERS-0111,Zhang Jiancheng,Hydraulic Assembly Section,13800000111,MES_C,MES_ASSEMBLY,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 111
+112,112,PERS-0112,Li Hang,Pressure Test Section,13800000112,MES_D,MES_SERVICE,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 112
+113,113,PERS-0113,Wang Lijun,Final Inspection Section,13800000113,MES_A,MES_MAKE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 113
+114,114,PERS-0114,Zhao Min,Repair Processing Section,13800000114,MES_B,MES_BUY,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 114
+115,115,PERS-0115,Chen Gong,Machining Section 1,13800000115,MES_C,MES_ASSEMBLY,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 115
+116,116,PERS-0116,Liu Xiaofeng,Precision Grinding Section,13800000116,MES_D,MES_SERVICE,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 116
+117,117,PERS-0117,Zhou Qian,Hydraulic Assembly Section,13800000117,MES_A,MES_MAKE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 117
+118,118,PERS-0118,Huang Zhiqiang,Pressure Test Section,13800000118,MES_B,MES_BUY,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 118
+119,119,PERS-0119,Sun Wei,Final Inspection Section,13800000119,MES_C,MES_ASSEMBLY,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 119
+120,120,PERS-0120,Ma Rui,Repair Processing Section,13800000120,MES_D,MES_SERVICE,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 120
+121,121,PERS-0121,Zhang Jiancheng,Machining Section 1,13800000121,MES_A,MES_MAKE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 121
+122,122,PERS-0122,Li Hang,Precision Grinding Section,13800000122,MES_B,MES_BUY,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 122
+123,123,PERS-0123,Wang Lijun,Hydraulic Assembly Section,13800000123,MES_C,MES_ASSEMBLY,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 123
+124,124,PERS-0124,Zhao Min,Pressure Test Section,13800000124,MES_D,MES_SERVICE,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 124
+125,125,PERS-0125,Chen Gong,Final Inspection Section,13800000125,MES_A,MES_MAKE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 125
+126,126,PERS-0126,Liu Xiaofeng,Repair Processing Section,13800000126,MES_B,MES_BUY,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 126
+127,127,PERS-0127,Zhou Qian,Machining Section 1,13800000127,MES_C,MES_ASSEMBLY,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 127
+128,128,PERS-0128,Huang Zhiqiang,Precision Grinding Section,13800000128,MES_D,MES_SERVICE,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 128
+129,129,PERS-0129,Sun Wei,Hydraulic Assembly Section,13800000129,MES_A,MES_MAKE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 129
+130,130,PERS-0130,Ma Rui,Pressure Test Section,13800000130,MES_B,MES_BUY,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 130
+131,131,PERS-0131,Zhang Jiancheng,Final Inspection Section,13800000131,MES_C,MES_ASSEMBLY,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 131
+132,132,PERS-0132,Li Hang,Repair Processing Section,13800000132,MES_D,MES_SERVICE,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 132
+133,133,PERS-0133,Wang Lijun,Machining Section 1,13800000133,MES_A,MES_MAKE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 133
+134,134,PERS-0134,Zhao Min,Precision Grinding Section,13800000134,MES_B,MES_BUY,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 134
+135,135,PERS-0135,Chen Gong,Hydraulic Assembly Section,13800000135,MES_C,MES_ASSEMBLY,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 135
+136,136,PERS-0136,Liu Xiaofeng,Pressure Test Section,13800000136,MES_D,MES_SERVICE,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 136
+137,137,PERS-0137,Zhou Qian,Final Inspection Section,13800000137,MES_A,MES_MAKE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 137
+138,138,PERS-0138,Huang Zhiqiang,Repair Processing Section,13800000138,MES_B,MES_BUY,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 138
+139,139,PERS-0139,Sun Wei,Machining Section 1,13800000139,MES_C,MES_ASSEMBLY,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 139
+140,140,PERS-0140,Ma Rui,Precision Grinding Section,13800000140,MES_D,MES_SERVICE,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 140
+141,141,PERS-0141,Zhang Jiancheng,Hydraulic Assembly Section,13800000141,MES_A,MES_MAKE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 141
+142,142,PERS-0142,Li Hang,Pressure Test Section,13800000142,MES_B,MES_BUY,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 142
+143,143,PERS-0143,Wang Lijun,Final Inspection Section,13800000143,MES_C,MES_ASSEMBLY,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 143
+144,144,PERS-0144,Zhao Min,Repair Processing Section,13800000144,MES_D,MES_SERVICE,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 144
+145,145,PERS-0145,Chen Gong,Machining Section 1,13800000145,MES_A,MES_MAKE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 145
+146,146,PERS-0146,Liu Xiaofeng,Precision Grinding Section,13800000146,MES_B,MES_BUY,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 146
+147,147,PERS-0147,Zhou Qian,Hydraulic Assembly Section,13800000147,MES_C,MES_ASSEMBLY,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 147
+148,148,PERS-0148,Huang Zhiqiang,Pressure Test Section,13800000148,MES_D,MES_SERVICE,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 148
+149,149,PERS-0149,Sun Wei,Final Inspection Section,13800000149,MES_A,MES_MAKE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 149
+150,150,PERS-0150,Ma Rui,Repair Processing Section,13800000150,MES_B,MES_BUY,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 150
+151,151,PERS-0151,Zhang Jiancheng,Machining Section 1,13800000151,MES_C,MES_ASSEMBLY,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 151
+152,152,PERS-0152,Li Hang,Precision Grinding Section,13800000152,MES_D,MES_SERVICE,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 152
+153,153,PERS-0153,Wang Lijun,Hydraulic Assembly Section,13800000153,MES_A,MES_MAKE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 153
+154,154,PERS-0154,Zhao Min,Pressure Test Section,13800000154,MES_B,MES_BUY,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 154
+155,155,PERS-0155,Chen Gong,Final Inspection Section,13800000155,MES_C,MES_ASSEMBLY,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 155
+156,156,PERS-0156,Liu Xiaofeng,Repair Processing Section,13800000156,MES_D,MES_SERVICE,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 156
+157,157,PERS-0157,Zhou Qian,Machining Section 1,13800000157,MES_A,MES_MAKE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 157
+158,158,PERS-0158,Huang Zhiqiang,Precision Grinding Section,13800000158,MES_B,MES_BUY,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 158
+159,159,PERS-0159,Sun Wei,Hydraulic Assembly Section,13800000159,MES_C,MES_ASSEMBLY,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 159
+160,160,PERS-0160,Ma Rui,Pressure Test Section,13800000160,MES_D,MES_SERVICE,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 160
+161,161,PERS-0161,Zhang Jiancheng,Final Inspection Section,13800000161,MES_A,MES_MAKE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 161
+162,162,PERS-0162,Li Hang,Repair Processing Section,13800000162,MES_B,MES_BUY,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 162
+163,163,PERS-0163,Wang Lijun,Machining Section 1,13800000163,MES_C,MES_ASSEMBLY,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 163
+164,164,PERS-0164,Zhao Min,Precision Grinding Section,13800000164,MES_D,MES_SERVICE,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 164
+165,165,PERS-0165,Chen Gong,Hydraulic Assembly Section,13800000165,MES_A,MES_MAKE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 165
+166,166,PERS-0166,Liu Xiaofeng,Pressure Test Section,13800000166,MES_B,MES_BUY,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 166
+167,167,PERS-0167,Zhou Qian,Final Inspection Section,13800000167,MES_C,MES_ASSEMBLY,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 167
+168,168,PERS-0168,Huang Zhiqiang,Repair Processing Section,13800000168,MES_D,MES_SERVICE,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 168
+169,169,PERS-0169,Sun Wei,Machining Section 1,13800000169,MES_A,MES_MAKE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 169
+170,170,PERS-0170,Ma Rui,Precision Grinding Section,13800000170,MES_B,MES_BUY,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 170
+171,171,PERS-0171,Zhang Jiancheng,Hydraulic Assembly Section,13800000171,MES_C,MES_ASSEMBLY,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 171
+172,172,PERS-0172,Li Hang,Pressure Test Section,13800000172,MES_D,MES_SERVICE,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 172
+173,173,PERS-0173,Wang Lijun,Final Inspection Section,13800000173,MES_A,MES_MAKE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 173
+174,174,PERS-0174,Zhao Min,Repair Processing Section,13800000174,MES_B,MES_BUY,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 174
+175,175,PERS-0175,Chen Gong,Machining Section 1,13800000175,MES_C,MES_ASSEMBLY,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 175
+176,176,PERS-0176,Liu Xiaofeng,Precision Grinding Section,13800000176,MES_D,MES_SERVICE,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 176
+177,177,PERS-0177,Zhou Qian,Hydraulic Assembly Section,13800000177,MES_A,MES_MAKE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 177
+178,178,PERS-0178,Huang Zhiqiang,Pressure Test Section,13800000178,MES_B,MES_BUY,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 178
+179,179,PERS-0179,Sun Wei,Final Inspection Section,13800000179,MES_C,MES_ASSEMBLY,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 179
+180,180,PERS-0180,Ma Rui,Repair Processing Section,13800000180,MES_D,MES_SERVICE,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 180
+181,181,PERS-0181,Zhang Jiancheng,Machining Section 1,13800000181,MES_A,MES_MAKE,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 181
+182,182,PERS-0182,Li Hang,Precision Grinding Section,13800000182,MES_B,MES_BUY,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 182
+183,183,PERS-0183,Wang Lijun,Hydraulic Assembly Section,13800000183,MES_C,MES_ASSEMBLY,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 183
+184,184,PERS-0184,Zhao Min,Pressure Test Section,13800000184,MES_D,MES_SERVICE,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 184
+185,185,PERS-0185,Chen Gong,Final Inspection Section,13800000185,MES_A,MES_MAKE,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 185
+186,186,PERS-0186,Liu Xiaofeng,Repair Processing Section,13800000186,MES_B,MES_BUY,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 186
+187,187,PERS-0187,Zhou Qian,Machining Section 1,13800000187,MES_C,MES_ASSEMBLY,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 187
+188,188,PERS-0188,Huang Zhiqiang,Precision Grinding Section,13800000188,MES_D,MES_SERVICE,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 188
+189,189,PERS-0189,Sun Wei,Hydraulic Assembly Section,13800000189,MES_A,MES_MAKE,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 189
+190,190,PERS-0190,Ma Rui,Pressure Test Section,13800000190,MES_B,MES_BUY,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 190
+191,191,PERS-0191,Zhang Jiancheng,Final Inspection Section,13800000191,MES_C,MES_ASSEMBLY,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,Piston Rod Assembly 191
+192,192,PERS-0192,Li Hang,Repair Processing Section,13800000192,MES_D,MES_SERVICE,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,Cylinder Barrel Assembly 192
+193,193,PERS-0193,Wang Lijun,Machining Section 1,13800000193,MES_A,MES_MAKE,Front End Cap aviation manufacturing business record used for actuator quality traceability.,Front End Cap 193
+194,194,PERS-0194,Zhao Min,Precision Grinding Section,13800000194,MES_B,MES_BUY,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,Rear End Cap 194
+195,195,PERS-0195,Chen Gong,Hydraulic Assembly Section,13800000195,MES_C,MES_ASSEMBLY,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,Seal Ring Assembly 195
+196,196,PERS-0196,Liu Xiaofeng,Pressure Test Section,13800000196,MES_D,MES_SERVICE,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,Trunnion Bushing 196
+197,197,PERS-0197,Zhou Qian,Final Inspection Section,13800000197,MES_A,MES_MAKE,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,Spherical Bearing 197
+198,198,PERS-0198,Huang Zhiqiang,Repair Processing Section,13800000198,MES_B,MES_BUY,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,Throttle Connector 198
+199,199,PERS-0199,Sun Wei,Machining Section 1,13800000199,MES_C,MES_ASSEMBLY,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,Displacement Sensor Bracket 199
+200,200,PERS-0200,Ma Rui,Precision Grinding Section,13800000200,MES_D,MES_SERVICE,Locking Nut aviation manufacturing business record used for actuator quality traceability.,Locking Nut 200

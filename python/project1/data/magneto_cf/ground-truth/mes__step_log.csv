@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MES,step_log,worklog_id,step_execution,operation_execution_id,Joined Copy,hard,
+MES,step_log,stepsid,step_execution,step_no,Direct Copy,simple,
+MES,step_log,stepsname,step_execution,step_name,Direct Copy,simple,
+MES,step_log,stepnum,step_execution,step_sequence,Rename + Cast,simple,
+MES,step_log,start_time_text,step_execution,start_time,Rename + Cast,medium,
+MES,step_log,finish_time_text,step_execution,finish_time,Rename + Cast,medium,
+MES,step_log,zhuangtai,step_execution,step_status,Lookup Normalize,medium,
+MES,step_log,opername,step_execution,operator_name,Direct Copy,medium,

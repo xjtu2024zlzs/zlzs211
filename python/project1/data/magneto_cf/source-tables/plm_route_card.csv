@@ -1,0 +1,201 @@
+﻿route_card_id,actuator_model_id,part_master_id,design_revision_id,route_no,route_name,route_class_cd,proc_doc_rev,release_state_cd,planned_time_unit
+1,1,1,1,RT-LGACT-0001,Piston Rod Assembly Manufacturing Process Route,PLM_MAKE,REV-2.0,PLM_OPEN,EA
+2,2,2,2,RT-LGACT-0002,Cylinder Barrel Assembly Manufacturing Process Route,PLM_BUY,REV-3.0,PLM_RUNNING,EA
+3,3,3,3,RT-LGACT-0003,Front End Cap Manufacturing Process Route,PLM_ASSEMBLY,REV-4.0,PLM_CLOSED,EA
+4,4,4,4,RT-LGACT-0004,Rear End Cap Manufacturing Process Route,PLM_SERVICE,REV-5.0,PLM_HOLD,EA
+5,5,5,5,RT-LGACT-0005,Seal Ring Assembly Manufacturing Process Route,PLM_MAKE,REV-1.0,PLM_OPEN,EA
+6,6,6,6,RT-LGACT-0006,Trunnion Bushing Manufacturing Process Route,PLM_BUY,REV-2.0,PLM_RUNNING,EA
+7,7,7,7,RT-LGACT-0007,Spherical Bearing Manufacturing Process Route,PLM_ASSEMBLY,REV-3.0,PLM_CLOSED,EA
+8,8,8,8,RT-LGACT-0008,Throttle Connector Manufacturing Process Route,PLM_SERVICE,REV-4.0,PLM_HOLD,EA
+9,9,9,9,RT-LGACT-0009,Displacement Sensor Bracket Manufacturing Process Route,PLM_MAKE,REV-5.0,PLM_OPEN,EA
+10,10,10,10,RT-LGACT-0010,Locking Nut Manufacturing Process Route,PLM_BUY,REV-1.0,PLM_RUNNING,EA
+11,11,11,11,RT-LGACT-0011,Piston Rod Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-2.0,PLM_CLOSED,EA
+12,12,12,12,RT-LGACT-0012,Cylinder Barrel Assembly Manufacturing Process Route,PLM_SERVICE,REV-3.0,PLM_HOLD,EA
+13,13,13,13,RT-LGACT-0013,Front End Cap Manufacturing Process Route,PLM_MAKE,REV-4.0,PLM_OPEN,EA
+14,14,14,14,RT-LGACT-0014,Rear End Cap Manufacturing Process Route,PLM_BUY,REV-5.0,PLM_RUNNING,EA
+15,15,15,15,RT-LGACT-0015,Seal Ring Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-1.0,PLM_CLOSED,EA
+16,16,16,16,RT-LGACT-0016,Trunnion Bushing Manufacturing Process Route,PLM_SERVICE,REV-2.0,PLM_HOLD,EA
+17,17,17,17,RT-LGACT-0017,Spherical Bearing Manufacturing Process Route,PLM_MAKE,REV-3.0,PLM_OPEN,EA
+18,18,18,18,RT-LGACT-0018,Throttle Connector Manufacturing Process Route,PLM_BUY,REV-4.0,PLM_RUNNING,EA
+19,19,19,19,RT-LGACT-0019,Displacement Sensor Bracket Manufacturing Process Route,PLM_ASSEMBLY,REV-5.0,PLM_CLOSED,EA
+20,20,20,20,RT-LGACT-0020,Locking Nut Manufacturing Process Route,PLM_SERVICE,REV-1.0,PLM_HOLD,EA
+21,21,21,21,RT-LGACT-0021,Piston Rod Assembly Manufacturing Process Route,PLM_MAKE,REV-2.0,PLM_OPEN,EA
+22,22,22,22,RT-LGACT-0022,Cylinder Barrel Assembly Manufacturing Process Route,PLM_BUY,REV-3.0,PLM_RUNNING,EA
+23,23,23,23,RT-LGACT-0023,Front End Cap Manufacturing Process Route,PLM_ASSEMBLY,REV-4.0,PLM_CLOSED,EA
+24,24,24,24,RT-LGACT-0024,Rear End Cap Manufacturing Process Route,PLM_SERVICE,REV-5.0,PLM_HOLD,EA
+25,25,25,25,RT-LGACT-0025,Seal Ring Assembly Manufacturing Process Route,PLM_MAKE,REV-1.0,PLM_OPEN,EA
+26,26,26,26,RT-LGACT-0026,Trunnion Bushing Manufacturing Process Route,PLM_BUY,REV-2.0,PLM_RUNNING,EA
+27,27,27,27,RT-LGACT-0027,Spherical Bearing Manufacturing Process Route,PLM_ASSEMBLY,REV-3.0,PLM_CLOSED,EA
+28,28,28,28,RT-LGACT-0028,Throttle Connector Manufacturing Process Route,PLM_SERVICE,REV-4.0,PLM_HOLD,EA
+29,29,29,29,RT-LGACT-0029,Displacement Sensor Bracket Manufacturing Process Route,PLM_MAKE,REV-5.0,PLM_OPEN,EA
+30,30,30,30,RT-LGACT-0030,Locking Nut Manufacturing Process Route,PLM_BUY,REV-1.0,PLM_RUNNING,EA
+31,31,31,31,RT-LGACT-0031,Piston Rod Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-2.0,PLM_CLOSED,EA
+32,32,32,32,RT-LGACT-0032,Cylinder Barrel Assembly Manufacturing Process Route,PLM_SERVICE,REV-3.0,PLM_HOLD,EA
+33,33,33,33,RT-LGACT-0033,Front End Cap Manufacturing Process Route,PLM_MAKE,REV-4.0,PLM_OPEN,EA
+34,34,34,34,RT-LGACT-0034,Rear End Cap Manufacturing Process Route,PLM_BUY,REV-5.0,PLM_RUNNING,EA
+35,35,35,35,RT-LGACT-0035,Seal Ring Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-1.0,PLM_CLOSED,EA
+36,36,36,36,RT-LGACT-0036,Trunnion Bushing Manufacturing Process Route,PLM_SERVICE,REV-2.0,PLM_HOLD,EA
+37,37,37,37,RT-LGACT-0037,Spherical Bearing Manufacturing Process Route,PLM_MAKE,REV-3.0,PLM_OPEN,EA
+38,38,38,38,RT-LGACT-0038,Throttle Connector Manufacturing Process Route,PLM_BUY,REV-4.0,PLM_RUNNING,EA
+39,39,39,39,RT-LGACT-0039,Displacement Sensor Bracket Manufacturing Process Route,PLM_ASSEMBLY,REV-5.0,PLM_CLOSED,EA
+40,40,40,40,RT-LGACT-0040,Locking Nut Manufacturing Process Route,PLM_SERVICE,REV-1.0,PLM_HOLD,EA
+41,41,41,41,RT-LGACT-0041,Piston Rod Assembly Manufacturing Process Route,PLM_MAKE,REV-2.0,PLM_OPEN,EA
+42,42,42,42,RT-LGACT-0042,Cylinder Barrel Assembly Manufacturing Process Route,PLM_BUY,REV-3.0,PLM_RUNNING,EA
+43,43,43,43,RT-LGACT-0043,Front End Cap Manufacturing Process Route,PLM_ASSEMBLY,REV-4.0,PLM_CLOSED,EA
+44,44,44,44,RT-LGACT-0044,Rear End Cap Manufacturing Process Route,PLM_SERVICE,REV-5.0,PLM_HOLD,EA
+45,45,45,45,RT-LGACT-0045,Seal Ring Assembly Manufacturing Process Route,PLM_MAKE,REV-1.0,PLM_OPEN,EA
+46,46,46,46,RT-LGACT-0046,Trunnion Bushing Manufacturing Process Route,PLM_BUY,REV-2.0,PLM_RUNNING,EA
+47,47,47,47,RT-LGACT-0047,Spherical Bearing Manufacturing Process Route,PLM_ASSEMBLY,REV-3.0,PLM_CLOSED,EA
+48,48,48,48,RT-LGACT-0048,Throttle Connector Manufacturing Process Route,PLM_SERVICE,REV-4.0,PLM_HOLD,EA
+49,49,49,49,RT-LGACT-0049,Displacement Sensor Bracket Manufacturing Process Route,PLM_MAKE,REV-5.0,PLM_OPEN,EA
+50,50,50,50,RT-LGACT-0050,Locking Nut Manufacturing Process Route,PLM_BUY,REV-1.0,PLM_RUNNING,EA
+51,51,51,51,RT-LGACT-0051,Piston Rod Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-2.0,PLM_CLOSED,EA
+52,52,52,52,RT-LGACT-0052,Cylinder Barrel Assembly Manufacturing Process Route,PLM_SERVICE,REV-3.0,PLM_HOLD,EA
+53,53,53,53,RT-LGACT-0053,Front End Cap Manufacturing Process Route,PLM_MAKE,REV-4.0,PLM_OPEN,EA
+54,54,54,54,RT-LGACT-0054,Rear End Cap Manufacturing Process Route,PLM_BUY,REV-5.0,PLM_RUNNING,EA
+55,55,55,55,RT-LGACT-0055,Seal Ring Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-1.0,PLM_CLOSED,EA
+56,56,56,56,RT-LGACT-0056,Trunnion Bushing Manufacturing Process Route,PLM_SERVICE,REV-2.0,PLM_HOLD,EA
+57,57,57,57,RT-LGACT-0057,Spherical Bearing Manufacturing Process Route,PLM_MAKE,REV-3.0,PLM_OPEN,EA
+58,58,58,58,RT-LGACT-0058,Throttle Connector Manufacturing Process Route,PLM_BUY,REV-4.0,PLM_RUNNING,EA
+59,59,59,59,RT-LGACT-0059,Displacement Sensor Bracket Manufacturing Process Route,PLM_ASSEMBLY,REV-5.0,PLM_CLOSED,EA
+60,60,60,60,RT-LGACT-0060,Locking Nut Manufacturing Process Route,PLM_SERVICE,REV-1.0,PLM_HOLD,EA
+61,61,61,61,RT-LGACT-0061,Piston Rod Assembly Manufacturing Process Route,PLM_MAKE,REV-2.0,PLM_OPEN,EA
+62,62,62,62,RT-LGACT-0062,Cylinder Barrel Assembly Manufacturing Process Route,PLM_BUY,REV-3.0,PLM_RUNNING,EA
+63,63,63,63,RT-LGACT-0063,Front End Cap Manufacturing Process Route,PLM_ASSEMBLY,REV-4.0,PLM_CLOSED,EA
+64,64,64,64,RT-LGACT-0064,Rear End Cap Manufacturing Process Route,PLM_SERVICE,REV-5.0,PLM_HOLD,EA
+65,65,65,65,RT-LGACT-0065,Seal Ring Assembly Manufacturing Process Route,PLM_MAKE,REV-1.0,PLM_OPEN,EA
+66,66,66,66,RT-LGACT-0066,Trunnion Bushing Manufacturing Process Route,PLM_BUY,REV-2.0,PLM_RUNNING,EA
+67,67,67,67,RT-LGACT-0067,Spherical Bearing Manufacturing Process Route,PLM_ASSEMBLY,REV-3.0,PLM_CLOSED,EA
+68,68,68,68,RT-LGACT-0068,Throttle Connector Manufacturing Process Route,PLM_SERVICE,REV-4.0,PLM_HOLD,EA
+69,69,69,69,RT-LGACT-0069,Displacement Sensor Bracket Manufacturing Process Route,PLM_MAKE,REV-5.0,PLM_OPEN,EA
+70,70,70,70,RT-LGACT-0070,Locking Nut Manufacturing Process Route,PLM_BUY,REV-1.0,PLM_RUNNING,EA
+71,71,71,71,RT-LGACT-0071,Piston Rod Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-2.0,PLM_CLOSED,EA
+72,72,72,72,RT-LGACT-0072,Cylinder Barrel Assembly Manufacturing Process Route,PLM_SERVICE,REV-3.0,PLM_HOLD,EA
+73,73,73,73,RT-LGACT-0073,Front End Cap Manufacturing Process Route,PLM_MAKE,REV-4.0,PLM_OPEN,EA
+74,74,74,74,RT-LGACT-0074,Rear End Cap Manufacturing Process Route,PLM_BUY,REV-5.0,PLM_RUNNING,EA
+75,75,75,75,RT-LGACT-0075,Seal Ring Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-1.0,PLM_CLOSED,EA
+76,76,76,76,RT-LGACT-0076,Trunnion Bushing Manufacturing Process Route,PLM_SERVICE,REV-2.0,PLM_HOLD,EA
+77,77,77,77,RT-LGACT-0077,Spherical Bearing Manufacturing Process Route,PLM_MAKE,REV-3.0,PLM_OPEN,EA
+78,78,78,78,RT-LGACT-0078,Throttle Connector Manufacturing Process Route,PLM_BUY,REV-4.0,PLM_RUNNING,EA
+79,79,79,79,RT-LGACT-0079,Displacement Sensor Bracket Manufacturing Process Route,PLM_ASSEMBLY,REV-5.0,PLM_CLOSED,EA
+80,80,80,80,RT-LGACT-0080,Locking Nut Manufacturing Process Route,PLM_SERVICE,REV-1.0,PLM_HOLD,EA
+81,81,81,81,RT-LGACT-0081,Piston Rod Assembly Manufacturing Process Route,PLM_MAKE,REV-2.0,PLM_OPEN,EA
+82,82,82,82,RT-LGACT-0082,Cylinder Barrel Assembly Manufacturing Process Route,PLM_BUY,REV-3.0,PLM_RUNNING,EA
+83,83,83,83,RT-LGACT-0083,Front End Cap Manufacturing Process Route,PLM_ASSEMBLY,REV-4.0,PLM_CLOSED,EA
+84,84,84,84,RT-LGACT-0084,Rear End Cap Manufacturing Process Route,PLM_SERVICE,REV-5.0,PLM_HOLD,EA
+85,85,85,85,RT-LGACT-0085,Seal Ring Assembly Manufacturing Process Route,PLM_MAKE,REV-1.0,PLM_OPEN,EA
+86,86,86,86,RT-LGACT-0086,Trunnion Bushing Manufacturing Process Route,PLM_BUY,REV-2.0,PLM_RUNNING,EA
+87,87,87,87,RT-LGACT-0087,Spherical Bearing Manufacturing Process Route,PLM_ASSEMBLY,REV-3.0,PLM_CLOSED,EA
+88,88,88,88,RT-LGACT-0088,Throttle Connector Manufacturing Process Route,PLM_SERVICE,REV-4.0,PLM_HOLD,EA
+89,89,89,89,RT-LGACT-0089,Displacement Sensor Bracket Manufacturing Process Route,PLM_MAKE,REV-5.0,PLM_OPEN,EA
+90,90,90,90,RT-LGACT-0090,Locking Nut Manufacturing Process Route,PLM_BUY,REV-1.0,PLM_RUNNING,EA
+91,91,91,91,RT-LGACT-0091,Piston Rod Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-2.0,PLM_CLOSED,EA
+92,92,92,92,RT-LGACT-0092,Cylinder Barrel Assembly Manufacturing Process Route,PLM_SERVICE,REV-3.0,PLM_HOLD,EA
+93,93,93,93,RT-LGACT-0093,Front End Cap Manufacturing Process Route,PLM_MAKE,REV-4.0,PLM_OPEN,EA
+94,94,94,94,RT-LGACT-0094,Rear End Cap Manufacturing Process Route,PLM_BUY,REV-5.0,PLM_RUNNING,EA
+95,95,95,95,RT-LGACT-0095,Seal Ring Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-1.0,PLM_CLOSED,EA
+96,96,96,96,RT-LGACT-0096,Trunnion Bushing Manufacturing Process Route,PLM_SERVICE,REV-2.0,PLM_HOLD,EA
+97,97,97,97,RT-LGACT-0097,Spherical Bearing Manufacturing Process Route,PLM_MAKE,REV-3.0,PLM_OPEN,EA
+98,98,98,98,RT-LGACT-0098,Throttle Connector Manufacturing Process Route,PLM_BUY,REV-4.0,PLM_RUNNING,EA
+99,99,99,99,RT-LGACT-0099,Displacement Sensor Bracket Manufacturing Process Route,PLM_ASSEMBLY,REV-5.0,PLM_CLOSED,EA
+100,100,100,100,RT-LGACT-0100,Locking Nut Manufacturing Process Route,PLM_SERVICE,REV-1.0,PLM_HOLD,EA
+101,101,101,101,RT-LGACT-0101,Piston Rod Assembly Manufacturing Process Route,PLM_MAKE,REV-2.0,PLM_OPEN,EA
+102,102,102,102,RT-LGACT-0102,Cylinder Barrel Assembly Manufacturing Process Route,PLM_BUY,REV-3.0,PLM_RUNNING,EA
+103,103,103,103,RT-LGACT-0103,Front End Cap Manufacturing Process Route,PLM_ASSEMBLY,REV-4.0,PLM_CLOSED,EA
+104,104,104,104,RT-LGACT-0104,Rear End Cap Manufacturing Process Route,PLM_SERVICE,REV-5.0,PLM_HOLD,EA
+105,105,105,105,RT-LGACT-0105,Seal Ring Assembly Manufacturing Process Route,PLM_MAKE,REV-1.0,PLM_OPEN,EA
+106,106,106,106,RT-LGACT-0106,Trunnion Bushing Manufacturing Process Route,PLM_BUY,REV-2.0,PLM_RUNNING,EA
+107,107,107,107,RT-LGACT-0107,Spherical Bearing Manufacturing Process Route,PLM_ASSEMBLY,REV-3.0,PLM_CLOSED,EA
+108,108,108,108,RT-LGACT-0108,Throttle Connector Manufacturing Process Route,PLM_SERVICE,REV-4.0,PLM_HOLD,EA
+109,109,109,109,RT-LGACT-0109,Displacement Sensor Bracket Manufacturing Process Route,PLM_MAKE,REV-5.0,PLM_OPEN,EA
+110,110,110,110,RT-LGACT-0110,Locking Nut Manufacturing Process Route,PLM_BUY,REV-1.0,PLM_RUNNING,EA
+111,111,111,111,RT-LGACT-0111,Piston Rod Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-2.0,PLM_CLOSED,EA
+112,112,112,112,RT-LGACT-0112,Cylinder Barrel Assembly Manufacturing Process Route,PLM_SERVICE,REV-3.0,PLM_HOLD,EA
+113,113,113,113,RT-LGACT-0113,Front End Cap Manufacturing Process Route,PLM_MAKE,REV-4.0,PLM_OPEN,EA
+114,114,114,114,RT-LGACT-0114,Rear End Cap Manufacturing Process Route,PLM_BUY,REV-5.0,PLM_RUNNING,EA
+115,115,115,115,RT-LGACT-0115,Seal Ring Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-1.0,PLM_CLOSED,EA
+116,116,116,116,RT-LGACT-0116,Trunnion Bushing Manufacturing Process Route,PLM_SERVICE,REV-2.0,PLM_HOLD,EA
+117,117,117,117,RT-LGACT-0117,Spherical Bearing Manufacturing Process Route,PLM_MAKE,REV-3.0,PLM_OPEN,EA
+118,118,118,118,RT-LGACT-0118,Throttle Connector Manufacturing Process Route,PLM_BUY,REV-4.0,PLM_RUNNING,EA
+119,119,119,119,RT-LGACT-0119,Displacement Sensor Bracket Manufacturing Process Route,PLM_ASSEMBLY,REV-5.0,PLM_CLOSED,EA
+120,120,120,120,RT-LGACT-0120,Locking Nut Manufacturing Process Route,PLM_SERVICE,REV-1.0,PLM_HOLD,EA
+121,121,121,121,RT-LGACT-0121,Piston Rod Assembly Manufacturing Process Route,PLM_MAKE,REV-2.0,PLM_OPEN,EA
+122,122,122,122,RT-LGACT-0122,Cylinder Barrel Assembly Manufacturing Process Route,PLM_BUY,REV-3.0,PLM_RUNNING,EA
+123,123,123,123,RT-LGACT-0123,Front End Cap Manufacturing Process Route,PLM_ASSEMBLY,REV-4.0,PLM_CLOSED,EA
+124,124,124,124,RT-LGACT-0124,Rear End Cap Manufacturing Process Route,PLM_SERVICE,REV-5.0,PLM_HOLD,EA
+125,125,125,125,RT-LGACT-0125,Seal Ring Assembly Manufacturing Process Route,PLM_MAKE,REV-1.0,PLM_OPEN,EA
+126,126,126,126,RT-LGACT-0126,Trunnion Bushing Manufacturing Process Route,PLM_BUY,REV-2.0,PLM_RUNNING,EA
+127,127,127,127,RT-LGACT-0127,Spherical Bearing Manufacturing Process Route,PLM_ASSEMBLY,REV-3.0,PLM_CLOSED,EA
+128,128,128,128,RT-LGACT-0128,Throttle Connector Manufacturing Process Route,PLM_SERVICE,REV-4.0,PLM_HOLD,EA
+129,129,129,129,RT-LGACT-0129,Displacement Sensor Bracket Manufacturing Process Route,PLM_MAKE,REV-5.0,PLM_OPEN,EA
+130,130,130,130,RT-LGACT-0130,Locking Nut Manufacturing Process Route,PLM_BUY,REV-1.0,PLM_RUNNING,EA
+131,131,131,131,RT-LGACT-0131,Piston Rod Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-2.0,PLM_CLOSED,EA
+132,132,132,132,RT-LGACT-0132,Cylinder Barrel Assembly Manufacturing Process Route,PLM_SERVICE,REV-3.0,PLM_HOLD,EA
+133,133,133,133,RT-LGACT-0133,Front End Cap Manufacturing Process Route,PLM_MAKE,REV-4.0,PLM_OPEN,EA
+134,134,134,134,RT-LGACT-0134,Rear End Cap Manufacturing Process Route,PLM_BUY,REV-5.0,PLM_RUNNING,EA
+135,135,135,135,RT-LGACT-0135,Seal Ring Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-1.0,PLM_CLOSED,EA
+136,136,136,136,RT-LGACT-0136,Trunnion Bushing Manufacturing Process Route,PLM_SERVICE,REV-2.0,PLM_HOLD,EA
+137,137,137,137,RT-LGACT-0137,Spherical Bearing Manufacturing Process Route,PLM_MAKE,REV-3.0,PLM_OPEN,EA
+138,138,138,138,RT-LGACT-0138,Throttle Connector Manufacturing Process Route,PLM_BUY,REV-4.0,PLM_RUNNING,EA
+139,139,139,139,RT-LGACT-0139,Displacement Sensor Bracket Manufacturing Process Route,PLM_ASSEMBLY,REV-5.0,PLM_CLOSED,EA
+140,140,140,140,RT-LGACT-0140,Locking Nut Manufacturing Process Route,PLM_SERVICE,REV-1.0,PLM_HOLD,EA
+141,141,141,141,RT-LGACT-0141,Piston Rod Assembly Manufacturing Process Route,PLM_MAKE,REV-2.0,PLM_OPEN,EA
+142,142,142,142,RT-LGACT-0142,Cylinder Barrel Assembly Manufacturing Process Route,PLM_BUY,REV-3.0,PLM_RUNNING,EA
+143,143,143,143,RT-LGACT-0143,Front End Cap Manufacturing Process Route,PLM_ASSEMBLY,REV-4.0,PLM_CLOSED,EA
+144,144,144,144,RT-LGACT-0144,Rear End Cap Manufacturing Process Route,PLM_SERVICE,REV-5.0,PLM_HOLD,EA
+145,145,145,145,RT-LGACT-0145,Seal Ring Assembly Manufacturing Process Route,PLM_MAKE,REV-1.0,PLM_OPEN,EA
+146,146,146,146,RT-LGACT-0146,Trunnion Bushing Manufacturing Process Route,PLM_BUY,REV-2.0,PLM_RUNNING,EA
+147,147,147,147,RT-LGACT-0147,Spherical Bearing Manufacturing Process Route,PLM_ASSEMBLY,REV-3.0,PLM_CLOSED,EA
+148,148,148,148,RT-LGACT-0148,Throttle Connector Manufacturing Process Route,PLM_SERVICE,REV-4.0,PLM_HOLD,EA
+149,149,149,149,RT-LGACT-0149,Displacement Sensor Bracket Manufacturing Process Route,PLM_MAKE,REV-5.0,PLM_OPEN,EA
+150,150,150,150,RT-LGACT-0150,Locking Nut Manufacturing Process Route,PLM_BUY,REV-1.0,PLM_RUNNING,EA
+151,151,151,151,RT-LGACT-0151,Piston Rod Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-2.0,PLM_CLOSED,EA
+152,152,152,152,RT-LGACT-0152,Cylinder Barrel Assembly Manufacturing Process Route,PLM_SERVICE,REV-3.0,PLM_HOLD,EA
+153,153,153,153,RT-LGACT-0153,Front End Cap Manufacturing Process Route,PLM_MAKE,REV-4.0,PLM_OPEN,EA
+154,154,154,154,RT-LGACT-0154,Rear End Cap Manufacturing Process Route,PLM_BUY,REV-5.0,PLM_RUNNING,EA
+155,155,155,155,RT-LGACT-0155,Seal Ring Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-1.0,PLM_CLOSED,EA
+156,156,156,156,RT-LGACT-0156,Trunnion Bushing Manufacturing Process Route,PLM_SERVICE,REV-2.0,PLM_HOLD,EA
+157,157,157,157,RT-LGACT-0157,Spherical Bearing Manufacturing Process Route,PLM_MAKE,REV-3.0,PLM_OPEN,EA
+158,158,158,158,RT-LGACT-0158,Throttle Connector Manufacturing Process Route,PLM_BUY,REV-4.0,PLM_RUNNING,EA
+159,159,159,159,RT-LGACT-0159,Displacement Sensor Bracket Manufacturing Process Route,PLM_ASSEMBLY,REV-5.0,PLM_CLOSED,EA
+160,160,160,160,RT-LGACT-0160,Locking Nut Manufacturing Process Route,PLM_SERVICE,REV-1.0,PLM_HOLD,EA
+161,161,161,161,RT-LGACT-0161,Piston Rod Assembly Manufacturing Process Route,PLM_MAKE,REV-2.0,PLM_OPEN,EA
+162,162,162,162,RT-LGACT-0162,Cylinder Barrel Assembly Manufacturing Process Route,PLM_BUY,REV-3.0,PLM_RUNNING,EA
+163,163,163,163,RT-LGACT-0163,Front End Cap Manufacturing Process Route,PLM_ASSEMBLY,REV-4.0,PLM_CLOSED,EA
+164,164,164,164,RT-LGACT-0164,Rear End Cap Manufacturing Process Route,PLM_SERVICE,REV-5.0,PLM_HOLD,EA
+165,165,165,165,RT-LGACT-0165,Seal Ring Assembly Manufacturing Process Route,PLM_MAKE,REV-1.0,PLM_OPEN,EA
+166,166,166,166,RT-LGACT-0166,Trunnion Bushing Manufacturing Process Route,PLM_BUY,REV-2.0,PLM_RUNNING,EA
+167,167,167,167,RT-LGACT-0167,Spherical Bearing Manufacturing Process Route,PLM_ASSEMBLY,REV-3.0,PLM_CLOSED,EA
+168,168,168,168,RT-LGACT-0168,Throttle Connector Manufacturing Process Route,PLM_SERVICE,REV-4.0,PLM_HOLD,EA
+169,169,169,169,RT-LGACT-0169,Displacement Sensor Bracket Manufacturing Process Route,PLM_MAKE,REV-5.0,PLM_OPEN,EA
+170,170,170,170,RT-LGACT-0170,Locking Nut Manufacturing Process Route,PLM_BUY,REV-1.0,PLM_RUNNING,EA
+171,171,171,171,RT-LGACT-0171,Piston Rod Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-2.0,PLM_CLOSED,EA
+172,172,172,172,RT-LGACT-0172,Cylinder Barrel Assembly Manufacturing Process Route,PLM_SERVICE,REV-3.0,PLM_HOLD,EA
+173,173,173,173,RT-LGACT-0173,Front End Cap Manufacturing Process Route,PLM_MAKE,REV-4.0,PLM_OPEN,EA
+174,174,174,174,RT-LGACT-0174,Rear End Cap Manufacturing Process Route,PLM_BUY,REV-5.0,PLM_RUNNING,EA
+175,175,175,175,RT-LGACT-0175,Seal Ring Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-1.0,PLM_CLOSED,EA
+176,176,176,176,RT-LGACT-0176,Trunnion Bushing Manufacturing Process Route,PLM_SERVICE,REV-2.0,PLM_HOLD,EA
+177,177,177,177,RT-LGACT-0177,Spherical Bearing Manufacturing Process Route,PLM_MAKE,REV-3.0,PLM_OPEN,EA
+178,178,178,178,RT-LGACT-0178,Throttle Connector Manufacturing Process Route,PLM_BUY,REV-4.0,PLM_RUNNING,EA
+179,179,179,179,RT-LGACT-0179,Displacement Sensor Bracket Manufacturing Process Route,PLM_ASSEMBLY,REV-5.0,PLM_CLOSED,EA
+180,180,180,180,RT-LGACT-0180,Locking Nut Manufacturing Process Route,PLM_SERVICE,REV-1.0,PLM_HOLD,EA
+181,181,181,181,RT-LGACT-0181,Piston Rod Assembly Manufacturing Process Route,PLM_MAKE,REV-2.0,PLM_OPEN,EA
+182,182,182,182,RT-LGACT-0182,Cylinder Barrel Assembly Manufacturing Process Route,PLM_BUY,REV-3.0,PLM_RUNNING,EA
+183,183,183,183,RT-LGACT-0183,Front End Cap Manufacturing Process Route,PLM_ASSEMBLY,REV-4.0,PLM_CLOSED,EA
+184,184,184,184,RT-LGACT-0184,Rear End Cap Manufacturing Process Route,PLM_SERVICE,REV-5.0,PLM_HOLD,EA
+185,185,185,185,RT-LGACT-0185,Seal Ring Assembly Manufacturing Process Route,PLM_MAKE,REV-1.0,PLM_OPEN,EA
+186,186,186,186,RT-LGACT-0186,Trunnion Bushing Manufacturing Process Route,PLM_BUY,REV-2.0,PLM_RUNNING,EA
+187,187,187,187,RT-LGACT-0187,Spherical Bearing Manufacturing Process Route,PLM_ASSEMBLY,REV-3.0,PLM_CLOSED,EA
+188,188,188,188,RT-LGACT-0188,Throttle Connector Manufacturing Process Route,PLM_SERVICE,REV-4.0,PLM_HOLD,EA
+189,189,189,189,RT-LGACT-0189,Displacement Sensor Bracket Manufacturing Process Route,PLM_MAKE,REV-5.0,PLM_OPEN,EA
+190,190,190,190,RT-LGACT-0190,Locking Nut Manufacturing Process Route,PLM_BUY,REV-1.0,PLM_RUNNING,EA
+191,191,191,191,RT-LGACT-0191,Piston Rod Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-2.0,PLM_CLOSED,EA
+192,192,192,192,RT-LGACT-0192,Cylinder Barrel Assembly Manufacturing Process Route,PLM_SERVICE,REV-3.0,PLM_HOLD,EA
+193,193,193,193,RT-LGACT-0193,Front End Cap Manufacturing Process Route,PLM_MAKE,REV-4.0,PLM_OPEN,EA
+194,194,194,194,RT-LGACT-0194,Rear End Cap Manufacturing Process Route,PLM_BUY,REV-5.0,PLM_RUNNING,EA
+195,195,195,195,RT-LGACT-0195,Seal Ring Assembly Manufacturing Process Route,PLM_ASSEMBLY,REV-1.0,PLM_CLOSED,EA
+196,196,196,196,RT-LGACT-0196,Trunnion Bushing Manufacturing Process Route,PLM_SERVICE,REV-2.0,PLM_HOLD,EA
+197,197,197,197,RT-LGACT-0197,Spherical Bearing Manufacturing Process Route,PLM_MAKE,REV-3.0,PLM_OPEN,EA
+198,198,198,198,RT-LGACT-0198,Throttle Connector Manufacturing Process Route,PLM_BUY,REV-4.0,PLM_RUNNING,EA
+199,199,199,199,RT-LGACT-0199,Displacement Sensor Bracket Manufacturing Process Route,PLM_ASSEMBLY,REV-5.0,PLM_CLOSED,EA
+200,200,200,200,RT-LGACT-0200,Locking Nut Manufacturing Process Route,PLM_SERVICE,REV-1.0,PLM_HOLD,EA

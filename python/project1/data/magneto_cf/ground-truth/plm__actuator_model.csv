@@ -1,0 +1,6 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+PLM,actuator_model,actuator_code,component_type,component_code,Direct Copy,simple,
+PLM,actuator_model,actuator_name,component_type,component_name,Direct Copy,simple,
+PLM,actuator_model,actuator_spec,component_type,component_spec,Direct Copy,medium,
+PLM,actuator_model,dwg_no,component_type,drawing_code,Direct Copy,simple,
+PLM,actuator_model,tech_status_text,component_type,technical_status,Lookup Normalize,hard,

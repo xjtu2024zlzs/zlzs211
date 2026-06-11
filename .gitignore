@@ -40,16 +40,29 @@ nbdist/
 *.log
 *.xml.versionsBackup
 *.swp
+.env
+**/.env
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+python/**/run/
+python/**/logs/
+tmp_*
 
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
 
+# 项目特定忽略规则
 ruoyi-ui/.edge-project3-task8-profile/
-# Python
+
+# Python 缓存文件
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
 docx/
+AGENTS.md
+algorithm-service/

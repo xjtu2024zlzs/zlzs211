@@ -1,0 +1,11 @@
+﻿workstation_id,station_no,station_name,workshop,person_count,equipment_count,station_status
+1,ST-CF-0001,Machining Station 1,Machining Section 1,2,2,NORMAL
+2,ST-CF-0002,Precision Grinding Station,Precision Grinding Section,3,3,WARNING
+3,ST-CF-0003,Honing Station,Hydraulic Assembly Section,4,4,QUALIFIED
+4,ST-CF-0004,Surface Treatment Station,Pressure Test Section,5,5,CLOSED
+5,ST-CF-0005,Hydraulic Assembly Station,Final Inspection Section,6,6,NORMAL
+6,ST-CF-0006,Pressure Test Station,Repair Processing Section,7,7,WARNING
+7,ST-CF-0007,Final Inspection Station,Machining Section 1,8,8,QUALIFIED
+8,ST-CF-0008,Repair Processing Station,Precision Grinding Section,9,9,CLOSED
+9,ST-CF-0009,Machining Station 1,Hydraulic Assembly Section,1,1,NORMAL
+10,ST-CF-0010,Precision Grinding Station,Pressure Test Section,2,2,WARNING

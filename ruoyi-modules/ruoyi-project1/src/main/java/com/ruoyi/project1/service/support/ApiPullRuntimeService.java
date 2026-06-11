@@ -86,7 +86,7 @@ public class ApiPullRuntimeService
             Map<String, Object> health = apiPullClient.health(detail);
             boolean ok = "ok".equalsIgnoreCase(asString(health.get("status")));
             datasource.setConnectionStatus(ok ? "success" : "failed");
-            datasource.setLastTestMessage(ok ? "API Pull 连接正常" : "API Pull 健康检查未通过");
+            datasource.setLastTestMessage(ok ? "数据源连接正常，已具备模式读取和数据接入条件。" : "API Pull 健康检查未通过");
             result.put("health", health);
         }
         catch (RuntimeException e)
@@ -190,11 +190,7 @@ public class ApiPullRuntimeService
         try
         {
             List<AccessScopeTable> scopeTables = ensureAccessScopes(plan, datasource);
-            Map<String, AccessScopeTable> scopeByTable = new LinkedHashMap<>();
-            for (AccessScopeTable scopeTable : scopeTables)
-            {
-                scopeByTable.put(scopeTable.getSourceTable(), scopeTable);
-            }
+            Map<String, List<AccessScopeTable>> scopesBySourceTable = groupScopeTablesBySourceTable(scopeTables);
 
             Map<String, Object> requestPayload = buildPullRequest(batch, scopeTables);
             Map<String, Object> pullPayload = apiPullClient.pull(detail, requestPayload);
@@ -213,24 +209,27 @@ public class ApiPullRuntimeService
             for (Map<String, Object> pulledTable : pulledTables)
             {
                 String sourceTable = asString(pulledTable.get("source_table"));
-                AccessScopeTable scopeTable = scopeByTable.get(sourceTable);
-                if (scopeTable == null)
+                List<AccessScopeTable> matchingScopes = scopesBySourceTable.get(sourceTable);
+                if (matchingScopes == null || matchingScopes.isEmpty())
                 {
                     continue;
                 }
 
                 List<Map<String, Object>> records = mapList(pulledTable.get("records"));
                 readCount += records.size();
-                List<AccessStageRecord> stageRecords = persistStageRecords(plan, datasource, batch, scopeTable, records);
-                TableExecutionStats stats = processTable(plan, batch, scopeTable, stageRecords);
-                stagedCount += stageRecords.size();
-                transformSuccessCount += stats.transformSuccessCount;
-                transformFailedCount += stats.transformFailedCount;
-                writeSuccessCount += stats.writeSuccessCount;
-                writeFailedCount += stats.writeFailedCount;
-                insertedCount += stats.insertedCount;
-                updatedCount += stats.updatedCount;
-                tableCount++;
+                for (AccessScopeTable scopeTable : matchingScopes)
+                {
+                    List<AccessStageRecord> stageRecords = persistStageRecords(plan, datasource, batch, scopeTable, records);
+                    TableExecutionStats stats = processTable(plan, batch, scopeTable, stageRecords);
+                    stagedCount += stageRecords.size();
+                    transformSuccessCount += stats.transformSuccessCount;
+                    transformFailedCount += stats.transformFailedCount;
+                    writeSuccessCount += stats.writeSuccessCount;
+                    writeFailedCount += stats.writeFailedCount;
+                    insertedCount += stats.insertedCount;
+                    updatedCount += stats.updatedCount;
+                    tableCount++;
+                }
             }
 
             batch.setBatchStatus(writeFailedCount > 0L || transformFailedCount > 0L ? "partial" : "success");
@@ -282,6 +281,16 @@ public class ApiPullRuntimeService
             accessBatchMapper.updateAccessBatch(batch);
             throw e;
         }
+    }
+
+    static Map<String, List<AccessScopeTable>> groupScopeTablesBySourceTable(List<AccessScopeTable> scopeTables)
+    {
+        Map<String, List<AccessScopeTable>> grouped = new LinkedHashMap<>();
+        for (AccessScopeTable scopeTable : scopeTables)
+        {
+            grouped.computeIfAbsent(scopeTable.getSourceTable(), key -> new ArrayList<>()).add(scopeTable);
+        }
+        return grouped;
     }
 
     private SchemaSnapshot persistSchemaPayload(Datasource datasource, Map<String, Object> payload)
@@ -397,6 +406,7 @@ public class ApiPullRuntimeService
         List<AccessScopeTable> scopeTables = new ArrayList<>();
         for (List<MappingSpec> mappings : grouped.values())
         {
+            List<MappingSpec> fieldMappings = deduplicateScopeFieldMappings(mappings);
             MappingSpec first = mappings.get(0);
             AccessScopeTable scopeTable = new AccessScopeTable();
             scopeTable.setAccessPlanId(plan.getAccessPlanId());
@@ -405,13 +415,13 @@ public class ApiPullRuntimeService
             scopeTable.setSourceDatabase(first.getSourceDatabase());
             scopeTable.setSourceTable(first.getSourceTable());
             scopeTable.setTargetTable(first.getTargetTable());
-            scopeTable.setFieldMappingCount((long) mappings.size());
+            scopeTable.setFieldMappingCount((long) fieldMappings.size());
             scopeTable.setScopeStatus("active");
             scopeTable.setCreateTime(DateUtils.getNowDate());
             accessScopeTableMapper.insertAccessScopeTable(scopeTable);
             scopeTables.add(scopeTable);
 
-            for (MappingSpec mapping : mappings)
+            for (MappingSpec mapping : fieldMappings)
             {
                 AccessScopeField scopeField = new AccessScopeField();
                 scopeField.setScopeTableId(scopeTable.getScopeTableId());
@@ -429,14 +439,40 @@ public class ApiPullRuntimeService
         return scopeTables;
     }
 
+    static List<MappingSpec> deduplicateScopeFieldMappings(List<MappingSpec> mappings)
+    {
+        Map<String, MappingSpec> unique = new LinkedHashMap<>();
+        for (MappingSpec mapping : mappings)
+        {
+            String key = String.valueOf(mapping.getSourceColumn()) + '\u0001' + String.valueOf(mapping.getTargetColumn());
+            unique.putIfAbsent(key, mapping);
+        }
+        return new ArrayList<>(unique.values());
+    }
+
+    static void enrichTargetDataFromRaw(String targetTable, Map<String, Object> raw, Map<String, Object> targetData)
+    {
+        if ("quality_event".equals(targetTable)
+                && isEmptyObject(targetData.get("event_no"))
+                && !isEmptyObject(raw.get("quality_event_no")))
+        {
+            targetData.put("event_no", raw.get("quality_event_no"));
+        }
+    }
+
+    private static boolean isEmptyObject(Object value)
+    {
+        return value == null || (value instanceof String && ((String) value).trim().isEmpty());
+    }
+
     private Map<String, Object> buildPullRequest(AccessBatch batch, List<AccessScopeTable> scopeTables)
     {
-        List<Map<String, Object>> tables = new ArrayList<>();
+        Map<String, List<String>> columnsBySourceTable = new LinkedHashMap<>();
         for (AccessScopeTable scopeTable : scopeTables)
         {
             AccessScopeField fieldQuery = new AccessScopeField();
             fieldQuery.setScopeTableId(scopeTable.getScopeTableId());
-            List<String> columns = new ArrayList<>();
+            List<String> columns = columnsBySourceTable.computeIfAbsent(scopeTable.getSourceTable(), key -> new ArrayList<>());
             for (AccessScopeField field : accessScopeFieldMapper.selectAccessScopeFieldList(fieldQuery))
             {
                 if (!isBlank(field.getSourceColumn()) && !columns.contains(field.getSourceColumn()))
@@ -444,10 +480,14 @@ public class ApiPullRuntimeService
                     columns.add(field.getSourceColumn());
                 }
             }
+        }
 
+        List<Map<String, Object>> tables = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : columnsBySourceTable.entrySet())
+        {
             Map<String, Object> table = new LinkedHashMap<>();
-            table.put("source_table", scopeTable.getSourceTable());
-            table.put("columns", columns);
+            table.put("source_table", entry.getKey());
+            table.put("columns", entry.getValue());
             tables.add(table);
         }
 
@@ -524,6 +564,8 @@ public class ApiPullRuntimeService
                 }
             }
 
+            enrichTargetDataFromRaw(scopeTable.getTargetTable(), raw, targetData);
+
             if (targetData.isEmpty())
             {
                 transformError = "没有可写入目标表的字段";
@@ -588,6 +630,25 @@ public class ApiPullRuntimeService
     private AccessTableResult createTableResult(AccessPlan plan, AccessBatch batch, AccessScopeTable scopeTable,
             TableExecutionStats stats, long stagedCount)
     {
+        AccessTableResult existing = findCurrentBatchTargetResult(batch.getAccessBatchId(), scopeTable.getTargetTable());
+        if (existing != null)
+        {
+            existing.setSourceTable(mergeSourceTable(existing.getSourceTable(), scopeTable.getSourceTable()));
+            existing.setResultStatus(mergeResultStatus(existing.getResultStatus(), stats));
+            existing.setReadCount(value(existing.getReadCount()) + stagedCount);
+            existing.setStagedCount(value(existing.getStagedCount()) + stagedCount);
+            existing.setInsertedCount(value(existing.getInsertedCount()) + stats.insertedCount);
+            existing.setUpdatedCount(value(existing.getUpdatedCount()) + stats.updatedCount);
+            existing.setSuccessCount(value(existing.getSuccessCount()) + stats.writeSuccessCount);
+            existing.setFailedCount(value(existing.getFailedCount()) + stats.writeFailedCount + stats.transformFailedCount);
+            existing.setTotalSuccessCount(value(existing.getTotalSuccessCount()) + stats.writeSuccessCount);
+            existing.setTotalFailedCount(value(existing.getTotalFailedCount()) + stats.writeFailedCount + stats.transformFailedCount);
+            existing.setLastExecuteTime(DateUtils.getNowDate());
+            existing.setUpdateTime(DateUtils.getNowDate());
+            accessTableResultMapper.updateAccessTableResult(existing);
+            return existing;
+        }
+
         AccessTableResult result = new AccessTableResult();
         result.setAccessBatchId(batch.getAccessBatchId());
         result.setAccessPlanId(plan.getAccessPlanId());
@@ -610,8 +671,53 @@ public class ApiPullRuntimeService
         return result;
     }
 
+    private AccessTableResult findCurrentBatchTargetResult(Long accessBatchId, String targetTable)
+    {
+        AccessTableResult query = new AccessTableResult();
+        query.setAccessBatchId(accessBatchId);
+        query.setTargetTable(targetTable);
+        List<AccessTableResult> rows = accessTableResultMapper.selectAccessTableResultList(query);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
+    private String mergeSourceTable(String currentSourceTables, String nextSourceTable)
+    {
+        if (isBlank(currentSourceTables))
+        {
+            return nextSourceTable;
+        }
+        if (isBlank(nextSourceTable) || currentSourceTables.contains(nextSourceTable))
+        {
+            return currentSourceTables;
+        }
+        return currentSourceTables + " / " + nextSourceTable;
+    }
+
+    private String mergeResultStatus(String currentStatus, TableExecutionStats stats)
+    {
+        if ("failed".equals(currentStatus) || "partial".equals(currentStatus))
+        {
+            return currentStatus;
+        }
+        return stats.writeFailedCount > 0L || stats.transformFailedCount > 0L ? "partial" : "success";
+    }
+
     private void createFieldResult(AccessPlan plan, AccessBatch batch, AccessTableResult tableResult, FieldStats row)
     {
+        AccessFieldResult existing = findCurrentTargetFieldResult(tableResult.getTableResultId(), row.field.getTargetColumn());
+        if (existing != null)
+        {
+            existing.setSourceColumn(mergeSourceTable(existing.getSourceColumn(), row.field.getSourceColumn()));
+            existing.setMappingType(mergeSourceTable(existing.getMappingType(), row.field.getMappingType()));
+            existing.setTransformStatus("failed".equals(existing.getTransformStatus()) || row.failedCount > 0L ? "failed" : "success");
+            existing.setSuccessCount(value(existing.getSuccessCount()) + row.successCount);
+            existing.setFailedCount(value(existing.getFailedCount()) + row.failedCount);
+            existing.setErrorMessage(mergeErrorMessage(existing.getErrorMessage(), row.errorMessage));
+            existing.setUpdateTime(DateUtils.getNowDate());
+            accessFieldResultMapper.updateAccessFieldResult(existing);
+            return;
+        }
+
         AccessFieldResult fieldResult = new AccessFieldResult();
         fieldResult.setTableResultId(tableResult.getTableResultId());
         fieldResult.setAccessBatchId(batch.getAccessBatchId());
@@ -626,6 +732,28 @@ public class ApiPullRuntimeService
         fieldResult.setErrorMessage(row.errorMessage);
         fieldResult.setCreateTime(DateUtils.getNowDate());
         accessFieldResultMapper.insertAccessFieldResult(fieldResult);
+    }
+
+    private AccessFieldResult findCurrentTargetFieldResult(Long tableResultId, String targetColumn)
+    {
+        AccessFieldResult query = new AccessFieldResult();
+        query.setTableResultId(tableResultId);
+        query.setTargetColumn(targetColumn);
+        List<AccessFieldResult> rows = accessFieldResultMapper.selectAccessFieldResultList(query);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
+    private String mergeErrorMessage(String currentMessage, String nextMessage)
+    {
+        if (isBlank(currentMessage))
+        {
+            return nextMessage;
+        }
+        if (isBlank(nextMessage) || currentMessage.contains(nextMessage))
+        {
+            return currentMessage;
+        }
+        return currentMessage + "；" + nextMessage;
     }
 
     private long totalPlanSuccess(Long accessPlanId)

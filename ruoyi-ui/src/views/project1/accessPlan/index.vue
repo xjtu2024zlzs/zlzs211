@@ -371,9 +371,22 @@ function handleExecute(row) {
     return
   }
   executeAccessPlan(target.accessPlanId).then(response => {
-    proxy.$modal.msgSuccess(response.data?.message || "接入执行完成")
+    proxy.$modal.msgSuccess(formatAccessExecutionMessage(response.data?.message))
     getList()
   })
+}
+
+function formatAccessExecutionMessage(message) {
+  if (!message) {
+    return "接入执行完成"
+  }
+  if (message.includes("Access execution has started")) {
+    return "接入执行已开始，请稍后刷新或查看结果"
+  }
+  if (message.includes("Access execution is already running")) {
+    return "接入执行正在运行，请稍后刷新或查看结果"
+  }
+  return message
 }
 
 function handlePause(row) {
@@ -414,7 +427,7 @@ function updateSelectedStatus(action, message) {
 }
 
 function handleViewResult(row) {
-  router.push({ path: "/access/accessResult", query: { accessPlanId: row.accessPlanId } })
+  router.push({ path: "/dossier/access/accessResult", query: { accessPlanId: row.accessPlanId } })
 }
 
 function handleDetail(row) {

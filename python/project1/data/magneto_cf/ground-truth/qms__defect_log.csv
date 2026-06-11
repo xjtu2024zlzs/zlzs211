@@ -1,0 +1,13 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+QMS,defect_log,inspection_doc_id,defect_record,inspection_record_id,Joined Copy,medium,
+QMS,defect_log,component_serial_no,defect_record,component_instance_id,Joined Copy,medium,
+QMS,defect_log,part_serial_no,defect_record,part_instance_id,Joined Copy,hard,
+QMS,defect_log,op_no,defect_record,operation_execution_id,Joined Copy,hard,
+QMS,defect_log,defect_code,defect_record,defect_code,Direct Copy,simple,
+QMS,defect_log,defect_name,defect_record,defect_name,Direct Copy,simple,
+QMS,defect_log,defect_position_text,defect_record,defect_position,Direct Copy,hard,
+QMS,defect_log,severity_code,defect_record,severity_level,Lookup Normalize,medium,
+QMS,defect_log,failure_desc,defect_record,failure_desc,Direct Copy,hard,
+QMS,defect_log,find_dept_code,defect_record,find_dept_code,Direct Copy,simple,
+QMS,defect_log,find_dept_name,defect_record,find_dept_name,Direct Copy,simple,
+QMS,defect_log,defect_log_id,quality_event_subject,defect_record_id,Joined Copy,hard,

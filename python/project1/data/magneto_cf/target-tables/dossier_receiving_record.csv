@@ -1,0 +1,11 @@
+﻿receiving_record_id,inventory_batch_id,purchase_order_line_id,receiving_no,receiving_date,received_amount,receiver_name,inspection_required,receiving_status
+1,1,1,RECVNO-0001,2026-05-09 08:07:00,20.850,The procurement batch for Piston Rod Assembly has completed receiving inspection and is used for act,True,NORMAL
+2,2,2,RECVNO-0002,2026-05-10 08:14:00,0.080,The procurement batch for Cylinder Barrel Assembly has completed receiving inspection and is used fo,True,WARNING
+3,3,3,RECVNO-0003,2026-05-11 08:21:00,155.150,The procurement batch for Front End Cap has completed receiving inspection and is used for actuator ,False,QUALIFIED
+4,4,4,RECVNO-0004,2026-05-12 08:28:00,5.100,The procurement batch for Rear End Cap has completed receiving inspection and is used for actuator a,True,CLOSED
+5,5,5,RECVNO-0005,2026-05-13 08:35:00,37.700,The procurement batch for Seal Ring Assembly has completed receiving inspection and is used for actu,True,NORMAL
+6,6,6,RECVNO-0006,2026-05-14 08:42:00,0.150,The procurement batch for Trunnion Bushing has completed receiving inspection and is used for actuat,False,WARNING
+7,7,7,RECVNO-0007,2026-05-15 08:49:00,23.400,The procurement batch for Spherical Bearing has completed receiving inspection and is used for actua,True,QUALIFIED
+8,8,8,RECVNO-0008,2026-05-16 08:56:00,0.220,The procurement batch for Throttle Connector has completed receiving inspection and is used for actu,True,CLOSED
+9,9,9,RECVNO-0009,2026-05-17 09:03:00,155.300,The procurement batch for Displacement Sensor Bracket has completed receiving inspection and is used,False,NORMAL
+10,10,10,RECVNO-0010,2026-05-18 09:10:00,4.500,The procurement batch for Locking Nut has completed receiving inspection and is used for actuator as,True,WARNING

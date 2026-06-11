@@ -1,0 +1,6 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MES,tooling_asset,toolingid,tooling,tooling_no,Direct Copy,simple,
+MES,tooling_asset,toolingname,tooling,tooling_name,Direct Copy,simple,
+MES,tooling_asset,gzzl,tooling,tooling_type,Lookup Normalize,hard,
+MES,tooling_asset,jzrq_txt,tooling,calibration_due_date,Rename + Cast,medium,
+MES,tooling_asset,zhuangtai,tooling,tooling_status,Lookup Normalize,medium,

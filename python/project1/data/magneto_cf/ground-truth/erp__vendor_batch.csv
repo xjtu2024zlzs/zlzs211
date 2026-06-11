@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+ERP,vendor_batch,po_line_id,supplier_batch,purchase_order_line_id,Joined Copy,medium,
+ERP,vendor_batch,vendor_id,supplier_batch,supplier_id,Joined Copy,medium,
+ERP,vendor_batch,item_id,supplier_batch,material_id,Joined Copy,medium,
+ERP,vendor_batch,ven_lot_no,supplier_batch,supplier_batch_no,Direct Copy,hard,
+ERP,vendor_batch,cert_doc_no,supplier_batch,certificate_no,Direct Copy,medium,
+ERP,vendor_batch,mfg_dt_txt,supplier_batch,manufacture_date,Rename + Cast,hard,
+ERP,vendor_batch,exp_dt_txt,supplier_batch,expire_date,Rename + Cast,medium,
+ERP,vendor_batch,batch_stat_cd,supplier_batch,batch_status,Lookup Normalize,hard,

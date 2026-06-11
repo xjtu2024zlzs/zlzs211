@@ -1,0 +1,201 @@
+﻿operation_card_id,route_card_id,op_no,workid,op_name,seq_no_txt,std_hours_txt,resource_type,special_proc_cd,key_op_flag
+1,1,OP020,WO-LG-2026-0001,Cylinder Barrel Rough Machining,002,21.000 MPa,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+2,2,OP030,WO-LG-2026-0002,Piston Rod Precision Grinding,003,0.080 mL/min,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+3,3,OP040,WO-LG-2026-0003,Inner Bore Honing,004,155.000 mm,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+4,4,OP050,WO-LG-2026-0004,Chrome Plating Layer Grinding,005,4.800 s,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+5,5,OP060,WO-LG-2026-0005,Seal Component Assembly,006,38.0 C,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+6,6,OP070,WO-LG-2026-0006,Actuator Final Assembly,007,0.180 mm,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+7,7,OP080,WO-LG-2026-0007,Pressure Holding Test,008,21.000 MPa,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+8,8,OP010,WO-LG-2026-0008,Extension and Retraction Function Test,009,0.080 mL/min,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+9,9,OP020,WO-LG-2026-0009,Cylinder Barrel Rough Machining,001,155.000 mm,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+10,10,OP030,WO-LG-2026-0010,Piston Rod Precision Grinding,002,4.800 s,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+11,11,OP040,WO-LG-2026-0011,Inner Bore Honing,003,38.0 C,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+12,12,OP050,WO-LG-2026-0012,Chrome Plating Layer Grinding,004,0.180 mm,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+13,13,OP060,WO-LG-2026-0013,Seal Component Assembly,005,21.000 MPa,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+14,14,OP070,WO-LG-2026-0014,Actuator Final Assembly,006,0.080 mL/min,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+15,15,OP080,WO-LG-2026-0015,Pressure Holding Test,007,155.000 mm,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+16,16,OP010,WO-LG-2026-0016,Extension and Retraction Function Test,008,4.800 s,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+17,17,OP020,WO-LG-2026-0017,Cylinder Barrel Rough Machining,009,38.0 C,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+18,18,OP030,WO-LG-2026-0018,Piston Rod Precision Grinding,001,0.180 mm,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+19,19,OP040,WO-LG-2026-0019,Inner Bore Honing,002,21.000 MPa,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+20,20,OP050,WO-LG-2026-0020,Chrome Plating Layer Grinding,003,0.080 mL/min,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+21,21,OP060,WO-LG-2026-0021,Seal Component Assembly,004,155.000 mm,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+22,22,OP070,WO-LG-2026-0022,Actuator Final Assembly,005,4.800 s,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+23,23,OP080,WO-LG-2026-0023,Pressure Holding Test,006,38.0 C,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+24,24,OP010,WO-LG-2026-0024,Extension and Retraction Function Test,007,0.180 mm,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+25,25,OP020,WO-LG-2026-0025,Cylinder Barrel Rough Machining,008,21.000 MPa,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+26,26,OP030,WO-LG-2026-0026,Piston Rod Precision Grinding,009,0.080 mL/min,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+27,27,OP040,WO-LG-2026-0027,Inner Bore Honing,001,155.000 mm,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+28,28,OP050,WO-LG-2026-0028,Chrome Plating Layer Grinding,002,4.800 s,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+29,29,OP060,WO-LG-2026-0029,Seal Component Assembly,003,38.0 C,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+30,30,OP070,WO-LG-2026-0030,Actuator Final Assembly,004,0.180 mm,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+31,31,OP080,WO-LG-2026-0031,Pressure Holding Test,005,21.000 MPa,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+32,32,OP010,WO-LG-2026-0032,Extension and Retraction Function Test,006,0.080 mL/min,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+33,33,OP020,WO-LG-2026-0033,Cylinder Barrel Rough Machining,007,155.000 mm,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+34,34,OP030,WO-LG-2026-0034,Piston Rod Precision Grinding,008,4.800 s,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+35,35,OP040,WO-LG-2026-0035,Inner Bore Honing,009,38.0 C,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+36,36,OP050,WO-LG-2026-0036,Chrome Plating Layer Grinding,001,0.180 mm,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+37,37,OP060,WO-LG-2026-0037,Seal Component Assembly,002,21.000 MPa,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+38,38,OP070,WO-LG-2026-0038,Actuator Final Assembly,003,0.080 mL/min,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+39,39,OP080,WO-LG-2026-0039,Pressure Holding Test,004,155.000 mm,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+40,40,OP010,WO-LG-2026-0040,Extension and Retraction Function Test,005,4.800 s,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+41,41,OP020,WO-LG-2026-0041,Cylinder Barrel Rough Machining,006,38.0 C,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+42,42,OP030,WO-LG-2026-0042,Piston Rod Precision Grinding,007,0.180 mm,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+43,43,OP040,WO-LG-2026-0043,Inner Bore Honing,008,21.000 MPa,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+44,44,OP050,WO-LG-2026-0044,Chrome Plating Layer Grinding,009,0.080 mL/min,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+45,45,OP060,WO-LG-2026-0045,Seal Component Assembly,001,155.000 mm,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+46,46,OP070,WO-LG-2026-0046,Actuator Final Assembly,002,4.800 s,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+47,47,OP080,WO-LG-2026-0047,Pressure Holding Test,003,38.0 C,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+48,48,OP010,WO-LG-2026-0048,Extension and Retraction Function Test,004,0.180 mm,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+49,49,OP020,WO-LG-2026-0049,Cylinder Barrel Rough Machining,005,21.000 MPa,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+50,50,OP030,WO-LG-2026-0050,Piston Rod Precision Grinding,006,0.080 mL/min,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+51,51,OP040,WO-LG-2026-0051,Inner Bore Honing,007,155.000 mm,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+52,52,OP050,WO-LG-2026-0052,Chrome Plating Layer Grinding,008,4.800 s,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+53,53,OP060,WO-LG-2026-0053,Seal Component Assembly,009,38.0 C,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+54,54,OP070,WO-LG-2026-0054,Actuator Final Assembly,001,0.180 mm,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+55,55,OP080,WO-LG-2026-0055,Pressure Holding Test,002,21.000 MPa,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+56,56,OP010,WO-LG-2026-0056,Extension and Retraction Function Test,003,0.080 mL/min,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+57,57,OP020,WO-LG-2026-0057,Cylinder Barrel Rough Machining,004,155.000 mm,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+58,58,OP030,WO-LG-2026-0058,Piston Rod Precision Grinding,005,4.800 s,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+59,59,OP040,WO-LG-2026-0059,Inner Bore Honing,006,38.0 C,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+60,60,OP050,WO-LG-2026-0060,Chrome Plating Layer Grinding,007,0.180 mm,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+61,61,OP060,WO-LG-2026-0061,Seal Component Assembly,008,21.000 MPa,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+62,62,OP070,WO-LG-2026-0062,Actuator Final Assembly,009,0.080 mL/min,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+63,63,OP080,WO-LG-2026-0063,Pressure Holding Test,001,155.000 mm,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+64,64,OP010,WO-LG-2026-0064,Extension and Retraction Function Test,002,4.800 s,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+65,65,OP020,WO-LG-2026-0065,Cylinder Barrel Rough Machining,003,38.0 C,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+66,66,OP030,WO-LG-2026-0066,Piston Rod Precision Grinding,004,0.180 mm,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+67,67,OP040,WO-LG-2026-0067,Inner Bore Honing,005,21.000 MPa,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+68,68,OP050,WO-LG-2026-0068,Chrome Plating Layer Grinding,006,0.080 mL/min,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+69,69,OP060,WO-LG-2026-0069,Seal Component Assembly,007,155.000 mm,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+70,70,OP070,WO-LG-2026-0070,Actuator Final Assembly,008,4.800 s,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+71,71,OP080,WO-LG-2026-0071,Pressure Holding Test,009,38.0 C,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+72,72,OP010,WO-LG-2026-0072,Extension and Retraction Function Test,001,0.180 mm,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+73,73,OP020,WO-LG-2026-0073,Cylinder Barrel Rough Machining,002,21.000 MPa,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+74,74,OP030,WO-LG-2026-0074,Piston Rod Precision Grinding,003,0.080 mL/min,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+75,75,OP040,WO-LG-2026-0075,Inner Bore Honing,004,155.000 mm,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+76,76,OP050,WO-LG-2026-0076,Chrome Plating Layer Grinding,005,4.800 s,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+77,77,OP060,WO-LG-2026-0077,Seal Component Assembly,006,38.0 C,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+78,78,OP070,WO-LG-2026-0078,Actuator Final Assembly,007,0.180 mm,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+79,79,OP080,WO-LG-2026-0079,Pressure Holding Test,008,21.000 MPa,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+80,80,OP010,WO-LG-2026-0080,Extension and Retraction Function Test,009,0.080 mL/min,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+81,81,OP020,WO-LG-2026-0081,Cylinder Barrel Rough Machining,001,155.000 mm,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+82,82,OP030,WO-LG-2026-0082,Piston Rod Precision Grinding,002,4.800 s,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+83,83,OP040,WO-LG-2026-0083,Inner Bore Honing,003,38.0 C,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+84,84,OP050,WO-LG-2026-0084,Chrome Plating Layer Grinding,004,0.180 mm,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+85,85,OP060,WO-LG-2026-0085,Seal Component Assembly,005,21.000 MPa,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+86,86,OP070,WO-LG-2026-0086,Actuator Final Assembly,006,0.080 mL/min,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+87,87,OP080,WO-LG-2026-0087,Pressure Holding Test,007,155.000 mm,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+88,88,OP010,WO-LG-2026-0088,Extension and Retraction Function Test,008,4.800 s,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+89,89,OP020,WO-LG-2026-0089,Cylinder Barrel Rough Machining,009,38.0 C,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+90,90,OP030,WO-LG-2026-0090,Piston Rod Precision Grinding,001,0.180 mm,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+91,91,OP040,WO-LG-2026-0091,Inner Bore Honing,002,21.000 MPa,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+92,92,OP050,WO-LG-2026-0092,Chrome Plating Layer Grinding,003,0.080 mL/min,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+93,93,OP060,WO-LG-2026-0093,Seal Component Assembly,004,155.000 mm,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+94,94,OP070,WO-LG-2026-0094,Actuator Final Assembly,005,4.800 s,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+95,95,OP080,WO-LG-2026-0095,Pressure Holding Test,006,38.0 C,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+96,96,OP010,WO-LG-2026-0096,Extension and Retraction Function Test,007,0.180 mm,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+97,97,OP020,WO-LG-2026-0097,Cylinder Barrel Rough Machining,008,21.000 MPa,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+98,98,OP030,WO-LG-2026-0098,Piston Rod Precision Grinding,009,0.080 mL/min,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+99,99,OP040,WO-LG-2026-0099,Inner Bore Honing,001,155.000 mm,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+100,100,OP050,WO-LG-2026-0100,Chrome Plating Layer Grinding,002,4.800 s,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+101,101,OP060,WO-LG-2026-0101,Seal Component Assembly,003,38.0 C,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+102,102,OP070,WO-LG-2026-0102,Actuator Final Assembly,004,0.180 mm,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+103,103,OP080,WO-LG-2026-0103,Pressure Holding Test,005,21.000 MPa,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+104,104,OP010,WO-LG-2026-0104,Extension and Retraction Function Test,006,0.080 mL/min,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+105,105,OP020,WO-LG-2026-0105,Cylinder Barrel Rough Machining,007,155.000 mm,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+106,106,OP030,WO-LG-2026-0106,Piston Rod Precision Grinding,008,4.800 s,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+107,107,OP040,WO-LG-2026-0107,Inner Bore Honing,009,38.0 C,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+108,108,OP050,WO-LG-2026-0108,Chrome Plating Layer Grinding,001,0.180 mm,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+109,109,OP060,WO-LG-2026-0109,Seal Component Assembly,002,21.000 MPa,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+110,110,OP070,WO-LG-2026-0110,Actuator Final Assembly,003,0.080 mL/min,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+111,111,OP080,WO-LG-2026-0111,Pressure Holding Test,004,155.000 mm,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+112,112,OP010,WO-LG-2026-0112,Extension and Retraction Function Test,005,4.800 s,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+113,113,OP020,WO-LG-2026-0113,Cylinder Barrel Rough Machining,006,38.0 C,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+114,114,OP030,WO-LG-2026-0114,Piston Rod Precision Grinding,007,0.180 mm,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+115,115,OP040,WO-LG-2026-0115,Inner Bore Honing,008,21.000 MPa,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+116,116,OP050,WO-LG-2026-0116,Chrome Plating Layer Grinding,009,0.080 mL/min,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+117,117,OP060,WO-LG-2026-0117,Seal Component Assembly,001,155.000 mm,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+118,118,OP070,WO-LG-2026-0118,Actuator Final Assembly,002,4.800 s,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+119,119,OP080,WO-LG-2026-0119,Pressure Holding Test,003,38.0 C,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+120,120,OP010,WO-LG-2026-0120,Extension and Retraction Function Test,004,0.180 mm,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+121,121,OP020,WO-LG-2026-0121,Cylinder Barrel Rough Machining,005,21.000 MPa,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+122,122,OP030,WO-LG-2026-0122,Piston Rod Precision Grinding,006,0.080 mL/min,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+123,123,OP040,WO-LG-2026-0123,Inner Bore Honing,007,155.000 mm,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+124,124,OP050,WO-LG-2026-0124,Chrome Plating Layer Grinding,008,4.800 s,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+125,125,OP060,WO-LG-2026-0125,Seal Component Assembly,009,38.0 C,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+126,126,OP070,WO-LG-2026-0126,Actuator Final Assembly,001,0.180 mm,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+127,127,OP080,WO-LG-2026-0127,Pressure Holding Test,002,21.000 MPa,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+128,128,OP010,WO-LG-2026-0128,Extension and Retraction Function Test,003,0.080 mL/min,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+129,129,OP020,WO-LG-2026-0129,Cylinder Barrel Rough Machining,004,155.000 mm,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+130,130,OP030,WO-LG-2026-0130,Piston Rod Precision Grinding,005,4.800 s,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+131,131,OP040,WO-LG-2026-0131,Inner Bore Honing,006,38.0 C,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+132,132,OP050,WO-LG-2026-0132,Chrome Plating Layer Grinding,007,0.180 mm,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+133,133,OP060,WO-LG-2026-0133,Seal Component Assembly,008,21.000 MPa,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+134,134,OP070,WO-LG-2026-0134,Actuator Final Assembly,009,0.080 mL/min,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+135,135,OP080,WO-LG-2026-0135,Pressure Holding Test,001,155.000 mm,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+136,136,OP010,WO-LG-2026-0136,Extension and Retraction Function Test,002,4.800 s,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+137,137,OP020,WO-LG-2026-0137,Cylinder Barrel Rough Machining,003,38.0 C,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+138,138,OP030,WO-LG-2026-0138,Piston Rod Precision Grinding,004,0.180 mm,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+139,139,OP040,WO-LG-2026-0139,Inner Bore Honing,005,21.000 MPa,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+140,140,OP050,WO-LG-2026-0140,Chrome Plating Layer Grinding,006,0.080 mL/min,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+141,141,OP060,WO-LG-2026-0141,Seal Component Assembly,007,155.000 mm,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+142,142,OP070,WO-LG-2026-0142,Actuator Final Assembly,008,4.800 s,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+143,143,OP080,WO-LG-2026-0143,Pressure Holding Test,009,38.0 C,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+144,144,OP010,WO-LG-2026-0144,Extension and Retraction Function Test,001,0.180 mm,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+145,145,OP020,WO-LG-2026-0145,Cylinder Barrel Rough Machining,002,21.000 MPa,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+146,146,OP030,WO-LG-2026-0146,Piston Rod Precision Grinding,003,0.080 mL/min,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+147,147,OP040,WO-LG-2026-0147,Inner Bore Honing,004,155.000 mm,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+148,148,OP050,WO-LG-2026-0148,Chrome Plating Layer Grinding,005,4.800 s,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+149,149,OP060,WO-LG-2026-0149,Seal Component Assembly,006,38.0 C,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+150,150,OP070,WO-LG-2026-0150,Actuator Final Assembly,007,0.180 mm,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+151,151,OP080,WO-LG-2026-0151,Pressure Holding Test,008,21.000 MPa,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+152,152,OP010,WO-LG-2026-0152,Extension and Retraction Function Test,009,0.080 mL/min,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+153,153,OP020,WO-LG-2026-0153,Cylinder Barrel Rough Machining,001,155.000 mm,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+154,154,OP030,WO-LG-2026-0154,Piston Rod Precision Grinding,002,4.800 s,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+155,155,OP040,WO-LG-2026-0155,Inner Bore Honing,003,38.0 C,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+156,156,OP050,WO-LG-2026-0156,Chrome Plating Layer Grinding,004,0.180 mm,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+157,157,OP060,WO-LG-2026-0157,Seal Component Assembly,005,21.000 MPa,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+158,158,OP070,WO-LG-2026-0158,Actuator Final Assembly,006,0.080 mL/min,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+159,159,OP080,WO-LG-2026-0159,Pressure Holding Test,007,155.000 mm,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+160,160,OP010,WO-LG-2026-0160,Extension and Retraction Function Test,008,4.800 s,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+161,161,OP020,WO-LG-2026-0161,Cylinder Barrel Rough Machining,009,38.0 C,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+162,162,OP030,WO-LG-2026-0162,Piston Rod Precision Grinding,001,0.180 mm,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+163,163,OP040,WO-LG-2026-0163,Inner Bore Honing,002,21.000 MPa,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+164,164,OP050,WO-LG-2026-0164,Chrome Plating Layer Grinding,003,0.080 mL/min,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+165,165,OP060,WO-LG-2026-0165,Seal Component Assembly,004,155.000 mm,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+166,166,OP070,WO-LG-2026-0166,Actuator Final Assembly,005,4.800 s,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+167,167,OP080,WO-LG-2026-0167,Pressure Holding Test,006,38.0 C,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+168,168,OP010,WO-LG-2026-0168,Extension and Retraction Function Test,007,0.180 mm,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+169,169,OP020,WO-LG-2026-0169,Cylinder Barrel Rough Machining,008,21.000 MPa,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+170,170,OP030,WO-LG-2026-0170,Piston Rod Precision Grinding,009,0.080 mL/min,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+171,171,OP040,WO-LG-2026-0171,Inner Bore Honing,001,155.000 mm,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+172,172,OP050,WO-LG-2026-0172,Chrome Plating Layer Grinding,002,4.800 s,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+173,173,OP060,WO-LG-2026-0173,Seal Component Assembly,003,38.0 C,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+174,174,OP070,WO-LG-2026-0174,Actuator Final Assembly,004,0.180 mm,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+175,175,OP080,WO-LG-2026-0175,Pressure Holding Test,005,21.000 MPa,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+176,176,OP010,WO-LG-2026-0176,Extension and Retraction Function Test,006,0.080 mL/min,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+177,177,OP020,WO-LG-2026-0177,Cylinder Barrel Rough Machining,007,155.000 mm,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+178,178,OP030,WO-LG-2026-0178,Piston Rod Precision Grinding,008,4.800 s,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+179,179,OP040,WO-LG-2026-0179,Inner Bore Honing,009,38.0 C,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+180,180,OP050,WO-LG-2026-0180,Chrome Plating Layer Grinding,001,0.180 mm,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+181,181,OP060,WO-LG-2026-0181,Seal Component Assembly,002,21.000 MPa,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+182,182,OP070,WO-LG-2026-0182,Actuator Final Assembly,003,0.080 mL/min,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+183,183,OP080,WO-LG-2026-0183,Pressure Holding Test,004,155.000 mm,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+184,184,OP010,WO-LG-2026-0184,Extension and Retraction Function Test,005,4.800 s,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+185,185,OP020,WO-LG-2026-0185,Cylinder Barrel Rough Machining,006,38.0 C,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+186,186,OP030,WO-LG-2026-0186,Piston Rod Precision Grinding,007,0.180 mm,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+187,187,OP040,WO-LG-2026-0187,Inner Bore Honing,008,21.000 MPa,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+188,188,OP050,WO-LG-2026-0188,Chrome Plating Layer Grinding,009,0.080 mL/min,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+189,189,OP060,WO-LG-2026-0189,Seal Component Assembly,001,155.000 mm,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+190,190,OP070,WO-LG-2026-0190,Actuator Final Assembly,002,4.800 s,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+191,191,OP080,WO-LG-2026-0191,Pressure Holding Test,003,38.0 C,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+192,192,OP010,WO-LG-2026-0192,Extension and Retraction Function Test,004,0.180 mm,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED
+193,193,OP020,WO-LG-2026-0193,Cylinder Barrel Rough Machining,005,21.000 MPa,PLM_MAKE,Cylinder Barrel Rough Machinin,PLM_NORMAL
+194,194,OP030,WO-LG-2026-0194,Piston Rod Precision Grinding,006,0.080 mL/min,PLM_BUY,Piston Rod Precision Grinding ,PLM_WARNIN
+195,195,OP040,WO-LG-2026-0195,Inner Bore Honing,007,155.000 mm,PLM_ASSEMBLY,Inner Bore Honing process reco,PLM_QUALIF
+196,196,OP050,WO-LG-2026-0196,Chrome Plating Layer Grinding,008,4.800 s,PLM_SERVICE,Chrome Plating Layer Grinding ,PLM_CLOSED
+197,197,OP060,WO-LG-2026-0197,Seal Component Assembly,009,38.0 C,PLM_MAKE,Seal Component Assembly proces,PLM_NORMAL
+198,198,OP070,WO-LG-2026-0198,Actuator Final Assembly,001,0.180 mm,PLM_BUY,Actuator Final Assembly proces,PLM_WARNIN
+199,199,OP080,WO-LG-2026-0199,Pressure Holding Test,002,21.000 MPa,PLM_ASSEMBLY,Pressure Holding Test process ,PLM_QUALIF
+200,200,OP010,WO-LG-2026-0200,Extension and Retraction Function Test,003,0.080 mL/min,PLM_SERVICE,Extension and Retraction Funct,PLM_CLOSED

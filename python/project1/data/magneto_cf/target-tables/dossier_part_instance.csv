@@ -1,0 +1,11 @@
+﻿part_instance_id,part_definition_id,production_batch_id,inventory_batch_id,supplier_batch_id,part_serial_no,part_lot_no,piece_no,quality_code,source_type,part_status
+1,1,1,1,1,PIN-2026-0001,LOTNO-0001,Piston Rod Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0001,MAKE,NORMAL
+2,2,2,2,2,PIN-2026-0002,LOTNO-0002,Cylinder Barrel Assembly aviation manufacturing business record used for actuator quality traceabili,QC-LG-0002,MAKE,WARNING
+3,3,3,3,3,PIN-2026-0003,LOTNO-0003,Front End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0003,BUY,QUALIFIED
+4,4,4,4,4,PIN-2026-0004,LOTNO-0004,Rear End Cap aviation manufacturing business record used for actuator quality traceability.,QC-LG-0004,BUY,CLOSED
+5,5,5,5,5,PIN-2026-0005,LOTNO-0005,Seal Ring Assembly aviation manufacturing business record used for actuator quality traceability.,QC-LG-0005,MAKE,NORMAL
+6,6,6,6,6,PIN-2026-0006,LOTNO-0006,Trunnion Bushing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0006,MAKE,WARNING
+7,7,7,7,7,PIN-2026-0007,LOTNO-0007,Spherical Bearing aviation manufacturing business record used for actuator quality traceability.,QC-LG-0007,MAKE,QUALIFIED
+8,8,8,8,8,PIN-2026-0008,LOTNO-0008,Throttle Connector aviation manufacturing business record used for actuator quality traceability.,QC-LG-0008,MAKE,CLOSED
+9,9,9,9,9,PIN-2026-0009,LOTNO-0009,Displacement Sensor Bracket aviation manufacturing business record used for actuator quality traceab,QC-LG-0009,BUY,NORMAL
+10,10,10,10,10,PIN-2026-0010,LOTNO-0010,Locking Nut aviation manufacturing business record used for actuator quality traceability.,QC-LG-0010,BUY,WARNING

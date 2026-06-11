@@ -1,0 +1,11 @@
+﻿supplier_id,supplier_code,supplier_name,supplier_type,qualification_level,contact_person,phone,address,enabled
+1,SUP-CF-0001,Chengdu Aviation Hydraulic Seals Co Ltd,NORMAL,NORMAL,Zhang Jiancheng,13800000001,The procurement batch for Piston Rod Assembly has completed receiving inspection and is used for actuator assembly.,True
+2,SUP-CF-0002,Sichuan Precision Bearing Manufacturing Plant,WARNING,WARNING,Li Hang,13800000002,The procurement batch for Cylinder Barrel Assembly has completed receiving inspection and is used for actuator assembly.,True
+3,SUP-CF-0003,Southwest Aviation Hydraulic Accessories Plant,QUALIFIED,QUALIFIED,Wang Lijun,13800000003,The procurement batch for Front End Cap has completed receiving inspection and is used for actuator assembly.,False
+4,SUP-CF-0004,Chengdu High-Tech Surface Treatment Center,CLOSED,CLOSED,Zhao Min,13800000004,The procurement batch for Rear End Cap has completed receiving inspection and is used for actuator assembly.,True
+5,SUP-CF-0005,Deyang Aviation Forging Co Ltd,NORMAL,NORMAL,Chen Gong,13800000005,The procurement batch for Seal Ring Assembly has completed receiving inspection and is used for actuator assembly.,True
+6,SUP-CF-0006,Mianyang Precision Sensor Co Ltd,WARNING,WARNING,Liu Xiaofeng,13800000006,The procurement batch for Trunnion Bushing has completed receiving inspection and is used for actuator assembly.,False
+7,SUP-CF-0007,Chengdu Aviation Materials Supply Chain Co Ltd,QUALIFIED,QUALIFIED,Zhou Qian,13800000007,The procurement batch for Spherical Bearing has completed receiving inspection and is used for actuator assembly.,True
+8,SUP-CF-0008,Zigong Aviation Rubber Products Plant,CLOSED,CLOSED,Huang Zhiqiang,13800000008,The procurement batch for Throttle Connector has completed receiving inspection and is used for actuator assembly.,True
+9,SUP-CF-0009,Chengdu Aviation Hydraulic Seals Co Ltd,NORMAL,NORMAL,Sun Wei,13800000009,The procurement batch for Displacement Sensor Bracket has completed receiving inspection and is used for actuator assembly.,False
+10,SUP-CF-0010,Sichuan Precision Bearing Manufacturing Plant,WARNING,WARNING,Ma Rui,13800000010,The procurement batch for Locking Nut has completed receiving inspection and is used for actuator assembly.,True

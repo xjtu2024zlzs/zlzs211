@@ -1,0 +1,9 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MES,part_track,partno,part_instance,part_definition_id,Joined Copy,hard,
+MES,part_track,batch_id,part_instance,production_batch_id,Joined Copy,hard,
+MES,part_track,part_sn,part_instance,part_serial_no,Direct Copy,simple,
+MES,part_track,lotno,part_instance,part_lot_no,Direct Copy,simple,
+MES,part_track,jianhao,part_instance,piece_no,Direct Copy,hard,
+MES,part_track,qcode,part_instance,quality_code,Direct Copy,medium,
+MES,part_track,source_code,part_instance,source_type,Lookup Normalize,medium,
+MES,part_track,part_state,part_instance,part_status,Lookup Normalize,medium,

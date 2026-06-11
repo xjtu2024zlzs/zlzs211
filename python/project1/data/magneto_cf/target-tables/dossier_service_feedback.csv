@@ -1,0 +1,11 @@
+﻿service_feedback_id,quality_event_id,maintenance_event_id,component_instance_id,iqs_failure_id,feedback_no,feedback_source,feedback_date,feedback_desc,feedback_status
+1,1,1,1,1,FB-CF-0001,NORMAL,2026-05-09 08:07:00,Field feedback reported Chrome Plating Scratch on Piston Rod; the maintenance record has been linked to the replaced part and the original manufacturing batch.,NORMAL
+2,2,2,2,2,FB-CF-0002,WARNING,2026-05-10 08:14:00,Field feedback reported Seal Ring Compression Damage; the maintenance record has been linked to the replaced part and the original manufacturing batch.,WARNING
+3,3,3,3,3,FB-CF-0003,QUALIFIED,2026-05-11 08:21:00,Field feedback reported Scratch on Cylinder Barrel Inner Wall; the maintenance record has been linked to the replaced part and the original manufacturing batch.,QUALIFIED
+4,4,4,4,4,FB-CF-0004,CLOSED,2026-05-12 08:28:00,Field feedback reported Pressure Holding Leakage Rate Out of Tolerance; the maintenance record has been linked to the replaced part and the original manufacturing batch.,CLOSED
+5,5,5,5,5,FB-CF-0005,NORMAL,2026-05-13 08:35:00,Field feedback reported Actuation Hysteresis; the maintenance record has been linked to the replaced part and the original manufacturing batch.,NORMAL
+6,6,6,6,6,FB-CF-0006,WARNING,2026-05-14 08:42:00,Field feedback reported Minor Leakage at Hydraulic Fitting; the maintenance record has been linked to the replaced part and the original manufacturing batch.,WARNING
+7,7,7,7,7,FB-CF-0007,QUALIFIED,2026-05-15 08:49:00,Field feedback reported Excessive Trunnion Bushing Clearance; the maintenance record has been linked to the replaced part and the original manufacturing batch.,QUALIFIED
+8,8,8,8,8,FB-CF-0008,CLOSED,2026-05-16 08:56:00,Field feedback reported Loose Displacement Sensor Bracket; the maintenance record has been linked to the replaced part and the original manufacturing batch.,CLOSED
+9,9,9,9,9,FB-CF-0009,NORMAL,2026-05-17 09:03:00,Field feedback reported Chrome Plating Scratch on Piston Rod; the maintenance record has been linked to the replaced part and the original manufacturing batch.,NORMAL
+10,10,10,10,10,FB-CF-0010,WARNING,2026-05-18 09:10:00,Field feedback reported Seal Ring Compression Damage; the maintenance record has been linked to the replaced part and the original manufacturing batch.,WARNING

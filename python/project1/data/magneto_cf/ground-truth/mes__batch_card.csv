@@ -1,0 +1,11 @@
+﻿source_database,source_table,source_column,target_table,target_column,mapping_type,difficulty,notes
+MES,batch_card,batchno,component_instance,component_batch_no,Joined Copy,medium,
+MES,batch_card,quality_code,component_instance,quality_code,Joined Copy,medium,
+MES,batch_card,task_id,production_batch,work_order_id,Joined Copy,hard,
+MES,batch_card,partno,production_batch,part_definition_id,Joined Copy,hard,
+MES,batch_card,batchno,production_batch,production_batch_no,Direct Copy,simple,
+MES,batch_card,batch_qty,production_batch,batch_amount,Rename + Cast,simple,
+MES,batch_card,starttime_txt,production_batch,start_time,Rename + Cast,medium,
+MES,batch_card,fintime_txt,production_batch,finish_time,Rename + Cast,medium,
+MES,batch_card,zhuangtai,production_batch,batch_status,Lookup Normalize,medium,
+MES,batch_card,quality_code,production_batch,quality_code,Direct Copy,simple,

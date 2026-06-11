@@ -567,7 +567,7 @@ function startRecordPolling(taskId, recordId) {
         if (data.executionStatus === "success") {
           const countText = data.resultSetCount ? `，已生成 ${data.resultSetCount} 个候选结果集` : ""
           if (data.noticeMessage) {
-            proxy.$modal.msgWarning(`模式映射运行完成${countText}；${data.noticeMessage}`)
+            proxy.$modal.msgSuccess(`模式映射运行完成${countText}；${data.noticeMessage}`)
           } else {
             proxy.$modal.msgSuccess(`模式映射运行完成${countText}`)
           }
