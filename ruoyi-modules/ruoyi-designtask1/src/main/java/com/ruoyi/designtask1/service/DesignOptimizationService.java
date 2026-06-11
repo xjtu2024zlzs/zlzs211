@@ -140,11 +140,11 @@ public class DesignOptimizationService {
         ));
         try {
             DesignTask task = new DesignTask();
-            task.setTaskName(str(body.get("taskName"), "液压弯管抗冲击设计制造协同优化任务"));
+            task.setTaskName(str(body.get("taskName"), "液压弯管抗冲击与线缆管路布局协同优化任务"));
             task.setTaskNo("LGD-" + TASK_NO_TIME.format(LocalDateTime.now()));
             task.setTaskType(str(body.get("taskType"), "LANDING_GEAR_DOOR"));
             task.setPriority(intValue(body.get("priority"), 2));
-            task.setDescription(str(body.get("description"), "基于前置故障追因结论，围绕起落架舱门区域液压弯管开展抗冲击设计制造协同优化。固定起点和终点，水平总长 600 mm，竖直总高 300 mm，关键设计变量为 L1、L2、θ1、θ2、R。"));
+            task.setDescription(str(body.get("description"), "基于前置故障追因结论，当前任务先由各专业工程师选择与舱门管线问题相关的优化目标、约束条件和必要设计变量。任务解耦将在目标与约束选择完成后执行，解耦前不预先固定子任务关系或上下游边界。"));
             task.setPlannedStartTime(dateValue(body.get("plannedStartTime")));
             task.setPlannedEndTime(dateValue(body.get("plannedEndTime")));
             String processDefinitionId = str(body.get("processDefinitionId"), "");
@@ -233,10 +233,13 @@ public class DesignOptimizationService {
         data.put("attachments", safeTaskFiles(taskId));
         data.put("objectiveConstraints", selectedObjectiveConstraints(taskId));
         data.put("designVariables", selectedDesignVariables(taskId));
+        data.put("faultPipeParameters", faultPipeParameters(taskId));
         data.put("conflictCheck", conflictCheckResult(true));
-        data.put("decomposed", isDecomposed(task));
-        data.put("subtasks", isDecomposed(task) ? subtaskSolutions(taskId) : subtaskDefinitions(taskId));
+        boolean decomposed = isDecomposed(task, taskId);
+        data.put("decomposed", decomposed);
+        data.put("subtasks", decomposed ? subtaskDefinitions(taskId) : Collections.emptyList());
         data.put("simulation", simulationResult());
+        data.put("ansysSimulation", taskId == null ? defaultAnsysSimulation() : ansysSimulation(taskId));
         data.put("surrogateSolve", taskId == null ? defaultSurrogateSolve() : surrogateSolve(taskId));
         data.put("cadModel", taskId == null ? defaultCadModel() : cadModel(taskId));
         data.put("approval", mapOf("result", "PENDING", "comment", ""));
@@ -293,6 +296,163 @@ public class DesignOptimizationService {
         return variableCatalogByDiscipline(discipline);
     }
 
+    public Map<String, Object> defaultFaultPipeParameters() {
+        return faultPipeParameters(null);
+    }
+
+    public Map<String, Object> faultPipeParameters(Long taskId) {
+        try {
+            Map<String, Object> parameterSet = faultPipeParameterSet(taskId);
+            if (parameterSet.isEmpty()) {
+                return fallbackFaultPipeParameters();
+            }
+            Long parameterSetId = longValue(parameterSet.get("parameterSetId"));
+            if (parameterSetId == null) {
+                return fallbackFaultPipeParameters();
+            }
+            List<Map<String, Object>> items = jdbcTemplate.queryForList("""
+                select item_id itemId,
+                       param_group paramGroup,
+                       group_name groupName,
+                       param_code paramCode,
+                       param_name paramName,
+                       param_value paramValue,
+                       param_unit paramUnit,
+                       value_type valueType,
+                       formula_text formulaText,
+                       description,
+                       sort_order sortOrder
+                from t2_design_fault_pipe_parameter_item
+                where parameter_set_id = ?
+                  and status = '0'
+                order by sort_order, item_id
+                """, parameterSetId);
+            Map<String, Object> result = new LinkedHashMap<>(parameterSet);
+            result.put("items", items);
+            result.put("groups", groupFaultPipeParameterItems(items));
+            result.put("values", faultPipeParameterValueMap(items));
+            return result;
+        } catch (Exception ignored) {
+            return fallbackFaultPipeParameters();
+        }
+    }
+
+    private Map<String, Object> faultPipeParameterSet(Long taskId) {
+        if (taskId != null) {
+            List<Map<String, Object>> taskSets = jdbcTemplate.queryForList("""
+                select parameter_set_id parameterSetId,
+                       task_id taskId,
+                       set_code setCode,
+                       set_name setName,
+                       fault_segment_name faultSegmentName,
+                       material_name materialName,
+                       source_type sourceType,
+                       is_default isDefault,
+                       remark
+                from t2_design_fault_pipe_parameter_set
+                where task_id = ?
+                  and status = '0'
+                order by parameter_set_id desc
+                limit 1
+                """, taskId);
+            if (!taskSets.isEmpty()) {
+                return taskSets.get(0);
+            }
+        }
+        List<Map<String, Object>> defaultSets = jdbcTemplate.queryForList("""
+            select parameter_set_id parameterSetId,
+                   task_id taskId,
+                   set_code setCode,
+                   set_name setName,
+                   fault_segment_name faultSegmentName,
+                   material_name materialName,
+                   source_type sourceType,
+                   is_default isDefault,
+                   remark
+            from t2_design_fault_pipe_parameter_set
+            where is_default = '1'
+              and status = '0'
+            order by parameter_set_id desc
+            limit 1
+            """);
+        return defaultSets.isEmpty() ? Collections.emptyMap() : defaultSets.get(0);
+    }
+
+    private List<Map<String, Object>> groupFaultPipeParameterItems(List<Map<String, Object>> items) {
+        Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+        Map<String, String> groupNames = new LinkedHashMap<>();
+        for (Map<String, Object> item : items) {
+            String groupCode = str(item.get("paramGroup"), "other");
+            grouped.computeIfAbsent(groupCode, key -> new ArrayList<>()).add(item);
+            groupNames.putIfAbsent(groupCode, str(item.get("groupName"), groupCode));
+        }
+        List<Map<String, Object>> groups = new ArrayList<>();
+        grouped.forEach((groupCode, groupItems) -> groups.add(mapOf(
+            "groupCode", groupCode,
+            "groupName", groupNames.getOrDefault(groupCode, groupCode),
+            "items", groupItems
+        )));
+        return groups;
+    }
+
+    private Map<String, Object> faultPipeParameterValueMap(List<Map<String, Object>> items) {
+        Map<String, Object> values = new LinkedHashMap<>();
+        for (Map<String, Object> item : items) {
+            values.put(str(item.get("paramCode"), ""), str(item.get("paramValue"), ""));
+        }
+        return values;
+    }
+
+    private Map<String, Object> fallbackFaultPipeParameters() {
+        List<Map<String, Object>> items = List.of(
+            faultPipeItem("material", "材料属性", "MATERIAL_NAME", "材料", "不锈钢", "", "text", "", "故障管段材料名称", 10),
+            faultPipeItem("material", "材料属性", "MATERIAL_DENSITY", "密度", "7750", "kg*m^-3", "number", "", "材料密度", 20),
+            faultPipeItem("material", "材料属性", "THERMAL_EXPANSION_COEFFICIENT", "热膨胀系数", "1.7E-05", "C^-1", "number", "", "热膨胀系数", 30),
+            faultPipeItem("material", "材料属性", "YOUNG_MODULUS", "杨氏模量", "1.93E+11", "Pa", "number", "", "弹性模量", 40),
+            faultPipeItem("material", "材料属性", "POISSON_RATIO", "泊松比", "0.31", "", "number", "", "泊松比", 50),
+            faultPipeItem("material", "材料属性", "BULK_MODULUS", "体积模量", "1.693E+11", "Pa", "number", "", "体积模量", 60),
+            faultPipeItem("material", "材料属性", "SHEAR_MODULUS", "剪切模量", "7.3664E+10", "Pa", "number", "", "剪切模量", 70),
+            faultPipeItem("material", "材料属性", "TENSILE_YIELD_STRENGTH", "拉伸屈服强度", "2.07E+08", "Pa", "number", "", "拉伸屈服强度，可作为许用应力来源", 80),
+            faultPipeItem("material", "材料属性", "COMPRESSIVE_YIELD_STRENGTH", "压缩屈服强度", "2.07E+08", "Pa", "number", "", "压缩屈服强度", 90),
+            faultPipeItem("material", "材料属性", "TENSILE_ULTIMATE_STRENGTH", "拉伸极限强度", "5.86E+08", "Pa", "number", "", "拉伸极限强度", 100),
+            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_EXPRESSION", "入口压强表达式", "IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)", "Pa", "formula", "IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)", "0 到 0.001 秒线性升压，之后保持峰值压强", 110),
+            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_INITIAL", "初始压强", "101325", "Pa", "number", "", "入口初始压强", 120),
+            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_PEAK", "峰值压强", "30000000", "Pa", "number", "", "入口峰值压强", 130),
+            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_RISE_TIME", "上升时间", "0.001", "s", "number", "", "压强从初始值升至峰值所需时间", 140)
+        );
+        return mapOf(
+            "parameterSetId", null,
+            "taskId", null,
+            "setCode", "FAULT_PIPE_DEFAULT_001",
+            "setName", "故障管段默认原始设计参数",
+            "faultSegmentName", "故障液压弯管段",
+            "materialName", "不锈钢",
+            "sourceType", "fallback",
+            "isDefault", "1",
+            "remark", "材料属性与入口压强载荷谱默认值",
+            "items", items,
+            "groups", groupFaultPipeParameterItems(items),
+            "values", faultPipeParameterValueMap(items)
+        );
+    }
+
+    private Map<String, Object> faultPipeItem(String groupCode, String groupName, String code, String name, String value,
+                                              String unit, String valueType, String formula, String description, int sortOrder) {
+        return mapOf(
+            "itemId", null,
+            "paramGroup", groupCode,
+            "groupName", groupName,
+            "paramCode", code,
+            "paramName", name,
+            "paramValue", value,
+            "paramUnit", unit,
+            "valueType", valueType,
+            "formulaText", formula,
+            "description", description,
+            "sortOrder", sortOrder
+        );
+    }
+
     @Transactional
     public Map<String, Object> saveObjectiveConstraints(Long taskId, Map<String, Object> body) {
         DesignTask task = taskService.selectTaskById(taskId);
@@ -345,6 +505,7 @@ public class DesignOptimizationService {
             task.setUpdateBy(currentUsername());
             taskService.updateTask(task);
         }
+        saveDecompositionMarker(taskId);
         return mapOf("subtasks", subtaskDefinitions(taskId), "message", "已将大任务目标与约束归类到两个解耦子任务");
     }
 
@@ -386,6 +547,7 @@ public class DesignOptimizationService {
         Map<String, Object> params = mapOf(
             "taskId", taskId,
             "variables", bounds,
+            "faultPipeParameters", faultPipeParameters(taskId),
             "algorithm", algorithm
         );
         upsertSurrogateSolve(taskId, "QUEUED", params, Collections.emptyMap(), "");
@@ -395,7 +557,7 @@ public class DesignOptimizationService {
 
     public Map<String, Object> surrogateSolve(Long taskId) {
         ensureSurrogateSolveTable();
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("select * from p2_surrogate_solve_task where task_id = ?", taskId);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("select * from t2_surrogate_solve_task where task_id = ?", taskId);
         if (rows.isEmpty()) {
             return defaultSurrogateSolve();
         }
@@ -436,7 +598,7 @@ public class DesignOptimizationService {
             task.setUpdateBy(currentUsername());
             taskService.updateTask(task);
         }
-        jdbcTemplate.update("update p2_surrogate_solve_task set status = 'CONFIRMED', confirmed = '1', update_time = sysdate() where task_id = ?", taskId);
+        jdbcTemplate.update("update t2_surrogate_solve_task set status = 'CONFIRMED', confirmed = '1', update_time = sysdate() where task_id = ?", taskId);
         return surrogateSolve(taskId);
     }
 
@@ -450,6 +612,46 @@ public class DesignOptimizationService {
             taskService.updateTask(task);
         }
         return simulationResult();
+    }
+
+    public Map<String, Object> submitAnsysSimulation(Long taskId, Map<String, Object> body) {
+        DesignTask task = taskService.selectTaskById(taskId);
+        if (task != null) {
+            assertCurrentAssignee(task, "当前任务未流转到你，暂不能启动 ANSYS 仿真。");
+        }
+        ensureAnsysSimulationTable();
+        Map<String, Object> input = mapOf(
+            "cadModel", cadModel(taskId),
+            "faultPipeParameters", faultPipeParameters(taskId),
+            "simulationMode", str(body == null ? null : body.get("simulationMode"), "placeholder_transient_structural"),
+            "pressureLoad", "IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)"
+        );
+        Map<String, Object> result = placeholderAnsysResult();
+        upsertAnsysSimulation(taskId, "SUCCESS", input, result, "");
+        return ansysSimulation(taskId);
+    }
+
+    public Map<String, Object> ansysSimulation(Long taskId) {
+        ensureAnsysSimulationTable();
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("select * from t2_design_ansys_simulation_task where task_id = ?", taskId);
+        if (rows.isEmpty()) {
+            return defaultAnsysSimulation();
+        }
+        Map<String, Object> row = rows.get(0);
+        String status = str(row.get("status"), "NOT_SUBMITTED");
+        return mapOf(
+            "status", status,
+            "statusLabel", ansysStatusLabel(status),
+            "simulationType", str(row.get("simulation_type"), "Transient Structural"),
+            "input", fromJson(str(row.get("input_json"), "{}")),
+            "result", fromJson(str(row.get("result_json"), "{}")),
+            "metrics", fromJsonList(str(row.get("metrics_json"), "[]")),
+            "stressImageUrl", str(row.get("stress_image_url"), ""),
+            "resultFilePath", str(row.get("result_file_path"), ""),
+            "errorMessage", str(row.get("error_message"), ""),
+            "placeholder", "1".equals(str(row.get("placeholder"), "0")),
+            "updatedAt", row.get("update_time")
+        );
     }
 
     public Map<String, Object> submitCadModel(Long taskId, Map<String, Object> body) {
@@ -467,9 +669,101 @@ public class DesignOptimizationService {
         return cadModel(taskId);
     }
 
+    private Map<String, Object> defaultAnsysSimulation() {
+        return mapOf(
+            "status", "NOT_SUBMITTED",
+            "statusLabel", "未提交",
+            "simulationType", "Transient Structural",
+            "input", Collections.emptyMap(),
+            "result", Collections.emptyMap(),
+            "metrics", Collections.emptyList(),
+            "stressImageUrl", "",
+            "resultFilePath", "",
+            "errorMessage", "",
+            "placeholder", true
+        );
+    }
+
+    private Map<String, Object> placeholderAnsysResult() {
+        List<Map<String, Object>> metrics = List.of(
+            mapOf("name", "最大等效应力", "value", "0.40327", "unit", "MPa", "source", "预置占位云图"),
+            mapOf("name", "最小等效应力", "value", "0.012097", "unit", "MPa", "source", "预置占位云图"),
+            mapOf("name", "入口峰值压强", "value", "30000000", "unit", "Pa", "source", "故障管段参数库"),
+            mapOf("name", "压强上升时间", "value", "0.001", "unit", "s", "source", "故障管段参数库")
+        );
+        return mapOf(
+            "summary", "ANSYS 软件未接入前的占位仿真结果，后续将由真实求解结果替换。",
+            "maxEquivalentStress", 0.40327,
+            "minEquivalentStress", 0.012097,
+            "stressUnit", "MPa",
+            "metrics", metrics
+        );
+    }
+
+    private String ansysStatusLabel(String status) {
+        return switch (status) {
+            case "QUEUED" -> "排队中";
+            case "RUNNING" -> "仿真中";
+            case "SUCCESS" -> "仿真完成";
+            case "FAILED" -> "仿真失败";
+            default -> "未提交";
+        };
+    }
+
+    private void ensureAnsysSimulationTable() {
+        jdbcTemplate.execute("""
+            create table if not exists t2_design_ansys_simulation_task (
+              task_id bigint not null primary key,
+              status varchar(32) not null,
+              simulation_type varchar(100),
+              input_json text,
+              result_json text,
+              metrics_json text,
+              stress_image_url varchar(1000),
+              result_file_path varchar(1000),
+              error_message varchar(1000),
+              placeholder char(1) default '1',
+              create_time datetime default current_timestamp,
+              update_time datetime default current_timestamp
+            )
+            """);
+    }
+
+    private void upsertAnsysSimulation(Long taskId, String status, Map<String, Object> input, Map<String, Object> result, String errorMessage) {
+        ensureAnsysSimulationTable();
+        Object metrics = firstNonNull(result.get("metrics"), Collections.emptyList());
+        jdbcTemplate.update("""
+            insert into t2_design_ansys_simulation_task (
+              task_id, status, simulation_type, input_json, result_json, metrics_json,
+              stress_image_url, result_file_path, error_message, placeholder, create_time, update_time
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, '1', sysdate(), sysdate())
+            on duplicate key update
+              status = values(status),
+              simulation_type = values(simulation_type),
+              input_json = values(input_json),
+              result_json = values(result_json),
+              metrics_json = values(metrics_json),
+              stress_image_url = values(stress_image_url),
+              result_file_path = values(result_file_path),
+              error_message = values(error_message),
+              placeholder = values(placeholder),
+              update_time = sysdate()
+            """,
+            taskId,
+            status,
+            "ANSYS Transient Structural",
+            toJson(input),
+            toJson(result),
+            toJson(metrics),
+            "",
+            "",
+            errorMessage
+        );
+    }
+
     public Map<String, Object> cadModel(Long taskId) {
         ensureCadModelTable();
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("select * from p2_cad_model_task where task_id = ?", taskId);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("select * from t2_cad_model_task where task_id = ?", taskId);
         if (rows.isEmpty()) {
             return defaultCadModel();
         }
@@ -500,7 +794,7 @@ public class DesignOptimizationService {
             case "preview", "png", "previewpng" -> "preview_png_path";
             default -> throw new IllegalStateException("不支持的 CAD 文件类型：" + kind);
         };
-        List<String> paths = jdbcTemplate.queryForList("select " + column + " from p2_cad_model_task where task_id = ?", String.class, taskId);
+        List<String> paths = jdbcTemplate.queryForList("select " + column + " from t2_cad_model_task where task_id = ?", String.class, taskId);
         if (paths.isEmpty() || StringUtils.isEmpty(paths.get(0))) {
             throw new IllegalStateException("CAD 文件尚未生成。");
         }
@@ -513,14 +807,56 @@ public class DesignOptimizationService {
 
     public Map<String, Object> approve(Long taskId, Map<String, Object> body) {
         boolean approved = Boolean.parseBoolean(String.valueOf(body.getOrDefault("approved", "true")));
+        String comment = str(body.get("comment"), approved ? "审批通过" : "退回重新求解");
         DesignTask task = taskService.selectTaskById(taskId);
         if (task != null) {
             assertCurrentAssignee(task, "当前任务未流转到你，暂不能审批。");
             completeFlowableTask(task, mapOf("approvalPassed", approved));
+            syncRuntimeIfPossible(task);
             task.setUpdateBy(currentUsername());
             taskService.updateTask(task);
         }
-        return mapOf("approved", approved, "comment", str(body.get("comment"), approved ? "审批通过" : "退回重新求解"));
+        saveApprovalRecord(taskId, approved, comment);
+        if (approved) {
+            upsertArchiveSnapshot(taskId, task, "ARCHIVED");
+        }
+        return mapOf("approved", approved, "comment", comment, "archive", approved ? archive(taskId) : Collections.emptyMap());
+    }
+
+    public Map<String, Object> archive(Long taskId) {
+        ensureArchiveTable();
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+            select archive_id archiveId,
+                   task_id taskId,
+                   archive_code archiveCode,
+                   archive_title archiveTitle,
+                   archive_status archiveStatus,
+                   archive_json archiveJson,
+                   archive_time archiveTime,
+                   archive_by archiveBy,
+                   export_file_id exportFileId
+            from t2_design_task_archive
+            where task_id = ?
+            order by archive_id desc
+            limit 1
+            """, taskId);
+        if (rows.isEmpty()) {
+            return upsertArchiveSnapshot(taskId, taskService.selectTaskById(taskId), "ARCHIVED");
+        }
+        Map<String, Object> row = rows.get(0);
+        Map<String, Object> snapshot = fromJson(str(row.get("archiveJson"), "{}"));
+        if (snapshot.isEmpty()) {
+            snapshot = buildArchiveSnapshot(taskId, taskService.selectTaskById(taskId), str(row.get("archiveStatus"), "ARCHIVED"));
+        }
+        Map<String, Object> result = new LinkedHashMap<>(snapshot);
+        result.put("archiveId", row.get("archiveId"));
+        result.put("archiveCode", row.get("archiveCode"));
+        result.put("archiveTitle", row.get("archiveTitle"));
+        result.put("archiveStatus", row.get("archiveStatus"));
+        result.put("archiveTime", row.get("archiveTime"));
+        result.put("archiveBy", row.get("archiveBy"));
+        result.put("exportFileId", row.get("exportFileId"));
+        return result;
     }
 
     private Map<String, Object> defaultSurrogateSolve() {
@@ -539,6 +875,124 @@ public class DesignOptimizationService {
             "errorMessage", "",
             "confirmed", false
         );
+    }
+
+    private void ensureArchiveTable() {
+        jdbcTemplate.execute("""
+            create table if not exists t2_design_task_archive (
+              archive_id bigint(20) not null auto_increment comment 'Archive ID',
+              task_id bigint(20) not null comment 'Task ID',
+              archive_code varchar(80) not null comment 'Archive code',
+              archive_title varchar(300) not null comment 'Archive title',
+              archive_status varchar(30) default 'ARCHIVED' comment 'Archive status',
+              archive_json longtext comment 'Archive snapshot JSON',
+              archive_time datetime default null comment 'Archive time',
+              archive_by varchar(64) default '' comment 'Archive user',
+              export_file_id bigint(20) default null comment 'Export file ID',
+              create_time datetime default null,
+              update_time datetime default null,
+              primary key (archive_id),
+              unique key uk_t2_task_archive_task (task_id),
+              key idx_t2_task_archive_code (archive_code)
+            ) engine=InnoDB default charset=utf8mb4 comment='Design task archive'
+            """);
+    }
+
+    private Map<String, Object> upsertArchiveSnapshot(Long taskId, DesignTask task, String archiveStatus) {
+        ensureArchiveTable();
+        Map<String, Object> snapshot = buildArchiveSnapshot(taskId, task, archiveStatus);
+        String archiveCode = str(snapshot.get("archiveCode"), "ARCH-" + taskId);
+        String archiveTitle = str(snapshot.get("archiveTitle"), "设计任务归档文档");
+        jdbcTemplate.update("""
+            insert into t2_design_task_archive(
+                task_id, archive_code, archive_title, archive_status, archive_json, archive_time, archive_by, create_time, update_time
+            )
+            values (?, ?, ?, ?, ?, sysdate(), ?, sysdate(), sysdate())
+            on duplicate key update
+              archive_code = values(archive_code),
+              archive_title = values(archive_title),
+              archive_status = values(archive_status),
+              archive_json = values(archive_json),
+              archive_time = sysdate(),
+              archive_by = values(archive_by),
+              update_time = sysdate()
+            """,
+            taskId, archiveCode, archiveTitle, archiveStatus, toJson(snapshot), currentUsername()
+        );
+        snapshot.put("archiveStatus", archiveStatus);
+        snapshot.put("archiveBy", currentUsername());
+        return snapshot;
+    }
+
+    private Map<String, Object> buildArchiveSnapshot(Long taskId, DesignTask task, String archiveStatus) {
+        DesignTask archiveTask = task == null ? taskService.selectTaskById(taskId) : task;
+        if (archiveTask != null) {
+            syncRuntimeIfPossible(archiveTask);
+        }
+        String taskNo = archiveTask == null ? String.valueOf(taskId) : str(archiveTask.getTaskNo(), String.valueOf(taskId));
+        String title = (archiveTask == null ? "设计任务" : str(archiveTask.getTaskName(), "设计任务")) + "归档文档";
+        return mapOf(
+            "archiveCode", "ARCH-" + taskNo,
+            "archiveTitle", title,
+            "archiveStatus", archiveStatus,
+            "archiveTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+            "task", archiveTask,
+            "problemOverview", archiveProblemOverview(archiveTask),
+            "objectiveConstraints", selectedObjectiveConstraints(taskId),
+            "faultPipeParameters", faultPipeParameters(taskId),
+            "subtasks", isDecomposed(archiveTask, taskId) ? subtaskDefinitions(taskId) : Collections.emptyList(),
+            "designVariables", selectedDesignVariables(taskId),
+            "surrogateSolve", surrogateSolve(taskId),
+            "cadModel", cadModel(taskId),
+            "ansysSimulation", ansysSimulation(taskId),
+            "simulation", simulationResult(),
+            "approval", approvalArchive(taskId),
+            "attachments", safeTaskFiles(taskId)
+        );
+    }
+
+    private String archiveProblemOverview(DesignTask task) {
+        if (task != null && StringUtils.isNotEmpty(task.getDescription())) {
+            return task.getDescription();
+        }
+        return "基于前置故障追因结论，任务完成了目标约束选择、模型解耦、设计变量归口、代理模型优化、CAD 建模、仿真验证与审批确认，形成可追溯的设计任务归档文档。";
+    }
+
+    private void saveApprovalRecord(Long taskId, boolean approved, String comment) {
+        try {
+            jdbcTemplate.update("""
+                insert into t2_design_approval_record(task_id, approved, comment, approve_by, approve_time)
+                values (?, ?, ?, ?, sysdate())
+                """, taskId, approved ? "1" : "0", comment, currentUsername());
+        } catch (Exception ignored) {
+        }
+    }
+
+    private Map<String, Object> approvalArchive(Long taskId) {
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+                select approved,
+                       comment,
+                       approve_by approveBy,
+                       approve_time approveTime
+                from t2_design_approval_record
+                where task_id = ?
+                order by id desc
+                limit 1
+                """, taskId);
+            if (!rows.isEmpty()) {
+                Map<String, Object> row = rows.get(0);
+                return mapOf(
+                    "approved", "1".equals(str(row.get("approved"), "")),
+                    "result", "1".equals(str(row.get("approved"), "")) ? "通过" : "退回",
+                    "comment", str(row.get("comment"), ""),
+                    "approveBy", str(row.get("approveBy"), ""),
+                    "approveTime", row.get("approveTime")
+                );
+            }
+        } catch (Exception ignored) {
+        }
+        return mapOf("approved", true, "result", "通过", "comment", "审批通过", "approveBy", "", "approveTime", "");
     }
 
     private void runSurrogateWorker(Long taskId, Map<String, Object> params) {
@@ -560,7 +1014,7 @@ public class DesignOptimizationService {
 
     private void ensureSurrogateSolveTable() {
         jdbcTemplate.execute("""
-            create table if not exists p2_surrogate_solve_task (
+            create table if not exists t2_surrogate_solve_task (
               task_id bigint not null primary key,
               status varchar(32) not null,
               model_name varchar(255),
@@ -583,7 +1037,7 @@ public class DesignOptimizationService {
     private void upsertSurrogateSolve(Long taskId, String status, Map<String, Object> params, Map<String, Object> data, String errorMessage) {
         ensureSurrogateSolveTable();
         jdbcTemplate.update("""
-            insert into p2_surrogate_solve_task (
+            insert into t2_surrogate_solve_task (
               task_id, status, model_name, model_type, objective_name, objective_unit,
               params_json, best_solution_json, candidate_solutions_json, iteration_history_json,
               iterations, error_message, confirmed, create_time, update_time
@@ -717,7 +1171,7 @@ public class DesignOptimizationService {
     }
 
     private void registerCadFiles(Long taskId, Map<String, Object> data, String username) {
-        jdbcTemplate.update("delete from p2_design_task_file where task_id = ? and file_type in ('CAD_SLDPRT','CAD_STL','CAD_PREVIEW_PNG')", taskId);
+        jdbcTemplate.update("delete from t2_design_task_file where task_id = ? and file_type in ('CAD_SLDPRT','CAD_STL','CAD_PREVIEW_PNG')", taskId);
         insertCadFile(taskId, str(data.get("sldprtPath"), ""), "CAD_SLDPRT", username);
         insertCadFile(taskId, str(data.get("stlPath"), ""), "CAD_STL", username);
         insertCadFile(taskId, str(data.get("previewPngPath"), ""), "CAD_PREVIEW_PNG", username);
@@ -758,7 +1212,7 @@ public class DesignOptimizationService {
 
     private void ensureCadModelTable() {
         jdbcTemplate.execute("""
-            create table if not exists p2_cad_model_task (
+            create table if not exists t2_cad_model_task (
               task_id bigint not null primary key,
               status varchar(32) not null,
               params_json text,
@@ -778,7 +1232,7 @@ public class DesignOptimizationService {
     private void upsertCadTask(Long taskId, String status, String paramsJson, String errorMessage, Map<String, Object> data) {
         ensureCadModelTable();
         jdbcTemplate.update("""
-            insert into p2_cad_model_task (
+            insert into t2_cad_model_task (
               task_id, status, params_json, l3, initial_angle, closure_status, error_message,
               sldprt_path, stl_path, preview_png_path, create_time, update_time
             ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate(), sysdate())
@@ -973,7 +1427,7 @@ public class DesignOptimizationService {
     }
 
     private void saveObjectiveItems(Long taskId, String discipline, Map<String, Object> body) {
-        jdbcTemplate.update("delete from p2_design_objective_constraint where task_id = ? and discipline = ?", taskId, discipline);
+        jdbcTemplate.update("delete from t2_design_objective_constraint where task_id = ? and discipline = ?", taskId, discipline);
         Object items = body.get("items");
         if (!(items instanceof List<?> list)) {
             return;
@@ -982,18 +1436,36 @@ public class DesignOptimizationService {
             if (!(itemObj instanceof Map<?, ?> item)) {
                 continue;
             }
-            jdbcTemplate.update("""
-                insert into p2_design_objective_constraint(task_id, discipline, item_type, item_code, item_name, direction, weight, limit_value, unit, remark, create_by, create_time)
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate())
-                """,
-                taskId, discipline, str(item.get("itemType"), ""), str(item.get("itemCode"), ""), str(item.get("itemName"), ""),
-                str(item.get("direction"), ""), intValue(item.get("weight"), 50), str(item.get("limitValue"), ""),
-                str(item.get("unit"), ""), str(body.get("remark"), ""), currentUsername());
+            try {
+                jdbcTemplate.update("""
+                    insert into t2_design_objective_constraint(
+                        task_id, discipline, item_type, item_code, item_name, direction, weight, limit_value, unit, remark,
+                        rule_type, rule_expression, target_field, reference_field, operator_code, threshold_value, execute_mode, rule_payload,
+                        create_by, create_time
+                    )
+                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate())
+                    """,
+                    taskId, discipline, str(item.get("itemType"), ""), str(item.get("itemCode"), ""), str(item.get("itemName"), ""),
+                    str(item.get("direction"), ""), intValue(item.get("weight"), 50), str(item.get("limitValue"), ""),
+                    str(item.get("unit"), ""), str(body.get("remark"), ""),
+                    str(item.get("ruleType"), ""), str(item.get("ruleExpression"), ""), str(item.get("targetField"), ""),
+                    str(item.get("referenceField"), ""), str(item.get("operatorCode"), ""), str(item.get("thresholdValue"), ""),
+                    str(item.get("executeMode"), "reserved"), str(item.get("rulePayload"), ""),
+                    currentUsername());
+            } catch (Exception missingRuleColumns) {
+                jdbcTemplate.update("""
+                    insert into t2_design_objective_constraint(task_id, discipline, item_type, item_code, item_name, direction, weight, limit_value, unit, remark, create_by, create_time)
+                    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate())
+                    """,
+                    taskId, discipline, str(item.get("itemType"), ""), str(item.get("itemCode"), ""), str(item.get("itemName"), ""),
+                    str(item.get("direction"), ""), intValue(item.get("weight"), 50), str(item.get("limitValue"), ""),
+                    str(item.get("unit"), ""), str(body.get("remark"), ""), currentUsername());
+            }
         }
     }
 
     private void saveDesignVariableItems(Long taskId, Map<String, Object> body) {
-        jdbcTemplate.update("delete from p2_design_task_variable_selection where task_id = ?", taskId);
+        jdbcTemplate.update("delete from t2_design_task_variable_selection where task_id = ?", taskId);
         Object items = body.get("designVariables");
         if (!(items instanceof List<?> list)) {
             return;
@@ -1003,7 +1475,7 @@ public class DesignOptimizationService {
                 continue;
             }
             jdbcTemplate.update("""
-                insert into p2_design_task_variable_selection(task_id, discipline, subtask_code, variable_code, variable_name, variable_type, initial_value, lower_bound, upper_bound, step_value, unit, remark, create_by, create_time)
+                insert into t2_design_task_variable_selection(task_id, discipline, subtask_code, variable_code, variable_name, variable_type, initial_value, lower_bound, upper_bound, step_value, unit, remark, create_by, create_time)
                 values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate())
                 """,
                 taskId, str(item.get("discipline"), ""), str(item.get("subtaskCode"), ""), str(item.get("variableCode"), ""), str(item.get("variableName"), ""),
@@ -1031,8 +1503,16 @@ public class DesignOptimizationService {
                        unit,
                        default_weight weight,
                        default_limit_value limitValue,
-                       remark
-                from p2_design_objective_catalog
+                       remark,
+                       rule_type ruleType,
+                       rule_expression ruleExpression,
+                       target_field targetField,
+                       reference_field referenceField,
+                       operator_code operatorCode,
+                       threshold_value thresholdValue,
+                       execute_mode executeMode,
+                       rule_payload rulePayload
+                from t2_design_objective_catalog
                 where discipline = ?
                   and status = '0'
                 order by sort_order, id
@@ -1058,7 +1538,7 @@ public class DesignOptimizationService {
                        step_value stepValue,
                        unit,
                        remark
-                from p2_design_variable_catalog
+                from t2_design_variable_catalog
                 where discipline = ?
                   and status = '0'
                 order by sort_order, id
@@ -1077,13 +1557,25 @@ public class DesignOptimizationService {
             List<Map<String, Object>> items;
             try {
                 items = jdbcTemplate.queryForList("""
-                    select item_type itemType, item_code itemCode, item_name itemName, direction, weight, limit_value limitValue, unit, remark
-                    from p2_design_objective_constraint
+                    select item_type itemType, item_code itemCode, item_name itemName, direction, weight, limit_value limitValue, unit, remark,
+                           rule_type ruleType, rule_expression ruleExpression, target_field targetField,
+                           reference_field referenceField, operator_code operatorCode, threshold_value thresholdValue,
+                           execute_mode executeMode, rule_payload rulePayload
+                    from t2_design_objective_constraint
                     where task_id = ? and discipline = ?
                     order by id
                     """, taskId, discipline);
             } catch (Exception e) {
-                items = Collections.emptyList();
+                try {
+                    items = jdbcTemplate.queryForList("""
+                        select item_type itemType, item_code itemCode, item_name itemName, direction, weight, limit_value limitValue, unit, remark
+                        from t2_design_objective_constraint
+                        where task_id = ? and discipline = ?
+                        order by id
+                        """, taskId, discipline);
+                } catch (Exception ignored) {
+                    items = Collections.emptyList();
+                }
             }
             groups.add(mapOf("discipline", discipline, "disciplineName", disciplineName(discipline), "items", items));
         }
@@ -1099,7 +1591,7 @@ public class DesignOptimizationService {
                     select subtask_code subtaskCode, variable_code variableCode, variable_name variableName,
                            variable_type variableType, initial_value initialValue, lower_bound lowerBound,
                            upper_bound upperBound, step_value stepValue, unit, remark
-                    from p2_design_task_variable_selection
+                    from t2_design_task_variable_selection
                     where task_id = ? and discipline = ?
                     order by id
                     """, taskId, discipline);
@@ -1115,7 +1607,7 @@ public class DesignOptimizationService {
         try {
             Integer count = jdbcTemplate.queryForObject("""
                 select count(1)
-                from p2_design_task_variable_selection
+                from t2_design_task_variable_selection
                 where task_id = ?
                 """, Integer.class, taskId);
             return count == null ? 0 : count;
@@ -1136,7 +1628,7 @@ public class DesignOptimizationService {
         try {
             List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
                 select variable_code variableCode, lower_bound lowerBound, upper_bound upperBound
-                from p2_design_task_variable_selection
+                from t2_design_task_variable_selection
                 where task_id = ?
                 order by id
                 """, taskId);
@@ -1174,7 +1666,7 @@ public class DesignOptimizationService {
         try {
             List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
                 select variable_code variableCode, initial_value initialValue
-                from p2_design_task_variable_selection
+                from t2_design_task_variable_selection
                 where task_id = ?
                 order by id
                 """, taskId);
@@ -1190,20 +1682,30 @@ public class DesignOptimizationService {
         Map<String, List<Map<String, Object>>> data = new LinkedHashMap<>();
         data.put("structure", Collections.emptyList());
         data.put("layout", List.of(
-            variable("cable_pipe_layout", "PIPE_L1", "L1 第一段直管长度", "continuous", "300", "50", "550", "1", "mm"),
-            variable("cable_pipe_layout", "PIPE_L2", "L2 第二段直管长度", "continuous", "150", "50", "300", "1", "mm")
+            variable("cable_pipe_layout", "CABLE_ROUTE_SIDE", "线缆布置侧别", "enum", "upper", "upper", "outer", "", ""),
+            variable("cable_pipe_layout", "CABLE_PIPE_CLEARANCE", "线缆与液压管最小隔离距离", "continuous", "40", "20", "80", "1", "mm"),
+            variable("cable_pipe_layout", "CABLE_OFFSET", "线缆相对液压管中心线偏移距离", "continuous", "60", "30", "120", "1", "mm"),
+            variable("cable_pipe_layout", "CABLE_BEND_RADIUS", "线缆最小弯曲半径", "continuous", "50", "30", "120", "1", "mm"),
+            variable("cable_pipe_layout", "CLAMP_SPACING", "线夹/管夹布置间距", "continuous", "180", "100", "250", "5", "mm"),
+            variable("cable_pipe_layout", "SERVICE_MARGIN", "检修操作预留空间", "continuous", "40", "30", "100", "1", "mm")
         ));
         data.put("aero", Collections.emptyList());
         data.put("hydraulic", List.of(
+            variable("hydraulic_impact", "PIPE_L1", "L1 第一段直管长度", "continuous", "300", "50", "550", "1", "mm"),
+            variable("hydraulic_impact", "PIPE_L2", "L2 第二段直管长度", "continuous", "150", "50", "300", "1", "mm"),
+            variable("hydraulic_impact", "PIPE_BEND_RADIUS", "R 两处弯管圆角半径", "continuous", "30", "20", "80", "1", "mm"),
             variable("hydraulic_impact", "PIPE_THETA_1", "θ1 第一个弯角弯曲角度", "continuous", "110", "30", "150", "1", "deg"),
-            variable("hydraulic_impact", "PIPE_THETA_2", "θ2 第二个弯角弯曲角度", "continuous", "120", "30", "150", "1", "deg"),
-            variable("shared", "PIPE_BEND_RADIUS", "R 两处弯管圆角半径", "continuous", "30", "20", "80", "1", "mm")
+            variable("hydraulic_impact", "PIPE_THETA_2", "θ2 第二个弯角弯曲角度", "continuous", "120", "30", "150", "1", "deg")
         ));
         data.put("manufacturing", Collections.emptyList());
         return data;
     }
 
     private Map<String, List<Map<String, Object>>> fallbackCatalog() {
+        Map<String, List<Map<String, Object>>> refined = refinedFallbackCatalog();
+        if (!refined.isEmpty()) {
+            return refined;
+        }
         Map<String, List<Map<String, Object>>> data = new LinkedHashMap<>();
         data.put("structure", List.of(
             item("objective", "STR_SPACE_SUPPORT_MAX", "支撑与安装空间合理性最大", "max", "score"),
@@ -1214,17 +1716,16 @@ public class DesignOptimizationService {
             item("constraint", "STR_CLAMP_SUPPORT_VALID", "卡箍支撑点结构强度满足要求", "meet", "")
         ));
         data.put("layout", List.of(
-            item("objective", "LAY_LENGTH_MIN", "线缆与管路总长度最小", "min", "m"),
-            item("objective", "LAY_INTERFERENCE_MIN", "线缆、管路、结构干涉风险最小", "min", "risk"),
+            item("objective", "LAY_INTERFERENCE_RISK_MIN", "线缆与液压管干涉风险最小", "min", "risk"),
+            item("objective", "LAY_CABLE_LENGTH_MIN", "线缆路径长度最小", "min", "m"),
             item("objective", "LAY_MAINTAINABILITY_MAX", "维护可达性最大", "max", "score"),
-            item("constraint", "LAY_CLEARANCE_LIMIT", "管线与结构/运动件最小间隙", ">=", "mm"),
-            item("constraint", "LAY_PIPE_CABLE_DISTANCE", "液压管与线缆最小隔离距离", ">=", "mm"),
-            item("constraint", "LAY_FORBIDDEN_ZONE", "禁布区域不可穿越", "avoid", ""),
-            item("constraint", "LAY_CLAMP_INTERVAL", "管夹/线夹间距不超过上限", "<=", "mm"),
-            item("constraint", "LAY_BEND_RADIUS_LIMIT", "管线弯曲半径满足下限", ">=", "mm"),
-            item("constraint", "LAY_PIPE_ENDPOINT_FIXED", "液压弯管起点和终点固定", "fixed", ""),
-            item("constraint", "LAY_PIPE_HORIZONTAL_SPAN", "液压弯管水平总长", "=", "mm"),
-            item("constraint", "LAY_PIPE_VERTICAL_SPAN", "液压弯管竖直总高", "=", "mm")
+            item("objective", "LAY_COMPACTNESS_MAX", "布局紧凑度最大", "max", "score"),
+            item("constraint", "LAY_PIPE_CLEARANCE_LIMIT", "线缆与液压管保持安全间距", ">=", "mm"),
+            item("constraint", "LAY_FORBIDDEN_ZONE_AVOID", "线缆不得穿越结构禁布区域", "avoid", ""),
+            item("constraint", "LAY_DOOR_ENVELOPE_AVOID", "线缆不得进入舱门运动包络", "avoid", ""),
+            item("constraint", "LAY_CABLE_BEND_RADIUS_LIMIT", "线缆弯曲半径满足要求", ">=", "mm"),
+            item("constraint", "LAY_CLAMP_SPACING_LIMIT", "线夹间距不超过上限", "<=", "mm"),
+            item("constraint", "LAY_SERVICE_MARGIN_LIMIT", "检修空间满足要求", ">=", "mm")
         ));
         data.put("aero", List.of(
             item("objective", "AERO_ENVELOPE_IMPACT_MIN", "对舱门外形包络影响最小", "min", "score"),
@@ -1255,8 +1756,69 @@ public class DesignOptimizationService {
         return data;
     }
 
+    private Map<String, List<Map<String, Object>>> refinedFallbackCatalog() {
+        Map<String, List<Map<String, Object>>> data = new LinkedHashMap<>();
+        data.put("structure", List.of(
+            ruleItem("objective", "STR_DEFORMATION_RISK_MIN", "管线变形碰撞风险最小", "min", "risk", "objective_metric", "minimize", "", "deformationCollisionRisk", "", "min(deformationCollisionRisk)"),
+            ruleItem("constraint", "STR_FORBIDDEN_ZONE", "结构禁布区域不可穿越", "avoid", "", "geometry_intersection", "none_intersect", "", "routeGeometry", "structureForbiddenZones", "intersect(routeGeometry, structureForbiddenZones) = false"),
+            ruleItem("constraint", "STR_INTERFACE_FIXED", "铰链、锁机构、作动器接口位置不可更改", "fixed", "", "boundary_lock", "equal", "", "interfacePoints", "baselineInterfacePoints", "interfacePoints = baselineInterfacePoints"),
+            ruleItem("constraint", "STR_CLAMP_SUPPORT_VALID", "卡箍支撑点结构强度满足要求", "meet", "", "strength_check", "pass", "", "clampSupportStrength", "requiredSupportStrength", "clampSupportStrength >= requiredSupportStrength")
+        ));
+        data.put("layout", List.of(
+            ruleItem("objective", "LAY_INTERFERENCE_RISK_MIN", "线缆与液压管干涉风险最小", "min", "risk", "objective_metric", "minimize", "", "interferenceRisk", "", "min(interferenceRisk)"),
+            ruleItem("objective", "LAY_CABLE_LENGTH_MIN", "线缆路径长度最小", "min", "m", "objective_metric", "minimize", "", "cablePathLength", "", "min(cablePathLength)"),
+            ruleItem("objective", "LAY_MAINTAINABILITY_MAX", "维护可达性最大", "max", "score", "objective_metric", "maximize", "", "maintainabilityScore", "", "max(maintainabilityScore)"),
+            ruleItem("constraint", "LAY_PIPE_CLEARANCE_LIMIT", "线缆与液压管保持安全间距", ">=", "mm", "clearance_check", "greater_equal", "40", "minCablePipeClearance", "CABLE_PIPE_CLEARANCE", "minCablePipeClearance >= CABLE_PIPE_CLEARANCE"),
+            ruleItem("constraint", "LAY_FORBIDDEN_ZONE_AVOID", "线缆不得穿越结构禁布区域", "avoid", "", "geometry_intersection", "none_intersect", "", "cableRouteGeometry", "structureForbiddenZones", "intersect(cableRouteGeometry, structureForbiddenZones) = false"),
+            ruleItem("constraint", "LAY_CABLE_BEND_RADIUS_LIMIT", "线缆弯曲半径满足要求", ">=", "mm", "radius_check", "greater_equal", "50", "actualCableBendRadius", "CABLE_BEND_RADIUS", "actualCableBendRadius >= CABLE_BEND_RADIUS"),
+            ruleItem("constraint", "LAY_CLAMP_SPACING_LIMIT", "线夹间距不超过上限", "<=", "mm", "spacing_check", "less_equal", "250", "actualClampSpacing", "CLAMP_SPACING", "actualClampSpacing <= CLAMP_SPACING"),
+            ruleItem("constraint", "LAY_SERVICE_MARGIN_LIMIT", "检修空间满足要求", ">=", "mm", "clearance_check", "greater_equal", "30", "actualServiceMargin", "SERVICE_MARGIN", "actualServiceMargin >= SERVICE_MARGIN")
+        ));
+        data.put("aero", List.of(
+            ruleItem("objective", "AERO_ENVELOPE_IMPACT_MIN", "对舱门外形包络影响最小", "min", "score", "objective_metric", "minimize", "", "envelopeImpactScore", "", "min(envelopeImpactScore)"),
+            ruleItem("constraint", "AERO_OUTER_ENVELOPE", "管线与附件不得超出舱门外形包络", "<=", "mm", "envelope_check", "inside_or_equal", "", "routeEnvelope", "doorOuterEnvelope", "routeEnvelope inside doorOuterEnvelope")
+        ));
+        data.put("hydraulic", List.of(
+            ruleItem("objective", "HYD_STRESS_MIN", "最大等效应力最小", "min", "MPa", "objective_metric", "minimize", "", "maxEquivalentStress", "", "min(maxEquivalentStress)"),
+            ruleItem("objective", "HYD_DEFORMATION_MIN", "最大变形量最小", "min", "mm", "objective_metric", "minimize", "", "maxDeformation", "", "min(maxDeformation)"),
+            ruleItem("constraint", "HYD_STRESS_LIMIT", "最大等效应力不超过许用应力", "<=", "MPa", "strength_check", "less_equal", "", "maxEquivalentStress", "allowableStress", "maxEquivalentStress <= allowableStress"),
+            ruleItem("constraint", "HYD_DEFORMATION_LIMIT", "最大变形量不超过允许变形", "<=", "mm", "deformation_check", "less_equal", "", "maxDeformation", "allowableDeformation", "maxDeformation <= allowableDeformation"),
+            ruleItem("constraint", "HYD_MIN_BEND_RADIUS", "液压管弯曲半径不小于下限", ">=", "mm", "radius_check", "greater_equal", "20", "PIPE_BEND_RADIUS", "minPipeBendRadius", "PIPE_BEND_RADIUS >= minPipeBendRadius")
+        ));
+        data.put("manufacturing", List.of(
+            ruleItem("objective", "MFG_PROCESS_COMPLEXITY_MIN", "管线制造加工复杂度最小", "min", "score", "objective_metric", "minimize", "", "processComplexityScore", "", "min(processComplexityScore)"),
+            ruleItem("objective", "MFG_ASSEMBLY_EFFICIENCY_MAX", "装配效率最大", "max", "score", "objective_metric", "maximize", "", "assemblyEfficiencyScore", "", "max(assemblyEfficiencyScore)"),
+            ruleItem("constraint", "MFG_BEND_RADIUS_LIMIT", "弯曲半径满足制造下限", ">=", "mm", "radius_check", "greater_equal", "20", "bendRadius", "manufacturingMinBendRadius", "bendRadius >= manufacturingMinBendRadius"),
+            ruleItem("constraint", "MFG_CLAMP_INSTALLABLE", "管夹/线夹可安装", "meet", "", "installability_check", "pass", "", "clampInstallability", "", "clampInstallability = pass"),
+            ruleItem("constraint", "MFG_TOOL_ACCESS", "工具操作空间满足要求", "meet", "", "accessibility_check", "pass", "", "toolAccessStatus", "", "toolAccessStatus = pass")
+        ));
+        return data;
+    }
+
     private Map<String, Object> item(String type, String code, String name, String direction, String unit) {
-        return mapOf("itemType", type, "itemCode", code, "itemName", name, "direction", direction, "unit", unit, "weight", 50, "limitValue", "");
+        return ruleItem(type, code, name, direction, unit, "", "", "", "", "", "");
+    }
+
+    private Map<String, Object> ruleItem(String type, String code, String name, String direction, String unit,
+                                         String ruleType, String operatorCode, String thresholdValue,
+                                         String targetField, String referenceField, String ruleExpression) {
+        return mapOf(
+            "itemType", type,
+            "itemCode", code,
+            "itemName", name,
+            "direction", direction,
+            "unit", unit,
+            "weight", 50,
+            "limitValue", thresholdValue,
+            "ruleType", ruleType,
+            "operatorCode", operatorCode,
+            "thresholdValue", thresholdValue,
+            "targetField", targetField,
+            "referenceField", referenceField,
+            "ruleExpression", ruleExpression,
+            "executeMode", "reserved",
+            "rulePayload", ""
+        );
     }
 
     private Map<String, Object> variable(String subtaskCode, String code, String name, String type, String defaultValue, String lowerBound, String upperBound, String stepValue, String unit) {
@@ -1287,13 +1849,25 @@ public class DesignOptimizationService {
     private List<Map<String, Object>> selectedItems(Long taskId) {
         try {
             return jdbcTemplate.queryForList("""
-                select discipline, item_type itemType, item_code itemCode, item_name itemName, direction, weight, limit_value limitValue, unit, remark
-                from p2_design_objective_constraint
+                select discipline, item_type itemType, item_code itemCode, item_name itemName, direction, weight, limit_value limitValue, unit, remark,
+                       rule_type ruleType, rule_expression ruleExpression, target_field targetField,
+                       reference_field referenceField, operator_code operatorCode, threshold_value thresholdValue,
+                       execute_mode executeMode, rule_payload rulePayload
+                from t2_design_objective_constraint
                 where task_id = ?
                 order by discipline, item_type desc, id
                 """, taskId);
         } catch (Exception e) {
-            return Collections.emptyList();
+            try {
+                return jdbcTemplate.queryForList("""
+                    select discipline, item_type itemType, item_code itemCode, item_name itemName, direction, weight, limit_value limitValue, unit, remark
+                    from t2_design_objective_constraint
+                    where task_id = ?
+                    order by discipline, item_type desc, id
+                    """, taskId);
+            } catch (Exception ignored) {
+                return Collections.emptyList();
+            }
         }
     }
 
@@ -1314,6 +1888,17 @@ public class DesignOptimizationService {
         mapping.put("MFG_BEND_ANGLE_RANGE", List.of("hydraulic_impact"));
         mapping.put("MFG_WALL_THICKNESS_LIMIT", List.of("hydraulic_impact"));
 
+        mapping.put("LAY_INTERFERENCE_RISK_MIN", List.of("cable_pipe_layout"));
+        mapping.put("LAY_CABLE_LENGTH_MIN", List.of("cable_pipe_layout"));
+        mapping.put("LAY_COMPACTNESS_MAX", List.of("cable_pipe_layout"));
+        mapping.put("LAY_PIPE_CLEARANCE_LIMIT", List.of("cable_pipe_layout"));
+        mapping.put("LAY_FORBIDDEN_ZONE_AVOID", List.of("cable_pipe_layout"));
+        mapping.put("LAY_DOOR_ENVELOPE_AVOID", List.of("cable_pipe_layout"));
+        mapping.put("LAY_CABLE_BEND_RADIUS_LIMIT", List.of("cable_pipe_layout"));
+        mapping.put("LAY_CLAMP_SPACING_LIMIT", List.of("cable_pipe_layout"));
+        mapping.put("LAY_SERVICE_MARGIN_LIMIT", List.of("cable_pipe_layout"));
+
+        // Backward-compatible mappings for catalogs created before the two-subtask refinement.
         mapping.put("LAY_LENGTH_MIN", List.of("cable_pipe_layout"));
         mapping.put("LAY_INTERFERENCE_MIN", List.of("cable_pipe_layout"));
         mapping.put("LAY_MAINTAINABILITY_MAX", List.of("cable_pipe_layout"));
@@ -1354,17 +1939,57 @@ public class DesignOptimizationService {
         return List.of(
             mapOf("subtaskCode", "hydraulic_impact", "subtaskName", "液压弯管抗冲击性能优化", "solverType", "结构响应代理模型", "status", "READY",
                 "items", classified.getOrDefault("hydraulic_impact", Collections.emptyList())),
-            mapOf("subtaskCode", "cable_pipe_layout", "subtaskName", "弯管路径几何与制造约束优化", "solverType", "几何闭合与制造可行性检查", "status", "READY",
+            mapOf("subtaskCode", "cable_pipe_layout", "subtaskName", "线缆管路布局设计", "solverType", "参数选择与规则校核", "status", "READY",
                 "items", classified.getOrDefault("cable_pipe_layout", Collections.emptyList()))
         );
     }
 
-    private boolean isDecomposed(DesignTask task) {
+    private boolean isDecomposed(DesignTask task, Long taskId) {
+        if (taskId != null && decompositionMarkerExists(taskId)) {
+            return true;
+        }
         if (task == null) {
             return false;
         }
         List<String> afterDecomposeNodes = List.of("simulation_confirm", "leader_approve", "end");
         return afterDecomposeNodes.contains(task.getCurrentNodeKey()) || "COMPLETED".equals(task.getStatus());
+    }
+
+    private boolean decompositionMarkerExists(Long taskId) {
+        try {
+            Integer count = jdbcTemplate.queryForObject("""
+                select count(1)
+                from t2_design_subtask_solution
+                where task_id = ?
+                  and subtask_code in ('hydraulic_impact', 'cable_pipe_layout')
+                """, Integer.class, taskId);
+            return count != null && count >= 2;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private void saveDecompositionMarker(Long taskId) {
+        if (taskId == null) {
+            return;
+        }
+        jdbcTemplate.update("delete from t2_design_subtask_solution where task_id = ?", taskId);
+        for (Map<String, Object> subtask : subtaskDefinitions(taskId)) {
+            jdbcTemplate.update("""
+                insert into t2_design_subtask_solution(
+                    task_id, subtask_code, subtask_name, params_json, result_json, recommended_solution, create_by, create_time
+                )
+                values (?, ?, ?, ?, ?, ?, ?, sysdate())
+                """,
+                taskId,
+                str(subtask.get("subtaskCode"), ""),
+                str(subtask.get("subtaskName"), ""),
+                toJson(mapOf("stage", "DECOMPOSED")),
+                toJson(mapOf("status", "WAITING_VARIABLE_SELECTION")),
+                "",
+                currentUsername()
+            );
+        }
     }
 
     private List<Map<String, Object>> subtaskSolutions(Long taskId) {
@@ -1375,10 +2000,19 @@ public class DesignOptimizationService {
         double theta1 = doubleValue(values.get("PIPE_THETA_1"), 110);
         double theta2 = doubleValue(values.get("PIPE_THETA_2"), 120);
         double radius = doubleValue(values.get("PIPE_BEND_RADIUS"), 30);
+        String routeSide = str(values.get("CABLE_ROUTE_SIDE"), "upper");
+        double clearance = doubleValue(values.get("CABLE_PIPE_CLEARANCE"), 40);
+        double offset = doubleValue(values.get("CABLE_OFFSET"), 60);
+        double cableRadius = doubleValue(values.get("CABLE_BEND_RADIUS"), 50);
+        double clampSpacing = doubleValue(values.get("CLAMP_SPACING"), 180);
+        double serviceMargin = doubleValue(values.get("SERVICE_MARGIN"), 40);
         double l3 = Math.max(40, 600 - l1 - radius * 1.2);
         double closureError = Math.abs(300 - (l2 + radius + 120));
         double maxDeformation = round2(18.5 - radius * 0.08 + Math.abs(theta1 - 105) * 0.03 + Math.abs(theta2 - 120) * 0.02);
         double maxStress = round2(238 - radius * 1.15 + Math.abs(theta1 - 105) * 0.75 + Math.abs(theta2 - 120) * 0.55);
+        double cableLength = round2(600 + Math.max(0, offset - 40) * 0.8 + Math.abs(clampSpacing - 180) * 0.15);
+        double interferenceRisk = round2(Math.max(0.02, 0.32 - clearance * 0.003 - offset * 0.001));
+        boolean layoutFeasible = clearance >= 20 && cableRadius >= 30 && clampSpacing <= 250 && serviceMargin >= 30;
         return List.of(
             mapOf("subtaskCode", "hydraulic_impact", "subtaskName", "液压弯管抗冲击性能优化", "recommended", "HI-02",
                 "items", classified.getOrDefault("hydraulic_impact", Collections.emptyList()), "solutions", List.of(
@@ -1386,11 +2020,11 @@ public class DesignOptimizationService {
                 pipeSolution("HI-02", l1, l2, theta1, theta2, radius, l3, maxDeformation, maxStress, 93),
                 pipeSolution("HI-03", l1, l2, theta1 + 6, theta2 - 7, radius + 3, l3 - 11, maxDeformation + 0.9, maxStress + 8, 88)
             )),
-            mapOf("subtaskCode", "cable_pipe_layout", "subtaskName", "弯管路径几何与制造约束优化", "recommended", "CL-02",
+            mapOf("subtaskCode", "cable_pipe_layout", "subtaskName", "线缆管路布局设计", "recommended", "CL-02",
                 "items", classified.getOrDefault("cable_pipe_layout", Collections.emptyList()), "solutions", List.of(
-                geometrySolution("CL-01", l1 - 15, l2 + 12, radius - 4, l3 + 18, closureError + 1.4, false, 80),
-                geometrySolution("CL-02", l1, l2, radius, l3, closureError, true, 91),
-                geometrySolution("CL-03", l1 + 12, l2 - 8, radius + 3, l3 - 11, closureError + 0.8, true, 86)
+                cableLayoutSolution("CL-01", "lower", Math.max(20, clearance - 8), Math.max(30, offset - 15), cableRadius, clampSpacing + 20, serviceMargin - 5, cableLength - 18, interferenceRisk + 0.08, layoutFeasible, 82),
+                cableLayoutSolution("CL-02", routeSide, clearance, offset, cableRadius, clampSpacing, serviceMargin, cableLength, interferenceRisk, layoutFeasible, 91),
+                cableLayoutSolution("CL-03", "outer", clearance + 10, offset + 20, cableRadius + 8, Math.max(100, clampSpacing - 25), serviceMargin + 10, cableLength + 24, Math.max(0.02, interferenceRisk - 0.05), true, 88)
             ))
         );
     }
@@ -1407,6 +2041,15 @@ public class DesignOptimizationService {
         return mapOf("solutionCode", code, "l1", l1, "l2", l2, "radius", radius, "l3", l3,
             "closureError", closureError, "manufacturable", feasible ? "满足" : "需调整", "score", score,
             "feasible", feasible, "constraintStatus", feasible ? "几何闭合和制造约束满足" : "几何闭合误差偏大");
+    }
+
+    private Map<String, Object> cableLayoutSolution(String code, String routeSide, Number clearance, Number offset,
+                                                    Number bendRadius, Number clampSpacing, Number serviceMargin,
+                                                    Number cableLength, Number interferenceRisk, boolean feasible, Number score) {
+        return mapOf("solutionCode", code, "routeSide", routeSide, "clearance", clearance, "offset", offset,
+            "bendRadius", bendRadius, "clampSpacing", clampSpacing, "serviceMargin", serviceMargin,
+            "cableLength", cableLength, "interferenceRisk", interferenceRisk, "score", score, "feasible", feasible,
+            "constraintStatus", feasible ? "干涉、间距、弯曲半径、线夹间距和检修空间约束满足" : "线缆布局安全间距或检修空间需调整");
     }
 
     private Map<String, Object> simulationResult() {
@@ -1448,7 +2091,7 @@ public class DesignOptimizationService {
     private List<Map<String, Object>> subtaskProgress() {
         return List.of(
             mapOf("name", "液压弯管抗冲击性能优化", "status", "READY", "score", 93),
-            mapOf("name", "弯管路径几何与制造约束优化", "status", "READY", "score", 91)
+            mapOf("name", "线缆管路布局设计", "status", "READY", "score", 91)
         );
     }
 
@@ -1476,6 +2119,7 @@ public class DesignOptimizationService {
 
     private String stageRoute(String nodeKey) {
         if (nodeKey == null) return "/designtask/objective";
+        if ("end".equals(nodeKey)) return "/designtask/archive";
         if (nodeKey.endsWith("_select")) return "/designtask/objective";
         if ("model_decompose_solve".equals(nodeKey) || "conflict_check".equals(nodeKey)) return "/designtask/solve";
         if ("simulation_confirm".equals(nodeKey) || "leader_approve".equals(nodeKey)) return "/designtask/simulation";
@@ -1783,11 +2427,11 @@ public class DesignOptimizationService {
     }
 
     private void ensureTaskFileColumns() {
-        ensureColumn("p2_design_task_file", "file_size", "bigint");
-        ensureColumn("p2_design_task_file", "file_type", "varchar(128)");
-        ensureColumn("p2_design_task_file", "file_suffix", "varchar(64)");
-        ensureColumn("p2_design_task_file", "upload_by", "varchar(64)");
-        ensureColumn("p2_design_task_file", "upload_time", "datetime");
+        ensureColumn("t2_design_task_file", "file_size", "bigint");
+        ensureColumn("t2_design_task_file", "file_type", "varchar(128)");
+        ensureColumn("t2_design_task_file", "file_suffix", "varchar(64)");
+        ensureColumn("t2_design_task_file", "upload_by", "varchar(64)");
+        ensureColumn("t2_design_task_file", "upload_time", "datetime");
     }
 
     private void ensureColumn(String tableName, String columnName, String columnDefinition) {

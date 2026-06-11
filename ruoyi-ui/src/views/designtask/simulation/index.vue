@@ -152,7 +152,89 @@
           </div>
         </section>
 
+        <section class="section-block">
+          <div class="section-header">
+            <div>
+              <p class="section-label">ANSYS SIMULATION</p>
+              <h2 class="section-title">ANSYS 应力仿真结果</h2>
+            </div>
+            <div class="action-row">
+              <el-tag :type="ansysStatusType(ansysSimulation.status)">{{ ansysSimulation.statusLabel || '未提交' }}</el-tag>
+              <el-button plain :loading="ansysRefreshing" @click="refreshAnsysSimulation">刷新状态</el-button>
+              <el-button type="primary" :loading="ansysSubmitting" :disabled="!canSimulate" @click="startAnsysSimulation">
+                开始 ANSYS 仿真
+              </el-button>
+            </div>
+          </div>
+
+          <el-alert
+            v-if="ansysSimulation.placeholder && ansysSimulation.status === 'SUCCESS'"
+            class="mb-16"
+            title="当前显示的是预置应力云图；接入 ANSYS Worker 后将替换为真实仿真结果。"
+            type="info"
+            :closable="false"
+            show-icon
+          />
+          <el-alert
+            v-if="ansysSimulation.status === 'FAILED'"
+            class="mb-16"
+            :title="ansysSimulation.errorMessage || 'ANSYS 仿真失败'"
+            type="error"
+            :closable="false"
+            show-icon
+          />
+
+          <div class="ansys-result-grid">
+            <div class="table-shell">
+              <el-table :data="ansysSimulation.metrics || []" stripe class="platform-table">
+                <el-table-column label="指标" prop="name" min-width="160" />
+                <el-table-column label="数值" prop="value" width="130" />
+                <el-table-column label="单位" prop="unit" width="90" />
+                <el-table-column label="来源" prop="source" min-width="160" show-overflow-tooltip />
+              </el-table>
+            </div>
+            <div class="ansys-image-panel">
+              <img
+                v-if="ansysSimulation.status && ansysSimulation.status !== 'NOT_SUBMITTED'"
+                :src="ansysStressImage"
+                alt="ANSYS stress contour placeholder"
+              />
+              <span v-else>点击“开始 ANSYS 仿真”后展示应力云图</span>
+            </div>
+          </div>
+        </section>
+
         <div class="content-grid">
+          <section class="section-block">
+            <div class="section-header">
+              <div>
+                <p class="section-label">SIMULATION INPUTS</p>
+                <h2 class="section-title">故障管段原始设计参数</h2>
+              </div>
+              <el-tag>{{ faultPipeParameters.setCode || 'FAULT_PIPE_DEFAULT_001' }}</el-tag>
+            </div>
+
+            <div class="fixed-input-summary">
+              <div><span>参数集</span><strong>{{ faultPipeParameters.setName || '-' }}</strong></div>
+              <div><span>故障管段</span><strong>{{ faultPipeParameters.faultSegmentName || '-' }}</strong></div>
+              <div><span>材料</span><strong>{{ faultPipeParameters.materialName || '-' }}</strong></div>
+            </div>
+
+            <el-collapse class="mt-12">
+              <el-collapse-item v-for="group in faultPipeParameterGroups" :key="group.groupCode" :title="group.groupName">
+                <div class="table-shell">
+                  <el-table :data="group.items || []" stripe class="platform-table">
+                    <el-table-column label="参数" prop="paramName" min-width="160" show-overflow-tooltip />
+                    <el-table-column label="值 / 表达式" min-width="300" show-overflow-tooltip>
+                      <template #default="{ row }">{{ row.formulaText || row.paramValue || '-' }}</template>
+                    </el-table-column>
+                    <el-table-column label="单位" prop="paramUnit" width="100" />
+                  </el-table>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+          </section>
+
           <section class="section-block">
             <div class="section-header">
               <div>
@@ -230,14 +312,17 @@ import { ElMessage } from 'element-plus'
 import { saveAs } from 'file-saver'
 import {
   approveTask,
+  getAnsysSimulationTask,
   getCadModelFile,
   getCadModelTask,
   getDashboard,
   getDesignTask,
   runSimulation,
+  submitAnsysSimulationTask,
   submitCadModelTask
 } from '@/api/designtask/optimization'
 import CadStlViewer from './CadStlViewer.vue'
+import ansysStressPlaceholder from '@/assets/designtask/ansys-stress-placeholder.png'
 
 const route = useRoute()
 const router = useRouter()
@@ -246,12 +331,16 @@ const taskTitle = ref('仿真验证确认')
 const currentNodeKey = ref('')
 const access = ref({ mode: 'wait', label: '等待' })
 const simulation = ref({ passed: true, metrics: [], conclusion: '' })
+const ansysSimulation = ref({ status: 'NOT_SUBMITTED', statusLabel: '未提交', metrics: [], placeholder: true })
+const faultPipeParameters = ref({ groups: [] })
 const approval = ref({ approved: true, comment: '仿真验证结果满足设计要求，同意通过。' })
 const cadForm = ref({ L1: 280, L2: 150, R: 20, theta1: 110, theta2: 120 })
 const cadModel = ref({ status: 'NOT_SUBMITTED', statusLabel: '未提交', params: {}, files: {} })
 const cadStlData = ref(null)
 const cadSubmitting = ref(false)
 const cadRefreshing = ref(false)
+const ansysSubmitting = ref(false)
+const ansysRefreshing = ref(false)
 let cadPollTimer = null
 const inboxLoading = ref(false)
 const pendingTasks = ref([])
@@ -271,6 +360,8 @@ const viewOnly = computed(() => route.query.mode === 'view')
 const canSimulate = computed(() => !viewOnly.value && access.value.mode === 'enter' && currentNodeKey.value === 'simulation_confirm')
 const canEditCad = computed(() => !viewOnly.value && access.value.mode === 'enter')
 const canApprove = computed(() => !viewOnly.value && access.value.mode === 'enter' && currentNodeKey.value === 'leader_approve')
+const faultPipeParameterGroups = computed(() => faultPipeParameters.value.groups || [])
+const ansysStressImage = computed(() => ansysSimulation.value.stressImageUrl || ansysStressPlaceholder)
 const cadEmptyText = computed(() => {
   if (cadModel.value.status === 'FAILED') return cadModel.value.errorMessage || 'CAD 建模失败'
   if (['QUEUED', 'RUNNING'].includes(cadModel.value.status)) return 'CAD 模型生成中'
@@ -379,6 +470,8 @@ function loadData() {
     currentNodeKey.value = data.nodeKey || data.task?.currentNodeKey || ''
     access.value = data.access || { mode: 'wait', label: '等待' }
     simulation.value = data.simulation || simulation.value
+    ansysSimulation.value = data.ansysSimulation || ansysSimulation.value
+    faultPipeParameters.value = data.faultPipeParameters || { groups: [] }
     applyCadModel(data.cadModel)
     applySurrogateSolution(data.surrogateSolve)
   })
@@ -418,6 +511,39 @@ function applySurrogateSolution(surrogateSolve) {
     theta1: Number(best.theta1 ?? cadForm.value.theta1),
     theta2: Number(best.theta2 ?? cadForm.value.theta2)
   }
+}
+
+function startAnsysSimulation() {
+  if (!taskId.value) return
+  ansysSubmitting.value = true
+  submitAnsysSimulationTask(taskId.value, {
+    simulationMode: 'placeholder_transient_structural'
+  }).then(res => {
+    ansysSimulation.value = res.data || ansysSimulation.value
+    ElMessage.success('ANSYS 仿真占位任务已完成')
+  }).finally(() => {
+    ansysSubmitting.value = false
+  })
+}
+
+function refreshAnsysSimulation() {
+  if (!taskId.value) return
+  ansysRefreshing.value = true
+  getAnsysSimulationTask(taskId.value).then(res => {
+    ansysSimulation.value = res.data || ansysSimulation.value
+  }).finally(() => {
+    ansysRefreshing.value = false
+  })
+}
+
+function ansysStatusType(status) {
+  return {
+    NOT_SUBMITTED: 'info',
+    QUEUED: 'warning',
+    RUNNING: 'primary',
+    SUCCESS: 'success',
+    FAILED: 'danger'
+  }[status] || 'info'
 }
 
 function submitCadModel() {
@@ -523,6 +649,62 @@ watch(() => route.query.taskId, value => {
 .wait-action {
   color: #98a2b3;
   font-size: 13px;
+}
+
+.fixed-input-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+
+  div {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid rgba(128, 158, 195, 0.18);
+    border-radius: 8px;
+    background: rgba(248, 251, 255, 0.72);
+  }
+
+  span {
+    display: block;
+    color: #708198;
+    font-size: 12px;
+  }
+
+  strong {
+    display: block;
+    min-width: 0;
+    margin-top: 5px;
+    overflow: hidden;
+    color: #24324f;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.ansys-result-grid {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.9fr) minmax(520px, 1.1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.ansys-image-panel {
+  display: flex;
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(128, 158, 195, 0.22);
+  border-radius: 8px;
+  background: #eef3fb;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 }
 
 .cad-model-grid {

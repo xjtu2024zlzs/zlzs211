@@ -43,7 +43,7 @@
                current_node_key, current_node_name, owner_user_id, owner_user_name,
                structure_user_id, layout_user_id, aero_user_id, hydraulic_user_id,
                manufacturing_user_id, design_user_id, leader_user_id, create_by, create_time, update_by, update_time, del_flag
-        from p2_design_task
+        from t2_design_task
     </sql>
 
     <select id="selectTaskList" parameterType="DesignTask" resultMap="DesignTaskResult">
@@ -91,7 +91,7 @@
     </select>
 
     <insert id="insertTask" parameterType="DesignTask" useGeneratedKeys="true" keyProperty="taskId">
-        insert into p2_design_task(
+        insert into t2_design_task(
             <if test="taskName != null and taskName != ''">task_name,</if>
             <if test="taskNo != null and taskNo != ''">task_no,</if>
             <if test="taskType != null and taskType != ''">task_type,</if>
@@ -151,7 +151,7 @@
     </insert>
 
     <update id="updateTask" parameterType="DesignTask">
-        update p2_design_task
+        update t2_design_task
         <set>
             <if test="taskName != null and taskName != ''">task_name = #{taskName},</if>
             <if test="taskType != null and taskType != ''">task_type = #{taskType},</if>
@@ -184,15 +184,14 @@
     </update>
 
     <delete id="deleteTaskById" parameterType="Long">
-        update p2_design_task set del_flag = '2' where task_id = #{taskId}
+        update t2_design_task set del_flag = '2' where task_id = #{taskId}
     </delete>
 
     <delete id="deleteTaskByIds" parameterType="Long">
-        update p2_design_task set del_flag = '2' where task_id in
+        update t2_design_task set del_flag = '2' where task_id in
         <foreach collection="array" item="taskId" open="(" separator="," close=")">
             #{taskId}
         </foreach>
     </delete>
 
 </mapper>
-

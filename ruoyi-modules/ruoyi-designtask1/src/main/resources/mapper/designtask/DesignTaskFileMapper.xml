@@ -16,7 +16,7 @@
 
     <sql id="selectFileVo">
         select file_id, task_id, file_name, file_path, file_size, file_type, file_suffix, upload_by, upload_time
-        from p2_design_task_file
+        from t2_design_task_file
     </sql>
 
     <select id="selectFileList" parameterType="DesignTaskFile" resultMap="DesignTaskFileResult">
@@ -39,7 +39,7 @@
     </select>
 
     <insert id="insertFile" parameterType="DesignTaskFile" useGeneratedKeys="true" keyProperty="fileId">
-        insert into p2_design_task_file(
+        insert into t2_design_task_file(
             <if test="fileId != null and fileId != 0">file_id,</if>
             <if test="taskId != null">task_id,</if>
             <if test="fileName != null and fileName != ''">file_name,</if>
@@ -63,11 +63,11 @@
     </insert>
 
     <delete id="deleteFileById" parameterType="Long">
-        delete from p2_design_task_file where file_id = #{fileId}
+        delete from t2_design_task_file where file_id = #{fileId}
     </delete>
 
     <delete id="deleteFilesByTaskId" parameterType="Long">
-        delete from p2_design_task_file where task_id = #{taskId}
+        delete from t2_design_task_file where task_id = #{taskId}
     </delete>
 
 </mapper>

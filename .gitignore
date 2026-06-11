@@ -46,6 +46,18 @@ maven-repo/
 maven-tmp/
 ruoyi-ui/npm-cache/
 
+######################################################################
+# Local runtime/generated files
+
+__pycache__/
+*.py[cod]
+uploads/
+photos/
+solidworks_worker/output/
+solidworks_pipe/pipe_centerline.csv
+solidworks_pipe/pipe_model.stl
+solidworks_pipe/*.SLDPRT
+
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml

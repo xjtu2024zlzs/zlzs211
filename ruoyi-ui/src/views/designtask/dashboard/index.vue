@@ -245,8 +245,9 @@ function enterTask(row) {
   const action = taskAction(row)
   if (action.mode === 'wait') return
   getDesignTask(row.taskId).then(res => {
+    const routePath = completedTask(row) ? '/designtask/archive' : (res.data.stageRoute || '/designtask/dashboard')
     router.push({
-      path: res.data.stageRoute || '/designtask/dashboard',
+      path: routePath,
       query: { taskId: row.taskId, mode: action.mode }
     })
   })
@@ -257,7 +258,14 @@ function taskRowClassName({ row }) {
 }
 
 function taskAction(row) {
+  if (completedTask(row)) {
+    return { mode: 'view', label: '查看', reason: '任务已完成' }
+  }
   return row.action || { mode: 'wait', label: '等待' }
+}
+
+function completedTask(row) {
+  return row?.status === 'COMPLETED' || row?.currentNodeKey === 'end'
 }
 
 function statusLabel(status) {

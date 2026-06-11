@@ -18,7 +18,7 @@
 
     <sql id="selectTemplateVo">
         select template_id, template_name, template_desc, template_config, is_default, status, create_by, create_time, update_by, update_time, remark
-        from p2_design_template
+        from t2_design_template
     </sql>
 
     <select id="selectTemplateList" parameterType="DesignTemplate" resultMap="DesignTemplateResult">
@@ -55,7 +55,7 @@
     </select>
 
     <insert id="insertTemplate" parameterType="DesignTemplate" useGeneratedKeys="true" keyProperty="templateId">
-        insert into p2_design_template(
+        insert into t2_design_template(
             <if test="templateId != null and templateId != 0">template_id,</if>
             <if test="templateName != null and templateName != ''">template_name,</if>
             <if test="templateDesc != null">template_desc,</if>
@@ -79,7 +79,7 @@
     </insert>
 
     <update id="updateTemplate" parameterType="DesignTemplate">
-        update p2_design_template
+        update t2_design_template
         <set>
             <if test="templateName != null and templateName != ''">template_name = #{templateName},</if>
             <if test="templateDesc != null">template_desc = #{templateDesc},</if>
@@ -94,11 +94,11 @@
     </update>
 
     <delete id="deleteTemplateById" parameterType="Long">
-        delete from p2_design_template where template_id = #{templateId}
+        delete from t2_design_template where template_id = #{templateId}
     </delete>
 
     <delete id="deleteTemplateByIds" parameterType="Long">
-        delete from p2_design_template where template_id in
+        delete from t2_design_template where template_id in
         <foreach collection="array" item="templateId" open="(" separator="," close=")">
             #{templateId}
         </foreach>

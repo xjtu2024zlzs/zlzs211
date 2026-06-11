@@ -130,6 +130,103 @@
           </section>
         </div>
 
+        <section class="section-block">
+          <div class="section-header">
+            <div>
+              <p class="section-label">FIXED INPUTS</p>
+              <h2 class="section-title">故障管段原始设计参数</h2>
+            </div>
+            <el-tag>{{ faultPipeParameters.setCode || 'FAULT_PIPE_DEFAULT_001' }}</el-tag>
+          </div>
+
+          <div class="fixed-input-summary">
+            <div><span>参数集</span><strong>{{ faultPipeParameters.setName || '-' }}</strong></div>
+            <div><span>故障管段</span><strong>{{ faultPipeParameters.faultSegmentName || '-' }}</strong></div>
+            <div><span>材料</span><strong>{{ faultPipeParameters.materialName || '-' }}</strong></div>
+          </div>
+
+          <el-collapse class="mt-12">
+            <el-collapse-item v-for="group in faultPipeParameterGroups" :key="group.groupCode" :title="group.groupName">
+              <div class="table-shell">
+                <el-table :data="group.items || []" stripe class="platform-table">
+                  <el-table-column label="参数" prop="paramName" min-width="170" show-overflow-tooltip />
+                  <el-table-column label="值 / 表达式" min-width="320" show-overflow-tooltip>
+                    <template #default="{ row }">{{ row.formulaText || row.paramValue || '-' }}</template>
+                  </el-table-column>
+                  <el-table-column label="单位" prop="paramUnit" width="110" />
+                  <el-table-column label="说明" prop="description" min-width="220" show-overflow-tooltip />
+                </el-table>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
+        </section>
+
+        <section class="section-block">
+          <div class="section-header">
+            <div>
+              <p class="section-label">SUBTASK DECOMPOSITION</p>
+              <h2 class="section-title">解耦子任务</h2>
+            </div>
+            <div class="action-row">
+              <el-button :disabled="readonlyMode || decomposed" @click="decompose">{{ decomposed ? '已解耦' : '任务解耦' }}</el-button>
+            </div>
+          </div>
+
+          <el-alert
+            v-if="!decomposed"
+            class="mb-16"
+            title="点击任务解耦后，系统会根据已选择的目标和约束拆分出子任务；随后再按子任务选择设计变量。"
+            type="info"
+            :closable="false"
+            show-icon
+          />
+
+          <div class="content-grid content-grid--balanced mt-12">
+            <div v-for="subtask in subtasks" :key="subtask.subtaskCode" class="soft-panel">
+              <div class="card-head">
+                <h3 class="section-title">{{ subtask.subtaskName }}</h3>
+                <el-tag>推荐 {{ subtask.recommended || '待求解' }}</el-tag>
+              </div>
+              <div class="subtask-group">
+                <p class="subtask-group__title">归类目标</p>
+                <el-tag
+                  v-for="item in subtaskItems(subtask, 'objective')"
+                  :key="`${subtask.subtaskCode}-${item.itemCode}-objective`"
+                  class="tag-item"
+                  type="success"
+                >
+                  {{ item.itemName }}
+                </el-tag>
+                <span v-if="!subtaskItems(subtask, 'objective').length" class="muted-text">暂无目标</span>
+              </div>
+              <div class="subtask-group">
+                <p class="subtask-group__title">归类约束</p>
+                <el-tag
+                  v-for="item in subtaskItems(subtask, 'constraint')"
+                  :key="`${subtask.subtaskCode}-${item.itemCode}-constraint`"
+                  class="tag-item"
+                  :type="item.shared ? 'danger' : 'warning'"
+                >
+                  {{ item.itemName }}{{ item.shared ? ' / 同时约束多个子任务' : '' }}
+                </el-tag>
+                <span v-if="!subtaskItems(subtask, 'constraint').length" class="muted-text">暂无约束</span>
+              </div>
+              <div class="subtask-group">
+                <p class="subtask-group__title">关联设计变量</p>
+                <el-tag
+                  v-for="item in subtaskVariables(subtask)"
+                  :key="`${subtask.subtaskCode}-${item.variableCode}`"
+                  class="tag-item"
+                  :type="item.shared ? 'danger' : 'info'"
+                >
+                  {{ item.variableName }}{{ item.shared ? ' / 共享变量' : '' }}
+                </el-tag>
+                <span v-if="!subtaskVariables(subtask).length" class="muted-text">解耦后在下方选择设计变量</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section v-if="showVariableSection" class="section-block">
           <div class="section-header">
             <div>
@@ -200,72 +297,6 @@
               </div>
             </el-collapse-item>
           </el-collapse>
-        </section>
-
-        <section class="section-block">
-          <div class="section-header">
-            <div>
-              <p class="section-label">SUBTASK DECOMPOSITION</p>
-              <h2 class="section-title">解耦子任务</h2>
-            </div>
-            <div class="action-row">
-              <el-button :disabled="readonlyMode || !variablesSaved || !selectedVariableCount" @click="decompose">任务解耦</el-button>
-            </div>
-          </div>
-
-          <el-alert
-            v-if="!variablesSaved"
-            class="mb-16"
-            title="请先完成并保存设计变量选择，再执行任务解耦。"
-            type="info"
-            :closable="false"
-            show-icon
-          />
-
-          <div class="content-grid content-grid--balanced mt-12">
-            <div v-for="subtask in subtasks" :key="subtask.subtaskCode" class="soft-panel">
-              <div class="card-head">
-                <h3 class="section-title">{{ subtask.subtaskName }}</h3>
-                <el-tag>推荐 {{ subtask.recommended || '待求解' }}</el-tag>
-              </div>
-              <div class="subtask-group">
-                <p class="subtask-group__title">归类目标</p>
-                <el-tag
-                  v-for="item in subtaskItems(subtask, 'objective')"
-                  :key="`${subtask.subtaskCode}-${item.itemCode}-objective`"
-                  class="tag-item"
-                  type="success"
-                >
-                  {{ item.itemName }}
-                </el-tag>
-                <span v-if="!subtaskItems(subtask, 'objective').length" class="muted-text">暂无目标</span>
-              </div>
-              <div class="subtask-group">
-                <p class="subtask-group__title">归类约束</p>
-                <el-tag
-                  v-for="item in subtaskItems(subtask, 'constraint')"
-                  :key="`${subtask.subtaskCode}-${item.itemCode}-constraint`"
-                  class="tag-item"
-                  :type="item.shared ? 'danger' : 'warning'"
-                >
-                  {{ item.itemName }}{{ item.shared ? ' / 同时约束多个子任务' : '' }}
-                </el-tag>
-                <span v-if="!subtaskItems(subtask, 'constraint').length" class="muted-text">暂无约束</span>
-              </div>
-              <div class="subtask-group">
-                <p class="subtask-group__title">关联设计变量</p>
-                <el-tag
-                  v-for="item in subtaskVariables(subtask)"
-                  :key="`${subtask.subtaskCode}-${item.variableCode}`"
-                  class="tag-item"
-                  :type="item.shared ? 'danger' : 'info'"
-                >
-                  {{ item.variableName }}{{ item.shared ? ' / 共享变量' : '' }}
-                </el-tag>
-                <span v-if="!subtaskVariables(subtask).length" class="muted-text">保存变量后执行解耦</span>
-              </div>
-            </div>
-          </div>
         </section>
 
         <section v-if="decomposed || hasSurrogateResult" class="section-block">
@@ -398,6 +429,7 @@ const detail = ref({})
 const access = ref({ mode: 'wait', label: '等待' })
 const conflict = ref({ passed: true, conflicts: [] })
 const subtasks = ref([])
+const faultPipeParameters = ref({ groups: [] })
 const surrogateSolve = ref({
   status: 'NOT_SUBMITTED',
   statusLabel: '未提交',
@@ -442,7 +474,7 @@ const visibleInboxTasks = computed(() => {
 })
 const selectedVariableCount = computed(() => designVariables.value.filter(item => item.checked).length)
 const canSolve = computed(() => decomposed.value && variablesSaved.value && selectedVariableCount.value > 0)
-const showVariableSection = computed(() => hasTask.value)
+const showVariableSection = computed(() => hasTask.value && decomposed.value)
 const hasSolutions = computed(() => subtasks.value.some(item => (item.solutions || []).length > 0))
 const hasSurrogateResult = computed(() => surrogateSolve.value.status && surrogateSolve.value.status !== 'NOT_SUBMITTED')
 const best = computed(() => surrogateSolve.value.bestSolution || {})
@@ -458,13 +490,13 @@ const surrogateStatusType = computed(() => {
   }[surrogateSolve.value.status] || 'info'
 })
 const solveHint = computed(() => {
-  if (!variablesSaved.value || selectedVariableCount.value === 0) return '请先保存设计变量，再执行任务解耦和模型求解。'
   if (!decomposed.value) return '请先执行任务解耦，再进行模型求解。'
+  if (!variablesSaved.value || selectedVariableCount.value === 0) return '请先按解耦子任务选择并保存设计变量，再进行模型求解。'
   return ''
 })
 const subtaskLabelFallback = {
   hydraulic_impact: '液压弯管抗冲击性能优化',
-  cable_pipe_layout: '弯管路径几何与制造约束优化'
+  cable_pipe_layout: '线缆管路布局设计'
 }
 const variablesBySubtask = computed(() => {
   const subtaskNameMap = new Map(subtasks.value.map(item => [item.subtaskCode, item.subtaskName]))
@@ -484,6 +516,7 @@ const variablesBySubtask = computed(() => {
   })
   return Array.from(groups.values())
 })
+const faultPipeParameterGroups = computed(() => faultPipeParameters.value.groups || [])
 
 const disciplines = [
   { value: 'structure', label: '结构' },
@@ -589,11 +622,12 @@ function loadDetail() {
     access.value = detail.value.access || { mode: 'wait', label: '等待' }
     conflict.value = detail.value.conflictCheck || conflict.value
     subtasks.value = detail.value.subtasks || []
+    faultPipeParameters.value = detail.value.faultPipeParameters || { groups: [] }
     surrogateSolve.value = detail.value.surrogateSolve || surrogateSolve.value
     syncSurrogatePolling()
     loadSelectedVariables(detail.value)
     decomposed.value = Boolean(detail.value.decomposed)
-    if (!readonlyMode.value) {
+    if (!readonlyMode.value && decomposed.value) {
       loadVariableCatalogs()
     }
   })
@@ -608,15 +642,11 @@ function check(passed) {
 }
 
 function decompose() {
-  if (!variablesSaved.value || selectedVariableCount.value === 0) {
-    ElMessage.warning('请先保存设计变量，再执行任务解耦。')
-    return
-  }
   decomposeTask(taskId.value).then(res => {
     subtasks.value = res.data.subtasks || []
     decomposed.value = true
     loadVariableCatalogs()
-    ElMessage.success('已解耦为两个固定子任务')
+    ElMessage.success('已解耦为两个子任务，请继续选择设计变量。')
   })
 }
 
@@ -721,7 +751,7 @@ function subtaskVariables(subtask) {
 }
 
 function variableSubtaskCodes(item) {
-  if (item.variableCode === 'PIPE_BEND_RADIUS' || item.subtaskCode === 'shared') {
+  if (item.subtaskCode === 'shared') {
     return ['hydraulic_impact', 'cable_pipe_layout']
   }
   return [item.subtaskCode || 'unassigned']
@@ -782,7 +812,7 @@ function saveVariables() {
     loadSelectedVariables(detail.value)
     decomposed.value = Boolean(detail.value.decomposed) || decomposed.value
     variablesSaved.value = true
-    ElMessage.success('设计变量已保存，可以执行任务解耦。')
+    ElMessage.success('设计变量已保存，可以执行模型求解。')
   }).finally(() => {
     variableSaving.value = false
   })
@@ -831,6 +861,37 @@ watch(() => route.query.taskId, value => {
 .wait-action {
   color: #98a2b3;
   font-size: 13px;
+}
+
+.fixed-input-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+
+  div {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid rgba(128, 158, 195, 0.18);
+    border-radius: 8px;
+    background: rgba(248, 251, 255, 0.72);
+  }
+
+  span {
+    display: block;
+    color: #708198;
+    font-size: 12px;
+  }
+
+  strong {
+    display: block;
+    min-width: 0;
+    margin-top: 5px;
+    overflow: hidden;
+    color: #24324f;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .surrogate-grid {

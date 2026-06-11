@@ -13,7 +13,7 @@
 
     <sql id="selectNodeRoleVo">
         select id, node_id, role_code, role_name, create_by, create_time
-        from p2_design_template_node_role
+        from t2_design_template_node_role
     </sql>
 
     <select id="selectRoleList" parameterType="DesignTemplateNodeRole" resultMap="DesignTemplateNodeRoleResult">
@@ -30,7 +30,7 @@
     </select>
 
     <insert id="insertNodeRole" parameterType="DesignTemplateNodeRole" useGeneratedKeys="true" keyProperty="id">
-        insert into p2_design_template_node_role(
+        insert into t2_design_template_node_role(
             <if test="id != null and id != 0">id,</if>
             <if test="nodeId != null">node_id,</if>
             <if test="roleCode != null and roleCode != ''">role_code,</if>
@@ -48,11 +48,11 @@
     </insert>
 
     <delete id="deleteRolesByNodeId" parameterType="Long">
-        delete from p2_design_template_node_role where node_id = #{nodeId}
+        delete from t2_design_template_node_role where node_id = #{nodeId}
     </delete>
 
     <delete id="deleteRolesByNodeIds" parameterType="Long">
-        delete from p2_design_template_node_role where node_id in
+        delete from t2_design_template_node_role where node_id in
         <foreach collection="array" item="nodeId" open="(" separator="," close=")">
             #{nodeId}
         </foreach>

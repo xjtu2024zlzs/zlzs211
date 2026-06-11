@@ -77,6 +77,11 @@ public class DesignOptimizationController {
         return AjaxResult.success(optimizationService.detail(taskId));
     }
 
+    @GetMapping("/task/{taskId}/archive")
+    public AjaxResult taskArchive(@PathVariable Long taskId) {
+        return AjaxResult.success(optimizationService.archive(taskId));
+    }
+
     @GetMapping("/objective/catalog/{discipline}")
     public AjaxResult objectiveCatalog(@PathVariable String discipline) {
         return AjaxResult.success(optimizationService.objectiveCatalog(discipline));
@@ -85,6 +90,16 @@ public class DesignOptimizationController {
     @GetMapping("/design-variable/catalog/{discipline}")
     public AjaxResult designVariableCatalog(@PathVariable String discipline) {
         return AjaxResult.success(optimizationService.designVariableCatalog(discipline));
+    }
+
+    @GetMapping("/fault-pipe-parameters/default")
+    public AjaxResult defaultFaultPipeParameters() {
+        return AjaxResult.success(optimizationService.defaultFaultPipeParameters());
+    }
+
+    @GetMapping("/task/{taskId}/fault-pipe-parameters")
+    public AjaxResult taskFaultPipeParameters(@PathVariable Long taskId) {
+        return AjaxResult.success(optimizationService.faultPipeParameters(taskId));
     }
 
     @PostMapping("/task/{taskId}/objective-constraints")
@@ -130,6 +145,16 @@ public class DesignOptimizationController {
     @PostMapping("/task/{taskId}/simulation")
     public AjaxResult simulation(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
         return AjaxResult.success(optimizationService.simulation(taskId, body));
+    }
+
+    @PostMapping("/task/{taskId}/ansys-simulation")
+    public AjaxResult submitAnsysSimulation(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
+        return AjaxResult.success(optimizationService.submitAnsysSimulation(taskId, body));
+    }
+
+    @GetMapping("/task/{taskId}/ansys-simulation")
+    public AjaxResult ansysSimulation(@PathVariable Long taskId) {
+        return AjaxResult.success(optimizationService.ansysSimulation(taskId));
     }
 
     @PostMapping("/task/{taskId}/cad-model")

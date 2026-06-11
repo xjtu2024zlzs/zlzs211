@@ -193,6 +193,12 @@ export const constantRoutes = [
         component: () => import('@/views/designtask/simulation/index'),
         name: 'DesignTaskSimulation',
         meta: { title: '仿真验证确认', icon: 'chart' }
+      },
+      {
+        path: 'archive',
+        component: () => import('@/views/designtask/archive/index'),
+        name: 'DesignTaskArchive',
+        meta: { title: '任务归档文档', icon: 'documentation' }
       }
     ]
   },

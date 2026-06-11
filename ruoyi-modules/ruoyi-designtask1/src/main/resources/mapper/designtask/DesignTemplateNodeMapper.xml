@@ -19,7 +19,7 @@
 
     <sql id="selectNodeVo">
         select node_id, template_id, node_code, node_name, node_order, parallel_group, responsible_role, time_limit, create_by, create_time, update_by, update_time
-        from p2_design_template_node
+        from t2_design_template_node
     </sql>
 
     <select id="selectNodeList" parameterType="DesignTemplateNode" resultMap="DesignTemplateNodeResult">
@@ -44,7 +44,7 @@
     </select>
 
     <insert id="insertNode" parameterType="DesignTemplateNode" useGeneratedKeys="true" keyProperty="nodeId">
-        insert into p2_design_template_node(
+        insert into t2_design_template_node(
             <if test="nodeId != null and nodeId != 0">node_id,</if>
             <if test="templateId != null">template_id,</if>
             <if test="nodeCode != null and nodeCode != ''">node_code,</if>
@@ -70,7 +70,7 @@
     </insert>
 
     <update id="updateNode" parameterType="DesignTemplateNode">
-        update p2_design_template_node
+        update t2_design_template_node
         <set>
             <if test="nodeName != null and nodeName != ''">node_name = #{nodeName},</if>
             <if test="nodeOrder != null">node_order = #{nodeOrder},</if>
@@ -84,11 +84,11 @@
     </update>
 
     <delete id="deleteNodeById" parameterType="Long">
-        delete from p2_design_template_node where node_id = #{nodeId}
+        delete from t2_design_template_node where node_id = #{nodeId}
     </delete>
 
     <delete id="deleteNodesByTemplateId" parameterType="Long">
-        delete from p2_design_template_node where template_id = #{templateId}
+        delete from t2_design_template_node where template_id = #{templateId}
     </delete>
 
 </mapper>

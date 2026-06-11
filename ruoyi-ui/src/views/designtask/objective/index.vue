@@ -72,7 +72,7 @@
           show-icon
         />
 
-        <section v-if="attachments.length || taskDescription" class="section-block fault-attachment-card">
+        <section v-if="attachments.length || overviewDescription" class="section-block fault-attachment-card">
           <div class="section-header">
             <div>
               <p class="section-label">PROBLEM OVERVIEW</p>
@@ -82,9 +82,9 @@
           </div>
 
           <div class="fault-overview-body">
-            <div v-if="taskDescription" class="fault-task-description">
+            <div v-if="overviewDescription" class="fault-task-description">
               <b>当前问题详情</b>
-              <p>{{ taskDescription }}</p>
+              <p>{{ overviewDescription }}</p>
             </div>
             <div v-if="attachments.length" class="fault-attachment-entry" @click="openAttachmentViewer(previewAttachment || attachments[0])">
               <div class="fault-attachment-icon">PNG</div>
@@ -255,6 +255,8 @@ const visibleInboxTasks = computed(() => activeTab.value === 'pending' ? pending
 const objectives = computed(() => catalog.value.filter(item => item.itemType === 'objective'))
 const constraints = computed(() => catalog.value.filter(item => item.itemType === 'constraint'))
 const previewAttachment = computed(() => attachments.value.find(file => isImageAttachment(file) && attachmentPreviewUrl(file)))
+const overviewDescription = computed(() => normalizeProblemOverview(taskDescription.value))
+const hiddenObjectiveItemCodes = new Set(['LAY_HYDRAULIC_PIPE_FIXED'])
 
 const nodeDisciplineMap = {
   structure_select: 'structure',
@@ -353,6 +355,19 @@ function disciplineLabel(value) {
   return disciplines.find(item => item.value === value)?.label || value
 }
 
+function normalizeProblemOverview(description) {
+  const text = String(description || '').trim()
+  const prematureDecomposition =
+    text.includes('任务拆分为') ||
+    text.includes('两个子任务') ||
+    text.includes('布局子任务') ||
+    text.includes('固定边界')
+  if (!text || prematureDecomposition) {
+    return '基于前置故障追因结论，当前阶段由各专业工程师选择与舱门管线问题相关的优化目标、约束条件和必要设计变量。任务解耦将在目标与约束选择完成后执行，解耦前不预先固定子任务关系或上下游边界。'
+  }
+  return text
+}
+
 function loadTaskContext() {
   if (!taskId.value) {
     loadInbox()
@@ -448,7 +463,7 @@ async function openAttachmentViewer(file) {
 
 function loadSelectedItems(detail) {
   const group = (detail.objectiveConstraints || []).find(item => item.discipline === discipline.value)
-  const items = group?.items || []
+  const items = filterObjectiveItems(group?.items || [])
   catalog.value = items.map(item => ({
     ...item,
     checked: true,
@@ -459,12 +474,16 @@ function loadSelectedItems(detail) {
 
 function loadCatalog() {
   getObjectiveCatalog(discipline.value).then(res => {
-    catalog.value = (res.data || []).map(item => ({
+    catalog.value = filterObjectiveItems(res.data || []).map(item => ({
       ...item,
       checked: true,
       limitValue: item.limitValue || ''
     }))
   })
+}
+
+function filterObjectiveItems(items) {
+  return items.filter(item => !hiddenObjectiveItemCodes.has(item.itemCode))
 }
 
 function submit() {

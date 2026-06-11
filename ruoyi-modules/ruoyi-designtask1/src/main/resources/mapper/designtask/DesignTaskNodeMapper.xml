@@ -22,7 +22,7 @@
 
     <sql id="selectTaskNodeVo">
         select id, task_id, template_node_id, node_code, node_name, node_order, parallel_group, status, assignee_id, assignee_name, result, start_time, end_time, create_by, create_time
-        from p2_design_task_node
+        from t2_design_task_node
     </sql>
 
     <select id="selectTaskNodeList" parameterType="DesignTaskNode" resultMap="DesignTaskNodeResult">
@@ -46,7 +46,7 @@
     </select>
 
     <insert id="insertTaskNode" parameterType="DesignTaskNode" useGeneratedKeys="true" keyProperty="id">
-        insert into p2_design_task_node(
+        insert into t2_design_task_node(
             <if test="id != null and id != 0">id,</if>
             <if test="taskId != null">task_id,</if>
             <if test="templateNodeId != null">template_node_id,</if>
@@ -76,7 +76,7 @@
     </insert>
 
     <insert id="insertTaskNodes">
-        insert into p2_design_task_node(task_id, template_node_id, node_code, node_name, node_order, parallel_group, status, create_by, create_time)
+        insert into t2_design_task_node(task_id, template_node_id, node_code, node_name, node_order, parallel_group, status, create_by, create_time)
         values
         <foreach collection="list" item="item" separator=",">
             (#{item.taskId}, #{item.templateNodeId}, #{item.nodeCode}, #{item.nodeName}, #{item.nodeOrder}, #{item.parallelGroup}, #{item.status}, #{item.createBy}, sysdate())
@@ -84,7 +84,7 @@
     </insert>
 
     <update id="updateTaskNode" parameterType="DesignTaskNode">
-        update p2_design_task_node
+        update t2_design_task_node
         <set>
             <if test="status != null and status != ''">status = #{status},</if>
             <if test="assigneeId != null">assignee_id = #{assigneeId},</if>
@@ -98,11 +98,11 @@
     </update>
 
     <delete id="deleteTaskNodeById" parameterType="Long">
-        delete from p2_design_task_node where id = #{id}
+        delete from t2_design_task_node where id = #{id}
     </delete>
 
     <delete id="deleteTaskNodesByTaskId" parameterType="Long">
-        delete from p2_design_task_node where task_id = #{taskId}
+        delete from t2_design_task_node where task_id = #{taskId}
     </delete>
 
 </mapper>

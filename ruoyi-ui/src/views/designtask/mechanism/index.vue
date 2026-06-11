@@ -250,12 +250,12 @@ const fileList = ref([])
 
 const form = ref({
   processDefinitionId: '',
-  taskName: '液压弯管抗冲击设计制造协同优化任务',
+  taskName: '液压弯管抗冲击与线缆管路布局协同优化任务',
   taskType: 'LANDING_GEAR_DOOR',
   plannedStartTime: '',
   plannedEndTime: '',
   priority: 3,
-  description: '基于前置故障追因结论，液压弯管路径几何参数是影响抗冲击性能的关键因素。本任务在起落架舱门设计制造协同优化背景下，固定管道起点和终点，水平总长 600 mm，竖直总高 300 mm，关键设计变量设定为 L1、L2、θ1、θ2、R。',
+  description: '基于前置故障追因结论，当前任务先由各专业工程师选择与舱门管线问题相关的优化目标、约束条件和必要设计变量。任务解耦将在目标与约束选择完成后执行，解耦前不预先固定子任务关系或上下游边界。',
   structureUserId: undefined,
   layoutUserId: undefined,
   aeroUserId: undefined,

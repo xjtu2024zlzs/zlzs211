@@ -15,22 +15,24 @@ import java.util.Map;
 public class DesignPlatformStartupCheck implements ApplicationRunner {
 
     private static final List<String> REQUIRED_TABLES = List.of(
-        "p2_design_task",
-        "p2_design_template",
-        "p2_design_template_node",
-        "p2_design_template_node_role",
-        "p2_design_task_node",
-        "p2_design_task_file",
-        "p2_design_task_log",
-        "p2_design_objective_catalog",
-        "p2_design_objective_constraint",
-        "p2_design_variable_catalog",
-        "p2_design_task_variable_selection",
-        "p2_design_conflict_check",
-        "p2_design_subtask_solution",
-        "p2_design_simulation_result",
-        "p2_design_approval_record",
-        "p2_design_resource"
+        "t2_design_task",
+        "t2_design_template",
+        "t2_design_template_node",
+        "t2_design_template_node_role",
+        "t2_design_task_node",
+        "t2_design_task_file",
+        "t2_design_task_log",
+        "t2_design_objective_catalog",
+        "t2_design_objective_constraint",
+        "t2_design_variable_catalog",
+        "t2_design_task_variable_selection",
+        "t2_design_conflict_check",
+        "t2_design_subtask_solution",
+        "t2_design_simulation_result",
+        "t2_design_approval_record",
+        "t2_design_resource",
+        "t2_design_fault_pipe_parameter_set",
+        "t2_design_fault_pipe_parameter_item"
     );
 
     private static final Map<String, String> PLATFORM_ROLES = new LinkedHashMap<>() {{
@@ -66,7 +68,7 @@ public class DesignPlatformStartupCheck implements ApplicationRunner {
         if (!missingTables.isEmpty()) {
             throw new IllegalStateException(
                 "设计制造协同优化模块缺少数据库表：" + String.join(", ", missingTables)
-                    + "。请先执行 sql/p2_table_rename.sql，或在新库中执行设计平台初始化 SQL。"
+                    + "。请先在业务数据库中执行 sql/t2_designtask1_startup_fix.sql。"
             );
         }
         repairPlatformRoleKeys();

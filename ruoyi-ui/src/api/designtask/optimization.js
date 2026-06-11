@@ -65,6 +65,13 @@ export function getDesignTask(taskId) {
   })
 }
 
+export function getDesignTaskArchive(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/archive`,
+    method: 'get'
+  })
+}
+
 export function getTaskAttachmentFile(fileId) {
   return request({
     url: `/designtask/task/attachment/${fileId}`,
@@ -83,6 +90,20 @@ export function getObjectiveCatalog(discipline) {
 export function getDesignVariableCatalog(discipline) {
   return request({
     url: `/designtask/design-variable/catalog/${discipline}`,
+    method: 'get'
+  })
+}
+
+export function getDefaultFaultPipeParameters() {
+  return request({
+    url: '/designtask/fault-pipe-parameters/default',
+    method: 'get'
+  })
+}
+
+export function getTaskFaultPipeParameters(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/fault-pipe-parameters`,
     method: 'get'
   })
 }
@@ -153,6 +174,21 @@ export function runSimulation(taskId, data = {}) {
     url: `/designtask/task/${taskId}/simulation`,
     method: 'post',
     data
+  })
+}
+
+export function submitAnsysSimulationTask(taskId, data = {}) {
+  return request({
+    url: `/designtask/task/${taskId}/ansys-simulation`,
+    method: 'post',
+    data
+  })
+}
+
+export function getAnsysSimulationTask(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/ansys-simulation`,
+    method: 'get'
   })
 }
 

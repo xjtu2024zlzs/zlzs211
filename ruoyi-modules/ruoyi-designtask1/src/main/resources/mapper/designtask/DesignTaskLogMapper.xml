@@ -15,7 +15,7 @@
 
     <sql id="selectLogVo">
         select log_id, task_id, node_id, action, content, operator_id, operator_name, create_time
-        from p2_design_task_log
+        from t2_design_task_log
     </sql>
 
     <select id="selectLogList" parameterType="DesignTaskLog" resultMap="DesignTaskLogResult">
@@ -34,7 +34,7 @@
     </select>
 
     <insert id="insertLog" parameterType="DesignTaskLog" useGeneratedKeys="true" keyProperty="logId">
-        insert into p2_design_task_log(
+        insert into t2_design_task_log(
             <if test="logId != null and logId != 0">log_id,</if>
             <if test="taskId != null">task_id,</if>
             <if test="nodeId != null">node_id,</if>
@@ -56,11 +56,11 @@
     </insert>
 
     <delete id="deleteLogById" parameterType="Long">
-        delete from p2_design_task_log where log_id = #{logId}
+        delete from t2_design_task_log where log_id = #{logId}
     </delete>
 
     <delete id="deleteLogsByTaskId" parameterType="Long">
-        delete from p2_design_task_log where task_id = #{taskId}
+        delete from t2_design_task_log where task_id = #{taskId}
     </delete>
 
 </mapper>
