@@ -151,10 +151,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                dv.change_summary as changeSummary,
                dv.created_by as createdBy,
                dv.created_at as createdAt,
-               dv.published_at as publishedAt
+               dv.published_at as publishedAt,
+               dv.deleted_by as deletedBy,
+               dv.deleted_at as deletedAt
         from t1_dossier_version dv
         left join t1_generation_job gj on gj.id = dv.generation_job_id
         where dv.dossier_instance_id = #{instanceId}
+          and dv.deleted_at is null
         order by dv.version_no desc
     </select>
 
@@ -230,6 +233,26 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         inner join t1_dossier_instance di on di.current_version_id = dv.id
         set dv.published_at = sysdate(6)
         where di.id = #{instanceId}
+    </update>
+
+    <update id="deleteInstance">
+        update t1_dossier_instance
+        set deleted_at = sysdate(6),
+            updated_by = #{updatedBy},
+            updated_at = sysdate(6)
+        where id = #{instanceId}
+          and deleted_at is null
+    </update>
+
+    <update id="deleteVersion">
+        update t1_dossier_version
+        set deleted_at = sysdate(6),
+            deleted_by = #{deletedBy}
+        where id = #{versionId}
+          and dossier_instance_id = #{instanceId}
+          and is_current = 0
+          and published_at is null
+          and deleted_at is null
     </update>
 
     <insert id="insertExportJob">

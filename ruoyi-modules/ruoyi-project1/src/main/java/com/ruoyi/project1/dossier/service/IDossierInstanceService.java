@@ -20,4 +20,8 @@ public interface IDossierInstanceService
     public void publishInstance(String instanceId);
 
     public void archiveInstance(String instanceId);
+
+    public void deleteInstance(String instanceId);
+
+    public void deleteVersion(String instanceId, String versionId);
 }

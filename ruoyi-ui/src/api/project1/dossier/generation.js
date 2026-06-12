@@ -22,10 +22,18 @@ export function getActiveGenerationTemplate() {
   })
 }
 
-export function prepareGeneration(aircraftId) {
+export function listGenerationTemplates() {
+  return request({
+    url: '/project1/dossier/generate/template/list',
+    method: 'get'
+  })
+}
+
+export function prepareGeneration(aircraftId, query) {
   return request({
     url: '/project1/dossier/generate/prepare/' + aircraftId,
-    method: 'get'
+    method: 'get',
+    params: query
   })
 }
 
@@ -33,7 +41,8 @@ export function runGenerationPrecheck(data) {
   return request({
     url: '/project1/dossier/generate/precheck',
     method: 'post',
-    data: data
+    data: data,
+    timeout: 60000
   })
 }
 
@@ -41,7 +50,8 @@ export function startGeneration(data) {
   return request({
     url: '/project1/dossier/generate/start',
     method: 'post',
-    data: data
+    data: data,
+    timeout: 120000
   })
 }
 
@@ -62,6 +72,7 @@ export function getGenerationJobLogs(jobId) {
 export function getGenerationJobOutput(jobId) {
   return request({
     url: '/project1/dossier/generate/job/' + jobId + '/output',
-    method: 'get'
+    method: 'get',
+    timeout: 60000
   })
 }

@@ -39,3 +39,20 @@ export function getBomPath(nodeId, query) {
     params: query
   })
 }
+
+export function previewDossierFile(documentEntryId) {
+  return request({
+    url: '/project1/dossier/detail/files/' + documentEntryId + '/preview',
+    method: 'get',
+    responseType: 'blob'
+  })
+}
+
+export function exportDossierFiles(documentEntryIds) {
+  return request({
+    url: '/project1/dossier/detail/files/export',
+    method: 'post',
+    data: documentEntryIds,
+    responseType: 'blob'
+  })
+}

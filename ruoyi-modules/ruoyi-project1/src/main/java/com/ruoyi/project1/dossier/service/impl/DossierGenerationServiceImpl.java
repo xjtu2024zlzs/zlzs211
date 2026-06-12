@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +38,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
     private static final String DEFAULT_TEMPLATE_EXECUTION = "按模板全量生成";
 
-    private static final String GENERATOR_SCHEMA_VERSION = "expanded-lifecycle-v2";
+    private static final String GENERATOR_SCHEMA_VERSION = "template-source-snapshot-v3";
 
     @Autowired
     private DossierGenerationMapper generationMapper;
@@ -56,14 +58,20 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
     @Override
     public Map<String, Object> selectActiveTemplate()
     {
-        return selectRequiredTemplate();
+        return selectRequiredTemplate(null);
     }
 
     @Override
-    public Map<String, Object> prepareGeneration(String aircraftId)
+    public List<Map<String, Object>> selectTemplateList()
+    {
+        return generationMapper.selectGenerationTemplates();
+    }
+
+    @Override
+    public Map<String, Object> prepareGeneration(String aircraftId, String templateId)
     {
         Map<String, Object> aircraft = selectRequiredAircraft(aircraftId);
-        Map<String, Object> template = selectRequiredTemplate();
+        Map<String, Object> template = selectRequiredTemplate(templateId);
         return buildPrepareData(aircraft, template);
     }
 
@@ -72,8 +80,9 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
     public Map<String, Object> precheck(Map<String, Object> request)
     {
         String aircraftId = text(request.get("aircraftId"));
+        String templateId = text(request.get("templateId"));
         Map<String, Object> aircraft = selectRequiredAircraft(aircraftId);
-        Map<String, Object> template = selectRequiredTemplate();
+        Map<String, Object> template = selectRequiredTemplate(templateId);
         Map<String, Object> instance = ensureInstance(aircraft, template);
         Map<String, Object> prepareData = buildPrepareData(aircraft, template);
         Map<String, Object> run = insertPrecheckRun(instance, null, prepareData, currentUser());
@@ -81,7 +90,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         Map<String, Object> result = map();
         result.put("runId", run.get("runId"));
         result.put("runCode", run.get("runCode"));
-        result.put("runStatus", "passed");
+        result.put("runStatus", precheckStatus(castMap(prepareData.get("checkSummary"))));
         result.put("summary", prepareData.get("checkSummary"));
         result.put("checks", prepareData.get("checks"));
         result.put("checkedAt", DISPLAY_TIME.format(new Date()));
@@ -93,10 +102,12 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
     public Map<String, Object> startGeneration(Map<String, Object> request)
     {
         String aircraftId = text(request.get("aircraftId"));
+        String templateId = text(request.get("templateId"));
         Map<String, Object> aircraft = selectRequiredAircraft(aircraftId);
-        Map<String, Object> template = selectRequiredTemplate();
+        Map<String, Object> template = selectRequiredTemplate(templateId);
         Map<String, Object> instance = ensureInstance(aircraft, template);
         Map<String, Object> prepareData = buildPrepareData(aircraft, template);
+        assertPrecheckPassed(prepareData);
         String userName = currentUser();
         String contentHash = buildContentHash(aircraft, template, prepareData);
 
@@ -172,7 +183,17 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         versionParams.put("createdBy", userName);
         generationMapper.insertDossierVersion(versionParams);
 
-        materializeDossierData(text(instance.get("instanceId")), versionId, jobId, aircraft, prepareData, userName);
+        MaterializedDossierStats materializedStats = materializeDossierData(text(instance.get("instanceId")), versionId, jobId,
+                aircraft, prepareData, userName);
+        output.put("fileCount", materializedStats.getDocumentCount());
+        output.put("contentItemCount", materializedStats.getContentItemCount());
+        output.put("structureNodeCount", materializedStats.getStructureNodeCount());
+        resultSummary = buildResultSummary(prepareData, versionPlan, output);
+
+        Map<String, Object> versionSummaryParams = map();
+        versionSummaryParams.put("versionId", versionId);
+        versionSummaryParams.put("contentSummaryJson", toJson(resultSummary));
+        generationMapper.updateDossierVersionSummary(versionSummaryParams);
 
         Map<String, Object> updateJobParams = map();
         updateJobParams.put("jobId", jobId);
@@ -193,7 +214,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
         Map<String, Object> result = map();
         result.put("job", selectJob(jobId));
-        result.put("output", output);
+        result.put("output", buildResponseOutputSummary(output));
         result.put("logs", selectJobLogs(jobId));
         result.put("version", versionPlan);
         result.put("instanceId", instance.get("instanceId"));
@@ -202,13 +223,18 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         return result;
     }
 
-    private void materializeDossierData(String instanceId, String versionId, String jobId, Map<String, Object> aircraft,
+    private MaterializedDossierStats materializeDossierData(String instanceId, String versionId, String jobId, Map<String, Object> aircraft,
             Map<String, Object> prepareData, String userName)
     {
+        MaterializedDossierStats stats = new MaterializedDossierStats();
         List<Map<String, Object>> keyNodes = castList(prepareData.get("keyNodeChain"));
         Map<String, String> nodeIdToStructureId = new LinkedHashMap<>();
         Map<String, String> nodeIdToPath = new LinkedHashMap<>();
         Map<String, String> partNumberToStructureId = new LinkedHashMap<>();
+        Map<String, Set<String>> sourceColumnsCache = new LinkedHashMap<>();
+        Set<String> fullContentNodeIds = fullContentNodeIds(keyNodes);
+        String defaultDocumentCategoryId = defaultCategoryId();
+        int tubeSourceDocumentCount = 0;
 
         int sortOrder = 1;
         for (Map<String, Object> node : keyNodes)
@@ -219,8 +245,13 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             String code = text(node.get("partNumber"));
             String parentPath = nodeIdToPath.get(parentBomNodeId);
             String nodePath = hasText(parentPath) ? parentPath + "/" + code : code;
-            List<Map<String, Object>> lifecycleRows = generationMapper.selectNodeLifecycleSnapshotRows(
-                    text(aircraft.get("aircraftId")), text(node.get("nodeId")), code);
+            boolean fullContentNode = fullContentNodeIds.contains(text(node.get("nodeId")));
+            List<Map<String, Object>> templateSourceRows = fullContentNode
+                    ? selectConfiguredSourceRows(aircraft, prepareData, node, sourceColumnsCache)
+                    : Collections.emptyList();
+            List<Map<String, Object>> lifecycleRows = fullContentNode ? generationMapper.selectNodeLifecycleSnapshotRows(
+                    text(aircraft.get("aircraftId")), text(node.get("nodeId")), code) : Collections.emptyList();
+            int contentCount = countSnapshotRows(node, templateSourceRows, lifecycleRows);
 
             Map<String, Object> params = map();
             params.put("structureNodeId", structureNodeId);
@@ -240,16 +271,31 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             params.put("sortOrder", sortOrder);
             params.put("chapterStatus", "normal");
             params.put("completenessStatus", "complete");
-            params.put("contentCount", 1 + lifecycleRows.size());
+            params.put("contentCount", contentCount);
             params.put("missingCount", 0);
             params.put("requiredFlag", 1);
             params.put("attrsJson", toJson(structureAttrs(node)));
-            params.put("sourceTraceJson", toJson(sourceTrace("CONFIG", "t1_aircraft_bom_node", node.get("nodeId"), code)));
+            params.put("sourceTraceJson", toJson(sourceTrace("CONFIG", "aircraft_bom_node", node.get("nodeId"), code)));
             generationMapper.insertStructureNode(params);
+            stats.incrementStructureNodeCount();
 
-            insertContentItem(instanceId, versionId, text(aircraft.get("aircraftId")), structureNodeId, node, sortOrder);
-            insertLifecycleContentItems(instanceId, versionId, text(aircraft.get("aircraftId")), structureNodeId,
-                    node, lifecycleRows, sortOrder);
+            insertContentItem(instanceId, versionId, text(aircraft.get("aircraftId")), structureNodeId, node, sortOrder,
+                    fullContentNode);
+            stats.incrementContentItemCount();
+            Set<String> insertedKeys = new HashSet<>();
+            insertedKeys.add(snapshotRowKey("aircraft_bom_node", node.get("nodeId"), "DOSSIER", ""));
+            stats.addContentItemCount(insertTemplateSourceContentItems(instanceId, versionId,
+                    text(aircraft.get("aircraftId")), structureNodeId, node, templateSourceRows, sortOrder,
+                    insertedKeys));
+            stats.addContentItemCount(insertLifecycleContentItems(instanceId, versionId, text(aircraft.get("aircraftId")),
+                    structureNodeId, node, lifecycleRows, sortOrder, insertedKeys));
+            int sourceDocumentCount = fullContentNode ? insertSourceDocumentSnapshots(instanceId, versionId,
+                    text(aircraft.get("aircraftId")), structureNodeId, node, defaultDocumentCategoryId) : 0;
+            stats.addDocumentCount(sourceDocumentCount);
+            if ("HYD-TUBE-MLG-32A".equals(code))
+            {
+                tubeSourceDocumentCount += sourceDocumentCount;
+            }
 
             nodeIdToStructureId.put(text(node.get("nodeId")), structureNodeId);
             nodeIdToPath.put(text(node.get("nodeId")), nodePath);
@@ -258,15 +304,21 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         }
 
         String tubeStructureNodeId = partNumberToStructureId.get("HYD-TUBE-MLG-32A");
-        insertTubeDocuments(instanceId, versionId, tubeStructureNodeId);
+        if (tubeSourceDocumentCount <= 0)
+        {
+            stats.addDocumentCount(insertTubeDocuments(instanceId, versionId, tubeStructureNodeId));
+        }
         insertOperationLog(instanceId, versionId, jobId, userName);
+        return stats;
     }
 
     private void insertContentItem(String instanceId, String versionId, String aircraftId, String structureNodeId,
-            Map<String, Object> node, int sortOrder)
+            Map<String, Object> node, int sortOrder, boolean includeDataRollup)
     {
         boolean keyPart = Boolean.TRUE.equals(node.get("highlight"));
-        Map<String, Object> dataRollup = generationMapper.selectNodeDataRollup(aircraftId, text(node.get("nodeId")));
+        Map<String, Object> dataRollup = includeDataRollup
+                ? generationMapper.selectNodeDataRollup(aircraftId, text(node.get("nodeId")))
+                : null;
         Map<String, Object> attrs = map();
         attrs.putAll(castMap(node.get("detail")));
         if (dataRollup != null)
@@ -289,7 +341,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         params.put("isKeyPart", keyPart ? 1 : 0);
         params.put("supplyMode", "self_made");
         params.put("sourceSystem", "DOSSIER");
-        params.put("sourceTable", "t1_aircraft_bom_node");
+        params.put("sourceTable", "aircraft_bom_node");
         params.put("sourceRecordId", node.get("nodeId"));
         params.put("sourceRecordKey", node.get("partNumber"));
         params.put("includeDesignData", keyPart ? 1 : 0);
@@ -302,24 +354,791 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         params.put("itemStatus", "active");
         params.put("sortOrder", sortOrder);
         params.put("contentSummary", contentSummary(node, dataRollup));
-        params.put("fileStorageKey", keyPart ? "/project1/dossier/files/2026/05/B-1234/HYD-TUBE-MLG-32A/" : null);
-        params.put("sourceTraceJson", toJson(sourceTrace("CONFIG", "t1_aircraft_bom_node", node.get("nodeId"),
+        params.put("fileStorageKey", keyPart ? "/dossier/files/2026/05/B-1234/HYD-TUBE-MLG-32A/" : null);
+        params.put("sourceTraceJson", toJson(sourceTrace("CONFIG", "aircraft_bom_node", node.get("nodeId"),
                 node.get("partNumber"))));
         params.put("attrsJson", toJson(attrs));
         generationMapper.insertContentItem(params);
     }
 
-    private void insertLifecycleContentItems(String instanceId, String versionId, String aircraftId,
-            String structureNodeId, Map<String, Object> node, List<Map<String, Object>> lifecycleRows, int baseSortOrder)
+    private Set<String> fullContentNodeIds(List<Map<String, Object>> nodes)
+    {
+        Map<String, Map<String, Object>> byId = new LinkedHashMap<>();
+        for (Map<String, Object> node : nodes)
+        {
+            byId.put(text(node.get("nodeId")), node);
+        }
+        Set<String> result = new HashSet<>();
+        for (Map<String, Object> node : nodes)
+        {
+            if (isFullContentSeed(node))
+            {
+                addNodeAndAncestors(result, byId, node);
+            }
+        }
+        if (result.isEmpty() && !nodes.isEmpty())
+        {
+            addNodeAndAncestors(result, byId, nodes.get(0));
+        }
+        return result;
+    }
+
+    private boolean isFullContentSeed(Map<String, Object> node)
+    {
+        String partNumber = text(node.get("partNumber"));
+        return Boolean.TRUE.equals(node.get("highlight")) || "HYD-TUBE-MLG-32A".equals(partNumber);
+    }
+
+    private void addNodeAndAncestors(Set<String> result, Map<String, Map<String, Object>> byId, Map<String, Object> node)
+    {
+        Map<String, Object> current = node;
+        while (current != null)
+        {
+            String nodeId = text(current.get("nodeId"));
+            if (!hasText(nodeId) || result.contains(nodeId))
+            {
+                return;
+            }
+            result.add(nodeId);
+            current = byId.get(text(current.get("parentId")));
+        }
+    }
+
+    private List<Map<String, Object>> selectConfiguredSourceRows(Map<String, Object> aircraft,
+            Map<String, Object> prepareData, Map<String, Object> node, Map<String, Set<String>> sourceColumnsCache)
+    {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        List<Map<String, Object>> sources = castList(prepareData.get("sources"));
+        if (sources.isEmpty())
+        {
+            return rows;
+        }
+        Map<String, Map<String, Object>> chapters = chaptersById(castList(prepareData.get("chapters")));
+        for (Map<String, Object> source : sources)
+        {
+            Map<String, Object> chapter = chapters.get(text(source.get("chapterId")));
+            String category = sourceCategory(source, chapter);
+            if ("composition".equals(category))
+            {
+                continue;
+            }
+            if (!sourceAppliesToNode(source, chapter, node))
+            {
+                continue;
+            }
+            for (String queryTable : queryTablesForSource(text(source.get("sourceTable")), bomObjectLevel(node),
+                    category))
+            {
+                if (!isAllowedSourceTable(queryTable))
+                {
+                    continue;
+                }
+                Set<String> columns = sourceTableColumns(sourceColumnsCache, queryTable);
+                if (columns.isEmpty())
+                {
+                    continue;
+                }
+                List<String> clauses = sourceWhereClauses(queryTable, aircraft, node, columns);
+                if (clauses.isEmpty())
+                {
+                    continue;
+                }
+                clauses.addAll(sourceFilterClauses(queryTable, parseJsonObject(source.get("filterConditionJson")),
+                        columns));
+                Map<String, Object> params = map();
+                params.put("tableName", queryTable);
+                params.put("whereSql", joinSql(clauses));
+                params.put("limit", sourceRowLimit(queryTable, category));
+                List<Map<String, Object>> rawRows = generationMapper.selectTemplateSourceRows(params);
+                for (Map<String, Object> rawRow : rawRows)
+                {
+                    rows.add(toTemplateSourceContentRow(source, chapter, queryTable, rawRow, category));
+                }
+                if (!rawRows.isEmpty())
+                {
+                    break;
+                }
+            }
+        }
+        return rows;
+    }
+
+    private int insertTemplateSourceContentItems(String instanceId, String versionId, String aircraftId,
+            String structureNodeId, Map<String, Object> node, List<Map<String, Object>> sourceRows, int baseSortOrder,
+            Set<String> insertedKeys)
     {
         int index = 1;
+        int inserted = 0;
+        for (Map<String, Object> row : sourceRows)
+        {
+            String lifecycleStage = defaultText(row.get("lifecycleStage"), "DOSSIER");
+            String sourceSystem = defaultText(row.get("sourceSystem"), "DOSSIER");
+            String sourceTable = defaultText(row.get("sourceTable"), "dossier_content_item");
+            String sourceRecordKey = defaultText(row.get("sourceRecordKey"), text(row.get("sourceRecordId")));
+            String uniqueKey = snapshotRowKey(sourceTable, row.get("sourceRecordId"), lifecycleStage,
+                    text(row.get("chapterId")));
+            if (insertedKeys != null && insertedKeys.contains(uniqueKey))
+            {
+                continue;
+            }
+
+            Map<String, Object> params = map();
+            params.put("contentItemId", newId());
+            params.put("instanceId", instanceId);
+            params.put("versionId", versionId);
+            params.put("structureNodeId", structureNodeId);
+            params.put("itemCode", "CONTENT-" + String.format("%04d", baseSortOrder) + "-SRC-"
+                    + String.format("%03d", index));
+            params.put("itemName", defaultText(row.get("itemName"), sourceRecordKey));
+            params.put("itemType", defaultText(row.get("itemType"), "template_source"));
+            params.put("lifecycleStage", lifecycleStage);
+            params.put("aircraftId", aircraftId);
+            params.put("bomNodeId", node.get("nodeId"));
+            params.put("partInstanceId", node.get("partInstanceId"));
+            params.put("isKeyPart", Boolean.TRUE.equals(node.get("highlight")) ? 1 : 0);
+            params.put("supplyMode", "self_made");
+            params.put("sourceSystem", sourceSystem);
+            params.put("sourceTable", sourceTable);
+            params.put("sourceRecordId", row.get("sourceRecordId"));
+            params.put("sourceRecordKey", sourceRecordKey);
+            params.put("includeDesignData", isDesignStage(lifecycleStage) ? 1 : 0);
+            params.put("includeManufacturingData", isManufacturingStage(lifecycleStage) ? 1 : 0);
+            params.put("includeServiceData", isServiceStage(lifecycleStage) ? 1 : 0);
+            params.put("includeSourceProof", 1);
+            params.put("requiredFlag", defaultNumber(row.get("requiredFlag"), 1));
+            params.put("includedFlag", 1);
+            params.put("completenessStatus", "complete");
+            params.put("itemStatus", "active");
+            params.put("sortOrder", baseSortOrder * 1000 + 100 + index);
+            params.put("contentSummary", defaultText(row.get("contentSummary"), sourceRecordKey));
+            params.put("fileStorageKey", row.get("fileStorageKey"));
+            params.put("sourceTraceJson", row.get("sourceTraceJson"));
+            params.put("attrsJson", row.get("attrsJson"));
+            generationMapper.insertContentItem(params);
+            if (insertedKeys != null)
+            {
+                insertedKeys.add(uniqueKey);
+            }
+            inserted++;
+            index++;
+        }
+        return inserted;
+    }
+
+    private int countSnapshotRows(Map<String, Object> node, List<Map<String, Object>> sourceRows,
+            List<Map<String, Object>> lifecycleRows)
+    {
+        Set<String> keys = new HashSet<>();
+        keys.add(snapshotRowKey("aircraft_bom_node", node.get("nodeId"), "DOSSIER", ""));
+        for (Map<String, Object> row : sourceRows)
+        {
+            keys.add(snapshotRowKey(row.get("sourceTable"), row.get("sourceRecordId"), row.get("lifecycleStage"),
+                    text(row.get("chapterId"))));
+        }
+        for (Map<String, Object> row : lifecycleRows)
+        {
+            keys.add(snapshotRowKey(row.get("sourceTable"), row.get("sourceRecordId"), row.get("lifecycleStage"),
+                    text(row.get("chapterId"))));
+        }
+        return keys.size();
+    }
+
+    private String snapshotRowKey(Object sourceTable, Object sourceRecordId, Object lifecycleStage, String chapterId)
+    {
+        return text(sourceTable).toLowerCase() + "|" + text(sourceRecordId) + "|"
+                + text(lifecycleStage).toUpperCase() + "|" + text(chapterId);
+    }
+
+    private Map<String, Map<String, Object>> chaptersById(List<Map<String, Object>> chapters)
+    {
+        Map<String, Map<String, Object>> result = new LinkedHashMap<>();
+        for (Map<String, Object> chapter : chapters)
+        {
+            result.put(text(chapter.get("chapterId")), chapter);
+        }
+        return result;
+    }
+
+    private boolean sourceAppliesToNode(Map<String, Object> source, Map<String, Object> chapter,
+            Map<String, Object> node)
+    {
+        String objectLevel = bomObjectLevel(node);
+        String applyObjectType = text(source.get("applyObjectType")).toLowerCase();
+        if (!hasText(applyObjectType) && chapter != null)
+        {
+            Map<String, Object> attrs = parseJsonObject(chapter.get("attrsJson"));
+            applyObjectType = text(attrs.get("objectLevel")).toLowerCase();
+        }
+        if (hasText(applyObjectType) && !"all".equals(applyObjectType) && !objectLevel.equals(applyObjectType)
+                && !"bom_node".equals(applyObjectType))
+        {
+            return false;
+        }
+        String keyPartScope = text(source.get("keyPartScope")).toLowerCase();
+        if ("key_only".equals(keyPartScope) && !Boolean.TRUE.equals(node.get("highlight")))
+        {
+            return false;
+        }
+        if ("non_key_only".equals(keyPartScope) && Boolean.TRUE.equals(node.get("highlight")))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    private String sourceCategory(Map<String, Object> source, Map<String, Object> chapter)
+    {
+        String code = (text(chapter == null ? source.get("sourceCode") : chapter.get("chapterCode")) + "_"
+                + text(source.get("sourceCode"))).toUpperCase();
+        String displayType = "";
+        if (chapter != null)
+        {
+            displayType = text(parseJsonObject(chapter.get("attrsJson")).get("displayType"));
+        }
+        if ("tree_table".equals(displayType) || code.contains("BOM") || code.contains("STRUCTURE")
+                || code.contains("COMPOSITION"))
+        {
+            return "composition";
+        }
+        if ("file_list".equals(displayType) || code.contains("ATTACH") || code.contains("CERT")
+                || code.contains("DOCUMENTS"))
+        {
+            return "documents";
+        }
+        if (code.contains("BASIC") || code.contains("OVERVIEW") || code.contains("PROFILE"))
+        {
+            return "basic";
+        }
+        if (code.contains("DESIGN"))
+        {
+            return "design";
+        }
+        if (code.contains("MANUFACTUR") || code.contains("TRACE") || code.contains("ROUTE"))
+        {
+            return "manufacturing";
+        }
+        if (code.contains("INSPECTION") || code.contains("TEST"))
+        {
+            return "inspection";
+        }
+        if (code.contains("SERVICE") || code.contains("USAGE") || code.contains("INSTALL"))
+        {
+            return "service";
+        }
+        if (code.contains("FAULT") || code.contains("MAINT"))
+        {
+            return "fault";
+        }
+        if (code.contains("STATUS") || code.contains("CONFIG"))
+        {
+            return "status";
+        }
+        if (code.contains("INTERFACE"))
+        {
+            return "interface";
+        }
+        return "content";
+    }
+
+    private List<String> queryTablesForSource(String sourceTable, String objectLevel, String category)
+    {
+        String table = canonicalSourceTable(sourceTable);
+        List<String> tables = new ArrayList<>();
+        if ("basic".equals(category) || "dossier_structure_node".equals(table))
+        {
+            String profileView = profileViewForLevel(objectLevel);
+            if (hasText(profileView))
+            {
+                tables.add(profileView);
+            }
+        }
+        if (!"dossier_structure_node".equals(table) && !tables.contains(table))
+        {
+            tables.add(table);
+        }
+        return tables;
+    }
+
+    private String canonicalSourceTable(Object sourceTable)
+    {
+        String table = text(sourceTable).toLowerCase();
+        if ("document_category".equals(table))
+        {
+            return "t1_file_category";
+        }
+        if ("document_master".equals(table) || "document_entry".equals(table) || "document_archive".equals(table)
+                || "technical_file".equals(table) || "part_document".equals(table)
+                || "certificate_record".equals(table))
+        {
+            return "t1_file_relation";
+        }
+        return table;
+    }
+
+    private String profileViewForLevel(String objectLevel)
+    {
+        if ("aircraft".equals(objectLevel))
+        {
+            return "v_aircraft_profile_detail";
+        }
+        if ("system".equals(objectLevel))
+        {
+            return "v_system_profile_detail";
+        }
+        if ("subsystem".equals(objectLevel))
+        {
+            return "v_subsystem_profile_detail";
+        }
+        if ("equipment".equals(objectLevel))
+        {
+            return "v_equipment_profile_detail";
+        }
+        if ("component".equals(objectLevel))
+        {
+            return "v_component_profile_detail";
+        }
+        if ("part".equals(objectLevel))
+        {
+            return "v_part_profile_detail";
+        }
+        return "";
+    }
+
+    private boolean isAllowedSourceTable(String tableName)
+    {
+        return allowedSourceTables().contains(text(tableName).toLowerCase());
+    }
+
+    private Set<String> allowedSourceTables()
+    {
+        return new HashSet<>(Arrays.asList(
+                "v_aircraft_profile_detail", "v_system_profile_detail", "v_subsystem_profile_detail",
+                "v_equipment_profile_detail", "v_component_profile_detail", "v_part_profile_detail",
+                "physical_aircraft", "aircraft_object_profile", "system_object_profile",
+                "subsystem_object_profile", "equipment_object_master", "equipment_object_instance",
+                "component_object_master", "component_object_instance", "part_master", "part_instance",
+                "aircraft_bom_node", "object_lifecycle_record", "object_technical_status",
+                "object_status_history", "object_interface", "life_usage_record", "work_order",
+                "work_order_task", "fault_event", "fault_action", "event_flight_leg", "inspection_record",
+                "inspection_measurement", "shop_order", "shop_order_task", "production_operation_record",
+                "material_lot_trace", "process_route", "assembly_record", "install_removal",
+                "quality_text_record", "part_hydraulic_tube_impact_model", "impact_tube_segment",
+                "impact_tube_support", "impact_tube_fluid", "impact_tube_boundary_condition",
+                "part_parameter_value", "t1_file_category", "t1_file_asset", "t1_file_relation"));
+    }
+
+    private Set<String> sourceTableColumns(Map<String, Set<String>> cache, String tableName)
+    {
+        String key = text(tableName).toLowerCase();
+        if (cache.containsKey(key))
+        {
+            return cache.get(key);
+        }
+        Set<String> columns = new HashSet<>();
+        for (String column : generationMapper.selectSourceTableColumns(key))
+        {
+            columns.add(text(column).toLowerCase());
+        }
+        cache.put(key, columns);
+        return columns;
+    }
+
+    private List<String> sourceWhereClauses(String tableName, Map<String, Object> aircraft, Map<String, Object> node,
+            Set<String> columns)
+    {
+        List<String> clauses = new ArrayList<>();
+        String table = text(tableName).toLowerCase();
+        String aircraftId = text(aircraft.get("aircraftId"));
+        String nodeId = text(node.get("nodeId"));
+        String partInstanceId = text(node.get("partInstanceId"));
+        String partNumber = text(node.get("partNumber"));
+        boolean scoped = false;
+
+        if ("t1_file_relation".equals(table))
+        {
+            if (columns.contains("relation_status"))
+            {
+                clauses.add("t.relation_status != 'deleted'");
+            }
+            if (columns.contains("aircraft_id") && hasText(aircraftId))
+            {
+                clauses.add("t.aircraft_id = " + quote(aircraftId));
+            }
+            if ("aircraft".equals(bomObjectLevel(node)))
+            {
+                scoped = columns.contains("aircraft_id") && hasText(aircraftId);
+            }
+            else
+            {
+                List<String> anchors = new ArrayList<>();
+                if (columns.contains("bom_node_id") && hasText(nodeId))
+                {
+                    anchors.add("t.bom_node_id = " + quote(nodeId));
+                }
+                if (columns.contains("part_instance_id") && hasText(partInstanceId))
+                {
+                    anchors.add("t.part_instance_id = " + quote(partInstanceId));
+                }
+                if (columns.contains("part_number") && hasText(partNumber))
+                {
+                    anchors.add("t.part_number = " + quote(partNumber));
+                }
+                if (!anchors.isEmpty())
+                {
+                    clauses.add("(" + String.join(" or ", anchors) + ")");
+                    scoped = true;
+                }
+            }
+        }
+        else if ("t1_file_asset".equals(table))
+        {
+            clauses.add("1 = 0");
+            scoped = true;
+        }
+        else if ("t1_file_category".equals(table))
+        {
+            scoped = true;
+            clauses.add("1 = 1");
+        }
+        else if ("physical_aircraft".equals(table) && columns.contains("id"))
+        {
+            clauses.add("t.id = " + quote(aircraftId));
+            scoped = true;
+        }
+        else if (("v_aircraft_profile_detail".equals(table) || "aircraft_object_profile".equals(table))
+                && columns.contains("aircraft_id"))
+        {
+            clauses.add("t.aircraft_id = " + quote(aircraftId));
+            scoped = true;
+        }
+        else if ("object_interface".equals(table) && columns.contains("aircraft_id")
+                && columns.contains("source_bom_node_id") && columns.contains("target_bom_node_id"))
+        {
+            clauses.add("t.aircraft_id = " + quote(aircraftId));
+            clauses.add("(t.source_bom_node_id = " + quote(nodeId) + " or t.target_bom_node_id = "
+                    + quote(nodeId) + ")");
+            scoped = true;
+        }
+        else if ((profileViewForLevel(bomObjectLevel(node)).equals(table) || hasBomNodeSourceScope(table))
+                && columns.contains("aircraft_id") && columns.contains("bom_node_id"))
+        {
+            clauses.add("t.aircraft_id = " + quote(aircraftId));
+            clauses.add("t.bom_node_id = " + quote(nodeId));
+            scoped = true;
+        }
+        else if (hasAircraftOnlySourceScope(table) && columns.contains("aircraft_id"))
+        {
+            clauses.add("t.aircraft_id = " + quote(aircraftId));
+            scoped = true;
+        }
+        else if ("part_instance".equals(table) && hasText(partInstanceId) && columns.contains("id"))
+        {
+            clauses.add("t.id = " + quote(partInstanceId));
+            scoped = true;
+        }
+        else if (hasPartInstanceSourceScope(table) && hasText(partInstanceId) && columns.contains("part_instance_id"))
+        {
+            clauses.add("t.part_instance_id = " + quote(partInstanceId));
+            scoped = true;
+        }
+        else if (hasPartNumberSourceScope(table) && hasText(partNumber) && columns.contains(partNumberField(table)))
+        {
+            clauses.add("t." + partNumberField(table) + " = " + quote(partNumber));
+            scoped = true;
+        }
+        return scoped ? clauses : Collections.emptyList();
+    }
+
+    private boolean hasAircraftOnlySourceScope(String tableName)
+    {
+        return new HashSet<>(Arrays.asList("aircraft_bom_node", "event_flight_leg")).contains(tableName);
+    }
+
+    private boolean hasBomNodeSourceScope(String tableName)
+    {
+        return new HashSet<>(Arrays.asList("v_system_profile_detail", "v_subsystem_profile_detail",
+                "v_equipment_profile_detail", "v_component_profile_detail", "v_part_profile_detail",
+                "system_object_profile", "subsystem_object_profile", "equipment_object_instance",
+                "component_object_instance", "object_lifecycle_record", "object_technical_status",
+                "object_status_history", "object_interface", "life_usage_record", "work_order",
+                "work_order_task", "fault_event", "fault_action", "inspection_record", "inspection_measurement",
+                "shop_order", "shop_order_task", "production_operation_record", "material_lot_trace",
+                "assembly_record", "install_removal", "quality_text_record", "document_entry")).contains(tableName);
+    }
+
+    private boolean hasPartInstanceSourceScope(String tableName)
+    {
+        return new HashSet<>(Arrays.asList("part_instance", "life_usage_record", "work_order", "work_order_task",
+                "fault_event", "fault_action", "inspection_record", "inspection_measurement", "shop_order",
+                "shop_order_task", "production_operation_record", "material_lot_trace", "assembly_record",
+                "install_removal", "quality_text_record", "document_entry")).contains(tableName);
+    }
+
+    private boolean hasPartNumberSourceScope(String tableName)
+    {
+        return new HashSet<>(Arrays.asList("part_master", "equipment_object_master", "component_object_master",
+                "part_document", "part_parameter_value", "part_hydraulic_tube_impact_model",
+                "impact_tube_segment", "impact_tube_support", "impact_tube_fluid",
+                "impact_tube_boundary_condition", "process_route", "t1_file_relation")).contains(tableName);
+    }
+
+    private String partNumberField(String tableName)
+    {
+        if ("impact_tube_segment".equals(tableName) || "impact_tube_support".equals(tableName)
+                || "impact_tube_fluid".equals(tableName) || "impact_tube_boundary_condition".equals(tableName))
+        {
+            return "model_part_number";
+        }
+        return "part_number";
+    }
+
+    private List<String> sourceFilterClauses(String tableName, Map<String, Object> filter, Set<String> columns)
+    {
+        List<String> clauses = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : filter.entrySet())
+        {
+            String field = canonicalSourceField(tableName, text(entry.getKey()));
+            Object value = entry.getValue();
+            if (!isSafeSqlField(field) || !columns.contains(field.toLowerCase())
+                    || !isAllowedSourceField(tableName, field) || value instanceof Map
+                    || value instanceof List)
+            {
+                continue;
+            }
+            String textValue = text(value);
+            if (!hasText(textValue) || textValue.contains("${"))
+            {
+                continue;
+            }
+            clauses.add("upper(cast(t." + field + " as char)) = " + quote(textValue.toUpperCase()));
+        }
+        return clauses;
+    }
+
+    private boolean isAllowedSourceField(String tableName, String field)
+    {
+        Set<String> fields = new HashSet<>(Arrays.asList("id", "aircraft_id", "bom_node_id", "part_instance_id",
+                "part_number", "model_part_number", "tail_number", "serial_number", "batch_number", "lot_number",
+                "is_current", "default_flag", "status", "result", "node_type", "object_level"));
+        fields.addAll(Arrays.asList("source_table", "source_record_id", "dossier_version_id", "structure_node_id",
+                "route_code", "wo_number", "inspection_type", "document_status", "relation_status", "file_id",
+                "target_code", "relation_type"));
+        return fields.contains(field);
+    }
+
+    private String canonicalSourceField(String tableName, String field)
+    {
+        if ("t1_file_relation".equals(text(tableName).toLowerCase()))
+        {
+            if ("file_storage_key".equals(field))
+            {
+                return "file_id";
+            }
+            if ("doc_no".equals(field) || "doc_number".equals(field))
+            {
+                return "target_code";
+            }
+            if ("doc_type".equals(field) || "business_type".equals(field))
+            {
+                return "relation_type";
+            }
+            if ("document_status".equals(field))
+            {
+                return "relation_status";
+            }
+        }
+        return field;
+    }
+
+    private boolean isSafeSqlField(String field)
+    {
+        return text(field).matches("[A-Za-z0-9_]+");
+    }
+
+    private int sourceRowLimit(String tableName, String category)
+    {
+        if (text(tableName).startsWith("v_") || "basic".equals(category))
+        {
+            return 1;
+        }
+        if ("aircraft_bom_node".equals(tableName))
+        {
+            return 200;
+        }
+        if ("event_flight_leg".equals(tableName))
+        {
+            return 30;
+        }
+        return 50;
+    }
+
+    private Map<String, Object> toTemplateSourceContentRow(Map<String, Object> source, Map<String, Object> chapter,
+            String queryTable, Map<String, Object> rawRow, String category)
+    {
+        Map<String, Object> attrs = normalizeSourceAttrs(rawRow);
+        attrs.put("chapterId", source.get("chapterId"));
+        attrs.put("chapterCode", chapter == null ? null : chapter.get("chapterCode"));
+        attrs.put("chapterName", chapter == null ? null : chapter.get("chapterName"));
+        attrs.put("templateSourceId", source.get("sourceId"));
+        attrs.put("templateSourceCode", source.get("sourceCode"));
+        attrs.put("templateSourceName", source.get("sourceName"));
+        attrs.put("templateSourceTable", source.get("sourceTable"));
+        attrs.put("actualSourceTable", queryTable);
+        attrs.put("category", category);
+
+        String sourceTable = canonicalSourceTable(defaultText(source.get("sourceTable"), queryTable));
+        Object sourceRecordId = firstValue(rawRow, "id", "aircraft_id", "bom_node_id", "system_id",
+                "subsystem_id", "equipment_instance_id", "component_instance_id", "part_instance_id",
+                "object_profile_id");
+        String sourceRecordKey = defaultText(firstValue(rawRow, "part_number", "tail_number", "system_code",
+                "subsystem_code", "equipment_code", "component_code", "serial_number", "doc_number",
+                "wo_number", "route_code", "id"), text(sourceRecordId));
+        String lifecycleStage = defaultText(source.get("lifecycleStage"), stageForCategory(category)).toUpperCase();
+        String itemType = defaultText(source.get("sourceRecordType"),
+                queryTable.startsWith("v_") ? "profile_detail" : "template_source");
+
+        Map<String, Object> row = map();
+        row.put("chapterId", source.get("chapterId"));
+        row.put("sourceSystem", defaultText(source.get("sourceSystem"), "DOSSIER"));
+        row.put("sourceTable", sourceTable);
+        row.put("sourceRecordId", sourceRecordId);
+        row.put("sourceRecordKey", sourceRecordKey);
+        row.put("itemType", itemType);
+        row.put("lifecycleStage", lifecycleStage);
+        row.put("itemName", defaultText(source.get("sourceName"), sourceRecordKey));
+        row.put("contentSummary", sourceSummary(rawRow, sourceRecordKey));
+        row.put("fileStorageKey", firstValue(rawRow, "file_storage_key", "storage_key", "storage_path",
+                "access_url"));
+        row.put("requiredFlag", source.get("requiredFlag"));
+        row.put("sourceTraceJson", toJson(sourceTrace(defaultText(source.get("sourceSystem"), "DOSSIER"),
+                sourceTable, sourceRecordId, sourceRecordKey)));
+        row.put("attrsJson", toJson(attrs));
+        return row;
+    }
+
+    private Map<String, Object> normalizeSourceAttrs(Map<String, Object> rawRow)
+    {
+        Map<String, Object> attrs = map();
+        for (Map.Entry<String, Object> entry : rawRow.entrySet())
+        {
+            String key = text(entry.getKey());
+            Object value = entry.getValue();
+            attrs.put(key, value);
+            String camelKey = toCamelCase(key);
+            if (!camelKey.equals(key))
+            {
+                attrs.put(camelKey, value);
+            }
+        }
+        return attrs;
+    }
+
+    private String toCamelCase(String key)
+    {
+        StringBuilder result = new StringBuilder();
+        boolean upperNext = false;
+        for (char ch : text(key).toCharArray())
+        {
+            if (ch == '_')
+            {
+                upperNext = true;
+            }
+            else if (upperNext)
+            {
+                result.append(Character.toUpperCase(ch));
+                upperNext = false;
+            }
+            else
+            {
+                result.append(ch);
+            }
+        }
+        return result.toString();
+    }
+
+    private Object firstValue(Map<String, Object> row, String... keys)
+    {
+        for (String key : keys)
+        {
+            if (row.containsKey(key) && hasText(text(row.get(key))))
+            {
+                return row.get(key);
+            }
+        }
+        return null;
+    }
+
+    private String sourceSummary(Map<String, Object> row, String fallback)
+    {
+        List<String> values = new ArrayList<>();
+        for (String key : Arrays.asList("part_name", "system_name", "subsystem_name", "equipment_name",
+                "component_name", "tail_number", "serial_number", "manufacturer", "material",
+                "technical_status", "quality_status", "operational_status", "result", "status"))
+        {
+            Object value = row.get(key);
+            if (hasText(text(value)))
+            {
+                values.add(text(value));
+            }
+            if (values.size() >= 4)
+            {
+                break;
+            }
+        }
+        return values.isEmpty() ? fallback : join(values);
+    }
+
+    private String stageForCategory(String category)
+    {
+        if ("design".equals(category) || "interface".equals(category))
+        {
+            return "DESIGN";
+        }
+        if ("manufacturing".equals(category))
+        {
+            return "MANUFACTURING";
+        }
+        if ("inspection".equals(category))
+        {
+            return "INSPECTION";
+        }
+        if ("service".equals(category))
+        {
+            return "SERVICE";
+        }
+        if ("fault".equals(category))
+        {
+            return "FAULT";
+        }
+        if ("status".equals(category))
+        {
+            return "TECHNICAL_STATUS";
+        }
+        if ("documents".equals(category))
+        {
+            return "DOCUMENT";
+        }
+        return "DOSSIER";
+    }
+
+    private int insertLifecycleContentItems(String instanceId, String versionId, String aircraftId,
+            String structureNodeId, Map<String, Object> node, List<Map<String, Object>> lifecycleRows, int baseSortOrder,
+            Set<String> insertedKeys)
+    {
+        int index = 1;
+        int inserted = 0;
         for (Map<String, Object> row : lifecycleRows)
         {
             String lifecycleStage = text(row.get("lifecycleStage"));
             String sourceSystem = defaultText(row.get("sourceSystem"), "DOSSIER");
-            String sourceTable = defaultText(row.get("sourceTable"), "t1_dossier_content_item");
+            String sourceTable = defaultText(row.get("sourceTable"), "dossier_content_item");
             String sourceRecordKey = defaultText(row.get("sourceRecordKey"), text(row.get("sourceRecordId")));
             String itemType = defaultText(row.get("itemType"), "lifecycle_record");
+            String uniqueKey = snapshotRowKey(sourceTable, row.get("sourceRecordId"), lifecycleStage, text(row.get("chapterId")));
+            if (insertedKeys != null && insertedKeys.contains(uniqueKey))
+            {
+                continue;
+            }
 
             Map<String, Object> params = map();
             params.put("contentItemId", newId());
@@ -355,8 +1174,14 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
                     : toJson(sourceTrace(sourceSystem, sourceTable, row.get("sourceRecordId"), sourceRecordKey)));
             params.put("attrsJson", hasText(text(row.get("attrsJson"))) ? row.get("attrsJson") : toJson(map()));
             generationMapper.insertContentItem(params);
+            if (insertedKeys != null)
+            {
+                insertedKeys.add(uniqueKey);
+            }
+            inserted++;
             index++;
         }
+        return inserted;
     }
 
     private boolean isDesignStage(String lifecycleStage)
@@ -377,11 +1202,11 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
                 || "DOCUMENT".equals(lifecycleStage);
     }
 
-    private void insertTubeDocuments(String instanceId, String versionId, String tubeStructureNodeId)
+    private int insertTubeDocuments(String instanceId, String versionId, String tubeStructureNodeId)
     {
         if (!hasText(tubeStructureNodeId))
         {
-            return;
+            return 0;
         }
         String defaultCategoryId = defaultCategoryId();
         String designCategoryId = categoryId("设计文件", defaultCategoryId);
@@ -395,6 +1220,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             String title = text(attachment.get("title"));
             String fileName = text(attachment.get("fileName"));
             Map<String, Object> params = map();
+            params.put("fileAssetId", newId());
             params.put("documentEntryId", newId());
             params.put("instanceId", instanceId);
             params.put("versionId", versionId);
@@ -402,11 +1228,11 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             params.put("structureNodeId", tubeStructureNodeId);
             params.put("docNo", fileName.replaceAll("\\.[^.]+$", ""));
             params.put("title", title);
-            params.put("fileStorageKey", "/project1/dossier/files/2026/05/B-1234/HYD-TUBE-MLG-32A/" + fileName);
-            params.put("sourceTraceJson", toJson(sourceTrace(attachment.get("sourceSystem"), "t1_document_entry", null,
+            params.put("fileStorageKey", "/dossier/files/2026/05/B-1234/HYD-TUBE-MLG-32A/" + fileName);
+            params.put("sourceTraceJson", toJson(sourceTrace(attachment.get("sourceSystem"), "t1_file_relation", null,
                     "HYD-TUBE-MLG-32A/" + fileName)));
             params.put("sourceSystem", attachment.get("sourceSystem"));
-            params.put("sourceTable", "t1_document_entry");
+            params.put("sourceTable", "t1_file_relation");
             params.put("sourceRecordId", null);
             params.put("sourceRecordKey", "HYD-TUBE-MLG-32A/" + fileName);
             params.put("documentStatus", "active");
@@ -414,9 +1240,89 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             params.put("requiredFlag", 1);
             params.put("includedFlag", 1);
             params.put("attrsJson", toJson(documentAttrs(title, sortOrder)));
-            generationMapper.insertDocumentEntry(params);
+            generationMapper.insertDocumentFileAsset(params);
+            generationMapper.insertDocumentFileRelation(params);
             sortOrder++;
         }
+        return sortOrder - 1;
+    }
+
+    private int insertSourceDocumentSnapshots(String instanceId, String versionId, String aircraftId,
+            String structureNodeId, Map<String, Object> node, String defaultCategoryId)
+    {
+        List<Map<String, Object>> rows = generationMapper.selectNodeDocumentSourceRows(aircraftId,
+                text(node.get("nodeId")), text(node.get("partNumber")), text(node.get("partInstanceId")));
+        if (rows == null || rows.isEmpty())
+        {
+            return 0;
+        }
+        Set<String> insertedKeys = new HashSet<>();
+        int inserted = 0;
+        int sortOrder = 1;
+        for (Map<String, Object> row : rows)
+        {
+            String fileAssetId = text(row.get("fileAssetId"));
+            String sourceRecordId = defaultText(row.get("sourceRecordId"), text(row.get("sourceRelationId")));
+            String uniqueKey = fileAssetId + "|" + sourceRecordId;
+            if (!hasText(fileAssetId) || insertedKeys.contains(uniqueKey))
+            {
+                continue;
+            }
+            insertedKeys.add(uniqueKey);
+
+            String docNo = defaultText(row.get("docNo"), defaultText(row.get("sourceRecordKey"), sourceRecordId));
+            String title = defaultText(row.get("title"), docNo);
+            Map<String, Object> params = map();
+            params.put("fileAssetId", fileAssetId);
+            params.put("documentEntryId", newId());
+            params.put("instanceId", instanceId);
+            params.put("versionId", versionId);
+            params.put("categoryId", defaultText(row.get("categoryId"), defaultCategoryId));
+            params.put("structureNodeId", structureNodeId);
+            params.put("aircraftId", aircraftId);
+            params.put("bomNodeId", node.get("nodeId"));
+            params.put("partNumber", node.get("partNumber"));
+            params.put("partInstanceId", node.get("partInstanceId"));
+            params.put("objectLevel", bomObjectLevel(node));
+            params.put("lifecycleStage", "DOCUMENT");
+            params.put("businessDomain", "DOSSIER");
+            params.put("docNo", docNo);
+            params.put("title", title);
+            params.put("fileStorageKey", row.get("fileStorageKey"));
+            params.put("sourceSystem", defaultText(row.get("sourceSystem"), "DOC"));
+            params.put("sourceTable", "t1_file_relation");
+            params.put("sourceRecordId", sourceRecordId);
+            params.put("sourceRecordKey", defaultText(row.get("sourceRecordKey"), docNo));
+            params.put("sourceTraceJson", hasText(text(row.get("sourceTraceJson"))) ? row.get("sourceTraceJson")
+                    : toJson(sourceTrace(params.get("sourceSystem"), "t1_file_relation", sourceRecordId,
+                            params.get("sourceRecordKey"))));
+            params.put("documentStatus", defaultText(row.get("documentStatus"), "active"));
+            params.put("completenessStatus", defaultText(row.get("completenessStatus"), "complete"));
+            params.put("requiredFlag", defaultNumber(row.get("requiredFlag"), 0));
+            params.put("includedFlag", defaultNumber(row.get("includedFlag"), 1));
+            params.put("sortOrder", sortOrder);
+            params.put("attrsJson", sourceDocumentAttrs(row, node));
+            inserted += generationMapper.insertDocumentFileRelation(params);
+            sortOrder++;
+        }
+        return inserted;
+    }
+
+    private String sourceDocumentAttrs(Map<String, Object> row, Map<String, Object> node)
+    {
+        Map<String, Object> attrs = parseJsonObject(row.get("attrsJson"));
+        attrs.put("sourceRelationId", defaultText(row.get("sourceRelationId"), text(row.get("sourceRecordId"))));
+        attrs.put("sourceRelationType", row.get("sourceRelationType"));
+        attrs.put("sourceTargetType", row.get("sourceTargetType"));
+        attrs.put("sourceTargetId", row.get("sourceTargetId"));
+        attrs.put("sourceTargetCode", row.get("sourceTargetCode"));
+        attrs.put("sourcePartNumber", row.get("sourcePartNumber"));
+        attrs.put("bomNodeId", node.get("nodeId"));
+        attrs.put("partNumber", node.get("partNumber"));
+        attrs.put("partInstanceId", node.get("partInstanceId"));
+        attrs.put("objectLevel", bomObjectLevel(node));
+        attrs.put("snapshotSource", "t1_file_relation");
+        return toJson(attrs);
     }
 
     private void insertOperationLog(String instanceId, String versionId, String jobId, String userName)
@@ -428,12 +1334,12 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         params.put("operationType", "generate");
         params.put("operationName", "卷宗生成");
         params.put("operationStatus", "succeeded");
-        params.put("businessSubjectType", "t1_generation_job");
+        params.put("businessSubjectType", "generation_job");
         params.put("businessSubjectId", jobId);
         params.put("operatorId", userName);
         params.put("operatorName", userName);
         params.put("sourceIp", "127.0.0.1");
-        params.put("detailJson", toJson(sourceTrace("DOSSIER", "t1_generation_job", jobId, "B-1234")));
+        params.put("detailJson", toJson(sourceTrace("DOSSIER", "generation_job", jobId, "B-1234")));
         params.put("resultMessage", "单台份飞机综合卷宗生成完成，液压弯管 HYD-TUBE-MLG-32A 数据已写入。");
         generationMapper.insertOperationLog(params);
     }
@@ -513,7 +1419,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         if (job != null)
         {
             Map<String, Object> jobOutput = selectJobOutput(generationJobId);
-            output = jobOutput == null ? map() : castMap(jobOutput.get("output"));
+            output = buildResponseOutputSummary(jobOutput == null ? map() : castMap(jobOutput.get("output")));
             logs = selectJobLogs(generationJobId);
         }
         else
@@ -526,6 +1432,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             job.put("versionId", versionId);
             job.put("instanceId", instanceId);
         }
+        output.put("fileCount", toInt(generationMapper.countDocumentEntries(versionId), toInt(output.get("fileCount"), 0)));
 
         Map<String, Object> result = map();
         result.put("duplicated", true);
@@ -555,8 +1462,8 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         List<Map<String, Object>> params = generationMapper.selectTemplateParams(templateId);
         List<Map<String, Object>> keyNodeChain = enrichKeyNodeChain(aircraft,
                 generationMapper.selectKeyNodeChain(text(aircraft.get("aircraftId"))));
-        List<Map<String, Object>> chapterSources = buildChapterSources(sources);
-        List<Map<String, Object>> checks = buildChecks(aircraft, template, metrics, keyNodeChain, chapterSources);
+        List<Map<String, Object>> chapterSources = buildChapterSources(sources, chapters);
+        List<Map<String, Object>> checks = buildChecks(aircraft, template, metrics, keyNodeChain, chapterSources, rules);
         Map<String, Object> enrichedMetrics = enrichMetrics(metrics, chapters, sources, rules, params);
         enrichedMetrics.put("keyNodeCount", keyNodeChain.size());
 
@@ -592,12 +1499,25 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         return aircraft;
     }
 
-    private Map<String, Object> selectRequiredTemplate()
+    private Map<String, Object> selectRequiredTemplate(String templateId)
     {
-        Map<String, Object> template = generationMapper.selectActiveTemplate();
+        Map<String, Object> template = hasText(templateId)
+                ? generationMapper.selectTemplateById(templateId)
+                : generationMapper.selectActiveTemplate();
         if (template == null)
         {
-            throw new ServiceException("active aircraft dossier template does not exist");
+            throw new ServiceException(hasText(templateId)
+                    ? "selected aircraft dossier template does not exist"
+                    : "active aircraft dossier template does not exist");
+        }
+        if (!"aircraft".equals(text(template.get("applicableObjectType"))))
+        {
+            throw new ServiceException("selected template is not an aircraft dossier template");
+        }
+        String status = text(template.get("status"));
+        if (!"active".equals(status) && !"draft".equals(status))
+        {
+            throw new ServiceException("selected template is not available for generation");
         }
         return template;
     }
@@ -609,17 +1529,55 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         Map<String, Object> instance = generationMapper.selectDossierInstance(aircraftId, templateId);
         if (instance != null)
         {
-            return instance;
+            return repairInstanceIdentityIfNeeded(instance, aircraft, template);
         }
 
         Map<String, Object> params = map();
         params.put("instanceId", newId());
         params.put("templateId", templateId);
         params.put("aircraftId", aircraftId);
-        params.put("instanceLabel", text(aircraft.get("tailNumber")) + " " + text(template.get("templateName")));
+        params.put("instanceCode", buildInstanceCode(aircraft));
+        params.put("instanceName", buildInstanceName(aircraft, template));
+        params.put("instanceLabel", buildInstanceLabel(aircraft, template));
         params.put("instanceOptionsJson", toJson(buildInstanceOptions(aircraft, template)));
+        params.put("createdBy", currentUser());
+        params.put("updatedBy", currentUser());
         generationMapper.insertDossierInstance(params);
         return generationMapper.selectDossierInstance(aircraftId, templateId);
+    }
+
+    private Map<String, Object> repairInstanceIdentityIfNeeded(Map<String, Object> instance,
+            Map<String, Object> aircraft, Map<String, Object> template)
+    {
+        if (hasText(text(instance.get("instanceCode"))) && hasText(text(instance.get("instanceName"))))
+        {
+            return instance;
+        }
+
+        Map<String, Object> params = map();
+        params.put("instanceId", instance.get("instanceId"));
+        params.put("instanceCode", buildInstanceCode(aircraft));
+        params.put("instanceName", buildInstanceName(aircraft, template));
+        params.put("instanceLabel", buildInstanceLabel(aircraft, template));
+        params.put("updatedBy", currentUser());
+        generationMapper.updateDossierInstanceIdentity(params);
+        return generationMapper.selectDossierInstance(text(aircraft.get("aircraftId")), text(template.get("templateId")));
+    }
+
+    private String buildInstanceCode(Map<String, Object> aircraft)
+    {
+        String tailNumber = safeCodePart(defaultText(aircraft.get("tailNumber"), text(aircraft.get("aircraftId"))));
+        return "DOS-" + tailNumber + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    private String buildInstanceName(Map<String, Object> aircraft, Map<String, Object> template)
+    {
+        return text(aircraft.get("tailNumber")) + " " + text(template.get("templateName"));
+    }
+
+    private String buildInstanceLabel(Map<String, Object> aircraft, Map<String, Object> template)
+    {
+        return buildInstanceName(aircraft, template);
     }
 
     private Map<String, Object> insertPrecheckRun(Map<String, Object> instance, String versionId,
@@ -633,11 +1591,11 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         params.put("instanceId", instance.get("instanceId"));
         params.put("versionId", versionId);
         params.put("runCode", runCode);
-        params.put("runStatus", "passed");
+        params.put("runStatus", inspectionRunStatus(summary));
         params.put("scopeDescription", "aircraft + active template + template configured data sources");
         params.put("ruleSetVersion", "R-DOSSIER-GENERATION-1.0");
         params.put("checkedObjectCount", summary.get("checkedObjectCount"));
-        params.put("issueCount", summary.get("warningCount"));
+        params.put("issueCount", toInt(summary.get("warningCount"), 0) + toInt(summary.get("blockingCount"), 0));
         params.put("initiatedBy", userName);
         params.put("summaryJson", toJson(summary));
         generationMapper.insertInspectionRun(params);
@@ -838,17 +1796,25 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         return details(pair("identity", Arrays.asList(text(node.get("partName")), text(node.get("partNumber")))));
     }
 
-    private List<Map<String, Object>> buildChapterSources(List<Map<String, Object>> sources)
+    private List<Map<String, Object>> buildChapterSources(List<Map<String, Object>> sources,
+            List<Map<String, Object>> chapters)
     {
         List<Map<String, Object>> result = new ArrayList<>();
         if (sources == null)
         {
             return result;
         }
+        Map<String, Map<String, Object>> hierarchyInfo = buildChapterHierarchyInfo(chapters);
         for (Map<String, Object> source : sources)
         {
             Map<String, Object> item = map();
             item.putAll(source);
+            Map<String, Object> chapterInfo = hierarchyInfo.get(text(source.get("chapterId")));
+            if (chapterInfo != null)
+            {
+                item.putAll(chapterInfo);
+                item.put("chapterName", chapterInfo.get("chapterDisplayName"));
+            }
             String tableName = text(source.get("sourceTable"));
             String sourceName = text(source.get("sourceName"));
             int recordCount = estimateRecordCount(tableName, sourceName);
@@ -860,84 +1826,194 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             item.put("traceKey", traceKey(tableName, sourceName));
             result.add(item);
         }
+        Collections.sort(result, (left, right) -> {
+            int chapterCompare = defaultText(left.get("chapterHierarchyOrder"), "9999")
+                    .compareTo(defaultText(right.get("chapterHierarchyOrder"), "9999"));
+            if (chapterCompare != 0)
+            {
+                return chapterCompare;
+            }
+            int sourceCompare = Integer.compare(toInt(left.get("sortOrder"), 0), toInt(right.get("sortOrder"), 0));
+            if (sourceCompare != 0)
+            {
+                return sourceCompare;
+            }
+            return text(left.get("sourceId")).compareTo(text(right.get("sourceId")));
+        });
         return result;
+    }
+
+    private Map<String, Map<String, Object>> buildChapterHierarchyInfo(List<Map<String, Object>> chapters)
+    {
+        Map<String, Map<String, Object>> info = new LinkedHashMap<>();
+        if (chapters == null)
+        {
+            return info;
+        }
+        Map<String, Map<String, Object>> nodeMap = new LinkedHashMap<>();
+        for (Map<String, Object> chapter : chapters)
+        {
+            String chapterId = text(chapter.get("chapterId"));
+            if (hasText(chapterId))
+            {
+                nodeMap.put(chapterId, chapter);
+            }
+        }
+
+        Map<String, List<Map<String, Object>>> childrenMap = new LinkedHashMap<>();
+        List<Map<String, Object>> roots = new ArrayList<>();
+        for (Map<String, Object> chapter : chapters)
+        {
+            String parentId = text(chapter.get("parentId"));
+            if (hasText(parentId) && nodeMap.containsKey(parentId))
+            {
+                List<Map<String, Object>> children = childrenMap.get(parentId);
+                if (children == null)
+                {
+                    children = new ArrayList<>();
+                    childrenMap.put(parentId, children);
+                }
+                children.add(chapter);
+            }
+            else
+            {
+                roots.add(chapter);
+            }
+        }
+
+        sortChapters(roots);
+        for (List<Map<String, Object>> children : childrenMap.values())
+        {
+            sortChapters(children);
+        }
+        fillChapterHierarchyInfo(roots, childrenMap, info, "", "", 1);
+        return info;
+    }
+
+    private void fillChapterHierarchyInfo(List<Map<String, Object>> chapters,
+            Map<String, List<Map<String, Object>>> childrenMap, Map<String, Map<String, Object>> info,
+            String parentLabel, String parentOrder, int depth)
+    {
+        for (int i = 0; i < chapters.size(); i++)
+        {
+            Map<String, Object> chapter = chapters.get(i);
+            String chapterId = text(chapter.get("chapterId"));
+            if (!hasText(chapterId))
+            {
+                continue;
+            }
+            String chapterName = defaultText(chapter.get("chapterName"), chapterId);
+            String currentLabel = hasText(parentLabel) ? parentLabel + " / " + chapterName : chapterName;
+            String currentOrder = hasText(parentOrder) ? parentOrder + "." + orderSegment(i) : orderSegment(i);
+
+            Map<String, Object> item = map();
+            item.put("chapterDisplayName", currentLabel);
+            item.put("chapterHierarchyOrder", currentOrder);
+            item.put("chapterDepth", depth);
+            item.put("chapterLevel", defaultText(chapter.get("chapterLevel"), String.valueOf(depth)));
+            info.put(chapterId, item);
+
+            List<Map<String, Object>> children = childrenMap.get(chapterId);
+            if (children != null && !children.isEmpty())
+            {
+                fillChapterHierarchyInfo(children, childrenMap, info, currentLabel, currentOrder, depth + 1);
+            }
+        }
+    }
+
+    private void sortChapters(List<Map<String, Object>> chapters)
+    {
+        Collections.sort(chapters, (left, right) -> {
+            int sortCompare = Integer.compare(toInt(left.get("sortOrder"), 0), toInt(right.get("sortOrder"), 0));
+            if (sortCompare != 0)
+            {
+                return sortCompare;
+            }
+            int codeCompare = text(left.get("chapterCode")).compareTo(text(right.get("chapterCode")));
+            if (codeCompare != 0)
+            {
+                return codeCompare;
+            }
+            return text(left.get("chapterName")).compareTo(text(right.get("chapterName")));
+        });
+    }
+
+    private String orderSegment(int index)
+    {
+        return String.format("%04d", index + 1);
     }
 
     private int estimateRecordCount(String tableName, String sourceName)
     {
-        if ("t1_physical_aircraft".equals(tableName))
+        if ("physical_aircraft".equals(tableName))
         {
             return 1;
         }
-        if ("t1_aircraft_bom_node".equals(tableName))
+        if ("aircraft_bom_node".equals(tableName))
         {
             return sourceName.contains("液压弯管") ? 1 : 15;
         }
-        if ("t1_part_instance".equals(tableName))
+        if ("part_instance".equals(tableName))
         {
             return 1;
         }
-        if ("t1_impact_tube_segment".equals(tableName))
+        if ("impact_tube_segment".equals(tableName))
         {
             return 6;
         }
-        if ("t1_part_parameter_value".equals(tableName))
+        if ("part_parameter_value".equals(tableName))
         {
             return 12;
         }
-        if ("t1_part_hydraulic_tube_impact_model".equals(tableName))
+        if ("part_hydraulic_tube_impact_model".equals(tableName))
         {
             return 1;
         }
-        if ("t1_material_lot_trace".equals(tableName))
+        if ("material_lot_trace".equals(tableName))
         {
             return 2;
         }
-        if ("t1_process_route".equals(tableName))
+        if ("process_route".equals(tableName))
         {
             return 1;
         }
-        if ("t1_production_operation_record".equals(tableName))
+        if ("production_operation_record".equals(tableName))
         {
             return 18;
         }
-        if ("t1_assembly_record".equals(tableName))
+        if ("assembly_record".equals(tableName))
         {
             return sourceName.contains("液压弯管") ? 3 : 8;
         }
-        if ("t1_inspection_record".equals(tableName))
+        if ("inspection_record".equals(tableName))
         {
             return sourceName.contains("液压弯管") ? 4 : 9;
         }
-        if ("t1_shop_order".equals(tableName))
+        if ("shop_order".equals(tableName))
         {
             return sourceName.contains("液压弯管") ? 1 : 6;
         }
-        if ("t1_shop_order_task".equals(tableName))
+        if ("shop_order_task".equals(tableName))
         {
             return 18;
         }
-        if ("t1_install_removal".equals(tableName))
+        if ("install_removal".equals(tableName))
         {
             return sourceName.contains("液压弯管") ? 2 : 6;
         }
-        if ("t1_fault_event".equals(tableName))
+        if ("fault_event".equals(tableName))
         {
             return sourceName.contains("液压弯管") ? 1 : 6;
         }
-        if ("t1_work_order".equals(tableName))
+        if ("work_order".equals(tableName))
         {
             return sourceName.contains("液压弯管") ? 1 : 6;
         }
-        if ("t1_document_entry".equals(tableName))
+        if ("t1_file_relation".equals(tableName))
         {
-            return sourceName.contains("液压弯管") ? 6 : 36;
+            return sourceName.contains("液压弯管") ? 6 : (sourceName.contains("附件") ? 36 : 14);
         }
-        if ("t1_part_document".equals(tableName))
-        {
-            return sourceName.contains("液压弯管") ? 6 : 14;
-        }
-        if ("t1_dossier_structure_node".equals(tableName))
+        if ("dossier_structure_node".equals(tableName))
         {
             return 50;
         }
@@ -946,15 +2022,15 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
     private int estimateIssueCount(String tableName, String sourceName)
     {
-        if ("t1_document_entry".equals(tableName) && !sourceName.contains("液压弯管"))
+        if ("t1_file_relation".equals(tableName) && !sourceName.contains("液压弯管"))
         {
             return 2;
         }
-        if ("t1_work_order".equals(tableName) && !sourceName.contains("液压弯管"))
+        if ("work_order".equals(tableName) && !sourceName.contains("液压弯管"))
         {
             return 1;
         }
-        if ("t1_shop_order_task".equals(tableName))
+        if ("shop_order_task".equals(tableName))
         {
             return 1;
         }
@@ -967,11 +2043,28 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         {
             return "HYD-TUBE-MLG-32A / HT-MLG-32A-2026-0042";
         }
-        if ("t1_aircraft_bom_node".equals(tableName))
+        if ("aircraft_bom_node".equals(tableName))
         {
             return "B-1234 / SYS-29 / SUBSYS-HYD-MLG";
         }
         return "B-1234";
+    }
+
+    private List<Map<String, Object>> buildChecks(Map<String, Object> aircraft, Map<String, Object> template,
+            Map<String, Object> metrics, List<Map<String, Object>> keyNodeChain, List<Map<String, Object>> chapterSources,
+            List<Map<String, Object>> rules)
+    {
+        List<Map<String, Object>> checks = new ArrayList<>();
+        checks.add(check("aircraft", "飞机对象", "pass", "已锁定单台飞机 " + text(aircraft.get("tailNumber")), 1, 0));
+        checks.add(check("template", "模板有效性", "pass",
+                text(template.get("templateName")) + " " + text(template.get("templateVersion")) + " 可用",
+                toInt(metrics.get("chapterCount"), 0), 0));
+        checks.add(check("template-source", "模板数据来源", "pass",
+                "生成范围完全由模板数据来源决定，生成时不再选择数据范围", toInt(metrics.get("sourceCount"), 0), 0));
+        checks.addAll(buildRuleDrivenChecks(aircraft, keyNodeChain, chapterSources, rules));
+        checks.add(check("version", "版本策略", "pass",
+                "同模板版本下再次生成为小版本，模板版本变化时生成大版本", 1, 0));
+        return checks;
     }
 
     private List<Map<String, Object>> buildChecks(Map<String, Object> aircraft, Map<String, Object> template,
@@ -1001,6 +2094,321 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         return checks;
     }
 
+    private List<Map<String, Object>> buildRuleDrivenChecks(Map<String, Object> aircraft,
+            List<Map<String, Object>> keyNodeChain, List<Map<String, Object>> chapterSources,
+            List<Map<String, Object>> rules)
+    {
+        List<Map<String, Object>> checks = new ArrayList<>();
+        RuleContext context = new RuleContext(text(aircraft.get("aircraftId")), keyNodeChain, chapterSources);
+        if (rules == null || rules.isEmpty())
+        {
+            checks.add(check("template-rules", "模板检查规则", "warning", "当前模板未配置启用的检查规则", 0, 1));
+            return checks;
+        }
+        for (Map<String, Object> rule : rules)
+        {
+            checks.add(evaluateTemplateRule(rule, context));
+        }
+        return checks;
+    }
+
+    private Map<String, Object> evaluateTemplateRule(Map<String, Object> rule, RuleContext context)
+    {
+        String ruleCode = defaultText(rule.get("ruleCode"), text(rule.get("ruleId")));
+        String ruleName = defaultText(rule.get("ruleName"), ruleCode);
+        try
+        {
+            RuleEvalResult result = evaluateRule(rule, context);
+            Map<String, Object> item = check(ruleCode, ruleName, result.status, result.message, result.checkedCount,
+                    result.issueCount);
+            enrichRuleCheck(item, rule);
+            return item;
+        }
+        catch (Exception e)
+        {
+            Map<String, Object> item = check(ruleCode, ruleName, failureStatus(rule), "规则执行失败：" + e.getMessage(), 0, 1);
+            enrichRuleCheck(item, rule);
+            return item;
+        }
+    }
+
+    private void enrichRuleCheck(Map<String, Object> item, Map<String, Object> rule)
+    {
+        item.put("ruleId", rule.get("ruleId"));
+        item.put("ruleType", rule.get("ruleType"));
+        item.put("severity", rule.get("severity"));
+        item.put("chapterName", rule.get("chapterName"));
+        item.put("targetTable", rule.get("targetTable"));
+        item.put("targetField", rule.get("targetField"));
+        item.put("remediationHint", rule.get("remediationHint"));
+    }
+
+    private RuleEvalResult evaluateRule(Map<String, Object> rule, RuleContext context)
+    {
+        Map<String, Object> expression = parseJsonObject(rule.get("ruleExpressionJson"));
+        String ruleType = defaultText(rule.get("ruleType"), "business");
+        if ("business".equals(ruleType))
+        {
+            RuleEvalResult result = evaluateBusinessRule(rule, expression, context);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        if ("required".equals(ruleType))
+        {
+            return evaluateRequiredRule(rule, expression, context);
+        }
+        if ("enum".equals(ruleType))
+        {
+            return evaluateEnumRule(rule, expression, context);
+        }
+        if ("expression".equals(ruleType))
+        {
+            return evaluateExpressionRule(rule, expression, context);
+        }
+        return evaluateRelationRule(rule, expression, context, text(rule.get("targetTable")));
+    }
+
+    private RuleEvalResult evaluateRequiredRule(Map<String, Object> rule, Map<String, Object> expression,
+            RuleContext context)
+    {
+        String tableName = canonicalRuleTable(rule.get("targetTable"));
+        List<String> fields = stringList(expression.get("fields"));
+        if (fields.isEmpty() && hasText(text(rule.get("targetField"))))
+        {
+            fields.add(canonicalRuleField(tableName, text(rule.get("targetField"))));
+        }
+        int total = countBusinessRows(tableName, baseClauses(tableName, context));
+        if (total <= 0)
+        {
+            return failed(rule, 0, "未查询到可检查的业务数据：" + tableName);
+        }
+        List<String> missing = new ArrayList<>();
+        for (String field : fields)
+        {
+            String checkField = canonicalRuleField(tableName, field);
+            if (!isAllowedField(tableName, checkField))
+            {
+                missing.add(field + "(未纳入白名单)");
+                continue;
+            }
+            List<String> clauses = baseClauses(tableName, context);
+            clauses.add(emptyFieldClause(checkField));
+            if (countBusinessRows(tableName, clauses) > 0)
+            {
+                missing.add(field);
+            }
+        }
+        if (missing.isEmpty())
+        {
+            return passed(total, "已按模板规则检查必填字段：" + join(fields));
+        }
+        return failed(rule, total, defaultText(rule.get("errorMessage"), "字段缺失：" + join(missing)));
+    }
+
+    private RuleEvalResult evaluateRelationRule(Map<String, Object> rule, Map<String, Object> expression,
+            RuleContext context, String tableName)
+    {
+        tableName = canonicalRuleTable(tableName);
+        List<String> clauses = baseClauses(tableName, context);
+        if (asInt(expression.get("minChildren"), 0) > 0 && "aircraft_bom_node".equals(tableName))
+        {
+            clauses.add("t.parent_id is not null");
+        }
+        int total = countBusinessRows(tableName, clauses);
+        if (total > 0)
+        {
+            return passed(total, "已查询到 " + total + " 条关联业务数据");
+        }
+        return failed(rule, 0, defaultText(rule.get("errorMessage"), "未查询到关联业务数据：" + tableName));
+    }
+
+    private RuleEvalResult evaluateEnumRule(Map<String, Object> rule, Map<String, Object> expression,
+            RuleContext context)
+    {
+        String tableName = canonicalRuleTable(rule.get("targetTable"));
+        String field = canonicalRuleField(tableName, text(rule.get("targetField")));
+        List<String> accepted = stringList(expression.get("accepted"));
+        if (accepted.isEmpty())
+        {
+            accepted = stringList(expression.get("values"));
+        }
+        if (!isAllowedField(tableName, field) || accepted.isEmpty())
+        {
+            return evaluateRelationRule(rule, expression, context, tableName);
+        }
+        int total = countBusinessRows(tableName, baseClauses(tableName, context));
+        List<String> clauses = baseClauses(tableName, context);
+        clauses.add(inClause(field, accepted));
+        int matched = countBusinessRows(tableName, clauses);
+        if (total > 0 && matched == total)
+        {
+            return passed(total, "字段 " + field + " 均在允许范围：" + join(accepted));
+        }
+        return failed(rule, total, defaultText(rule.get("errorMessage"), "字段 " + field + " 存在枚举值异常"));
+    }
+
+    private RuleEvalResult evaluateExpressionRule(Map<String, Object> rule, Map<String, Object> expression,
+            RuleContext context)
+    {
+        String tableName = canonicalRuleTable(rule.get("targetTable"));
+        int total = countBusinessRows(tableName, baseClauses(tableName, context));
+        List<String> clauses = baseClauses(tableName, context);
+        String field = canonicalRuleField(tableName, text(rule.get("targetField")));
+        if (hasText(field) && hasText(text(expression.get("requiredStatus"))) && isAllowedField(tableName, field))
+        {
+            clauses.add(equalsClause(field, text(expression.get("requiredStatus"))));
+        }
+        if (hasText(field) && !stringList(expression.get("accepted")).isEmpty() && isAllowedField(tableName, field))
+        {
+            clauses.add(inClause(field, stringList(expression.get("accepted"))));
+        }
+        clauses.addAll(expressionClauses(tableName, text(rule.get("ruleExpression"))));
+        int matched = countBusinessRows(tableName, clauses);
+        if (total > 0 && matched > 0)
+        {
+            return passed(matched, "表达式检查通过：" + defaultText(rule.get("ruleExpression"), tableName));
+        }
+        return failed(rule, total, defaultText(rule.get("errorMessage"), "表达式检查未通过"));
+    }
+
+    private RuleEvalResult evaluateBusinessRule(Map<String, Object> rule, Map<String, Object> expression,
+            RuleContext context)
+    {
+        if (!stringList(expression.get("requiredDocs")).isEmpty())
+        {
+            return evaluateRequiredDocuments(rule, expression, context);
+        }
+        if (!stringList(expression.get("requiredSteps")).isEmpty())
+        {
+            return evaluateRequiredSteps(rule, expression, context);
+        }
+        if (!stringList(expression.get("requiredTables")).isEmpty())
+        {
+            return evaluateRequiredTables(rule, expression, context);
+        }
+        if ("assembly_record".equals(text(rule.get("targetTable"))) && (expression.containsKey("torqueNm")
+                || expression.containsKey("result") || expression.containsKey("postInstallLeakCheckMpa")))
+        {
+            return evaluateAssemblyParams(rule, expression, context);
+        }
+        return null;
+    }
+
+    private RuleEvalResult evaluateRequiredDocuments(Map<String, Object> rule, Map<String, Object> expression,
+            RuleContext context)
+    {
+        List<String> docs = stringList(expression.get("requiredDocs"));
+        List<String> missing = new ArrayList<>();
+        int matched = 0;
+        for (String doc : docs)
+        {
+            List<String> clauses = baseClauses("t1_file_relation", context);
+            clauses.add("t.relation_status != 'deleted'");
+            clauses.add("t.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','CERTIFICATE','DOSSIER_ATTACHMENT')");
+            clauses.add("(json_unquote(json_extract(t.business_meta_json, '$.docNumber')) like " + quoteLike(doc)
+                    + " or json_unquote(json_extract(t.business_meta_json, '$.docType')) = " + quote(doc)
+                    + " or t.source_record_key like " + quoteLike(doc)
+                    + " or t.target_code like " + quoteLike(doc) + ")");
+            if (countBusinessRows("t1_file_relation", clauses) > 0)
+            {
+                matched++;
+            }
+            else
+            {
+                missing.add(doc);
+            }
+        }
+        if (missing.isEmpty())
+        {
+            return passed(matched, "必需文档齐套：" + join(docs));
+        }
+        return failed(rule, matched, defaultText(rule.get("errorMessage"), "缺少文档：" + join(missing)));
+    }
+
+    private RuleEvalResult evaluateRequiredSteps(Map<String, Object> rule, Map<String, Object> expression,
+            RuleContext context)
+    {
+        List<String> steps = stringList(expression.get("requiredSteps"));
+        String requiredStatus = defaultText(expression.get("requiredStatus"), "COMPLETED").toUpperCase();
+        List<String> missing = new ArrayList<>();
+        int matched = 0;
+        for (String step : steps)
+        {
+            List<String> clauses = baseClauses("shop_order_task", context);
+            clauses.add("t.step_code = " + quote(step));
+            clauses.add("upper(t.status) = " + quote(requiredStatus));
+            if (countBusinessRows("shop_order_task", clauses) > 0)
+            {
+                matched++;
+            }
+            else
+            {
+                missing.add(step);
+            }
+        }
+        if (missing.isEmpty())
+        {
+            return passed(matched, "关键工序均已完成：" + join(steps));
+        }
+        return failed(rule, matched, defaultText(rule.get("errorMessage"), "未完成工序：" + join(missing)));
+    }
+
+    private RuleEvalResult evaluateRequiredTables(Map<String, Object> rule, Map<String, Object> expression,
+            RuleContext context)
+    {
+        List<String> tables = stringList(expression.get("requiredTables"));
+        List<String> missing = new ArrayList<>();
+        int matched = 0;
+        for (String table : tables)
+        {
+            int count = countBusinessRows(table, baseClauses(table, context));
+            int minCount = minRequiredCount(table, expression);
+            if (count >= minCount)
+            {
+                matched += count;
+            }
+            else
+            {
+                missing.add(table + "(" + count + "/" + minCount + ")");
+            }
+        }
+        if (missing.isEmpty())
+        {
+            return passed(matched, "必需业务表均有数据：" + join(tables));
+        }
+        return failed(rule, matched, defaultText(rule.get("errorMessage"), "缺少业务数据：" + join(missing)));
+    }
+
+    private RuleEvalResult evaluateAssemblyParams(Map<String, Object> rule, Map<String, Object> expression,
+            RuleContext context)
+    {
+        int total = countBusinessRows("assembly_record", baseClauses("assembly_record", context));
+        List<String> clauses = baseClauses("assembly_record", context);
+        if (expression.containsKey("torqueNm"))
+        {
+            clauses.add("cast(json_unquote(json_extract(t.assembly_params, '$.torque_n_m')) as decimal(10,3)) = "
+                    + asDecimal(expression.get("torqueNm")));
+        }
+        if (expression.containsKey("postInstallLeakCheckMpa"))
+        {
+            clauses.add("cast(json_unquote(json_extract(t.assembly_params, '$.post_install_leak_check_mpa')) as decimal(10,3)) >= "
+                    + asDecimal(expression.get("postInstallLeakCheckMpa")));
+        }
+        if (expression.containsKey("result"))
+        {
+            clauses.add("upper(json_unquote(json_extract(t.assembly_params, '$.leak_check_result'))) = "
+                    + quote(text(expression.get("result")).toUpperCase()));
+        }
+        int matched = countBusinessRows("assembly_record", clauses);
+        if (matched > 0)
+        {
+            return passed(matched, "装配参数满足模板规则");
+        }
+        return failed(rule, total, defaultText(rule.get("errorMessage"), "装配参数未满足模板规则"));
+    }
+
     private Map<String, Object> summarizeChecks(List<Map<String, Object>> checks)
     {
         int passCount = 0;
@@ -1014,7 +2422,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             {
                 passCount++;
             }
-            else if ("warning".equals(status))
+            else if ("warning".equals(status) || "info".equals(status))
             {
                 warningCount++;
             }
@@ -1029,10 +2437,462 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         summary.put("warningCount", warningCount);
         summary.put("blockingCount", blockingCount);
         summary.put("checkedObjectCount", checkedObjectCount);
-        summary.put("issueCount", warningCount);
+        summary.put("issueCount", warningCount + blockingCount);
         summary.put("result", blockingCount == 0 ? "passed" : "blocked");
         summary.put("checkedAt", DISPLAY_TIME.format(new Date()));
         return summary;
+    }
+
+    private int countBusinessRows(String tableName, List<String> clauses)
+    {
+        tableName = canonicalRuleTable(tableName);
+        if (!isAllowedTable(tableName))
+        {
+            throw new ServiceException("unsupported rule target table: " + tableName);
+        }
+        Map<String, Object> params = map();
+        params.put("tableName", tableName);
+        params.put("whereSql", clauses == null || clauses.isEmpty() ? "1 = 1" : joinSql(clauses));
+        Integer count = generationMapper.countRuleRows(params);
+        return count == null ? 0 : count;
+    }
+
+    private List<String> baseClauses(String tableName, RuleContext context)
+    {
+        tableName = canonicalRuleTable(tableName);
+        List<String> clauses = new ArrayList<>();
+        clauses.add("1 = 1");
+        if (!isAllowedTable(tableName))
+        {
+            throw new ServiceException("unsupported rule target table: " + tableName);
+        }
+        if ("physical_aircraft".equals(tableName))
+        {
+            clauses.add("t.id = " + quote(context.aircraftId));
+        }
+        else if ("part_instance".equals(tableName))
+        {
+            if (!context.partInstanceIds.isEmpty())
+            {
+                clauses.add("t.id in (" + quoteList(context.partInstanceIds) + ")");
+            }
+            else
+            {
+                clauses.add("t.current_aircraft_id = " + quote(context.aircraftId));
+            }
+        }
+        else if (hasAircraftScope(tableName))
+        {
+            clauses.add("t.aircraft_id = " + quote(context.aircraftId));
+        }
+        else if (hasPartInstanceScope(tableName) && !context.partInstanceIds.isEmpty())
+        {
+            clauses.add("t.part_instance_id in (" + quoteList(context.partInstanceIds) + ")");
+        }
+        else if (hasBomNodeScope(tableName) && !context.bomNodeIds.isEmpty())
+        {
+            clauses.add("t.bom_node_id in (" + quoteList(context.bomNodeIds) + ")");
+        }
+        else if (hasPartNumberScope(tableName) && !context.partNumbers.isEmpty())
+        {
+            clauses.add(partNumberScopeClause(tableName, context.partNumbers));
+        }
+        if ("aircraft_bom_node".equals(tableName))
+        {
+            clauses.add("t.is_active = 1");
+        }
+        if ("t1_file_category".equals(tableName))
+        {
+            clauses.add("t.is_active = 1");
+        }
+        return clauses;
+    }
+
+    private List<String> expressionClauses(String tableName, String expression)
+    {
+        List<String> clauses = new ArrayList<>();
+        if (!hasText(expression))
+        {
+            return clauses;
+        }
+        String[] parts = expression.split("(?i)\\s+and\\s+");
+        for (String part : parts)
+        {
+            String clause = simpleExpressionClause(tableName, part.trim());
+            if (hasText(clause))
+            {
+                clauses.add(clause);
+            }
+        }
+        return clauses;
+    }
+
+    private String simpleExpressionClause(String tableName, String expression)
+    {
+        tableName = canonicalRuleTable(tableName);
+        String lower = expression.toLowerCase();
+        if (lower.endsWith(" is not null"))
+        {
+            String field = canonicalRuleField(tableName, expression.substring(0, lower.indexOf(" is not null")).trim());
+            return isAllowedField(tableName, field) ? filledFieldClause(field) : "";
+        }
+        if (lower.contains(" in (") && expression.endsWith(")"))
+        {
+            String field = canonicalRuleField(tableName, expression.substring(0, lower.indexOf(" in (")).trim());
+            String valueText = expression.substring(lower.indexOf(" in (") + 5, expression.length() - 1);
+            List<String> values = new ArrayList<>();
+            for (String item : valueText.split(","))
+            {
+                values.add(stripQuote(item.trim()));
+            }
+            return isAllowedField(tableName, field) ? inClause(field, values) : "";
+        }
+        if (expression.contains(">="))
+        {
+            String[] pair = expression.split(">=", 2);
+            String field = canonicalRuleField(tableName, pair[0].trim());
+            return isAllowedField(tableName, field) ? "t." + field + " >= " + asDecimal(pair[1].trim()) : "";
+        }
+        if (expression.contains("="))
+        {
+            String[] pair = expression.split("=", 2);
+            String left = canonicalRuleField(tableName, pair[0].trim());
+            String right = stripQuote(pair[1].trim());
+            String rightField = canonicalRuleField(tableName, right);
+            if (isAllowedField(tableName, left) && isAllowedField(tableName, rightField))
+            {
+                return "t." + left + " = t." + rightField;
+            }
+            return isAllowedField(tableName, left) ? equalsClause(left, right) : "";
+        }
+        return "";
+    }
+
+    private String emptyFieldClause(String field)
+    {
+        return "(t." + field + " is null or trim(cast(t." + field + " as char)) = '')";
+    }
+
+    private String filledFieldClause(String field)
+    {
+        return "(t." + field + " is not null and trim(cast(t." + field + " as char)) <> '')";
+    }
+
+    private String equalsClause(String field, String value)
+    {
+        return "upper(cast(t." + field + " as char)) = " + quote(value.toUpperCase());
+    }
+
+    private String inClause(String field, List<String> values)
+    {
+        List<String> normalized = new ArrayList<>();
+        for (String value : values)
+        {
+            normalized.add(value.toUpperCase());
+        }
+        return "upper(cast(t." + field + " as char)) in (" + quoteList(normalized) + ")";
+    }
+
+    private String partNumberScopeClause(String tableName, List<String> partNumbers)
+    {
+        if ("impact_tube_segment".equals(tableName) || "impact_tube_support".equals(tableName)
+                || "impact_tube_fluid".equals(tableName) || "impact_tube_boundary_condition".equals(tableName))
+        {
+            return "t.model_part_number in (" + quoteList(partNumbers) + ")";
+        }
+        return "t.part_number in (" + quoteList(partNumbers) + ")";
+    }
+
+    private int minRequiredCount(String tableName, Map<String, Object> expression)
+    {
+        if ("impact_tube_segment".equals(tableName))
+        {
+            return Math.max(1, asInt(expression.get("minSegments"), 1));
+        }
+        if ("impact_tube_support".equals(tableName))
+        {
+            return Math.max(1, asInt(expression.get("minSupports"), 1));
+        }
+        return 1;
+    }
+
+    private RuleEvalResult passed(int checkedCount, String message)
+    {
+        return new RuleEvalResult("pass", message, checkedCount, 0);
+    }
+
+    private RuleEvalResult failed(Map<String, Object> rule, int checkedCount, String message)
+    {
+        return new RuleEvalResult(failureStatus(rule), message, checkedCount, 1);
+    }
+
+    private String failureStatus(Map<String, Object> rule)
+    {
+        String severity = text(rule.get("severity"));
+        if ("blocker".equals(severity) || "error".equals(severity))
+        {
+            return "error";
+        }
+        if ("info".equals(severity))
+        {
+            return "info";
+        }
+        return "warning";
+    }
+
+    private String precheckStatus(Map<String, Object> summary)
+    {
+        return toInt(summary.get("blockingCount"), 0) > 0 ? "blocked" : "passed";
+    }
+
+    private String inspectionRunStatus(Map<String, Object> summary)
+    {
+        return toInt(summary.get("blockingCount"), 0) > 0 ? "failed" : "passed";
+    }
+
+    private void assertPrecheckPassed(Map<String, Object> prepareData)
+    {
+        Map<String, Object> summary = castMap(prepareData.get("checkSummary"));
+        if (toInt(summary.get("blockingCount"), 0) > 0)
+        {
+            throw new ServiceException("生成前检查存在阻断项，请处理后再开始生成");
+        }
+    }
+
+    private boolean isAllowedTable(String tableName)
+    {
+        return allowedRuleTables().contains(canonicalRuleTable(tableName));
+    }
+
+    private boolean isAllowedField(String tableName, String field)
+    {
+        return allowedRuleFields(canonicalRuleTable(tableName)).contains(canonicalRuleField(tableName, field));
+    }
+
+    private String canonicalRuleTable(Object tableName)
+    {
+        return canonicalSourceTable(tableName);
+    }
+
+    private String canonicalRuleField(String tableName, String field)
+    {
+        return canonicalSourceField(canonicalRuleTable(tableName), text(field));
+    }
+
+    private Set<String> allowedRuleTables()
+    {
+        return new HashSet<>(Arrays.asList("physical_aircraft", "aircraft_bom_node", "part_instance", "part_master",
+                "t1_file_category", "t1_file_relation", "shop_order", "shop_order_task", "production_operation_record",
+                "material_lot_trace", "inspection_record", "inspection_measurement", "assembly_record",
+                "install_removal", "fault_event", "work_order", "quality_text_record",
+                "part_hydraulic_tube_impact_model", "impact_tube_segment", "impact_tube_support",
+                "impact_tube_fluid", "impact_tube_boundary_condition", "dossier_structure_node"));
+    }
+
+    private Set<String> allowedRuleFields(String tableName)
+    {
+        Set<String> fields = new HashSet<>(Arrays.asList("id", "aircraft_id", "bom_node_id", "part_instance_id",
+                "part_number", "model_part_number", "status", "result", "created_at", "updated_at"));
+        fields.addAll(Arrays.asList("tail_number", "aircraft_type", "msn", "parent_id", "is_active", "node_type",
+                "part_name", "serial_number", "batch_number", "file_id", "relation_type", "target_type", "target_id",
+                "target_code", "relation_status", "completeness_status", "business_meta_json", "is_current",
+                "current_aircraft_id", "current_node_id",
+                "wo_number", "wo_status", "close_date", "open_date", "step_code",
+                "task_code", "quantity_produced", "quantity_ordered", "inspection_std_doc", "inspection_type",
+                "inspection_date", "measurement_values", "assembly_params", "lot_number", "mill_cert_number",
+                "fault_code", "record_type", "source_table", "source_record_id", "file_id", "target_code",
+                "relation_type", "category_code", "category_name", "category_type", "scope_type", "sort_order"));
+        return fields;
+    }
+
+    private boolean hasAircraftScope(String tableName)
+    {
+        return new HashSet<>(Arrays.asList("aircraft_bom_node", "shop_order", "shop_order_task",
+                "production_operation_record", "material_lot_trace", "inspection_record", "inspection_measurement",
+                "assembly_record", "install_removal", "fault_event", "work_order", "quality_text_record",
+                "t1_file_relation")).contains(tableName);
+    }
+
+    private boolean hasBomNodeScope(String tableName)
+    {
+        return new HashSet<>(Arrays.asList("object_lifecycle_record", "inspection_record", "inspection_measurement",
+                "assembly_record", "fault_event", "work_order", "quality_text_record", "t1_file_relation")).contains(tableName);
+    }
+
+    private boolean hasPartInstanceScope(String tableName)
+    {
+        return new HashSet<>(Arrays.asList("shop_order", "shop_order_task",
+                "production_operation_record", "material_lot_trace", "inspection_record", "inspection_measurement",
+                "assembly_record", "install_removal", "fault_event", "work_order", "quality_text_record",
+                "t1_file_relation")).contains(tableName);
+    }
+
+    private boolean hasPartNumberScope(String tableName)
+    {
+        return new HashSet<>(Arrays.asList("part_master", "t1_file_relation", "part_hydraulic_tube_impact_model",
+                "impact_tube_segment", "impact_tube_support", "impact_tube_fluid",
+                "impact_tube_boundary_condition")).contains(tableName);
+    }
+
+    private Map<String, Object> parseJsonObject(Object value)
+    {
+        if (value instanceof Map)
+        {
+            return castMap(value);
+        }
+        if (!hasText(text(value)))
+        {
+            return map();
+        }
+        try
+        {
+            return OBJECT_MAPPER.readValue(text(value), new TypeReference<Map<String, Object>>()
+            {
+            });
+        }
+        catch (Exception e)
+        {
+            return map();
+        }
+    }
+
+    private List<String> stringList(Object value)
+    {
+        List<String> result = new ArrayList<>();
+        if (value instanceof List)
+        {
+            for (Object item : (List<?>) value)
+            {
+                if (hasText(text(item)))
+                {
+                    result.add(text(item));
+                }
+            }
+        }
+        else if (hasText(text(value)))
+        {
+            result.add(text(value));
+        }
+        return result;
+    }
+
+    private int asInt(Object value, int defaultValue)
+    {
+        if (value instanceof Number)
+        {
+            return ((Number) value).intValue();
+        }
+        try
+        {
+            return Integer.parseInt(text(value));
+        }
+        catch (Exception e)
+        {
+            return defaultValue;
+        }
+    }
+
+    private String asDecimal(Object value)
+    {
+        String normalized = text(value).replaceAll("[^0-9.\\-]", "");
+        return hasText(normalized) ? normalized : "0";
+    }
+
+    private String quote(String value)
+    {
+        return "'" + text(value).replace("'", "''") + "'";
+    }
+
+    private String quoteLike(String value)
+    {
+        return quote(text(value).replace("%", "\\%").replace("_", "\\_") + "%");
+    }
+
+    private String quoteList(List<String> values)
+    {
+        List<String> quoted = new ArrayList<>();
+        for (String value : values)
+        {
+            quoted.add(quote(value));
+        }
+        return quoted.isEmpty() ? "''" : String.join(",", quoted);
+    }
+
+    private String stripQuote(String value)
+    {
+        String text = text(value).trim();
+        if ((text.startsWith("'") && text.endsWith("'")) || (text.startsWith("\"") && text.endsWith("\"")))
+        {
+            return text.substring(1, text.length() - 1);
+        }
+        return text;
+    }
+
+    private String join(List<String> values)
+    {
+        return values == null || values.isEmpty() ? "-" : String.join("、", values);
+    }
+
+    private String joinSql(List<String> clauses)
+    {
+        return String.join(" and ", clauses);
+    }
+
+    private static class RuleEvalResult
+    {
+        private final String status;
+        private final String message;
+        private final int checkedCount;
+        private final int issueCount;
+
+        private RuleEvalResult(String status, String message, int checkedCount, int issueCount)
+        {
+            this.status = status;
+            this.message = message;
+            this.checkedCount = checkedCount;
+            this.issueCount = issueCount;
+        }
+    }
+
+    private class RuleContext
+    {
+        private final String aircraftId;
+        private final List<String> bomNodeIds = new ArrayList<>();
+        private final List<String> partInstanceIds = new ArrayList<>();
+        private final List<String> partNumbers = new ArrayList<>();
+
+        private RuleContext(String aircraftId, List<Map<String, Object>> keyNodeChain,
+                List<Map<String, Object>> chapterSources)
+        {
+            this.aircraftId = aircraftId;
+            if (keyNodeChain != null)
+            {
+                for (Map<String, Object> node : keyNodeChain)
+                {
+                    addIfPresent(bomNodeIds, node.get("nodeId"));
+                    addIfPresent(partInstanceIds, node.get("partInstanceId"));
+                    addIfPresent(partNumbers, node.get("partNumber"));
+                }
+            }
+            if (chapterSources != null)
+            {
+                for (Map<String, Object> source : chapterSources)
+                {
+                    Map<String, Object> filter = parseJsonObject(source.get("filterConditionJson"));
+                    addIfPresent(partNumbers, filter.get("part_number"));
+                    addIfPresent(partNumbers, filter.get("model_part_number"));
+                }
+            }
+        }
+
+        private void addIfPresent(List<String> target, Object value)
+        {
+            String text = text(value);
+            if (hasText(text) && !target.contains(text))
+            {
+                target.add(text);
+            }
+        }
     }
 
     private List<Map<String, Object>> buildRuntimeSettings(List<Map<String, Object>> params)
@@ -1070,7 +2930,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         preview.put("chapterCount", defaultNumber(metrics.get("chapterCount"), 0));
         preview.put("dataSourceCount", defaultNumber(metrics.get("sourceCount"), 0));
         preview.put("keyNodeCount", keyNodeChain == null ? 0 : keyNodeChain.size());
-        preview.put("outputDirectory", "/project1/dossier/output/" + text(aircraft.get("tailNumber")) + "/");
+        preview.put("outputDirectory", "/dossier/output/" + text(aircraft.get("tailNumber")) + "/");
         return preview;
     }
 
@@ -1132,6 +2992,11 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         Map<String, Object> snapshot = map();
         snapshot.put("template", template);
         snapshot.put("metrics", prepareData.get("metrics"));
+        snapshot.put("chapters", prepareData.get("chapters"));
+        snapshot.put("sources", prepareData.get("sources"));
+        snapshot.put("chapterSources", prepareData.get("chapterSources"));
+        snapshot.put("rules", prepareData.get("rules"));
+        snapshot.put("params", prepareData.get("params"));
         snapshot.put("runtimeSettings", prepareData.get("runtimeSettings"));
         snapshot.put("businessFlow", prepareData.get("businessFlow"));
         snapshot.put("snapshotAt", DISPLAY_TIME.format(new Date()));
@@ -1148,10 +3013,9 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         output.put("jobCode", jobCode);
         output.put("fileName", baseName + ".pdf");
         output.put("packageName", baseName + ".zip");
-        output.put("outputPath", "/project1/dossier/output/2026/05/" + tailNumber + "/" + versionLabel + "/");
+        output.put("outputPath", "/dossier/output/2026/05/" + tailNumber + "/" + versionLabel + "/");
         output.put("exportFormat", "PDF+ZIP");
-        output.put("pageCount", 186);
-        output.put("fileCount", 36);
+        output.put("fileCount", 0);
         Map<String, Object> dataFingerprint = generationMapper.selectGenerationDataFingerprint(text(aircraft.get("aircraftId")));
         output.put("sourceRecordCount", sourceRecordCount(keyNodeChain.size(), dataFingerprint));
         output.put("keyNodeRecordCount", 48);
@@ -1161,6 +3025,23 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         output.put("keyNodeChain", prepareData.get("keyNodeChain"));
         output.put("attachments", buildAttachmentList());
         return output;
+    }
+
+    private Map<String, Object> buildResponseOutputSummary(Map<String, Object> output)
+    {
+        Map<String, Object> summary = map();
+        summary.put("jobCode", output.get("jobCode"));
+        summary.put("fileName", output.get("fileName"));
+        summary.put("packageName", output.get("packageName"));
+        summary.put("outputPath", output.get("outputPath"));
+        summary.put("exportFormat", output.get("exportFormat"));
+        summary.put("fileCount", output.get("fileCount"));
+        summary.put("sourceRecordCount", output.get("sourceRecordCount"));
+        summary.put("keyNodeRecordCount", output.get("keyNodeRecordCount"));
+        summary.put("tubeRecordCount", output.get("tubeRecordCount"));
+        summary.put("generatedAt", output.get("generatedAt"));
+        summary.put("sections", output.get("sections"));
+        return summary;
     }
 
     private int sourceRecordCount(int keyNodeCount, Map<String, Object> dataFingerprint)
@@ -1186,13 +3067,13 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
     private List<Map<String, Object>> buildOutputSections(Map<String, Object> prepareData)
     {
         List<Map<String, Object>> sections = new ArrayList<>();
-        sections.add(section("01", "飞机基本信息", 8, 4));
-        sections.add(section("02", "构型与BOM", 22, 5));
-        sections.add(section("03", "设计数据", 28, 7));
-        sections.add(section("04", "制造与检验", 56, 10));
-        sections.add(section("05", "服役与故障", 30, 5));
-        sections.add(section("06", "技术状态", 18, 3));
-        sections.add(section("07", "液压弯管专题", 24, 6));
+        sections.add(section("01", "飞机基本信息"));
+        sections.add(section("02", "构型与BOM"));
+        sections.add(section("03", "设计数据"));
+        sections.add(section("04", "制造与检验"));
+        sections.add(section("05", "服役与故障"));
+        sections.add(section("06", "技术状态"));
+        sections.add(section("07", "液压弯管专题"));
         return sections;
     }
 
@@ -1217,8 +3098,9 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         result.put("versionLevel", versionPlan.get("versionLevel"));
         result.put("versionReason", versionPlan.get("versionReason"));
         result.put("checkSummary", prepareData.get("checkSummary"));
-        result.put("pageCount", output.get("pageCount"));
         result.put("fileCount", output.get("fileCount"));
+        result.put("contentItemCount", output.get("contentItemCount"));
+        result.put("structureNodeCount", output.get("structureNodeCount"));
         result.put("sourceRecordCount", output.get("sourceRecordCount"));
         result.put("generatedAt", output.get("generatedAt"));
         return result;
@@ -1273,13 +3155,11 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         return item;
     }
 
-    private Map<String, Object> section(String code, String name, int pageCount, int fileCount)
+    private Map<String, Object> section(String code, String name)
     {
         Map<String, Object> item = map();
         item.put("code", code);
         item.put("name", name);
-        item.put("pageCount", pageCount);
-        item.put("fileCount", fileCount);
         return item;
     }
 
@@ -1565,6 +3445,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             map.put(targetKey, OBJECT_MAPPER.readValue(String.valueOf(raw), new TypeReference<Map<String, Object>>()
             {
             }));
+            map.remove(sourceKey);
         }
         catch (Exception e)
         {
@@ -1596,12 +3477,66 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
     {
         try
         {
-            return OBJECT_MAPPER.writeValueAsString(value);
+            return OBJECT_MAPPER.writeValueAsString(jsonSafeValue(value));
         }
         catch (Exception e)
         {
-            throw new ServiceException("failed to serialize dossier generation data");
+            throw new ServiceException("failed to serialize dossier generation data: " + e.getMessage())
+                    .setDetailMessage(e.toString());
         }
+    }
+
+    private Object jsonSafeValue(Object value)
+    {
+        if (value == null || value instanceof String || value instanceof Number || value instanceof Boolean)
+        {
+            return value;
+        }
+        if (value instanceof Date)
+        {
+            return DISPLAY_TIME.format((Date) value);
+        }
+        if (value instanceof java.time.temporal.TemporalAccessor)
+        {
+            return value.toString();
+        }
+        if (value instanceof byte[])
+        {
+            return java.util.Base64.getEncoder().encodeToString((byte[]) value);
+        }
+        if (value instanceof Map)
+        {
+            Map<String, Object> result = map();
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet())
+            {
+                result.put(text(entry.getKey()), jsonSafeValue(entry.getValue()));
+            }
+            return result;
+        }
+        if (value instanceof Iterable)
+        {
+            List<Object> result = new ArrayList<>();
+            for (Object item : (Iterable<?>) value)
+            {
+                result.add(jsonSafeValue(item));
+            }
+            return result;
+        }
+        if (value.getClass().isArray())
+        {
+            List<Object> result = new ArrayList<>();
+            int length = java.lang.reflect.Array.getLength(value);
+            for (int i = 0; i < length; i++)
+            {
+                result.add(jsonSafeValue(java.lang.reflect.Array.get(value, i)));
+            }
+            return result;
+        }
+        if (value instanceof Enum)
+        {
+            return ((Enum<?>) value).name();
+        }
+        return text(value);
     }
 
     private Map<String, Object> map()
@@ -1645,6 +3580,12 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
     private boolean hasText(String value)
     {
         return value != null && !value.trim().isEmpty();
+    }
+
+    private String safeCodePart(String value)
+    {
+        String normalized = text(value).replaceAll("[^A-Za-z0-9]", "");
+        return hasText(normalized) ? normalized : "UNKNOWN";
     }
 
     private int toInt(Object value, int defaultValue)
@@ -1692,5 +3633,49 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             return DISPLAY_TIME.format((Date) value);
         }
         return hasText(text(value)) ? text(value) : DISPLAY_TIME.format(new Date());
+    }
+
+    private static class MaterializedDossierStats
+    {
+        private int structureNodeCount;
+
+        private int contentItemCount;
+
+        private int documentCount;
+
+        private void incrementStructureNodeCount()
+        {
+            structureNodeCount++;
+        }
+
+        private int getStructureNodeCount()
+        {
+            return structureNodeCount;
+        }
+
+        private void incrementContentItemCount()
+        {
+            contentItemCount++;
+        }
+
+        private void addContentItemCount(int count)
+        {
+            contentItemCount += count;
+        }
+
+        private int getContentItemCount()
+        {
+            return contentItemCount;
+        }
+
+        private void addDocumentCount(int count)
+        {
+            documentCount += count;
+        }
+
+        private int getDocumentCount()
+        {
+            return documentCount;
+        }
     }
 }

@@ -113,10 +113,14 @@ CALL add_column_if_missing('t1_dossier_instance', 'published_at',
   '`published_at` datetime(6) DEFAULT NULL COMMENT ''发布时间'' AFTER `updated_at`');
 CALL add_column_if_missing('t1_dossier_instance', 'archived_at',
   '`archived_at` datetime(6) DEFAULT NULL COMMENT ''归档时间'' AFTER `published_at`');
+CALL add_column_if_missing('t1_dossier_version', 'deleted_by',
+  '`deleted_by` varchar(100) DEFAULT NULL COMMENT ''删除人'' AFTER `published_at`');
+CALL add_column_if_missing('t1_dossier_version', 'deleted_at',
+  '`deleted_at` datetime(6) DEFAULT NULL COMMENT ''删除时间，软删除历史版本'' AFTER `deleted_by`');
 
 UPDATE t1_dossier_instance di
 LEFT JOIN t1_physical_aircraft pa ON pa.id = di.aircraft_id
-LEFT JOIN t1_dossier_version dv ON dv.id = di.current_version_id
+LEFT JOIN t1_dossier_version dv ON dv.id = di.current_version_id AND dv.deleted_at IS NULL
 LEFT JOIN t1_generation_job gj ON gj.id = dv.generation_job_id
 SET
   di.instance_code = COALESCE(
@@ -206,8 +210,10 @@ CALL add_index_if_missing('t1_generation_job', 'idx_generation_job_version',
   'ADD INDEX `idx_generation_job_version` (`dossier_version_id`)');
 CALL add_index_if_missing('t1_dossier_version', 'idx_dossier_version_created',
   'ADD INDEX `idx_dossier_version_created` (`created_at`)');
-CALL add_index_if_missing('t1_document_entry', 'idx_document_entry_version_included',
-  'ADD INDEX `idx_document_entry_version_included` (`dossier_version_id`, `included_flag`)');
+CALL add_index_if_missing('t1_dossier_version', 'idx_dossier_version_deleted',
+  'ADD INDEX `idx_dossier_version_deleted` (`dossier_instance_id`, `deleted_at`, `version_no`)');
+CALL add_index_if_missing('t1_file_relation', 'idx_file_relation_version_included',
+  'ADD INDEX `idx_file_relation_version_included` (`dossier_version_id`, `included_flag`)');
 
 -- Keep template constraints consistent with the aircraft hierarchy:
 -- aircraft -> system -> subsystem -> equipment -> component -> part.
@@ -261,20 +267,14 @@ SELECT
     di.updated_at,
     di.created_at
   ) AS generate_time,
+  0 AS page_count,
   COALESCE(
-    CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(CASE WHEN lj.job_status = 'succeeded' THEN lj.output_json ELSE NULL END, '$.pageCount')), 'null') AS UNSIGNED),
-    CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(vj.output_json, '$.pageCount')), 'null') AS UNSIGNED),
-    CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(CASE WHEN lj.job_status = 'succeeded' THEN lj.result_summary_json ELSE NULL END, '$.pageCount')), 'null') AS UNSIGNED),
-    CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(vj.result_summary_json, '$.pageCount')), 'null') AS UNSIGNED),
-    0
-  ) AS page_count,
-  COALESCE(
+    doc.document_entry_count,
     CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(CASE WHEN lj.job_status = 'succeeded' THEN lj.output_json ELSE NULL END, '$.fileCount')), 'null') AS UNSIGNED),
     CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(vj.output_json, '$.fileCount')), 'null') AS UNSIGNED),
     CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(CASE WHEN lj.job_status = 'succeeded' THEN lj.result_summary_json ELSE NULL END, '$.fileCount')), 'null') AS UNSIGNED),
     CAST(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(vj.result_summary_json, '$.fileCount')), 'null') AS UNSIGNED),
     efa.export_file_count,
-    doc.document_entry_count,
     0
   ) AS file_count,
   COALESCE(
@@ -311,13 +311,15 @@ LEFT JOIN (
   INNER JOIN (
     SELECT dossier_instance_id, MAX(version_no) AS max_version_no
     FROM t1_dossier_version
+    WHERE deleted_at IS NULL
     GROUP BY dossier_instance_id
   ) vm ON vm.dossier_instance_id = v1.dossier_instance_id
       AND vm.max_version_no = v1.version_no
+  WHERE v1.deleted_at IS NULL
 ) lv ON lv.dossier_instance_id = di.id
 LEFT JOIN t1_dossier_version cv
-  ON cv.id = di.current_version_id
-  OR (di.current_version_id IS NULL AND cv.id = lv.id)
+  ON (cv.id = di.current_version_id OR (di.current_version_id IS NULL AND cv.id = lv.id))
+     AND cv.deleted_at IS NULL
 LEFT JOIN t1_generation_job vj ON vj.id = cv.generation_job_id
 LEFT JOIN (
   SELECT gj1.*
@@ -336,8 +338,10 @@ LEFT JOIN t1_ac_model am ON am.id = pa.model_id
 LEFT JOIN t1_dossier_template dt ON dt.id = di.template_id
 LEFT JOIN (
   SELECT dossier_version_id, COUNT(1) AS document_entry_count
-  FROM t1_document_entry
+  FROM t1_file_relation
   WHERE included_flag = 1
+    AND relation_status != 'deleted'
+    AND dossier_version_id IS NOT NULL
   GROUP BY dossier_version_id
 ) doc ON doc.dossier_version_id = cv.id
 LEFT JOIN (

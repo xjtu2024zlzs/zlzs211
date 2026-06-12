@@ -24,6 +24,10 @@ public interface DossierInstanceMapper
 
     public int updateCurrentVersionPublished(@Param("instanceId") String instanceId);
 
+    public int deleteInstance(Map<String, Object> params);
+
+    public int deleteVersion(Map<String, Object> params);
+
     public int insertExportJob(Map<String, Object> params);
 
     public int insertExportFile(Map<String, Object> params);

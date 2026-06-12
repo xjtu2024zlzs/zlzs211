@@ -128,7 +128,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                di.current_version_id as currentVersionId,
                count(distinct sn.id) as structureNodeCount,
                count(distinct dci.id) as contentItemCount,
-               count(distinct de.id) as documentCount,
+               count(distinct fr.id) as documentCount,
                coalesce(sum(case when dci.completeness_status = 'missing' then 1 else 0 end), 0) as missingCount,
                coalesce(sum(case when dci.completeness_status = 'warning' then 1 else 0 end), 0) as warningCount,
                coalesce(sum(case when dci.is_key_part = 1 then 1 else 0 end), 0) as keyPartCount,
@@ -137,7 +137,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         left join t1_dossier_version dv on dv.id = di.current_version_id
         left join t1_dossier_structure_node sn on sn.dossier_version_id = dv.id
         left join t1_dossier_content_item dci on dci.dossier_version_id = dv.id
-        left join t1_document_entry de on de.dossier_version_id = dv.id
+        left join t1_file_relation fr on fr.dossier_version_id = dv.id and fr.relation_status != 'deleted'
         where di.id = #{instanceId}
           and di.deleted_at is null
         group by di.id, di.aircraft_id, di.current_version_id
@@ -490,56 +490,60 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectNodeFiles" resultType="java.util.HashMap">
-        select de.id as documentEntryId,
-               de.dossier_instance_id as instanceId,
-               de.dossier_version_id as versionId,
-               de.structure_node_id as structureNodeId,
-               de.doc_no as docNo,
-               de.title,
-               de.file_storage_key as fileStorageKey,
-               de.source_system as sourceSystem,
-               de.source_table as sourceTable,
-               de.source_record_key as sourceRecordKey,
-               de.document_status as documentStatus,
-               de.completeness_status as completenessStatus,
-               de.required_flag as requiredFlag,
-               de.included_flag as includedFlag,
-               cast(de.source_trace_json as char) as sourceTraceJson,
-               cast(de.attrs_json as char) as attrsJson
+        select fr.id as documentEntryId,
+               fr.dossier_instance_id as instanceId,
+               fr.dossier_version_id as versionId,
+               fr.structure_node_id as structureNodeId,
+               coalesce(fa.business_no, fr.target_code, fr.source_record_key) as docNo,
+               coalesce(fa.business_title, fa.display_name) as title,
+               coalesce(fa.storage_key, fa.storage_path, fa.access_url) as fileStorageKey,
+               coalesce(fr.source_system, fa.source_system) as sourceSystem,
+               coalesce(fr.source_table, fa.source_table) as sourceTable,
+               coalesce(fr.source_record_key, fa.source_record_key) as sourceRecordKey,
+               fr.relation_status as documentStatus,
+               fr.completeness_status as completenessStatus,
+               fr.required_flag as requiredFlag,
+               fr.included_flag as includedFlag,
+               cast(fr.source_trace_json as char) as sourceTraceJson,
+               cast(fr.business_meta_json as char) as attrsJson
         from t1_aircraft_bom_node abn
         inner join t1_dossier_instance di on di.aircraft_id = abn.aircraft_id and di.deleted_at is null
         inner join t1_dossier_version dv on dv.id = di.current_version_id
         inner join t1_dossier_structure_node sn on sn.dossier_version_id = dv.id and sn.bom_node_id = abn.id
-        inner join t1_document_entry de on de.dossier_version_id = dv.id and de.structure_node_id = sn.id
+        inner join t1_file_relation fr on fr.dossier_version_id = dv.id and fr.structure_node_id = sn.id
+        inner join t1_file_asset fa on fa.id = fr.file_id
         where abn.id = #{nodeId}
-          and de.included_flag = 1
-        order by de.required_flag desc, de.title
+          and fr.included_flag = 1
+          and fr.relation_status != 'deleted'
+        order by fr.required_flag desc, title
     </select>
 
     <select id="selectFilesAndModels" resultType="java.util.HashMap">
-        select de.id as documentEntryId,
-               de.dossier_instance_id as instanceId,
-               de.dossier_version_id as versionId,
-               de.structure_node_id as structureNodeId,
+        select fr.id as documentEntryId,
+               fr.dossier_instance_id as instanceId,
+               fr.dossier_version_id as versionId,
+               fr.structure_node_id as structureNodeId,
                sn.bom_node_id as bomNodeId,
-               de.doc_no as docNo,
-               de.title,
-               de.file_storage_key as fileStorageKey,
-               de.source_system as sourceSystem,
-               de.source_table as sourceTable,
-               de.source_record_key as sourceRecordKey,
-               de.document_status as documentStatus,
-               de.completeness_status as completenessStatus,
-               de.required_flag as requiredFlag,
-               de.included_flag as includedFlag,
-               cast(de.source_trace_json as char) as sourceTraceJson,
-               cast(de.attrs_json as char) as attrsJson
+               coalesce(fa.business_no, fr.target_code, fr.source_record_key) as docNo,
+               coalesce(fa.business_title, fa.display_name) as title,
+               coalesce(fa.storage_key, fa.storage_path, fa.access_url) as fileStorageKey,
+               coalesce(fr.source_system, fa.source_system) as sourceSystem,
+               coalesce(fr.source_table, fa.source_table) as sourceTable,
+               coalesce(fr.source_record_key, fa.source_record_key) as sourceRecordKey,
+               fr.relation_status as documentStatus,
+               fr.completeness_status as completenessStatus,
+               fr.required_flag as requiredFlag,
+               fr.included_flag as includedFlag,
+               cast(fr.source_trace_json as char) as sourceTraceJson,
+               cast(fr.business_meta_json as char) as attrsJson
         from t1_dossier_instance di
         inner join t1_dossier_version dv on dv.id = di.current_version_id
-        inner join t1_document_entry de on de.dossier_version_id = dv.id
-        left join t1_dossier_structure_node sn on sn.id = de.structure_node_id
+        inner join t1_file_relation fr on fr.dossier_version_id = dv.id
+        inner join t1_file_asset fa on fa.id = fr.file_id
+        left join t1_dossier_structure_node sn on sn.id = fr.structure_node_id
         where di.deleted_at is null
-          and de.included_flag = 1
+          and fr.included_flag = 1
+          and fr.relation_status != 'deleted'
         <if test="productId != null and productId != ''">
             and di.aircraft_id = #{productId}
         </if>
@@ -548,20 +552,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </if>
         <if test="keyword != null and keyword != ''">
             and (
-                de.doc_no like concat('%', #{keyword}, '%')
-                or de.title like concat('%', #{keyword}, '%')
-                or de.file_storage_key like concat('%', #{keyword}, '%')
-                or de.source_record_key like concat('%', #{keyword}, '%')
+                fa.business_no like concat('%', #{keyword}, '%')
+                or fa.business_title like concat('%', #{keyword}, '%')
+                or fa.display_name like concat('%', #{keyword}, '%')
+                or fa.storage_key like concat('%', #{keyword}, '%')
+                or fa.storage_path like concat('%', #{keyword}, '%')
+                or fr.source_record_key like concat('%', #{keyword}, '%')
             )
         </if>
         <if test="fileType != null and fileType != ''">
             and (
-                de.title like concat('%', #{fileType}, '%')
-                or de.file_storage_key like concat('%', #{fileType}, '%')
-                or de.source_table like concat('%', #{fileType}, '%')
+                fa.business_type like concat('%', #{fileType}, '%')
+                or fa.file_ext like concat('%', #{fileType}, '%')
+                or fa.mime_type like concat('%', #{fileType}, '%')
+                or fr.relation_type like concat('%', #{fileType}, '%')
             )
         </if>
-        order by de.required_flag desc, de.title, de.doc_no
+        order by fr.required_flag desc, title, docNo
         limit #{offset}, #{pageSize}
     </select>
 

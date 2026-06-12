@@ -1,6 +1,7 @@
 package com.ruoyi.project1.dossier.mapper;
 
 import java.util.List;
+import java.util.Map;
 import org.apache.ibatis.annotations.Param;
 import com.ruoyi.project1.dossier.domain.DossierTemplate;
 
@@ -28,4 +29,8 @@ public interface DossierTemplateMapper
 
     public int updateTemplateStatus(@Param("id") String id, @Param("status") String status,
             @Param("updatedBy") String updatedBy);
+
+    public List<Map<String, Object>> selectDataSourceTables(@Param("tableNames") List<String> tableNames);
+
+    public List<Map<String, Object>> selectDataSourceColumns(@Param("tableName") String tableName);
 }

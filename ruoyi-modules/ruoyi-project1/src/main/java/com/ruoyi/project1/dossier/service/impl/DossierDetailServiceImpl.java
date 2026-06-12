@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,19 +109,32 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         return normalizeBomNodes(detailMapper.selectBomPath(nodeId));
     }
 
+    @Override
+    public Map<String, Object> selectPreviewFile(String documentEntryId)
+    {
+        if (!hasText(documentEntryId))
+        {
+            return null;
+        }
+        return detailMapper.selectPreviewFile(documentEntryId);
+    }
+
     private Map<String, Object> buildDetailData(Map<String, Object> instance, Map<String, Object> version,
             Map<String, Object> selectedNode)
     {
+        Map<String, Object> templateConfig = resolveTemplateConfig(version);
+        String versionId = text(version.get("versionId"));
+
         Map<String, Object> result = map();
-        result.put("context", buildContext(instance, version));
-        result.put("metrics", buildMetrics(version));
+        result.put("context", buildContext(instance, version, templateConfig));
+        result.put("metrics", buildMetrics(version, templateConfig));
         result.put("versions", normalizeRows(detailMapper.selectVersionList(text(instance.get("instanceId")))));
-        result.put("filePackages", buildFilePackages(version));
-        result.put("structureNodes", normalizeStructureNodes(detailMapper.selectStructureNodes(text(version.get("versionId")))));
-        result.put("allDocuments", normalizeDocuments(detailMapper.selectAllDocuments(text(version.get("versionId")))));
-        result.put("dataSources", normalizeRows(detailMapper.selectDataSources(text(version.get("versionId")))));
+        result.put("filePackages", buildFilePackages(instance, version));
+        result.put("structureNodes", normalizeStructureNodes(detailMapper.selectStructureNodes(versionId)));
+        result.put("allDocuments", normalizeDocuments(detailMapper.selectAllDocuments(versionId)));
+        result.put("dataSources", normalizeRows(detailMapper.selectDataSources(versionId)));
         result.put("operationLogs", normalizeRows(detailMapper.selectOperationLogs(text(instance.get("instanceId")),
-                text(version.get("versionId")))));
+                versionId)));
         result.putAll(buildNodePayload(instance, version, selectedNode));
         return result;
     }
@@ -130,6 +145,8 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         Map<String, Object> bomNode = normalizeBomNode(node);
         String versionId = text(version.get("versionId"));
         String bomNodeId = text(bomNode.get("nodeId"));
+        Map<String, Object> templateConfig = resolveTemplateConfig(version);
+
         Map<String, Object> structureNode = detailMapper.selectStructureNodeByBom(versionId, bomNodeId);
         if (structureNode != null)
         {
@@ -140,38 +157,39 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         List<Map<String, Object>> contentItems = normalizeContentItems(detailMapper.selectContentItems(versionId, bomNodeId));
         String structureNodeId = structureNode == null ? null : text(structureNode.get("structureNodeId"));
         List<Map<String, Object>> documents = normalizeDocuments(detailMapper.selectDocuments(versionId, structureNodeId));
-        if (documents.isEmpty() && "HYD-TUBE-MLG-32A".equals(text(bomNode.get("partNumber"))))
-        {
-            documents = normalizeDocuments(detailMapper.selectAllDocuments(versionId));
-        }
+        List<Map<String, Object>> directoryRows = buildDirectoryRows(templateConfig, text(bomNode.get("objectLevel")),
+                contentItems, documents);
 
         Map<String, Object> result = map();
         result.put("currentNode", bomNode);
         result.put("bomPath", selectBomPath(bomNodeId, versionId));
         result.put("bomChildren", selectBomChildren(text(instance.get("aircraftId")), bomNodeId,
                 text(instance.get("instanceId")), versionId));
-        result.put("directory", buildDirectory(text(bomNode.get("objectLevel"))));
+        result.put("directory", buildDirectory(text(bomNode.get("objectLevel")), directoryRows));
         result.put("structureNode", structureNode);
         result.put("contentItems", contentItems);
         result.put("documents", documents);
-        result.put("detail", buildNodeDetail(bomNode, contentItems, documents));
+        result.put("detail", buildNodeDetail(bomNode, structureNode, contentItems, documents, directoryRows));
         return result;
     }
 
-    private Map<String, Object> buildContext(Map<String, Object> instance, Map<String, Object> version)
+    private Map<String, Object> buildContext(Map<String, Object> instance, Map<String, Object> version,
+            Map<String, Object> templateConfig)
     {
         Map<String, Object> context = map();
         context.putAll(instance);
         context.putAll(version);
         context.put("createdAt", displayTime(version.get("createdAt")));
         context.put("publishedAt", displayTime(version.get("publishedAt")));
+        context.put("templateDisplayConfig", templateConfig);
         parseJsonField(context, "contentSummaryJson", "contentSummary");
         parseJsonField(context, "outputJson", "output");
         parseJsonField(context, "generationParamsJson", "generationParams");
+        parseJsonField(context, "templateSnapshotJson", "templateSnapshot");
         return context;
     }
 
-    private Map<String, Object> buildMetrics(Map<String, Object> version)
+    private Map<String, Object> buildMetrics(Map<String, Object> version, Map<String, Object> templateConfig)
     {
         Map<String, Object> summary = parseJsonObject(version.get("contentSummaryJson"));
         Map<String, Object> checkSummary = castMap(summary.get("checkSummary"));
@@ -181,33 +199,38 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         {
             bomMetrics = map();
         }
+        int documentCount = toInt(detailMapper.countDocuments(text(version.get("versionId"))), 0);
 
         Map<String, Object> metrics = map();
-        metrics.put("pageCount", defaultNumber(summary.get("pageCount"), output.get("pageCount"), 186));
-        metrics.put("fileCount", defaultNumber(summary.get("fileCount"), output.get("fileCount"), 36));
-        metrics.put("sourceRecordCount", defaultNumber(summary.get("sourceRecordCount"), output.get("sourceRecordCount"), 182));
-        metrics.put("warningCount", defaultNumber(checkSummary.get("warningCount"), 3));
+        metrics.put("fileCount", documentCount);
+        metrics.put("sourceRecordCount", defaultNumber(summary.get("sourceRecordCount"), output.get("sourceRecordCount"), 0));
+        metrics.put("warningCount", defaultNumber(checkSummary.get("warningCount"), 0));
         metrics.put("blockingCount", defaultNumber(checkSummary.get("blockingCount"), 0));
+        metrics.put("directoryCount", castList(templateConfig.get("chapters")).size());
         metrics.put("bomNodeCount", defaultNumber(bomMetrics.get("totalCount"), 0));
         metrics.put("systemCount", defaultNumber(bomMetrics.get("systemCount"), 0));
         metrics.put("subsystemCount", defaultNumber(bomMetrics.get("subsystemCount"), 0));
         metrics.put("equipmentCount", defaultNumber(bomMetrics.get("equipmentCount"), 0));
         metrics.put("partCount", defaultNumber(bomMetrics.get("partCount"), 0));
-        metrics.put("tubeRecordCount", 48);
-        metrics.put("completenessRate", "92%");
+        metrics.put("completenessRate", completenessRate(metrics));
         return metrics;
     }
 
-    private List<Map<String, Object>> buildFilePackages(Map<String, Object> version)
+    private List<Map<String, Object>> buildFilePackages(Map<String, Object> instance, Map<String, Object> version)
     {
         Map<String, Object> output = parseJsonObject(version.get("outputJson"));
-        String versionLabel = defaultText(version.get("versionLabel"), "V1.0");
-        String baseName = "B-1234_综合卷宗_" + versionLabel;
+        String versionLabel = defaultText(version.get("versionLabel"), "current");
+        String tailNumber = defaultText(instance.get("tailNumber"), "dossier");
+        String fileName = defaultText(output.get("fileName"), tailNumber + "_" + versionLabel + ".pdf");
+        String packageName = defaultText(output.get("packageName"), tailNumber + "_" + versionLabel + ".zip");
+        int documentCount = toInt(detailMapper.countDocuments(text(version.get("versionId"))), 0);
+
         List<Map<String, Object>> files = new ArrayList<>();
-        files.add(file("PDF", baseName + ".pdf", defaultText(output.get("fileSize"), "42.8 MB"),
-                defaultNumber(output.get("pageCount"), 186) + " 页"));
-        files.add(file("ZIP", baseName + ".zip", "128.6 MB", defaultNumber(output.get("fileCount"), 36) + " 文件"));
-        files.add(file("JSON", "dossier_structure_node_snapshot.json", "2.4 MB", "BOM节点快照"));
+        files.add(file("PDF", fileName, defaultText(output.get("fileSize"), "-"),
+                "卷宗正文"));
+        files.add(file("ZIP", packageName, defaultText(output.get("packageSize"), "-"),
+                documentCount + " 文件"));
+        files.add(file("JSON", "dossier_structure_node_snapshot.json", "-", "BOM节点快照"));
         return files;
     }
 
@@ -221,117 +244,227 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         return item;
     }
 
-    private Map<String, Object> buildDirectory(String objectLevel)
+    private Map<String, Object> resolveTemplateConfig(Map<String, Object> version)
     {
-        List<String> labels;
-        String title;
-        if ("system".equals(objectLevel))
+        Map<String, Object> snapshot = parseJsonObject(version.get("templateSnapshotJson"));
+        List<Map<String, Object>> chapters = normalizeTemplateChapters(castList(snapshot.get("chapters")));
+        List<Map<String, Object>> sources = normalizeRows(castList(snapshot.get("sources")));
+        if (sources.isEmpty())
         {
-            title = "系统目录";
-            labels = Arrays.asList("系统概况", "系统结构", "接口关系", "系统设计数据", "技术状态", "相关故障", "维修记录", "附件材料");
-        }
-        else if ("subsystem".equals(objectLevel))
-        {
-            title = "子系统目录";
-            labels = Arrays.asList("子系统概况", "子系统结构", "接口关系", "组成设备", "子系统设计数据", "技术状态", "相关故障", "维修记录", "附件材料");
-        }
-        else if ("equipment".equals(objectLevel))
-        {
-            title = "设备目录";
-            labels = Arrays.asList("设备基本信息", "组成结构", "设计数据", "制造数据", "装配记录", "检验记录", "装机履历", "故障维修", "技术变更", "附件材料");
-        }
-        else if ("component".equals(objectLevel))
-        {
-            title = "组件目录";
-            labels = Arrays.asList("组件基本信息", "组成零件", "设计数据", "制造追溯", "检验记录", "装配关系", "装机履历", "服役记录", "故障维修", "证明附件");
-        }
-        else if ("part".equals(objectLevel))
-        {
-            title = "零件目录";
-            labels = Arrays.asList("零件基本信息", "设计数据", "制造追溯", "检验记录", "装机履历", "服役维修", "故障记录", "证明附件");
-        }
-        else
-        {
-            title = "整机目录";
-            labels = Arrays.asList("飞机基本信息", "构型 / BOM", "设计数据", "制造数据", "服役数据", "故障维修", "技术状态", "附件材料");
+            sources = normalizeRows(castList(snapshot.get("chapterSources")));
         }
 
-        List<Map<String, Object>> rows = new ArrayList<>();
-        for (int i = 0; i < labels.size(); i++)
+        String templateId = text(version.get("templateId"));
+        if (chapters.isEmpty() && hasText(templateId))
         {
-            Map<String, Object> item = map();
-            item.put("key", directoryKey(labels.get(i), i));
-            item.put("orderNo", String.format("%02d", i + 1));
-            item.put("label", labels.get(i));
-            item.put("status", i == 0 || isCompositionLabel(labels.get(i)) ? "complete" : "normal");
-            rows.add(item);
+            chapters = normalizeTemplateChapters(detailMapper.selectTemplateChapters(templateId));
+        }
+        if (sources.isEmpty() && hasText(templateId))
+        {
+            sources = normalizeRows(detailMapper.selectTemplateDataSources(templateId));
         }
 
+        Map<String, Object> config = map();
+        config.put("template", snapshot.get("template"));
+        config.put("chapters", chapters);
+        config.put("sources", sources);
+        config.put("rules", normalizeRows(castList(snapshot.get("rules"))));
+        config.put("params", normalizeRows(castList(snapshot.get("params"))));
+        return config;
+    }
+
+    private List<Map<String, Object>> normalizeTemplateChapters(List<Map<String, Object>> rows)
+    {
+        List<Map<String, Object>> result = normalizeRows(rows);
+        for (Map<String, Object> item : result)
+        {
+            parseJsonField(item, "attrsJson", "attrs");
+            if (!hasText(item.get("chapterId")) && hasText(item.get("id")))
+            {
+                item.put("chapterId", item.get("id"));
+            }
+        }
+        return result;
+    }
+
+    private Map<String, Object> buildDirectory(String objectLevel, List<Map<String, Object>> rows)
+    {
         Map<String, Object> directory = map();
-        directory.put("title", title);
+        directory.put("title", levelName(objectLevel) + "目录");
         directory.put("rows", rows);
         directory.put("count", rows.size());
         return directory;
     }
 
-    private String directoryKey(String label, int index)
+    private List<Map<String, Object>> buildDirectoryRows(Map<String, Object> templateConfig, String objectLevel,
+            List<Map<String, Object>> contentItems, List<Map<String, Object>> documents)
     {
-        if (label.contains("BOM"))
+        List<Map<String, Object>> chapters = castList(templateConfig.get("chapters"));
+        List<Map<String, Object>> sources = castList(templateConfig.get("sources"));
+        List<Map<String, Object>> rows = new ArrayList<>();
+        boolean hasBomKey = false;
+        int order = 1;
+
+        for (Map<String, Object> chapter : chapters)
+        {
+            Map<String, Object> attrs = castMap(chapter.get("attrs"));
+            if (isDirectoryWrapper(chapter))
+            {
+                continue;
+            }
+            String chapterLevel = defaultText(attrs.get("objectLevel"), "aircraft");
+            if (!objectLevel.equals(chapterLevel))
+            {
+                continue;
+            }
+            String label = defaultText(chapter.get("chapterName"), chapter.get("chapterCode"));
+            String chapterCode = text(chapter.get("chapterCode"));
+            String displayType = defaultText(attrs.get("displayType"), "summary_table");
+            boolean compositionTree = isCompositionTreeChapter(chapterCode, label, displayType);
+            String category = categoryOf(chapterCode, label, displayType);
+            String chapterId = text(chapter.get("chapterId"));
+            List<String> sourceTables = sourceValues(sources, chapterId, "sourceTable");
+            List<String> lifecycleStages = sourceValues(sources, chapterId, "lifecycleStage");
+            List<String> primaryFields = toStringList(attrs.get("primaryFields"));
+            List<String> blocks = toStringList(attrs.get("blocks"));
+
+            Map<String, Object> item = map();
+            item.put("key", directoryKey(chapterId, category, hasBomKey));
+            item.put("chapterId", chapterId);
+            item.put("orderNo", String.format("%02d", order));
+            item.put("label", label);
+            item.put("category", category);
+            item.put("displayType", displayType);
+            item.put("compositionTree", compositionTree);
+            item.put("sortMode", defaultText(attrs.get("sortMode"), "business_order"));
+            item.put("primaryFields", primaryFields);
+            item.put("blocks", blocks);
+            item.put("sourceTables", sourceTables);
+            item.put("lifecycleStages", lifecycleStages);
+            item.put("showMissingTips", defaultBoolean(attrs.get("showMissingTips"), true));
+            item.put("attrs", attrs);
+            item.put("status", directoryStatus(category, chapterId, sourceTables, lifecycleStages, contentItems,
+                    documents, defaultBoolean(attrs.get("showMissingTips"), true)));
+            rows.add(item);
+
+            if ("composition".equals(category))
+            {
+                hasBomKey = true;
+            }
+            order++;
+        }
+
+        if (rows.isEmpty())
+        {
+            return fallbackDirectoryRows(objectLevel, contentItems, documents);
+        }
+        return rows;
+    }
+
+    private boolean isDirectoryWrapper(Map<String, Object> chapter)
+    {
+        String nodeKind = text(chapter.get("nodeKind"));
+        if ("group".equals(nodeKind))
+        {
+            return true;
+        }
+        int chapterLevel = toInt(chapter.get("chapterLevel"), 0);
+        if (chapterLevel <= 1 && !hasText(chapter.get("parentId")))
+        {
+            return true;
+        }
+        String chapterCode = text(chapter.get("chapterCode")).toUpperCase();
+        String chapterName = text(chapter.get("chapterName"));
+        return chapterCode.endsWith("_ROOT") && chapterName.endsWith("目录");
+    }
+
+    private String directoryKey(String chapterId, String category, boolean hasBomKey)
+    {
+        if ("composition".equals(category) && !hasBomKey)
         {
             return "bom";
         }
-        if (isCompositionLabel(label))
-        {
-            return "composition";
-        }
-        if (label.contains("基本") || label.contains("概况"))
-        {
-            return "basic";
-        }
-        if (label.contains("设计"))
-        {
-            return "design";
-        }
-        if (label.contains("制造") || label.contains("检验") || label.contains("装配"))
-        {
-            return "manufacturing_" + index;
-        }
-        if (label.contains("服役") || label.contains("使用") || label.contains("履历"))
-        {
-            return "service_" + index;
-        }
-        if (label.contains("故障") || label.contains("维修"))
-        {
-            return "fault_" + index;
-        }
-        if (label.contains("附件") || label.contains("证明"))
-        {
-            return "document_" + index;
-        }
-        return "section_" + index;
+        return hasText(chapterId) ? "chapter-" + chapterId : category + "-" + System.nanoTime();
     }
 
-    private boolean isCompositionLabel(String label)
+    private String directoryStatus(String category, String chapterId, List<String> sourceTables,
+            List<String> lifecycleStages, List<Map<String, Object>> contentItems,
+            List<Map<String, Object>> documents, boolean showMissingTips)
     {
-        return label.contains("BOM") || label.contains("结构") || label.contains("组成");
+        if ("composition".equals(category) || "basic".equals(category))
+        {
+            return "complete";
+        }
+        boolean hasData = "documents".equals(category)
+                ? !documents.isEmpty()
+                : !filterContentItems(category, chapterId, sourceTables, lifecycleStages, contentItems).isEmpty();
+        if (hasData)
+        {
+            return "complete";
+        }
+        return showMissingTips ? "missing" : "normal";
     }
 
-    private Map<String, Object> buildNodeDetail(Map<String, Object> node, List<Map<String, Object>> contentItems,
+    private List<Map<String, Object>> fallbackDirectoryRows(String objectLevel, List<Map<String, Object>> contentItems,
             List<Map<String, Object>> documents)
     {
-        String partNumber = text(node.get("partNumber"));
-        Map<String, Object> attrs = contentItems.isEmpty() ? map() : castMap(contentItems.get(0).get("attrs"));
+        List<String> labels = new ArrayList<>();
+        labels.add("基本信息");
+        labels.add("组成结构");
+        labels.add("设计数据");
+        labels.add("制造数据");
+        labels.add("检验记录");
+        labels.add("装机履历");
+        labels.add("服役维修");
+        labels.add("故障记录");
+        labels.add("附件材料");
 
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (int i = 0; i < labels.size(); i++)
+        {
+            String label = labels.get(i);
+            String displayType = label.contains("结构") ? "tree_table"
+                    : label.contains("附件") ? "file_list"
+                    : label.contains("履历") || label.contains("维修") || label.contains("故障") ? "timeline_files"
+                    : "summary_table";
+            String category = categoryOf("", label, displayType);
+            Map<String, Object> item = map();
+            item.put("key", i == 1 ? ("aircraft".equals(objectLevel) ? "bom" : "composition") : category + "-" + i);
+            item.put("orderNo", String.format("%02d", i + 1));
+            item.put("label", label);
+            item.put("category", category);
+            item.put("displayType", displayType);
+            item.put("compositionTree", "composition".equals(category));
+            item.put("sortMode", "business_order");
+            item.put("primaryFields", Collections.emptyList());
+            item.put("blocks", defaultBlocks(displayType));
+            item.put("sourceTables", Collections.emptyList());
+            item.put("lifecycleStages", Collections.emptyList());
+            item.put("showMissingTips", true);
+            item.put("status", directoryStatus(category, "", Collections.emptyList(), Collections.emptyList(),
+                    contentItems, documents, true));
+            rows.add(item);
+        }
+        return rows;
+    }
+
+    private Map<String, Object> buildNodeDetail(Map<String, Object> node, Map<String, Object> structureNode,
+            List<Map<String, Object>> contentItems, List<Map<String, Object>> documents,
+            List<Map<String, Object>> directoryRows)
+    {
         Map<String, Object> detail = map();
+        Map<String, Object> fieldMap = buildFieldMap(node, structureNode, contentItems, documents);
         detail.put("title", text(node.get("partName")));
         detail.put("subtitle", text(node.get("partNumber")) + valueSuffix(" / ", node.get("serialNumber")));
-        detail.put("status", "有效");
+        detail.put("status", defaultText(node.get("status"), "有效"));
         detail.put("objectLevel", node.get("objectLevel"));
         detail.put("levelName", node.get("levelName"));
+        detail.put("fieldMap", fieldMap);
         detail.put("basicFields", basicFields(node));
-        detail.put("parameterCards", buildParameterCards(node, attrs));
-        detail.put("tables", buildDetailTables(partNumber, node, attrs, documents));
-        detail.put("contentSummary", contentItems.isEmpty() ? buildSummary(partNumber) : contentItems.get(0).get("contentSummary"));
+        detail.put("parameterCards", parameterCards(node, contentItems, documents));
+        detail.put("tables", buildConfiguredTables(directoryRows, node, contentItems, documents));
+        detail.put("timeline", buildTimeline(directoryRows, contentItems));
+        detail.put("contentSummary", contentSummary(node, contentItems));
         return detail;
     }
 
@@ -343,313 +476,256 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         fields.add(field("名称", node.get("partName")));
         fields.add(field("序列号", defaultText(node.get("serialNumber"), "-")));
         fields.add(field("位置", defaultText(node.get("positionCode"), "-")));
-        fields.add(field("ATA", defaultText(node.get("ataChapter"), "32")));
+        fields.add(field("ATA", defaultText(node.get("ataChapter"), "-")));
         fields.add(field("装机日期", defaultText(node.get("installDate"), "-")));
         fields.add(field("TSN / CSN", decimalText(node.get("tsnFh")) + " FH / " + defaultNumber(node.get("tsnFc"), 0) + " FC"));
         return fields;
     }
 
-    private List<Map<String, Object>> buildParameterCards(Map<String, Object> node, Map<String, Object> attrs)
+    private List<Map<String, Object>> parameterCards(Map<String, Object> node, List<Map<String, Object>> contentItems,
+            List<Map<String, Object>> documents)
     {
-        if (!"HYD-TUBE-MLG-32A".equals(text(node.get("partNumber"))))
-        {
-            return Arrays.asList(
-                    field("直接子节点", defaultNumber(node.get("childCount"), 0)),
-                    field("数据状态", "已纳入当前卷宗"),
-                    field("来源", "t1_aircraft_bom_node"),
-                    field("完整性", "已检查"));
-        }
-        return Arrays.asList(
-                field("材料", "06Cr19Ni10 不锈钢无缝管"),
-                field("外径 / 壁厚", "9.53 mm / 0.71 mm"),
-                field("展开长度", "485 mm"),
-                field("最小弯曲半径", "28.6 mm"),
-                field("工作压力", "20.7 MPa"),
-                field("压力试验", "31.5 MPa / 5 min"),
-                field("清洁度", "NAS 1638 6 级"),
-                field("TSN / CSN", decimalText(node.get("tsnFh")) + " FH / " + defaultNumber(node.get("tsnFc"), 0) + " FC"));
+        List<Map<String, Object>> fields = new ArrayList<>();
+        fields.add(field("直接子节点", defaultNumber(node.get("childCount"), 0)));
+        fields.add(field("内容记录", contentItems.size()));
+        fields.add(field("附件材料", documents.size()));
+        fields.add(field("完整性", missingCount(contentItems, documents) == 0 ? "已齐套" : "待补充"));
+        return fields;
     }
 
-    private List<Map<String, Object>> buildDetailTables(String partNumber, Map<String, Object> node,
-            Map<String, Object> attrs, List<Map<String, Object>> documents)
+    private List<Map<String, Object>> buildConfiguredTables(List<Map<String, Object>> directoryRows,
+            Map<String, Object> node, List<Map<String, Object>> contentItems, List<Map<String, Object>> documents)
     {
         List<Map<String, Object>> tables = new ArrayList<>();
-        tables.add(table("基础信息", Arrays.asList(
-                row("对象层级", node.get("levelName"), "有效"),
-                row("业务编号", node.get("partNumber"), "有效"),
-                row("装机位置", defaultText(node.get("positionCode"), "-"), "有效"),
-                row("上级节点", defaultText(node.get("parentId"), "-"), "有效"))));
+        for (Map<String, Object> directory : directoryRows)
+        {
+            String category = text(directory.get("category"));
+            if ("composition".equals(category))
+            {
+                continue;
+            }
 
-        if ("HYD-TUBE-MLG-32A".equals(partNumber))
-        {
-            tables.add(table("设计数据", Arrays.asList(
-                    row("图纸编号", "DWG-HYD-TUBE-MLG-32A-Rev.C", "有效"),
-                    row("技术条件", "TS-HYD-TUBE-06Cr19Ni10-2026", "有效"),
-                    row("材料规范", "06Cr19Ni10 不锈钢无缝管 / AMS-5567 等效", "有效"),
-                    row("外径 / 壁厚", "9.53 mm / 0.71 mm", "有效"),
-                    row("展开长度", "485 mm，端口余量 12 mm", "有效"),
-                    row("弯曲段", "B1 42.5° / B2 18.0° / B3 76.0° / B4 23.5° / B5 31.0° / B6 12.5°", "有效"),
-                    row("最小弯曲半径", "28.6 mm，不小于 3D", "有效"),
-                    row("额定工作压力", "20.7 MPa，Skydrol LD-4", "有效"))));
-            tables.add(table("制造追溯", Arrays.asList(
-                    row("制造工单", "MO-HYD-TUBE-202602-0042", "有效"),
-                    row("材料炉批", "HT-L20260218-A / 入厂复验合格", "有效"),
-                    row("设备编号", "CNC-BEND-06 / 弯管模具 R28.6-D9.53", "有效"),
-                    row("工序路线", "下料 -> 去毛刺 -> 数控弯管 -> 端头扩口 -> 钝化 -> 清洗封存", "有效"),
-                    row("生产日期", "2026-02-12 至 2026-02-15", "有效"),
-                    row("标识追溯", "激光标识 HYD-TUBE-MLG-32A / HT-MLG-32A-2026-0042", "有效"))));
-            tables.add(table("检验记录", Arrays.asList(
-                    row("尺寸复验", "三坐标复验 16 项，最大偏差 0.18 mm", "通过"),
-                    row("外观检查", "无压痕、划伤、折皱、裂纹", "通过"),
-                    row("压力试验", "31.5 MPa / 5 min，无渗漏、无永久变形", "通过"),
-                    row("清洁度", "NAS 1638 6 级，颗粒计数合格", "通过"),
-                    row("端口保护", "双端堵盖齐套，封签完好", "通过"),
-                    row("终检结论", "允许装配至 HYD-MLG-PKG-01", "通过"))));
-            tables.add(table("装机履历", Arrays.asList(
-                    row("装机飞机", "B-1234 / C919 / MSN-C919-1234", "有效"),
-                    row("上级组件", "液压供压管路组件 HYD-MLG-PKG-01", "有效"),
-                    row("装机位置", "MLG-HYD-STA / 左主起落架舱", "有效"),
-                    row("装机日期", "2026-02-20，装机记录 INST-HYD-MLG-20260220-07", "有效"))));
-            tables.add(table("服役维修", Arrays.asList(
-                    row("累计使用", decimalText(node.get("tsnFh")) + " FH / " + defaultNumber(node.get("tsnFc"), 0) + " FC", "有效"),
-                    row("最近例检", "2026-05-18 A 检，管路固定和渗漏检查正常", "有效"),
-                    row("压力复核", "系统地面加压 20.7 MPa，无渗漏", "通过"),
-                    row("维护动作", "端口区域清洁、卡箍力矩复核 8 处", "完成"),
-                    row("下次检查", "1500 FH 或 1000 FC，以先到为准", "提醒"))));
-            tables.add(table("故障记录", Arrays.asList(
-                    row("未关闭故障", "0 条", "有效"),
-                    row("历史事件", "1 条表面轻微擦伤复验记录，结论可用", "有效"),
-                    row("关联维修", "MR-HYD-20260518-03，复验后继续使用", "完成"))));
-            tables.add(table("证明附件", documentRows(documents)));
-        }
-        else if (isHydPackageChildPart(partNumber))
-        {
-            tables.addAll(buildHydPackageChildTables(partNumber, node));
-        }
-        else if ("HYD-MLG-PKG-01".equals(partNumber))
-        {
-            tables.add(table("组件组成", Arrays.asList(
-                    row("供压弯管", "HYD-TUBE-MLG-32A / HT-MLG-32A-2026-0042", "有效"),
-                    row("回油直管", "HYD-TUBE-MLG-32B / 2 件", "有效"),
-                    row("三通接头", "HYD-FIT-TEE-01 / 3 件", "有效"),
-                    row("固定卡箍", "HYD-CLAMP-MLG-01 / 8 件", "有效"))));
-            tables.add(table("设计数据", Arrays.asList(
-                    row("组件图纸", "DWG-HYD-MLG-PKG-01-Rev.B", "有效"),
-                    row("管路清单", "BOM-HYD-MLG-PKG-01 / 14 项", "有效"),
-                    row("工作介质", "Skydrol LD-4", "有效"),
-                    row("额定压力", "20.7 MPa", "有效"),
-                    row("接口标准", "37° 扩口接头 / NAS 1760 等效", "有效"),
-                    row("清洁度要求", "NAS 1638 6 级", "有效"))));
-            tables.add(table("制造追溯", Arrays.asList(
-                    row("装配工单", "ASM-HYD-MLG-PKG-20260218", "有效"),
-                    row("装配批次", "HYD-PKG-BATCH-20260218-L", "有效"),
-                    row("关键零件批次", "HYD-TUBE-MLG-32A / HT-L20260218-A", "有效"),
-                    row("清洗封存", "CLEAN-HYD-MLG-20260218，端口双层防护", "通过"),
-                    row("装配人员", "A12 班组 / 复核 QA-HYD-07", "有效"))));
-            tables.add(table("检验记录", Arrays.asList(
-                    row("密封性试验", "31.5 MPa / 5 min，无压降异常", "通过"),
-                    row("安装尺寸", "接口姿态、卡箍间距、管路间隙复核合格", "通过"),
-                    row("清洁度检测", "颗粒计数满足 NAS 1638 6 级", "通过"),
-                    row("标识检查", "件号、序列号、流向标识齐全", "通过"))));
-            tables.add(table("装配关系", Arrays.asList(
-                    row("上级设备", "主起液压供压设备 EQP-HYD-MLG-SUPPLY", "有效"),
-                    row("安装区域", "左主起液压供压设备管路区域", "有效"),
-                    row("接口关系", "连接主液压供压歧管与作动筒入口", "有效"),
-                    row("固定方式", "8 处卡箍固定，力矩 6.8 N·m", "有效"))));
-            tables.add(table("装机履历", Arrays.asList(
-                    row("装机飞机", "B-1234 / C919", "有效"),
-                    row("装机日期", "2026-02-20", "有效"),
-                    row("装机记录", "INST-HYD-MLG-PKG-20260220-02", "有效"),
-                    row("装机照片", "IMG-HYD-MLG-PKG-20260220 / 5 张", "有效"))));
-            tables.add(table("服役记录", Arrays.asList(
-                    row("累计使用", "1280.50 FH / 892 FC", "有效"),
-                    row("最近检查", "2026-05-18 A 检，未见渗漏", "有效"),
-                    row("系统压力", "地面加压 20.7 MPa，压力保持正常", "通过"),
-                    row("维护建议", "下次 A 检复核卡箍和端口封严", "提醒"))));
-            tables.add(table("故障维修", Arrays.asList(
-                    row("未关闭故障", "0 条", "有效"),
-                    row("历史故障", "0 条影响放行事件", "有效"),
-                    row("维修记录", "MR-HYD-20260518-03，清洁与力矩复核完成", "完成"))));
-            tables.add(table("证明附件", Arrays.asList(
-                    row("组件图纸", "DWG-HYD-MLG-PKG-01.pdf", "齐套"),
-                    row("密封性试验报告", "LEAK-HYD-MLG-20260218.pdf", "齐套"),
-                    row("清洁度报告", "CLEAN-HYD-MLG-20260218.pdf", "齐套"),
-                    row("装机照片包", "IMG-HYD-MLG-PKG-20260220.zip", "齐套"))));
-        }
-        else if ("EQP-HYD-MLG-SUPPLY".equals(partNumber))
-        {
-            tables.add(table("设备组成", Arrays.asList(
-                    row("主起收放供压接口", "HYD-MLG-SUPPLY-A", "有效"),
-                    row("液压供压管路组件", "HYD-MLG-PKG-01", "有效"),
-                    row("供压压力监测点", "HYD-MLG-PT-01", "有效"))));
-        }
-        else if ("SUBSYS-HYD-MLG".equals(partNumber))
-        {
-            tables.add(table("子系统结构", Arrays.asList(
-                    row("主起液压供压设备", "EQP-HYD-MLG-SUPPLY", "有效"),
-                    row("主起液压回油设备", "EQP-HYD-MLG-RETURN", "有效"),
-                    row("刹车与转弯液压接口", "HYD-BRK-STEER-IF", "有效"))));
-        }
-        else if ("SYS-29".equals(partNumber) || "SYS-32".equals(partNumber))
-        {
-            tables.add(table("系统结构", Arrays.asList(
-                    row("起落架液压子系统", "SUBSYS-HYD-MLG", "有效"),
-                    row("刹车液压子系统", "SUBSYS-HYD-BRK", "有效"),
-                    row("转弯液压子系统", "SUBSYS-HYD-STEER", "有效"))));
-        }
-        else
-        {
-            tables.add(table("整机状态", Arrays.asList(
-                    row("当前模板", "单台份飞机综合卷宗模板", "有效"),
-                    row("BOM快照", "按当前有效构型读取", "有效"),
-                    row("数据来源", "模板配置驱动", "有效"))));
+            Map<String, Object> table = map();
+            table.put("key", directory.get("key"));
+            table.put("category", category);
+            table.put("displayType", directory.get("displayType"));
+            table.put("title", directory.get("label"));
+            table.put("primaryFields", directory.get("primaryFields"));
+
+            if ("documents".equals(category))
+            {
+                table.put("rows", documentRows(documents));
+            }
+            else if ("basic".equals(category))
+            {
+                table.put("rows", basicRows(node, directory, contentItems));
+            }
+            else
+            {
+                table.put("rows", contentRows(directory, contentItems));
+            }
+            tables.add(table);
         }
         return tables;
     }
 
-    private boolean isHydPackageChildPart(String partNumber)
+    private List<Map<String, Object>> contentRows(Map<String, Object> directory, List<Map<String, Object>> contentItems)
     {
-        return "HYD-TUBE-MLG-32B".equals(partNumber)
-                || "HYD-FIT-TEE-01".equals(partNumber)
-                || "HYD-CLAMP-MLG-01".equals(partNumber)
-                || "HYD-SEAL-032".equals(partNumber)
-                || "HYD-SLEEVE-MLG-01".equals(partNumber);
+        String category = text(directory.get("category"));
+        String chapterId = text(directory.get("chapterId"));
+        List<String> sourceTables = toStringList(directory.get("sourceTables"));
+        List<String> lifecycleStages = toStringList(directory.get("lifecycleStages"));
+        List<Map<String, Object>> items = filterContentItems(category, chapterId, sourceTables, lifecycleStages,
+                contentItems);
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (Map<String, Object> item : items)
+        {
+            rows.add(row(defaultText(item.get("itemName"), item.get("itemCode")),
+                    defaultText(item.get("contentSummary"), item.get("sourceRecordKey")),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus"))));
+        }
+        if (rows.isEmpty())
+        {
+            rows.add(row("数据状态", "当前目录暂无匹配记录，等待数据来源补充或重新生成", "missing"));
+        }
+        return rows;
     }
 
-    private List<Map<String, Object>> buildHydPackageChildTables(String partNumber, Map<String, Object> node)
+    private List<Map<String, Object>> basicRows(Map<String, Object> node, Map<String, Object> directory,
+            List<Map<String, Object>> contentItems)
     {
-        List<Map<String, Object>> tables = new ArrayList<>();
-        if ("HYD-TUBE-MLG-32B".equals(partNumber))
+        List<Map<String, Object>> rows = new ArrayList<>();
+        List<Map<String, Object>> matchedItems = filterContentItems("basic", text(directory.get("chapterId")),
+                toStringList(directory.get("sourceTables")), toStringList(directory.get("lifecycleStages")),
+                contentItems);
+        Map<String, Object> profileAttrs = firstProfileAttrs(matchedItems);
+        List<String> configuredFields = toStringList(directory.get("primaryFields"));
+        if (!profileAttrs.isEmpty())
         {
-            tables.add(table("设计数据", Arrays.asList(
-                    row("图纸编号", "DWG-HYD-TUBE-MLG-32B-Rev.A", "有效"),
-                    row("材料规范", "06Cr19Ni10 不锈钢无缝管 / AMS-5567 等效", "有效"),
-                    row("外径 / 壁厚", "9.53 mm / 0.71 mm", "有效"),
-                    row("展开长度", "362 mm，端口余量 10 mm", "有效"),
-                    row("弯曲段", "B1 35.0° / B2 22.5° / B3 18.0°", "有效"),
-                    row("额定压力", "20.7 MPa，回油侧按同等级验证", "有效"))));
-            tables.add(table("制造追溯", Arrays.asList(
-                    row("制造工单", "MO-HYD-TUBE-202602-0051", "有效"),
-                    row("材料炉批", "HT-L20260218-B / 入厂复验合格", "有效"),
-                    row("加工设备", "CNC-BEND-06 / R24-D9.53 模具", "有效"),
-                    row("工序路线", "下料 -> 数控弯管 -> 端头扩口 -> 清洗 -> 封存", "有效"),
-                    row("生产数量", defaultText(node.get("quantity"), "2") + " " + defaultText(node.get("unit"), "EA"), "有效"))));
-            tables.add(table("检验记录", Arrays.asList(
-                    row("尺寸复验", "三坐标复验 12 项，最大偏差 0.16 mm", "通过"),
-                    row("压力试验", "31.5 MPa / 5 min，无渗漏", "通过"),
-                    row("清洁度", "NAS 1638 6 级", "通过"),
-                    row("端口防护", "双端堵盖与封签齐套", "通过"))));
+            List<String> fields = configuredFields.isEmpty()
+                    ? preferredBasicFields(text(node.get("objectLevel")), profileAttrs)
+                    : configuredFields;
+            for (String field : fields)
+            {
+                Object value = lookupAttr(profileAttrs, field);
+                if (hasText(text(value)))
+                {
+                    rows.add(row(fieldLabel(field), value, "complete"));
+                }
+            }
         }
-        else if ("HYD-FIT-TEE-01".equals(partNumber))
+        if (rows.isEmpty())
         {
-            tables.add(table("设计数据", Arrays.asList(
-                    row("图纸编号", "DWG-HYD-FIT-TEE-01-Rev.B", "有效"),
-                    row("材料规范", "15-5PH 不锈钢锻件 / AMS 5659", "有效"),
-                    row("接口标准", "37° 扩口三通，NAS 1760 等效", "有效"),
-                    row("通径", "DN06，三口一致", "有效"),
-                    row("额定压力", "20.7 MPa / 证明压力 31.5 MPa", "有效"))));
-            tables.add(table("制造追溯", Arrays.asList(
-                    row("制造批次", "FIT-TEE-20260218-03", "有效"),
-                    row("加工路线", "锻件验收 -> 数控车铣 -> 螺纹加工 -> 钝化 -> 清洗", "有效"),
-                    row("热处理状态", "H1025，硬度 HRC 38-42", "有效"),
-                    row("生产数量", defaultText(node.get("quantity"), "3") + " " + defaultText(node.get("unit"), "EA"), "有效"))));
-            tables.add(table("检验记录", Arrays.asList(
-                    row("螺纹量规", "三口 GO/NO-GO 检验合格", "通过"),
-                    row("密封面", "无压痕、划伤和毛刺", "通过"),
-                    row("耐压试验", "31.5 MPa / 5 min，无渗漏", "通过"),
-                    row("清洁度", "端口颗粒计数满足 NAS 1638 6 级", "通过"))));
+            for (Map<String, Object> field : basicFields(node))
+            {
+                rows.add(row(field.get("label"), field.get("value"), "complete"));
+            }
         }
-        else if ("HYD-CLAMP-MLG-01".equals(partNumber))
+        return rows;
+    }
+
+    private Map<String, Object> firstProfileAttrs(List<Map<String, Object>> items)
+    {
+        for (Map<String, Object> item : items)
         {
-            tables.add(table("设计数据", Arrays.asList(
-                    row("图纸编号", "DWG-HYD-CLAMP-MLG-01-Rev.A", "有效"),
-                    row("材料规范", "17-4PH 卡箍体 + 氟硅橡胶衬垫", "有效"),
-                    row("适配管径", "9.53 mm 管路，含防磨间隙", "有效"),
-                    row("安装力矩", "6.8 N·m，允许偏差 ±0.5 N·m", "有效"),
-                    row("环境要求", "-55°C 至 135°C，耐 Skydrol LD-4", "有效"))));
-            tables.add(table("制造追溯", Arrays.asList(
-                    row("制造批次", "CLAMP-MLG-20260218-08", "有效"),
-                    row("表面处理", "钝化 + 防松标识漆", "有效"),
-                    row("衬垫批次", "FSR-20260210-14", "有效"),
-                    row("生产数量", defaultText(node.get("quantity"), "8") + " " + defaultText(node.get("unit"), "EA"), "有效"))));
-            tables.add(table("检验记录", Arrays.asList(
-                    row("外观检查", "卡箍边缘无毛刺，衬垫无裂纹", "通过"),
-                    row("力矩复核", "8 处安装点复核合格", "通过"),
-                    row("防松标记", "螺钉防松漆线连续", "通过"),
-                    row("装配间隙", "管路与结构件间隙不小于 5 mm", "通过"))));
+            Map<String, Object> attrs = castMap(item.get("attrs"));
+            String itemType = text(item.get("itemType"));
+            String actualSourceTable = text(attrs.get("actualSourceTable"));
+            if ("profile_detail".equals(itemType) || actualSourceTable.startsWith("v_") || !attrs.isEmpty())
+            {
+                return attrs;
+            }
         }
-        else if ("HYD-SEAL-032".equals(partNumber))
+        return map();
+    }
+
+    private List<String> preferredBasicFields(String objectLevel, Map<String, Object> attrs)
+    {
+        List<String> fields = new ArrayList<>();
+        if ("aircraft".equals(objectLevel))
         {
-            tables.add(table("设计数据", Arrays.asList(
-                    row("规范编号", "SPEC-HYD-SEAL-032-Rev.A", "有效"),
-                    row("材料", "氟橡胶 FKM，耐磷酸酯液压油", "有效"),
-                    row("规格", "9.53 mm 扩口端密封圈", "有效"),
-                    row("寿命要求", "装配后随管路检查周期复核", "有效"),
-                    row("储存期限", "自制造日起 60 个月", "有效"))));
-            tables.add(table("制造追溯", Arrays.asList(
-                    row("供应批次", "SEAL-FKM-20260128-32", "有效"),
-                    row("供应商", "AVIC Fluid Sealing Plant", "有效"),
-                    row("入库复验", "尺寸、硬度、外观抽检合格", "通过"),
-                    row("使用数量", defaultText(node.get("quantity"), "12") + " " + defaultText(node.get("unit"), "EA"), "有效"))));
-            tables.add(table("检验记录", Arrays.asList(
-                    row("外观", "无缺口、裂纹、压扁和污染", "通过"),
-                    row("硬度", "75 Shore A，批次均值 74.8", "通过"),
-                    row("装配确认", "端口密封圈数量和方向复核合格", "通过"))));
+            fields.addAll(Arrays.asList("tailNumber", "aircraftType", "registrationNumber", "msn", "variant",
+                    "engineType", "manufacturer", "deliveryDate", "operationalStatus", "currentOperator",
+                    "totalFh", "totalFc", "currentConfigurationBaseline", "currentBomVersion"));
+        }
+        else if ("system".equals(objectLevel))
+        {
+            fields.addAll(Arrays.asList("systemCode", "systemName", "ataChapter", "functionSummary",
+                    "systemBoundary", "configurationBaseline", "technicalStatus", "operationalStatus",
+                    "subsystemCount", "directEquipmentCount"));
+        }
+        else if ("subsystem".equals(objectLevel))
+        {
+            fields.addAll(Arrays.asList("subsystemCode", "subsystemName", "systemName", "functionArea",
+                    "functionSummary", "boundaryDescription", "configurationBaseline", "healthStatus",
+                    "directEquipmentCount"));
+        }
+        else if ("equipment".equals(objectLevel))
+        {
+            fields.addAll(Arrays.asList("equipmentCode", "equipmentName", "equipmentType", "partNumber",
+                    "serialNumber", "manufacturer", "supplierName", "installationPosition", "positionCode",
+                    "installationStatus", "configurationVersion", "qualityStatus"));
+        }
+        else if ("component".equals(objectLevel))
+        {
+            fields.addAll(Arrays.asList("componentCode", "componentName", "componentType", "partNumber",
+                    "serialNumber", "assemblyWorkOrderNo", "assemblyDate", "installationPosition",
+                    "positionCode", "assemblyStatus", "qualityStatus"));
         }
         else
         {
-            tables.add(table("设计数据", Arrays.asList(
-                    row("图纸编号", "DWG-HYD-SLEEVE-MLG-01-Rev.A", "有效"),
-                    row("材料", "PTFE 玻纤编织护套，耐磨阻燃", "有效"),
-                    row("适配位置", "管路穿越结构边缘与卡箍邻近区", "有效"),
-                    row("长度规格", "120 mm / 160 mm 两种裁切长度", "有效"))));
-            tables.add(table("制造追溯", Arrays.asList(
-                    row("供应批次", "SLEEVE-PTFE-20260205-04", "有效"),
-                    row("裁切记录", "按装配图裁切 4 件，端部热封", "有效"),
-                    row("入库复验", "阻燃标识、宽度和厚度抽检合格", "通过"),
-                    row("使用数量", defaultText(node.get("quantity"), "4") + " " + defaultText(node.get("unit"), "EA"), "有效"))));
-            tables.add(table("检验记录", Arrays.asList(
-                    row("外观", "护套编织完整，无破损抽丝", "通过"),
-                    row("安装覆盖", "覆盖潜在磨损区，边界不干涉活动件", "通过"),
-                    row("防护效果", "与结构边缘最小间隙满足要求", "通过"))));
+            fields.addAll(Arrays.asList("partNumber", "partName", "serialNumber", "batchNumber", "lotNumber",
+                    "manufacturer", "material", "materialGrade", "drawingNo", "drawingRevision",
+                    "designRevision", "specification", "installationPosition", "positionCode",
+                    "installationStatus", "qualityStatus", "remainingLifeValue", "remainingLifeUnit"));
         }
-
-        tables.add(table("装机履历", Arrays.asList(
-                row("装机飞机", "B-1234 / C919", "有效"),
-                row("上级组件", "液压供压管路组件 HYD-MLG-PKG-01", "有效"),
-                row("装机位置", defaultText(node.get("positionCode"), "HYD-MLG-PKG"), "有效"),
-                row("装机日期", defaultText(node.get("installDate"), "2026-02-20"), "有效"))));
-        tables.add(table("服役维修", Arrays.asList(
-                row("累计使用", decimalText(node.get("tsnFh")) + " FH / " + defaultNumber(node.get("tsnFc"), 0) + " FC", "有效"),
-                row("最近例检", "2026-05-18 A 检，与组件一起完成目视和渗漏检查", "有效"),
-                row("维护动作", "随 HYD-MLG-PKG-01 完成清洁、标识和固定状态复核", "完成"),
-                row("下次检查", "下次 A 检随管路组件复核", "提醒"))));
-        tables.add(table("故障记录", Arrays.asList(
-                row("未关闭故障", "0 条", "有效"),
-                row("影响放行事件", "0 条", "有效"),
-                row("关联维修", "MR-HYD-20260518-03，检查结论可继续使用", "完成"))));
-        tables.add(table("证明附件", Arrays.asList(
-                row("图纸 / 规范", "随组件附件包归档", "齐套"),
-                row("制造或供应批次证明", "批次证明已纳入 HYD-MLG-PKG-01 文件包", "齐套"),
-                row("检验记录", "尺寸、清洁度和装配确认记录齐套", "齐套"))));
-        return tables;
+        List<String> result = new ArrayList<>();
+        for (String field : fields)
+        {
+            if (lookupAttr(attrs, field) != null)
+            {
+                result.add(field);
+            }
+        }
+        return result.isEmpty() ? fields : result;
     }
 
-    private String buildSummary(String partNumber)
+    private Object lookupAttr(Map<String, Object> attrs, String field)
     {
-        if ("HYD-TUBE-MLG-32A".equals(partNumber))
+        if (attrs.containsKey(field))
         {
-            return "液压弯管的设计参数、制造工序、检验试验、装机服役和证明附件均已纳入当前卷宗版本。";
+            return attrs.get(field);
         }
-        if ("HYD-MLG-PKG-01".equals(partNumber))
+        String snake = toSnakeCase(field);
+        if (attrs.containsKey(snake))
         {
-            return "液压供压管路组件的组成零件、装配追溯、检验试验、装机关系和服役记录均已纳入当前卷宗版本。";
+            return attrs.get(snake);
         }
-        if (isHydPackageChildPart(partNumber))
+        for (Map.Entry<String, Object> entry : attrs.entrySet())
         {
-            return "该零件属于液压供压管路组件，可查看设计、制造追溯、检验、装机服役和证明附件数据。";
+            if (entry.getKey().equalsIgnoreCase(field))
+            {
+                return entry.getValue();
+            }
         }
-        return "当前节点已纳入整机综合卷宗，可按节点目录查看关联数据。";
+        return null;
+    }
+
+    private String toSnakeCase(String value)
+    {
+        return text(value).replaceAll("([a-z0-9])([A-Z])", "$1_$2").toLowerCase();
+    }
+
+    private String fieldLabel(String field)
+    {
+        Map<String, String> labels = new LinkedHashMap<>();
+        labels.put("tailNumber", "机号");
+        labels.put("aircraftType", "机型");
+        labels.put("registrationNumber", "注册号");
+        labels.put("msn", "MSN");
+        labels.put("variant", "构型");
+        labels.put("engineType", "发动机");
+        labels.put("manufacturer", "制造商");
+        labels.put("deliveryDate", "交付日期");
+        labels.put("operationalStatus", "运行状态");
+        labels.put("currentOperator", "当前运营方");
+        labels.put("totalFh", "总飞行小时");
+        labels.put("totalFc", "总循环");
+        labels.put("currentConfigurationBaseline", "当前构型基线");
+        labels.put("currentBomVersion", "当前BOM版本");
+        labels.put("systemCode", "系统代码");
+        labels.put("systemName", "系统名称");
+        labels.put("subsystemCode", "子系统代码");
+        labels.put("subsystemName", "子系统名称");
+        labels.put("equipmentCode", "设备代码");
+        labels.put("equipmentName", "设备名称");
+        labels.put("componentCode", "组件代码");
+        labels.put("componentName", "组件名称");
+        labels.put("partNumber", "件号");
+        labels.put("partName", "名称");
+        labels.put("serialNumber", "序列号");
+        labels.put("batchNumber", "批次号");
+        labels.put("lotNumber", "炉批号");
+        labels.put("ataChapter", "ATA");
+        labels.put("functionSummary", "功能说明");
+        labels.put("systemBoundary", "系统边界");
+        labels.put("boundaryDescription", "边界说明");
+        labels.put("configurationBaseline", "构型基线");
+        labels.put("technicalStatus", "技术状态");
+        labels.put("qualityStatus", "质量状态");
+        labels.put("healthStatus", "健康状态");
+        labels.put("material", "材料");
+        labels.put("materialGrade", "材料牌号");
+        labels.put("drawingNo", "图号");
+        labels.put("drawingRevision", "图纸版次");
+        labels.put("designRevision", "设计版次");
+        labels.put("specification", "规格");
+        labels.put("installationPosition", "安装位置");
+        labels.put("positionCode", "位号");
+        labels.put("installationStatus", "装机状态");
+        labels.put("remainingLifeValue", "剩余寿命");
+        labels.put("remainingLifeUnit", "寿命单位");
+        return labels.containsKey(field) ? labels.get(field) : field;
     }
 
     private List<Map<String, Object>> documentRows(List<Map<String, Object>> documents)
@@ -657,24 +733,354 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         List<Map<String, Object>> rows = new ArrayList<>();
         for (Map<String, Object> document : documents)
         {
-            rows.add(row(text(document.get("title")), text(document.get("sourceSystem")), text(document.get("completenessStatus"))));
+            rows.add(row(defaultText(document.get("title"), document.get("docNo")),
+                    defaultText(document.get("sourceRecordKey"), document.get("fileStorageKey")),
+                    defaultText(document.get("completenessStatus"), document.get("documentStatus"))));
+        }
+        if (rows.isEmpty())
+        {
+            rows.add(row("附件状态", "当前目录暂无附件材料", "missing"));
         }
         return rows;
     }
 
-    private List<Map<String, Object>> rowsFromList(Object value, String status)
+    private List<Map<String, Object>> buildTimeline(List<Map<String, Object>> directoryRows,
+            List<Map<String, Object>> contentItems)
     {
-        List<Map<String, Object>> rows = new ArrayList<>();
-        if (value instanceof List)
+        List<Map<String, Object>> timeline = new ArrayList<>();
+        for (Map<String, Object> directory : directoryRows)
         {
-            int index = 1;
-            for (Object item : (List<?>) value)
+            String displayType = text(directory.get("displayType"));
+            List<String> blocks = toStringList(directory.get("blocks"));
+            if (!"timeline_files".equals(displayType) && !blocks.contains("timeline"))
             {
-                rows.add(row(String.format("%02d", index), item, status));
-                index++;
+                continue;
+            }
+            List<Map<String, Object>> items = filterContentItems(text(directory.get("category")),
+                    text(directory.get("chapterId")), toStringList(directory.get("sourceTables")),
+                    toStringList(directory.get("lifecycleStages")), contentItems);
+            for (Map<String, Object> item : items)
+            {
+                Map<String, Object> row = map();
+                row.put("key", directory.get("key"));
+                row.put("time", displayTime(item.get("createdAt")));
+                row.put("stage", item.get("lifecycleStage"));
+                row.put("title", defaultText(item.get("itemName"), item.get("itemCode")));
+                row.put("detail", defaultText(item.get("contentSummary"), item.get("sourceRecordKey")));
+                row.put("sourceSystem", item.get("sourceSystem"));
+                row.put("status", defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+                timeline.add(row);
             }
         }
-        return rows;
+        return timeline;
+    }
+
+    private Map<String, Object> buildFieldMap(Map<String, Object> node, Map<String, Object> structureNode,
+            List<Map<String, Object>> contentItems, List<Map<String, Object>> documents)
+    {
+        Map<String, Object> fields = map();
+        putField(fields, "partNumber", node.get("partNumber"));
+        putField(fields, "件号", node.get("partNumber"));
+        putField(fields, "partName", node.get("partName"));
+        putField(fields, "名称", node.get("partName"));
+        putField(fields, "serialNumber", node.get("serialNumber"));
+        putField(fields, "序列号", node.get("serialNumber"));
+        putField(fields, "positionCode", node.get("positionCode"));
+        putField(fields, "位置", node.get("positionCode"));
+        putField(fields, "ataChapter", node.get("ataChapter"));
+        putField(fields, "ATA", node.get("ataChapter"));
+        putField(fields, "installDate", node.get("installDate"));
+        putField(fields, "装机日期", node.get("installDate"));
+        putField(fields, "tsnFh", node.get("tsnFh"));
+        putField(fields, "tsnFc", node.get("tsnFc"));
+        putField(fields, "childCount", node.get("childCount"));
+        putField(fields, "contentCount", contentItems.size());
+        putField(fields, "documentCount", documents.size());
+        if (structureNode != null)
+        {
+            putField(fields, "completenessStatus", structureNode.get("completenessStatus"));
+            putField(fields, "missingCount", structureNode.get("missingCount"));
+            Map<String, Object> attrs = castMap(structureNode.get("attrs"));
+            for (Map.Entry<String, Object> entry : attrs.entrySet())
+            {
+                putField(fields, entry.getKey(), entry.getValue());
+            }
+        }
+        for (Map<String, Object> item : contentItems)
+        {
+            Map<String, Object> attrs = castMap(item.get("attrs"));
+            for (Map.Entry<String, Object> entry : attrs.entrySet())
+            {
+                if (!(entry.getValue() instanceof Map) && !(entry.getValue() instanceof List))
+                {
+                    putField(fields, entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return fields;
+    }
+
+    private String contentSummary(Map<String, Object> node, List<Map<String, Object>> contentItems)
+    {
+        for (Map<String, Object> item : contentItems)
+        {
+            if (hasText(item.get("contentSummary")))
+            {
+                return text(item.get("contentSummary"));
+            }
+        }
+        return text(node.get("partName")) + "已纳入当前卷宗版本，可按模板目录查看关联数据。";
+    }
+
+    private List<Map<String, Object>> filterContentItems(String category, String chapterId, List<String> sourceTables,
+            List<String> lifecycleStages, List<Map<String, Object>> contentItems)
+    {
+        Set<String> sourceTableSet = lowerSet(sourceTables);
+        Set<String> lifecycleStageSet = upperSet(lifecycleStages);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> item : contentItems)
+        {
+            Map<String, Object> attrs = castMap(item.get("attrs"));
+            String itemChapterId = text(attrs.get("chapterId"));
+            if (hasText(chapterId) && hasText(itemChapterId))
+            {
+                if (chapterId.equals(itemChapterId))
+                {
+                    result.add(item);
+                }
+                continue;
+            }
+            String stage = text(item.get("lifecycleStage")).toUpperCase();
+            String itemType = text(item.get("itemType")).toLowerCase();
+            String sourceTable = text(item.get("sourceTable")).toLowerCase();
+            if (!sourceTableSet.isEmpty() && sourceTableSet.contains(sourceTable))
+            {
+                result.add(item);
+                continue;
+            }
+            if (!lifecycleStageSet.isEmpty() && lifecycleStageSet.contains(stage))
+            {
+                result.add(item);
+                continue;
+            }
+            if (matchesCategory(category, stage, itemType, sourceTable))
+            {
+                result.add(item);
+            }
+        }
+        return result;
+    }
+
+    private boolean matchesCategory(String category, String stage, String itemType, String sourceTable)
+    {
+        if ("basic".equals(category))
+        {
+            return "profile_detail".equals(itemType) || sourceTable.contains("profile")
+                    || "physical_aircraft".equals(sourceTable) || "part_instance".equals(sourceTable)
+                    || "part_master".equals(sourceTable) || "key_node_summary".equals(itemType);
+        }
+        if ("design".equals(category))
+        {
+            return "DESIGN".equals(stage) || "INTERFACE".equals(stage) || itemType.contains("design")
+                    || sourceTable.contains("design");
+        }
+        if ("manufacturing".equals(category))
+        {
+            return "MANUFACTURING".equals(stage) || "INSTALLATION".equals(stage)
+                    || sourceTable.contains("manufacturing") || sourceTable.contains("work_order")
+                    || sourceTable.contains("shop");
+        }
+        if ("inspection".equals(category))
+        {
+            return "INSPECTION".equals(stage) || sourceTable.contains("inspection") || itemType.contains("inspection");
+        }
+        if ("service".equals(category))
+        {
+            return "SERVICE".equals(stage) || sourceTable.contains("usage") || sourceTable.contains("service")
+                    || sourceTable.contains("install");
+        }
+        if ("fault".equals(category))
+        {
+            return "FAULT".equals(stage) || sourceTable.contains("fault") || itemType.contains("fault")
+                    || itemType.contains("maintenance");
+        }
+        if ("status".equals(category))
+        {
+            return "TECHNICAL_STATUS".equals(stage) || sourceTable.contains("status") || itemType.contains("status");
+        }
+        if ("interface".equals(category))
+        {
+            return "INTERFACE".equals(stage) || sourceTable.contains("interface") || itemType.contains("interface");
+        }
+        return true;
+    }
+
+    private String categoryOf(String chapterCode, String label, String displayType)
+    {
+        if (isCompositionTreeChapter(chapterCode, label, displayType))
+        {
+            return "composition";
+        }
+        if ("file_list".equals(displayType) || containsAny(label, "附件", "证明", "文件"))
+        {
+            return "documents";
+        }
+        if (containsAny(label, "故障", "维修"))
+        {
+            return "fault";
+        }
+        if (containsAny(label, "检验", "试验", "检查"))
+        {
+            return "inspection";
+        }
+        if (containsAny(label, "制造", "追溯", "装配"))
+        {
+            return "manufacturing";
+        }
+        if (containsAny(label, "装机", "服役", "使用", "履历"))
+        {
+            return "service";
+        }
+        if (containsAny(label, "技术状态", "状态", "变更"))
+        {
+            return "status";
+        }
+        if (containsAny(label, "接口"))
+        {
+            return "interface";
+        }
+        if (containsAny(label, "设计", "图纸", "规范", "参数"))
+        {
+            return "design";
+        }
+        if (containsAny(label, "基本", "概况"))
+        {
+            return "basic";
+        }
+        return "content";
+    }
+
+    private boolean isCompositionTreeChapter(String chapterCode, String label, String displayType)
+    {
+        if (!"tree_table".equals(displayType))
+        {
+            return false;
+        }
+        String code = text(chapterCode).toUpperCase();
+        if (code.endsWith("_ROOT") || code.contains("TEMPLATE_ROOT"))
+        {
+            return false;
+        }
+        if (code.contains("BOM") || code.endsWith("_STRUCTURE") || code.endsWith("_PARTS"))
+        {
+            return true;
+        }
+        return containsAny(label, "BOM", "构型 / BOM", "组成结构", "系统结构", "子系统结构", "组成零件");
+    }
+
+    private boolean containsAny(String value, String... patterns)
+    {
+        String text = text(value);
+        for (String pattern : patterns)
+        {
+            if (text.contains(pattern))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<String> sourceValues(List<Map<String, Object>> sources, String chapterId, String key)
+    {
+        List<String> values = new ArrayList<>();
+        if (!hasText(chapterId))
+        {
+            return values;
+        }
+        for (Map<String, Object> source : sources)
+        {
+            if (chapterId.equals(text(source.get("chapterId"))) && hasText(source.get(key)))
+            {
+                values.add("sourceTable".equals(key) ? canonicalSourceTable(source.get(key)) : text(source.get(key)));
+            }
+        }
+        return values;
+    }
+
+    private String canonicalSourceTable(Object sourceTable)
+    {
+        String table = text(sourceTable).toLowerCase();
+        if ("document_category".equals(table))
+        {
+            return "t1_file_category";
+        }
+        if ("document_master".equals(table) || "document_entry".equals(table) || "document_archive".equals(table)
+                || "technical_file".equals(table) || "part_document".equals(table)
+                || "certificate_record".equals(table))
+        {
+            return "t1_file_relation";
+        }
+        return table;
+    }
+
+    private List<String> defaultBlocks(String displayType)
+    {
+        List<String> blocks = new ArrayList<>();
+        blocks.add("summary");
+        if ("tree_table".equals(displayType))
+        {
+            blocks.add("relation");
+        }
+        else if ("timeline_files".equals(displayType))
+        {
+            blocks.add("timeline");
+            blocks.add("documents");
+        }
+        else if ("file_list".equals(displayType))
+        {
+            blocks.add("documents");
+        }
+        else
+        {
+            blocks.add("details");
+        }
+        return blocks;
+    }
+
+    private int missingCount(List<Map<String, Object>> contentItems, List<Map<String, Object>> documents)
+    {
+        int count = 0;
+        for (Map<String, Object> item : contentItems)
+        {
+            if ("missing".equals(text(item.get("completenessStatus"))))
+            {
+                count++;
+            }
+        }
+        for (Map<String, Object> document : documents)
+        {
+            if ("missing".equals(text(document.get("completenessStatus"))))
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private String completenessRate(Map<String, Object> metrics)
+    {
+        int warning = toInt(metrics.get("warningCount"), 0);
+        int blocking = toInt(metrics.get("blockingCount"), 0);
+        if (blocking > 0)
+        {
+            return "待处理";
+        }
+        if (warning > 0)
+        {
+            return "需复核";
+        }
+        return "完整";
     }
 
     private Map<String, Object> table(String title, List<Map<String, Object>> rows)
@@ -731,11 +1137,6 @@ public class DossierDetailServiceImpl implements IDossierDetailService
 
     private String objectLevel(Map<String, Object> row)
     {
-        String partNumber = text(row.get("partNumber"));
-        if ("HYD-MLG-PKG-01".equals(partNumber))
-        {
-            return "component";
-        }
         String nodeType = text(row.get("nodeType")).toUpperCase();
         int level = toInt(row.get("nodeLevel"), 0);
         if ("AIRCRAFT".equals(nodeType) || level == 1)
@@ -757,10 +1158,6 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         if ("COMPONENT".equals(nodeType) || level == 5)
         {
             return "component";
-        }
-        if ("PART".equals(nodeType) || "CONSUMABLE".equals(nodeType) || level >= 6)
-        {
-            return "part";
         }
         return "part";
     }
@@ -797,10 +1194,6 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         {
             parseJsonField(item, "attrsJson", "attrs");
             parseJsonField(item, "sourceTraceJson", "sourceTrace");
-            if ("HYD-MLG-PKG-01".equals(text(item.get("code"))))
-            {
-                item.put("objectLevel", "component");
-            }
         }
         return result;
     }
@@ -812,6 +1205,7 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         {
             parseJsonField(item, "attrsJson", "attrs");
             parseJsonField(item, "sourceTraceJson", "sourceTrace");
+            item.put("createdAt", displayTime(item.get("createdAt")));
         }
         return result;
     }
@@ -823,7 +1217,8 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         {
             parseJsonField(item, "attrsJson", "attrs");
             parseJsonField(item, "sourceTraceJson", "sourceTrace");
-            item.put("fileType", fileType(text(item.get("fileStorageKey"))));
+            item.put("fileType", fileType(defaultText(item.get("fileStorageKey"), item.get("fileExt"))));
+            item.put("createdAt", displayTime(item.get("createdAt")));
         }
         return result;
     }
@@ -831,15 +1226,16 @@ public class DossierDetailServiceImpl implements IDossierDetailService
     private String fileType(String fileStorageKey)
     {
         String lower = fileStorageKey.toLowerCase();
-        if (lower.endsWith(".pdf"))
+        if (lower.endsWith(".pdf") || "pdf".equals(lower))
         {
             return "PDF";
         }
-        if (lower.endsWith(".jpg") || lower.endsWith(".png") || lower.endsWith(".jpeg"))
+        if (lower.endsWith(".jpg") || lower.endsWith(".png") || lower.endsWith(".jpeg")
+                || "jpg".equals(lower) || "png".equals(lower) || "jpeg".equals(lower))
         {
             return "IMG";
         }
-        if (lower.endsWith(".zip"))
+        if (lower.endsWith(".zip") || "zip".equals(lower))
         {
             return "ZIP";
         }
@@ -888,6 +1284,16 @@ public class DossierDetailServiceImpl implements IDossierDetailService
     }
 
     @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> castList(Object value)
+    {
+        if (value instanceof List)
+        {
+            return (List<Map<String, Object>>) value;
+        }
+        return Collections.emptyList();
+    }
+
+    @SuppressWarnings("unchecked")
     private Map<String, Object> castMap(Object value)
     {
         if (value instanceof Map)
@@ -895,6 +1301,50 @@ public class DossierDetailServiceImpl implements IDossierDetailService
             return (Map<String, Object>) value;
         }
         return map();
+    }
+
+    private List<String> toStringList(Object value)
+    {
+        List<String> result = new ArrayList<>();
+        if (value instanceof List)
+        {
+            for (Object item : (List<?>) value)
+            {
+                if (hasText(item))
+                {
+                    result.add(text(item));
+                }
+            }
+        }
+        return result;
+    }
+
+    private Set<String> lowerSet(List<String> values)
+    {
+        Set<String> result = new HashSet<>();
+        for (String value : values)
+        {
+            result.add(value.toLowerCase());
+        }
+        return result;
+    }
+
+    private Set<String> upperSet(List<String> values)
+    {
+        Set<String> result = new HashSet<>();
+        for (String value : values)
+        {
+            result.add(value.toUpperCase());
+        }
+        return result;
+    }
+
+    private void putField(Map<String, Object> fields, String key, Object value)
+    {
+        if (hasText(key) && hasText(value) && !fields.containsKey(key))
+        {
+            fields.put(key, value);
+        }
     }
 
     private Object defaultNumber(Object first, Object second, Object fallback)
@@ -913,6 +1363,19 @@ public class DossierDetailServiceImpl implements IDossierDetailService
     private Object defaultNumber(Object first, Object fallback)
     {
         return first == null ? fallback : first;
+    }
+
+    private boolean defaultBoolean(Object value, boolean fallback)
+    {
+        if (value == null)
+        {
+            return fallback;
+        }
+        if (value instanceof Boolean)
+        {
+            return (Boolean) value;
+        }
+        return Boolean.parseBoolean(String.valueOf(value));
     }
 
     private int toInt(Object value, int fallback)

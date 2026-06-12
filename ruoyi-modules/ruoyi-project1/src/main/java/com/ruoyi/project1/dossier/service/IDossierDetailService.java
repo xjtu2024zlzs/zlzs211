@@ -16,4 +16,6 @@ public interface IDossierDetailService
             String versionId);
 
     public List<Map<String, Object>> selectBomPath(String nodeId, String versionId);
+
+    public Map<String, Object> selectPreviewFile(String documentEntryId);
 }

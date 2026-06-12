@@ -82,3 +82,12 @@ export function checkTemplate(id) {
     method: 'get'
   })
 }
+
+// 查询模板数据来源可选表和字段
+export function getSourceMetadata(tableName) {
+  return request({
+    url: '/project1/dossier/template/metadata/source',
+    method: 'get',
+    params: { tableName }
+  })
+}

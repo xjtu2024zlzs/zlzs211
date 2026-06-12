@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.util.Map;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -109,6 +110,24 @@ public class DossierInstanceController extends BaseController
     public AjaxResult archive(@PathVariable String instanceId)
     {
         instanceService.archiveInstance(instanceId);
+        return success();
+    }
+
+    @RequiresPermissions("project1:dossier:instance:list")
+    @Log(title = "卷宗删除", businessType = BusinessType.DELETE)
+    @DeleteMapping("/{instanceId}")
+    public AjaxResult remove(@PathVariable String instanceId)
+    {
+        instanceService.deleteInstance(instanceId);
+        return success();
+    }
+
+    @RequiresPermissions("project1:dossier:instance:list")
+    @Log(title = "卷宗版本删除", businessType = BusinessType.DELETE)
+    @DeleteMapping("/{instanceId}/versions/{versionId}")
+    public AjaxResult removeVersion(@PathVariable String instanceId, @PathVariable String versionId)
+    {
+        instanceService.deleteVersion(instanceId, versionId);
         return success();
     }
 
