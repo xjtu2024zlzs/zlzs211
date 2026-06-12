@@ -78,19 +78,24 @@ DROP PROCEDURE IF EXISTS add_index_if_missing;
 
 -- -----------------------------------------------------------------------------
 -- Dossier module menus.
+-- The unified project1 root menu is maintained by
+-- sql/project1/01_project1_menu_permission.sql as menu_id 2100.
+-- Keep this seed focused on the dossier generation submenu to avoid creating a
+-- duplicate root route with path = 'dossier'.
 -- -----------------------------------------------------------------------------
 USE `ry-cloud`;
+
+DELETE FROM sys_role_menu WHERE menu_id = 2010;
 
 INSERT INTO sys_menu (
   menu_id, menu_name, parent_id, order_num, path, component, query, route_name,
   is_frame, is_cache, menu_type, visible, status, perms, icon,
   create_by, create_time, update_by, update_time, remark
 ) VALUES
-  (2010, '数字卷宗', 0, 1, 'dossier', NULL, NULL, 'Dossier', 1, 0, 'M', '0', '0', NULL, 'documentation', 'system', NOW(), '', NULL, '数字卷宗'),
-  (2020, '卷宗生成管理', 2010, 1, 'manage', NULL, NULL, 'DossierManage', 1, 0, 'M', '0', '0', NULL, 'list', 'system', NOW(), '', NULL, '卷宗生成管理'),
-  (2030, '卷宗模板管理', 2020, 1, 'template', 'project1/dossier/template/index', NULL, 'DossierTemplate', 1, 0, 'C', '0', '0', 'project1:dossier:template:list', 'table', 'system', NOW(), '', NULL, '卷宗模板管理'),
-  (2031, '卷宗生成控制', 2020, 2, 'generation', 'project1/dossier/generation/index', NULL, 'DossierGeneration', 1, 0, 'C', '0', '0', 'project1:dossier:generation:list', 'build', 'system', NOW(), '', NULL, '卷宗生成控制'),
-  (2032, '卷宗详情可视化', 2020, 3, 'detail', 'project1/dossier/detail/index', NULL, 'DossierDetail', 1, 0, 'C', '0', '0', 'project1:dossier:detail:list', 'tree-table', 'system', NOW(), '', NULL, '卷宗详情可视化'),
+  (2020, '卷宗生成管理', 2100, 3, 'manage', NULL, NULL, 'DossierManage', 1, 0, 'M', '0', '0', NULL, 'list', 'system', NOW(), '', NULL, '卷宗生成管理'),
+  (2030, '卷宗模板管理', 2020, 2, 'template', 'project1/dossier/template/index', NULL, 'DossierTemplate', 1, 0, 'C', '0', '0', 'project1:dossier:template:list', 'table', 'system', NOW(), '', NULL, '卷宗模板管理'),
+  (2031, '卷宗生成控制', 2020, 3, 'generation', 'project1/dossier/generation/index', NULL, 'DossierGeneration', 1, 0, 'C', '0', '0', 'project1:dossier:generation:list', 'build', 'system', NOW(), '', NULL, '卷宗生成控制'),
+  (2032, '卷宗详情可视化', 2020, 4, 'detail', 'project1/dossier/detail/index', NULL, 'DossierDetail', 1, 0, 'C', '0', '0', 'project1:dossier:detail:list', 'tree-table', 'system', NOW(), '', NULL, '卷宗详情可视化'),
   (2033, '模板查询', 2030, 1, '', NULL, NULL, '', 1, 0, 'F', '0', '0', 'project1:dossier:template:query', '#', 'system', NOW(), '', NULL, ''),
   (2034, '模板新增', 2030, 2, '', NULL, NULL, '', 1, 0, 'F', '0', '0', 'project1:dossier:template:add', '#', 'system', NOW(), '', NULL, ''),
   (2035, '模板修改', 2030, 3, '', NULL, NULL, '', 1, 0, 'F', '0', '0', 'project1:dossier:template:edit', '#', 'system', NOW(), '', NULL, ''),
@@ -110,8 +115,10 @@ ON DUPLICATE KEY UPDATE
   update_time = NOW(),
   remark = VALUES(remark);
 
+DELETE FROM sys_menu WHERE menu_id = 2010;
+
 INSERT IGNORE INTO sys_role_menu (role_id, menu_id)
-SELECT 2, menu_id FROM sys_menu WHERE menu_id BETWEEN 2010 AND 2036;
+SELECT 2, menu_id FROM sys_menu WHERE menu_id BETWEEN 2020 AND 2036;
 
 -- -----------------------------------------------------------------------------
 -- Template data.
