@@ -15,13 +15,13 @@ public interface FaultIdenCatalogService
     Map<String, Object> uploadNumericFile(String purpose, String executionObject, String conditionLabel, Integer bearingNo,
                                           String airId, String subId, String eqpId, String cmpId,
                                           String ptId, String uploadBatchId, Integer fileIndex, Integer totalFiles,
-                                          MultipartFile file);
+                                          MultipartFile file, String relativePath);
     Map<String, Object> uploadNumericApi(Map<String, Object> req);
     Map<String, Object> uploadNumericChunk(String uploadId, Integer chunkIndex, Integer chunkCount, String fileName, MultipartFile chunk);
     Map<String, Object> mergeNumericChunks(String purpose, String executionObject, String conditionLabel, Integer bearingNo,
                                            String airId, String subId, String eqpId, String cmpId,
                                            String ptId, String uploadBatchId, String uploadId, String fileName,
-                                           Integer totalFiles);
+                                           Integer totalFiles, String relativePath);
     Map<String, Object> numericChunkStatus(String uploadId);
     Map<String, Object> conditions();
     Map<String, Object> bearings(String conditionLabel);

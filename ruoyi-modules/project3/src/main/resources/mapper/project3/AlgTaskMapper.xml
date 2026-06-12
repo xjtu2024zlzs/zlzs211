@@ -50,6 +50,15 @@
         limit 1
     </select>
 
+    <select id="getByRequestIdAndType" resultMap="AlgTaskResultMap">
+        select <include refid="BaseColumnList"/>
+        from t3_algorithm_task_results
+        where request_id = #{requestId}
+          and task_type = #{taskType}
+        order by created_at desc, id desc
+        limit 1
+    </select>
+
     <select id="getRunningTaskByRemark" resultMap="AlgTaskResultMap">
         select <include refid="BaseColumnList"/>
         from t3_algorithm_task_results
@@ -66,6 +75,15 @@
         where task_id = #{flowTaskId}
            or feature_analysis_task_id = #{flowTaskId}
         order by created_at asc, id asc
+    </select>
+
+    <select id="getActiveTasksByType" resultMap="AlgTaskResultMap">
+        select <include refid="BaseColumnList"/>
+        from t3_algorithm_task_results
+        where task_type = #{taskType}
+          and status in ('PENDING', 'RUNNING')
+        order by updated_at asc, id asc
+        limit #{limit}
     </select>
 
     <delete id="deleteByFlowTaskId">
@@ -197,6 +215,8 @@
             and (
                 task_id like concat('%', #{keyword}, '%')
                 or task_name like concat('%', #{keyword}, '%')
+                or business_object_id like concat('%', #{keyword}, '%')
+                or business_object_name like concat('%', #{keyword}, '%')
                 or summary_result like concat('%', #{keyword}, '%')
                 or result_value like concat('%', #{keyword}, '%')
                 or error_message like concat('%', #{keyword}, '%')
@@ -309,5 +329,45 @@
         from t3_algorithm_task_results
         <include refid="KeyProcessWhere"/>
     </select>
+
+    <sql id="FrameBeamCrackWhere">
+        where task_type = #{taskType}
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        <if test="result != null and result != ''">
+            and summary_result = #{result}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                task_id like concat('%', #{keyword}, '%')
+                or business_object_name like concat('%', #{keyword}, '%')
+                or summary_result like concat('%', #{keyword}, '%')
+                or result_value like concat('%', #{keyword}, '%')
+                or result_json like concat('%', #{keyword}, '%')
+                or error_message like concat('%', #{keyword}, '%')
+            )
+        </if>
+    </sql>
+
+    <select id="getFrameBeamCrackResult" resultMap="AlgTaskResultMap">
+        select <include refid="BaseColumnList"/>
+        from t3_algorithm_task_results
+        <include refid="FrameBeamCrackWhere"/>
+        order by created_at desc, id desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="countFrameBeamCrackResult" resultType="java.lang.Long">
+        select count(1)
+        from t3_algorithm_task_results
+        <include refid="FrameBeamCrackWhere"/>
+    </select>
+
+    <delete id="deleteByTaskIdAndType">
+        delete from t3_algorithm_task_results
+        where task_id = #{taskId}
+          and task_type = #{taskType}
+    </delete>
 
 </mapper>

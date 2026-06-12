@@ -1,0 +1,16 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+pydantic>=2.0
+scikit-learn>=1.3
+<<<<<<<< HEAD:python/project3/springboot_algorithm_service/requirements.txt
+torch>=2.0
+========
+torch>=2.0
+PyWavelets>=1.4
+matplotlib>=3.7
+seaborn>=0.12
+>>>>>>>> origin/project3-dev:python/project3/requirements.txt

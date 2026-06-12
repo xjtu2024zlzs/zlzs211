@@ -10,6 +10,7 @@ import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,6 +46,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
     private static final String USAGE_PREDICT = "FAULT_PREDICT";
     private static final String USAGE_IDENTIFY = "FAULT_IDENTIFY";
     private static final String USAGE_WARNING = "PROCESS_ANOMALY";
+    private static final String USAGE_KQC_MINING = "KQC_MINING";
     private static final String USAGE_KEY_PROCESS = "KEY_PROCESS";
     private static final String USAGE_MANUFACTURE_COMMON = "MANUFACTURE_COMMON";
     private static final String USAGE_COMMON = "COMMON";
@@ -236,7 +238,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
     }
 
     @Override
-    public Map<String, Object> uploadNumericData(
+    @Transactional(rollbackFor = Exception.class)
+    public synchronized Map<String, Object> uploadNumericData(
             String purpose,
             String executionObject,
             String conditionLabel,
@@ -259,10 +262,6 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         req.put("executionObject", executionObject);
         NumericImportOptions options = numericImportOptions(req);
         String dataUsage = dataUsage(options.purpose);
-        if (PURPOSE_PROC_ANOM.equals(options.purpose) && text(ptId) == null)
-        {
-            throw new ServiceException("工序异常检测请选择零件");
-        }
         if (!PURPOSE_PROC_ANOM.equals(options.purpose))
         {
             ptId = null;
@@ -293,6 +292,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         int skippedCount = 0;
         int failedCount = 0;
         List<String> errors = new ArrayList<>();
+        List<Path> createdTargets = new ArrayList<>();
         try
         {
             Files.createDirectories(uploadDir);
@@ -318,6 +318,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             }
 
             selectedFileCount++;
+            Path target = stableTarget(uploadDir, fileName);
             try
             {
                 if (sampleMapper.selectByUniqueKey(sampleCondition, sampleBearing, fileName, dataUsage) != null)
@@ -326,8 +327,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                     continue;
                 }
 
-                Path target = uniqueTarget(uploadDir, fileName);
                 Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+                createdTargets.add(target);
 
                 int sampleNo = sampleNoFromFileName(target.getFileName().toString());
                 if (sampleNo == Integer.MAX_VALUE)
@@ -356,8 +357,10 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             }
             catch (Exception e)
             {
+                createdTargets.forEach(this::deleteQuietly);
                 failedCount++;
                 errors.add(fileName + ": " + (e.getMessage() == null ? "上传导入失败" : e.getMessage()));
+                throw new ServiceException("上传数值型数据失败，已回滚本次上传：" + errors.get(errors.size() - 1));
             }
         }
 
@@ -377,7 +380,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
     }
 
     @Override
-    public Map<String, Object> uploadNumericFile(
+    @Transactional(rollbackFor = Exception.class)
+    public synchronized Map<String, Object> uploadNumericFile(
             String purpose,
             String executionObject,
             String conditionLabel,
@@ -390,20 +394,22 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             String uploadBatchId,
             Integer fileIndex,
             Integer totalFiles,
-            MultipartFile file
+            MultipartFile file,
+            String relativePath
     )
     {
         UploadContext ctx = uploadContext(purpose, executionObject, conditionLabel, bearingNo, airId, subId, eqpId, cmpId, ptId);
         log.info("数值型数据单文件上传开始，batchId={}，fileIndex={}，totalFiles={}，fileName={}",
                 text(uploadBatchId), fileIndex, totalFiles, file == null ? null : file.getOriginalFilename());
-        Map<String, Object> ret = saveNumericSample(ctx, file, uploadBatchId, fileIndex, totalFiles);
+        Map<String, Object> ret = saveNumericSample(ctx, file, uploadBatchId, fileIndex, totalFiles, relativePath);
         log.info("数值型数据单文件上传完成，batchId={}，sampleId={}，fileName={}，status={}",
                 text(uploadBatchId), ret.get("sampleId"), ret.get("fileName"), ret.get("uploadStatus"));
         return ret;
     }
 
     @Override
-    public Map<String, Object> uploadNumericApi(Map<String, Object> req)
+    @Transactional(rollbackFor = Exception.class)
+    public synchronized Map<String, Object> uploadNumericApi(Map<String, Object> req)
     {
         if (req == null)
         {
@@ -451,7 +457,15 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         String fileName = apiFileName(text(req.get("fileName")));
         String uploadBatchId = text(req.get("uploadBatchId"));
         Path targetDir = uploadTargetDir(ctx, uploadBatchId);
-        Path target = uniqueTarget(targetDir, fileName);
+        FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage);
+        if (existing != null)
+        {
+            Map<String, Object> ret = sampleResult(ctx, existing, Paths.get(existing.getSourceFile()), uploadBatchId, "SKIPPED");
+            ret.put("message", "同名文件已存在");
+            ret.put("apiUrl", apiUrl);
+            return ret;
+        }
+        Path target = stableTarget(targetDir, fileName);
 
         try
         {
@@ -566,7 +580,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
     }
 
     @Override
-    public Map<String, Object> mergeNumericChunks(
+    @Transactional(rollbackFor = Exception.class)
+    public synchronized Map<String, Object> mergeNumericChunks(
             String purpose,
             String executionObject,
             String conditionLabel,
@@ -579,12 +594,14 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             String uploadBatchId,
             String uploadId,
             String fileName,
-            Integer totalFiles
+            Integer totalFiles,
+            String relativePath
     )
     {
         String id = safeToken(uploadId, "uploadId");
-        String cleanName = cleanFileName(fileName);
-        if (!isDataFile(cleanName))
+        String storedName = relativeDataPath(relativePath, fileName);
+        String cleanName = Paths.get(storedName).getFileName().toString();
+        if (!isDataFile(storedName))
         {
             throw new ServiceException("仅支持上传 CSV/TXT 文件");
         }
@@ -619,8 +636,19 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                 }
             }
 
+            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, storedName, ctx.dataUsage);
+            if (existing != null)
+            {
+                deleteChunkDirectory(dir);
+                Map<String, Object> ret = sampleResult(ctx, existing, Paths.get(existing.getSourceFile()), uploadBatchId, "SKIPPED");
+                ret.put("uploadId", id);
+                ret.put("uploadStatus", "SKIPPED");
+                ret.put("message", "同名文件已存在");
+                return ret;
+            }
+
             Path targetDir = uploadTargetDir(ctx, uploadBatchId);
-            Path target = uniqueTarget(targetDir, cleanName);
+            Path target = relativeTarget(targetDir, storedName);
             try (OutputStream out = Files.newOutputStream(target))
             {
                 for (Path part : parts)
@@ -628,12 +656,20 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                     Files.copy(part, out);
                 }
             }
-            deleteTree(dir);
-            log.info("数值型数据分片合并完成，uploadId={}，fileName={}，chunkCount={}，target={}", id, cleanName, parts.size(), target);
-            Map<String, Object> ret = saveNumericSample(ctx, target, uploadBatchId, null, totalFiles);
-            ret.put("uploadId", id);
-            ret.put("uploadStatus", "SUCCESS");
-            return ret;
+            try
+            {
+                Map<String, Object> ret = saveNumericSample(ctx, target, uploadBatchId, null, totalFiles, storedName);
+                deleteChunkDirectory(dir);
+                log.info("数值型数据分片合并并清理完成，uploadId={}，fileName={}，chunkCount={}，target={}", id, cleanName, parts.size(), target);
+                ret.put("uploadId", id);
+                ret.put("uploadStatus", "SUCCESS");
+                return ret;
+            }
+            catch (RuntimeException e)
+            {
+                deleteQuietly(target);
+                throw e;
+            }
         }
         catch (ServiceException e)
         {
@@ -695,10 +731,6 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         req.put("executionObject", executionObject);
         NumericImportOptions options = numericImportOptions(req);
         String dataUsage = dataUsage(options.purpose);
-        if (PURPOSE_PROC_ANOM.equals(options.purpose) && text(ptId) == null)
-        {
-            throw new ServiceException("工序异常检测请选择零件");
-        }
         if (!PURPOSE_PROC_ANOM.equals(options.purpose))
         {
             ptId = null;
@@ -745,40 +777,61 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
 
     private Map<String, Object> saveNumericSample(UploadContext ctx, MultipartFile file, String uploadBatchId, Integer fileIndex, Integer totalFiles)
     {
+        return saveNumericSample(ctx, file, uploadBatchId, fileIndex, totalFiles, null);
+    }
+
+    private Map<String, Object> saveNumericSample(UploadContext ctx, MultipartFile file, String uploadBatchId, Integer fileIndex, Integer totalFiles, String relativePath)
+    {
         if (file == null || file.isEmpty())
         {
             throw new ServiceException("上传文件不能为空");
         }
-        String fileName = cleanFileName(file.getOriginalFilename());
+        String fileName = relativeDataPath(relativePath, file.getOriginalFilename());
         if (!isDataFile(fileName))
         {
             throw new ServiceException("仅支持上传 CSV/TXT 文件");
         }
+        Path target = null;
         try
         {
             Path dir = uploadTargetDir(ctx, uploadBatchId);
-            Path target = uniqueTarget(dir, fileName);
+            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage);
+            if (existing != null)
+            {
+                Map<String, Object> ret = sampleResult(ctx, existing, Paths.get(existing.getSourceFile()), uploadBatchId, "SKIPPED");
+                ret.put("message", "同名文件已存在");
+                return ret;
+            }
+            target = relativeTarget(dir, fileName);
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-            return saveNumericSample(ctx, target, uploadBatchId, fileIndex, totalFiles);
+            return saveNumericSample(ctx, target, uploadBatchId, fileIndex, totalFiles, fileName);
         }
         catch (ServiceException e)
         {
+            deleteQuietly(target);
             throw e;
         }
         catch (Exception e)
         {
+            deleteQuietly(target);
             throw new ServiceException("上传导入失败：" + e.getMessage());
         }
     }
 
     private Map<String, Object> saveNumericSample(UploadContext ctx, Path target, String uploadBatchId, Integer fileIndex, Integer totalFiles)
     {
+        return saveNumericSample(ctx, target, uploadBatchId, fileIndex, totalFiles, null);
+    }
+
+    private Map<String, Object> saveNumericSample(UploadContext ctx, Path target, String uploadBatchId, Integer fileIndex, Integer totalFiles, String storedName)
+    {
         try
         {
-            String fileName = target.getFileName().toString();
-            if (sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage) != null)
+            String fileName = text(storedName) == null ? target.getFileName().toString() : storedName.replace("\\", "/");
+            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage);
+            if (existing != null)
             {
-                Map<String, Object> ret = sampleResult(ctx, null, target, uploadBatchId, "SKIPPED");
+                Map<String, Object> ret = sampleResult(ctx, existing, Paths.get(existing.getSourceFile()), uploadBatchId, "SKIPPED");
                 ret.put("message", "同名文件已存在");
                 return ret;
             }
@@ -814,10 +867,12 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         }
         catch (ServiceException e)
         {
+            deleteQuietly(target);
             throw e;
         }
         catch (Exception e)
         {
+            deleteQuietly(target);
             throw new ServiceException("保存样本记录失败：" + e.getMessage());
         }
     }
@@ -830,6 +885,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         ret.put("fileName", target == null ? null : target.getFileName().toString());
         ret.put("filePath", target == null ? null : target.toAbsolutePath().normalize().toString());
         ret.put("sourceFile", target == null ? null : target.toAbsolutePath().normalize().toString());
+        ret.put("relativePath", sample == null ? null : sample.getFileName());
+        ret.put("batchPath", uploadTargetDir(ctx, uploadBatchId).toAbsolutePath().normalize().toString());
         try
         {
             ret.put("fileSize", target == null ? null : Files.size(target));
@@ -919,6 +976,36 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         }
     }
 
+    private void deleteChunkDirectory(Path dir)
+    {
+        Path root = chunkRoot();
+        if (dir == null)
+        {
+            return;
+        }
+        Path target = dir.toAbsolutePath().normalize();
+        if (target.equals(root) || !target.startsWith(root))
+        {
+            throw new ServiceException("分片清理目录不合法");
+        }
+        if (!Files.exists(target))
+        {
+            return;
+        }
+        try (Stream<Path> stream = Files.walk(target))
+        {
+            List<Path> paths = stream.sorted(Comparator.reverseOrder()).toList();
+            for (Path path : paths)
+            {
+                Files.deleteIfExists(path);
+            }
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("分片文件清理失败：" + e.getMessage());
+        }
+    }
+
     private void deleteTree(Path dir)
     {
         if (dir == null || !Files.exists(dir))
@@ -942,6 +1029,21 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         }
     }
 
+    private void deleteQuietly(Path file)
+    {
+        if (file == null)
+        {
+            return;
+        }
+        try
+        {
+            Files.deleteIfExists(file);
+        }
+        catch (Exception ignored)
+        {
+        }
+    }
+
     private String cleanFileName(String fileName)
     {
         String clean = fileName == null ? "" : Paths.get(fileName).getFileName().toString().trim();
@@ -950,6 +1052,41 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             throw new ServiceException("文件名不合法：" + fileName);
         }
         return clean;
+    }
+
+    private String relativeDataPath(String relativePath, String fallbackName)
+    {
+        String raw = text(relativePath);
+        if (raw == null)
+        {
+            return cleanFileName(fallbackName);
+        }
+        String normalized = raw.replace("\\", "/");
+        while (normalized.startsWith("/"))
+        {
+            normalized = normalized.substring(1);
+        }
+        if (normalized.isEmpty() || normalized.contains("..") || normalized.contains(":"))
+        {
+            throw new ServiceException("相对路径不合法：" + relativePath);
+        }
+        String[] parts = normalized.split("/");
+        List<String> cleaned = new ArrayList<>();
+        for (String part : parts)
+        {
+            String value = part == null ? "" : part.trim();
+            if (value.isEmpty() || ".".equals(value) || "..".equals(value))
+            {
+                throw new ServiceException("相对路径不合法：" + relativePath);
+            }
+            cleaned.add(cleanFileName(value));
+        }
+        String result = String.join("/", cleaned);
+        if (!isDataFile(result))
+        {
+            throw new ServiceException("仅支持上传 CSV/TXT 文件");
+        }
+        return result;
     }
 
     private String apiFileName(String fileName)
@@ -1009,6 +1146,31 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             }
             output.write(buffer, 0, len);
         }
+    }
+
+    private Path stableTarget(Path dir, String fileName)
+    {
+        Path target = dir.resolve(fileName).normalize();
+        if (!target.startsWith(dir))
+        {
+            throw new ServiceException("上传文件路径不合法：" + fileName);
+        }
+        return target;
+    }
+
+    private Path relativeTarget(Path dir, String relativePath) throws Exception
+    {
+        String safe = relativeDataPath(relativePath, relativePath);
+        Path target = dir.resolve(safe).normalize();
+        if (!target.startsWith(dir))
+        {
+            throw new ServiceException("上传文件路径不合法：" + relativePath);
+        }
+        if (target.getParent() != null)
+        {
+            Files.createDirectories(target.getParent());
+        }
+        return target;
     }
 
     private Path uniqueTarget(Path dir, String fileName)
@@ -1251,7 +1413,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             return USAGE_FEATURE;
         }
         if (USAGE_FEATURE.equals(usage) || USAGE_PREDICT.equals(usage) || USAGE_IDENTIFY.equals(usage)
-                || USAGE_WARNING.equals(usage) || USAGE_KEY_PROCESS.equals(usage)
+                || USAGE_WARNING.equals(usage) || USAGE_KQC_MINING.equals(usage) || USAGE_KEY_PROCESS.equals(usage)
                 || USAGE_MANUFACTURE_COMMON.equals(usage) || USAGE_COMMON.equals(usage))
         {
             return usage;
@@ -1614,9 +1776,10 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             throw new ServiceException("数据文件ID不能为空");
         }
         String usage = text(dataUsage);
-        if (!USAGE_MANUFACTURE_COMMON.equals(usage) && !USAGE_WARNING.equals(usage) && !USAGE_KEY_PROCESS.equals(usage))
+        if (!USAGE_MANUFACTURE_COMMON.equals(usage) && !USAGE_WARNING.equals(usage)
+                && !USAGE_KQC_MINING.equals(usage) && !USAGE_KEY_PROCESS.equals(usage))
         {
-            throw new ServiceException("制造周期数据用途只能设置为制造通用数据、工序异常检测或关键工序识别");
+            throw new ServiceException("制造周期数据用途只能设置为制造通用数据、工序异常检测、关键质量特性挖掘或关键工序识别");
         }
         FaultIdenSampleFile sample = sampleMapper.seFaultIdenSampleById(sampleId);
         if (sample == null)
@@ -1624,7 +1787,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             throw new ServiceException("数据文件不存在");
         }
         String oldUsage = text(sample.getDataUsage());
-        if (!USAGE_MANUFACTURE_COMMON.equals(oldUsage) && !USAGE_WARNING.equals(oldUsage) && !USAGE_KEY_PROCESS.equals(oldUsage))
+        if (!USAGE_MANUFACTURE_COMMON.equals(oldUsage) && !USAGE_WARNING.equals(oldUsage)
+                && !USAGE_KQC_MINING.equals(oldUsage) && !USAGE_KEY_PROCESS.equals(oldUsage))
         {
             throw new ServiceException("仅支持修改制造周期数据用途");
         }

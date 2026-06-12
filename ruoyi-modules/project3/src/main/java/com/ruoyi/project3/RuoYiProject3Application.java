@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.ruoyi.common.security.annotation.EnableCustomConfig;
 import com.ruoyi.common.security.annotation.EnableRyFeignClients;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * project3模块
@@ -13,6 +14,7 @@ import org.mybatis.spring.annotation.MapperScan;
  */
 @EnableCustomConfig
 @EnableRyFeignClients
+@EnableScheduling
 @MapperScan("com.ruoyi.project3.mapper")
 @SpringBootApplication
 public class RuoYiProject3Application

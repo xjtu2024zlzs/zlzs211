@@ -2,7 +2,7 @@ import { onBeforeUnmount } from 'vue'
 
 const DEFAULT_DONE = ['SUCCESS', 'FAILED', 'CANCELED']
 const DEFAULT_POLL_MS = 3000
-const DEFAULT_MAX_POLLS = 120
+const DEFAULT_MAX_BACKOFF_MS = 30000
 
 export function getApiPayload(response) {
   if (!response || typeof response !== 'object') return {}
@@ -22,9 +22,9 @@ export function normalizeAlgorithmResult(data) {
 export function useQualityAlgorithmTask(options) {
   const doneStatuses = options.doneStatuses || DEFAULT_DONE
   const pollMs = options.pollMs || DEFAULT_POLL_MS
-  const maxPolls = options.maxPolls || DEFAULT_MAX_POLLS
+  const maxBackoffMs = options.maxBackoffMs || DEFAULT_MAX_BACKOFF_MS
   let timer = null
-  let pollCount = 0
+  let pollFailures = 0
   let activeToken = 0
   let pollingKey = ''
 
@@ -38,7 +38,7 @@ export function useQualityAlgorithmTask(options) {
 
   function stopTimer() {
     if (timer) {
-      clearInterval(timer)
+      clearTimeout(timer)
       timer = null
     }
     pollingKey = ''
@@ -74,10 +74,11 @@ export function useQualityAlgorithmTask(options) {
   }
 
   async function queryTask(id, silent = false, token = activeToken, context = {}) {
-    if (!isCurrentRun(id, token)) return
+    if (!isCurrentRun(id, token)) return { done: true, failed: false }
     try {
       const response = await options.query(id, context)
-      if (!isCurrentRun(id, token)) return
+      if (!isCurrentRun(id, token)) return { done: true, failed: false }
+      pollFailures = 0
       const data = getApiPayload(response)
       options.status.value = data.status || options.status.value
       options.error.value = data.errorMessage || data.error_message || data.errMsg || data.err_msg || ''
@@ -89,14 +90,14 @@ export function useQualityAlgorithmTask(options) {
           options.onError?.(options.error.value, context)
         }
         activeToken += 1
+        return { done: true, failed: false }
       }
+      return { done: false, failed: false }
     } catch (error) {
-      if (!isCurrentRun(id, token)) return
-      stopTimer()
-      options.status.value = 'FAILED'
-      options.error.value = getErrorMessage(error, '任务状态查询失败')
-      if (!silent) options.onError?.(options.error.value, context)
-      activeToken += 1
+      if (!isCurrentRun(id, token)) return { done: true, failed: false }
+      pollFailures += 1
+      options.onPollError?.(getErrorMessage(error, '任务状态查询失败'), context, pollFailures)
+      return { done: false, failed: true }
     }
   }
 
@@ -106,29 +107,17 @@ export function useQualityAlgorithmTask(options) {
     clearPoll()
     pollingKey = nextPollingKey
     const token = activeToken
-    pollCount = 0
-    timer = setInterval(() => {
-      if (!isCurrentRun(id, token)) {
-        clearPoll()
-        return
-      }
-      pollCount += 1
-      if (doneStatuses.includes(options.status.value)) {
-        clearPoll()
-        return
-      }
-      if (pollCount >= maxPolls) {
-        stopTimer()
-        if (!isCurrentRun(id, token)) return
-        options.status.value = 'FAILED'
-        options.error.value = '任务状态查询超时'
-        options.onError?.(options.error.value, context)
-        activeToken += 1
-        return
-      }
-      queryTask(id, true, token, context)
-    }, pollMs)
-    queryTask(id, false, token, context)
+    pollFailures = 0
+    const poll = async (silent) => {
+      if (!isCurrentRun(id, token) || doneStatuses.includes(options.status.value)) return
+      const state = await queryTask(id, silent, token, context)
+      if (!isCurrentRun(id, token) || state?.done || doneStatuses.includes(options.status.value)) return
+      const delay = state?.failed
+        ? Math.min(maxBackoffMs, pollMs * (2 ** Math.min(pollFailures, 4)))
+        : pollMs
+      timer = setTimeout(() => poll(true), delay)
+    }
+    poll(false)
   }
 
   onBeforeUnmount(clearPoll)

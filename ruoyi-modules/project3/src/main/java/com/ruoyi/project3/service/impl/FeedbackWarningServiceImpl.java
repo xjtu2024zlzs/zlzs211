@@ -3,17 +3,21 @@ package com.ruoyi.project3.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.ruoyi.common.core.exception.ServiceException;
+import com.ruoyi.project3.assembler.algorithm.AlgorithmParamReader;
 import com.ruoyi.project3.assembler.algorithm.WarningDetectReqAssembler;
 import com.ruoyi.project3.client.PythonAlgorithmClient;
 import com.ruoyi.project3.config.faultiden.FaultIdenFileProps;
 import com.ruoyi.project3.domain.PageRows;
 import com.ruoyi.project3.domain.algorithm.AlgTaskResult;
 import com.ruoyi.project3.domain.algorithm.warning.WarningDetectReq;
+import com.ruoyi.project3.domain.faultiden.FaultIdenSampleFile;
 import com.ruoyi.project3.mapper.AlgTaskMapper;
 import com.ruoyi.project3.mapper.FeedbackWarningMapper;
+import com.ruoyi.project3.mapper.FaultIdenSampleMapper;
 import com.ruoyi.project3.service.FeedbackWarningService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,25 +57,29 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
     private static final String STATUS_FAILED = "FAILED";
     private static final String STATUS_CANCELED = "CANCELED";
     private static final String TASK_TIME_PATTERN = "yyyyMMddHHmmssSSS";
+    private static final String USAGE_KQC_MINING = "KQC_MINING";
 
     private final FeedbackWarningMapper warningMapper;
     private final AlgTaskMapper algTaskMapper;
     private final WarningDetectReqAssembler reqAssembler;
     private final PythonAlgorithmClient pythonAlgorithmClient;
     private final FaultIdenFileProps faultIdenFileProps;
+    private final FaultIdenSampleMapper faultIdenSampleMapper;
 
     public FeedbackWarningServiceImpl(
             FeedbackWarningMapper warningMapper,
             AlgTaskMapper algTaskMapper,
             WarningDetectReqAssembler reqAssembler,
             PythonAlgorithmClient pythonAlgorithmClient,
-            FaultIdenFileProps faultIdenFileProps
+            FaultIdenFileProps faultIdenFileProps,
+            FaultIdenSampleMapper faultIdenSampleMapper
     ) {
         this.warningMapper = warningMapper;
         this.algTaskMapper = algTaskMapper;
         this.reqAssembler = reqAssembler;
         this.pythonAlgorithmClient = pythonAlgorithmClient;
         this.faultIdenFileProps = faultIdenFileProps;
+        this.faultIdenSampleMapper = faultIdenSampleMapper;
     }
 
     @Override
@@ -260,9 +268,11 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
     @Override
     public Map<String, Object> kqcMining(String requestBody) {
         Map<String, Object> reqMap = reqMap(requestBody);
-        if (blank(txt(pick(reqMap, "trainNumericPath", "train_numeric_path", "boschTrainNumericPath", "bosch_train_numeric_path")))) {
+        String trainPath = resolveKqcTrainPath(reqMap);
+        if (blank(trainPath)) {
             throw new ServiceException("trainNumericPath不能为空");
         }
+        reqMap.put("trainNumericPath", trainPath);
         String fingerprint = kqcFingerprint(reqMap);
         AlgTaskResult existing = algTaskMapper.getRunningTaskByRemark(KQC_TASK_TYPE, fingerprint);
         if (existing != null) {
@@ -280,6 +290,13 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         record.setTaskName(KQC_TASK_NAME);
         record.setStatus(STATUS_PENDING);
         record.setRequestId(requestId);
+        record.setAircraftId(txt(pick(reqMap, "aircraftId", "aircraft_id")));
+        record.setSubsystemId(txt(pick(reqMap, "subsystemId", "subsystem_id")));
+        record.setEquipmentId(txt(pick(reqMap, "equipmentId", "equipment_id")));
+        record.setComponentId(txt(pick(reqMap, "componentId", "component_id")));
+        record.setBizId(txt(pick(reqMap, "targetId", "target_id")));
+        record.setBizLevel(txt(pick(reqMap, "targetType", "target_type", "targetLevel", "target_level")));
+        record.setBizName(txt(pick(reqMap, "targetName", "target_name")));
         record.setReqJson(json(reqMap));
         record.setResJson(json(kqcPythonState(KQC_TASK_TYPE, null)));
         record.setRemark(fingerprint);
@@ -437,6 +454,16 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         int s = pageSize(pageSize);
         int offset = (p - 1) * s;
         List<AlgTaskResult> list = algTaskMapper.getWarningResult(txt(status), txt(targetType), txt(targetId), txt(beginTime), txt(endTime), offset, s);
+        boolean synced = false;
+        for (AlgTaskResult item : list) {
+            if (!isTerminalStatus(item.getStatus())) {
+                syncPythonTask(item);
+                synced = true;
+            }
+        }
+        if (synced) {
+            list = algTaskMapper.getWarningResult(txt(status), txt(targetType), txt(targetId), txt(beginTime), txt(endTime), offset, s);
+        }
         Long total = algTaskMapper.countWarningResult(txt(status), txt(targetType), txt(targetId), txt(beginTime), txt(endTime));
         List<Map<String, Object>> rows = new ArrayList<>();
         for (AlgTaskResult item : list) {
@@ -451,12 +478,46 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         int s = pageSize(pageSize);
         int offset = (p - 1) * s;
         List<AlgTaskResult> list = algTaskMapper.getKqcMiningResult(txt(keyword), txt(status), offset, s);
+        boolean synced = false;
+        for (AlgTaskResult item : list) {
+            if (!isTerminalStatus(item.getStatus())) {
+                syncKqcMiningTask(item);
+                synced = true;
+            }
+        }
+        if (synced) {
+            list = algTaskMapper.getKqcMiningResult(txt(keyword), txt(status), offset, s);
+        }
         Long total = algTaskMapper.countKqcMiningResult(txt(keyword), txt(status));
         List<Map<String, Object>> rows = new ArrayList<>();
         for (AlgTaskResult item : list) {
             rows.add(kqcRow(item));
         }
         return page(rows, total);
+    }
+
+    @Scheduled(
+            initialDelayString = "${project3.algorithm.status-sync.initial-delay-ms:10000}",
+            fixedDelayString = "${project3.algorithm.status-sync.fixed-delay-ms:10000}"
+    )
+    public void syncActiveAlgorithmTasks() {
+        syncActiveTasksByType(KQC_TASK_TYPE);
+        syncActiveTasksByType(TASK_TYPE);
+    }
+
+    private void syncActiveTasksByType(String taskType) {
+        List<AlgTaskResult> activeTasks = algTaskMapper.getActiveTasksByType(taskType, 50);
+        for (AlgTaskResult task : activeTasks) {
+            try {
+                if (KQC_TASK_TYPE.equals(taskType)) {
+                    syncKqcMiningTask(task);
+                } else {
+                    syncPythonTask(task);
+                }
+            } catch (Exception e) {
+                log.warn("后台同步算法任务失败，taskType={}, taskId={}, error={}", taskType, task.getTaskId(), e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -484,6 +545,11 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         r.setTaskName(TASK_NAME);
         r.setStatus(STATUS_RUNNING);
         r.setRequestId(req.getRequestId());
+        Map<String, Object> hierarchy = req.getHierarchyContext();
+        r.setAircraftId(txt(pick(hierarchy, "aircraftId", "aircraft_id")));
+        r.setSubsystemId(txt(pick(hierarchy, "subsystemId", "subsystem_id")));
+        r.setEquipmentId(txt(pick(hierarchy, "equipmentId", "equipment_id")));
+        r.setComponentId(txt(pick(hierarchy, "componentId", "component_id")));
         r.setBizId(req.getTargetId());
         r.setBizLevel(req.getTargetType());
         r.setBizName(req.getTargetName());
@@ -533,6 +599,15 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         Map<String, Object> result = jsonMap(record.getResJson());
         Map<String, Object> req = jsonMap(record.getReqJson());
         Map<String, Object> fileInfo = asMap(pick(req, "fileInfo", "file_info"));
+        String dataFile = txt(pick(fileInfo, "fileName", "file_name"));
+        String dataFileUrl = txt(pick(fileInfo, "fileUrl", "file_url"));
+        String fileMode = txt(pick(fileInfo, "fileMode", "file_mode"));
+        if ("bosch_train_numeric".equals(fileMode) && !blank(dataFileUrl)) {
+            try {
+                dataFile = Paths.get(dataFileUrl).getFileName().toString();
+            } catch (Exception ignored) {
+            }
+        }
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("taskId", record.getTaskId());
         row.put("task_id", record.getTaskId());
@@ -540,8 +615,8 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         row.put("targetType", record.getBizLevel());
         row.put("targetId", record.getBizId());
         row.put("targetName", record.getBizName());
-        row.put("dataFile", txt(pick(fileInfo, "fileName", "file_name")));
-        row.put("dataFileUrl", txt(pick(fileInfo, "fileUrl", "file_url")));
+        row.put("dataFile", dataFile);
+        row.put("dataFileUrl", dataFileUrl);
         row.put("isAbnormal", pick(result, "isAbnormal", "is_abnormal"));
         row.put("abnormalLevel", txt(pick(result, "abnormalLevel", "abnormal_level")));
         row.put("abnormalScore", pick(result, "abnormalScore", "abnormal_score"));
@@ -554,11 +629,27 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
 
     private Map<String, Object> kqcRow(AlgTaskResult record) {
         Map<String, Object> result = jsonMap(record.getResJson());
+        Map<String, Object> req = jsonMap(record.getReqJson());
         Map<String, Object> top = topKqc(result);
+        String targetType = txt(record.getBizLevel());
+        String targetId = txt(record.getBizId());
+        String targetName = txt(record.getBizName());
+        if (targetType == null) {
+            targetType = txt(pick(req, "targetType", "target_type", "targetLevel", "target_level"));
+        }
+        if (targetId == null) {
+            targetId = txt(pick(req, "targetId", "target_id"));
+        }
+        if (targetName == null) {
+            targetName = txt(pick(req, "targetName", "target_name"));
+        }
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("taskId", record.getTaskId());
         row.put("task_id", record.getTaskId());
         row.put("status", record.getStatus());
+        row.put("targetType", targetType);
+        row.put("targetId", targetId);
+        row.put("targetName", targetName);
         row.put("summary", record.getSummary());
         row.put("resultValue", record.getResultVal());
         row.put("result_value", record.getResultVal());
@@ -707,6 +798,31 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         }
         text = text.replaceAll("[\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069\\ufeff]", "").trim();
         return text.isEmpty() ? null : text;
+    }
+
+    private String resolveKqcTrainPath(Map<String, Object> reqMap) {
+        String path = cleanLocalPath(pick(reqMap, "trainNumericPath", "train_numeric_path", "boschTrainNumericPath", "bosch_train_numeric_path"));
+        if (!blank(path)) {
+            return path;
+        }
+        List<Long> sampleIds = AlgorithmParamReader.sampleIds(pick(reqMap, "sampleIds", "sample_ids", "trainSampleIds", "train_sample_ids"), "sampleIds");
+        if (sampleIds.isEmpty()) {
+            return null;
+        }
+        List<FaultIdenSampleFile> samples = faultIdenSampleMapper.selectSamplesByIds(sampleIds, null);
+        if (samples == null || samples.isEmpty()) {
+            throw new ServiceException("选中的数据文件不存在");
+        }
+        FaultIdenSampleFile sample = samples.get(0);
+        String usage = txt(sample.getDataUsage());
+        if (!USAGE_KQC_MINING.equals(usage)) {
+            throw new ServiceException("关键质量特性挖掘只能使用数据用途为关键质量特性挖掘的数据");
+        }
+        String sourceFile = cleanLocalPath(sample.getSourceFile());
+        if (blank(sourceFile)) {
+            throw new ServiceException("选中的数据文件路径为空");
+        }
+        return sourceFile;
     }
 
     private boolean isUnderRoot(Path path, String rootText) {

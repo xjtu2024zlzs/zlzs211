@@ -1,0 +1,17 @@
+[
+  {
+    "time": "2026-06-08T17:29:12",
+    "level": "INFO",
+    "message": "任务已提交"
+  },
+  {
+    "time": "2026-06-08T17:29:12",
+    "level": "INFO",
+    "message": "算法开始执行"
+  },
+  {
+    "time": "2026-06-08T17:29:12",
+    "level": "ERROR",
+    "message": "未找到 train_numeric.csv 文件：F:\\TotalData\\FaultIdentifyData\\ObjectNumericData\\aircraft\\A1\\NUM_1780888716330_y0iujj\\train_numeric.csv"
+  }
+]

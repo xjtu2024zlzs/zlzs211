@@ -1,0 +1,107 @@
+{
+  "success": true,
+  "code": 0,
+  "message": "Bosch key station identification completed",
+  "taskId": "KP20260608172717139",
+  "taskType": "KEY_PROCESS_IDENTIFY",
+  "status": "SUCCESS",
+  "data": {
+    "taskId": "KP20260608172717139",
+    "status": "SUCCESS",
+    "result": {
+      "taskId": "KP20260608172717139",
+      "taskType": "KEY_PROCESS_IDENTIFY",
+      "status": "SUCCESS",
+      "message": "Bosch key station identification completed",
+      "keyProcessCode": "L2_S26",
+      "keyProcessName": "L2_S26",
+      "confidence": 0.8,
+      "score": 0.8,
+      "reason": "根据KQC加权的直接响应影响、路径响应影响和工序PageRank综合排序。",
+      "suggestion": "建议优先对排名最高的工序进行工艺复核和质量控制检查。",
+      "candidateProcesses": [
+        {
+          "rank": 1,
+          "processCode": "L2_S26",
+          "processName": "L2_S26",
+          "score": 0.8,
+          "directResponseScore": 0.0150283655967881,
+          "pathResponseScore": 1.7734900328457308,
+          "pagerankScore": 0.3333333333333333
+        },
+        {
+          "rank": 2,
+          "processCode": "L2_S28",
+          "processName": "L2_S28",
+          "score": 0.2516588149120662,
+          "directResponseScore": 0.0047275258451912,
+          "pathResponseScore": 0.5578929999053975,
+          "pagerankScore": 0.3333333333333333
+        },
+        {
+          "rank": 3,
+          "processCode": "L2_S27",
+          "processName": "L2_S27",
+          "score": 0.0,
+          "directResponseScore": 0.0,
+          "pathResponseScore": 0.0,
+          "pagerankScore": 0.3333333333333333
+        }
+      ],
+      "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260608172717139/key_station",
+      "outputFiles": {
+        "bosch_key_station_ranking": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260608172717139/key_station/bosch_key_station_ranking.csv",
+        "bosch_key_station_evidence": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260608172717139/key_station/bosch_key_station_evidence.csv",
+        "bosch_station_network": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260608172717139/key_station/bosch_station_network.csv"
+      }
+    },
+    "logs": []
+  },
+  "payload": {
+    "taskId": "KP20260608172717139",
+    "taskType": "KEY_PROCESS_IDENTIFY",
+    "status": "SUCCESS",
+    "message": "Bosch key station identification completed",
+    "keyProcessCode": "L2_S26",
+    "keyProcessName": "L2_S26",
+    "confidence": 0.8,
+    "score": 0.8,
+    "reason": "根据KQC加权的直接响应影响、路径响应影响和工序PageRank综合排序。",
+    "suggestion": "建议优先对排名最高的工序进行工艺复核和质量控制检查。",
+    "candidateProcesses": [
+      {
+        "rank": 1,
+        "processCode": "L2_S26",
+        "processName": "L2_S26",
+        "score": 0.8,
+        "directResponseScore": 0.0150283655967881,
+        "pathResponseScore": 1.7734900328457308,
+        "pagerankScore": 0.3333333333333333
+      },
+      {
+        "rank": 2,
+        "processCode": "L2_S28",
+        "processName": "L2_S28",
+        "score": 0.2516588149120662,
+        "directResponseScore": 0.0047275258451912,
+        "pathResponseScore": 0.5578929999053975,
+        "pagerankScore": 0.3333333333333333
+      },
+      {
+        "rank": 3,
+        "processCode": "L2_S27",
+        "processName": "L2_S27",
+        "score": 0.0,
+        "directResponseScore": 0.0,
+        "pathResponseScore": 0.0,
+        "pagerankScore": 0.3333333333333333
+      }
+    ],
+    "outputDir": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260608172717139/key_station",
+    "outputFiles": {
+      "bosch_key_station_ranking": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260608172717139/key_station/bosch_key_station_ranking.csv",
+      "bosch_key_station_evidence": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260608172717139/key_station/bosch_key_station_evidence.csv",
+      "bosch_station_network": "F:/TotalData/FaultIdentifyData/AlgorithmData/bosch_key_station/KP20260608172717139/key_station/bosch_station_network.csv"
+    }
+  }
+}

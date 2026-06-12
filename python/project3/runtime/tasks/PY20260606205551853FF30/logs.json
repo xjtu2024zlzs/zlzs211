@@ -1,0 +1,17 @@
+[
+  {
+    "time": "2026-06-06T20:55:51",
+    "level": "INFO",
+    "message": "任务已提交"
+  },
+  {
+    "time": "2026-06-06T20:55:51",
+    "level": "INFO",
+    "message": "算法开始执行"
+  },
+  {
+    "time": "2026-06-06T20:55:51",
+    "level": "ERROR",
+    "message": "No Bosch numeric features found for station='L3_S36'."
+  }
+]

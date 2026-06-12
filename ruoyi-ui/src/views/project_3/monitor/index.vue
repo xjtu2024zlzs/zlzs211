@@ -311,6 +311,7 @@
           <el-option label="服役周期" value="FAULT_IDENTIFY" />
           <el-option label="制造周期通用" value="MANUFACTURE_COMMON" />
           <el-option label="工序异常检测" value="PROCESS_ANOMALY" />
+          <el-option label="关键质量特性挖掘" value="KQC_MINING" />
           <el-option label="关键工序识别" value="KEY_PROCESS" />
           <el-option label="通用" value="COMMON" />
         </el-select>
@@ -327,7 +328,17 @@
         <el-table-column type="selection" width="48" reserve-selection />
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
-        <el-table-column label="数据用途" width="130"><template #default="{ row }">{{ dataUsageText(row.dataUsage) }}</template></el-table-column>
+        <el-table-column label="数据用途" width="180">
+          <template #default="{ row }">
+            <el-select v-if="isManufacturingDataUsage(row.dataUsage)" :model-value="row.dataUsage" size="small" :loading="row.usageUpdating" @change="value => changeDataFileUsage(row, value)">
+              <el-option label="制造周期通用" value="MANUFACTURE_COMMON" />
+              <el-option label="工序异常检测" value="PROCESS_ANOMALY" />
+              <el-option label="关键质量特性挖掘" value="KQC_MINING" />
+              <el-option label="关键工序识别" value="KEY_PROCESS" />
+            </el-select>
+            <span v-else>{{ dataUsageText(row.dataUsage) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="aircraftId" label="飞机" width="90" />
         <el-table-column prop="subsystemId" label="分系统" width="90" />
         <el-table-column prop="equipmentId" label="设备" width="90" />
@@ -395,7 +406,7 @@
       <div class="context-menu-item danger" @click.stop="handleDeleteModule">{{ deleteEntryText }}</div>
     </div>
 
-    <el-dialog v-model="nodeDetailDialog.visible" width="620px" :title="`对象详情 - ${nodeDetailDialog.node?.name || ''}`" :close-on-click-modal="false">
+    <el-dialog v-model="nodeDetailDialog.visible" width="980px" :title="`对象详情 - ${nodeDetailDialog.node?.name || ''}`" :close-on-click-modal="false">
       <el-form v-if="nodeDetailDialog.type === 'part_template'" v-loading="nodeDetailDialog.loading" label-width="110px">
         <el-form-item label="零件模板ID">
           <el-input v-model="nodeDetailDialog.partForm.part_template_id" disabled />
@@ -427,14 +438,90 @@
           <el-input :model-value="nodeDetailDialog.node?.parent_id || '-'" disabled />
         </el-form-item>
       </el-form>
+      <div v-loading="nodeDetailDialog.lifecycle.loading" class="lifecycle-result-wrap">
+        <div class="quality-stage-title">制造周期结果与建议</div>
+        <div class="algorithm-section-grid">
+          <div v-for="section in nodeDetailDialog.lifecycle.manufacturing" :key="section.key" class="algorithm-result-section">
+            <div class="algorithm-section-title">{{ section.title }}</div>
+            <el-empty v-if="!section.rows.length" description="暂无结果数据" :image-size="60" />
+            <div v-for="row in section.rows" :key="row.key" class="algorithm-result-card">
+              <div class="algorithm-result-head">
+                <span>{{ row.taskId || '--' }}</span>
+                <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success' : 'info'">{{ row.status || '--' }}</el-tag>
+              </div>
+              <el-descriptions :column="2" border size="small">
+                <el-descriptions-item v-for="field in row.fields" :key="field.label" :label="field.label" :span="field.span || 1">
+                  {{ val(field.value) }}
+                </el-descriptions-item>
+              </el-descriptions>
+            </div>
+          </div>
+        </div>
+        <div class="quality-stage-title">服役周期结果与建议</div>
+        <div class="algorithm-section-grid">
+          <div v-for="section in nodeDetailDialog.lifecycle.service" :key="section.key" class="algorithm-result-section">
+            <div class="algorithm-section-title">{{ section.title }}</div>
+            <el-empty v-if="!section.rows.length" description="暂无结果数据" :image-size="60" />
+            <div v-for="row in section.rows" :key="row.key" class="algorithm-result-card">
+              <div class="algorithm-result-head">
+                <span>{{ row.taskId || '--' }}</span>
+                <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success' : 'info'">{{ row.status || '--' }}</el-tag>
+              </div>
+              <el-descriptions :column="2" border size="small">
+                <el-descriptions-item v-for="field in row.fields" :key="field.label" :label="field.label" :span="field.span || 1">
+                  {{ val(field.value) }}
+                </el-descriptions-item>
+              </el-descriptions>
+            </div>
+          </div>
+        </div>
+      </div>
       <template #footer>
         <el-button @click="nodeDetailDialog.visible = false">取消</el-button>
         <el-button type="primary" :loading="nodeDetailDialog.loading" @click="submitNodeDetail">保存</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="partQualityDialog.visible" width="900px" :title="`零件质量详情 - ${partQualityDialog.part_name || partQualityDialog.part_code || ''}`">
+    <el-dialog v-model="partQualityDialog.visible" width="1100px" :title="`零件质量详情 - ${partQualityDialog.part_name || partQualityDialog.part_code || ''}`">
       <div v-loading="partQualityDialog.loading" class="quality-detail-wrap">
+        <div v-loading="partQualityDialog.lifecycle.loading" class="lifecycle-result-wrap">
+          <div class="quality-stage-title">制造周期结果与建议</div>
+          <div class="algorithm-section-grid">
+            <div v-for="section in partQualityDialog.lifecycle.manufacturing" :key="section.key" class="algorithm-result-section">
+              <div class="algorithm-section-title">{{ section.title }}</div>
+              <el-empty v-if="!section.rows.length" description="暂无结果数据" :image-size="60" />
+              <div v-for="row in section.rows" :key="row.key" class="algorithm-result-card">
+                <div class="algorithm-result-head">
+                  <span>{{ row.taskId || '--' }}</span>
+                  <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success' : 'info'">{{ row.status || '--' }}</el-tag>
+                </div>
+                <el-descriptions :column="2" border size="small">
+                  <el-descriptions-item v-for="field in row.fields" :key="field.label" :label="field.label" :span="field.span || 1">
+                    {{ val(field.value) }}
+                  </el-descriptions-item>
+                </el-descriptions>
+              </div>
+            </div>
+          </div>
+          <div class="quality-stage-title">服役周期结果与建议</div>
+          <div class="algorithm-section-grid">
+            <div v-for="section in partQualityDialog.lifecycle.service" :key="section.key" class="algorithm-result-section">
+              <div class="algorithm-section-title">{{ section.title }}</div>
+              <el-empty v-if="!section.rows.length" description="暂无结果数据" :image-size="60" />
+              <div v-for="row in section.rows" :key="row.key" class="algorithm-result-card">
+                <div class="algorithm-result-head">
+                  <span>{{ row.taskId || '--' }}</span>
+                  <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success' : 'info'">{{ row.status || '--' }}</el-tag>
+                </div>
+                <el-descriptions :column="2" border size="small">
+                  <el-descriptions-item v-for="field in row.fields" :key="field.label" :label="field.label" :span="field.span || 1">
+                    {{ val(field.value) }}
+                  </el-descriptions-item>
+                </el-descriptions>
+              </div>
+            </div>
+          </div>
+        </div>
         <div v-for="table in partQualityDialog.tables" :key="table.table_name" class="quality-stage-block">
           <div class="quality-stage-title">{{ table.table_label }}</div>
           <el-table :data="table.rows || []" border size="small" class="quality-dynamic-table" empty-text="暂无数据">
@@ -522,6 +609,9 @@
       </div>
       <el-table v-loading="kqcHistory.loading" :data="kqcHistory.rows" border height="300" empty-text="暂无挖掘历史记录">
         <el-table-column prop="taskId" label="任务ID" width="190" show-overflow-tooltip />
+        <el-table-column prop="targetName" label="执行对象" min-width="140" show-overflow-tooltip>
+          <template #default="{ row }">{{ row.targetName || '--' }}</template>
+        </el-table-column>
         <el-table-column prop="kqcCount" label="特性数量" width="100" />
         <el-table-column prop="topFeature" label="Top质量特性" min-width="170" show-overflow-tooltip />
         <el-table-column prop="score" label="分数/频率" width="120" />
@@ -543,14 +633,9 @@
         @pagination="loadKqcHistory"
       />
     </el-card>
-    <el-dialog v-model="kqcDialog.visible" title="关键质量特性挖掘" width="980px" :close-on-click-modal="false" @closed="clearKqcPolling">
+    <el-dialog v-model="kqcDialog.visible" title="关键质量特性挖掘" width="1180px" :close-on-click-modal="false" @closed="closeKqcDialog">
       <el-form :model="kqcDialog.form" label-width="130px">
         <el-row :gutter="12">
-          <el-col :span="16">
-            <el-form-item label="选择数据文件" required>
-              <el-input v-model="kqcDialog.form.trainNumericPath" placeholder="例如 F:/python/三算法/test_numeric.csv" clearable />
-            </el-form-item>
-          </el-col>
           <el-col :span="8">
             <el-form-item label="最大行数">
               <el-input-number v-model="kqcDialog.form.maxRows" :min="1000" :step="10000" controls-position="right" style="width: 100%" />
@@ -573,6 +658,38 @@
           </el-col>
         </el-row>
       </el-form>
+      <div class="dialog-action-row">
+        <div class="dialog-action-hint">配置参数并选择数据文件后提交任务</div>
+        <div class="dialog-action-buttons">
+          <el-button @click="kqcDialog.visible = false">关闭</el-button>
+          <el-button v-if="kqcTaskActive" :loading="kqcDialog.canceling" @click="cancelKqcMining">取消任务</el-button>
+          <el-button type="primary" :loading="kqcSubmitLoading" :disabled="kqcSubmitDisabled" @click="submitKqcMining">开始挖掘</el-button>
+        </div>
+      </div>
+      <div class="detect-data-section">
+        <div class="detect-data-header">
+          <span class="detect-data-title">选择关键质量特性挖掘数据</span>
+          <span class="detect-data-count">已选择 {{ kqcSelectedSampleIds.length }} 个文件</span>
+        </div>
+        <div class="file-toolbar">
+          <el-input v-model="kqcFileQuery.keyword" placeholder="搜索文件名" clearable style="width: 240px" @keyup.enter="loadKqcSamples" @clear="loadKqcSamples" />
+          <el-button @click="loadKqcSamples">查询</el-button>
+          <el-button @click="clearKqcSamples">清空选择</el-button>
+        </div>
+        <el-table ref="kqcSampleTableRef" v-loading="kqcFileQuery.loading" :data="kqcFileQuery.samples" row-key="id" height="260" border @selection-change="onKqcSampleSelection">
+          <el-table-column type="selection" width="48" reserve-selection />
+          <el-table-column prop="id" label="ID" width="80" />
+          <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
+          <el-table-column label="数据用途" width="150"><template #default="{ row }">{{ dataUsageText(row.dataUsage) }}</template></el-table-column>
+          <el-table-column prop="conditionLabel" label="对象类型" width="130" />
+          <el-table-column prop="bearingCode" label="对象编号" width="120" />
+          <el-table-column prop="fileSize" label="文件大小" width="120">
+            <template #default="{ row }">{{ fileSizeText(row.fileSize) }}</template>
+          </el-table-column>
+          <el-table-column prop="createTime" label="导入时间" width="170" />
+        </el-table>
+        <pagination v-show="kqcFileQuery.total > 0" v-model:page="kqcFileQuery.pageNum" v-model:limit="kqcFileQuery.pageSize" :total="kqcFileQuery.total" @pagination="loadKqcSamples" />
+      </div>
       <el-alert
         class="quality-mb16"
         type="warning"
@@ -587,29 +704,58 @@
       <div class="kqc-task-lookup">
         <el-input v-model="kqcDialog.lookupTaskId" placeholder="输入任务ID查看挖掘结果" clearable @keyup.enter="lookupKqcTaskResult" />
         <el-button type="primary" :loading="kqcDialog.lookupLoading" @click="lookupKqcTaskResult">查看结果</el-button>
+        <el-button :disabled="!kqcGraphData.nodes.length" @click="openKqcGraphDialog">关系详情</el-button>
       </div>
       <div v-if="kqcDialog.result.outputDir" class="quality-mb16">输出目录：{{ kqcDialog.result.outputDir }}</div>
+      <div class="kqc-result-layout">
+        <div class="kqc-chart-panel">
+          <div class="kqc-panel-title">Top 关键质量特性</div>
+          <div ref="kqcRankingChartRef" class="kqc-ranking-chart"></div>
+        </div>
+        <div class="kqc-table-panel">
+          <div class="kqc-panel-title">关键质量特性排名</div>
+          <el-table :data="kqcRankedRows" border height="320" empty-text="暂无挖掘结果">
+            <el-table-column prop="rank" label="排名" width="70" align="center" />
+            <el-table-column prop="source_variable" label="质量特性" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="station" label="工序" width="110" />
+            <el-table-column label="影响方向" width="90" align="center">
+              <template #default="{ row }">
+                <el-tag :type="row.weight >= 0 ? 'danger' : 'primary'" size="small">
+                  {{ row.weight >= 0 ? '正向' : '负向' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="影响权重" width="120" align="right">
+              <template #default="{ row }">{{ formatKqcMetric(row.weight, 6) }}</template>
+            </el-table-column>
+            <el-table-column label="绝对权重" width="120" align="right">
+              <template #default="{ row }">{{ formatKqcMetric(row.absWeight, 6) }}</template>
+            </el-table-column>
+            <el-table-column label="稳定频率" width="110" align="right">
+              <template #default="{ row }">{{ formatKqcMetric(row.frequency, 3) }}</template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+    </el-dialog>
+    <el-dialog v-model="kqcGraphDialog.visible" title="关键质量特性关系详情" width="1000px" append-to-body @opened="scheduleKqcGraphRender">
       <div class="kqc-graph-panel">
         <div class="kqc-graph-title">关键质量特性影响关系图</div>
         <div ref="kqcGraphRef" class="kqc-graph"></div>
       </div>
-      <el-table :data="kqcInfluenceRows" border height="260" empty-text="暂无挖掘结果">
-        <el-table-column prop="source_variable" label="质量特性" min-width="170" show-overflow-tooltip />
-        <el-table-column prop="station" label="工序" width="120" />
-        <el-table-column prop="weight" label="影响权重" width="120" />
-        <el-table-column prop="frequency" label="稳定频率" width="120" />
-        <el-table-column prop="target_kqc" label="目标KQC" width="120" />
-      </el-table>
-      <template #footer>
-        <el-button @click="kqcDialog.visible = false">关闭</el-button>
-        <el-button v-if="kqcTaskActive" :loading="kqcDialog.canceling" @click="cancelKqcMining">取消任务</el-button>
-        <el-button type="primary" :loading="kqcSubmitLoading" :disabled="kqcSubmitDisabled" @click="submitKqcMining">开始挖掘</el-button>
-      </template>
     </el-dialog>
     <el-dialog v-model="detectDialog.visible" title="工序异常检测" width="1080px" :close-on-click-modal="false" @close="closeDetectDialog">
       <div class="detect-summary">
         <span>检测对象：{{ detectTargetText }}</span>
         <span>已选择 {{ detectSelectedSampleIds.length }} 个文件</span>
+      </div>
+      <div class="dialog-action-row">
+        <div class="dialog-action-hint">选择检测数据并提交异常检测任务</div>
+        <div class="dialog-action-buttons">
+          <el-button @click="closeDetectDialog">关闭</el-button>
+          <el-button v-if="detectTaskActive" type="warning" :loading="detectDialog.canceling" @click="cancelDetectTask">取消任务</el-button>
+          <el-button type="primary" :loading="detectSubmitLoading" :disabled="detectSubmitDisabled" @click="submitProcessAnomaly">开始异常检测</el-button>
+        </div>
       </div>
       <div class="task-lookup-row">
         <el-input v-model="detectDialog.lookupTaskId" placeholder="输入任务ID查看结果" clearable @keyup.enter="lookupDetectTaskResult" />
@@ -623,11 +769,6 @@
         </div>
         <el-form v-if="detectDialog.form.enabled" :model="detectDialog.form" label-width="130px" class="bosch-param-form">
           <el-row :gutter="12">
-            <el-col :span="12">
-              <el-form-item label="选择数据文件" required>
-                <el-input v-model="detectDialog.form.trainNumericPath" placeholder="例如 F:/python/三算法/test_numeric.csv" clearable />
-              </el-form-item>
-            </el-col>
             <el-col :span="6">
               <el-form-item label="工序">
                 <el-input v-model="detectDialog.form.station" placeholder="例如 L3_S36" clearable />
@@ -663,6 +804,30 @@
             </el-col>
           </el-row>
         </el-form>
+        <div v-if="detectDialog.form.enabled" class="detect-data-section">
+          <div class="detect-data-header">
+            <span class="detect-data-title">选择工序异常检测数据</span>
+            <span class="detect-data-count">已选择 {{ detectSelectedSamples.length }} 个文件</span>
+          </div>
+          <div class="file-toolbar">
+            <el-input v-model="detectFileQuery.keyword" placeholder="搜索文件名" clearable style="width: 240px" @keyup.enter="loadDetectSamples" @clear="loadDetectSamples" />
+            <el-button @click="loadDetectSamples">查询</el-button>
+            <el-button @click="clearDetectSamples">清空选择</el-button>
+          </div>
+          <el-table ref="detectSampleTableRef" v-loading="detectFileQuery.loading" :data="detectFileQuery.samples" row-key="id" height="260" border @selection-change="onDetectSampleSelection">
+            <el-table-column type="selection" width="48" reserve-selection />
+            <el-table-column prop="id" label="ID" width="80" />
+            <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
+            <el-table-column label="数据用途" width="150"><template #default="{ row }">{{ dataUsageText(row.dataUsage) }}</template></el-table-column>
+            <el-table-column prop="conditionLabel" label="对象类型" width="130" />
+            <el-table-column prop="bearingCode" label="对象编号" width="120" />
+            <el-table-column prop="fileSize" label="文件大小" width="120">
+              <template #default="{ row }">{{ fileSizeText(row.fileSize) }}</template>
+            </el-table-column>
+            <el-table-column prop="createTime" label="导入时间" width="170" />
+          </el-table>
+          <pagination v-show="detectFileQuery.total > 0" v-model:page="detectFileQuery.pageNum" v-model:limit="detectFileQuery.pageSize" :total="detectFileQuery.total" @pagination="loadDetectSamples" />
+        </div>
       </div>
 
       <template v-if="!detectDialog.form.enabled">
@@ -680,6 +845,7 @@
             <el-table-column type="selection" width="48" reserve-selection />
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
+            <el-table-column label="数据用途" width="150"><template #default="{ row }">{{ dataUsageText(row.dataUsage) }}</template></el-table-column>
             <el-table-column prop="conditionLabel" label="对象类型" width="130" />
             <el-table-column prop="bearingCode" label="对象编号" width="120" />
             <el-table-column prop="fileSize" label="文件大小" width="120">
@@ -748,11 +914,6 @@
         </el-table>
       </div>
 
-      <template #footer>
-        <el-button @click="closeDetectDialog">关闭</el-button>
-        <el-button v-if="detectTaskActive" type="warning" :loading="detectDialog.canceling" @click="cancelDetectTask">取消任务</el-button>
-        <el-button type="primary" :loading="detectSubmitLoading" :disabled="detectSubmitDisabled" @click="submitProcessAnomaly">开始异常检测</el-button>
-      </template>
     </el-dialog>
     <el-dialog v-model="keyDialog.visible" title="关键工序识别" width="1080px" :close-on-click-modal="false" @close="closeKeyDialog">
       <div class="detect-summary">
@@ -798,6 +959,7 @@
         <el-table-column type="selection" width="48" reserve-selection />
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
+        <el-table-column label="数据用途" width="150"><template #default="{ row }">{{ dataUsageText(row.dataUsage) }}</template></el-table-column>
         <el-table-column prop="conditionLabel" label="对象类型" width="130" />
         <el-table-column prop="bearingCode" label="对象编号" width="120" />
         <el-table-column prop="fileSize" label="文件大小" width="120">
@@ -1091,6 +1253,14 @@ function deleteDataFile(id) {
   })
 }
 
+function updateDataFileUsage(id, dataUsage) {
+  return request({
+    url: `/quality/fault-iden/samples/${id}/data-usage`,
+    method: 'put',
+    data: { dataUsage }
+  })
+}
+
 function uploadWarningDetectFile(data, onUploadProgress) {
   return request({
     url: '/quality/fault-iden/catalog/upload-numeric-file',
@@ -1190,7 +1360,7 @@ const numUploadRows = ref([])
 let numUploadBatchId = ''
 const numPurposeOpts = [
   { label: '服役周期', value: 'faultIdentify', desc: '支持选择分系统、设备、组件' },
-  { label: '制造周期', value: 'processAnomaly', desc: '仅支持选择零件' },
+  { label: '制造周期', value: 'processAnomaly', desc: '支持选择任意层级对象' },
 ]
 const textTaskOpts = [
   {
@@ -1306,7 +1476,6 @@ const kqcDialog = reactive({
   error: '',
   node: null,
   form: {
-    trainNumericPath: 'F:/python/三算法/test_numeric.csv',
     maxRows: 200000,
     maxFeatures: 80,
     perStation: 2,
@@ -1338,7 +1507,19 @@ const kqcInfluenceRows = computed(() => {
   const rows = kqcDialog.result?.topInfluences || kqcDialog.result?.top_influences || []
   return Array.isArray(rows) ? rows : []
 })
+const kqcRankedRows = computed(() => kqcInfluenceRows.value
+  .map(row => ({
+    ...row,
+    weight: Number(row.weight || 0),
+    frequency: Number(row.frequency || 0),
+    absWeight: Math.abs(Number(row.weight || 0))
+  }))
+  .sort((a, b) => b.absWeight - a.absWeight)
+  .map((row, index) => ({ ...row, rank: index + 1 })))
+const kqcGraphDialog = reactive({ visible: false })
+const kqcRankingChartRef = ref(null)
 const kqcGraphRef = ref(null)
+let kqcRankingChart = null
 let kqcGraphChart = null
 const kqcGraphData = computed(() => {
   const responseGraph = kqcDialog.result?.responseGraphData || kqcDialog.result?.response_graph_data
@@ -1359,7 +1540,6 @@ const detectDialog = reactive({
   result: {},
   form: {
     enabled: true,
-    trainNumericPath: 'F:/python/三算法/test_numeric.csv',
     station: 'L3_S36',
     featureColName: '',
     maxRows: 200000,
@@ -1376,6 +1556,9 @@ const detectDialog = reactive({
 const detectFileQuery = reactive({ keyword: '', samples: [], pageNum: 1, pageSize: 20, total: 0, loading: false })
 const detectSelectedSamples = ref([])
 const detectSampleTableRef = ref(null)
+const kqcFileQuery = reactive({ keyword: '', samples: [], pageNum: 1, pageSize: 20, total: 0, loading: false })
+const kqcSelectedSamples = ref([])
+const kqcSampleTableRef = ref(null)
 const detectUpload = reactive({ loading: false })
 const detectUploadRows = ref([])
 const DETECT_DONE_STATUSES = ['SUCCESS', 'FAILED', 'CANCELED']
@@ -1391,7 +1574,8 @@ const detectSubmitLoading = computed(() => detectSubmitting.value)
 const detectSubmitDisabled = computed(() => detectSubmitting.value || detectTaskActive.value)
 const detectTrainSampleIds = computed(() => detectSelectedSamples.value.map(item => item.id))
 const detectUploadSampleIds = computed(() => detectUploadRows.value.map(item => item.id).filter(Boolean))
-const detectSelectedSampleIds = computed(() => detectDialog.form.enabled ? [] : [...detectTrainSampleIds.value, ...detectUploadSampleIds.value])
+const detectSelectedSampleIds = computed(() => detectDialog.form.enabled ? detectTrainSampleIds.value : [...detectTrainSampleIds.value, ...detectUploadSampleIds.value])
+const kqcSelectedSampleIds = computed(() => kqcSelectedSamples.value.map(item => item.id))
 const detectTargetText = computed(() => detectDialog.node ? `${detectDialog.node.name || detectDialog.node.id || '--'}` : '--')
 const detectTaskProgress = computed(() => {
   const value = Number(detectDialog.result?.progress || 0)
@@ -1439,6 +1623,9 @@ const keyFileQuery = reactive({ keyword: '', samples: [], pageNum: 1, pageSize: 
 const keySelectedSamples = ref([])
 const keySampleTableRef = ref(null)
 const KEY_DONE_STATUSES = ['SUCCESS', 'FAILED', 'CANCELED']
+const MANUFACTURING_DATA_USAGES = ['MANUFACTURE_COMMON', 'PROCESS_ANOMALY', 'KQC_MINING', 'KEY_PROCESS']
+const DETECT_FILE_DATA_USAGES = ['PROCESS_ANOMALY', 'MANUFACTURE_COMMON']
+const KQC_FILE_DATA_USAGES = ['KQC_MINING']
 const KEY_FILE_DATA_USAGES = ['KEY_PROCESS', 'MANUFACTURE_COMMON']
 let keyPollTimer = null
 let keyPollToken = 0
@@ -1462,6 +1649,20 @@ const keyProcessRows = computed(() => {
     }))
     : []
 })
+function createLifecycleResultState() {
+  return {
+    loading: false,
+    manufacturing: [
+      { key: 'kqc', title: '关键质量特征挖掘', rows: [] },
+      { key: 'keyProcess', title: '关键工序识别', rows: [] },
+      { key: 'processAnomaly', title: '工序异常检测', rows: [] }
+    ],
+    service: [
+      { key: 'earlyFault', title: '早期故障点', rows: [] },
+      { key: 'faultPrediction', title: '故障预测', rows: [] }
+    ]
+  }
+}
 const nodeDetailDialog = reactive({
   visible: false,
   loading: false,
@@ -1477,14 +1678,16 @@ const nodeDetailDialog = reactive({
     component_id: '',
     material: '',
     specification: ''
-  }
+  },
+  lifecycle: createLifecycleResultState()
 })
 const partQualityDialog = reactive({
   visible: false,
   loading: false,
   part_name: '',
   part_code: '',
-  tables: []
+  tables: [],
+  lifecycle: createLifecycleResultState()
 })
 
 const partQualityColumnLabels = {
@@ -1599,10 +1802,10 @@ const curNumPurposeLabel = computed(() => {
   return numPurposeOpts.find(item => item.value === numObjDlg.form.purpose)?.label || '未选择'
 })
 const numObjReqLevelText = computed(() =>
-  isProcAnom.value ? '零件' : '分系统、设备、组件'
+  isProcAnom.value ? '任意层级对象' : '分系统、设备、组件'
 )
 const numObjReqText = computed(() =>
-  isProcAnom.value ? '请选择零件' : '请选择分系统、设备或组件'
+  isProcAnom.value ? '请选择任务对象' : '请选择分系统、设备或组件'
 )
 const numSelNodeId = computed(() => {
   const form = numObjDlg.form
@@ -1610,6 +1813,7 @@ const numSelNodeId = computed(() => {
   if (form.componentId) return prefixedNodeId('component', form.componentId)
   if (form.equipmentId) return prefixedNodeId('equipment', form.equipmentId)
   if (form.subsystemId) return prefixedNodeId('subsystem', form.subsystemId)
+  if (form.aircraftId) return prefixedNodeId('aircraft', form.aircraftId)
   return ''
 })
 const numSelObj = computed(() => {
@@ -1734,7 +1938,7 @@ function numNodeTypeText(data) {
 
 function isNumNodeSelectable(data) {
   const type = numNodeType(data)
-  if (isProcAnom.value) return type === 'part_template'
+  if (isProcAnom.value) return !!type
   return ['subsystem', 'equipment', 'component'].includes(type)
 }
 
@@ -2013,10 +2217,18 @@ async function handleViewNodeDetail() {
   nodeDetailDialog.node = { ...node }
   nodeDetailDialog.type = String(node.id || '').startsWith('part_template:') ? 'part_template' : 'module'
   nodeDetailDialog.form.name = node.name || ''
+  resetLifecycleResultState(nodeDetailDialog.lifecycle)
   nodeDetailDialog.visible = true
   if (nodeDetailDialog.type === 'part_template') {
     await loadPartTemplateDetail(node.id)
   }
+  await loadLifecycleResults(nodeDetailDialog.lifecycle, {
+    id: node.id,
+    rawId: rawNodeId(node.id),
+    type: numNodeType(node),
+    name: node.name,
+    ...nodeDetailDialog.partForm
+  })
 }
 
 function rawPartTemplateId(nodeId) {
@@ -2144,7 +2356,7 @@ async function submitCreateModule() {
   }
 }
 
-function handleQualityMining() {
+async function handleQualityMining() {
   const node = context_menu.node
   closeContextMenu()
 
@@ -2166,7 +2378,11 @@ function handleQualityMining() {
   kqcDialog.taskId = ''
   kqcDialog.status = ''
   kqcDialog.error = ''
+  kqcGraphDialog.visible = false
   kqcDialog.visible = true
+  clearKqcSamples()
+  kqcFileQuery.pageNum = 1
+  await loadKqcSamples()
 }
 
 async function handleProcessAnomalyDetect() {
@@ -2175,10 +2391,6 @@ async function handleProcessAnomalyDetect() {
 
   if (!node || !node.id) {
     ElMessage.warning('请先选择模块')
-    return
-  }
-  if (numNodeType(node) !== 'part_template') {
-    ElMessage.warning('工序异常检测请右键选择零件节点')
     return
   }
   clearDetectPolling()
@@ -2197,9 +2409,7 @@ async function handleProcessAnomalyDetect() {
   clearDetectSamples()
   clearDetectUploads()
   detectFileQuery.pageNum = 1
-  if (!detectDialog.form.enabled) {
-    await loadDetectSamples()
-  }
+  await loadDetectSamples()
 }
 
 async function handleKeyProcessIdentify() {
@@ -2208,10 +2418,6 @@ async function handleKeyProcessIdentify() {
 
   if (!node || !node.id) {
     ElMessage.warning('请先选择模块')
-    return
-  }
-  if (numNodeType(node) === 'aircraft') {
-    ElMessage.warning('飞机不能直接作为关键工序识别目标，请选择分系统、设备、组件或零件')
     return
   }
   clearKeyPolling()
@@ -2234,51 +2440,13 @@ async function handleKeyProcessIdentify() {
   }
 }
 
-async function submitKqcMiningLegacy() {
-  if (!kqcDialog.form.trainNumericPath) {
-    ElMessage.warning('请填写 Bosch train_numeric.csv 路径')
-    return
-  }
-
-  kqcDialog.loading = true
-  try {
-    const json = await request({
-      url: '/feedback/warning/kqc-mining',
-      method: 'post',
-      data: {
-        trainNumericPath: kqcDialog.form.trainNumericPath,
-        maxRows: kqcDialog.form.maxRows,
-        maxFeatures: kqcDialog.form.maxFeatures,
-        perStation: kqcDialog.form.perStation,
-        selectionMode: 'response_assoc',
-        ssRuns: kqcDialog.form.ssRuns
-      },
-      timeout: 600000
-    })
-    const payload = json?.payload || json?.data?.result || json?.data || json
-    if (payload?.status === 'FAILED' || json?.success === false || json?.code === 500) {
-      throw new Error(payload?.message || json?.message || '关键质量特性挖掘失败')
-    }
-    kqcDialog.result = payload
-    ElMessage.success('关键质量特性挖掘完成')
-  } catch (e) {
-    ElMessage.error(e?.message || '关键质量特性挖掘失败')
-  } finally {
-    kqcDialog.loading = false
-  }
-}
-
-
-
 async function submitKqcMining() {
   if (kqcSubmitting.value || kqcTaskActive.value) {
     startKqcPolling(kqcDialog.taskId)
     return
   }
-  const trainNumericPath = cleanLocalPath(kqcDialog.form.trainNumericPath)
-  kqcDialog.form.trainNumericPath = trainNumericPath
-  if (!trainNumericPath) {
-    ElMessage.warning('请填写 train_numeric.csv 路径')
+  if (!kqcSelectedSampleIds.value.length) {
+    ElMessage.warning('请选择关键质量特性挖掘数据文件')
     return
   }
 
@@ -2290,11 +2458,19 @@ async function submitKqcMining() {
   kqcDialog.error = ''
   kqcDialog.result = {}
   try {
+    const node = kqcDialog.node
+    const hierarchyIds = sampleObjectQuery(node) || {}
     const json = await request({
       url: '/feedback/warning/kqc-mining',
       method: 'post',
       data: {
-        trainNumericPath,
+        dataSelectionMode: 'SELECTED_FILES',
+        dataUsage: 'KQC_MINING',
+        sampleIds: kqcSelectedSampleIds.value,
+        targetType: numNodeType(node),
+        targetId: rawNodeId(node.id),
+        targetName: node.name || rawNodeId(node.id),
+        ...hierarchyIds,
         maxRows: kqcDialog.form.maxRows,
         maxFeatures: kqcDialog.form.maxFeatures,
         perStation: kqcDialog.form.perStation,
@@ -2355,7 +2531,7 @@ function acceptKqcTask(payload) {
   if (kqcDialog.taskId && !KQC_DONE_STATUSES.includes(kqcDialog.status)) {
     startKqcPolling(kqcDialog.taskId)
   }
-  scheduleKqcGraphRender()
+  scheduleKqcRankingRender()
 }
 
 async function submitProcessAnomaly() {
@@ -2368,14 +2544,8 @@ async function submitProcessAnomaly() {
     ElMessage.warning('检测对象不能为空')
     return
   }
-  if (numNodeType(node) !== 'part_template') {
-    ElMessage.warning('工序异常检测请右键选择零件节点')
-    return
-  }
-  const trainNumericPath = cleanLocalPath(detectDialog.form.trainNumericPath)
-  detectDialog.form.trainNumericPath = trainNumericPath
-  if (detectDialog.form.enabled && !trainNumericPath) {
-    ElMessage.warning('请填写 Bosch train_numeric.csv 路径')
+  if (detectDialog.form.enabled && !detectTrainSampleIds.value.length) {
+    ElMessage.warning('请选择工序异常检测数据文件')
     return
   }
   if (!detectDialog.form.enabled && !detectTrainSampleIds.value.length) {
@@ -2395,14 +2565,21 @@ async function submitProcessAnomaly() {
   detectDialog.error = ''
   detectDialog.result = {}
   try {
-    const partId = rawNodeId(node.id)
+    const nodeType = numNodeType(node)
+    const selectedObjectId = rawNodeId(node.id)
+    const partId = nodeType === 'part_template' ? selectedObjectId : ''
+    const hierarchyIds = sampleObjectQuery(node) || {}
     const station = cleanLocalPath(detectDialog.form.station)
     detectDialog.form.station = station
-    const processId = station || `process:${partId}`
+    const processId = station || `process:${selectedObjectId}`
     const payload = {
       partId,
-      partCode: node.part_number || node.code || partId,
-      partName: node.name || node.part_name || partId,
+      partCode: partId ? (node.part_number || node.code || partId) : '',
+      partName: partId ? (node.name || node.part_name || partId) : '',
+      ...hierarchyIds,
+      targetType: nodeType || 'object',
+      targetId: selectedObjectId,
+      targetName: node.name || node.code || selectedObjectId,
       pathText: currentPathText.value,
       processId,
       processName: station || '工序异常检测',
@@ -2412,7 +2589,8 @@ async function submitProcessAnomaly() {
     }
     if (detectDialog.form.enabled) {
       Object.assign(payload, {
-        boschTrainNumericPath: trainNumericPath,
+        trainSampleIds: detectTrainSampleIds.value,
+        sampleIds: detectTrainSampleIds.value,
         station,
         featureColName: detectDialog.form.featureColName,
         maxRows: detectDialog.form.maxRows,
@@ -2565,14 +2743,10 @@ function closeDetectDialog() {
 async function loadDetectSamples() {
   detectFileQuery.loading = true
   try {
-    const res = await listAllDataFiles({
-      dataUsage: 'PROCESS_ANOMALY',
-      keyword: detectFileQuery.keyword,
-      pageNum: detectFileQuery.pageNum,
-      pageSize: detectFileQuery.pageSize
-    })
-    detectFileQuery.samples = Array.isArray(res?.rows) ? res.rows : []
-    detectFileQuery.total = Number(res?.total || 0)
+    const rows = await loadObjectSamples(detectDialog.node, DETECT_FILE_DATA_USAGES, detectFileQuery.keyword)
+    const start = (detectFileQuery.pageNum - 1) * detectFileQuery.pageSize
+    detectFileQuery.samples = rows.slice(start, start + detectFileQuery.pageSize)
+    detectFileQuery.total = rows.length
   } catch (e) {
     detectFileQuery.samples = []
     detectFileQuery.total = 0
@@ -2582,13 +2756,74 @@ async function loadDetectSamples() {
   }
 }
 
+async function loadObjectSamples(node, dataUsages, keyword) {
+  const objectQuery = sampleObjectQuery(node)
+  if (objectQuery === null) return []
+  const results = await Promise.all(dataUsages.map(dataUsage => listAllDataFiles({
+    dataUsage,
+    keyword,
+    ...objectQuery,
+    pageNum: 1,
+    pageSize: 5000
+  })))
+  const uniqueRows = new Map()
+  results.flatMap(res => Array.isArray(res?.rows) ? res.rows : []).forEach(row => {
+    if (row && row.id !== undefined && row.id !== null) {
+      uniqueRows.set(row.id, row)
+    }
+  })
+  return Array.from(uniqueRows.values())
+}
+
+function sampleObjectQuery(node) {
+  if (!node?.id) return null
+  const path = findNodePath(treeData.value, node.id)
+  if (!path.length) return null
+  const query = { aircraftId: '', subsystemId: '', equipmentId: '', componentId: '', partId: '' }
+  path.forEach(item => {
+    const rawId = rawNodeId(item.id)
+    const type = numNodeType(item)
+    if (type === 'aircraft') query.aircraftId = rawId
+    if (type === 'subsystem') query.subsystemId = rawId
+    if (type === 'equipment') query.equipmentId = rawId
+    if (type === 'component') query.componentId = rawId
+    if (type === 'part_template') query.partId = rawId
+  })
+  return query
+}
+
+async function loadKqcSamples() {
+  kqcFileQuery.loading = true
+  try {
+    const rows = await loadObjectSamples(kqcDialog.node, KQC_FILE_DATA_USAGES, kqcFileQuery.keyword)
+    const start = (kqcFileQuery.pageNum - 1) * kqcFileQuery.pageSize
+    kqcFileQuery.samples = rows.slice(start, start + kqcFileQuery.pageSize)
+    kqcFileQuery.total = rows.length
+  } catch (e) {
+    kqcFileQuery.samples = []
+    kqcFileQuery.total = 0
+    ElMessage.error(getErrorMessage(e, '数据文件加载失败'))
+  } finally {
+    kqcFileQuery.loading = false
+  }
+}
+
 function onDetectSampleSelection(rows) {
   detectSelectedSamples.value = Array.isArray(rows) ? rows : []
+}
+
+function onKqcSampleSelection(rows) {
+  kqcSelectedSamples.value = Array.isArray(rows) ? rows : []
 }
 
 function clearDetectSamples() {
   detectSelectedSamples.value = []
   detectSampleTableRef.value?.clearSelection?.()
+}
+
+function clearKqcSamples() {
+  kqcSelectedSamples.value = []
+  kqcSampleTableRef.value?.clearSelection?.()
 }
 
 async function onDetectFileChange(file) {
@@ -2731,10 +2966,6 @@ async function submitKeyProcess() {
   const node = keyDialog.node
   if (!node?.id) {
     ElMessage.warning('识别对象不能为空')
-    return
-  }
-  if (numNodeType(node) === 'aircraft') {
-    ElMessage.warning('飞机不能直接作为关键工序识别目标，请选择分系统、设备、组件或零件')
     return
   }
   if (keyDialog.form.enabled && !keyDialog.form.kqcTaskId && !keyDialog.form.kqcOutputDir) {
@@ -2922,19 +3153,7 @@ function closeKeyDialog() {
 async function loadKeySamples() {
   keyFileQuery.loading = true
   try {
-    const results = await Promise.all(KEY_FILE_DATA_USAGES.map(dataUsage => listAllDataFiles({
-      dataUsage,
-      keyword: keyFileQuery.keyword,
-      pageNum: 1,
-      pageSize: 5000
-    })))
-    const uniqueRows = new Map()
-    results.flatMap(res => Array.isArray(res?.rows) ? res.rows : []).forEach(row => {
-      if (row && row.id !== undefined && row.id !== null) {
-        uniqueRows.set(row.id, row)
-      }
-    })
-    const rows = Array.from(uniqueRows.values())
+    const rows = await loadObjectSamples(keyDialog.node, KEY_FILE_DATA_USAGES, keyFileQuery.keyword)
     const start = (keyFileQuery.pageNum - 1) * keyFileQuery.pageSize
     keyFileQuery.samples = rows.slice(start, start + keyFileQuery.pageSize)
     keyFileQuery.total = rows.length
@@ -2991,6 +3210,225 @@ function pickValue(source, keys) {
   return undefined
 }
 
+function resetLifecycleResultState(state) {
+  state.loading = false
+  ;[...state.manufacturing, ...state.service].forEach(section => {
+    section.rows = []
+  })
+}
+
+function setLifecycleSectionRows(state, key, rows) {
+  const section = [...state.manufacturing, ...state.service].find(item => item.key === key)
+  if (section) section.rows = rows
+}
+
+function rowTaskId(row) {
+  return row?.taskId || row?.task_id || ''
+}
+
+function rowStatus(row) {
+  return row?.status || row?.taskStatus || row?.task_status || ''
+}
+
+function rowResult(row) {
+  const result = row?.result && typeof row.result === 'object' ? row.result : row || {}
+  return result?.result && typeof result.result === 'object' ? result.result : result
+}
+
+function pickAlgorithmValue(row, keys) {
+  const sources = [rowResult(row), row, row?.summary && typeof row.summary === 'object' ? row.summary : {}]
+  for (const source of sources) {
+    const value = pickValue(source, keys)
+    if (value !== undefined && value !== null && value !== '') return value
+  }
+  return undefined
+}
+
+function algorithmNumberText(value, digits = 3) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number.toFixed(digits) : value
+}
+
+function normalizeAdvice(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).join('；')
+  return value
+}
+
+function buildTargetKeywords(target = {}) {
+  const values = [
+    target.id,
+    target.rawId,
+    target.name,
+    target.part_template_id,
+    target.part_number,
+    target.part_name,
+    target.part_instance_id,
+    target.part_code,
+    target.serial_number,
+    target.batch_number
+  ]
+    .map(item => String(item || '').replace(/^part_template:/, '').trim())
+    .filter(Boolean)
+  const expanded = []
+  values.forEach(value => {
+    expanded.push(value)
+    if (!value.includes(':') && target.type) expanded.push(`${target.type}:${value}`)
+  })
+  return Array.from(new Set(expanded))
+}
+
+function rowSearchText(row) {
+  const pieces = [
+    rowTaskId(row),
+    row?.targetId,
+    row?.target_id,
+    row?.targetName,
+    row?.target_name,
+    row?.bizName,
+    row?.biz_name,
+    row?.summary,
+    row?.resultValue,
+    row?.result_value,
+    row?.request,
+    row?.requestJson,
+    row?.request_json,
+    row?.result
+  ]
+  return pieces.map(item => {
+    if (item === undefined || item === null) return ''
+    return typeof item === 'object' ? JSON.stringify(item) : String(item)
+  }).join(' ').toLowerCase()
+}
+
+function filterLifecycleRows(rows, keywords) {
+  const list = Array.isArray(rows) ? rows : []
+  const words = (Array.isArray(keywords) ? keywords : []).map(item => String(item).toLowerCase()).filter(Boolean)
+  if (!words.length) return list.slice(0, 3)
+  const matched = list.filter(row => {
+    const text = rowSearchText(row)
+    return words.some(word => text.includes(word))
+  })
+  return (matched.length ? matched : list).slice(0, 3)
+}
+
+function kqcLifecycleRows(rows) {
+  return rows.map((row, index) => {
+    const result = rowResult(row)
+    const influences = Array.isArray(result.topInfluences || result.top_influences) ? (result.topInfluences || result.top_influences) : []
+    const top = influences[0] || {}
+    return {
+      key: `kqc-${rowTaskId(row) || index}`,
+      taskId: rowTaskId(row),
+      status: rowStatus(row),
+      fields: [
+        { label: '挖掘对象', value: row.targetName || row.target_name || row.bizName || row.biz_name },
+        { label: '特征数量', value: row.kqcCount || row.kqc_count || influences.length },
+        { label: 'Top特征', value: top.source_variable || top.feature || top.name },
+        { label: '工序', value: top.station || top.process || top.processName },
+        { label: '影响权重', value: algorithmNumberText(top.weight, 6) },
+        { label: '建议', value: normalizeAdvice(pickAlgorithmValue(row, ['suggestion', 'advice', 'recommendation'])), span: 2 }
+      ]
+    }
+  })
+}
+
+function keyProcessLifecycleRows(rows) {
+  return rows.map((row, index) => ({
+    key: `key-${rowTaskId(row) || index}`,
+    taskId: rowTaskId(row),
+    status: rowStatus(row),
+    fields: [
+      { label: '识别对象', value: row.targetName || row.target_name || row.bizName || row.biz_name },
+      { label: '关键工序', value: pickAlgorithmValue(row, ['keyProcessName', 'key_process_name', 'processName', 'process_name']) },
+      { label: '工序编码', value: pickAlgorithmValue(row, ['keyProcessCode', 'key_process_code', 'processCode', 'process_code']) },
+      { label: '分数', value: algorithmNumberText(pickAlgorithmValue(row, ['score', 'confidence']), 4) },
+      { label: '原因', value: translateKeyProcessText(pickAlgorithmValue(row, ['reason'])), span: 2 },
+      { label: '建议', value: translateKeyProcessText(pickAlgorithmValue(row, ['suggestion'])), span: 2 }
+    ]
+  }))
+}
+
+function anomalyLifecycleRows(rows) {
+  return rows.map((row, index) => ({
+    key: `detect-${rowTaskId(row) || index}`,
+    taskId: rowTaskId(row),
+    status: rowStatus(row),
+    fields: [
+      { label: '检测对象', value: row.targetName || row.target_name || row.bizName || row.biz_name },
+      { label: '是否异常', value: pickAlgorithmValue(row, ['isAbnormal', 'is_abnormal']) },
+      { label: '异常分数', value: algorithmNumberText(pickAlgorithmValue(row, ['abnormalScore', 'abnormal_score']), 4) },
+      { label: '异常时间', value: pickAlgorithmValue(row, ['abnormalTime', 'abnormal_time']) },
+      { label: '建议', value: translateDetectText(pickAlgorithmValue(row, ['suggestion'])), span: 2 }
+    ]
+  }))
+}
+
+function earlyFaultLifecycleRows(rows) {
+  return rows.map((row, index) => ({
+    key: `early-${rowTaskId(row) || index}`,
+    taskId: rowTaskId(row),
+    status: rowStatus(row),
+    fields: [
+      { label: '识别对象', value: row.targetName || row.target_name || row.bizName || row.biz_name },
+      { label: '早期故障点', value: pickAlgorithmValue(row, ['earlyDegradationPoint', 'early_degradation_point', 'earlyDegradationTime', 'early_degradation_time', 'degradationPoint', 'degradation_point']) },
+      { label: '单位', value: pickAlgorithmValue(row, ['degradationPointUnit', 'degradation_point_unit', 'unit']) },
+      { label: '检测时间', value: pickAlgorithmValue(row, ['detectTime', 'detect_time', 'detectionTime', 'detection_time']) },
+      { label: '结果摘要', value: row.summary || row.resultValue || row.result_value, span: 2 }
+    ]
+  }))
+}
+
+function faultPredictionLifecycleRows(rows) {
+  return rows.map((row, index) => ({
+    key: `predict-${rowTaskId(row) || index}`,
+    taskId: rowTaskId(row),
+    status: rowStatus(row),
+    fields: [
+      { label: '预测对象', value: row.targetName || row.target_name || row.bizName || row.biz_name },
+      { label: '风险评估', value: pickAlgorithmValue(row, ['riskLevel', 'risk_level', 'riskLevelCode', 'risk_level_code']) },
+      { label: '风险评分', value: algorithmNumberText(pickAlgorithmValue(row, ['riskScore', 'risk_score', 'score']), 2) },
+      { label: '剩余寿命', value: algorithmNumberText(pickAlgorithmValue(row, ['predictedRemainingLife', 'predicted_remaining_life', 'remainingLife', 'remaining_life', 'remainingTime', 'remaining_time']), 2) },
+      { label: '建议信息', value: normalizeAdvice(pickAlgorithmValue(row, ['maintenanceAdvice', 'maintenance_advice', 'suggestions', 'advice'])), span: 2 }
+    ]
+  }))
+}
+
+async function fetchLifecycleRows(url, params = {}) {
+  const response = await request({
+    url,
+    method: 'get',
+    params
+  })
+  const data = getKqcPayload(response)
+  return Array.isArray(data.rows) ? data.rows : (Array.isArray(data) ? data : [])
+}
+
+async function loadLifecycleResults(state, target = {}) {
+  resetLifecycleResultState(state)
+  state.loading = true
+  const keywords = buildTargetKeywords(target)
+  const keyword = keywords[0] || ''
+  const baseQuery = { keyword, page_num: 1, page_size: 20 }
+  const serviceQuery = { page_num: 1, page_size: 1000 }
+  const requests = [
+    ['kqc', '/feedback/warning/kqc-mining/results', baseQuery, kqcLifecycleRows],
+    ['keyProcess', '/service/identify/key_process_results', baseQuery, keyProcessLifecycleRows],
+    ['processAnomaly', '/feedback/warning/detect/results', baseQuery, anomalyLifecycleRows],
+    ['earlyFault', '/service/identify/results', { ...serviceQuery, task_type: 'EARLY_DEGRADATION_POINT_DETECT' }, earlyFaultLifecycleRows],
+    ['faultPrediction', '/service/identify/results', { ...serviceQuery, task_type: 'FAULT_PREDICT' }, faultPredictionLifecycleRows]
+  ]
+  try {
+    const settled = await Promise.allSettled(requests.map(([, url, params]) => fetchLifecycleRows(url, params)))
+    settled.forEach((item, index) => {
+      if (item.status !== 'fulfilled') return
+      const [key, , , formatter] = requests[index]
+      setLifecycleSectionRows(state, key, formatter(filterLifecycleRows(item.value, keywords)))
+    })
+  } finally {
+    state.loading = false
+  }
+}
+
 function getErrorMessage(error, fallback) {
   return error?.response?.data?.msg || error?.response?.data?.message || error?.message || fallback
 }
@@ -2999,8 +3437,93 @@ function scheduleKqcGraphRender() {
   nextTick(() => renderKqcGraph())
 }
 
+function scheduleKqcRankingRender() {
+  nextTick(() => renderKqcRankingChart())
+}
+
+function formatKqcMetric(value, precision) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number.toFixed(precision) : '--'
+}
+
+function renderKqcRankingChart() {
+  if (!kqcDialog.visible || !kqcRankingChartRef.value) return
+  if (kqcRankingChart && kqcRankingChart.getDom() !== kqcRankingChartRef.value) {
+    kqcRankingChart.dispose()
+    kqcRankingChart = null
+  }
+  if (!kqcRankingChart) {
+    kqcRankingChart = echarts.init(kqcRankingChartRef.value)
+  }
+  const rows = kqcRankedRows.value.slice(0, 15).reverse()
+  if (!rows.length) {
+    kqcRankingChart.setOption({
+      title: { text: '暂无排名数据', left: 'center', top: 'center', textStyle: { color: '#8a97a8', fontSize: 14, fontWeight: 400 } },
+      xAxis: { show: false },
+      yAxis: { show: false },
+      series: []
+    }, true)
+    return
+  }
+  kqcRankingChart.setOption({
+    grid: { left: 110, right: 28, top: 24, bottom: 42 },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      formatter(params) {
+        const point = params?.[0]
+        const row = rows[point?.dataIndex]
+        if (!row) return ''
+        return `${row.source_variable}<br/>工序：${row.station || '--'}<br/>影响权重：${formatKqcMetric(row.weight, 6)}<br/>稳定频率：${formatKqcMetric(row.frequency, 3)}`
+      }
+    },
+    xAxis: {
+      type: 'value',
+      name: '影响权重',
+      nameLocation: 'middle',
+      nameGap: 28,
+      axisLabel: { formatter: value => Number(value).toExponential(1) },
+      splitLine: { lineStyle: { color: '#edf1f5' } }
+    },
+    yAxis: {
+      type: 'category',
+      data: rows.map(row => row.source_variable),
+      axisLabel: { width: 96, overflow: 'truncate' }
+    },
+    series: [{
+      type: 'bar',
+      barMaxWidth: 22,
+      data: rows.map(row => ({
+        value: row.weight,
+        itemStyle: { color: row.weight >= 0 ? '#e56a67' : '#4c8fdc' }
+      })),
+      label: {
+        show: true,
+        position: 'right',
+        formatter: params => Number(params.value).toExponential(2),
+        color: '#526273',
+        fontSize: 10
+      }
+    }]
+  }, true)
+  kqcRankingChart.resize()
+}
+
+function openKqcGraphDialog() {
+  if (!kqcGraphData.value.nodes?.length) {
+    ElMessage.warning('暂无关系图数据')
+    return
+  }
+  kqcGraphDialog.visible = true
+}
+
+function closeKqcDialog() {
+  clearKqcPolling()
+  kqcGraphDialog.visible = false
+}
+
 function renderKqcGraph() {
-  if (!kqcDialog.visible || !kqcGraphRef.value) return
+  if (!kqcGraphDialog.visible || !kqcGraphRef.value) return
   if (kqcGraphChart && kqcGraphChart.getDom() !== kqcGraphRef.value) {
     kqcGraphChart.dispose()
     kqcGraphChart = null
@@ -3055,6 +3578,7 @@ function renderKqcGraph() {
 }
 
 function resizeKqcGraph() {
+  kqcRankingChart?.resize()
   kqcGraphChart?.resize()
 }
 
@@ -3122,7 +3646,8 @@ function viewKqcHistory(row) {
   kqcDialog.status = row.status || ''
   kqcDialog.error = formatKqcError(row.errorMessage || row.error_message || '')
   kqcDialog.result = row.result && typeof row.result === 'object' ? row.result : {}
-  scheduleKqcGraphRender()
+  kqcGraphDialog.visible = false
+  scheduleKqcRankingRender()
 }
 
 async function deleteKqcHistory(row) {
@@ -3188,6 +3713,7 @@ async function queryKqcStatus(taskId, token = kqcPollToken) {
     const result = getKqcResult(data.result)
     if (Object.keys(result).length) {
       kqcDialog.result = result
+      scheduleKqcRankingRender()
     }
     if (KQC_DONE_STATUSES.includes(kqcDialog.status)) {
       clearKqcPolling()
@@ -3268,9 +3794,20 @@ async function openPartQualityDialog(row) {
   partQualityDialog.part_name = row.part_name || ''
   partQualityDialog.part_code = row.part_code || ''
   partQualityDialog.tables = []
+  resetLifecycleResultState(partQualityDialog.lifecycle)
 
   try {
-    const res = await fetchPartQualityTables(row.part_instance_id)
+    const [qualityResult] = await Promise.all([
+      fetchPartQualityTables(row.part_instance_id),
+      loadLifecycleResults(partQualityDialog.lifecycle, {
+        ...row,
+        id: row.part_instance_id,
+        name: row.part_name || row.part_code || row.part_instance_id,
+        rawId: row.part_instance_id,
+        type: 'part_instance'
+      })
+    ])
+    const res = qualityResult
     partQualityDialog.tables = normalizePartQualityTables(res)
   } catch {
     partQualityDialog.tables = []
@@ -3694,7 +4231,7 @@ function onNumPurposeChange() {
 function hasNumObjSel() {
   const form = numObjDlg.form
   if (isProcAnom.value) {
-    return !!form.partId
+    return !!(form.aircraftId || form.subsystemId || form.equipmentId || form.componentId || form.partId)
   }
   return !!(form.subsystemId || form.equipmentId || form.componentId)
 }
@@ -4289,10 +4826,15 @@ function dataUsageText(value) {
     FAULT_IDENTIFY: '服役周期',
     MANUFACTURE_COMMON: '制造周期通用',
     PROCESS_ANOMALY: '工序异常检测',
+    KQC_MINING: '关键质量特性挖掘',
     KEY_PROCESS: '关键工序识别',
     COMMON: '常用'
   }
   return map[value] || value || '-'
+}
+
+function isManufacturingDataUsage(value) {
+  return MANUFACTURING_DATA_USAGES.includes(value)
 }
 
 function fileSizeText(size) {
@@ -4305,6 +4847,25 @@ function fileSizeText(size) {
 
 function val(value) {
   return value === undefined || value === null || value === '' ? '--' : value
+}
+
+async function changeDataFileUsage(row, dataUsage) {
+  if (!row?.id || row.dataUsage === dataUsage) return
+  const oldUsage = row.dataUsage
+  row.usageUpdating = true
+  try {
+    await updateDataFileUsage(row.id, dataUsage)
+    row.dataUsage = dataUsage
+    dataFileDialog.selectedRows.forEach(item => {
+      if (item.id === row.id) item.dataUsage = dataUsage
+    })
+    ElMessage.success('数据用途已更新')
+  } catch (e) {
+    row.dataUsage = oldUsage
+    ElMessage.error(e?.response?.data?.msg || e?.message || '数据用途更新失败')
+  } finally {
+    row.usageUpdating = false
+  }
 }
 
 async function openDataFileDialog() {
@@ -4471,7 +5032,10 @@ async function removeSelectedDataFiles() {
   }
 }
 
-watch([() => kqcDialog.visible, kqcGraphData], scheduleKqcGraphRender)
+watch([() => kqcDialog.visible, kqcRankedRows], scheduleKqcRankingRender)
+watch([() => kqcGraphDialog.visible, kqcGraphData], () => {
+  if (kqcGraphDialog.visible) scheduleKqcGraphRender()
+})
 watch([() => detectDialog.visible, detectCurveRows], scheduleAnomalyChartRender)
 
 watch(
@@ -4514,6 +5078,8 @@ onBeforeUnmount(() => {
   keyRunning.value = false
   window.removeEventListener('resize', resizeKqcGraph)
   window.removeEventListener('resize', resizeAnomalyChart)
+  kqcRankingChart?.dispose()
+  kqcRankingChart = null
   kqcGraphChart?.dispose()
   kqcGraphChart = null
   anomalyChart?.dispose()
@@ -4639,6 +5205,34 @@ onBeforeUnmount(() => {
   max-width: 320px;
 }
 
+.dialog-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #f7fbff;
+}
+
+.dialog-action-hint {
+  color: #607081;
+  font-size: 13px;
+}
+
+.dialog-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dialog-action-buttons .el-button {
+  margin-left: 0;
+}
+
 .detect-data-section {
   margin-top: 14px;
   padding: 14px;
@@ -4726,13 +5320,22 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 
+.kqc-result-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.9fr) minmax(560px, 1.4fr);
+  gap: 16px;
+}
+
+.kqc-chart-panel,
+.kqc-table-panel,
 .kqc-graph-panel {
-  margin-bottom: 16px;
   border: 1px solid #dbe4ee;
   border-radius: 8px;
   background: #fbfdff;
+  overflow: hidden;
 }
 
+.kqc-panel-title,
 .kqc-graph-title {
   padding: 10px 12px;
   border-bottom: 1px solid #e3ebf4;
@@ -4740,9 +5343,20 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 
-.kqc-graph {
+.kqc-ranking-chart {
   width: 100%;
   height: 320px;
+}
+
+.kqc-graph {
+  width: 100%;
+  height: 560px;
+}
+
+@media (max-width: 1100px) {
+  .kqc-result-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 
@@ -5222,6 +5836,54 @@ onBeforeUnmount(() => {
 .quality-detail-wrap {
   max-height: 560px;
   overflow: auto;
+}
+
+.lifecycle-result-wrap {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5edf6;
+}
+
+.algorithm-section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.algorithm-result-section {
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #fbfdff;
+}
+
+.algorithm-section-title {
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+
+.algorithm-result-card {
+  padding: 10px;
+  border: 1px solid #e3ebf4;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.algorithm-result-card + .algorithm-result-card {
+  margin-top: 10px;
+}
+
+.algorithm-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: #304156;
+  font-weight: 600;
 }
 
 

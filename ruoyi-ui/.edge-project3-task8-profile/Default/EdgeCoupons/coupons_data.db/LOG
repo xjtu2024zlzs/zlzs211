@@ -1,0 +1,5 @@
+2026/06/01-16:19:25.993 63b8 Creating DB D:\重点研发质量追溯\zlzs211\ruoyi-ui\.edge-project3-task8-profile\Default\EdgeCoupons/coupons_data.db since it was missing.
+2026/06/01-16:19:26.023 63b8 Reusing MANIFEST D:\重点研发质量追溯\zlzs211\ruoyi-ui\.edge-project3-task8-profile\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/06/01-16:21:33.112 5454 Level-0 table #5: started
+2026/06/01-16:21:33.118 5454 Level-0 table #5: 682654 bytes OK
+2026/06/01-16:21:33.123 5454 Delete type=0 #3

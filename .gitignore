@@ -54,6 +54,8 @@ tmp_*
 !*/build/*.html
 !*/build/*.xml
 
+ruoyi-ui/.edge-project3-task8-profile/unpacked/
+
 # 项目特定忽略规则
 ruoyi-ui/.edge-project3-task8-profile/
 
