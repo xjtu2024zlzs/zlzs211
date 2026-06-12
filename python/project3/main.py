@@ -691,6 +691,7 @@ def prevention_analyze(request: FaultPreventionRequest):
             risk_threshold=request.riskThreshold,
             rul_unit=request.rulUnit,
             feature_name=request.featureName,
+            prediction_horizon=request.predictionHorizon,
         )
     except Exception as exc:
         return {

@@ -15,8 +15,8 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 import numpy as np
 
 
-DEFAULT_ORIGINAL_SCRIPT = Path(r"D:\重点研发质量追溯\早期故障识别\early warning.py")
-DEFAULT_DATA_DIR = Path(r"D:\重点研发质量追溯\早期故障识别\PHMDC2019_Data")
+DEFAULT_ORIGINAL_SCRIPT = Path(r"D:\2.11\RuoYi-Cloud-master\python\project3\algorithms\early warning.py")
+DEFAULT_DATA_DIR = Path(r"D:\2.11\data\topic3")
 
 _ORIGINAL_MODULE: Optional[Any] = None
 
@@ -62,7 +62,7 @@ def predict_frame_beam_crack(payload: Dict[str, Any], task_id: Optional[str] = N
     ).to(device)
     output_root = Path(os.getenv(
         "FRAME_BEAM_RESULT_ROOT",
-        r"F:\TotalData\FaultIdentifyData\AlgorithmData\frame-beam-crack",
+        r"D:\2.11\data\topic3\frame-beam-crack",
     ))
     save_dir = output_root / task_id
     save_dir.mkdir(parents=True, exist_ok=True)

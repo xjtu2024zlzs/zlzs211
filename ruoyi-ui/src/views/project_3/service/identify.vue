@@ -249,7 +249,7 @@
 
         <div class="prevention-panel">
           <div class="card-header-row">
-            <span class="chart-title">故障预防 / 剩余寿命预测 / 维护建议</span>
+            <span class="chart-title">故障预防</span>
             <el-button
               type="warning"
               class="orange-btn"
@@ -1508,8 +1508,8 @@ function build_degradation_rows(value) {
   const methodNames = {
     kurtosis_3sigma: '峰度+3σ准则',
     kurtosis: '峰度+3σ准则',
-    rms_trend: 'RMS瓒嬪娍',
-    rms: 'RMS瓒嬪娍'
+    rms_trend: 'RMS趋势',
+    rms: 'RMS趋势'
   }
   return Object.entries(results).map(([key, item]) => {
     const row = item && typeof item === 'object' ? item : {}

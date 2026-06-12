@@ -1001,8 +1001,8 @@ function build_degradation_rows(value) {
   const methodNames = {
     kurtosis_3sigma: '峰度+3σ准则',
     kurtosis: '峰度+3σ准则',
-    rms_trend: 'RMS瓒嬪娍',
-    rms: 'RMS瓒嬪娍'
+    rms_trend: 'RMS趋势',
+    rms: 'RMS趋势'
   }
   return Object.entries(results).map(([key, item]) => {
     const row = item && typeof item === 'object' ? item : {}
