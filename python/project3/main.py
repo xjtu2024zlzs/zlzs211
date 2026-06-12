@@ -29,7 +29,7 @@ from algorithms.bosch_services import (
 from task_manager import cancel_task, get_logs, get_result, get_status, submit_task
 
 
-STORAGE_ROOT = Path(os.getenv("ALGORITHM_STORAGE_ROOT", "F:/TotalData/FaultIdentifyData/AlgorithmData")).resolve()
+STORAGE_ROOT = Path(os.getenv("ALGORITHM_STORAGE_ROOT", "D:/2.11/data/topic3/result")).resolve()
 STORAGE_ROOT.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(

@@ -71,7 +71,7 @@ public class FrameBeamCrackIdentifyServiceImpl implements FrameBeamCrackIdentify
 
     private final TransactionTemplate tx;
 
-    @Value("${quality.fault-identify.source-root:F:/TotalData}")
+    @Value("${quality.fault-identify.source-root:D:/2.11/data/topic3}")
     private String sourceRoot;
 
     public FrameBeamCrackIdentifyServiceImpl(PlatformTransactionManager transactionManager)
