@@ -161,6 +161,98 @@ def _series_from_features(features: Sequence[Dict], feature_name: str) -> Dict:
     }
 
 
+def _linear_forecast(
+    times: Sequence[float],
+    values: Sequence[float],
+    prediction_horizon: float,
+    max_points: int = 200,
+) -> Dict:
+    if not times or not values or prediction_horizon <= 0:
+        return {"predictionTime": [], "predictedValues": []}
+
+    x = np.asarray(times, dtype=float)
+    y = np.asarray(values, dtype=float)
+    size = min(x.size, y.size)
+    x = x[:size]
+    y = y[:size]
+    valid = np.isfinite(x) & np.isfinite(y)
+    x = x[valid]
+    y = y[valid]
+    if x.size == 0:
+        return {"predictionTime": [], "predictedValues": []}
+
+    recent_count = min(20, x.size)
+    recent_x = x[-recent_count:]
+    recent_y = y[-recent_count:]
+    if recent_count >= 2 and np.ptp(recent_x) > 0:
+        slope, intercept = np.polyfit(recent_x, recent_y, 1)
+    else:
+        slope, intercept = 0.0, float(recent_y[-1])
+
+    positive_steps = np.diff(x)
+    positive_steps = positive_steps[positive_steps > 0]
+    step = float(np.median(positive_steps)) if positive_steps.size else 1.0
+    point_count = max(2, min(max_points, int(np.ceil(prediction_horizon / step))))
+    future_times = np.linspace(float(x[-1]) + step, float(x[-1]) + prediction_horizon, point_count)
+    forecast = np.maximum(0.0, slope * future_times + intercept)
+    return {
+        "predictionTime": future_times.tolist(),
+        "predictedValues": forecast.tolist(),
+    }
+
+
+def _downsample_signal(data: np.ndarray, sampling_frequency: int, max_points: int = 1200) -> Dict:
+    signal = np.asarray(data, dtype=float)
+    if signal.size == 0:
+        return {"time": [], "amplitude": []}
+    indexes = np.linspace(0, signal.size - 1, min(max_points, signal.size), dtype=int)
+    return {
+        "time": (indexes / float(sampling_frequency)).tolist(),
+        "amplitude": signal[indexes].tolist(),
+    }
+
+
+def _forecast_signal(
+    data: np.ndarray,
+    sampling_frequency: int,
+    prediction_horizon: float,
+    rms_times: Sequence[float],
+    rms_values: Sequence[float],
+    max_points: int = 600,
+) -> Dict:
+    signal = np.asarray(data, dtype=float)
+    if signal.size == 0 or prediction_horizon <= 0:
+        return {"predictionTime": [], "predictedValues": []}
+
+    point_count = max(2, min(max_points, int(np.ceil(prediction_horizon * 20))))
+    template_size = min(signal.size, max(64, min(2048, sampling_frequency)))
+    template = signal[-template_size:].copy()
+    template -= float(np.mean(template))
+    template_rms = float(np.sqrt(np.mean(template ** 2)))
+    if template_rms <= 0:
+        template_rms = 1.0
+
+    rms_forecast = _linear_forecast(rms_times, rms_values, prediction_horizon, max_points=point_count)
+    target_rms = np.asarray(rms_forecast["predictedValues"], dtype=float)
+    if target_rms.size != point_count:
+        base_rms = float(np.sqrt(np.mean(signal ** 2)))
+        target_rms = np.full(point_count, base_rms, dtype=float)
+
+    template_positions = np.linspace(0, template_size - 1, point_count)
+    waveform = np.interp(template_positions, np.arange(template_size), template)
+    predicted = waveform / template_rms * target_rms
+    start_time = signal.size / float(sampling_frequency)
+    future_times = np.linspace(
+        start_time + prediction_horizon / point_count,
+        start_time + prediction_horizon,
+        point_count,
+    )
+    return {
+        "predictionTime": future_times.tolist(),
+        "predictedValues": predicted.tolist(),
+    }
+
+
 def _load_features(feature_path: str | Path) -> Dict:
     with open(feature_path, "r", encoding="utf-8") as f:
         feature_result = json.load(f)
@@ -187,6 +279,7 @@ def run_fault_prevention(
     risk_threshold: float = 0.8,
     rul_unit: str = "second",
     feature_name: str = "rms",
+    prediction_horizon: float = 50,
 ) -> Dict:
     prevention_id = prevention_id or generate_prevention_id()
     degradation_time = degradation_time if degradation_time is not None else _read_detection_time(detection_path)
@@ -206,6 +299,7 @@ def run_fault_prevention(
         total_time = _feature_total_time(features)
         prediction_series = _series_from_features(features, feature_name)
         feature_set_id = feature_set_id or feature_result.get("featureSetId")
+        combined_data_path = combined_data_path or feature_result.get("combinedDataPath")
     else:
         if not combined_data_path:
             raise ValueError("missing featurePath or combinedDataPath")
@@ -217,6 +311,32 @@ def run_fault_prevention(
         before_stats = calculate_segment_statistics(data[:degradation_index])
         after_stats = calculate_segment_statistics(data[degradation_index:])
         prediction_series = {}
+
+    prediction_horizon = max(0.0, float(prediction_horizon or 0))
+    rms_prediction = _linear_forecast(
+        prediction_series.get("time", []),
+        prediction_series.get("rms", []),
+        prediction_horizon,
+    )
+    rms_trend_prediction = {
+        "time": prediction_series.get("time", []),
+        "rms": prediction_series.get("rms", []),
+        **rms_prediction,
+    }
+
+    vibration_signal_prediction = {}
+    if combined_data_path and Path(combined_data_path).exists():
+        vibration_data = load_data_combined(combined_data_path)
+        vibration_signal_prediction = {
+            **_downsample_signal(vibration_data, sampling_frequency),
+            **_forecast_signal(
+                vibration_data,
+                sampling_frequency,
+                prediction_horizon,
+                prediction_series.get("time", []),
+                prediction_series.get("rms", []),
+            ),
+        }
 
     risk = calculate_risk_score(before_stats, after_stats, risk_threshold=risk_threshold)
     predicted_lifetime = predict_remaining_life(
@@ -241,6 +361,7 @@ def run_fault_prevention(
         "datasetId": dataset_id,
         "featureSetId": feature_set_id,
         "featurePath": _norm_path(feature_path) if feature_path else None,
+        "combinedDataPath": _norm_path(combined_data_path) if combined_data_path else None,
         "detectionId": detection_id,
         "detectionPath": _norm_path(detection_path) if detection_path else None,
         "preventionPath": _norm_path(prevention_path),
@@ -264,6 +385,8 @@ def run_fault_prevention(
         "remainingLife": predicted_lifetime,
         "maintenanceAdvice": advice,
         "predictionSeries": prediction_series,
+        "rmsTrendPrediction": rms_trend_prediction,
+        "vibrationSignalPrediction": vibration_signal_prediction,
     }
 
     with open(prevention_path, "w", encoding="utf-8") as f:

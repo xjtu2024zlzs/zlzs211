@@ -15,7 +15,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 import numpy as np
 
 
-DEFAULT_ORIGINAL_SCRIPT = Path(r"D:\重点研发质量追溯\早期故障识别\early warning.py")
+DEFAULT_ORIGINAL_SCRIPT = Path(r"D:\重点研发质量追溯\zlzs211\python\project3\algorithms\early warning.py")
 DEFAULT_DATA_DIR = Path(r"D:\重点研发质量追溯\早期故障识别\PHMDC2019_Data")
 
 _ORIGINAL_MODULE: Optional[Any] = None

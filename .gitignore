@@ -46,3 +46,4 @@ nbdist/
 !*/build/*.xml
 
 ruoyi-ui/.edge-project3-task8-profile/unpacked/
+uploadPath/
