@@ -59,6 +59,20 @@ export function archiveDossierInstance(instanceId) {
   })
 }
 
+export function deleteDossierInstance(instanceId) {
+  return request({
+    url: '/project1/dossier/instance/' + instanceId,
+    method: 'delete'
+  })
+}
+
+export function deleteDossierVersion(instanceId, versionId) {
+  return request({
+    url: '/project1/dossier/instance/' + instanceId + '/versions/' + versionId,
+    method: 'delete'
+  })
+}
+
 export function exportDossierPdf(instanceId, query) {
   return exportDossier(instanceId, 'pdf', query)
 }

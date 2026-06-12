@@ -100,7 +100,7 @@
                     :data="versionRows(row)"
                     border
                     size="small"
-                    empty-text="暂无版本记录"
+                    empty-text="暂无历史版本"
                     class="version-table"
                   >
                     <el-table-column label="卷宗版本" prop="versionLabel" width="96" align="center">
@@ -131,9 +131,11 @@
                     </el-table-column>
                     <el-table-column label="生成时间" prop="createdAt" min-width="160" />
                     <el-table-column label="说明" prop="changeSummary" min-width="260" show-overflow-tooltip />
-                    <el-table-column label="操作" width="120" fixed="right">
+                    <el-table-column label="操作" width="220" fixed="right">
                       <template #default="{ row: version }">
                         <el-button link type="primary" @click.stop="goVersionDetail(row, version)">查看详情</el-button>
+                        <el-button v-if="canExportVersion(version)" link type="primary" :loading="isExporting(row, version)" @click.stop="openVersionExportDialog(row, version)">导出</el-button>
+                        <el-button v-if="canDeleteVersion(row, version)" link type="danger" @click.stop="handleVersionDelete(row, version)">删除</el-button>
                       </template>
                     </el-table-column>
                   </el-table>
@@ -154,21 +156,19 @@
             <el-table-column label="卷宗版本" prop="currentVersionLabel" width="94" align="center" />
             <el-table-column label="状态" prop="statusName" width="96" align="center">
               <template #default="{ row }">
-                <el-tag :type="statusType(row)" size="small">{{ row.statusName || statusLabel(row.instanceStatus) }}</el-tag>
+                <el-tag :type="statusType(row)" size="small">{{ displayStatusName(row) }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="页数" prop="pageCount" width="76" align="right" />
             <el-table-column label="文件" prop="fileCount" width="76" align="right" />
             <el-table-column label="数据记录" prop="dataRecordCount" width="92" align="right" />
             <el-table-column label="生成时间" prop="generateTime" min-width="160" sortable="custom" />
             <el-table-column label="操作" width="230" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" @click.stop="goDetail(row)">详情</el-button>
-                <el-button link type="primary" @click.stop="goGeneration(row)">新版本</el-button>
                 <el-button v-if="canPublish(row)" link type="primary" @click.stop="handlePublish(row)">发布</el-button>
                 <el-button v-if="canArchive(row)" link type="primary" @click.stop="handleArchive(row)">归档</el-button>
-                <el-button v-if="row.pdfFileName" link type="primary" @click.stop="showFile(row.pdfFileName)">PDF</el-button>
-                <el-button v-if="row.zipFileName" link type="primary" @click.stop="showFile(row.zipFileName)">ZIP</el-button>
+                <el-button v-if="canExport(row)" link type="primary" :loading="isExporting(row)" @click.stop="openExportDialog(row)">导出</el-button>
+                <el-button v-if="canDelete(row)" link type="danger" @click.stop="handleDelete(row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -183,6 +183,29 @@
       </section>
 
     </div>
+
+    <el-dialog v-model="exportDialogVisible" title="选择导出格式" width="520px" append-to-body>
+      <div class="export-format-list">
+        <button
+          v-for="item in exportFormats"
+          :key="item.type"
+          type="button"
+          :class="['export-format-item', { active: selectedExportFormat === item.type, disabled: !item.enabled }]"
+          :disabled="!item.enabled"
+          @click="selectExportFormat(item)"
+        >
+          <div>
+            <strong>{{ item.label }}</strong>
+            <span>{{ item.description }}</span>
+          </div>
+          <el-tag size="small" :type="item.enabled ? 'success' : 'info'">{{ item.enabled ? '可导出' : '暂未开放' }}</el-tag>
+        </button>
+      </div>
+      <template #footer>
+        <el-button @click="exportDialogVisible = false">取消</el-button>
+        <el-button type="primary" icon="Download" :loading="!!exportingKey" :disabled="!selectedExportFormat" @click="handleExportConfirm">导出</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -190,8 +213,12 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { saveAs } from 'file-saver'
 import {
   archiveDossierInstance,
+  deleteDossierInstance,
+  deleteDossierVersion,
+  exportDossier,
   getDossierInstanceSummary,
   listDossierInstanceVersions,
   listDossierInstances,
@@ -199,6 +226,7 @@ import {
 } from '@/api/project1/dossier/instance'
 import { listGenerationModels } from '@/api/project1/dossier/generation'
 import { listTemplate } from '@/api/project1/dossier/template'
+import { blobValidate } from '@/utils/ruoyi'
 
 const router = useRouter()
 const loading = ref(false)
@@ -212,6 +240,52 @@ const total = ref(0)
 const summary = ref({})
 const versionMap = reactive({})
 const versionLoadingMap = reactive({})
+const exportingKey = ref('')
+const exportDialogVisible = ref(false)
+const selectedExportFormat = ref('pdf')
+const exportTarget = ref({})
+
+const exportFormats = [
+  {
+    type: 'pdf',
+    label: 'PDF 文档',
+    description: '导出可阅读归档的卷宗主文档。',
+    extension: 'pdf',
+    fileKey: 'fileName',
+    mimeType: 'application/pdf',
+    enabled: true
+  },
+  {
+    type: 'zip',
+    label: 'ZIP 完整包',
+    description: '包含主文档、Excel清单、原始附件和机器可读数据。',
+    extension: 'zip',
+    fileKey: 'packageName',
+    mimeType: 'application/zip',
+    enabled: true
+  },
+  {
+    type: 'docx',
+    label: 'Word 文档',
+    description: '适合后续编辑和流转。',
+    extension: 'docx',
+    enabled: false
+  },
+  {
+    type: 'xlsx',
+    label: 'Excel 清单',
+    description: '适合导出目录、数据项和附件清单。',
+    extension: 'xlsx',
+    enabled: false
+  },
+  {
+    type: 'html',
+    label: 'HTML 网页',
+    description: '适合离线浏览和轻量分享。',
+    extension: 'html',
+    enabled: false
+  }
+]
 
 const queryParams = reactive({
   pageNum: 1,
@@ -348,12 +422,11 @@ function toggleTimeSort() {
 }
 
 function goTemplate() {
-  router.push('/dossier/manage/template')
+  router.push('/project1/dossier/manage/template')
 }
 
-function goGeneration(row) {
-  const query = row && row.aircraftId ? { aircraftId: row.aircraftId, templateId: row.templateId, instanceId: row.instanceId } : {}
-  router.push({ path: '/dossier/manage/generation', query })
+function goGeneration() {
+  router.push('/project1/dossier/manage/generation')
 }
 
 function goDetail(row) {
@@ -361,7 +434,7 @@ function goDetail(row) {
     return
   }
   router.push({
-    path: '/dossier/manage/detail',
+    path: '/project1/dossier/manage/detail',
     query: {
       instanceId: row.instanceId,
       versionId: row.currentVersionId
@@ -374,7 +447,7 @@ function goVersionDetail(instanceRow, versionRow) {
     return
   }
   router.push({
-    path: '/dossier/manage/detail',
+    path: '/project1/dossier/manage/detail',
     query: {
       instanceId: instanceRow.instanceId,
       versionId: versionRow.versionId
@@ -412,6 +485,101 @@ async function handleArchive(row) {
   getList()
 }
 
+async function handleDelete(row) {
+  await ElMessageBox.confirm(`确认删除 ${row.instanceCode}？删除后该卷宗将不再出现在实例列表中。`, '删除卷宗', {
+    type: 'warning',
+    confirmButtonText: '删除',
+    cancelButtonText: '取消'
+  })
+  await deleteDossierInstance(row.instanceId)
+  ElMessage.success('删除成功')
+  getList()
+}
+
+async function handleVersionDelete(instanceRow, versionRow) {
+  await ElMessageBox.confirm(
+    `确认删除 ${instanceRow.instanceCode} 的 ${versionRow.versionLabel || '该历史版本'}？删除后该版本将不再出现在版本历史中。`,
+    '删除卷宗版本',
+    {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    }
+  )
+  await deleteDossierVersion(instanceRow.instanceId, versionRow.versionId)
+  ElMessage.success('版本删除成功')
+  await loadVersions(instanceRow, true)
+}
+
+function openExportDialog(row) {
+  openExportPicker(row, {
+    versionId: row.currentVersionId,
+    versionLabel: row.currentVersionLabel,
+    output: {}
+  })
+}
+
+function openVersionExportDialog(instanceRow, versionRow) {
+  openExportPicker(instanceRow, versionRow)
+}
+
+function openExportPicker(row, version) {
+  if (!row || !row.instanceId || !version?.versionId) {
+    ElMessage.warning('当前卷宗还没有可导出的版本')
+    return
+  }
+  const firstEnabled = exportFormats.find(item => item.enabled)
+  selectedExportFormat.value = firstEnabled?.type || ''
+  exportTarget.value = {
+    row,
+    versionId: version.versionId,
+    versionLabel: version.versionLabel,
+    output: version.output || {}
+  }
+  exportDialogVisible.value = true
+}
+
+function selectExportFormat(item) {
+  if (!item.enabled) {
+    ElMessage.info(`${item.label}暂未开放`)
+    return
+  }
+  selectedExportFormat.value = item.type
+}
+
+async function handleExportConfirm() {
+  const option = exportFormats.find(item => item.type === selectedExportFormat.value)
+  if (!option || !option.enabled) {
+    ElMessage.warning('请选择可导出的格式')
+    return
+  }
+  await runExport(option)
+}
+
+async function runExport(option) {
+  const target = exportTarget.value || {}
+  const row = target.row
+  if (!row || !row.instanceId || !target.versionId) {
+    ElMessage.warning('当前卷宗还没有可导出的版本')
+    return
+  }
+  const key = `${exportScopeKey(row, { versionId: target.versionId })}:${option.type}`
+  exportingKey.value = key
+  try {
+    const data = await exportDossier(row.instanceId, option.type, { versionId: target.versionId })
+    const fileName = target.output[option.fileKey] || exportFileName(row, target.versionLabel, option.extension)
+    await saveExportBlob(data, fileName, option)
+    exportDialogVisible.value = false
+    ElMessage.success(`${option.label}导出完成`)
+  } catch (e) {
+    ElMessage.error(e?.message || '导出失败')
+  } finally {
+    if (exportingKey.value === key) {
+      exportingKey.value = ''
+    }
+  }
+}
+
 function canPublish(row) {
   return row.instanceStatus === 'ready' && row.generationJobStatus !== 'failed'
 }
@@ -420,15 +588,77 @@ function canArchive(row) {
   return ['ready', 'published'].includes(row.instanceStatus) && !['running', 'failed'].includes(row.generationJobStatus)
 }
 
-function showFile(fileName) {
-  ElMessage.info(fileName)
+function canDelete(row) {
+  return row && row.instanceId && !['queued', 'running'].includes(row.generationJobStatus) && row.instanceStatus !== 'building'
+}
+
+function canExport(row) {
+  return row && row.instanceId && row.currentVersionId && !['queued', 'running', 'failed'].includes(row.generationJobStatus)
+}
+
+function canExportVersion(version) {
+  return version && version.versionId && !['queued', 'running', 'failed'].includes(version.generationJobStatus)
+}
+
+function canDeleteVersion(instanceRow, version) {
+  if (!instanceRow || !version || !version.versionId) {
+    return false
+  }
+  if (Number(version.isCurrent) === 1 || version.versionId === instanceRow.currentVersionId) {
+    return false
+  }
+  if (version.publishedAt) {
+    return false
+  }
+  return !['queued', 'running'].includes(version.generationJobStatus)
+}
+
+function isExporting(row, version) {
+  return !!exportingKey.value && exportingKey.value.startsWith(`${exportScopeKey(row, version)}:`)
+}
+
+function exportScopeKey(row, version) {
+  const versionId = version?.versionId || row?.currentVersionId || 'current'
+  return `${row?.instanceId || ''}:${versionId}`
+}
+
+async function saveExportBlob(data, fileName, option) {
+  if (!blobValidate(data)) {
+    const message = await parseBlobError(data)
+    throw new Error(message)
+  }
+  const blob = data instanceof Blob ? data : new Blob([data], { type: option.mimeType })
+  saveAs(blob, fileName)
+}
+
+async function parseBlobError(data) {
+  try {
+    const text = await data.text()
+    const body = JSON.parse(text)
+    return body.msg || '导出失败'
+  } catch (e) {
+    return '导出失败'
+  }
+}
+
+function exportFileName(row, versionLabel, format) {
+  const code = safeFileName(row?.instanceCode || row?.tailNumber || 'dossier')
+  const version = safeFileName(versionLabel || row?.currentVersionLabel || 'current')
+  return `${code}_${version}.${format}`
+}
+
+function safeFileName(value) {
+  return String(value || '').replace(/[\\/:*?"<>|\s]+/g, '_') || 'dossier'
 }
 
 function versionRows(row) {
   if (!row || !row.instanceId) {
     return []
   }
-  return versionMap[row.instanceId] || []
+  const rows = versionMap[row.instanceId] || []
+  return rows.filter(version => {
+    return Number(version.isCurrent) !== 1 && version.versionId !== row.currentVersionId
+  })
 }
 
 function isVersionLoading(row) {
@@ -499,6 +729,16 @@ function statusLabel(status) {
   return '草稿'
 }
 
+function displayStatusName(row) {
+  const name = row?.statusName || ''
+  if (name && !name.includes('?') && !name.includes('�')) {
+    return name
+  }
+  if (row?.generationJobStatus === 'failed') return '生成失败'
+  if (['queued', 'running'].includes(row?.generationJobStatus)) return '生成中'
+  return statusLabel(row?.instanceStatus)
+}
+
 function numberText(value) {
   return value || 0
 }
@@ -549,6 +789,54 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.export-format-list {
+  display: grid;
+  gap: 10px;
+}
+
+.export-format-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+
+  strong,
+  span {
+    display: block;
+  }
+
+  strong {
+    color: #1f2937;
+    font-size: 14px;
+    font-weight: 650;
+  }
+
+  span {
+    margin-top: 4px;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  &.active {
+    border-color: #409eff;
+    background: #ecf5ff;
+  }
+
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+  }
 }
 
 .query-panel,

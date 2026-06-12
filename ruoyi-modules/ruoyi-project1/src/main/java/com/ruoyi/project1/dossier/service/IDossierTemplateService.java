@@ -23,6 +23,8 @@ public interface IDossierTemplateService
 
     public Map<String, Object> checkDossierTemplate(String id);
 
+    public Map<String, Object> selectDataSourceMetadata(String tableName);
+
     public int setDefaultTemplate(String id);
 
     public int updateTemplateStatus(String id, String status);

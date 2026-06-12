@@ -1,6 +1,7 @@
 package com.ruoyi.project1.dossier.controller;
 
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -89,6 +90,14 @@ public class DossierTemplateController extends BaseController
     public AjaxResult check(@PathVariable String id)
     {
         return success(templateService.checkDossierTemplate(id));
+    }
+
+    @RequiresPermissions("project1:dossier:template:query")
+    @GetMapping("/metadata/source")
+    public AjaxResult sourceMetadata(String tableName)
+    {
+        Map<String, Object> metadata = templateService.selectDataSourceMetadata(tableName);
+        return success(metadata);
     }
 
     @RequiresPermissions("project1:dossier:template:edit")

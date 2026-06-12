@@ -145,4 +145,29 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             updated_at = sysdate(6)
         where id = #{id}
     </update>
+
+    <select id="selectDataSourceTables" resultType="java.util.HashMap">
+        select table_name as tableName,
+               table_comment as tableComment,
+               table_type as tableType
+        from information_schema.tables
+        where table_schema = database()
+          and table_name in
+          <foreach collection="tableNames" item="tableName" open="(" separator="," close=")">
+              #{tableName}
+          </foreach>
+        order by table_name
+    </select>
+
+    <select id="selectDataSourceColumns" resultType="java.util.HashMap">
+        select column_name as columnName,
+               data_type as dataType,
+               column_comment as columnComment,
+               column_key as columnKey,
+               is_nullable as nullable
+        from information_schema.columns
+        where table_schema = database()
+          and table_name = #{tableName}
+        order by ordinal_position
+    </select>
 </mapper>

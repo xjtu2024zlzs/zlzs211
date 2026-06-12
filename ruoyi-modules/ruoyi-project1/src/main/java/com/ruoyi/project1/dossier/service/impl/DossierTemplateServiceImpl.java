@@ -1,6 +1,7 @@
 package com.ruoyi.project1.dossier.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -38,6 +39,21 @@ public class DossierTemplateServiceImpl implements IDossierTemplateService
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("^V?(\\d+)(?:\\.(\\d+))?$", Pattern.CASE_INSENSITIVE);
+
+    private static final List<String> DATA_SOURCE_TABLES = Arrays.asList(
+            "v_aircraft_profile_detail", "v_system_profile_detail", "v_subsystem_profile_detail",
+            "v_equipment_profile_detail", "v_component_profile_detail", "v_part_profile_detail",
+            "physical_aircraft", "aircraft_object_profile", "system_object_profile",
+            "subsystem_object_profile", "equipment_object_master", "equipment_object_instance",
+            "component_object_master", "component_object_instance", "part_master", "part_instance",
+            "aircraft_bom_node", "object_lifecycle_record", "object_technical_status",
+            "object_status_history", "object_interface", "life_usage_record", "work_order",
+            "work_order_task", "fault_event", "fault_action", "event_flight_leg", "inspection_record",
+            "inspection_measurement", "shop_order", "shop_order_task", "production_operation_record",
+            "material_lot_trace", "process_route", "assembly_record", "install_removal",
+            "quality_text_record", "part_hydraulic_tube_impact_model", "impact_tube_segment",
+            "impact_tube_support", "impact_tube_fluid", "impact_tube_boundary_condition",
+            "part_parameter_value", "t1_file_category", "t1_file_asset", "t1_file_relation");
 
     @Autowired
     private DossierTemplateMapper templateMapper;
@@ -295,6 +311,144 @@ public class DossierTemplateServiceImpl implements IDossierTemplateService
         result.put("warningCount", countIssues(issues, "warning"));
         result.put("issues", issues);
         return result;
+    }
+
+    @Override
+    public Map<String, Object> selectDataSourceMetadata(String tableName)
+    {
+        List<Map<String, Object>> tableRows = templateMapper.selectDataSourceTables(DATA_SOURCE_TABLES);
+        Map<String, Map<String, Object>> tableByName = new HashMap<>();
+        for (Map<String, Object> table : tableRows)
+        {
+            tableByName.put(text(table.get("tableName")).toLowerCase(), table);
+        }
+
+        List<Map<String, Object>> tables = new ArrayList<>();
+        for (String sourceTable : DATA_SOURCE_TABLES)
+        {
+            Map<String, Object> table = tableByName.get(sourceTable);
+            if (table == null)
+            {
+                continue;
+            }
+            table.put("sourceSystem", inferSourceSystem(sourceTable));
+            table.put("businessDomain", inferBusinessDomain(sourceTable));
+            tables.add(table);
+        }
+
+        String selectedTable = text(tableName).trim().toLowerCase();
+        List<Map<String, Object>> columns = new ArrayList<>();
+        if (DATA_SOURCE_TABLES.contains(selectedTable))
+        {
+            columns = templateMapper.selectDataSourceColumns(selectedTable);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("tables", tables);
+        result.put("columns", columns);
+        result.put("contextFields", contextFields());
+        return result;
+    }
+
+    private List<Map<String, Object>> contextFields()
+    {
+        List<Map<String, Object>> fields = new ArrayList<>();
+        fields.add(contextField("${aircraftId}", "当前飞机ID", "当前生成卷宗的飞机主键"));
+        fields.add(contextField("${bomNodeId}", "当前BOM节点ID", "当前目录下钻对应的BOM节点主键"));
+        fields.add(contextField("${nodeId}", "当前节点ID", "与BOM节点ID等价的兼容变量"));
+        fields.add(contextField("${partInstanceId}", "当前实物件ID", "当前节点关联的零件实物主键"));
+        fields.add(contextField("${partNumber}", "当前件号", "当前节点或实物件对应的零件件号"));
+        fields.add(contextField("${serialNumber}", "当前序列号", "当前实物件序列号"));
+        fields.add(contextField("${objectLevel}", "当前对象层级", "整机、系统、子系统、设备、组件或零件"));
+        fields.add(contextField("${templateId}", "当前模板ID", "卷宗模板主键"));
+        fields.add(contextField("${versionId}", "当前卷宗版本ID", "生成后的卷宗版本主键"));
+        return fields;
+    }
+
+    private Map<String, Object> contextField(String value, String label, String description)
+    {
+        Map<String, Object> field = new LinkedHashMap<>();
+        field.put("value", value);
+        field.put("label", label);
+        field.put("description", description);
+        return field;
+    }
+
+    private String inferSourceSystem(String tableName)
+    {
+        String table = defaultString(tableName, "").toLowerCase();
+        if (table.startsWith("v_") || table.startsWith("file_"))
+        {
+            return "DOSSIER";
+        }
+        if (table.startsWith("physical_") || "part_instance".equals(table))
+        {
+            return "PHYSICAL";
+        }
+        if (table.contains("shop") || table.contains("process") || table.contains("production")
+                || table.contains("material_lot") || table.contains("assembly"))
+        {
+            return "MES";
+        }
+        if (table.contains("inspection"))
+        {
+            return "QA";
+        }
+        if (table.contains("work_order") || table.contains("fault") || table.contains("life_usage"))
+        {
+            return "MRO";
+        }
+        if (table.contains("hydraulic") || table.contains("impact_tube") || table.contains("parameter"))
+        {
+            return "DESIGN";
+        }
+        if (table.contains("event_flight"))
+        {
+            return "OPS";
+        }
+        if (table.contains("bom") || table.startsWith("object_") || table.contains("install_removal"))
+        {
+            return "CONFIG";
+        }
+        return "PLM";
+    }
+
+    private String inferBusinessDomain(String tableName)
+    {
+        String sourceSystem = inferSourceSystem(tableName);
+        if ("DOSSIER".equals(sourceSystem))
+        {
+            return "卷宗/文件";
+        }
+        if ("PHYSICAL".equals(sourceSystem))
+        {
+            return "物理域";
+        }
+        if ("CONFIG".equals(sourceSystem))
+        {
+            return "构型域";
+        }
+        if ("DESIGN".equals(sourceSystem) || "PLM".equals(sourceSystem))
+        {
+            return "设计域";
+        }
+        if ("MES".equals(sourceSystem))
+        {
+            return "制造域";
+        }
+        if ("QA".equals(sourceSystem))
+        {
+            return "质量域";
+        }
+        if ("MRO".equals(sourceSystem))
+        {
+            return "运维域";
+        }
+        if ("OPS".equals(sourceSystem))
+        {
+            return "运行域";
+        }
+        return sourceSystem;
     }
 
     @Override
@@ -805,6 +959,11 @@ public class DossierTemplateServiceImpl implements IDossierTemplateService
     private String defaultString(String value, String defaultValue)
     {
         return hasText(value) ? value : defaultValue;
+    }
+
+    private String text(Object value)
+    {
+        return value == null ? "" : String.valueOf(value);
     }
 
     private Integer defaultInteger(Integer value, Integer defaultValue)

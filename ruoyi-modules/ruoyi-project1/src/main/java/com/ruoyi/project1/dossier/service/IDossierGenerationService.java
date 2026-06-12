@@ -11,7 +11,9 @@ public interface IDossierGenerationService
 
     public Map<String, Object> selectActiveTemplate();
 
-    public Map<String, Object> prepareGeneration(String aircraftId);
+    public List<Map<String, Object>> selectTemplateList();
+
+    public Map<String, Object> prepareGeneration(String aircraftId, String templateId);
 
     public Map<String, Object> precheck(Map<String, Object> request);
 
