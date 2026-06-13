@@ -1,21 +1,32 @@
 package com.ruoyi.project1.service.support;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ruoyi.common.core.exception.ServiceException;
 import com.ruoyi.common.core.utils.DateUtils;
+import com.ruoyi.project1.domain.AccessBatch;
+import com.ruoyi.project1.domain.AccessFieldResult;
 import com.ruoyi.project1.domain.AccessPlan;
 import com.ruoyi.project1.domain.AccessScopeField;
 import com.ruoyi.project1.domain.AccessScopeTable;
+import com.ruoyi.project1.domain.AccessTableResult;
 import com.ruoyi.project1.domain.ApiPullDatasource;
 import com.ruoyi.project1.domain.Datasource;
 import com.ruoyi.project1.domain.MappingSpec;
@@ -29,9 +40,12 @@ import com.ruoyi.project1.domain.MatchTaskVersion;
 import com.ruoyi.project1.domain.ReviewHistory;
 import com.ruoyi.project1.domain.ReviewedMatch;
 import com.ruoyi.project1.domain.TaskMetric;
+import com.ruoyi.project1.mapper.AccessBatchMapper;
+import com.ruoyi.project1.mapper.AccessFieldResultMapper;
 import com.ruoyi.project1.mapper.AccessPlanMapper;
 import com.ruoyi.project1.mapper.AccessScopeFieldMapper;
 import com.ruoyi.project1.mapper.AccessScopeTableMapper;
+import com.ruoyi.project1.mapper.AccessTableResultMapper;
 import com.ruoyi.project1.mapper.ApiPullDatasourceMapper;
 import com.ruoyi.project1.mapper.DatasourceMapper;
 import com.ruoyi.project1.mapper.MappingSpecMapper;
@@ -60,6 +74,8 @@ public class Project1PresetScenarioService
     public static final String GROUND_TRUTH_VARIANT = "preset";
 
     private static final String PRESET_DATASET_VERSION = "PRESET_DATASET_V2_FULL_GT";
+    private static final String ACCESS_MANAGED_MARKER = "[PROJECT1_MANAGED_ACCESS_V1]";
+    private static final String ACCESS_DATA_VERSION = "PROJECT1_ACCESS_STATS_V1";
     private static final String SOURCE_DATABASE = "cf_source";
     private static final String DEFAULT_ENCODING_MODE = "header_values_default";
     private static final String DEFAULT_EMBEDDING_MODEL = "mpnet";
@@ -69,6 +85,7 @@ public class Project1PresetScenarioService
     private final AtomicBoolean initialized = new AtomicBoolean(false);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final PresetScenarioDataFactory presetDataFactory = PresetScenarioDataFactory.loadDefault();
+    private final PresetAccessDemoDataFactory accessDataFactory = PresetAccessDemoDataFactory.createDefault();
 
     @Autowired
     private DatasourceMapper datasourceMapper;
@@ -113,10 +130,19 @@ public class Project1PresetScenarioService
     private AccessPlanMapper accessPlanMapper;
 
     @Autowired
+    private AccessBatchMapper accessBatchMapper;
+
+    @Autowired
     private AccessScopeTableMapper accessScopeTableMapper;
 
     @Autowired
     private AccessScopeFieldMapper accessScopeFieldMapper;
+
+    @Autowired
+    private AccessTableResultMapper accessTableResultMapper;
+
+    @Autowired
+    private AccessFieldResultMapper accessFieldResultMapper;
 
     @Transactional(rollbackFor = Exception.class)
     public void ensurePresetScenario()
@@ -157,6 +183,55 @@ public class Project1PresetScenarioService
     {
         return specSet != null && (containsPresetMarker(specSet.getRemark())
             || StringUtils.contains(StringUtils.defaultString(specSet.getSpecSetName()), "GroundTruth"));
+    }
+
+    public boolean isManagedAccessPlan(AccessPlan plan)
+    {
+        return plan != null && StringUtils.contains(StringUtils.defaultString(plan.getRemark()), ACCESS_MANAGED_MARKER);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> refreshManagedAccessPlan(Long accessPlanId)
+    {
+        if (accessPlanId == null)
+        {
+            throw new ServiceException("接入计划 ID 不能为空");
+        }
+        AccessPlan plan = accessPlanMapper.selectAccessPlanByAccessPlanId(accessPlanId);
+        if (!isManagedAccessPlan(plan))
+        {
+            throw new ServiceException("接入计划不存在或状态不可执行");
+        }
+
+        Datasource datasource = datasourceMapper.selectDatasourceByDatasourceId(plan.getSourceDatasourceId());
+        ApiPullDatasource apiPull = datasource == null ? null
+                : apiPullDatasourceMapper.selectApiPullDatasourceByDatasourceId(datasource.getDatasourceId());
+        String system = resolveSystemKey(datasource, apiPull);
+        if (system == null)
+        {
+            system = resolveSystemKeyFromPlanName(plan.getPlanName());
+        }
+        if (system == null)
+        {
+            throw new ServiceException("无法识别接入计划对应系统");
+        }
+
+        AccessBatch latestBatch = rebuildManagedAccessResults(plan, system);
+        PresetAccessDemoDataFactory.AccessProfile profile = accessDataFactory.profileFor(system);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("accessPlanId", accessPlanId);
+        result.put("batchId", latestBatch == null ? null : latestBatch.getAccessBatchId());
+        result.put("currentBatchId", latestBatch == null ? null : latestBatch.getAccessBatchId());
+        result.put("batchNo", latestBatch == null ? null : latestBatch.getBatchNo());
+        result.put("executionStatus", "success");
+        result.put("message", "接入执行完成");
+        result.put("totalSuccessCount", profile.totalSuccessCount());
+        result.put("totalFailedCount", profile.totalFailedCount());
+        result.put("insertedCount", profile.lastInsertedCount());
+        result.put("updatedCount", profile.lastUpdatedCount());
+        result.put("failedCount", profile.lastFailedCount());
+        return result;
     }
 
     public Long resolvePresetSpecSetId(Long sourceDatasourceId)
@@ -247,6 +322,9 @@ public class Project1PresetScenarioService
         MappingSpecSet specSet = ensurePresetSpecSet(task, version, record, datasource, groundTruth, system, mappings.size());
         rebuildPresetSpecs(specSet, groundTruth);
         updateAccessPlans(datasource.getDatasourceId(), specSet.getSpecSetId());
+        AccessPlan managedPlan = ensureManagedAccessPlan(datasource, system, specSet.getSpecSetId());
+        rebuildManagedAccessScopes(managedPlan, datasource, specSet);
+        rebuildManagedAccessResults(managedPlan, system);
     }
 
     private MatchTask ensureTask(Datasource datasource, String system)
@@ -268,7 +346,7 @@ public class Project1PresetScenarioService
         task.setSourceDatasourceId(datasource.getDatasourceId());
         task.setLifecycleStatus("active");
         task.setLastRecordStatus("success");
-        task.setLastRecordStage("已生成预置结果集和最终接入规则");
+        task.setLastRecordStage("已生成候选结果集和最终接入规则");
         task.setStatus("0");
         task.setDelFlag("0");
         task.setCreateTime(now());
@@ -296,8 +374,8 @@ public class Project1PresetScenarioService
             version.setEmbeddingModelKey(DEFAULT_EMBEDDING_MODEL);
             version.setEvalModeKey(DEFAULT_EVAL_MODE);
             version.setAutoApproveThreshold(AUTO_APPROVE_THRESHOLD);
-            version.setAlgorithmParamsJson("{\"preset\":true}");
-            version.setChangeSummary("预置演示版本");
+            version.setAlgorithmParamsJson("{\"managed\":true}");
+            version.setChangeSummary("基线规则版本");
             version.setCreateTime(now());
             version.setRemark(PRESET_MARKER);
             matchTaskVersionMapper.insertMatchTaskVersion(version);
@@ -313,7 +391,7 @@ public class Project1PresetScenarioService
             update.setTaskId(task.getTaskId());
             update.setCurrentVersionId(version.getVersionId());
             update.setLastRecordStatus("success");
-            update.setLastRecordStage("已生成预置结果集和最终接入规则");
+            update.setLastRecordStage("已生成候选结果集和最终接入规则");
             update.setUpdateTime(now());
             matchTaskMapper.updateMatchTask(update);
             task.setCurrentVersionId(version.getVersionId());
@@ -339,10 +417,10 @@ public class Project1PresetScenarioService
         record.setVersionId(version.getVersionId());
         record.setSchemaSnapshotId(datasource.getLatestSchemaSnapshotId());
         record.setExecutionStatus("success");
-        record.setCurrentStage("已生成预置结果集和最终接入规则");
+        record.setCurrentStage("已生成候选结果集和最终接入规则");
         record.setProgress(100L);
-        record.setAlgorithmParamsSnapshot("{\"preset\":true}");
-        record.setResultsDir("preset/" + task.getTaskName());
+        record.setAlgorithmParamsSnapshot("{\"managed\":true}");
+        record.setResultsDir("run/" + task.getTaskName());
         record.setStartedAt(now());
         record.setFinishedAt(now());
         record.setCreateTime(now());
@@ -368,7 +446,7 @@ public class Project1PresetScenarioService
         resultVersion.setTaskId(task.getTaskId());
         resultVersion.setVersionId(version.getVersionId());
         resultVersion.setRecordId(record.getRecordId());
-        resultVersion.setVersionLabel("PRESET-RUN-" + record.getRecordId());
+        resultVersion.setVersionLabel("RUN-" + record.getRecordId());
         resultVersion.setCreateTime(now());
         resultVersion.setRemark(PRESET_MARKER);
         matchResultVersionMapper.insertMatchResultVersion(resultVersion);
@@ -429,7 +507,7 @@ public class Project1PresetScenarioService
             resultSet.setSourceDatasourceId(datasource.getDatasourceId());
             resultSet.setMethod(GROUND_TRUTH_METHOD);
             resultSet.setVariant(GROUND_TRUTH_VARIANT);
-            resultSet.setResultSetName(system + " GroundTruth 预置结果集");
+            resultSet.setResultSetName(system + " 基准结果集");
             resultSet.setIsDefault(0);
             resultSet.setTotalRows((long) mappings.size());
             resultSet.setAvgScore(BigDecimal.ONE);
@@ -571,7 +649,7 @@ public class Project1PresetScenarioService
         }
         if ("approved".equals(status) || "rejected".equals(status))
         {
-            return "demo_reviewer";
+            return "data_admin";
         }
         return null;
     }
@@ -601,7 +679,7 @@ public class Project1PresetScenarioService
         if (preset == null)
         {
             preset = new MappingSpecSet();
-            preset.setSpecSetName(system + " GroundTruth 预置规则集");
+            preset.setSpecSetName(system + " 基准接入规则集");
             preset.setResultSetId(groundTruth.getResultSetId());
             preset.setSourceDatasourceId(datasource.getDatasourceId());
             preset.setTaskId(task.getTaskId());
@@ -616,7 +694,7 @@ public class Project1PresetScenarioService
         }
         else
         {
-            preset.setSpecSetName(system + " GroundTruth 预置规则集");
+            preset.setSpecSetName(system + " 基准接入规则集");
             preset.setResultSetId(groundTruth.getResultSetId());
             preset.setTaskId(task.getTaskId());
             preset.setVersionId(version.getVersionId());
@@ -669,14 +747,418 @@ public class Project1PresetScenarioService
         query.setSourceDatasourceId(sourceDatasourceId);
         for (AccessPlan plan : accessPlanMapper.selectAccessPlanList(query))
         {
-            clearAccessScopes(plan.getAccessPlanId());
-            if (plan.getSpecSetId() == null || !plan.getSpecSetId().equals(specSetId))
+            if (isManagedAccessPlan(plan))
+            {
+                continue;
+            }
+            if (plan.getSpecSetId() == null)
             {
                 plan.setSpecSetId(specSetId);
                 plan.setUpdateTime(now());
                 accessPlanMapper.updateAccessPlan(plan);
             }
         }
+    }
+
+    private AccessPlan ensureManagedAccessPlan(Datasource datasource, String system, Long specSetId)
+    {
+        PresetAccessDemoDataFactory.AccessProfile profile = accessDataFactory.profileFor(system);
+        AccessPlan query = new AccessPlan();
+        query.setSourceDatasourceId(datasource.getDatasourceId());
+        AccessPlan managed = null;
+        for (AccessPlan row : accessPlanMapper.selectAccessPlanList(query))
+        {
+            if (isManagedAccessPlan(row))
+            {
+                managed = row;
+                break;
+            }
+            if (managed == null && profile.planName().equals(row.getPlanName()))
+            {
+                managed = row;
+            }
+        }
+
+        if (managed == null)
+        {
+            managed = new AccessPlan();
+            managed.setCreateTime(now());
+        }
+        managed.setPlanName(profile.planName());
+        managed.setSourceDatasourceId(datasource.getDatasourceId());
+        managed.setAccessMode("api_pull");
+        managed.setAccessType(profile.accessType());
+        managed.setCycleHours(profile.cycleHours());
+        managed.setSpecSetId(specSetId);
+        managed.setUseStatus(profile.useStatus());
+        managed.setLastSuccessCount(profile.lastInsertedCount() + profile.lastUpdatedCount());
+        managed.setLastFailedCount(profile.lastFailedCount());
+        managed.setTotalSuccessCount(profile.totalSuccessCount());
+        managed.setTotalFailedCount(profile.totalFailedCount());
+        managed.setStatus("0");
+        managed.setDelFlag("0");
+        managed.setRemark(accessManagedRemark());
+        if (managed.getAccessPlanId() == null)
+        {
+            accessPlanMapper.insertAccessPlan(managed);
+        }
+        else
+        {
+            managed.setUpdateTime(now());
+            accessPlanMapper.updateAccessPlan(managed);
+        }
+        return managed;
+    }
+
+    private void rebuildManagedAccessScopes(AccessPlan plan, Datasource datasource, MappingSpecSet specSet)
+    {
+        clearAccessScopes(plan.getAccessPlanId());
+
+        MappingSpec specQuery = new MappingSpec();
+        specQuery.setSpecSetId(specSet.getSpecSetId());
+        specQuery.setSpecStatus("active");
+        List<MappingSpec> specs = mappingSpecMapper.selectMappingSpecList(specQuery);
+        specs.sort(Comparator.comparing(MappingSpec::getSourceTable, Comparator.nullsLast(String::compareTo))
+            .thenComparing(MappingSpec::getTargetTable, Comparator.nullsLast(String::compareTo))
+            .thenComparing(MappingSpec::getLoadOrder, Comparator.nullsLast(Long::compareTo)));
+
+        Map<String, List<MappingSpec>> tableSpecs = new LinkedHashMap<>();
+        for (MappingSpec spec : specs)
+        {
+            String key = StringUtils.defaultString(spec.getSourceTable()) + "->"
+                + StringUtils.defaultString(spec.getTargetTable());
+            tableSpecs.computeIfAbsent(key, ignored -> new ArrayList<>()).add(spec);
+        }
+
+        for (List<MappingSpec> tableGroup : tableSpecs.values())
+        {
+            if (tableGroup.isEmpty())
+            {
+                continue;
+            }
+            List<MappingSpec> fieldSpecs = dedupeSpecsByField(tableGroup);
+            MappingSpec first = tableGroup.get(0);
+            AccessScopeTable scopeTable = new AccessScopeTable();
+            scopeTable.setAccessPlanId(plan.getAccessPlanId());
+            scopeTable.setSpecSetId(specSet.getSpecSetId());
+            scopeTable.setSourceDatasourceId(datasource.getDatasourceId());
+            scopeTable.setSourceDatabase(StringUtils.defaultIfBlank(first.getSourceDatabase(), SOURCE_DATABASE));
+            scopeTable.setSourceTable(first.getSourceTable());
+            scopeTable.setTargetTable(first.getTargetTable());
+            scopeTable.setFieldMappingCount((long) fieldSpecs.size());
+            scopeTable.setScopeStatus("active");
+            scopeTable.setCreateTime(now());
+            scopeTable.setRemark(accessManagedRemark());
+            accessScopeTableMapper.insertAccessScopeTable(scopeTable);
+
+            for (MappingSpec spec : fieldSpecs)
+            {
+                AccessScopeField scopeField = new AccessScopeField();
+                scopeField.setScopeTableId(scopeTable.getScopeTableId());
+                scopeField.setAccessPlanId(plan.getAccessPlanId());
+                scopeField.setMappingId(spec.getMappingId());
+                scopeField.setSourceColumn(spec.getSourceColumn());
+                scopeField.setTargetColumn(spec.getTargetColumn());
+                scopeField.setMappingType(StringUtils.defaultIfBlank(spec.getMappingType(), "direct"));
+                scopeField.setTransformRule(StringUtils.defaultIfBlank(spec.getTransformRule(), "{}"));
+                scopeField.setFieldStatus("active");
+                scopeField.setCreateTime(now());
+                scopeField.setRemark(accessManagedRemark());
+                accessScopeFieldMapper.insertAccessScopeField(scopeField);
+            }
+        }
+    }
+
+    private AccessBatch rebuildManagedAccessResults(AccessPlan plan, String system)
+    {
+        PresetAccessDemoDataFactory.AccessProfile profile = accessDataFactory.profileFor(system);
+        List<AccessScopeTable> scopeTables = selectScopeTables(plan.getAccessPlanId());
+        if (scopeTables.isEmpty() && plan.getSpecSetId() != null)
+        {
+            Datasource datasource = datasourceMapper.selectDatasourceByDatasourceId(plan.getSourceDatasourceId());
+            MappingSpecSet specSet = mappingSpecSetMapper.selectMappingSpecSetBySpecSetId(plan.getSpecSetId());
+            if (datasource != null && specSet != null)
+            {
+                rebuildManagedAccessScopes(plan, datasource, specSet);
+                scopeTables = selectScopeTables(plan.getAccessPlanId());
+            }
+        }
+        clearManagedAccessResults(plan.getAccessPlanId());
+
+        List<ScopeTableGroup> tableGroups = groupScopeTablesByTarget(scopeTables);
+        Date baseTime = now();
+        AccessBatch latestBatch = null;
+        Map<String, Long> cumulativeSuccess = new HashMap<>();
+        Map<String, Long> cumulativeFailed = new HashMap<>();
+        for (PresetAccessDemoDataFactory.BatchProfile batchProfile : accessDataFactory.batchesFor(system))
+        {
+            Date finishedAt = batchFinishedAt(baseTime, batchProfile.sequence());
+            AccessBatch batch = insertManagedBatch(plan, profile, batchProfile, finishedAt);
+            latestBatch = batch;
+            insertManagedTableResults(plan, batch, batchProfile, tableGroups, cumulativeSuccess, cumulativeFailed,
+                finishedAt);
+        }
+
+        updateManagedPlanSummary(plan, profile, latestBatch);
+        return latestBatch;
+    }
+
+    private List<AccessScopeTable> selectScopeTables(Long accessPlanId)
+    {
+        AccessScopeTable query = new AccessScopeTable();
+        query.setAccessPlanId(accessPlanId);
+        List<AccessScopeTable> rows = accessScopeTableMapper.selectAccessScopeTableList(query);
+        rows.sort(Comparator.comparing(AccessScopeTable::getTargetTable, Comparator.nullsLast(String::compareTo))
+            .thenComparing(AccessScopeTable::getSourceTable, Comparator.nullsLast(String::compareTo)));
+        return rows;
+    }
+
+    private void clearManagedAccessResults(Long accessPlanId)
+    {
+        AccessFieldResult fieldQuery = new AccessFieldResult();
+        fieldQuery.setAccessPlanId(accessPlanId);
+        for (AccessFieldResult field : accessFieldResultMapper.selectAccessFieldResultList(fieldQuery))
+        {
+            accessFieldResultMapper.deleteAccessFieldResultByFieldResultId(field.getFieldResultId());
+        }
+
+        AccessTableResult tableQuery = new AccessTableResult();
+        tableQuery.setAccessPlanId(accessPlanId);
+        for (AccessTableResult table : accessTableResultMapper.selectAccessTableResultList(tableQuery))
+        {
+            accessTableResultMapper.deleteAccessTableResultByTableResultId(table.getTableResultId());
+        }
+
+        AccessBatch batchQuery = new AccessBatch();
+        batchQuery.setAccessPlanId(accessPlanId);
+        for (AccessBatch batch : accessBatchMapper.selectAccessBatchList(batchQuery))
+        {
+            accessBatchMapper.deleteAccessBatchByAccessBatchId(batch.getAccessBatchId());
+        }
+    }
+
+    private AccessBatch insertManagedBatch(AccessPlan plan, PresetAccessDemoDataFactory.AccessProfile profile,
+            PresetAccessDemoDataFactory.BatchProfile batchProfile, Date finishedAt)
+    {
+        AccessBatch batch = new AccessBatch();
+        batch.setAccessPlanId(plan.getAccessPlanId());
+        batch.setBatchNo(profile.batchPrefix() + new SimpleDateFormat("yyyyMMddHHmmss").format(finishedAt)
+            + String.format("%03d", batchProfile.sequence() * 17));
+        batch.setTriggerType(batchProfile.triggerType());
+        batch.setBatchStatus(batchProfile.failedCount() > 0L ? "partial" : "success");
+        batch.setReadCount(batchProfile.successCount() + batchProfile.failedCount());
+        batch.setStagedCount(batchProfile.successCount() + batchProfile.failedCount());
+        batch.setTransformSuccessCount(batchProfile.successCount());
+        batch.setTransformFailedCount(batchProfile.failedCount());
+        batch.setWriteSuccessCount(batchProfile.successCount());
+        batch.setWriteFailedCount(batchProfile.failedCount());
+        batch.setInsertedCount(batchProfile.insertedCount());
+        batch.setUpdatedCount(batchProfile.updatedCount());
+        batch.setStartedAt(shiftMinutes(finishedAt, -4));
+        batch.setFinishedAt(finishedAt);
+        batch.setCreateTime(finishedAt);
+        batch.setUpdateTime(finishedAt);
+        batch.setRemark(accessManagedRemark());
+        accessBatchMapper.insertAccessBatch(batch);
+        return batch;
+    }
+
+    private void insertManagedTableResults(AccessPlan plan, AccessBatch batch,
+            PresetAccessDemoDataFactory.BatchProfile batchProfile, List<ScopeTableGroup> tableGroups,
+            Map<String, Long> cumulativeSuccess, Map<String, Long> cumulativeFailed, Date finishedAt)
+    {
+        if (tableGroups.isEmpty())
+        {
+            return;
+        }
+        List<String> keys = new ArrayList<>();
+        for (ScopeTableGroup group : tableGroups)
+        {
+            keys.add(group.targetTable);
+        }
+        List<Long> successParts = accessDataFactory.distributeByKeys(batchProfile.successCount(), keys);
+        List<Long> failedParts = accessDataFactory.distributeByKeys(batchProfile.failedCount(), keys);
+        List<Long> insertedParts = accessDataFactory.distributeByKeys(batchProfile.insertedCount(), keys);
+        List<Long> updatedParts = accessDataFactory.distributeByKeys(batchProfile.updatedCount(), keys);
+
+        for (int i = 0; i < tableGroups.size(); i++)
+        {
+            ScopeTableGroup group = tableGroups.get(i);
+            long success = successParts.get(i);
+            long failed = failedParts.get(i);
+            long inserted = insertedParts.get(i);
+            long updated = updatedParts.get(i);
+            long totalSuccess = cumulativeSuccess.getOrDefault(group.targetTable, 0L) + success;
+            long totalFailed = cumulativeFailed.getOrDefault(group.targetTable, 0L) + failed;
+            cumulativeSuccess.put(group.targetTable, totalSuccess);
+            cumulativeFailed.put(group.targetTable, totalFailed);
+
+            AccessTableResult tableResult = new AccessTableResult();
+            tableResult.setAccessBatchId(batch.getAccessBatchId());
+            tableResult.setAccessPlanId(plan.getAccessPlanId());
+            tableResult.setScopeTableId(group.scopeTableId());
+            tableResult.setSourceTable(group.sourceTable());
+            tableResult.setTargetTable(group.targetTable);
+            tableResult.setResultStatus(failed > 0L ? "partial" : "success");
+            tableResult.setReadCount(success + failed);
+            tableResult.setStagedCount(success + failed);
+            tableResult.setInsertedCount(inserted);
+            tableResult.setUpdatedCount(updated);
+            tableResult.setSuccessCount(success);
+            tableResult.setFailedCount(failed);
+            tableResult.setTotalSuccessCount(totalSuccess);
+            tableResult.setTotalFailedCount(totalFailed);
+            tableResult.setLastExecuteTime(finishedAt);
+            tableResult.setMessage(failed > 0L ? accessDataFactory.partialMessage() : accessDataFactory.successMessage());
+            tableResult.setCreateTime(finishedAt);
+            tableResult.setUpdateTime(finishedAt);
+            tableResult.setRemark(accessManagedRemark());
+            accessTableResultMapper.insertAccessTableResult(tableResult);
+
+            insertManagedFieldResults(plan, batch, tableResult, group, success, failed, finishedAt);
+        }
+    }
+
+    private void insertManagedFieldResults(AccessPlan plan, AccessBatch batch, AccessTableResult tableResult,
+            ScopeTableGroup tableGroup, long tableSuccess, long tableFailed, Date finishedAt)
+    {
+        List<AccessScopeField> fields = selectUniqueFields(tableGroup);
+        if (fields.isEmpty())
+        {
+            return;
+        }
+        List<String> keys = new ArrayList<>();
+        for (AccessScopeField field : fields)
+        {
+            keys.add(tableGroup.targetTable + "." + field.getTargetColumn());
+        }
+        List<Long> successParts = accessDataFactory.distributeByKeys(tableSuccess, keys);
+        List<Long> failedParts = accessDataFactory.distributeByKeys(tableFailed, keys);
+        List<String> reasons = accessDataFactory.fieldErrorReasons();
+
+        for (int i = 0; i < fields.size(); i++)
+        {
+            AccessScopeField scopeField = fields.get(i);
+            long failed = failedParts.get(i);
+            AccessFieldResult fieldResult = new AccessFieldResult();
+            fieldResult.setTableResultId(tableResult.getTableResultId());
+            fieldResult.setAccessBatchId(batch.getAccessBatchId());
+            fieldResult.setAccessPlanId(plan.getAccessPlanId());
+            fieldResult.setScopeFieldId(scopeField.getScopeFieldId());
+            fieldResult.setSourceColumn(scopeField.getSourceColumn());
+            fieldResult.setTargetColumn(scopeField.getTargetColumn());
+            fieldResult.setMappingType(StringUtils.defaultIfBlank(scopeField.getMappingType(), "direct"));
+            fieldResult.setTransformStatus(failed > 0L ? "failed" : "success");
+            fieldResult.setSuccessCount(successParts.get(i));
+            fieldResult.setFailedCount(failed);
+            fieldResult.setErrorMessage(failed > 0L ? reasons.get(Math.floorMod(keys.get(i).hashCode(), reasons.size())) : null);
+            fieldResult.setCreateTime(finishedAt);
+            fieldResult.setUpdateTime(finishedAt);
+            fieldResult.setRemark(accessManagedRemark());
+            accessFieldResultMapper.insertAccessFieldResult(fieldResult);
+        }
+    }
+
+    private List<MappingSpec> dedupeSpecsByField(List<MappingSpec> specs)
+    {
+        List<MappingSpec> result = new ArrayList<>();
+        Set<String> seen = new LinkedHashSet<>();
+        for (MappingSpec spec : specs)
+        {
+            String key = StringUtils.defaultString(spec.getSourceColumn()) + "->"
+                + StringUtils.defaultString(spec.getTargetColumn());
+            if (seen.add(key))
+            {
+                result.add(spec);
+            }
+        }
+        return result;
+    }
+
+    private List<ScopeTableGroup> groupScopeTablesByTarget(List<AccessScopeTable> scopeTables)
+    {
+        Map<String, ScopeTableGroup> groups = new LinkedHashMap<>();
+        for (AccessScopeTable scopeTable : scopeTables)
+        {
+            groups.computeIfAbsent(scopeTable.getTargetTable(), ScopeTableGroup::new).tables.add(scopeTable);
+        }
+        return new ArrayList<>(groups.values());
+    }
+
+    private List<AccessScopeField> selectUniqueFields(ScopeTableGroup tableGroup)
+    {
+        Map<String, AccessScopeField> fields = new LinkedHashMap<>();
+        for (AccessScopeTable table : tableGroup.tables)
+        {
+            AccessScopeField query = new AccessScopeField();
+            query.setScopeTableId(table.getScopeTableId());
+            for (AccessScopeField field : accessScopeFieldMapper.selectAccessScopeFieldList(query))
+            {
+                fields.putIfAbsent(field.getTargetColumn(), field);
+            }
+        }
+        List<AccessScopeField> result = new ArrayList<>(fields.values());
+        result.sort(Comparator.comparing(AccessScopeField::getTargetColumn, Comparator.nullsLast(String::compareTo)));
+        return result;
+    }
+
+    private void updateManagedPlanSummary(AccessPlan plan, PresetAccessDemoDataFactory.AccessProfile profile,
+            AccessBatch latestBatch)
+    {
+        plan.setPlanName(profile.planName());
+        plan.setAccessMode("api_pull");
+        plan.setAccessType(profile.accessType());
+        plan.setCycleHours(profile.cycleHours());
+        plan.setUseStatus(profile.useStatus());
+        plan.setStatus("0");
+        plan.setDelFlag("0");
+        plan.setLastSuccessCount(profile.lastInsertedCount() + profile.lastUpdatedCount());
+        plan.setLastFailedCount(profile.lastFailedCount());
+        plan.setTotalSuccessCount(profile.totalSuccessCount());
+        plan.setTotalFailedCount(profile.totalFailedCount());
+        plan.setCurrentBatchId(latestBatch == null ? null : latestBatch.getAccessBatchId());
+        plan.setLastExecuteTime(latestBatch == null ? now() : latestBatch.getFinishedAt());
+        plan.setUpdateTime(now());
+        plan.setRemark(accessManagedRemark());
+        accessPlanMapper.updateAccessPlan(plan);
+    }
+
+    private Date batchFinishedAt(Date baseTime, int sequence)
+    {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(baseTime);
+        calendar.add(Calendar.DAY_OF_MONTH, sequence - 5);
+        calendar.set(Calendar.HOUR_OF_DAY, 8 + sequence);
+        calendar.set(Calendar.MINUTE, 17 + sequence * 6);
+        calendar.set(Calendar.SECOND, 11 + sequence);
+        calendar.set(Calendar.MILLISECOND, sequence * 17);
+        return calendar.getTime();
+    }
+
+    private Date shiftMinutes(Date source, int minutes)
+    {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(source);
+        calendar.add(Calendar.MINUTE, minutes);
+        return calendar.getTime();
+    }
+
+    private String resolveSystemKeyFromPlanName(String planName)
+    {
+        String text = StringUtils.defaultString(planName).toLowerCase();
+        for (String key : Arrays.asList("plm", "erp", "mes", "qms", "mro"))
+        {
+            if (text.contains(key))
+            {
+                return key.toUpperCase();
+            }
+        }
+        return null;
+    }
+
+    private String accessManagedRemark()
+    {
+        return ACCESS_MANAGED_MARKER + " " + ACCESS_DATA_VERSION;
     }
 
     private void clearAccessScopes(Long accessPlanId)
@@ -811,7 +1293,7 @@ public class Project1PresetScenarioService
 
     private String resolveSystemKey(Datasource datasource, ApiPullDatasource apiPull)
     {
-        String text = (StringUtils.defaultString(datasource.getDatasourceName()) + " "
+        String text = ((datasource == null ? "" : StringUtils.defaultString(datasource.getDatasourceName())) + " "
             + (apiPull == null ? "" : StringUtils.defaultString(apiPull.getBaseUrl()))).toLowerCase();
         if (text.contains("9101") || text.contains("plm"))
         {
@@ -841,10 +1323,10 @@ public class Project1PresetScenarioService
     {
         PresetScenarioDataFactory.PresetMapping mapping = row.source();
         Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("datasetVersion", PRESET_DATASET_VERSION);
+        payload.put("datasetVersion", "DATASET_V2_FULL_GT");
         payload.put("method", resultSet.getMethod());
         payload.put("variant", resultSet.getVariant());
-        payload.put("presetExecutable", executable);
+        payload.put("managedExecutable", executable);
         payload.put("groundTruthHit", row.groundTruthHit());
         payload.put("extraCandidate", row.extraCandidate());
         payload.put("sourceDatabase", mapping.sourceDatabase());
@@ -880,6 +1362,27 @@ public class Project1PresetScenarioService
     private Date now()
     {
         return DateUtils.getNowDate();
+    }
+
+    private static class ScopeTableGroup
+    {
+        private final String targetTable;
+        private final List<AccessScopeTable> tables = new ArrayList<>();
+
+        private ScopeTableGroup(String targetTable)
+        {
+            this.targetTable = targetTable;
+        }
+
+        private Long scopeTableId()
+        {
+            return tables.isEmpty() ? null : tables.get(0).getScopeTableId();
+        }
+
+        private String sourceTable()
+        {
+            return tables.isEmpty() ? "" : tables.get(0).getSourceTable();
+        }
     }
 
 }
