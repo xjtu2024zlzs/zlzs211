@@ -77,6 +77,7 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
             parseJsonField(row, "generationParamsJson", "generationParams");
             parseJsonField(row, "resultSummaryJson", "resultSummary");
             parseJsonField(row, "outputJson", "output");
+            compactOutputField(row);
         }
         return rows;
     }
@@ -89,6 +90,7 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         {
             parseJsonField(row, "resultSummaryJson", "resultSummary");
             parseJsonField(row, "outputJson", "output");
+            compactOutputField(row);
         }
         return rows;
     }
@@ -185,6 +187,8 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         Map<String, Object> params = map();
         params.put("instanceId", instanceId);
         params.put("updatedBy", currentUser());
+        instanceMapper.clearInstanceCurrentVersion(instanceId);
+        purgeInstanceData(params);
         if (instanceMapper.deleteInstance(params) <= 0)
         {
             throw new ServiceException("删除卷宗实例失败");
@@ -235,10 +239,58 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         params.put("instanceId", instanceId);
         params.put("versionId", versionId);
         params.put("deletedBy", currentUser());
+        purgeVersionData(params);
         if (instanceMapper.deleteVersion(params) <= 0)
         {
             throw new ServiceException("删除卷宗版本失败");
         }
+    }
+
+    private void purgeVersionData(Map<String, Object> params)
+    {
+        instanceMapper.deleteVersionDataIssues(params);
+        instanceMapper.deleteVersionDataSupportItems(params);
+        instanceMapper.deleteVersionFileRelations(params);
+        instanceMapper.deleteVersionFileCategories(params);
+        instanceMapper.deleteVersionCompletenessSummaries(params);
+        instanceMapper.deleteVersionContentItems(params);
+        instanceMapper.deleteVersionDiffs(params);
+        instanceMapper.deleteVersionDataRelationNodes(params);
+        instanceMapper.deleteVersionSearchIndexRecords(params);
+        instanceMapper.deleteVersionOperationLogs(params);
+        instanceMapper.deleteVersionExportFiles(params);
+        instanceMapper.deleteVersionExportJobs(params);
+        instanceMapper.deleteVersionGenerationJobItems(params);
+        instanceMapper.deleteVersionGenerationJobs(params);
+        instanceMapper.deleteVersionInspectionRuns(params);
+        instanceMapper.deleteVersionSnapshots(params);
+        instanceMapper.deleteVersionStructureNodes(params);
+    }
+
+    private void purgeInstanceData(Map<String, Object> params)
+    {
+        instanceMapper.deleteInstanceDataIssues(params);
+        instanceMapper.deleteInstanceDataSupportItems(params);
+        instanceMapper.deleteInstanceDataRelationEdges(params);
+        instanceMapper.deleteInstanceDataRelationNodes(params);
+        instanceMapper.deleteInstanceMonitoringRuns(params);
+        instanceMapper.deleteInstanceUpdateRequests(params);
+        instanceMapper.deleteInstanceFileRelations(params);
+        instanceMapper.deleteInstanceFileCategories(params);
+        instanceMapper.deleteInstanceCompletenessSummaries(params);
+        instanceMapper.deleteInstanceContentItems(params);
+        instanceMapper.deleteInstanceDiffs(params);
+        instanceMapper.deleteInstanceSearchIndexRecords(params);
+        instanceMapper.deleteInstanceQaSessions(params);
+        instanceMapper.deleteInstanceOperationLogs(params);
+        instanceMapper.deleteInstanceExportFiles(params);
+        instanceMapper.deleteInstanceExportJobs(params);
+        instanceMapper.deleteInstanceGenerationJobItems(params);
+        instanceMapper.deleteInstanceGenerationJobs(params);
+        instanceMapper.deleteInstanceInspectionRuns(params);
+        instanceMapper.deleteInstanceSnapshots(params);
+        instanceMapper.deleteInstanceStructureNodes(params);
+        instanceMapper.deleteInstanceVersions(params);
     }
 
     private Map<String, Object> normalizeQuery(Map<String, Object> query)
@@ -373,6 +425,7 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         if (raw == null)
         {
             row.put(targetKey, map());
+            row.remove(sourceKey);
             return;
         }
         try
@@ -384,6 +437,39 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         catch (Exception e)
         {
             row.put(targetKey, map());
+        }
+        row.remove(sourceKey);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void compactOutputField(Map<String, Object> row)
+    {
+        Object raw = row.get("output");
+        if (!(raw instanceof Map))
+        {
+            row.put("output", map());
+            return;
+        }
+        Map<String, Object> source = (Map<String, Object>) raw;
+        Map<String, Object> output = map();
+        copyOutputValue(output, source, "jobCode");
+        copyOutputValue(output, source, "fileName");
+        copyOutputValue(output, source, "packageName");
+        copyOutputValue(output, source, "outputPath");
+        copyOutputValue(output, source, "exportFormat");
+        copyOutputValue(output, source, "fileCount");
+        copyOutputValue(output, source, "sourceRecordCount");
+        copyOutputValue(output, source, "contentItemCount");
+        copyOutputValue(output, source, "structureNodeCount");
+        copyOutputValue(output, source, "generatedAt");
+        row.put("output", output);
+    }
+
+    private void copyOutputValue(Map<String, Object> target, Map<String, Object> source, String key)
+    {
+        if (source.containsKey(key))
+        {
+            target.put(key, source.get(key));
         }
     }
 

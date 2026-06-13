@@ -837,38 +837,70 @@ public class DossierDetailServiceImpl implements IDossierDetailService
     {
         Set<String> sourceTableSet = lowerSet(sourceTables);
         Set<String> lifecycleStageSet = upperSet(lifecycleStages);
-        List<Map<String, Object>> result = new ArrayList<>();
+        boolean hasDirectoryChapter = hasText(chapterId);
+        List<Map<String, Object>> exact = new ArrayList<>();
+        List<Map<String, Object>> fallback = new ArrayList<>();
         for (Map<String, Object> item : contentItems)
         {
-            Map<String, Object> attrs = castMap(item.get("attrs"));
-            String itemChapterId = text(attrs.get("chapterId"));
-            if (hasText(chapterId) && hasText(itemChapterId))
+            String itemChapterId = contentItemChapterId(item);
+            if (hasDirectoryChapter && hasText(itemChapterId))
             {
                 if (chapterId.equals(itemChapterId))
                 {
-                    result.add(item);
+                    exact.add(item);
                 }
+                continue;
+            }
+            if (hasDirectoryChapter && !isDirectoryFallbackCandidate(item))
+            {
                 continue;
             }
             String stage = text(item.get("lifecycleStage")).toUpperCase();
             String itemType = text(item.get("itemType")).toLowerCase();
             String sourceTable = text(item.get("sourceTable")).toLowerCase();
+            if (!sourceTableSet.isEmpty() && !lifecycleStageSet.isEmpty())
+            {
+                if (sourceTableSet.contains(sourceTable) && lifecycleStageSet.contains(stage))
+                {
+                    fallback.add(item);
+                }
+                continue;
+            }
             if (!sourceTableSet.isEmpty() && sourceTableSet.contains(sourceTable))
             {
-                result.add(item);
+                fallback.add(item);
                 continue;
             }
             if (!lifecycleStageSet.isEmpty() && lifecycleStageSet.contains(stage))
             {
-                result.add(item);
+                fallback.add(item);
                 continue;
             }
-            if (matchesCategory(category, stage, itemType, sourceTable))
+            if (!hasDirectoryChapter && matchesCategory(category, stage, itemType, sourceTable))
             {
-                result.add(item);
+                fallback.add(item);
             }
         }
-        return result;
+        return exact.isEmpty() ? fallback : exact;
+    }
+
+    private String contentItemChapterId(Map<String, Object> item)
+    {
+        Map<String, Object> attrs = castMap(item.get("attrs"));
+        String chapterId = text(attrs.get("chapterId"));
+        return hasText(chapterId) ? chapterId : text(item.get("chapterId"));
+    }
+
+    private boolean isDirectoryFallbackCandidate(Map<String, Object> item)
+    {
+        String stage = text(item.get("lifecycleStage")).toUpperCase();
+        String itemType = text(item.get("itemType")).toLowerCase();
+        String sourceTable = text(item.get("sourceTable")).toLowerCase();
+        return !"key_node_summary".equals(itemType)
+                && !"DOSSIER".equals(stage)
+                && !"FULL_LIFECYCLE".equals(stage)
+                && !"DOCUMENT".equals(stage)
+                && !"dossier_content_item".equals(sourceTable);
     }
 
     private boolean matchesCategory(String category, String stage, String itemType, String sourceTable)
@@ -881,8 +913,7 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         }
         if ("design".equals(category))
         {
-            return "DESIGN".equals(stage) || "INTERFACE".equals(stage) || itemType.contains("design")
-                    || sourceTable.contains("design");
+            return "DESIGN".equals(stage) || itemType.contains("design") || sourceTable.contains("design");
         }
         if ("manufacturing".equals(category))
         {
@@ -897,12 +928,12 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         if ("service".equals(category))
         {
             return "SERVICE".equals(stage) || sourceTable.contains("usage") || sourceTable.contains("service")
-                    || sourceTable.contains("install");
+                    || sourceTable.contains("install") || sourceTable.contains("work_order")
+                    || itemType.contains("maintenance");
         }
         if ("fault".equals(category))
         {
-            return "FAULT".equals(stage) || sourceTable.contains("fault") || itemType.contains("fault")
-                    || itemType.contains("maintenance");
+            return "FAULT".equals(stage) || sourceTable.contains("fault") || itemType.contains("fault");
         }
         if ("status".equals(category))
         {
@@ -925,7 +956,7 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         {
             return "documents";
         }
-        if (containsAny(label, "故障", "维修"))
+        if (containsAny(label, "故障"))
         {
             return "fault";
         }
@@ -937,7 +968,7 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         {
             return "manufacturing";
         }
-        if (containsAny(label, "装机", "服役", "使用", "履历"))
+        if (containsAny(label, "装机", "服役", "使用", "履历", "维修"))
         {
             return "service";
         }

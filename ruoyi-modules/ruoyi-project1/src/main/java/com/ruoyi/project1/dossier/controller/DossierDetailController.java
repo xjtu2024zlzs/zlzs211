@@ -191,17 +191,20 @@ public class DossierDetailController extends BaseController
                 return direct.toFile();
             }
 
-            String relative = relativePathText(location);
-            if (!hasText(relative))
+            List<String> relativePaths = relativePathTexts(location);
+            if (relativePaths.isEmpty())
             {
                 continue;
             }
-            for (Path root : roots)
+            for (String relative : relativePaths)
             {
-                Path candidate = root.resolve(relative).normalize();
-                if (candidate.startsWith(root) && Files.isRegularFile(candidate))
+                for (Path root : roots)
                 {
-                    return candidate.toFile();
+                    Path candidate = root.resolve(relative).normalize();
+                    if (candidate.startsWith(root) && Files.isRegularFile(candidate))
+                    {
+                        return candidate.toFile();
+                    }
                 }
             }
         }
@@ -264,18 +267,32 @@ public class DossierDetailController extends BaseController
         return null;
     }
 
-    private String relativePathText(String location)
+    private List<String> relativePathTexts(String location)
     {
+        List<String> values = new ArrayList<>();
         if (!hasText(location) || isHttpUrl(location) || location.startsWith("file:"))
         {
-            return "";
+            return values;
         }
         String value = location.replace("\\", "/");
         while (value.startsWith("/"))
         {
             value = value.substring(1);
         }
-        return value.contains("..") ? "" : value;
+        addRelativePath(values, value);
+        if (value.startsWith("project1/"))
+        {
+            addRelativePath(values, value.substring("project1/".length()));
+        }
+        return values;
+    }
+
+    private void addRelativePath(List<String> values, String value)
+    {
+        if (hasText(value) && !value.contains("..") && !values.contains(value))
+        {
+            values.add(value);
+        }
     }
 
     private void addLocation(List<String> locations, Object value)

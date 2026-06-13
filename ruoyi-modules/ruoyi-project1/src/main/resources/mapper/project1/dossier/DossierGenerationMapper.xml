@@ -279,7 +279,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                       and is_active = 1
                 ) pn on pn.part_number = fr.part_number
                 where fr.relation_status != 'deleted'
-                  and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT')
+                  and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','DOSSIER_ATTACHMENT')
+                  and (
+                      fr.dossier_version_id is null
+                      or (
+                          fr.source_record_id is not null
+                          and not exists (
+                              select 1
+                              from t1_file_relation source_fr
+                              where source_fr.id = fr.source_record_id
+                          )
+                      )
+                  )
             ) as partDocumentCount,
             (
                 select max(fr.created_at)
@@ -291,7 +302,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                       and is_active = 1
                 ) pn on pn.part_number = fr.part_number
                 where fr.relation_status != 'deleted'
-                  and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT')
+                  and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','DOSSIER_ATTACHMENT')
+                  and (
+                      fr.dossier_version_id is null
+                      or (
+                          fr.source_record_id is not null
+                          and not exists (
+                              select 1
+                              from t1_file_relation source_fr
+                              where source_fr.id = fr.source_record_id
+                          )
+                      )
+                  )
             ) as partDocumentMaxCreatedAt
     </select>
 
@@ -364,7 +386,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             (select count(1) from t1_file_relation fr
               where fr.part_number in (select part_number from subtree where part_number is not null)
                 and fr.relation_status != 'deleted'
-                and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT')) as partDocumentCount,
+                and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','DOSSIER_ATTACHMENT')
+                and (
+                    fr.dossier_version_id is null
+                    or (
+                        fr.source_record_id is not null
+                        and not exists (
+                            select 1
+                            from t1_file_relation source_fr
+                            where source_fr.id = fr.source_record_id
+                        )
+                    )
+                )) as partDocumentCount,
             (select lr.event_title from t1_object_lifecycle_record lr
               where lr.aircraft_id = #{aircraftId}
                 and lr.bom_node_id in (select id from subtree)
@@ -714,8 +747,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             from t1_file_relation fr
             inner join t1_file_asset fa on fa.id = fr.file_id
             where fr.part_number = #{partNumber}
+              and fr.aircraft_id = #{aircraftId}
               and fr.relation_status != 'deleted'
-              and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT')
+              and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','DOSSIER_ATTACHMENT')
+              and (
+                  fr.dossier_version_id is null
+                  or (
+                      fr.source_record_id is not null
+                      and not exists (
+                          select 1
+                          from t1_file_relation source_fr
+                          where source_fr.id = fr.source_record_id
+                      )
+                  )
+              )
         ) x
         order by sortGroup, eventTime desc, sourceRecordKey
     </select>
@@ -768,11 +813,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                fr.sort_order as sortOrder
         from t1_file_relation fr
         inner join t1_file_asset fa on fa.id = fr.file_id
-        where fr.dossier_version_id is null
-          and fr.relation_status != 'deleted'
+        where fr.relation_status != 'deleted'
           and fr.included_flag = 1
           and (
-              fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','CERTIFICATE','SOURCE')
+              fr.dossier_version_id is null
+              or (
+                  fr.source_record_id is not null
+                  and not exists (
+                      select 1
+                      from t1_file_relation source_fr
+                      where source_fr.id = fr.source_record_id
+                  )
+              )
+          )
+          and (
+              fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','CERTIFICATE','SOURCE','DOSSIER_ATTACHMENT')
               or fa.asset_kind in ('DOCUMENT','MODEL','CERTIFICATE','IMAGE','DATASET','ARCHIVE')
           )
           and (
@@ -917,8 +972,33 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update t1_dossier_version
         set content_hash = #{contentHash}
         where id = #{versionId}
-          and (content_hash is null or content_hash = '')
+          and (content_hash is null or content_hash = '' or content_hash != #{contentHash})
     </update>
+
+    <select id="selectGeneratedVersionByPrecheckRunId" resultType="java.util.HashMap">
+        select dv.id as versionId,
+               dv.dossier_instance_id as instanceId,
+               dv.version_no as versionNo,
+               dv.version_label as versionLabel,
+               dv.major_version_no as majorVersionNo,
+               dv.minor_version_no as minorVersionNo,
+               dv.version_level as versionLevel,
+               dv.version_reason as versionReason,
+               dv.template_code as templateCode,
+               dv.template_version as templateVersion,
+               dv.generation_job_id as generationJobId,
+               dv.data_snapshot_id as dataSnapshotId,
+               dv.content_hash as contentHash,
+               dv.created_at as createdAt
+        from t1_generation_job gj
+        inner join t1_dossier_version dv on dv.id = gj.dossier_version_id
+        where gj.dossier_instance_id = #{instanceId}
+          and gj.precheck_run_id = #{precheckRunId}
+          and gj.job_status = 'succeeded'
+          and dv.deleted_at is null
+        order by dv.version_no desc
+        limit 1
+    </select>
 
     <update id="updateDossierVersionSummary">
         update t1_dossier_version

@@ -426,7 +426,7 @@ const treeProps = {
 }
 
 function goDossierInstance() {
-  router.push('/project1/dossier/manage/instance')
+  router.push('/dossier/manage/instance')
 }
 
 const context = computed(() => detailData.value.context || {})
@@ -439,35 +439,11 @@ const detail = computed(() => detailData.value.detail || {})
 const contentItems = computed(() => detailData.value.contentItems || [])
 const documents = computed(() => detailData.value.documents || [])
 const displayDocuments = computed(() => {
-  const rows = documents.value.map(item => ({
+  return documents.value.map(item => ({
     ...item,
     fileType: item.fileType || fileType(item.fileStorageKey),
     title: item.title || item.docNo || item.fileStorageKey || '-'
   }))
-  contentItems.value
-    .filter(item => isDocumentContent(item))
-    .forEach(item => {
-      rows.push({
-        documentEntryId: item.contentItemId,
-        fileType: fileType(item.fileStorageKey),
-        title: item.itemName,
-        docNo: firstPresent(item.itemCode, item.sourceRecordKey),
-        fileCode: item.itemCode,
-        revision: firstPresent(item.revision, item.attrs?.revision, item.attrs?.version),
-        relationType: contentItemRelationType(item),
-        sourceSystem: item.sourceSystem,
-        sourceTable: item.sourceTable,
-        lifecycleStage: item.lifecycleStage,
-        sourceRecordKey: item.sourceRecordKey,
-        documentStatus: item.itemStatus || 'active',
-        completenessStatus: item.completenessStatus,
-        issueDate: item.issueDate,
-        effectiveDate: item.effectiveDate,
-        createdAt: item.createdAt,
-        fileStorageKey: item.fileStorageKey
-      })
-    })
-  return rows
 })
 const directoryDocuments = computed(() => filterDocumentsForDirectory(activeDirectoryItem.value))
 const dataSources = computed(() => detailData.value.dataSources || [])
@@ -877,8 +853,7 @@ function directoryCategory(item) {
   if (label.includes('故障')) return 'fault'
   if (label.includes('检验')) return 'inspection'
   if (label.includes('制造') || label.includes('追溯') || label.includes('装配')) return 'manufacturing'
-  if (label.includes('装机') || label.includes('服役') || label.includes('使用') || label.includes('履历')) return 'service'
-  if (label.includes('维修')) return 'fault'
+  if (label.includes('装机') || label.includes('服役') || label.includes('使用') || label.includes('履历') || label.includes('维修')) return 'service'
   if (label.includes('技术')) return 'status'
   if (label.includes('接口')) return 'interface'
   if (label.includes('设计')) return 'design'
@@ -964,8 +939,8 @@ function tableMatchesCategory(table, category, label) {
   if (category === 'design') return title.includes('设计')
   if (category === 'manufacturing') return title.includes('制造') || title.includes('装配')
   if (category === 'inspection') return title.includes('检验') || title.includes('试验')
-  if (category === 'service') return title.includes('服役') || title.includes('装机') || title.includes('履历') || title.includes('使用')
-  if (category === 'fault') return title.includes('故障') || title.includes('维修') || title.includes('服役与故障')
+  if (category === 'service') return title.includes('服役') || title.includes('装机') || title.includes('履历') || title.includes('使用') || title.includes('维修')
+  if (category === 'fault') return title.includes('故障') || title.includes('服役与故障')
   if (category === 'status') return title.includes('技术') || title.includes('状态')
   if (category === 'interface') return title.includes('接口') || label.includes('接口')
   return false
@@ -1031,11 +1006,24 @@ function filterContentItemsForDirectory(directoryItem) {
   }
   const sourceTables = lowerStringSet(directoryItem?.sourceTables)
   const lifecycleStages = upperStringSet(directoryItem?.lifecycleStages)
-  const chapterId = String(directoryItem?.chapterId || '')
+  const chapterId = String(directoryItem?.chapterId || '').trim()
+  const exactItems = chapterId
+    ? contentItems.value.filter(item => contentItemChapterId(item) === chapterId)
+    : []
+  if (exactItems.length) {
+    return exactItems
+  }
   return contentItems.value.filter(item => {
-    const itemChapterId = String(item?.attrs?.chapterId || item?.chapterId || '')
+    const itemChapterId = contentItemChapterId(item)
     if (chapterId && itemChapterId) {
-      return chapterId === itemChapterId
+      return false
+    }
+    if (chapterId && !isDirectoryFallbackCandidate(item)) {
+      return false
+    }
+    if (sourceTables.size && lifecycleStages.size) {
+      return sourceTables.has(String(item.sourceTable || '').toLowerCase())
+        && lifecycleStages.has(String(item.lifecycleStage || '').toUpperCase())
     }
     if (sourceTables.size && sourceTables.has(String(item.sourceTable || '').toLowerCase())) {
       return true
@@ -1043,11 +1031,21 @@ function filterContentItemsForDirectory(directoryItem) {
     if (lifecycleStages.size && lifecycleStages.has(String(item.lifecycleStage || '').toUpperCase())) {
       return true
     }
-    if (item.itemType === 'key_node_summary') {
-      return category === 'basic' || category === 'content'
-    }
-    return matchesContentCategory(item, category)
+    return !chapterId && matchesContentCategory(item, category)
   })
+}
+
+function contentItemChapterId(item) {
+  return String(item?.attrs?.chapterId || item?.chapterId || '').trim()
+}
+
+function isDirectoryFallbackCandidate(item) {
+  const stage = String(item?.lifecycleStage || '').toUpperCase()
+  const itemType = String(item?.itemType || '').toLowerCase()
+  const sourceTable = String(item?.sourceTable || '').toLowerCase()
+  return itemType !== 'key_node_summary'
+    && !['DOSSIER', 'FULL_LIFECYCLE', 'DOCUMENT'].includes(stage)
+    && sourceTable !== 'dossier_content_item'
 }
 
 function filterDocumentsForDirectory(directoryItem) {
@@ -1077,10 +1075,10 @@ function matchesContentCategory(item, category) {
       || ['physical_aircraft', 'part_instance', 'part_master'].includes(sourceTable)
       || itemType === 'key_node_summary'
   }
-  if (category === 'design') return ['DESIGN', 'INTERFACE', 'TECHNICAL_STATUS'].includes(stage)
+  if (category === 'design') return stage === 'DESIGN' || itemType.includes('design') || sourceTable.includes('design')
   if (category === 'manufacturing') return ['MANUFACTURING', 'INSTALLATION'].includes(stage) || sourceTable.includes('shop_order')
   if (category === 'inspection') return stage === 'INSPECTION' || sourceTable.includes('inspection')
-  if (category === 'service') return stage === 'SERVICE' || itemType.includes('work_order') || sourceTable.includes('life_usage')
+  if (category === 'service') return stage === 'SERVICE' || itemType.includes('work_order') || itemType.includes('maintenance') || sourceTable.includes('life_usage')
   if (category === 'fault') return stage === 'FAULT' || itemType.includes('fault') || sourceTable.includes('fault')
   if (category === 'status') return stage === 'TECHNICAL_STATUS' || itemType.includes('status')
   if (category === 'interface') return stage === 'INTERFACE' || itemType.includes('interface') || sourceTable.includes('interface')
@@ -1175,18 +1173,6 @@ function lowerStringSet(value) {
 
 function upperStringSet(value) {
   return new Set(getStringList(value).map(item => item.toUpperCase()))
-}
-
-function isDocumentContent(item) {
-  return hasFileLikeStorageKey(item.fileStorageKey)
-}
-
-function hasFileLikeStorageKey(value) {
-  const key = String(value || '').trim().split(/[?#]/)[0]
-  if (!key || key.endsWith('/') || key.endsWith('\\')) {
-    return false
-  }
-  return !!fileExtension(key)
 }
 
 function fileType(fileStorageKey) {
@@ -1291,13 +1277,6 @@ function documentDisplayDate(row) {
     formatDateOnly(row?.expiryDate),
     '-'
   )
-}
-
-function contentItemRelationType(item) {
-  const sourceTable = String(item?.sourceTable || '').toLowerCase()
-  if (sourceTable.includes('certificate')) return 'CERTIFICATE'
-  if (sourceTable.includes('part_document')) return 'REFERENCE'
-  return 'CONTENT_FILE'
 }
 
 function formatDateOnly(value) {

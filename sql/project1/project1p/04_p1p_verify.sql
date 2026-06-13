@@ -1,5 +1,5 @@
 -- Verification queries for p1p dossier target tables.
--- Run after 02_p1p_dossier_schema_mysql8.sql and 03_p1p_dossier_seed_mysql8.sql.
+-- Run after 02_p1p_dossier_schema_mysql8.sql and ../dossier/dossier_mock_data_seed_mysql8.sql.
 
 use `ry-cloud`;
 set names utf8mb4;

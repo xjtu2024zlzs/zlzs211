@@ -2,7 +2,7 @@
   <div class="app-container dossier-template-page">
     <div class="page-head">
       <div>
-        <h2>卷宗生成管理</h2>
+        <h2>卷宗模板管理</h2>
         <div class="subline">当前：卷宗模板管理</div>
       </div>
       <div class="actions">
@@ -922,7 +922,7 @@ const rules = {
 }
 
 function goDossierInstance() {
-  router.push('/project1/dossier/manage/instance')
+  router.push('/dossier/manage/instance')
 }
 
 const sourceOpen = ref(false)

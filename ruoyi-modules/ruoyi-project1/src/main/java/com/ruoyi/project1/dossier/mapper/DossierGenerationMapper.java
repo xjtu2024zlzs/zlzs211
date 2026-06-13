@@ -58,6 +58,9 @@ public interface DossierGenerationMapper
 
     public Map<String, Object> selectDuplicateVersion(Map<String, Object> params);
 
+    public Map<String, Object> selectGeneratedVersionByPrecheckRunId(@Param("instanceId") String instanceId,
+            @Param("precheckRunId") String precheckRunId);
+
     public int updateVersionContentHash(Map<String, Object> params);
 
     public int updateDossierVersionSummary(Map<String, Object> params);

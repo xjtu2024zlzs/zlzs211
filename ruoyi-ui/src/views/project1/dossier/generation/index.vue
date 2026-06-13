@@ -2,8 +2,8 @@
   <div class="app-container dossier-generation-page">
     <div class="page-head">
       <div>
-        <h2>新建卷宗生成</h2>
-        <div class="subline">当前：新建卷宗生成</div>
+        <h2>卷宗生成控制</h2>
+        <div class="subline">当前：数字卷宗 / 卷宗生成管理 / 卷宗生成控制</div>
       </div>
       <div class="actions">
         <el-button icon="Refresh" :loading="loading" @click="refreshPage">刷新数据</el-button>
@@ -249,6 +249,9 @@ const outputInfo = computed(() => {
   return (generationResult.value && generationResult.value.output) || (jobInfo.value.output || {})
 })
 const isDuplicateResult = computed(() => !!(generationResult.value && generationResult.value.duplicated))
+const hasFinishedGeneration = computed(() => {
+  return !!generationResult.value && (isDuplicateResult.value || jobInfo.value.jobStatus === 'succeeded')
+})
 const resultInstanceId = computed(() => {
   return (generationResult.value && (generationResult.value.instanceId || generationResult.value.existingInstanceId)) || ''
 })
@@ -264,7 +267,12 @@ const resultVersionId = computed(() => {
 })
 const canOpenDetail = computed(() => !!resultInstanceId.value && !!resultVersionId.value)
 const canStartGeneration = computed(() => {
-  return selectedAircraftId.value && selectedTemplateId.value && precheckResult.value && (checkSummary.value.blockingCount || 0) === 0
+  return selectedAircraftId.value
+    && selectedTemplateId.value
+    && precheckResult.value
+    && !generating.value
+    && !hasFinishedGeneration.value
+    && (checkSummary.value.blockingCount || 0) === 0
 })
 const flowActiveStep = computed(() => {
   if (jobInfo.value.jobStatus === 'succeeded') {
@@ -346,7 +354,9 @@ function resolveModelId(preferredId) {
   if (preferredId && modelOptions.value.some(item => item.modelId === preferredId)) {
     return preferredId
   }
-  return ''
+  const defaultModel = modelOptions.value.find(item => item.isDefault === 1 || item.defaultFlag === 1)
+    || modelOptions.value[0]
+  return defaultModel ? defaultModel.modelId : ''
 }
 
 function resolveTemplateId(preferredId) {
@@ -372,10 +382,17 @@ async function loadAircraftOptions(preferredAircraftId = '') {
   }
   const aircraftRes = await listGenerationAircraft({ modelId: selectedModelId.value })
   aircraftOptions.value = aircraftRes.data || []
-  selectedAircraftId.value = preferredAircraftId && aircraftOptions.value.some(item => item.aircraftId === preferredAircraftId)
-    ? preferredAircraftId
-    : ''
+  selectedAircraftId.value = resolveAircraftId(preferredAircraftId)
   await loadPrepareData()
+}
+
+function resolveAircraftId(preferredAircraftId) {
+  if (preferredAircraftId && aircraftOptions.value.some(item => item.aircraftId === preferredAircraftId)) {
+    return preferredAircraftId
+  }
+  const defaultAircraft = aircraftOptions.value.find(item => item.isDefault === 1 || item.defaultFlag === 1)
+    || aircraftOptions.value[0]
+  return defaultAircraft ? defaultAircraft.aircraftId : ''
 }
 
 async function loadPrepareData() {
@@ -430,7 +447,7 @@ function goDossierDetail() {
     return
   }
   router.push({
-    path: '/project1/dossier/manage/detail',
+    path: '/dossier/manage/detail',
     query: {
       instanceId: resultInstanceId.value,
       versionId: resultVersionId.value
@@ -439,7 +456,7 @@ function goDossierDetail() {
 }
 
 function goDossierInstance() {
-  router.push('/project1/dossier/manage/instance')
+  router.push('/dossier/manage/instance')
 }
 
 function metricValue(key) {

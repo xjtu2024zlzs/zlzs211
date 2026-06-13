@@ -422,11 +422,11 @@ function toggleTimeSort() {
 }
 
 function goTemplate() {
-  router.push('/project1/dossier/manage/template')
+  router.push('/dossier/manage/template')
 }
 
 function goGeneration() {
-  router.push('/project1/dossier/manage/generation')
+  router.push('/dossier/manage/generation')
 }
 
 function goDetail(row) {
@@ -434,7 +434,7 @@ function goDetail(row) {
     return
   }
   router.push({
-    path: '/project1/dossier/manage/detail',
+    path: '/dossier/manage/detail',
     query: {
       instanceId: row.instanceId,
       versionId: row.currentVersionId
@@ -447,7 +447,7 @@ function goVersionDetail(instanceRow, versionRow) {
     return
   }
   router.push({
-    path: '/project1/dossier/manage/detail',
+    path: '/dossier/manage/detail',
     query: {
       instanceId: instanceRow.instanceId,
       versionId: versionRow.versionId
@@ -486,28 +486,28 @@ async function handleArchive(row) {
 }
 
 async function handleDelete(row) {
-  await ElMessageBox.confirm(`确认删除 ${row.instanceCode}？删除后该卷宗将不再出现在实例列表中。`, '删除卷宗', {
+  await ElMessageBox.confirm(`确认彻底删除 ${row.instanceCode}？相关版本、生成任务、目录、内容和导出记录会一并删除，删除后不可恢复。`, '彻底删除卷宗', {
     type: 'warning',
-    confirmButtonText: '删除',
+    confirmButtonText: '彻底删除',
     cancelButtonText: '取消'
   })
   await deleteDossierInstance(row.instanceId)
-  ElMessage.success('删除成功')
+  ElMessage.success('彻底删除成功')
   getList()
 }
 
 async function handleVersionDelete(instanceRow, versionRow) {
   await ElMessageBox.confirm(
-    `确认删除 ${instanceRow.instanceCode} 的 ${versionRow.versionLabel || '该历史版本'}？删除后该版本将不再出现在版本历史中。`,
-    '删除卷宗版本',
+    `确认彻底删除 ${instanceRow.instanceCode} 的 ${versionRow.versionLabel || '该历史版本'}？该版本的目录、内容、生成任务和导出记录会一并删除，删除后不可恢复。`,
+    '彻底删除卷宗版本',
     {
       type: 'warning',
-      confirmButtonText: '删除',
+      confirmButtonText: '彻底删除',
       cancelButtonText: '取消'
     }
   )
   await deleteDossierVersion(instanceRow.instanceId, versionRow.versionId)
-  ElMessage.success('版本删除成功')
+  ElMessage.success('版本彻底删除成功')
   await loadVersions(instanceRow, true)
 }
 
