@@ -27,8 +27,8 @@
         </el-select>
       </el-form-item>
       <el-form-item label="执行批次" prop="accessBatchId">
-        <el-select v-model="queryParams.accessBatchId" placeholder="最近执行批次" clearable style="width: 220px" @change="handleQuery">
-          <el-option label="最近执行批次" :value="undefined" />
+        <el-select v-model="queryParams.accessBatchId" placeholder="选择执行批次" clearable style="width: 220px" @change="handleQuery">
+          <el-option label="全部执行批次" :value="undefined" />
           <el-option v-for="item in batchOptions" :key="item.batchId" :label="item.batchName" :value="item.batchId" />
         </el-select>
       </el-form-item>
@@ -91,7 +91,7 @@
     <el-table v-loading="loading" :data="accessResultList">
       <el-table-column label="目标表" align="left" prop="targetTable" min-width="170" :show-overflow-tooltip="true" />
       <el-table-column label="源库/源表" align="left" prop="sourceTable" min-width="180" :show-overflow-tooltip="true" />
-      <el-table-column label="最近执行批次" align="center" prop="accessBatchId" min-width="150">
+      <el-table-column label="执行批次" align="center" prop="accessBatchId" min-width="150">
         <template #default="scope">{{ batchName(scope.row.accessBatchId) }}</template>
       </el-table-column>
       <el-table-column label="执行状态" align="center" prop="resultStatus" width="110">
