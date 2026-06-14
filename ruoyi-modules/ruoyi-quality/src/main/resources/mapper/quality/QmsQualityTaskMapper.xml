@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.quality.mapper.QmsQualityTaskMapper">
+    
+    <resultMap type="QmsQualityTask" id="QmsQualityTaskResult">
+        <result property="taskId"    column="task_id"    />
+        <result property="problemId"    column="problem_id"    />
+        <result property="problemCode"    column="problem_code"    />
+        <result property="moduleCode"    column="module_code"    />
+        <result property="moduleName"    column="module_name"    />
+        <result property="taskStatus"    column="task_status"    />
+        <result property="dispatchOpinion"    column="dispatch_opinion"    />
+        <result property="processResult"    column="process_result"    />
+        <result property="processFile"    column="process_file"    />
+        <result property="dispatchUserId"    column="dispatch_user_id"    />
+        <result property="dispatchUserName"    column="dispatch_user_name"    />
+        <result property="dispatchTime"    column="dispatch_time"    />
+        <result property="submitUserId"    column="submit_user_id"    />
+        <result property="submitUserName"    column="submit_user_name"    />
+        <result property="submitTime"    column="submit_time"    />
+        <result property="confirmUserId"    column="confirm_user_id"    />
+        <result property="confirmUserName"    column="confirm_user_name"    />
+        <result property="confirmOpinion"    column="confirm_opinion"    />
+        <result property="confirmTime"    column="confirm_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectQmsQualityTaskVo">
+        select task_id, problem_id, problem_code, module_code, module_name, task_status, dispatch_opinion, process_result, process_file, dispatch_user_id, dispatch_user_name, dispatch_time, submit_user_id, submit_user_name, submit_time, confirm_user_id, confirm_user_name, confirm_opinion, confirm_time, create_by, create_time, update_by, update_time, del_flag from qms_quality_task
+    </sql>
+
+    <select id="selectQmsQualityTaskList" parameterType="QmsQualityTask" resultMap="QmsQualityTaskResult">
+        <include refid="selectQmsQualityTaskVo"/>
+        <where>  
+            <if test="problemId != null "> and problem_id = #{problemId}</if>
+            <if test="problemCode != null  and problemCode != ''"> and problem_code = #{problemCode}</if>
+            <if test="moduleCode != null  and moduleCode != ''"> and module_code = #{moduleCode}</if>
+            <if test="moduleName != null  and moduleName != ''"> and module_name like concat('%', #{moduleName}, '%')</if>
+            <if test="taskStatus != null  and taskStatus != ''"> and task_status = #{taskStatus}</if>
+            <if test="dispatchOpinion != null  and dispatchOpinion != ''"> and dispatch_opinion = #{dispatchOpinion}</if>
+            <if test="processResult != null  and processResult != ''"> and process_result = #{processResult}</if>
+            <if test="processFile != null  and processFile != ''"> and process_file = #{processFile}</if>
+            <if test="dispatchUserId != null "> and dispatch_user_id = #{dispatchUserId}</if>
+            <if test="dispatchUserName != null  and dispatchUserName != ''"> and dispatch_user_name like concat('%', #{dispatchUserName}, '%')</if>
+            <if test="dispatchTime != null "> and dispatch_time = #{dispatchTime}</if>
+            <if test="submitUserId != null "> and submit_user_id = #{submitUserId}</if>
+            <if test="submitUserName != null  and submitUserName != ''"> and submit_user_name like concat('%', #{submitUserName}, '%')</if>
+            <if test="submitTime != null "> and submit_time = #{submitTime}</if>
+            <if test="confirmUserId != null "> and confirm_user_id = #{confirmUserId}</if>
+            <if test="confirmUserName != null  and confirmUserName != ''"> and confirm_user_name like concat('%', #{confirmUserName}, '%')</if>
+            <if test="confirmOpinion != null  and confirmOpinion != ''"> and confirm_opinion = #{confirmOpinion}</if>
+            <if test="confirmTime != null "> and confirm_time = #{confirmTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectQmsQualityTaskByTaskId" parameterType="Long" resultMap="QmsQualityTaskResult">
+        <include refid="selectQmsQualityTaskVo"/>
+        where task_id = #{taskId}
+    </select>
+
+    <insert id="insertQmsQualityTask" parameterType="QmsQualityTask" useGeneratedKeys="true" keyProperty="taskId">
+        insert into qms_quality_task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="problemId != null">problem_id,</if>
+            <if test="problemCode != null and problemCode != ''">problem_code,</if>
+            <if test="moduleCode != null and moduleCode != ''">module_code,</if>
+            <if test="moduleName != null and moduleName != ''">module_name,</if>
+            <if test="taskStatus != null and taskStatus != ''">task_status,</if>
+            <if test="dispatchOpinion != null">dispatch_opinion,</if>
+            <if test="processResult != null">process_result,</if>
+            <if test="processFile != null">process_file,</if>
+            <if test="dispatchUserId != null">dispatch_user_id,</if>
+            <if test="dispatchUserName != null">dispatch_user_name,</if>
+            <if test="dispatchTime != null">dispatch_time,</if>
+            <if test="submitUserId != null">submit_user_id,</if>
+            <if test="submitUserName != null">submit_user_name,</if>
+            <if test="submitTime != null">submit_time,</if>
+            <if test="confirmUserId != null">confirm_user_id,</if>
+            <if test="confirmUserName != null">confirm_user_name,</if>
+            <if test="confirmOpinion != null">confirm_opinion,</if>
+            <if test="confirmTime != null">confirm_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="problemId != null">#{problemId},</if>
+            <if test="problemCode != null and problemCode != ''">#{problemCode},</if>
+            <if test="moduleCode != null and moduleCode != ''">#{moduleCode},</if>
+            <if test="moduleName != null and moduleName != ''">#{moduleName},</if>
+            <if test="taskStatus != null and taskStatus != ''">#{taskStatus},</if>
+            <if test="dispatchOpinion != null">#{dispatchOpinion},</if>
+            <if test="processResult != null">#{processResult},</if>
+            <if test="processFile != null">#{processFile},</if>
+            <if test="dispatchUserId != null">#{dispatchUserId},</if>
+            <if test="dispatchUserName != null">#{dispatchUserName},</if>
+            <if test="dispatchTime != null">#{dispatchTime},</if>
+            <if test="submitUserId != null">#{submitUserId},</if>
+            <if test="submitUserName != null">#{submitUserName},</if>
+            <if test="submitTime != null">#{submitTime},</if>
+            <if test="confirmUserId != null">#{confirmUserId},</if>
+            <if test="confirmUserName != null">#{confirmUserName},</if>
+            <if test="confirmOpinion != null">#{confirmOpinion},</if>
+            <if test="confirmTime != null">#{confirmTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateQmsQualityTask" parameterType="QmsQualityTask">
+        update qms_quality_task
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="problemId != null">problem_id = #{problemId},</if>
+            <if test="problemCode != null and problemCode != ''">problem_code = #{problemCode},</if>
+            <if test="moduleCode != null and moduleCode != ''">module_code = #{moduleCode},</if>
+            <if test="moduleName != null and moduleName != ''">module_name = #{moduleName},</if>
+            <if test="taskStatus != null and taskStatus != ''">task_status = #{taskStatus},</if>
+            <if test="dispatchOpinion != null">dispatch_opinion = #{dispatchOpinion},</if>
+            <if test="processResult != null">process_result = #{processResult},</if>
+            <if test="processFile != null">process_file = #{processFile},</if>
+            <if test="dispatchUserId != null">dispatch_user_id = #{dispatchUserId},</if>
+            <if test="dispatchUserName != null">dispatch_user_name = #{dispatchUserName},</if>
+            <if test="dispatchTime != null">dispatch_time = #{dispatchTime},</if>
+            <if test="submitUserId != null">submit_user_id = #{submitUserId},</if>
+            <if test="submitUserName != null">submit_user_name = #{submitUserName},</if>
+            <if test="submitTime != null">submit_time = #{submitTime},</if>
+            <if test="confirmUserId != null">confirm_user_id = #{confirmUserId},</if>
+            <if test="confirmUserName != null">confirm_user_name = #{confirmUserName},</if>
+            <if test="confirmOpinion != null">confirm_opinion = #{confirmOpinion},</if>
+            <if test="confirmTime != null">confirm_time = #{confirmTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where task_id = #{taskId}
+    </update>
+
+    <delete id="deleteQmsQualityTaskByTaskId" parameterType="Long">
+        delete from qms_quality_task where task_id = #{taskId}
+    </delete>
+
+    <delete id="deleteQmsQualityTaskByTaskIds" parameterType="String">
+        delete from qms_quality_task where task_id in 
+        <foreach item="taskId" collection="array" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+    </delete>
+</mapper>

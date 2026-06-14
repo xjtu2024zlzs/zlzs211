@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.quality.mapper.QmsFlowLogMapper">
+    
+    <resultMap type="QmsFlowLog" id="QmsFlowLogResult">
+        <result property="logId"    column="log_id"    />
+        <result property="problemId"    column="problem_id"    />
+        <result property="problemCode"    column="problem_code"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="actionType"    column="action_type"    />
+        <result property="actionName"    column="action_name"    />
+        <result property="operatorId"    column="operator_id"    />
+        <result property="operatorName"    column="operator_name"    />
+        <result property="fromStatus"    column="from_status"    />
+        <result property="toStatus"    column="to_status"    />
+        <result property="actionContent"    column="action_content"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectQmsFlowLogVo">
+        select log_id, problem_id, problem_code, task_id, action_type, action_name, operator_id, operator_name, from_status, to_status, action_content, create_time from qms_flow_log
+    </sql>
+
+    <select id="selectQmsFlowLogList" parameterType="QmsFlowLog" resultMap="QmsFlowLogResult">
+        <include refid="selectQmsFlowLogVo"/>
+        <where>  
+            <if test="problemId != null "> and problem_id = #{problemId}</if>
+            <if test="problemCode != null  and problemCode != ''"> and problem_code = #{problemCode}</if>
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="actionType != null  and actionType != ''"> and action_type = #{actionType}</if>
+            <if test="actionName != null  and actionName != ''"> and action_name like concat('%', #{actionName}, '%')</if>
+            <if test="operatorId != null "> and operator_id = #{operatorId}</if>
+            <if test="operatorName != null  and operatorName != ''"> and operator_name like concat('%', #{operatorName}, '%')</if>
+            <if test="fromStatus != null  and fromStatus != ''"> and from_status = #{fromStatus}</if>
+            <if test="toStatus != null  and toStatus != ''"> and to_status = #{toStatus}</if>
+            <if test="actionContent != null  and actionContent != ''"> and action_content = #{actionContent}</if>
+        </where>
+    </select>
+    
+    <select id="selectQmsFlowLogByLogId" parameterType="Long" resultMap="QmsFlowLogResult">
+        <include refid="selectQmsFlowLogVo"/>
+        where log_id = #{logId}
+    </select>
+
+    <insert id="insertQmsFlowLog" parameterType="QmsFlowLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into qms_flow_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="problemId != null">problem_id,</if>
+            <if test="problemCode != null and problemCode != ''">problem_code,</if>
+            <if test="taskId != null">task_id,</if>
+            <if test="actionType != null and actionType != ''">action_type,</if>
+            <if test="actionName != null and actionName != ''">action_name,</if>
+            <if test="operatorId != null">operator_id,</if>
+            <if test="operatorName != null">operator_name,</if>
+            <if test="fromStatus != null">from_status,</if>
+            <if test="toStatus != null">to_status,</if>
+            <if test="actionContent != null">action_content,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="problemId != null">#{problemId},</if>
+            <if test="problemCode != null and problemCode != ''">#{problemCode},</if>
+            <if test="taskId != null">#{taskId},</if>
+            <if test="actionType != null and actionType != ''">#{actionType},</if>
+            <if test="actionName != null and actionName != ''">#{actionName},</if>
+            <if test="operatorId != null">#{operatorId},</if>
+            <if test="operatorName != null">#{operatorName},</if>
+            <if test="fromStatus != null">#{fromStatus},</if>
+            <if test="toStatus != null">#{toStatus},</if>
+            <if test="actionContent != null">#{actionContent},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateQmsFlowLog" parameterType="QmsFlowLog">
+        update qms_flow_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="problemId != null">problem_id = #{problemId},</if>
+            <if test="problemCode != null and problemCode != ''">problem_code = #{problemCode},</if>
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="actionType != null and actionType != ''">action_type = #{actionType},</if>
+            <if test="actionName != null and actionName != ''">action_name = #{actionName},</if>
+            <if test="operatorId != null">operator_id = #{operatorId},</if>
+            <if test="operatorName != null">operator_name = #{operatorName},</if>
+            <if test="fromStatus != null">from_status = #{fromStatus},</if>
+            <if test="toStatus != null">to_status = #{toStatus},</if>
+            <if test="actionContent != null">action_content = #{actionContent},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where log_id = #{logId}
+    </update>
+
+    <delete id="deleteQmsFlowLogByLogId" parameterType="Long">
+        delete from qms_flow_log where log_id = #{logId}
+    </delete>
+
+    <delete id="deleteQmsFlowLogByLogIds" parameterType="String">
+        delete from qms_flow_log where log_id in 
+        <foreach item="logId" collection="array" open="(" separator="," close=")">
+            #{logId}
+        </foreach>
+    </delete>
+</mapper>

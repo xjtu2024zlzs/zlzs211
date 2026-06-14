@@ -50,7 +50,7 @@
           </div>
 
           <el-button type="primary" size="large" plain @click="navigateTo('/project_1')">
-            进入模块
+            进入全域异构信息集成系统
           </el-button>
         </div>
 
@@ -76,10 +76,8 @@
         <div class="section-header">
           <div>
             <p class="section-label">Project Modules</p>
-            <h2 class="section-title">课题二、课题三、课题四模块概览</h2>
-            <p class="section-desc">
-              以模块卡片形式展示各课题的核心信息、运行状态和图表摘要，点击按钮可进入对应软件模块。
-            </p>
+
+
           </div>
         </div>
 
@@ -142,11 +140,11 @@
         <div class="knowledge-left">
           <div class="section-header section-header--plain">
             <div>
-              <p class="section-label">生命周期质量知识图谱与智能追溯系统</p>
-              <h2 class="section-title">知识图谱追溯</h2>
+              <p class="section-label">构建知识图谱溯源</p>
+              <h2 class="section-title">全生命周期数字质量自反馈与追溯</h2>
               <p class="section-desc">
                 围绕质量反馈事件，融合零部件、传感器、制造、装配、检测、运行和质量反馈等生命周期数据，
-                构建质量知识图谱，实现候选根因推理、追溯链展示和报告自动生成。
+                构建质量知识图谱，实现候选根因推理、追溯链展示和报告生成。
               </p>
             </div>
           </div>
@@ -173,7 +171,7 @@
 
           <div class="knowledge-actions">
             <el-button type="primary" @click="navigateTo('/project_5')">
-              进入模块
+              进入全生命周期数字质量自反馈与追溯
             </el-button>
 
           </div>
@@ -210,7 +208,7 @@
 
           <div class="activity-summary">
             <span class="summary-pill">{{ recentRecords.length }} 条记录</span>
-            <span class="summary-pill summary-pill--accent">模拟数据</span>
+            <span class="summary-pill summary-pill--accent">质量问题记录</span>
           </div>
         </div>
 
@@ -237,7 +235,7 @@
           </el-table>
 
           <div class="table-footer">
-            <div class="table-footer__hint">点击任意行查看追溯任务详情</div>
+            <div class="table-footer__hint">点击任意行查看质量问题详情</div>
             <el-pagination
               v-model:current-page="currentPage"
               v-model:page-size="pageSize"
@@ -256,7 +254,7 @@
     <!-- 详情弹窗 -->
     <el-dialog
       v-model="detailVisible"
-      title="追溯任务详情"
+      title="质量问题详情"
       width="760px"
       custom-class="track-dialog"
     >
@@ -290,9 +288,16 @@
           </div>
           <div class="detail-block detail-block--wide">
             <p class="detail-label">追溯说明</p>
-            <p class="detail-value detail-value--muted">
-              {{ selectedRecord.detail }}
-            </p>
+
+            <div class="detail-line-list">
+              <div
+                v-for="(line, index) in getDetailLines(selectedRecord.detail)"
+                :key="index"
+                class="detail-line-item"
+              >
+                {{ line }}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -304,6 +309,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
+import { listProblem } from '@/api/quality/problem'
 
 const router = useRouter()
 
@@ -323,8 +329,8 @@ const selectedKgNode = ref(null)
 const middleProjects = ref([
   {
     key: 'project-2',
-    label: '课题二',
-    title: '工艺过程质量分析模块',
+    label: '工艺过程质量分析',
+    title: '复杂产品设计制造协同优化平台',
     icon: '二',
     iconClass: 'project-card__icon--blue',
     description: '展示工艺参数、过程波动、关键工序状态和异常趋势，用于支撑过程质量分析。',
@@ -341,8 +347,8 @@ const middleProjects = ref([
   },
   {
     key: 'project-3',
-    label: '课题三',
-    title: '故障诊断与状态识别模块',
+    label: '质量监管与故障预防',
+    title: '复杂产品生命周期质量监管与故障预防',
     icon: '三',
     iconClass: 'project-card__icon--orange',
     description: '展示设备状态识别、故障类型分布和诊断结果，为质量异常定位提供依据。',
@@ -359,8 +365,8 @@ const middleProjects = ref([
   },
   {
     key: 'project-4',
-    label: '课题四',
-    title: '试验检测与质量评价模块',
+    label: '故障诊断与根源性分析',
+    title: '智能故障诊断与根源性分析技术',
     icon: '四',
     iconClass: 'project-card__icon--purple',
     description: '汇总试验检测结果、评价等级和质量波动趋势，用于形成质量评价支撑信息。',
@@ -580,6 +586,99 @@ const qualityKgJson = {
     ]
   
 }
+const getProblemStatusText = (status) => {
+  const map = {
+    CREATED: '已填报',
+    DISPATCHING: '待分派',
+    PROCESSING: '处理中',
+    WAIT_CONFIRM: '待确认',
+    FINISHED: '已结束'
+  }
+  return map[status] || status || '未知'
+}
+
+const getProblemStatusType = (status) => {
+  const map = {
+    CREATED: 'info',
+    DISPATCHING: 'warning',
+    PROCESSING: 'primary',
+    WAIT_CONFIRM: 'warning',
+    FINISHED: 'success'
+  }
+  return map[status] || 'info'
+}
+
+const getProblemModuleName = (item) => {
+  return (
+    item.currentModuleName ||
+    item.currentModule ||
+    item.moduleName ||
+    item.involvedSystem ||
+    '待分派'
+  )
+}
+
+const getProblemTime = (item) => {
+  return item.createTime || item.occurTime || item.updateTime || '-'
+}
+
+const buildProblemSummary = (item) => {
+  const title = item.title || '未命名质量问题'
+  const system = item.involvedSystem ? `｜${item.involvedSystem}` : ''
+  const severity = item.severity ? `｜${item.severity}` : ''
+  return `${title}${system}${severity}`
+}
+
+const buildProblemDetail = (item) => {
+  const lines = [
+    `问题标题：${item.title || '-'}`,
+    `发生时间：${item.occurTime || '-'}`,
+    `产品型号：${item.productModel || '-'}`,
+    `涉及系统：${item.involvedSystem || '-'}`,
+    `发生部位：${item.occurPart || '-'}`,
+    `部件编号：${item.componentCode || '-'}`,
+    `严重程度：${item.severity || '-'}`,
+    `问题来源：${item.source || '-'}`,
+    `问题描述：${item.description || '-'}`,
+    `影响范围：${item.influenceScope || '-'}`
+  ]
+
+  return lines.join('\n')
+}
+
+const mapProblemToRecentRecord = (item) => {
+  return {
+    time: getProblemTime(item),
+    problemCode: item.problemCode || '-',
+    module: getProblemModuleName(item),
+    summary: buildProblemSummary(item),
+    detail: buildProblemDetail(item),
+    status: getProblemStatusText(item.status),
+    owner: item.reporter || item.createBy || '超级管理员',
+    statusType: getProblemStatusType(item.status),
+    raw: item
+  }
+}
+
+const loadRecentQualityProblems = async () => {
+  try {
+    const res = await listProblem({})
+    const rows = Array.isArray(res?.rows) ? res.rows : []
+
+    recentRecords.value = rows
+      .map((item) => mapProblemToRecentRecord(item))
+      .sort((a, b) => {
+        const at = a.time || ''
+        const bt = b.time || ''
+        return bt.localeCompare(at)
+      })
+
+    currentPage.value = 1
+  } catch (error) {
+    console.error('加载最近质量问题记录失败：', error)
+    recentRecords.value = []
+  }
+}
 
 const pagedRecords = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
@@ -591,13 +690,23 @@ const navigateTo = (path) => {
 }
 
 const startSystem = () => {
-  // 这里改成你的“问题填报页面”真实路由
-  router.push('/problem/report')
+  router.push('/quality')
 }
 
 const openRecordDetail = (row) => {
   selectedRecord.value = row
   detailVisible.value = true
+}
+
+const getDetailLines = (detail) => {
+  if (!detail) {
+    return ['暂无追溯说明']
+  }
+
+  return String(detail)
+    .split(/\n|；|;/)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0)
 }
 
 const handlePageSizeChange = (size) => {
@@ -823,68 +932,7 @@ const loadHomeData = async () => {
     }
   ]
 
-  recentRecords.value = [
-    {
-      time: '2026-06-12 09:20',
-      problemCode: 'QF-20260612-001',
-      module: '知识图谱追溯',
-      summary: '液压系统压力异常问题已完成知识图谱追溯',
-      detail: '系统根据问题填报信息关联零部件、传感器、装配过程和检测记录，生成候选根因并形成追溯链。',
-      status: '已完成',
-      owner: '李工',
-      statusType: 'success'
-    },
-    {
-      time: '2026-06-11 16:40',
-      problemCode: 'QF-20260611-004',
-      module: '课题三',
-      summary: '作动筒响应迟滞故障进入诊断复核流程',
-      detail: '诊断模型输出疑似液压泄漏和阀控异常两类原因，目前等待人工复核。',
-      status: '复核中',
-      owner: '张工',
-      statusType: 'warning'
-    },
-    {
-      time: '2026-06-11 14:05',
-      problemCode: 'QF-20260611-002',
-      module: '课题二',
-      summary: '关键工序参数波动已触发过程质量预警',
-      detail: '系统检测到工艺参数连续波动，已关联对应批次和设备状态记录。',
-      status: '分析中',
-      owner: '王工',
-      statusType: 'danger'
-    },
-    {
-      time: '2026-06-10 18:30',
-      problemCode: 'QF-20260610-006',
-      module: '课题四',
-      summary: '试验检测数据已完成质量评价并归档',
-      detail: '检测数据通过质量评价模型计算后，形成评价等级并同步至质量档案。',
-      status: '已归档',
-      owner: '赵工',
-      statusType: 'success'
-    },
-    {
-      time: '2026-06-10 11:15',
-      problemCode: 'QF-20260610-003',
-      module: '课题一',
-      summary: '基础数据统计看板完成本周数据更新',
-      detail: '课题一数据接入量、任务数量和异常识别统计已完成更新。',
-      status: '已更新',
-      owner: '刘工',
-      statusType: 'success'
-    },
-    {
-      time: '2026-06-09 17:25',
-      problemCode: 'QF-20260609-005',
-      module: '知识图谱追溯',
-      summary: '质量追溯报告已导出并写入报告记录',
-      detail: '系统已根据追溯链、候选根因、算法分析结果和任务信息生成 Word 报告。',
-      status: '已导出',
-      owner: '周工',
-      statusType: 'success'
-    }
-  ]
+  await loadRecentQualityProblems()
 
   loading.value = false
 }
@@ -1648,6 +1696,32 @@ onBeforeUnmount(() => {
 
 .detail-value--muted {
   color: #597189;
+}
+
+.detail-line-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.detail-line-item {
+  position: relative;
+  padding-left: 12px;
+  color: #597189;
+  font-size: 13px;
+  line-height: 1.65;
+  word-break: break-all;
+}
+
+.detail-line-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #2674bc;
 }
 
 @media (max-width: 1200px) {

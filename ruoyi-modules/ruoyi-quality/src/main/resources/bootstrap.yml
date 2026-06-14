@@ -1,0 +1,32 @@
+server:
+  port: 9216
+
+spring:
+  application:
+    name: ruoyi-quality
+
+  profiles:
+    active: dev
+
+  config:
+    import:
+      - optional:nacos:ruoyi-quality-dev.yml?group=DEFAULT_GROUP
+
+  cloud:
+    nacos:
+      username: nacos
+      password: nacos
+
+      discovery:
+        server-addr: 127.0.0.1:8848
+        username: nacos
+        password: nacos
+        group: DEFAULT_GROUP
+
+      config:
+        server-addr: 127.0.0.1:8848
+        username: nacos
+        password: nacos
+        group: DEFAULT_GROUP
+        file-extension: yml
+        refresh-enabled: true

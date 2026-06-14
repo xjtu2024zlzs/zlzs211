@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.quality.mapper.QmsQualityProblemMapper">
+    
+    <resultMap type="QmsQualityProblem" id="QmsQualityProblemResult">
+        <result property="problemId"    column="problem_id"    />
+        <result property="problemCode"    column="problem_code"    />
+        <result property="title"    column="title"    />
+        <result property="occurTime"    column="occur_time"    />
+        <result property="productModel"    column="product_model"    />
+        <result property="involvedSystem"    column="involved_system"    />
+        <result property="occurPart"    column="occur_part"    />
+        <result property="componentCode"    column="component_code"    />
+        <result property="severity"    column="severity"    />
+        <result property="source"    column="source"    />
+        <result property="reporter"    column="reporter"    />
+        <result property="description"    column="description"    />
+        <result property="influenceScope"    column="influence_scope"    />
+        <result property="status"    column="status"    />
+        <result property="currentModuleCode"    column="current_module_code"    />
+        <result property="currentModuleName"    column="current_module_name"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectQmsQualityProblemVo">
+        select problem_id, problem_code, title, occur_time, product_model, involved_system, occur_part, component_code, severity, source, reporter, description, influence_scope, status, current_module_code, current_module_name, create_by, create_time, update_by, update_time, del_flag from qms_quality_problem
+    </sql>
+
+    <select id="selectQmsQualityProblemList" parameterType="QmsQualityProblem" resultMap="QmsQualityProblemResult">
+        <include refid="selectQmsQualityProblemVo"/>
+        <where>  
+            <if test="problemCode != null  and problemCode != ''"> and problem_code = #{problemCode}</if>
+            <if test="title != null  and title != ''"> and title = #{title}</if>
+            <if test="occurTime != null "> and occur_time = #{occurTime}</if>
+            <if test="productModel != null  and productModel != ''"> and product_model = #{productModel}</if>
+            <if test="involvedSystem != null  and involvedSystem != ''"> and involved_system = #{involvedSystem}</if>
+            <if test="occurPart != null  and occurPart != ''"> and occur_part = #{occurPart}</if>
+            <if test="componentCode != null  and componentCode != ''"> and component_code = #{componentCode}</if>
+            <if test="severity != null  and severity != ''"> and severity = #{severity}</if>
+            <if test="source != null  and source != ''"> and source = #{source}</if>
+            <if test="reporter != null  and reporter != ''"> and reporter = #{reporter}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="influenceScope != null  and influenceScope != ''"> and influence_scope = #{influenceScope}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="currentModuleCode != null  and currentModuleCode != ''"> and current_module_code = #{currentModuleCode}</if>
+            <if test="currentModuleName != null  and currentModuleName != ''"> and current_module_name like concat('%', #{currentModuleName}, '%')</if>
+        </where>
+    </select>
+    
+    <select id="selectQmsQualityProblemByProblemId" parameterType="Long" resultMap="QmsQualityProblemResult">
+        <include refid="selectQmsQualityProblemVo"/>
+        where problem_id = #{problemId}
+    </select>
+
+    <insert id="insertQmsQualityProblem" parameterType="QmsQualityProblem" useGeneratedKeys="true" keyProperty="problemId">
+        insert into qms_quality_problem
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="problemCode != null and problemCode != ''">problem_code,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="occurTime != null">occur_time,</if>
+            <if test="productModel != null">product_model,</if>
+            <if test="involvedSystem != null">involved_system,</if>
+            <if test="occurPart != null">occur_part,</if>
+            <if test="componentCode != null">component_code,</if>
+            <if test="severity != null">severity,</if>
+            <if test="source != null">source,</if>
+            <if test="reporter != null">reporter,</if>
+            <if test="description != null">description,</if>
+            <if test="influenceScope != null">influence_scope,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="currentModuleCode != null">current_module_code,</if>
+            <if test="currentModuleName != null">current_module_name,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="problemCode != null and problemCode != ''">#{problemCode},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="occurTime != null">#{occurTime},</if>
+            <if test="productModel != null">#{productModel},</if>
+            <if test="involvedSystem != null">#{involvedSystem},</if>
+            <if test="occurPart != null">#{occurPart},</if>
+            <if test="componentCode != null">#{componentCode},</if>
+            <if test="severity != null">#{severity},</if>
+            <if test="source != null">#{source},</if>
+            <if test="reporter != null">#{reporter},</if>
+            <if test="description != null">#{description},</if>
+            <if test="influenceScope != null">#{influenceScope},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="currentModuleCode != null">#{currentModuleCode},</if>
+            <if test="currentModuleName != null">#{currentModuleName},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateQmsQualityProblem" parameterType="QmsQualityProblem">
+        update qms_quality_problem
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="problemCode != null and problemCode != ''">problem_code = #{problemCode},</if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="occurTime != null">occur_time = #{occurTime},</if>
+            <if test="productModel != null">product_model = #{productModel},</if>
+            <if test="involvedSystem != null">involved_system = #{involvedSystem},</if>
+            <if test="occurPart != null">occur_part = #{occurPart},</if>
+            <if test="componentCode != null">component_code = #{componentCode},</if>
+            <if test="severity != null">severity = #{severity},</if>
+            <if test="source != null">source = #{source},</if>
+            <if test="reporter != null">reporter = #{reporter},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="influenceScope != null">influence_scope = #{influenceScope},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="currentModuleCode != null">current_module_code = #{currentModuleCode},</if>
+            <if test="currentModuleName != null">current_module_name = #{currentModuleName},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where problem_id = #{problemId}
+    </update>
+
+    <delete id="deleteQmsQualityProblemByProblemId" parameterType="Long">
+        delete from qms_quality_problem where problem_id = #{problemId}
+    </delete>
+
+    <delete id="deleteQmsQualityProblemByProblemIds" parameterType="String">
+        delete from qms_quality_problem where problem_id in 
+        <foreach item="problemId" collection="array" open="(" separator="," close=")">
+            #{problemId}
+        </foreach>
+    </delete>
+</mapper>
