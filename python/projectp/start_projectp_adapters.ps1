@@ -1,5 +1,5 @@
 param(
-    [string]$CondaEnv = $(if ($env:PROJECTP_CONDA_ENV) { $env:PROJECTP_CONDA_ENV } else { "py310-magneto" }),
+    [string]$CondaEnv = $(if ($env:PROJECTP_CONDA_ENV) { $env:PROJECTP_CONDA_ENV } else { "project1" }),
     [string]$HostAddress = $(if ($env:PROJECTP_API_HOST) { $env:PROJECTP_API_HOST } else { "127.0.0.1" })
 )
 

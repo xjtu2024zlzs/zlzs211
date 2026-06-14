@@ -49,7 +49,7 @@
             </p>
           </div>
 
-          <el-button type="primary" size="large" plain @click="navigateTo('/project_1')">
+          <el-button type="primary" size="large" plain @click="navigateTo('/dossier/integration/datasource')">
             进入全域异构信息集成系统
           </el-button>
         </div>
