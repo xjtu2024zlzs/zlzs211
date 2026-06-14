@@ -11,11 +11,8 @@
         </div>
       </div>
       <div class="actions">
-        <el-select v-model="selectedVersionId" placeholder="版本" class="version-select" @change="handleVersionChange">
-          <el-option v-for="item in versions" :key="item.versionId" :label="versionLabel(item)" :value="item.versionId" />
-        </el-select>
         <el-button icon="Refresh" :loading="loading" @click="loadDetail">刷新</el-button>
-        <el-button icon="DocumentChecked">版本对比</el-button>
+        <el-button icon="Back" @click="goDossierInstance">返回卷宗实例管理</el-button>
         <el-button type="primary" icon="Download" :loading="exporting" :disabled="!context.instanceId" @click="openExportDialog">导出</el-button>
       </div>
     </div>
@@ -70,6 +67,7 @@
                 <span>{{ item.orderNo }}</span>
                 <strong>{{ item.label }}</strong>
                 <el-tag v-if="isCompositionRow(item)" size="small" type="primary">{{ item.key === 'bom' ? 'BOM' : '组成' }}</el-tag>
+                <el-tag v-else-if="item.displayType" size="small">{{ displayTypeLabel(item.displayType) }}</el-tag>
               </button>
             </div>
           </div>
@@ -186,6 +184,22 @@
               </div>
             </div>
 
+            <div v-if="showTimeline" class="data-block timeline-block">
+              <div class="block-title">时间线</div>
+              <el-timeline>
+                <el-timeline-item
+                  v-for="item in activeTimelineItems"
+                  :key="`${item.key}-${item.title}-${item.time}`"
+                  :timestamp="item.time"
+                  placement="top"
+                >
+                  <strong>{{ item.title }}</strong>
+                  <p>{{ item.detail }}</p>
+                  <el-tag size="small" :type="statusType(item.status)">{{ item.stage || statusLabel(item.status) }}</el-tag>
+                </el-timeline-item>
+              </el-timeline>
+            </div>
+
             <div v-if="directoryTables.length" class="table-stack">
               <div v-for="table in directoryTables" :key="table.title" class="data-block">
                 <div class="block-title">{{ table.title }}</div>
@@ -217,15 +231,46 @@
             </div>
 
             <div v-if="showDocumentList" class="data-block">
-              <div class="block-title">附件材料</div>
-              <el-table :data="displayDocuments" border>
+              <div class="block-title block-title-row">
+                <span>附件材料</span>
+                <el-button
+                  size="small"
+                  type="primary"
+                  icon="Download"
+                  :loading="fileExporting"
+                  :disabled="!directoryDocuments.length"
+                  @click="exportAllFiles"
+                >
+                  导出全部
+                </el-button>
+              </div>
+              <el-table :data="directoryDocuments" border>
                 <el-table-column prop="fileType" label="类型" width="80" align="center" />
-                <el-table-column prop="title" label="文件名称" min-width="200" show-overflow-tooltip />
-                <el-table-column prop="sourceSystem" label="来源" width="100" />
-                <el-table-column prop="sourceRecordKey" label="追溯键" min-width="220" show-overflow-tooltip />
+                <el-table-column prop="title" label="文件名称" min-width="220" show-overflow-tooltip />
+                <el-table-column label="文件编号" min-width="180" show-overflow-tooltip>
+                  <template #default="{ row }">{{ documentCode(row) }}</template>
+                </el-table-column>
+                <el-table-column label="版本/修订" width="100" show-overflow-tooltip>
+                  <template #default="{ row }">{{ documentRevision(row) }}</template>
+                </el-table-column>
+                <el-table-column label="与节点关系" width="130" show-overflow-tooltip>
+                  <template #default="{ row }">{{ documentRelationLabel(row) }}</template>
+                </el-table-column>
+                <el-table-column label="业务阶段" width="110" show-overflow-tooltip>
+                  <template #default="{ row }">{{ documentStageLabel(row) }}</template>
+                </el-table-column>
                 <el-table-column prop="documentStatus" label="状态" width="90" align="center">
                   <template #default="{ row }">
                     <el-tag size="small" :type="statusType(row.documentStatus)">{{ statusLabel(row.documentStatus) }}</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="日期" width="120" show-overflow-tooltip>
+                  <template #default="{ row }">{{ documentDisplayDate(row) }}</template>
+                </el-table-column>
+                <el-table-column label="操作" width="128" align="center" fixed="right">
+                  <template #default="{ row }">
+                    <el-button link type="primary" @click="viewFile(row)">查看</el-button>
+                    <el-button link type="primary" @click="downloadFile(row)">下载</el-button>
                   </template>
                 </el-table-column>
               </el-table>
@@ -266,25 +311,56 @@
         <el-table-column prop="operationStatus" label="状态" width="110" align="center" />
       </el-table>
     </el-dialog>
+
+    <el-dialog v-model="fileDetailVisible" title="文件详情" width="760px" append-to-body>
+      <div class="file-detail-summary">
+        <el-tag size="small" type="primary">{{ activeFile.fileType || fileType(activeFile.fileStorageKey || activeFile.fileExt || activeFile.mimeType) }}</el-tag>
+        <div>
+          <strong>{{ activeFile.title || activeFile.displayName || '-' }}</strong>
+          <span>{{ firstPresent(activeFile.docNo, activeFile.fileCode, activeFile.businessNo) || '-' }}</span>
+        </div>
+      </div>
+
+      <div class="version-info dialog-info file-detail-grid">
+        <div v-for="item in fileDetailRows" :key="item.label">
+          <label>{{ item.label }}</label>
+          <span>{{ item.value }}</span>
+        </div>
+      </div>
+
+      <div v-if="fileDetailAttrs.length" class="file-detail-section">
+        <div class="block-title">业务属性</div>
+        <div class="version-info dialog-info file-detail-grid">
+          <div v-for="item in fileDetailAttrs" :key="item.label">
+            <label>{{ item.label }}</label>
+            <span>{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="DossierDetail">
 import { computed, nextTick, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { saveAs } from 'file-saver'
 import {
+  exportDossierFiles,
   getCurrentDossierDetail,
   getDossierNodeDetail,
   listBomChildren,
+  previewDossierFile,
   searchBomNodes
 } from '@/api/project1/dossier/detail'
 import { exportDossier } from '@/api/project1/dossier/instance'
 
 const route = useRoute()
+const router = useRouter()
 const loading = ref(false)
 const exporting = ref(false)
+const fileExporting = ref(false)
 const exportDialogVisible = ref(false)
 const selectedExportFormat = ref('pdf')
 const directoryKeyword = ref('')
@@ -299,12 +375,14 @@ const bomTreeRef = ref(null)
 const bomTreeKey = ref(0)
 const metaDialogVisible = ref(false)
 const activeMetaPanel = ref('')
+const fileDetailVisible = ref(false)
+const activeFile = ref({})
 
 const exportFormats = [
   {
     type: 'pdf',
     label: 'PDF 文档',
-    description: '适合直接查看、打印和归档。',
+    description: '导出可阅读归档的卷宗主文档。',
     extension: 'pdf',
     fileKey: 'fileName',
     mimeType: 'application/pdf',
@@ -313,7 +391,7 @@ const exportFormats = [
   {
     type: 'zip',
     label: 'ZIP 完整包',
-    description: '包含 PDF、数据快照和导出说明。',
+    description: '包含主文档、Excel清单、原始附件和机器可读数据。',
     extension: 'zip',
     fileKey: 'packageName',
     mimeType: 'application/zip',
@@ -347,9 +425,12 @@ const treeProps = {
   isLeaf: 'leaf'
 }
 
+function goDossierInstance() {
+  router.push('/dossier/manage/instance')
+}
+
 const context = computed(() => detailData.value.context || {})
 const metrics = computed(() => detailData.value.metrics || {})
-const versions = computed(() => detailData.value.versions || [])
 const directory = computed(() => detailData.value.directory || {})
 const currentNode = computed(() => detailData.value.currentNode || {})
 const bomPath = computed(() => detailData.value.bomPath || [])
@@ -358,26 +439,65 @@ const detail = computed(() => detailData.value.detail || {})
 const contentItems = computed(() => detailData.value.contentItems || [])
 const documents = computed(() => detailData.value.documents || [])
 const displayDocuments = computed(() => {
-  const rows = [...documents.value]
-  contentItems.value
-    .filter(item => isDocumentContent(item))
-    .forEach(item => {
-      rows.push({
-        documentEntryId: item.contentItemId,
-        fileType: fileType(item.fileStorageKey),
-        title: item.itemName,
-        sourceSystem: item.sourceSystem,
-        sourceRecordKey: item.sourceRecordKey,
-        documentStatus: item.itemStatus || 'active',
-        completenessStatus: item.completenessStatus,
-        fileStorageKey: item.fileStorageKey
-      })
-    })
-  return rows
+  return documents.value.map(item => ({
+    ...item,
+    fileType: item.fileType || fileType(item.fileStorageKey),
+    title: item.title || item.docNo || item.fileStorageKey || '-'
+  }))
 })
+const directoryDocuments = computed(() => filterDocumentsForDirectory(activeDirectoryItem.value))
 const dataSources = computed(() => detailData.value.dataSources || [])
 const operationLogs = computed(() => detailData.value.operationLogs || [])
 const filePackages = computed(() => detailData.value.filePackages || [])
+const fileDetailRows = computed(() => {
+  const file = activeFile.value || {}
+  return [
+    fieldItem('文件编号', firstPresent(file.docNo, file.fileCode, file.businessNo)),
+    fieldItem('显示名称', firstPresent(file.displayName, file.title)),
+    fieldItem('原始文件名', file.originalFileName),
+    fieldItem('版本/修订', file.revision),
+    fieldItem('文件类型', firstPresent(file.fileExt, file.mimeType, file.fileType)),
+    fieldItem('资产类型', file.assetKind),
+    fieldItem('文件状态', statusLabel(firstPresent(file.fileStatus, file.documentStatus))),
+    fieldItem('存储类型', storageTypeLabel(file.storageType)),
+    fieldItem('存储桶', file.storageBucket),
+    fieldItem('存储Key', file.storageKey),
+    fieldItem('存储路径', file.storagePath),
+    fieldItem('访问URL', file.accessUrl),
+    fieldItem('预览Key', file.previewStorageKey),
+    fieldItem('合并路径', file.fileStorageKey),
+    fieldItem('文件大小', formatFileSize(file.fileSize)),
+    fieldItem('哈希算法', file.hashAlgorithm),
+    fieldItem('文件哈希', file.fileHash),
+    fieldItem('挂靠类型', file.relationType),
+    fieldItem('挂靠对象', formatRelationTarget(file)),
+    fieldItem('对象层级', file.objectLevel),
+    fieldItem('生命周期', file.lifecycleStage),
+    fieldItem('业务域', file.businessDomain),
+    fieldItem('是否必需', flagLabel(file.requiredFlag)),
+    fieldItem('是否纳入卷宗', flagLabel(file.includedFlag)),
+    fieldItem('是否主文件', flagLabel(file.isPrimary)),
+    fieldItem('是否当前关系', flagLabel(file.isCurrent)),
+    fieldItem('是否最新文件', flagLabel(file.isLatest)),
+    fieldItem('来源系统', file.sourceSystem),
+    fieldItem('来源表', file.sourceTable),
+    fieldItem('来源记录', firstPresent(file.sourceRecordKey, file.sourceRecordId)),
+    fieldItem('签发方', file.issuedBy),
+    fieldItem('签发日期', file.issueDate),
+    fieldItem('生效日期', file.effectiveDate),
+    fieldItem('失效日期', file.expiryDate),
+    fieldItem('安全级别', file.securityLevel),
+    fieldItem('关系ID', file.documentEntryId),
+    fieldItem('文件资产ID', file.fileAssetId)
+  ].filter(item => hasPresentValue(item.value))
+})
+const fileDetailAttrs = computed(() => {
+  const attrs = activeFile.value?.attrs || {}
+  return Object.keys(attrs)
+    .map(key => fieldItem(key, formatDetailValue(attrs[key])))
+    .filter(item => hasPresentValue(item.value))
+    .slice(0, 16)
+})
 
 const pageTitle = computed(() => {
   const tailNumber = context.value.tailNumber || 'B-1234'
@@ -429,6 +549,23 @@ const isCompositionDirectory = computed(() => isCompositionRow(activeDirectoryIt
 
 const activeDirectoryCategory = computed(() => directoryCategory(activeDirectoryItem.value))
 
+const activeDirectoryDisplayType = computed(() => {
+  return activeDirectoryItem.value.displayType || activeDirectoryItem.value.attrs?.displayType || ''
+})
+
+const activeDirectoryBlocks = computed(() => {
+  return getStringList(activeDirectoryItem.value.blocks || activeDirectoryItem.value.attrs?.blocks)
+})
+
+const activeTimelineItems = computed(() => {
+  return (detail.value.timeline || []).filter(item => item.key === activeDirectoryKey.value)
+})
+
+const showTimeline = computed(() => {
+  return activeTimelineItems.value.length > 0
+    && (activeDirectoryDisplayType.value === 'timeline_files' || activeDirectoryBlocks.value.includes('timeline'))
+})
+
 const directoryView = computed(() => {
   const label = activeDirectoryLabel.value || '目录数据'
   return {
@@ -439,16 +576,20 @@ const directoryView = computed(() => {
   }
 })
 
-const directoryCards = computed(() => buildDirectoryCards(activeDirectoryCategory.value))
+const directoryCards = computed(() => buildDirectoryCards(activeDirectoryItem.value))
 
-const directoryTables = computed(() => buildDirectoryTables(activeDirectoryCategory.value))
+const directoryTables = computed(() => buildDirectoryTables(activeDirectoryItem.value))
 
-const categoryContentItems = computed(() => filterContentItemsByCategory(activeDirectoryCategory.value))
+const categoryContentItems = computed(() => filterContentItemsForDirectory(activeDirectoryItem.value))
 
-const showDocumentList = computed(() => activeDirectoryCategory.value === 'documents' && displayDocuments.value.length > 0)
+const showDocumentList = computed(() => {
+  return isDocumentDirectory(activeDirectoryItem.value) && directoryDocuments.value.length > 0
+})
 
 const showContentList = computed(() => {
-  return !['composition', 'documents'].includes(activeDirectoryCategory.value) && categoryContentItems.value.length > 0
+  return !['composition', 'documents'].includes(activeDirectoryCategory.value)
+    && categoryContentItems.value.length > 0
+    && (!activeDirectoryBlocks.value.length || activeDirectoryBlocks.value.includes('details'))
 })
 
 const showDetailPanel = computed(() => !isCompositionDirectory.value)
@@ -468,6 +609,95 @@ function openMetaPanel(key) {
   metaDialogVisible.value = true
 }
 
+function openFileDetail(row) {
+  activeFile.value = row || {}
+  fileDetailVisible.value = true
+}
+
+async function viewFile(row) {
+  if (!row) {
+    return
+  }
+  const externalUrl = firstPresent(row.accessUrl, '')
+  if (isHttpUrl(externalUrl)) {
+    window.open(externalUrl, '_blank')
+    return
+  }
+  if (!row.documentEntryId) {
+    ElMessage.warning('当前文件没有可查看的挂靠记录')
+    return
+  }
+
+  const previewWindow = browserPreviewable(row) ? window.open('', '_blank') : null
+  try {
+    const data = await previewDossierFile(row.documentEntryId)
+    const blob = data instanceof Blob ? data : new Blob([data])
+    const filename = fileDownloadName(row)
+    if (browserPreviewable(row, blob.type)) {
+      const url = URL.createObjectURL(blob)
+      if (previewWindow) {
+        previewWindow.location.href = url
+      } else {
+        window.open(url, '_blank')
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 5 * 60 * 1000)
+      return
+    }
+    if (previewWindow) {
+      previewWindow.close()
+    }
+    saveAs(blob, filename)
+  } catch (error) {
+    if (previewWindow) {
+      previewWindow.close()
+    }
+    ElMessage.error('文件不存在或尚未落盘，暂时无法直接查看')
+  }
+}
+
+async function downloadFile(row) {
+  if (!row) {
+    return
+  }
+  const externalUrl = firstPresent(row.accessUrl, '')
+  if (isHttpUrl(externalUrl)) {
+    window.open(externalUrl, '_blank')
+    return
+  }
+  if (!row.documentEntryId) {
+    ElMessage.warning('当前文件没有可下载的挂靠记录')
+    return
+  }
+
+  try {
+    const data = await previewDossierFile(row.documentEntryId)
+    const blob = data instanceof Blob ? data : new Blob([data])
+    saveAs(blob, fileDownloadName(row))
+    ElMessage.success('文件下载完成')
+  } catch (error) {
+    ElMessage.error('文件不存在或尚未落盘，暂时无法下载')
+  }
+}
+
+async function exportAllFiles() {
+  const documentEntryIds = [...new Set(directoryDocuments.value.map(row => row.documentEntryId).filter(Boolean))]
+  if (!documentEntryIds.length) {
+    ElMessage.warning('当前附件目录没有可导出的文件')
+    return
+  }
+
+  fileExporting.value = true
+  try {
+    const data = await exportDossierFiles(documentEntryIds)
+    saveAs(new Blob([data], { type: 'application/zip' }), exportAllFileName())
+    ElMessage.success('附件导出完成')
+  } catch (error) {
+    ElMessage.error('附件文件不存在或尚未落盘，暂时无法导出')
+  } finally {
+    fileExporting.value = false
+  }
+}
+
 async function loadDetail() {
   loading.value = true
   try {
@@ -478,7 +708,7 @@ async function loadDetail() {
     detailData.value = res.data || {}
     selectedInstanceId.value = context.value.instanceId || selectedInstanceId.value || ''
     selectedVersionId.value = context.value.versionId || ''
-    activeDirectoryKey.value = 'bom'
+    activeDirectoryKey.value = pickDefaultDirectoryKey(detailData.value, 'composition')
     activeTab.value = 'data'
     searchResults.value = []
     bomTreeKey.value += 1
@@ -486,10 +716,6 @@ async function loadDetail() {
   } finally {
     loading.value = false
   }
-}
-
-async function handleVersionChange() {
-  await loadDetail()
 }
 
 function openExportDialog() {
@@ -550,7 +776,10 @@ async function selectBomNode(node) {
       ...detailData.value,
       ...payload
     }
-    activeDirectoryKey.value = payload.currentNode && payload.currentNode.objectLevel === 'aircraft' ? 'bom' : 'basic'
+    activeDirectoryKey.value = pickDefaultDirectoryKey(
+      payload,
+      payload.currentNode && payload.currentNode.objectLevel === 'aircraft' ? 'composition' : 'basic'
+    )
     activeTab.value = 'data'
     searchResults.value = []
     bomTreeKey.value += 1
@@ -609,20 +838,22 @@ function resetToRoot() {
 }
 
 function isCompositionRow(item) {
-  const label = item && item.label ? item.label : ''
   const key = item && item.key ? item.key : ''
-  return ['bom', 'composition'].includes(key) || label.includes('BOM') || label.includes('结构') || label.includes('组成')
+  return item?.compositionTree === true
+    || item?.category === 'composition'
+    || ['bom', 'composition'].includes(key)
 }
 
 function directoryCategory(item) {
+  if (item?.category) return item.category
+  if (item?.displayType === 'file_list') return 'documents'
   const label = item && item.label ? item.label : ''
   if (isCompositionRow(item)) return 'composition'
   if (label.includes('附件') || label.includes('证明')) return 'documents'
   if (label.includes('故障')) return 'fault'
   if (label.includes('检验')) return 'inspection'
   if (label.includes('制造') || label.includes('追溯') || label.includes('装配')) return 'manufacturing'
-  if (label.includes('装机') || label.includes('服役') || label.includes('使用') || label.includes('履历')) return 'service'
-  if (label.includes('维修')) return 'fault'
+  if (label.includes('装机') || label.includes('服役') || label.includes('使用') || label.includes('履历') || label.includes('维修')) return 'service'
   if (label.includes('技术')) return 'status'
   if (label.includes('接口')) return 'interface'
   if (label.includes('设计')) return 'design'
@@ -630,7 +861,20 @@ function directoryCategory(item) {
   return 'content'
 }
 
-function buildDirectoryCards(category) {
+function isDocumentDirectory(item) {
+  return directoryCategory(item) === 'documents'
+}
+
+function buildDirectoryCards(item) {
+  const category = directoryCategory(item)
+  const primaryFields = getStringList(item?.primaryFields || item?.attrs?.primaryFields)
+  const configuredCards = primaryFields
+    .map(field => fieldItem(fieldLabel(field), lookupFieldValue(field, item)))
+    .filter(field => field.value !== undefined && field.value !== null && field.value !== '')
+
+  if (configuredCards.length) {
+    return configuredCards.slice(0, 8)
+  }
   if (category === 'basic') {
     return detail.value.basicFields || []
   }
@@ -639,21 +883,22 @@ function buildDirectoryCards(category) {
   }
   if (category === 'documents') {
     return [
-      fieldItem('文件数量', displayDocuments.value.length),
+      fieldItem('文件数量', directoryDocuments.value.length),
       fieldItem('目录对象', currentNode.value.partName || '-'),
-      fieldItem('数据来源', 'document_entry'),
-      fieldItem('存储状态', displayDocuments.value.length ? '已挂接' : '待补充')
+      fieldItem('数据来源', sourceLabelForDirectory(item, 'file_relation')),
+      fieldItem('存储状态', directoryDocuments.value.length ? '已挂接' : '待补充')
     ]
   }
   return [
     fieldItem('目录对象', activeDirectoryLabel.value || '-'),
     fieldItem('当前节点', currentNode.value.partName || '-'),
-    fieldItem('数据来源', sourceByCategory(category)),
-    fieldItem('展示方式', displayModeByCategory(category))
+    fieldItem('数据来源', sourceLabelForDirectory(item, sourceByCategory(category))),
+    fieldItem('展示方式', displayModeForDirectory(item, category))
   ]
 }
 
-function buildDirectoryTables(category) {
+function buildDirectoryTables(item) {
+  const category = directoryCategory(item)
   if (category === 'documents') {
     return []
   }
@@ -661,6 +906,10 @@ function buildDirectoryTables(category) {
     return []
   }
   const tables = detail.value.tables || []
+  const byKey = tables.filter(table => table.key === item?.key)
+  if (byKey.length) {
+    return byKey
+  }
   const exact = tables.filter(table => tableMatchesLabel(table, activeDirectoryLabel.value))
   if (exact.length) {
     return exact
@@ -669,15 +918,15 @@ function buildDirectoryTables(category) {
   if (matched.length) {
     return matched
   }
-  return [buildFallbackTable(category)]
+  return [buildFallbackTable(item, category)]
 }
 
-function buildFallbackTable(category) {
+function buildFallbackTable(item, category) {
   return {
     title: activeDirectoryLabel.value || '目录数据',
     rows: [
       rowItem('目录对象', `${currentNode.value.partName || '-'} / ${currentNode.value.partNumber || '-'}`, '有效'),
-      rowItem('数据来源', sourceByCategory(category), '有效'),
+      rowItem('数据来源', sourceLabelForDirectory(item, sourceByCategory(category)), '有效'),
       rowItem('生成版本', context.value.versionLabel || '-', '已固化'),
       rowItem('快照状态', context.value.snapshotCode || '已随卷宗版本固化', '有效')
     ]
@@ -690,8 +939,8 @@ function tableMatchesCategory(table, category, label) {
   if (category === 'design') return title.includes('设计')
   if (category === 'manufacturing') return title.includes('制造') || title.includes('装配')
   if (category === 'inspection') return title.includes('检验') || title.includes('试验')
-  if (category === 'service') return title.includes('服役') || title.includes('装机') || title.includes('履历') || title.includes('使用')
-  if (category === 'fault') return title.includes('故障') || title.includes('维修') || title.includes('服役与故障')
+  if (category === 'service') return title.includes('服役') || title.includes('装机') || title.includes('履历') || title.includes('使用') || title.includes('维修')
+  if (category === 'fault') return title.includes('故障') || title.includes('服役与故障')
   if (category === 'status') return title.includes('技术') || title.includes('状态')
   if (category === 'interface') return title.includes('接口') || label.includes('接口')
   return false
@@ -709,21 +958,24 @@ function tableMatchesLabel(table, label) {
 
 function sourceByCategory(category) {
   const map = {
-    basic: 'aircraft_bom_node / physical_aircraft',
+    basic: 'v_*_profile_detail / physical_aircraft / part_instance',
     composition: 'aircraft_bom_node',
-    design: 'part_parameter_value / design_document',
-    manufacturing: 'manufacturing_record',
-    inspection: 'inspection_record',
-    service: 'service_record / install_record',
-    fault: 'fault_event / maintenance_record',
-    status: 'configuration_change',
-    interface: 'interface_control_document',
-    documents: 'document_entry'
+    design: 'part_master / file_relation / impact_tube_*',
+    manufacturing: 'shop_order / process_route / production_operation_record',
+    inspection: 'inspection_record / inspection_measurement',
+    service: 'life_usage_record / install_removal / work_order',
+    fault: 'fault_event / work_order',
+    status: 'object_technical_status / object_status_history',
+    interface: 'object_interface',
+    documents: 'file_relation / file_asset'
   }
   return map[category] || 'dossier_content_item'
 }
 
-function displayModeByCategory(category) {
+function displayModeForDirectory(item, category) {
+  if (item?.displayType) {
+    return displayTypeLabel(item.displayType)
+  }
   const map = {
     design: '参数卡片 + 明细表',
     manufacturing: '工序记录 + 追溯表',
@@ -736,42 +988,393 @@ function displayModeByCategory(category) {
   return map[category] || '概要卡片 + 明细表'
 }
 
-function filterContentItemsByCategory(category) {
+function displayTypeLabel(displayType) {
+  const map = {
+    tree_table: '树形结构',
+    summary_table: '概要表',
+    timeline_files: '时间线',
+    part_card_param_table: '参数卡',
+    file_list: '文件清单'
+  }
+  return map[displayType] || displayType || '-'
+}
+
+function filterContentItemsForDirectory(directoryItem) {
+  const category = directoryCategory(directoryItem)
   if (category === 'composition' || category === 'documents') {
     return []
   }
+  const sourceTables = lowerStringSet(directoryItem?.sourceTables)
+  const lifecycleStages = upperStringSet(directoryItem?.lifecycleStages)
+  const chapterId = String(directoryItem?.chapterId || '').trim()
+  const exactItems = chapterId
+    ? contentItems.value.filter(item => contentItemChapterId(item) === chapterId)
+    : []
+  if (exactItems.length) {
+    return exactItems
+  }
   return contentItems.value.filter(item => {
-    if (item.itemType === 'key_node_summary') {
-      return category === 'basic' || category === 'content'
+    const itemChapterId = contentItemChapterId(item)
+    if (chapterId && itemChapterId) {
+      return false
     }
-    const stage = String(item.lifecycleStage || '').toUpperCase()
-    const itemType = String(item.itemType || '').toLowerCase()
-    const sourceTable = String(item.sourceTable || '').toLowerCase()
-    if (category === 'basic') return true
-    if (category === 'design') return ['DESIGN', 'INTERFACE', 'TECHNICAL_STATUS'].includes(stage)
-    if (category === 'manufacturing') return ['MANUFACTURING', 'INSTALLATION'].includes(stage) || sourceTable.includes('shop_order')
-    if (category === 'inspection') return stage === 'INSPECTION' || sourceTable.includes('inspection')
-    if (category === 'service') return stage === 'SERVICE' || itemType.includes('work_order') || sourceTable.includes('life_usage')
-    if (category === 'fault') return stage === 'FAULT' || itemType.includes('fault') || sourceTable.includes('fault')
-    if (category === 'status') return stage === 'TECHNICAL_STATUS' || itemType.includes('status')
-    if (category === 'interface') return stage === 'INTERFACE' || itemType.includes('interface') || sourceTable.includes('interface')
-    return true
+    if (chapterId && !isDirectoryFallbackCandidate(item)) {
+      return false
+    }
+    if (sourceTables.size && lifecycleStages.size) {
+      return sourceTables.has(String(item.sourceTable || '').toLowerCase())
+        && lifecycleStages.has(String(item.lifecycleStage || '').toUpperCase())
+    }
+    if (sourceTables.size && sourceTables.has(String(item.sourceTable || '').toLowerCase())) {
+      return true
+    }
+    if (lifecycleStages.size && lifecycleStages.has(String(item.lifecycleStage || '').toUpperCase())) {
+      return true
+    }
+    return !chapterId && matchesContentCategory(item, category)
   })
 }
 
-function isDocumentContent(item) {
+function contentItemChapterId(item) {
+  return String(item?.attrs?.chapterId || item?.chapterId || '').trim()
+}
+
+function isDirectoryFallbackCandidate(item) {
+  const stage = String(item?.lifecycleStage || '').toUpperCase()
+  const itemType = String(item?.itemType || '').toLowerCase()
+  const sourceTable = String(item?.sourceTable || '').toLowerCase()
+  return itemType !== 'key_node_summary'
+    && !['DOSSIER', 'FULL_LIFECYCLE', 'DOCUMENT'].includes(stage)
+    && sourceTable !== 'dossier_content_item'
+}
+
+function filterDocumentsForDirectory(directoryItem) {
+  if (!isDocumentDirectory(directoryItem)) {
+    return []
+  }
+  const sourceTables = lowerStringSet(directoryItem?.sourceTables)
+  const lifecycleStages = upperStringSet(directoryItem?.lifecycleStages)
+  return displayDocuments.value.filter(row => {
+    if (sourceTables.size && sourceTables.has(String(row.sourceTable || '').toLowerCase())) {
+      return true
+    }
+    if (lifecycleStages.size && lifecycleStages.has(String(row.lifecycleStage || '').toUpperCase())) {
+      return true
+    }
+    return !sourceTables.size && !lifecycleStages.size
+  })
+}
+
+function matchesContentCategory(item, category) {
   const stage = String(item.lifecycleStage || '').toUpperCase()
   const itemType = String(item.itemType || '').toLowerCase()
   const sourceTable = String(item.sourceTable || '').toLowerCase()
-  return stage === 'DOCUMENT' || itemType.includes('document') || sourceTable.includes('document') || !!item.fileStorageKey
+  if (category === 'basic') {
+    return itemType === 'profile_detail'
+      || sourceTable.includes('profile')
+      || ['physical_aircraft', 'part_instance', 'part_master'].includes(sourceTable)
+      || itemType === 'key_node_summary'
+  }
+  if (category === 'design') return stage === 'DESIGN' || itemType.includes('design') || sourceTable.includes('design')
+  if (category === 'manufacturing') return ['MANUFACTURING', 'INSTALLATION'].includes(stage) || sourceTable.includes('shop_order')
+  if (category === 'inspection') return stage === 'INSPECTION' || sourceTable.includes('inspection')
+  if (category === 'service') return stage === 'SERVICE' || itemType.includes('work_order') || itemType.includes('maintenance') || sourceTable.includes('life_usage')
+  if (category === 'fault') return stage === 'FAULT' || itemType.includes('fault') || sourceTable.includes('fault')
+  if (category === 'status') return stage === 'TECHNICAL_STATUS' || itemType.includes('status')
+  if (category === 'interface') return stage === 'INTERFACE' || itemType.includes('interface') || sourceTable.includes('interface')
+  return true
+}
+
+function pickDefaultDirectoryKey(payload, preference) {
+  const rows = payload?.directory?.rows || directory.value.rows || []
+  if (!rows.length) {
+    return activeDirectoryKey.value || 'bom'
+  }
+  const composition = rows.find(item => isCompositionRow(item))
+  if (preference === 'composition' && composition) {
+    return composition.key
+  }
+  const basic = rows.find(item => directoryCategory(item) === 'basic')
+  if (preference === 'basic' && basic) {
+    return basic.key
+  }
+  const current = rows.find(item => item.key === activeDirectoryKey.value)
+  if (current) {
+    return current.key
+  }
+  const content = rows.find(item => !isCompositionRow(item))
+  return (content || composition || rows[0]).key
+}
+
+function lookupFieldValue(field, directoryItem) {
+  const fieldMap = detail.value.fieldMap || {}
+  const normalized = String(field || '').trim()
+  if (!normalized) {
+    return '-'
+  }
+  if (fieldMap[normalized] !== undefined) {
+    return fieldMap[normalized]
+  }
+  const fieldMapKey = Object.keys(fieldMap).find(key => key.toLowerCase() === normalized.toLowerCase())
+  if (fieldMapKey) {
+    return fieldMap[fieldMapKey]
+  }
+  if (currentNode.value[normalized] !== undefined) {
+    return currentNode.value[normalized]
+  }
+  if (context.value[normalized] !== undefined) {
+    return context.value[normalized]
+  }
+  const row = filterContentItemsForDirectory(directoryItem).find(item => {
+    const attrs = item.attrs || {}
+    return attrs[normalized] !== undefined || item[normalized] !== undefined
+  })
+  if (!row) {
+    return '-'
+  }
+  return row.attrs?.[normalized] ?? row[normalized] ?? '-'
+}
+
+function fieldLabel(field) {
+  const labelMap = {
+    partNumber: '件号',
+    partName: '名称',
+    serialNumber: '序列号',
+    positionCode: '位置',
+    ataChapter: 'ATA',
+    installDate: '装机日期',
+    tsnFh: 'TSN FH',
+    tsnFc: 'TSN FC',
+    contentCount: '内容记录',
+    documentCount: '附件材料'
+  }
+  return labelMap[field] || field
+}
+
+function sourceLabelForDirectory(item, fallback) {
+  const sourceTables = getStringList(item?.sourceTables)
+  return sourceTables.length ? sourceTables.join(' / ') : fallback
+}
+
+function getStringList(value) {
+  if (!value) return []
+  if (Array.isArray(value)) {
+    return value.filter(Boolean).map(item => String(item))
+  }
+  return String(value)
+    .split(/[,\n;，；]/)
+    .map(item => item.trim())
+    .filter(Boolean)
+}
+
+function lowerStringSet(value) {
+  return new Set(getStringList(value).map(item => item.toLowerCase()))
+}
+
+function upperStringSet(value) {
+  return new Set(getStringList(value).map(item => item.toUpperCase()))
 }
 
 function fileType(fileStorageKey) {
   const key = String(fileStorageKey || '').toLowerCase()
-  if (key.endsWith('.pdf')) return 'PDF'
-  if (key.endsWith('.zip')) return 'ZIP'
-  if (key.endsWith('.jpg') || key.endsWith('.jpeg') || key.endsWith('.png')) return 'IMG'
+  if (key.endsWith('.pdf') || key === 'pdf' || key.includes('application/pdf')) return 'PDF'
+  if (key.endsWith('.zip') || key === 'zip' || key.includes('application/zip')) return 'ZIP'
+  if (key.endsWith('.jpg') || key.endsWith('.jpeg') || key.endsWith('.png') || ['jpg', 'jpeg', 'png'].includes(key) || key.startsWith('image/')) return 'IMG'
   return 'DOC'
+}
+
+function browserPreviewable(row, mimeType = '') {
+  const type = String(mimeType || row?.mimeType || '').toLowerCase()
+  const name = String(firstPresent(row?.fileStorageKey, row?.storagePath, row?.storageKey, row?.originalFileName, row?.title, row?.fileExt) || '').toLowerCase()
+  return type.includes('application/pdf')
+    || type.startsWith('image/')
+    || type.startsWith('text/plain')
+    || name.endsWith('.pdf')
+    || name.endsWith('.png')
+    || name.endsWith('.jpg')
+    || name.endsWith('.jpeg')
+    || name.endsWith('.txt')
+}
+
+function fileDownloadName(row) {
+  const name = firstPresent(row?.originalFileName, row?.displayName, row?.title, row?.docNo, 'dossier-file')
+  const extension = fileExtension(firstPresent(row?.fileStorageKey, row?.storagePath, row?.storageKey, row?.originalFileName, row?.fileExt))
+  if (extension && !String(name).toLowerCase().endsWith(`.${extension}`)) {
+    return `${name}.${extension}`
+  }
+  return name
+}
+
+function documentCode(row) {
+  return firstPresent(row?.docNo, row?.businessNo, row?.fileCode, row?.targetCode, row?.sourceRecordKey, row?.itemCode, '-')
+}
+
+function documentRevision(row) {
+  return firstPresent(row?.revision, row?.version, row?.versionLabel, row?.attrs?.revision, row?.attrs?.version, '-')
+}
+
+function documentRelationLabel(row) {
+  const relationType = String(row?.relationType || '').toUpperCase()
+  const sourceTable = String(row?.sourceTable || '').toLowerCase()
+  const stage = String(row?.lifecycleStage || '').toUpperCase()
+  const title = String(firstPresent(row?.title, row?.displayName, row?.originalFileName, '') || '')
+  const map = {
+    PRIMARY: '主文件',
+    DOSSIER_ATTACHMENT: '证明附件',
+    REFERENCE: '参考资料',
+    CONTENT_FILE: '节点附件',
+    CERTIFICATE: '证书文件',
+    DELIVERABLE: '交付文件'
+  }
+  if (map[relationType]) return map[relationType]
+  if (sourceTable.includes('certificate')) return '证书文件'
+  if (sourceTable.includes('part_document')) return '技术/参考文件'
+  if (stage === 'DESIGN') return '设计依据'
+  if (stage === 'MANUFACTURING') return '制造记录'
+  if (stage === 'INSPECTION') return '检验记录'
+  if (stage === 'INSTALLATION') return '装机证据'
+  if (stage === 'SERVICE') return '服役记录'
+  if (title.includes('证') || title.includes('合格') || title.includes('符合') || title.includes('检验') || title.includes('试验')) {
+    return '证明附件'
+  }
+  return firstPresent(row?.relationType, row?.sourceTable, '-')
+}
+
+function documentStageLabel(row) {
+  const stage = String(row?.lifecycleStage || '').toUpperCase()
+  const domain = String(row?.businessDomain || '').toUpperCase()
+  const title = String(firstPresent(row?.title, row?.displayName, row?.originalFileName, '') || '')
+  const map = {
+    DOCUMENT: '文档',
+    DESIGN: '设计',
+    MANUFACTURING: '制造',
+    INSPECTION: '检验',
+    INSTALLATION: '装机',
+    SERVICE: '服役',
+    MAINTENANCE: '维修',
+    FAULT: '故障',
+    TECHNICAL_STATUS: '技术状态',
+    INTERFACE: '接口',
+    FULL_LIFECYCLE: '全生命周期'
+  }
+  if (map[stage]) return map[stage]
+  if (map[domain]) return map[domain]
+  if (title.includes('随工') || title.includes('制造')) return '制造'
+  if (title.includes('检验') || title.includes('试验') || title.includes('终检')) return '检验'
+  if (title.includes('装机')) return '装机'
+  if (title.includes('维修')) return '维修'
+  if (title.includes('设计') || title.includes('规范')) return '设计'
+  if (title.includes('证') || title.includes('合格') || title.includes('符合')) return '证明'
+  return '-'
+}
+
+function documentDisplayDate(row) {
+  return firstPresent(
+    formatDateOnly(row?.issueDate),
+    formatDateOnly(row?.effectiveDate),
+    formatDateOnly(row?.createdAt),
+    formatDateOnly(row?.updatedAt),
+    formatDateOnly(row?.expiryDate),
+    '-'
+  )
+}
+
+function formatDateOnly(value) {
+  if (!hasPresentValue(value)) {
+    return ''
+  }
+  return String(value).slice(0, 10)
+}
+
+function exportAllFileName() {
+  const nodeName = firstPresent(currentNode.value.partNumber, currentNode.value.partName, context.value.tailNumber, 'dossier')
+  return `${safeFileSegment(nodeName)}_附件材料.zip`
+}
+
+function safeFileSegment(value) {
+  const text = String(value || '').trim().replace(/[\\/:*?"<>|]/g, '_')
+  return text || 'dossier'
+}
+
+function fileExtension(value) {
+  const text = String(value || '').trim()
+  if (!text) {
+    return ''
+  }
+  if (!text.includes('.') && /^[a-z0-9]+$/i.test(text)) {
+    return text.toLowerCase()
+  }
+  const clean = text.split(/[?#]/)[0]
+  const index = clean.lastIndexOf('.')
+  return index >= 0 && index < clean.length - 1 ? clean.slice(index + 1).toLowerCase() : ''
+}
+
+function isHttpUrl(value) {
+  const text = String(value || '').toLowerCase()
+  return text.startsWith('http://') || text.startsWith('https://')
+}
+
+function firstPresent(...values) {
+  return values.find(value => hasPresentValue(value))
+}
+
+function hasPresentValue(value) {
+  return value !== undefined && value !== null && String(value).trim() !== ''
+}
+
+function flagLabel(value) {
+  if (!hasPresentValue(value)) {
+    return ''
+  }
+  return value === true || Number(value) === 1 ? '是' : '否'
+}
+
+function storageTypeLabel(value) {
+  const map = {
+    LOCAL: '本地存储',
+    OSS: '对象存储',
+    URL: '外部URL',
+    MINIO: 'MinIO',
+    S3: 'S3'
+  }
+  return map[String(value || '').toUpperCase()] || value || ''
+}
+
+function formatFileSize(value) {
+  if (!hasPresentValue(value)) {
+    return ''
+  }
+  const size = Number(value)
+  if (!Number.isFinite(size) || size < 0) {
+    return value
+  }
+  if (size === 0) {
+    return '0 B'
+  }
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  const index = Math.min(Math.floor(Math.log(size) / Math.log(1024)), units.length - 1)
+  return `${(size / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 2)} ${units[index]}`
+}
+
+function formatRelationTarget(file) {
+  const parts = [
+    file.targetType,
+    firstPresent(file.targetName, file.targetCode, file.targetId),
+    file.structureNodeId ? `节点 ${file.structureNodeId}` : '',
+    file.bomNodeId ? `BOM ${file.bomNodeId}` : '',
+    file.partNumber ? `件号 ${file.partNumber}` : ''
+  ].filter(hasPresentValue)
+  return parts.join(' / ')
+}
+
+function formatDetailValue(value) {
+  if (!hasPresentValue(value)) {
+    return ''
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value)
+  }
+  return value
 }
 
 function fieldItem(label, value) {
@@ -787,11 +1390,6 @@ async function setCurrentTreeNode() {
   if (bomTreeRef.value && currentNode.value.nodeId) {
     bomTreeRef.value.setCurrentKey(currentNode.value.nodeId)
   }
-}
-
-function versionLabel(item) {
-  const current = Number(item.isCurrent) === 1 ? ' 当前' : ''
-  return `${item.versionLabel} / ${item.templateVersion}${current}`
 }
 
 function statusType(status) {
@@ -870,10 +1468,6 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-}
-
-.version-select {
-  width: 190px;
 }
 
 .export-format-list {
@@ -1289,6 +1883,7 @@ onMounted(() => {
 
 .param-grid + .table-stack,
 .param-grid + .data-block,
+.data-block + .table-stack,
 .table-stack + .data-block {
   margin-top: 12px;
 }
@@ -1307,6 +1902,26 @@ onMounted(() => {
   margin-bottom: 8px;
   color: #1f2937;
   font-weight: 650;
+}
+
+.block-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.timeline-block {
+  padding: 10px 12px 0;
+  border: 1px solid #edf0f5;
+  border-radius: 6px;
+  background: #ffffff;
+
+  p {
+    margin: 4px 0 8px;
+    color: #6b7280;
+    line-height: 1.5;
+  }
 }
 
 .version-info {
@@ -1333,6 +1948,60 @@ onMounted(() => {
 
 .dialog-info {
   gap: 12px;
+}
+
+.file-title-button {
+  max-width: 100%;
+  padding: 0;
+
+  :deep(span) {
+    min-width: 0;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.file-detail-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf0f5;
+
+  strong,
+  span {
+    display: block;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  strong {
+    color: #111827;
+    font-size: 16px;
+    font-weight: 650;
+  }
+
+  span {
+    margin-top: 4px;
+    color: #6b7280;
+    font-size: 12px;
+  }
+}
+
+.file-detail-grid {
+  div {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+}
+
+.file-detail-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #edf0f5;
 }
 
 .dialog-list {

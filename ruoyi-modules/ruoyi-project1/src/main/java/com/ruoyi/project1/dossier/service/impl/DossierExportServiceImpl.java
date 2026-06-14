@@ -1,6 +1,7 @@
 package com.ruoyi.project1.dossier.service.impl;
 
 import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -13,12 +14,20 @@ import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -56,6 +65,9 @@ public class DossierExportServiceImpl implements IDossierExportService
 
     @Value("${dossier.export.root-path:D:/ruoyi/data/dossier-output}")
     private String exportRootPath;
+
+    @Value("${dossier.file.root-path:D:/ruoyi/data}")
+    private String fileRootPath;
 
     @Autowired
     private DossierInstanceMapper instanceMapper;
@@ -146,6 +158,7 @@ public class DossierExportServiceImpl implements IDossierExportService
 
         @SuppressWarnings("unchecked")
         Map<String, Object> output = (Map<String, Object>) version.get("output");
+        output.put("fileCount", documents.size());
         String pdfFileName = firstText(output.get("fileName"), instance.get("pdfFileName"),
                 safeName(instance.get("tailNumber")) + "_dossier_" + safeName(version.get("versionLabel")) + ".pdf");
         String zipFileName = firstText(output.get("packageName"), instance.get("zipFileName"),
@@ -188,16 +201,20 @@ public class DossierExportServiceImpl implements IDossierExportService
 
     private void writePdf(File pdfFile, ExportPayload payload) throws IOException
     {
+        writePdfLines(pdfFile, payload.pdfFileName, buildPdfLines(payload));
+    }
+
+    private void writePdfLines(File pdfFile, String title, List<String> lines) throws IOException
+    {
         Files.createDirectories(pdfFile.toPath().getParent());
         try (PDDocument document = new PDDocument())
         {
             PDDocumentInformation info = new PDDocumentInformation();
-            info.setTitle(payload.pdfFileName);
+            info.setTitle(title);
             info.setAuthor("RuoYi Cloud Dossier");
             document.setDocumentInformation(info);
 
             PDType0Font font = PDType0Font.load(document, resolveFontFile());
-            List<String> lines = buildPdfLines(payload);
             renderLines(document, font, lines);
             document.save(pdfFile);
         }
@@ -234,7 +251,6 @@ public class DossierExportServiceImpl implements IDossierExportService
         lines.add("飞机号：" + text(instance.get("tailNumber")));
         lines.add("模板：" + text(instance.get("templateName")) + " / " + text(instance.get("templateVersion")));
         lines.add("版本：" + text(version.get("versionLabel")));
-        lines.add("页数：" + textValue(payload.output.get("pageCount"), instance.get("pageCount")));
         lines.add("文件数：" + textValue(payload.output.get("fileCount"), instance.get("fileCount")));
         lines.add("");
 
@@ -304,8 +320,7 @@ public class DossierExportServiceImpl implements IDossierExportService
             if (item instanceof Map)
             {
                 Map<String, Object> row = (Map<String, Object>) item;
-                lines.add(" - " + text(row.get("code")) + " " + text(row.get("name")) + "："
-                        + text(row.get("pageCount")) + " 页，" + text(row.get("fileCount")) + " 个文件");
+                lines.add(" - " + text(row.get("code")) + " " + text(row.get("name")));
             }
         }
     }
@@ -390,17 +405,322 @@ public class DossierExportServiceImpl implements IDossierExportService
     private void writeZip(File zipFile, File pdfFile, ExportPayload payload) throws IOException
     {
         Files.createDirectories(zipFile.toPath().getParent());
+        File notePdfFile = payload.outputDir.resolve("00_卷宗说明.pdf").toFile();
+        writePdfLines(notePdfFile, "卷宗导出说明", buildNotePdfLines(payload));
+        List<Map<String, Object>> fileManifest = buildFileManifest(payload);
         try (ZipOutputStream zip = new ZipOutputStream(new FileOutputStream(zipFile), StandardCharsets.UTF_8))
         {
-            addFile(zip, pdfFile, payload.pdfFileName);
-            addJson(zip, "数据快照/卷宗概要.json", buildSummary(payload));
-            addJson(zip, "数据快照/卷宗目录.json", payload.structures);
-            addJson(zip, "数据快照/内容清单.json", payload.contents);
-            addJson(zip, "数据快照/附件清单.json", payload.documents);
-            addJson(zip, "数据快照/数据来源.json", payload.sources);
-            addText(zip, "附件/附件说明.txt", buildAttachmentNote(payload));
-            addText(zip, "导出说明.txt", buildReadme(payload));
+            Set<String> entryNames = new HashSet<>();
+            addFile(zip, notePdfFile, "00_卷宗说明.pdf", entryNames);
+            addFile(zip, pdfFile, "01_卷宗主文档.pdf", entryNames);
+            addBytes(zip, "02_卷宗数据清单.xlsx", buildWorkbook(payload, fileManifest), entryNames);
+            addAttachmentFiles(zip, fileManifest, entryNames);
+            addJson(zip, "04_机器可读数据/dossier.json", buildSummary(payload), entryNames);
+            addJson(zip, "04_机器可读数据/nodes.json", payload.structures, entryNames);
+            addJson(zip, "04_机器可读数据/content_items.json", payload.contents, entryNames);
+            addJson(zip, "04_机器可读数据/file_manifest.json", fileManifest, entryNames);
+            addJson(zip, "04_机器可读数据/traceability.json", buildTraceability(payload), entryNames);
+            addJson(zip, "04_机器可读数据/data_sources.json", payload.sources, entryNames);
+            addText(zip, "导出说明.txt", buildReadme(payload), entryNames);
         }
+    }
+
+    private List<String> buildNotePdfLines(ExportPayload payload)
+    {
+        List<String> lines = new ArrayList<>();
+        lines.add("卷宗导出说明");
+        lines.add("");
+        lines.add("卷宗：" + text(payload.instance.get("instanceName")));
+        lines.add("卷宗编号：" + text(payload.instance.get("instanceCode")));
+        lines.add("飞机号：" + text(payload.instance.get("tailNumber")));
+        lines.add("版本：" + text(payload.version.get("versionLabel")));
+        lines.add("导出编号：" + payload.exportCode);
+        lines.add("导出时间：" + DISPLAY_TIME.format(new Date()));
+        lines.add("");
+        lines.add("导出包组织方式：");
+        lines.add("00_卷宗说明.pdf：说明导出范围、版本和包内结构。");
+        lines.add("01_卷宗主文档.pdf：面向人工审查和归档的卷宗正文。");
+        lines.add("02_卷宗数据清单.xlsx：目录、节点、内容、附件、来源、日志等结构化清单。");
+        lines.add("03_附件材料/：按对象层级和节点归集的原始附件文件。");
+        lines.add("04_机器可读数据/：系统复核和接口传递使用的 JSON 数据。");
+        lines.add("");
+        lines.add("说明：若原始附件在本地存储中不存在，导出包会在 file_manifest.json 中保留登记记录，并标记为 missing。");
+        return lines;
+    }
+
+    private byte[] buildWorkbook(ExportPayload payload, List<Map<String, Object>> fileManifest) throws IOException
+    {
+        try (XSSFWorkbook workbook = new XSSFWorkbook();
+                ByteArrayOutputStream out = new ByteArrayOutputStream())
+        {
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            writeKeyValueSheet(workbook, headerStyle, "卷宗概要", summaryRows(payload));
+            writeTableSheet(workbook, headerStyle, "结构节点", payload.structures,
+                    "nodePath", "objectLevel", "name", "bomNodeCode", "completenessStatus", "contentCount", "missingCount");
+            writeTableSheet(workbook, headerStyle, "内容清单", payload.contents,
+                    "itemName", "lifecycleStage", "sourceSystem", "sourceTable", "sourceRecordKey", "completenessStatus");
+            writeTableSheet(workbook, headerStyle, "附件清单", fileManifest,
+                    "title", "docNo", "fileCode", "revision", "objectLevel", "targetName", "relationType",
+                    "businessDomain", "lifecycleStage", "zipPath", "exportStatus", "fileStorageKey", "resolvedHash",
+                    "documentStatus", "completenessStatus");
+            writeTableSheet(workbook, headerStyle, "数据来源", payload.sources,
+                    "sourceSystem", "sourceTable", "recordCount");
+            writeTableSheet(workbook, headerStyle, "操作记录", payload.logs,
+                    "operatedAt", "operationName", "operatorName", "operationStatus");
+
+            workbook.write(out);
+            return out.toByteArray();
+        }
+    }
+
+    private List<Map<String, Object>> summaryRows(ExportPayload payload)
+    {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        rows.add(pair("卷宗名称", payload.instance.get("instanceName")));
+        rows.add(pair("卷宗编号", payload.instance.get("instanceCode")));
+        rows.add(pair("飞机号", payload.instance.get("tailNumber")));
+        rows.add(pair("模板", text(payload.instance.get("templateName")) + " / " + text(payload.instance.get("templateVersion"))));
+        rows.add(pair("版本", payload.version.get("versionLabel")));
+        rows.add(pair("导出编号", payload.exportCode));
+        rows.add(pair("导出时间", DISPLAY_TIME.format(new Date())));
+        rows.add(pair("结构节点数", payload.structures.size()));
+        rows.add(pair("内容记录数", payload.contents.size()));
+        rows.add(pair("附件数", payload.documents.size()));
+        rows.add(pair("数据来源数", payload.sources.size()));
+        rows.add(pair("操作记录数", payload.logs.size()));
+        return rows;
+    }
+
+    private Map<String, Object> pair(String name, Object value)
+    {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("项目", name);
+        row.put("内容", value);
+        return row;
+    }
+
+    private void writeKeyValueSheet(XSSFWorkbook workbook, CellStyle headerStyle, String sheetName,
+            List<Map<String, Object>> rows)
+    {
+        Sheet sheet = workbook.createSheet(sheetName);
+        Row header = sheet.createRow(0);
+        writeCell(header, 0, "项目", headerStyle);
+        writeCell(header, 1, "内容", headerStyle);
+        int rowIndex = 1;
+        for (Map<String, Object> rowData : rows)
+        {
+            Row row = sheet.createRow(rowIndex++);
+            writeCell(row, 0, rowData.get("项目"), null);
+            writeCell(row, 1, rowData.get("内容"), null);
+        }
+        autoSize(sheet, 2);
+    }
+
+    private void writeTableSheet(XSSFWorkbook workbook, CellStyle headerStyle, String sheetName,
+            List<Map<String, Object>> rows, String... columns)
+    {
+        Sheet sheet = workbook.createSheet(sheetName);
+        Row header = sheet.createRow(0);
+        for (int i = 0; i < columns.length; i++)
+        {
+            writeCell(header, i, columnLabel(columns[i]), headerStyle);
+        }
+        int rowIndex = 1;
+        for (Map<String, Object> rowData : rows)
+        {
+            Row row = sheet.createRow(rowIndex++);
+            for (int i = 0; i < columns.length; i++)
+            {
+                writeCell(row, i, rowData.get(columns[i]), null);
+            }
+        }
+        autoSize(sheet, columns.length);
+    }
+
+    private void writeCell(Row row, int index, Object value, CellStyle style)
+    {
+        Cell cell = row.createCell(index);
+        cell.setCellValue(formatCellValue(value));
+        if (style != null)
+        {
+            cell.setCellStyle(style);
+        }
+    }
+
+    private String formatCellValue(Object value)
+    {
+        if (value instanceof Map || value instanceof List)
+        {
+            return toJson(value);
+        }
+        return text(value);
+    }
+
+    private void autoSize(Sheet sheet, int columns)
+    {
+        for (int i = 0; i < columns; i++)
+        {
+            sheet.autoSizeColumn(i);
+            int width = Math.min(Math.max(sheet.getColumnWidth(i), 3000), 12000);
+            sheet.setColumnWidth(i, width);
+        }
+    }
+
+    private String columnLabel(String column)
+    {
+        Map<String, String> labels = mapOfString(
+                "nodePath", "节点路径",
+                "objectLevel", "对象层级",
+                "name", "节点名称",
+                "bomNodeCode", "节点编号",
+                "completenessStatus", "完整性",
+                "contentCount", "内容数",
+                "missingCount", "缺失数",
+                "itemName", "内容名称",
+                "lifecycleStage", "生命周期阶段",
+                "sourceSystem", "来源系统",
+                "sourceTable", "来源表",
+                "sourceRecordKey", "追溯键",
+                "title", "文件名称",
+                "docNo", "文件编号",
+                "fileCode", "资产编号",
+                "revision", "版本/修订",
+                "relationType", "挂靠关系",
+                "businessDomain", "业务域",
+                "targetName", "挂靠对象",
+                "fileStorageKey", "存储路径",
+                "fileHash", "文件哈希",
+                "zipPath", "包内路径",
+                "exportStatus", "导出状态",
+                "resolvedHash", "导出文件哈希",
+                "documentStatus", "文件状态",
+                "recordCount", "记录数",
+                "operatedAt", "操作时间",
+                "operationName", "操作",
+                "operatorName", "操作人",
+                "operationStatus", "操作状态");
+        return labels.getOrDefault(column, column);
+    }
+
+    private Map<String, String> mapOfString(String... values)
+    {
+        Map<String, String> map = new LinkedHashMap<>();
+        for (int i = 0; i + 1 < values.length; i += 2)
+        {
+            map.put(values[i], values[i + 1]);
+        }
+        return map;
+    }
+
+    private List<Map<String, Object>> buildFileManifest(ExportPayload payload) throws IOException
+    {
+        List<Map<String, Object>> manifest = new ArrayList<>();
+        Map<String, Map<String, Object>> nodeIndex = structureIndex(payload.structures);
+        Set<String> zipPaths = new HashSet<>();
+        for (Map<String, Object> row : payload.documents)
+        {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.putAll(row);
+            Path source = resolveAttachmentPath(row);
+            Map<String, Object> node = nodeIndex.get(text(row.get("structureNodeId")));
+            String zipPath = buildAttachmentZipPath(row, node, zipPaths);
+            item.put("zipPath", zipPath);
+            item.put("resolvedPath", source == null ? "" : source.toString());
+            item.put("exportStatus", source != null && Files.isRegularFile(source) ? "included" : "missing");
+            item.put("resolvedHash", source != null && Files.isRegularFile(source) ? sha256(source) : "");
+            manifest.add(item);
+        }
+        return manifest;
+    }
+
+    private Map<String, Map<String, Object>> structureIndex(List<Map<String, Object>> structures)
+    {
+        Map<String, Map<String, Object>> index = new LinkedHashMap<>();
+        for (Map<String, Object> row : structures)
+        {
+            String structureNodeId = text(row.get("structureNodeId"));
+            if (hasText(structureNodeId))
+            {
+                index.put(structureNodeId, row);
+            }
+        }
+        return index;
+    }
+
+    private String buildAttachmentZipPath(Map<String, Object> document, Map<String, Object> node, Set<String> used)
+    {
+        String level = levelLabel(firstText(document.get("objectLevel"), node == null ? "" : node.get("objectLevel")));
+        String nodeName = firstText(node == null ? "" : node.get("nodePath"), document.get("targetName"),
+                document.get("targetCode"), document.get("partNumber"), "未归类对象");
+        String fileName = firstText(document.get("originalFileName"), document.get("displayName"), document.get("title"),
+                document.get("docNo"), document.get("documentEntryId"));
+        String extension = fileExtension(firstText(document.get("fileStorageKey"), document.get("storagePath"),
+                document.get("storageKey"), document.get("fileExt")));
+        if (hasText(extension) && !fileName.toLowerCase().endsWith("." + extension.toLowerCase()))
+        {
+            fileName = fileName + "." + extension;
+        }
+        String base = "03_附件材料/" + safeName(level) + "/" + safeName(nodeName) + "/" + sanitizeFileName(fileName);
+        return uniqueEntryName(base, used);
+    }
+
+    private void addAttachmentFiles(ZipOutputStream zip, List<Map<String, Object>> manifest, Set<String> entryNames)
+            throws IOException
+    {
+        List<String> missing = new ArrayList<>();
+        for (Map<String, Object> item : manifest)
+        {
+            if (!"included".equals(text(item.get("exportStatus"))))
+            {
+                missing.add(text(item.get("title")) + " | " + text(item.get("fileStorageKey")));
+                continue;
+            }
+            Path path = Paths.get(text(item.get("resolvedPath")));
+            addPath(zip, path, text(item.get("zipPath")), entryNames);
+        }
+        if (!missing.isEmpty())
+        {
+            addText(zip, "03_附件材料/未落盘附件清单.txt", String.join(System.lineSeparator(), missing), entryNames);
+        }
+    }
+
+    private List<Map<String, Object>> buildTraceability(ExportPayload payload)
+    {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (Map<String, Object> item : payload.contents)
+        {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("type", "content");
+            row.put("name", item.get("itemName"));
+            row.put("lifecycleStage", item.get("lifecycleStage"));
+            row.put("sourceSystem", item.get("sourceSystem"));
+            row.put("sourceTable", item.get("sourceTable"));
+            row.put("sourceRecordKey", item.get("sourceRecordKey"));
+            row.put("structureNodeId", item.get("structureNodeId"));
+            row.put("bomNodeId", item.get("bomNodeId"));
+            rows.add(row);
+        }
+        for (Map<String, Object> item : payload.documents)
+        {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("type", "file");
+            row.put("name", item.get("title"));
+            row.put("relationType", item.get("relationType"));
+            row.put("lifecycleStage", item.get("lifecycleStage"));
+            row.put("sourceSystem", item.get("sourceSystem"));
+            row.put("sourceTable", item.get("sourceTable"));
+            row.put("sourceRecordKey", item.get("sourceRecordKey"));
+            row.put("targetType", item.get("targetType"));
+            row.put("targetName", item.get("targetName"));
+            row.put("structureNodeId", item.get("structureNodeId"));
+            row.put("fileStorageKey", item.get("fileStorageKey"));
+            rows.add(row);
+        }
+        return rows;
     }
 
     private Map<String, Object> buildSummary(ExportPayload payload)
@@ -435,26 +755,139 @@ public class DossierExportServiceImpl implements IDossierExportService
                 + "版本：" + text(payload.version.get("versionLabel")) + System.lineSeparator()
                 + "导出编号：" + payload.exportCode + System.lineSeparator()
                 + "导出时间：" + DISPLAY_TIME.format(new Date()) + System.lineSeparator()
-                + "说明：本压缩包以已生成的卷宗版本为准，包含PDF正文和结构化数据快照。" + System.lineSeparator();
+                + "00_卷宗说明.pdf：导出范围、版本和包结构说明。" + System.lineSeparator()
+                + "01_卷宗主文档.pdf：面向人工查看、审签和归档的主文档。" + System.lineSeparator()
+                + "02_卷宗数据清单.xlsx：卷宗概要、结构节点、内容项、附件、来源和日志清单。" + System.lineSeparator()
+                + "03_附件材料/：按对象层级和节点归集的原始附件文件。" + System.lineSeparator()
+                + "04_机器可读数据/：供系统复核、接口传递和追溯使用的 JSON 数据。" + System.lineSeparator();
     }
 
-    private void addFile(ZipOutputStream zip, File file, String entryName) throws IOException
+    private void addFile(ZipOutputStream zip, File file, String entryName, Set<String> entryNames) throws IOException
     {
-        zip.putNextEntry(new ZipEntry(entryName));
-        Files.copy(file.toPath(), zip);
+        addPath(zip, file.toPath(), entryName, entryNames);
+    }
+
+    private void addPath(ZipOutputStream zip, Path path, String entryName, Set<String> entryNames) throws IOException
+    {
+        String uniqueName = uniqueEntryName(entryName, entryNames);
+        zip.putNextEntry(new ZipEntry(uniqueName));
+        Files.copy(path, zip);
         zip.closeEntry();
     }
 
-    private void addJson(ZipOutputStream zip, String entryName, Object data) throws IOException
+    private void addJson(ZipOutputStream zip, String entryName, Object data, Set<String> entryNames) throws IOException
     {
-        addText(zip, entryName, OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(data));
+        addText(zip, entryName, OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(data), entryNames);
     }
 
-    private void addText(ZipOutputStream zip, String entryName, String text) throws IOException
+    private void addText(ZipOutputStream zip, String entryName, String text, Set<String> entryNames) throws IOException
     {
-        zip.putNextEntry(new ZipEntry(entryName));
-        zip.write(text.getBytes(StandardCharsets.UTF_8));
+        addBytes(zip, entryName, text.getBytes(StandardCharsets.UTF_8), entryNames);
+    }
+
+    private void addBytes(ZipOutputStream zip, String entryName, byte[] bytes, Set<String> entryNames) throws IOException
+    {
+        String uniqueName = uniqueEntryName(entryName, entryNames);
+        zip.putNextEntry(new ZipEntry(uniqueName));
+        zip.write(bytes);
         zip.closeEntry();
+    }
+
+    private String uniqueEntryName(String entryName, Set<String> entryNames)
+    {
+        String normalized = entryName.replace('\\', '/');
+        if (entryNames.add(normalized))
+        {
+            return normalized;
+        }
+        int slash = normalized.lastIndexOf('/');
+        String dir = slash >= 0 ? normalized.substring(0, slash + 1) : "";
+        String name = slash >= 0 ? normalized.substring(slash + 1) : normalized;
+        int dot = name.lastIndexOf('.');
+        String base = dot > 0 ? name.substring(0, dot) : name;
+        String ext = dot > 0 ? name.substring(dot) : "";
+        int index = 2;
+        while (true)
+        {
+            String candidate = dir + base + "_" + index + ext;
+            if (entryNames.add(candidate))
+            {
+                return candidate;
+            }
+            index++;
+        }
+    }
+
+    private Path resolveAttachmentPath(Map<String, Object> row)
+    {
+        String storage = firstText(row.get("fileStorageKey"), row.get("storagePath"), row.get("storageKey"),
+                row.get("accessUrl"));
+        if (!hasText(storage) || storage.startsWith("http://") || storage.startsWith("https://"))
+        {
+            return null;
+        }
+        String normalized = URLDecoder.decode(storage, StandardCharsets.UTF_8).replace('\\', '/');
+        List<Path> candidates = new ArrayList<>();
+        Path raw = Paths.get(normalized);
+        candidates.add(raw);
+        candidates.add(Paths.get(fileRootPath, normalized));
+        candidates.add(Paths.get(exportRootPath, normalized));
+        candidates.add(Paths.get("D:/ruoyi", normalized));
+        for (Path candidate : candidates)
+        {
+            Path path = candidate.toAbsolutePath().normalize();
+            if (Files.isRegularFile(path))
+            {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    private String levelLabel(String objectLevel)
+    {
+        String value = text(objectLevel).toLowerCase();
+        if ("aircraft".equals(value))
+        {
+            return "整机";
+        }
+        if ("system".equals(value))
+        {
+            return "系统";
+        }
+        if ("subsystem".equals(value))
+        {
+            return "子系统";
+        }
+        if ("equipment".equals(value))
+        {
+            return "设备";
+        }
+        if ("component".equals(value))
+        {
+            return "组件";
+        }
+        if ("part".equals(value))
+        {
+            return "零件";
+        }
+        return hasText(value) ? value : "未归类";
+    }
+
+    private String fileExtension(String value)
+    {
+        String text = text(value);
+        if (!hasText(text))
+        {
+            return "";
+        }
+        if (!text.contains(".") && text.matches("(?i)^[a-z0-9]+$"))
+        {
+            return text.toLowerCase();
+        }
+        String clean = text.split("[?#]", 2)[0];
+        int index = clean.lastIndexOf('.');
+        return index >= 0 && index < clean.length() - 1 ? clean.substring(index + 1).toLowerCase() : "";
     }
 
     private void saveExportRecord(ExportPayload payload, String mode, File pdfFile, File zipFile) throws IOException
@@ -473,7 +906,7 @@ public class DossierExportServiceImpl implements IDossierExportService
 
         int order = 1;
         saveExportFile(jobId, pdfFile, payload.pdfFileName, "PDF", "application/pdf", "main_pdf", true,
-                toInt(payload.output.get("pageCount"), toInt(payload.instance.get("pageCount"), 0)), order++);
+                null, order++);
         if (zipFile != null)
         {
             saveExportFile(jobId, zipFile, payload.zipFileName, "ZIP", "application/zip", "attachment_zip", true,

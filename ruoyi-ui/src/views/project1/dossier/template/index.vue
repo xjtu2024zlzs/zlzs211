@@ -2,13 +2,13 @@
   <div class="app-container dossier-template-page">
     <div class="page-head">
       <div>
-        <h2>卷宗生成管理</h2>
+        <h2>卷宗模板管理</h2>
         <div class="subline">当前：卷宗模板管理</div>
       </div>
       <div class="actions">
         <el-button icon="Refresh" @click="getList">刷新</el-button>
+        <el-button icon="Back" @click="goDossierInstance">返回卷宗实例管理</el-button>
         <el-button icon="CircleCheck" @click="handleCheck">检查配置</el-button>
-        <el-button type="primary" icon="Check" @click="handleSave">保存模板</el-button>
       </div>
     </div>
 
@@ -172,12 +172,13 @@
               <el-button type="warning" plain icon="DocumentAdd" @click="handleNewVersion(detail)">生成新版本</el-button>
               <el-button type="danger" plain icon="Delete" @click="handleDeleteTemplate(detail)">删除草稿</el-button>
               <el-button type="primary" icon="Star" @click="handleSetDefault">设为默认</el-button>
+              <el-button type="primary" icon="Check" @click="handleSave">保存模板</el-button>
             </div>
           </el-tab-pane>
 
           <el-tab-pane label="目录结构" name="chapters">
             <div class="tab-actions">
-              <el-button type="success" plain icon="Plus" @click="appendChapter()">新增章节</el-button>
+              <el-button type="success" plain icon="Plus" @click="appendSiblingChapter">新增章节</el-button>
               <el-button icon="FolderAdd" @click="appendChapter(selectedChapter)">新增子章节</el-button>
               <el-button icon="Top" @click="moveChapter(-1)" />
               <el-button icon="Bottom" @click="moveChapter(1)" />
@@ -187,8 +188,7 @@
               <el-col :xs="24" :lg="10">
                 <div class="tree-box">
                   <div class="tree-tags">
-                    <el-tag type="primary" size="small">整机目录</el-tag>
-                    <el-tag type="warning" size="small">节点下钻目录</el-tag>
+                    <el-tag type="primary" size="small">卷宗目录</el-tag>
                   </div>
                   <el-tree
                     :data="chapterTree"
@@ -259,17 +259,58 @@
                         <el-input v-model="selectedChapter.chapterDesc" type="textarea" :rows="3" />
                       </el-form-item>
                     </el-col>
+                    <el-col :span="24">
+                      <div class="chapter-source-panel">
+                        <div class="box-title">
+                          <span>数据来源</span>
+                          <div class="actions">
+                            <el-tag type="primary" size="small">{{ selectedChapterSources.length }} 条</el-tag>
+                            <el-button type="primary" plain icon="Plus" @click="openSource()">添加来源</el-button>
+                          </div>
+                        </div>
+                        <el-table v-if="selectedChapterSources.length > 0" :data="selectedChapterSources" border size="small">
+                          <el-table-column prop="sourceName" label="来源内容" min-width="150" show-overflow-tooltip />
+                          <el-table-column label="业务域" width="95">
+                            <template #default="scope">{{ sourceDomainLabel(scope.row.sourceSystem) }}</template>
+                          </el-table-column>
+                          <el-table-column prop="sourceTable" label="数据库表" min-width="170" show-overflow-tooltip />
+                          <el-table-column label="选择字段" min-width="170" show-overflow-tooltip>
+                            <template #default="scope">{{ sourceSelectedFieldsLabel(scope.row) }}</template>
+                          </el-table-column>
+                          <el-table-column label="关联条件" min-width="170" show-overflow-tooltip>
+                            <template #default="scope">{{ conditionLabel(scope.row.joinConditionJson) }}</template>
+                          </el-table-column>
+                          <el-table-column label="过滤条件" min-width="150" show-overflow-tooltip>
+                            <template #default="scope">{{ conditionLabel(scope.row.filterConditionJson) }}</template>
+                          </el-table-column>
+                          <el-table-column label="必选" width="70" align="center">
+                            <template #default="scope">
+                              <el-tag :type="scope.row.requiredFlag === 1 ? 'success' : 'info'" size="small">
+                                {{ scope.row.requiredFlag === 1 ? '是' : '否' }}
+                              </el-tag>
+                            </template>
+                          </el-table-column>
+                          <el-table-column label="启用" width="70" align="center">
+                            <template #default="scope">
+                              <el-switch v-model="scope.row.enabledFlag" :active-value="1" :inactive-value="0" />
+                            </template>
+                          </el-table-column>
+                          <el-table-column label="操作" width="130" align="center">
+                            <template #default="scope">
+                              <el-button link type="primary" icon="Edit" @click="openSource(scope.row)">编辑</el-button>
+                              <el-button link type="primary" icon="Delete" @click="removeSource(scope.row)">删除</el-button>
+                            </template>
+                          </el-table-column>
+                        </el-table>
+                        <el-empty
+                          v-else
+                          description="当前章节暂无数据来源"
+                          :image-size="72"
+                        />
+                      </div>
+                    </el-col>
                   </el-row>
                 </el-form>
-
-                <div class="node-grid">
-                  <div v-for="item in levelSummary" :key="item.level" class="node-card">
-                    <strong>{{ item.label }}</strong>
-                    <ul>
-                      <li v-for="chapter in item.chapters" :key="chapter.id">{{ chapter.chapterName }}</li>
-                    </ul>
-                  </div>
-                </div>
               </el-col>
             </el-row>
           </el-tab-pane>
@@ -364,41 +405,6 @@
               <el-table-column label="操作" width="90" align="center">
                 <template #default="scope">
                   <el-button link type="primary" icon="Edit" @click="selectChapter(scope.row.id)">编辑</el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-          </el-tab-pane>
-
-          <el-tab-pane label="数据来源" name="sources">
-            <div class="tab-actions">
-              <el-button type="primary" icon="Plus" @click="openSource()">添加来源</el-button>
-            </div>
-            <el-table :data="detail.dataSources" border>
-              <el-table-column label="所属目录" width="150" show-overflow-tooltip>
-                <template #default="scope">{{ chapterLabel(scope.row.chapterId) }}</template>
-              </el-table-column>
-              <el-table-column prop="sourceSystem" label="来源系统" width="110" />
-              <el-table-column prop="sourceName" label="来源内容" min-width="180" show-overflow-tooltip />
-              <el-table-column prop="sourceTable" label="业务表" min-width="210" show-overflow-tooltip />
-              <el-table-column prop="applyObjectType" label="适用对象" width="110">
-                <template #default="scope">{{ objectLevelLabel(scope.row.applyObjectType) }}</template>
-              </el-table-column>
-              <el-table-column label="必选" width="80" align="center">
-                <template #default="scope">
-                  <el-tag :type="scope.row.requiredFlag === 1 ? 'success' : 'info'" size="small">
-                    {{ scope.row.requiredFlag === 1 ? '是' : '否' }}
-                  </el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column label="状态" width="80" align="center">
-                <template #default="scope">
-                  <el-switch v-model="scope.row.enabledFlag" :active-value="1" :inactive-value="0" />
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="140" align="center">
-                <template #default="scope">
-                  <el-button link type="primary" icon="Edit" @click="openSource(scope.row)">编辑</el-button>
-                  <el-button link type="primary" icon="Delete" @click="removeSource(scope.row)">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -517,12 +523,12 @@
       </section>
     </div>
 
-    <el-dialog :title="sourceTitle" v-model="sourceOpen" width="720px" append-to-body>
+    <el-dialog :title="sourceTitle" v-model="sourceOpen" width="980px" append-to-body>
       <el-form :model="sourceForm" label-width="98px">
         <el-row :gutter="12">
           <el-col :xs="24" :md="12">
             <el-form-item label="所属目录">
-              <el-select v-model="sourceForm.chapterId" filterable style="width: 100%">
+              <el-select v-model="sourceForm.chapterId" filterable style="width: 100%" @change="handleSourceChapterChange">
                 <el-option
                   v-for="chapter in detail.chapters"
                   :key="chapter.id"
@@ -533,8 +539,12 @@
             </el-form-item>
           </el-col>
           <el-col :xs="24" :md="12">
-            <el-form-item label="来源系统">
-              <el-input v-model="sourceForm.sourceSystem" />
+            <el-form-item label="业务域">
+              <el-input
+                :model-value="sourceDomainLabel(sourceForm.sourceSystem)"
+                disabled
+                placeholder="选择数据库表后自动带出"
+              />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :md="12">
@@ -548,13 +558,40 @@
             </el-form-item>
           </el-col>
           <el-col :xs="24" :md="12">
-            <el-form-item label="业务表">
-              <el-input v-model="sourceForm.sourceTable" />
+            <el-form-item label="数据库表">
+              <el-select
+                v-model="sourceForm.sourceTable"
+                filterable
+                clearable
+                style="width: 100%"
+                @change="handleSourceTableChange"
+              >
+                <el-option-group
+                  v-for="group in sourceTableGroups"
+                  :key="group.label"
+                  :label="group.label"
+                >
+                  <el-option
+                    v-for="table in group.options"
+                    :key="table.tableName"
+                    :label="sourceTableOptionLabel(table)"
+                    :value="table.tableName"
+                  />
+                </el-option-group>
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :md="12">
             <el-form-item label="生命周期">
-              <el-input v-model="sourceForm.lifecycleStage" />
+              <el-select
+                v-model="sourceForm.lifecycleStage"
+                filterable
+                allow-create
+                default-first-option
+                style="width: 100%"
+              >
+                <el-option v-for="stage in lifecycleStageOptions" :key="stage.value" :label="stage.label" :value="stage.value" />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :md="12">
@@ -570,9 +607,136 @@
             </el-form-item>
           </el-col>
           <el-col :xs="24" :md="12">
+            <el-form-item label="记录类型">
+              <el-input v-model="sourceForm.sourceRecordType" placeholder="如 profile / event / file" />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12">
             <el-form-item label="必选来源">
               <el-switch v-model="sourceForm.requiredFlag" :active-value="1" :inactive-value="0" />
             </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12">
+            <el-form-item label="启用状态">
+              <el-switch v-model="sourceForm.enabledFlag" :active-value="1" :inactive-value="0" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="选择字段">
+              <el-select
+                v-model="sourceSelectedFields"
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                collapse-tags
+                collapse-tags-tooltip
+                :loading="sourceColumnLoading"
+                style="width: 100%"
+                placeholder="选择该来源在章节中重点展示或追溯的字段"
+              >
+                <el-option
+                  v-for="column in sourceColumnOptions"
+                  :key="column.columnName"
+                  :label="columnOptionLabel(column)"
+                  :value="column.columnName"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <div class="condition-builder">
+              <div class="condition-head">
+                <span>关联条件</span>
+                <el-button link type="primary" icon="Plus" @click="addJoinCondition">添加关联</el-button>
+              </div>
+              <el-table :data="sourceJoinRows" border size="small">
+                <el-table-column label="来源字段" min-width="220">
+                  <template #default="scope">
+                    <el-select
+                      v-model="scope.row.field"
+                      filterable
+                      allow-create
+                      default-first-option
+                      style="width: 100%"
+                    >
+                      <el-option
+                        v-for="column in sourceColumnOptions"
+                        :key="column.columnName"
+                        :label="columnOptionLabel(column)"
+                        :value="column.columnName"
+                      />
+                    </el-select>
+                  </template>
+                </el-table-column>
+                <el-table-column label="匹配上下文" min-width="220">
+                  <template #default="scope">
+                    <el-select
+                      v-model="scope.row.value"
+                      filterable
+                      allow-create
+                      default-first-option
+                      style="width: 100%"
+                    >
+                      <el-option
+                        v-for="field in contextFieldOptions"
+                        :key="field.value"
+                        :label="`${field.label} ${field.value}`"
+                        :value="field.value"
+                      />
+                    </el-select>
+                  </template>
+                </el-table-column>
+                <el-table-column label="说明" min-width="180">
+                  <template #default="scope">
+                    <el-input v-model="scope.row.remark" placeholder="可选" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="80" align="center">
+                  <template #default="scope">
+                    <el-button link type="primary" icon="Delete" @click="removeJoinCondition(scope.$index)">删除</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </el-col>
+          <el-col :span="24">
+            <div class="condition-builder">
+              <div class="condition-head">
+                <span>过滤条件</span>
+                <el-button link type="primary" icon="Plus" @click="addFilterCondition">添加过滤</el-button>
+              </div>
+              <el-table :data="sourceFilterRows" border size="small">
+                <el-table-column label="来源字段" min-width="220">
+                  <template #default="scope">
+                    <el-select
+                      v-model="scope.row.field"
+                      filterable
+                      allow-create
+                      default-first-option
+                      style="width: 100%"
+                    >
+                      <el-option
+                        v-for="column in sourceColumnOptions"
+                        :key="column.columnName"
+                        :label="columnOptionLabel(column)"
+                        :value="column.columnName"
+                      />
+                    </el-select>
+                  </template>
+                </el-table-column>
+                <el-table-column label="等于" min-width="260">
+                  <template #default="scope">
+                    <el-input v-model="scope.row.value" placeholder="如 1、active、${partNumber}" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="80" align="center">
+                  <template #default="scope">
+                    <el-button link type="primary" icon="Delete" @click="removeFilterCondition(scope.$index)">删除</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
           </el-col>
           <el-col :span="24">
             <el-form-item label="来源说明">
@@ -708,12 +872,14 @@
 </template>
 
 <script setup name="DossierTemplate">
+import { useRouter } from 'vue-router'
 import {
   addTemplate,
   checkTemplate,
   copyTemplate,
   createTemplateVersion,
   delTemplate,
+  getSourceMetadata,
   getTemplate,
   listTemplate,
   setDefaultTemplate,
@@ -721,6 +887,7 @@ import {
   updateTemplateStatus
 } from '@/api/project1/dossier/template'
 
+const router = useRouter()
 const { proxy } = getCurrentInstance()
 
 const loading = ref(false)
@@ -754,12 +921,38 @@ const rules = {
   applicableObjectType: [{ required: true, message: '适用对象不能为空', trigger: 'change' }]
 }
 
+function goDossierInstance() {
+  router.push('/dossier/manage/instance')
+}
+
 const sourceOpen = ref(false)
 const sourceTitle = ref('')
 const sourceForm = ref({})
+const sourceTables = ref([])
+const sourceColumns = ref([])
+const contextFieldOptions = ref([])
+const sourceColumnLoading = ref(false)
+const sourceSelectedFields = ref([])
+const sourceJoinRows = ref([])
+const sourceFilterRows = ref([])
 const ruleOpen = ref(false)
 const ruleTitle = ref('')
 const ruleForm = ref({})
+
+const lifecycleStageOptions = [
+  { label: '卷宗', value: 'DOSSIER' },
+  { label: '基础信息', value: 'PROFILE' },
+  { label: '设计', value: 'DESIGN' },
+  { label: '构型', value: 'CONFIGURATION' },
+  { label: '制造', value: 'MANUFACTURING' },
+  { label: '检验', value: 'INSPECTION' },
+  { label: '装机/拆换', value: 'INSTALLATION' },
+  { label: '服役', value: 'SERVICE' },
+  { label: '维修', value: 'MAINTENANCE' },
+  { label: '故障', value: 'FAULT' },
+  { label: '技术状态', value: 'TECHNICAL_STATUS' },
+  { label: '接口', value: 'INTERFACE' }
+]
 
 const fieldOptions = [
   'aircraft_type',
@@ -791,6 +984,16 @@ const displayConfigCount = computed(() => displayRows.value.length)
 const chapterTree = computed(() => buildTree(detail.value.chapters))
 const selectedChapter = computed(() => detail.value.chapters.find(item => item.id === selectedChapterId.value))
 const displayRows = computed(() => detail.value.chapters.filter(item => item.attrs?.displayType))
+const selectedChapterSources = computed(() =>
+  detail.value.dataSources
+    .filter(item => item.chapterId === selectedChapterId.value)
+    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+)
+const activeSourceChapter = computed(() =>
+  detail.value.chapters.find(item => item.id === sourceForm.value.chapterId) || selectedChapter.value
+)
+const sourceTableGroups = computed(() => buildSourceTableGroups(sourceTables.value, activeSourceChapter.value))
+const sourceColumnOptions = computed(() => sourceColumns.value)
 const filteredRules = computed(() => {
   return detail.value.rules.filter(item => {
     const objectMatch = !ruleQuery.applyObjectType || item.applyObjectType === ruleQuery.applyObjectType
@@ -798,13 +1001,6 @@ const filteredRules = computed(() => {
     const severityMatch = !ruleQuery.severity || item.severity === ruleQuery.severity
     return objectMatch && typeMatch && severityMatch
   })
-})
-const levelSummary = computed(() => {
-  return ['system', 'subsystem', 'equipment', 'component', 'part'].map(level => ({
-    level,
-    label: objectLevelLabel(level) + '目录',
-    chapters: detail.value.chapters.filter(item => item.attrs?.objectLevel === level && item.parentId)
-  }))
 })
 
 function emptyTemplate() {
@@ -955,6 +1151,32 @@ function handleCheck() {
   })
 }
 
+function loadSourceMetadata(tableName) {
+  sourceColumnLoading.value = !!tableName
+  return getSourceMetadata(tableName).then(response => {
+    const data = response.data || {}
+    sourceTables.value = data.tables || sourceTables.value
+    contextFieldOptions.value = data.contextFields || contextFieldOptions.value
+    if (tableName) {
+      sourceColumns.value = data.columns || []
+    }
+  }).catch(() => {
+    if (tableName) {
+      sourceColumns.value = []
+    }
+  }).finally(() => {
+    sourceColumnLoading.value = false
+  })
+}
+
+function loadSourceColumns(tableName) {
+  if (!tableName) {
+    sourceColumns.value = []
+    return Promise.resolve()
+  }
+  return loadSourceMetadata(tableName)
+}
+
 function handleNodeClick(data) {
   selectedChapterId.value = data.id
 }
@@ -964,25 +1186,61 @@ function selectChapter(id) {
   activeTab.value = 'display'
 }
 
+function appendSiblingChapter() {
+  const current = selectedChapter.value
+  if (!current) {
+    proxy.$modal.msgWarning('请先选择一个章节')
+    return
+  }
+  const parent = detail.value.chapters.find(item => item.id === current.parentId)
+  const siblings = siblingChapters(current.parentId)
+  const index = siblings.findIndex(item => item.id === current.id)
+  const chapterName = '新章节'
+  const chapter = createChapter({
+    parent,
+    parentId: current.parentId || null,
+    chapterName,
+    chapterLevel: current.chapterLevel || (parent ? (parent.chapterLevel || 1) + 1 : 1),
+    sortOrder: sortOrderAfter(siblings, index),
+    objectLevel: current.attrs?.objectLevel || parent?.attrs?.objectLevel || 'aircraft'
+  })
+  detail.value.chapters.push(chapter)
+  selectedChapterId.value = chapter.id
+}
+
 function appendChapter(parent) {
   const baseLevel = parent?.attrs?.objectLevel || 'aircraft'
-  const chapter = {
+  const chapterName = parent ? '新子章节' : '新章节'
+  const chapter = createChapter({
+    parent,
+    parentId: parent?.id || null,
+    chapterName,
+    chapterLevel: parent ? (parent.chapterLevel || 1) + 1 : 1,
+    sortOrder: nextSortOrder(siblingChapters(parent?.id)),
+    objectLevel: baseLevel
+  })
+  detail.value.chapters.push(chapter)
+  selectedChapterId.value = chapter.id
+}
+
+function createChapter({ parent, parentId, chapterName, chapterLevel, sortOrder, objectLevel }) {
+  return {
     id: uuid(),
     templateId: detail.value.id,
-    parentId: parent?.id,
+    parentId,
     chapterCode: 'CH-' + Date.now(),
-    chapterName: parent ? '新子章节' : '新章节',
-    chapterLevel: parent ? (parent.chapterLevel || 1) + 1 : 1,
-    chapterPath: undefined,
+    chapterName,
+    chapterLevel,
+    chapterPath: buildChapterPath(parent, chapterName),
     nodeKind: 'chapter',
-    sortOrder: siblingChapters(parent ? parent.id : undefined).length + 1,
+    sortOrder,
     requiredFlag: 0,
     enabledFlag: 1,
     defaultExpand: 0,
     completenessRequirement: 'normal',
     chapterDesc: undefined,
     attrs: {
-      objectLevel: baseLevel,
+      objectLevel,
       displayType: 'summary_table',
       sortMode: 'business_order',
       primaryFields: [],
@@ -990,8 +1248,6 @@ function appendChapter(parent) {
       showMissingTips: true
     }
   }
-  detail.value.chapters.push(chapter)
-  selectedChapterId.value = chapter.id
 }
 
 function removeChapter() {
@@ -1041,26 +1297,88 @@ function openSource(row) {
     keyPartScope: 'all',
     requiredFlag: 0,
     enabledFlag: 1,
-    sortOrder: detail.value.dataSources.length + 1,
+    sortOrder: selectedChapterSources.value.length + 1,
     joinConditionJson: '{}',
     filterConditionJson: '{}',
     attrsJson: '{}'
   }
+  const attrs = parseJson(sourceForm.value.attrsJson, {})
+  sourceSelectedFields.value = Array.isArray(attrs.selectedFields) ? [...attrs.selectedFields] : []
+  sourceJoinRows.value = conditionRowsFromJson(sourceForm.value.joinConditionJson, attrs.joinRemarks || {})
+  sourceFilterRows.value = conditionRowsFromJson(sourceForm.value.filterConditionJson, attrs.filterRemarks || {})
+  sourceColumns.value = []
+  loadSourceColumns(sourceForm.value.sourceTable)
   sourceOpen.value = true
 }
 
+function handleSourceChapterChange(chapterId) {
+  const chapter = detail.value.chapters.find(item => item.id === chapterId)
+  const objectLevel = chapter?.attrs?.objectLevel
+  if (objectLevel && objectLevel !== 'template_group') {
+    sourceForm.value.applyObjectType = objectLevel
+  }
+}
+
+function handleSourceTableChange(tableName) {
+  const table = sourceTables.value.find(item => item.tableName === tableName)
+  if (table) {
+    sourceForm.value.sourceSystem = table.sourceSystem || sourceForm.value.sourceSystem
+    if (!sourceForm.value.sourceName) {
+      sourceForm.value.sourceName = table.tableComment || table.tableName
+    }
+  }
+  loadSourceColumns(tableName)
+}
+
 function submitSource() {
+  if (!sourceForm.value.chapterId) {
+    proxy.$modal.msgWarning('请选择所属章节')
+    return
+  }
+  if (!sourceForm.value.sourceTable) {
+    proxy.$modal.msgWarning('请选择数据库表')
+    return
+  }
+  if (!sourceForm.value.sourceName) {
+    sourceForm.value.sourceName = sourceForm.value.sourceTable
+  }
+  const attrs = parseJson(sourceForm.value.attrsJson, {})
+  attrs.selectedFields = [...sourceSelectedFields.value]
+  attrs.joinRemarks = remarksFromRows(sourceJoinRows.value)
+  attrs.filterRemarks = remarksFromRows(sourceFilterRows.value)
+  const next = {
+    ...sourceForm.value,
+    joinConditionJson: stringifyJson(conditionObjectFromRows(sourceJoinRows.value)),
+    filterConditionJson: stringifyJson(conditionObjectFromRows(sourceFilterRows.value)),
+    attrsJson: stringifyJson(attrs)
+  }
   const index = detail.value.dataSources.findIndex(item => item.id === sourceForm.value.id)
   if (index > -1) {
-    detail.value.dataSources.splice(index, 1, { ...sourceForm.value })
+    detail.value.dataSources.splice(index, 1, next)
   } else {
-    detail.value.dataSources.push({ ...sourceForm.value })
+    detail.value.dataSources.push(next)
   }
   sourceOpen.value = false
 }
 
 function removeSource(row) {
   detail.value.dataSources = detail.value.dataSources.filter(item => item.id !== row.id)
+}
+
+function addJoinCondition() {
+  sourceJoinRows.value.push({ field: '', value: '', remark: '' })
+}
+
+function removeJoinCondition(index) {
+  sourceJoinRows.value.splice(index, 1)
+}
+
+function addFilterCondition() {
+  sourceFilterRows.value.push({ field: '', value: '', remark: '' })
+}
+
+function removeFilterCondition(index) {
+  sourceFilterRows.value.splice(index, 1)
 }
 
 function openRule(row) {
@@ -1159,12 +1477,132 @@ function normalizeTemplate(data) {
   }
   next.chapters = (next.chapters || []).map(item => ({
     ...item,
+    chapterName: normalizeChapterName(item.chapterName),
+    chapterPath: normalizeChapterPath(item.chapterPath),
     attrs: parseJson(item.attrsJson, {})
   }))
   next.dataSources = next.dataSources || []
   next.rules = next.rules || []
   next.params = next.params || []
+  ensureDossierDirectoryLayout(next)
   return next
+}
+
+function ensureDossierDirectoryLayout(template) {
+  const chapters = template.chapters || []
+  const dossierRoot = chapters.find(item => item.chapterCode === 'NODE_TEMPLATE_ROOT' || item.chapterName === '卷宗目录')
+  if (!dossierRoot) {
+    return
+  }
+  const topRoot = chapters.find(item => item.chapterCode === 'AIRCRAFT_ROOT')
+  dossierRoot.chapterName = '卷宗目录'
+  dossierRoot.parentId = null
+  dossierRoot.chapterLevel = 1
+  dossierRoot.chapterPath = '卷宗目录'
+  dossierRoot.sortOrder = dossierRoot.sortOrder || 1
+
+  let aircraftDirectory = chapters.find(item => item.chapterCode === 'AIRCRAFT_DIRECTORY_ROOT')
+    || chapters.find(item => item.parentId === dossierRoot.id && item.chapterName === '整机目录')
+  if (!aircraftDirectory) {
+    aircraftDirectory = {
+      id: uuid(),
+      templateId: template.id,
+      parentId: dossierRoot.id,
+      chapterCode: 'AIRCRAFT_DIRECTORY_ROOT',
+      chapterName: '整机目录',
+      chapterLevel: 2,
+      chapterPath: '卷宗目录/整机目录',
+      nodeKind: 'group',
+      sortOrder: 90,
+      requiredFlag: 1,
+      enabledFlag: 1,
+      defaultExpand: 1,
+      completenessRequirement: 'strict',
+      chapterDesc: '整机层目录，和系统、子系统、设备、组件、零件目录同属于卷宗目录。',
+      attrs: {
+        objectLevel: 'aircraft',
+        displayType: 'tree_table',
+        sortMode: 'business_order',
+        primaryFields: ['tail_number', 'msn', 'aircraft_type', 'status'],
+        blocks: ['summary', 'relation', 'details', 'documents', 'issues'],
+        showMissingTips: true
+      }
+    }
+    chapters.push(aircraftDirectory)
+  } else {
+    aircraftDirectory.parentId = dossierRoot.id
+    aircraftDirectory.chapterName = '整机目录'
+    aircraftDirectory.chapterLevel = 2
+    aircraftDirectory.chapterPath = '卷宗目录/整机目录'
+    aircraftDirectory.nodeKind = aircraftDirectory.nodeKind || 'group'
+    aircraftDirectory.sortOrder = aircraftDirectory.sortOrder || 90
+    aircraftDirectory.attrs = {
+      ...(aircraftDirectory.attrs || {}),
+      objectLevel: 'aircraft',
+      displayType: 'tree_table',
+      sortMode: 'business_order',
+      primaryFields: ['tail_number', 'msn', 'aircraft_type', 'status'],
+      blocks: ['summary', 'relation', 'details', 'documents', 'issues'],
+      showMissingTips: true
+    }
+  }
+
+  const directDirectoryCodes = ['SYSTEM_ROOT', 'SUBSYSTEM_ROOT', 'EQUIPMENT_ROOT', 'COMPONENT_ROOT', 'PART_ROOT']
+  chapters.forEach(item => {
+    if (directDirectoryCodes.includes(item.chapterCode)) {
+      item.parentId = dossierRoot.id
+      item.chapterLevel = 2
+      item.chapterPath = `卷宗目录/${item.chapterName}`
+    }
+  })
+
+  const aircraftParentId = topRoot?.id
+  chapters.forEach(item => {
+    if ([topRoot?.id, dossierRoot.id, aircraftDirectory.id].includes(item.id)) {
+      return
+    }
+    const isAircraftChapter = item.attrs?.objectLevel === 'aircraft'
+      && item.chapterCode !== 'AIRCRAFT_ROOT'
+      && item.chapterCode !== 'AIRCRAFT_DIRECTORY_ROOT'
+      && (!aircraftParentId || item.parentId === aircraftParentId || item.parentId === dossierRoot.id)
+    if (isAircraftChapter) {
+      item.parentId = aircraftDirectory.id
+      item.chapterLevel = 3
+      item.chapterPath = `卷宗目录/整机目录/${item.chapterName}`
+    }
+  })
+
+  const childByParent = chapters.reduce((acc, item) => {
+    if (item.parentId) {
+      acc[item.parentId] = acc[item.parentId] || []
+      acc[item.parentId].push(item)
+    }
+    return acc
+  }, {})
+  const refreshDescendants = (parent) => {
+    ;(childByParent[parent.id] || []).forEach(child => {
+      child.chapterLevel = (parent.chapterLevel || 1) + 1
+      child.chapterPath = `${parent.chapterPath}/${child.chapterName}`
+      refreshDescendants(child)
+    })
+  }
+  refreshDescendants(dossierRoot)
+
+  if (topRoot) {
+    const redirectRootRef = row => row.chapterId === topRoot.id ? { ...row, chapterId: dossierRoot.id } : row
+    template.dataSources = (template.dataSources || []).map(redirectRootRef)
+    template.rules = (template.rules || []).map(redirectRootRef)
+    template.params = (template.params || []).map(redirectRootRef)
+    template.chapters = chapters.filter(item => item.id !== topRoot.id)
+  }
+}
+
+function normalizeChapterName(value) {
+  return value === '节点目录模板' ? '卷宗目录' : value
+}
+
+function normalizeChapterPath(value) {
+  return typeof value === 'string' ? value.replace(/节点目录模板/g, '卷宗目录') : value
 }
 
 function buildPayload() {
@@ -1240,6 +1678,22 @@ function siblingChapters(parentId) {
     .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
 }
 
+function nextSortOrder(siblings) {
+  return siblings.length ? Math.max(...siblings.map(item => Number(item.sortOrder) || 0)) + 10 : 10
+}
+
+function sortOrderAfter(siblings, index) {
+  const insertIndex = index > -1 ? index + 1 : siblings.length
+  siblings.forEach((item, itemIndex) => {
+    item.sortOrder = itemIndex < insertIndex ? (itemIndex + 1) * 10 : (itemIndex + 2) * 10
+  })
+  return (insertIndex + 1) * 10
+}
+
+function buildChapterPath(parent, chapterName) {
+  return parent?.chapterPath ? `${parent.chapterPath}/${chapterName}` : chapterName
+}
+
 function syncEffectiveRange(value) {
   detail.value.effectiveFrom = value?.[0]
   detail.value.effectiveTo = value?.[1]
@@ -1265,6 +1719,204 @@ function stringifyJson(value) {
 
 function normalizeJsonString(value, defaultValue) {
   return stringifyJson(parseJson(value, defaultValue))
+}
+
+function conditionRowsFromJson(value, remarks = {}) {
+  const data = parseJson(value, {})
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return []
+  }
+  return Object.entries(data).map(([field, fieldValue]) => ({
+    field,
+    value: fieldValue == null ? '' : String(fieldValue),
+    remark: remarks?.[field] || ''
+  }))
+}
+
+function conditionObjectFromRows(rows) {
+  return rows.reduce((acc, row) => {
+    if (row.field) {
+      acc[row.field] = row.value == null ? '' : row.value
+    }
+    return acc
+  }, {})
+}
+
+function remarksFromRows(rows) {
+  return rows.reduce((acc, row) => {
+    if (row.field && row.remark) {
+      acc[row.field] = row.remark
+    }
+    return acc
+  }, {})
+}
+
+function conditionLabel(value) {
+  const data = parseJson(value, {})
+  const entries = Object.entries(data || {})
+  if (entries.length === 0) {
+    return '-'
+  }
+  return entries.map(([field, fieldValue]) => `${field} = ${fieldValue}`).join('；')
+}
+
+function sourceSelectedFieldsLabel(row) {
+  const attrs = parseJson(row.attrsJson, {})
+  const fields = Array.isArray(attrs.selectedFields) ? attrs.selectedFields : []
+  return fields.length ? fields.join('、') : '-'
+}
+
+function sourceTableOptionLabel(table) {
+  const comment = table.tableComment ? ` / ${table.tableComment}` : ''
+  return `${table.tableName}${comment} / ${sourceDomainLabel(table.sourceSystem)}`
+}
+
+function columnOptionLabel(column) {
+  const comment = column.columnComment ? ` - ${column.columnComment}` : ''
+  return `${column.columnName}${comment}`
+}
+
+function buildSourceTableGroups(tables, chapter) {
+  const sourceTables = tables || []
+  const recommendedNames = recommendedSourceTableNames(chapter)
+  const recommended = sourceTables.filter(table => recommendedNames.has(table.tableName))
+  const recommendedSet = new Set(recommended.map(table => table.tableName))
+  const groups = []
+
+  if (recommended.length > 0) {
+    groups.push({
+      label: `当前章节推荐${chapter?.chapterName ? '：' + chapter.chapterName : ''}`,
+      options: recommended
+    })
+  }
+
+  const domainOrder = ['卷宗域', '物理域', '构型域', '设计域', '制造域', '质量域', '运维域', '运行域']
+  const domainMap = sourceTables
+    .filter(table => !recommendedSet.has(table.tableName))
+    .reduce((acc, table) => {
+      const domain = sourceDomainLabel(table.sourceSystem)
+      acc[domain] = acc[domain] || []
+      acc[domain].push(table)
+      return acc
+    }, {})
+
+  domainOrder.forEach(domain => {
+    if (domainMap[domain]?.length) {
+      groups.push({ label: domain, options: domainMap[domain] })
+      delete domainMap[domain]
+    }
+  })
+  Object.keys(domainMap).sort().forEach(domain => {
+    groups.push({ label: domain, options: domainMap[domain] })
+  })
+  return groups
+}
+
+function recommendedSourceTableNames(chapter) {
+  const names = new Set()
+  const objectLevel = chapter?.attrs?.objectLevel
+  const text = `${chapter?.chapterCode || ''} ${chapter?.chapterName || ''} ${chapter?.chapterPath || ''} ${chapter?.chapterDesc || ''}`.toLowerCase()
+
+  addTables(names, baseTablesForObjectLevel(objectLevel))
+  if (hasAny(text, ['basic', 'profile', 'summary', 'overview', '基本', '概况', '概要', '身份', '主数据'])) {
+    addTables(names, profileTablesForObjectLevel(objectLevel))
+  }
+  if (hasAny(text, ['bom', 'structure', 'composition', 'assembly_rel', '构型', '组成', '结构', '装配关系'])) {
+    addTables(names, ['aircraft_bom_node', 'assembly_record', 'object_interface'])
+  }
+  if (hasAny(text, ['design', 'mbd', 'model', 'parameter', 'hydraulic', 'impact', '设计', '模型', '参数', '液压', '弯管'])) {
+    addTables(names, [
+      'part_master',
+      'part_parameter_value',
+      'part_hydraulic_tube_impact_model',
+      'impact_tube_segment',
+      'impact_tube_support',
+      'impact_tube_fluid',
+      'impact_tube_boundary_condition',
+      'file_relation'
+    ])
+  }
+  if (hasAny(text, ['manufacturing', 'process', 'production', 'shop', 'material', '制造', '工艺', '生产', '批次', '追溯'])) {
+    addTables(names, [
+      'shop_order',
+      'shop_order_task',
+      'process_route',
+      'production_operation_record',
+      'material_lot_trace'
+    ])
+  }
+  if (hasAny(text, ['inspection', 'quality', 'qa', '检验', '检测', '质量'])) {
+    addTables(names, ['inspection_record', 'inspection_measurement', 'quality_text_record'])
+  }
+  if (hasAny(text, ['install', 'removal', 'assembly', '装机', '拆换', '安装', '装配'])) {
+    addTables(names, ['install_removal', 'assembly_record'])
+  }
+  if (hasAny(text, ['service', 'maintenance', 'life', 'usage', 'mro', '服役', '维修', '寿命', '使用'])) {
+    addTables(names, ['work_order', 'work_order_task', 'life_usage_record', 'install_removal'])
+  }
+  if (hasAny(text, ['fault', '故障', '异常'])) {
+    addTables(names, ['fault_event', 'fault_action', 'work_order'])
+  }
+  if (hasAny(text, ['technical_status', 'status', 'lifecycle', '状态', '履历', '生命周期'])) {
+    addTables(names, ['object_technical_status', 'object_status_history', 'object_lifecycle_record'])
+  }
+  if (hasAny(text, ['interface', '接口'])) {
+    addTables(names, ['object_interface'])
+  }
+  if (hasAny(text, ['file', 'attachment', 'document', 'cert', '附件', '文件', '证明', '证书'])) {
+    addTables(names, ['file_relation', 'file_asset', 'file_category'])
+  }
+  if (hasAny(text, ['flight', 'ops', '运行', '航段', '飞行'])) {
+    addTables(names, ['event_flight_leg'])
+  }
+  return names
+}
+
+function baseTablesForObjectLevel(objectLevel) {
+  const map = {
+    aircraft: ['v_aircraft_profile_detail', 'physical_aircraft', 'aircraft_bom_node', 'file_relation'],
+    system: ['v_system_profile_detail', 'aircraft_bom_node', 'object_lifecycle_record', 'object_technical_status', 'file_relation'],
+    subsystem: ['v_subsystem_profile_detail', 'aircraft_bom_node', 'object_lifecycle_record', 'object_technical_status', 'file_relation'],
+    equipment: ['v_equipment_profile_detail', 'aircraft_bom_node', 'equipment_object_master', 'equipment_object_instance', 'install_removal', 'file_relation'],
+    component: ['v_component_profile_detail', 'aircraft_bom_node', 'component_object_master', 'component_object_instance', 'assembly_record', 'file_relation'],
+    part: ['v_part_profile_detail', 'part_master', 'part_instance', 'part_parameter_value', 'file_relation']
+  }
+  return map[objectLevel] || ['file_relation']
+}
+
+function profileTablesForObjectLevel(objectLevel) {
+  const map = {
+    aircraft: ['v_aircraft_profile_detail', 'physical_aircraft'],
+    system: ['v_system_profile_detail', 'aircraft_bom_node'],
+    subsystem: ['v_subsystem_profile_detail', 'aircraft_bom_node'],
+    equipment: ['v_equipment_profile_detail', 'equipment_object_master', 'equipment_object_instance'],
+    component: ['v_component_profile_detail', 'component_object_master', 'component_object_instance'],
+    part: ['v_part_profile_detail', 'part_master', 'part_instance']
+  }
+  return map[objectLevel] || []
+}
+
+function addTables(target, tables) {
+  ;(tables || []).forEach(table => target.add(table))
+}
+
+function hasAny(text, keywords) {
+  return keywords.some(keyword => text.includes(keyword.toLowerCase()))
+}
+
+function sourceDomainLabel(value) {
+  const map = {
+    DOSSIER: '卷宗域',
+    PHYSICAL: '物理域',
+    CONFIG: '构型域',
+    DESIGN: '设计域',
+    PLM: '设计域',
+    MES: '制造域',
+    QA: '质量域',
+    MRO: '运维域',
+    OPS: '运行域'
+  }
+  return map[value] || value || '-'
 }
 
 function defaultParams(templateId) {
@@ -1385,6 +2037,7 @@ function severityType(value) {
   return map[value] || 'info'
 }
 
+loadSourceMetadata()
 getList()
 </script>
 
@@ -1577,25 +2230,9 @@ getList()
   padding: 14px;
 }
 
-.node-grid {
-  margin-top: 12px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.node-card {
-  border: 1px solid #edf2f7;
-  border-radius: 6px;
-  padding: 12px;
-  background: #fbfdff;
-
-  ul {
-    margin: 8px 0 0;
-    padding-left: 18px;
-    color: #4b5563;
-    line-height: 24px;
-  }
+.chapter-source-panel {
+  border-top: 1px solid #edf2f7;
+  padding-top: 14px;
 }
 
 .box-title {
@@ -1603,6 +2240,22 @@ getList()
   gap: 10px;
   font-weight: 700;
   margin-bottom: 12px;
+}
+
+.condition-builder {
+  border: 1px solid #edf2f7;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.condition-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-weight: 700;
 }
 
 .order-list {
@@ -1637,10 +2290,6 @@ getList()
     width: 100%;
     border-left: 0;
     border-top: 1px solid #edf2f7;
-  }
-
-  .node-grid {
-    grid-template-columns: 1fr;
   }
 }
 </style>

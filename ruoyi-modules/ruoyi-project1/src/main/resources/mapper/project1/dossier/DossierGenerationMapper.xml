@@ -76,6 +76,40 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         limit 1
     </select>
 
+    <select id="selectGenerationTemplates" resultType="java.util.HashMap">
+        select id as templateId,
+               template_code as templateCode,
+               template_version as templateVersion,
+               name as templateName,
+               description,
+               template_type as templateType,
+               applicable_object_type as applicableObjectType,
+               status,
+               is_default as isDefault
+        from t1_dossier_template
+        where status in ('active', 'draft')
+          and applicable_object_type = 'aircraft'
+        order by case when status = 'active' then 0 else 1 end,
+                 is_default desc,
+                 updated_at desc,
+                 created_at desc
+    </select>
+
+    <select id="selectTemplateById" resultType="java.util.HashMap">
+        select id as templateId,
+               template_code as templateCode,
+               template_version as templateVersion,
+               name as templateName,
+               description,
+               template_type as templateType,
+               applicable_object_type as applicableObjectType,
+               status,
+               is_default as isDefault
+        from t1_dossier_template
+        where id = #{templateId}
+        limit 1
+    </select>
+
     <select id="selectTemplateMetrics" resultType="java.util.HashMap">
         select
             (select count(1) from t1_dossier_template_chapter where template_id = #{templateId} and enabled_flag = 1 and node_kind = 'chapter') as chapterCount,
@@ -106,14 +140,24 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select ds.id as sourceId,
                ds.chapter_id as chapterId,
                ch.chapter_name as chapterName,
+               ch.parent_id as parentId,
+               ch.chapter_code as chapterCode,
+               ch.chapter_level as chapterLevel,
+               ch.chapter_path as chapterPath,
                ds.source_code as sourceCode,
                ds.source_system as sourceSystem,
                ds.source_table as sourceTable,
                ds.source_name as sourceName,
+               ds.source_record_type as sourceRecordType,
+               cast(ds.join_condition_json as char) as joinConditionJson,
+               cast(ds.filter_condition_json as char) as filterConditionJson,
                ds.lifecycle_stage as lifecycleStage,
                ds.apply_object_type as applyObjectType,
+               ds.supply_mode_scope as supplyModeScope,
+               ds.key_part_scope as keyPartScope,
                ds.required_flag as requiredFlag,
-               ds.sort_order as sortOrder
+               ds.sort_order as sortOrder,
+               cast(ds.attrs_json as char) as attrsJson
         from t1_dossier_template_data_source ds
         left join t1_dossier_template_chapter ch on ch.id = ds.chapter_id
         where ds.template_id = #{templateId}
@@ -128,10 +172,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                r.rule_code as ruleCode,
                r.rule_name as ruleName,
                r.rule_type as ruleType,
+               r.target_table as targetTable,
+               r.target_field as targetField,
+               r.target_path as targetPath,
+               r.rule_expression as ruleExpression,
+               cast(r.rule_expression_json as char) as ruleExpressionJson,
                r.severity,
                r.error_message as errorMessage,
                r.remediation_hint as remediationHint,
                r.apply_object_type as applyObjectType,
+               r.supply_mode_scope as supplyModeScope,
+               r.key_part_scope as keyPartScope,
+               r.required_flag as requiredFlag,
                r.sort_order as sortOrder
         from t1_dossier_template_rule r
         left join t1_dossier_template_chapter ch on ch.id = r.chapter_id
@@ -152,6 +204,27 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where template_id = #{templateId}
           and enabled_flag = 1
         order by sort_order, param_code
+    </select>
+
+    <select id="countRuleRows" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(1)
+        from ${tableName} t
+        where ${whereSql}
+    </select>
+
+    <select id="selectSourceTableColumns" resultType="java.lang.String">
+        select column_name
+        from information_schema.columns
+        where table_schema = database()
+          and table_name = #{tableName}
+        order by ordinal_position
+    </select>
+
+    <select id="selectTemplateSourceRows" parameterType="java.util.Map" resultType="java.util.HashMap">
+        select t.*
+        from ${tableName} t
+        where ${whereSql}
+        limit #{limit}
     </select>
 
     <select id="selectKeyNodeChain" resultType="java.util.HashMap">
@@ -198,23 +271,49 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             (select count(1) from t1_inspection_measurement where aircraft_id = #{aircraftId}) as inspectionMeasurementCount,
             (
                 select count(1)
-                from t1_part_document pd
+                from t1_file_relation fr
                 inner join (
                     select distinct part_number
                     from t1_aircraft_bom_node
                     where aircraft_id = #{aircraftId}
                       and is_active = 1
-                ) pn on pn.part_number = pd.part_number
+                ) pn on pn.part_number = fr.part_number
+                where fr.relation_status != 'deleted'
+                  and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','DOSSIER_ATTACHMENT')
+                  and (
+                      fr.dossier_version_id is null
+                      or (
+                          fr.source_record_id is not null
+                          and not exists (
+                              select 1
+                              from t1_file_relation source_fr
+                              where source_fr.id = fr.source_record_id
+                          )
+                      )
+                  )
             ) as partDocumentCount,
             (
-                select max(pd.created_at)
-                from t1_part_document pd
+                select max(fr.created_at)
+                from t1_file_relation fr
                 inner join (
                     select distinct part_number
                     from t1_aircraft_bom_node
                     where aircraft_id = #{aircraftId}
                       and is_active = 1
-                ) pn on pn.part_number = pd.part_number
+                ) pn on pn.part_number = fr.part_number
+                where fr.relation_status != 'deleted'
+                  and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','DOSSIER_ATTACHMENT')
+                  and (
+                      fr.dossier_version_id is null
+                      or (
+                          fr.source_record_id is not null
+                          and not exists (
+                              select 1
+                              from t1_file_relation source_fr
+                              where source_fr.id = fr.source_record_id
+                          )
+                      )
+                  )
             ) as partDocumentMaxCreatedAt
     </select>
 
@@ -284,8 +383,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             (select count(1) from t1_fault_event fe
               where fe.aircraft_id = #{aircraftId}
                 and fe.bom_node_id in (select id from subtree)) as faultCount,
-            (select count(1) from t1_part_document pd
-              where pd.part_number in (select part_number from subtree where part_number is not null)) as partDocumentCount,
+            (select count(1) from t1_file_relation fr
+              where fr.part_number in (select part_number from subtree where part_number is not null)
+                and fr.relation_status != 'deleted'
+                and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','DOSSIER_ATTACHMENT')
+                and (
+                    fr.dossier_version_id is null
+                    or (
+                        fr.source_record_id is not null
+                        and not exists (
+                            select 1
+                            from t1_file_relation source_fr
+                            where source_fr.id = fr.source_record_id
+                        )
+                    )
+                )) as partDocumentCount,
             (select lr.event_title from t1_object_lifecycle_record lr
               where lr.aircraft_id = #{aircraftId}
                 and lr.bom_node_id in (select id from subtree)
@@ -600,44 +712,145 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             where im.aircraft_id = #{aircraftId}
               and im.bom_node_id = #{nodeId}
             union all
-            select 'DOC' as sourceSystem,
-                   't1_part_document' as sourceTable,
-                   pd.id as sourceRecordId,
-                   pd.doc_number as sourceRecordKey,
-                   't1_part_document' as itemType,
+            select coalesce(fr.source_system, fa.source_system, 'DOC') as sourceSystem,
+                   't1_file_relation' as sourceTable,
+                   fr.id as sourceRecordId,
+                   coalesce(fa.business_no, fr.source_record_key, fr.id) as sourceRecordKey,
+                   't1_file_relation' as itemType,
                    'DOCUMENT' as lifecycleStage,
-                   coalesce(pd.doc_title, pd.doc_number) as itemName,
+                   coalesce(fa.business_title, fa.business_no, fa.display_name) as itemName,
                    concat_ws('，',
-                       concat('类型：', pd.doc_type),
-                       concat('版次：', coalesce(pd.doc_revision, '-')),
-                       concat('生效：', coalesce(pd.effective_date, '-'))
+                       concat('类型：', coalesce(fa.business_type, '-')),
+                       concat('版次：', coalesce(fa.revision, '-')),
+                       concat('生效：', coalesce(fa.effective_date, '-'))
                    ) as contentSummary,
-                   pd.file_path as fileStorageKey,
+                   coalesce(fa.storage_key, fa.storage_path, fa.access_url) as fileStorageKey,
                    cast(json_object(
-                       'sourceSystem', 'DOC',
-                       'sourceTable', 't1_part_document',
-                       'sourceRecordId', pd.id,
-                       'sourceRecordKey', pd.doc_number,
+                       'sourceSystem', coalesce(fr.source_system, fa.source_system, 'DOC'),
+                       'sourceTable', 't1_file_relation',
+                       'sourceRecordId', fr.id,
+                       'sourceRecordKey', coalesce(fa.business_no, fr.source_record_key, fr.id),
                        'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
                    ) as char) as sourceTraceJson,
                    cast(json_object(
-                       'partNumber', pd.part_number,
-                       'docType', pd.doc_type,
-                       'docNumber', pd.doc_number,
-                       'docRevision', pd.doc_revision,
-                       'effectiveDate', pd.effective_date,
-                       'isCurrent', pd.is_current
+                       'partNumber', fr.part_number,
+                       'relationSourceTable', fr.source_table,
+                       'assetSourceTable', fa.source_table,
+                       'businessType', fa.business_type,
+                       'businessNo', fa.business_no,
+                       'revision', fa.revision,
+                       'effectiveDate', fa.effective_date,
+                       'isCurrent', fr.is_current
                    ) as char) as attrsJson,
-                   pd.created_at as eventTime,
+                   fr.created_at as eventTime,
                    100 as sortGroup
-            from t1_part_document pd
-            where pd.part_number = #{partNumber}
+            from t1_file_relation fr
+            inner join t1_file_asset fa on fa.id = fr.file_id
+            where fr.part_number = #{partNumber}
+              and fr.aircraft_id = #{aircraftId}
+              and fr.relation_status != 'deleted'
+              and fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','DOSSIER_ATTACHMENT')
+              and (
+                  fr.dossier_version_id is null
+                  or (
+                      fr.source_record_id is not null
+                      and not exists (
+                          select 1
+                          from t1_file_relation source_fr
+                          where source_fr.id = fr.source_record_id
+                      )
+                  )
+              )
         ) x
         order by sortGroup, eventTime desc, sourceRecordKey
     </select>
 
+    <select id="selectNodeDocumentSourceRows" resultType="java.util.HashMap">
+        select fr.id as sourceRelationId,
+               fr.file_id as fileAssetId,
+               fr.category_id as categoryId,
+               coalesce(fa.business_no, fr.target_code, fr.source_record_key, fr.id) as docNo,
+               coalesce(fa.business_title, fa.display_name, fr.target_name, fr.target_code) as title,
+               coalesce(fa.storage_key, fa.storage_path, fa.access_url) as fileStorageKey,
+               coalesce(fr.source_system, fa.source_system, 'DOC') as sourceSystem,
+               't1_file_relation' as sourceTable,
+               fr.id as sourceRecordId,
+               coalesce(fr.source_record_key, fa.source_record_key, fr.id) as sourceRecordKey,
+               fr.required_flag as requiredFlag,
+               fr.included_flag as includedFlag,
+               fr.completeness_status as completenessStatus,
+               fr.relation_status as documentStatus,
+               fr.relation_type as sourceRelationType,
+               fr.target_type as sourceTargetType,
+               fr.target_id as sourceTargetId,
+               fr.target_code as sourceTargetCode,
+               fr.part_number as sourcePartNumber,
+               fr.part_instance_id as sourcePartInstanceId,
+               fr.bom_node_id as sourceBomNodeId,
+               cast(json_object(
+                   'sourceSystem', coalesce(fr.source_system, fa.source_system, 'DOC'),
+                   'sourceTable', 't1_file_relation',
+                   'sourceRecordId', fr.id,
+                   'sourceRecordKey', coalesce(fr.source_record_key, fa.source_record_key, fr.id),
+                   'assetId', fr.file_id,
+                   'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
+               ) as char) as sourceTraceJson,
+               cast(json_merge_patch(
+                   coalesce(fr.business_meta_json, json_object()),
+                   json_object(
+                       'sourceRelationId', fr.id,
+                       'sourceRelationType', fr.relation_type,
+                       'sourceTargetType', fr.target_type,
+                       'sourceTargetId', fr.target_id,
+                       'sourceTargetCode', fr.target_code,
+                       'sourcePartNumber', fr.part_number,
+                       'businessType', fa.business_type,
+                       'businessNo', fa.business_no,
+                       'revision', fa.revision,
+                       'effectiveDate', fa.effective_date
+                   )
+               ) as char) as attrsJson,
+               fr.sort_order as sortOrder
+        from t1_file_relation fr
+        inner join t1_file_asset fa on fa.id = fr.file_id
+        where fr.relation_status != 'deleted'
+          and fr.included_flag = 1
+          and (
+              fr.dossier_version_id is null
+              or (
+                  fr.source_record_id is not null
+                  and not exists (
+                      select 1
+                      from t1_file_relation source_fr
+                      where source_fr.id = fr.source_record_id
+                  )
+              )
+          )
+          and (
+              fr.relation_type in ('PART_DOCUMENT','TECHNICAL_FILE','DRAWING','MODEL','ATTACHMENT','CERTIFICATE','SOURCE','DOSSIER_ATTACHMENT')
+              or fa.asset_kind in ('DOCUMENT','MODEL','CERTIFICATE','IMAGE','DATASET','ARCHIVE')
+          )
+          and (
+              (#{nodeId} is not null and #{nodeId} != '' and
+                  (fr.bom_node_id = #{nodeId} or (fr.target_type = 'BOM_NODE' and fr.target_id = #{nodeId})))
+              or (#{partInstanceId} is not null and #{partInstanceId} != '' and
+                  (fr.part_instance_id = #{partInstanceId}
+                      or (fr.target_type = 'PART_INSTANCE' and fr.target_id = #{partInstanceId})))
+              or (#{partNumber} is not null and #{partNumber} != '' and
+                  (fr.part_number = #{partNumber}
+                      or (fr.target_type = 'PART_MASTER' and fr.target_id = #{partNumber})
+                      or fr.target_code = #{partNumber}))
+              or (#{aircraftId} is not null and #{aircraftId} != '' and
+                  fr.target_type = 'AIRCRAFT' and (fr.aircraft_id = #{aircraftId} or fr.target_id = #{aircraftId}))
+          )
+        order by fr.required_flag desc, fr.sort_order, title
+        limit 200
+    </select>
+
     <select id="selectDossierInstance" resultType="java.util.HashMap">
         select id as instanceId,
+               instance_code as instanceCode,
+               instance_name as instanceName,
                current_version_id as currentVersionId,
                current_version_no as currentVersionNo,
                instance_label as instanceLabel,
@@ -652,10 +865,27 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <insert id="insertDossierInstance">
         insert into t1_dossier_instance
-        (id, template_id, aircraft_id, current_version_no, instance_label, status, instance_options_json)
+        (id, instance_code, instance_name, template_id, aircraft_id, current_version_no,
+         instance_label, status, instance_options_json, created_by, updated_by)
         values
-        (#{instanceId}, #{templateId}, #{aircraftId}, 0, #{instanceLabel}, 'building', #{instanceOptionsJson})
+        (#{instanceId}, #{instanceCode}, #{instanceName}, #{templateId}, #{aircraftId}, 0,
+         #{instanceLabel}, 'building', #{instanceOptionsJson}, #{createdBy}, #{updatedBy})
     </insert>
+
+    <update id="updateDossierInstanceIdentity">
+        update t1_dossier_instance
+        set instance_code = coalesce(nullif(instance_code, ''), #{instanceCode}),
+            instance_name = coalesce(nullif(instance_name, ''), #{instanceName}),
+            instance_label = coalesce(nullif(instance_label, ''), #{instanceLabel}),
+            updated_by = #{updatedBy},
+            updated_at = sysdate(6)
+        where id = #{instanceId}
+          and (
+              instance_code is null or instance_code = ''
+              or instance_name is null or instance_name = ''
+              or instance_label is null or instance_label = ''
+          )
+    </update>
 
     <select id="selectLatestVersion" resultType="java.util.HashMap">
         select id as versionId,
@@ -742,7 +972,38 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update t1_dossier_version
         set content_hash = #{contentHash}
         where id = #{versionId}
-          and (content_hash is null or content_hash = '')
+          and (content_hash is null or content_hash = '' or content_hash != #{contentHash})
+    </update>
+
+    <select id="selectGeneratedVersionByPrecheckRunId" resultType="java.util.HashMap">
+        select dv.id as versionId,
+               dv.dossier_instance_id as instanceId,
+               dv.version_no as versionNo,
+               dv.version_label as versionLabel,
+               dv.major_version_no as majorVersionNo,
+               dv.minor_version_no as minorVersionNo,
+               dv.version_level as versionLevel,
+               dv.version_reason as versionReason,
+               dv.template_code as templateCode,
+               dv.template_version as templateVersion,
+               dv.generation_job_id as generationJobId,
+               dv.data_snapshot_id as dataSnapshotId,
+               dv.content_hash as contentHash,
+               dv.created_at as createdAt
+        from t1_generation_job gj
+        inner join t1_dossier_version dv on dv.id = gj.dossier_version_id
+        where gj.dossier_instance_id = #{instanceId}
+          and gj.precheck_run_id = #{precheckRunId}
+          and gj.job_status = 'succeeded'
+          and dv.deleted_at is null
+        order by dv.version_no desc
+        limit 1
+    </select>
+
+    <update id="updateDossierVersionSummary">
+        update t1_dossier_version
+        set content_summary_json = #{contentSummaryJson}
+        where id = #{versionId}
     </update>
 
     <update id="clearCurrentVersion">
@@ -781,7 +1042,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          initiated_by, summary_json, finished_at)
         values
         (#{runId}, #{instanceId}, #{versionId}, 'dossier', #{runCode}, 'manual',
-         #{runStatus}, #{scopeDescription}, #{ruleSetVersion}, #{checkedObjectCount}, #{issueCount},
+         case when #{runStatus} = 'blocked' then 'failed' else #{runStatus} end,
+         #{scopeDescription}, #{ruleSetVersion}, #{checkedObjectCount}, #{issueCount},
          #{initiatedBy}, #{summaryJson}, sysdate(6))
     </insert>
 
@@ -826,10 +1088,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectDocumentCategoryId" resultType="java.lang.String">
         select id
-        from t1_document_category
+        from t1_file_category
         <where>
             <if test="categoryName != null and categoryName != ''">
-                name = #{categoryName}
+                category_name = #{categoryName}
             </if>
         </where>
         order by sort_order, id
@@ -866,15 +1128,31 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          #{contentSummary}, #{fileStorageKey}, #{sourceTraceJson}, #{attrsJson})
     </insert>
 
-    <insert id="insertDocumentEntry">
-        insert into t1_document_entry
-        (id, dossier_instance_id, dossier_version_id, category_id, structure_node_id, doc_no,
-         title, file_storage_key, source_trace_json, source_system, source_table, source_record_id,
-         source_record_key, document_status, completeness_status, required_flag, included_flag, attrs_json)
+    <insert id="insertDocumentFileAsset">
+        insert into t1_file_asset
+        (id, file_code, asset_kind, business_no, business_type, business_title, file_status,
+         display_name, storage_key, source_system, source_table, source_record_id, source_record_key,
+         metadata_json, uploaded_by, created_by, updated_by)
         values
-        (#{documentEntryId}, #{instanceId}, #{versionId}, #{categoryId}, #{structureNodeId}, #{docNo},
-         #{title}, #{fileStorageKey}, #{sourceTraceJson}, #{sourceSystem}, #{sourceTable}, #{sourceRecordId},
-         #{sourceRecordKey}, #{documentStatus}, #{completenessStatus}, #{requiredFlag}, #{includedFlag}, #{attrsJson})
+        (#{fileAssetId}, concat('DOSSIER-FILE-', #{fileAssetId}), 'DOCUMENT', #{docNo},
+         'DOSSIER_DOCUMENT', #{title}, #{documentStatus}, #{title}, #{fileStorageKey}, #{sourceSystem},
+         #{sourceTable}, #{sourceRecordId}, #{sourceRecordKey}, #{attrsJson}, 'system', 'system', 'system')
+    </insert>
+
+    <insert id="insertDocumentFileRelation">
+        insert ignore into t1_file_relation
+        (id, file_id, category_id, relation_type, target_type, target_id, target_code,
+         target_name, dossier_instance_id, dossier_version_id, structure_node_id, aircraft_id,
+         bom_node_id, part_number, part_instance_id, object_level, lifecycle_stage, business_domain,
+         required_flag, included_flag, completeness_status, relation_status, sort_order,
+         source_system, source_table, source_record_id, source_record_key, source_trace_json, business_meta_json)
+        values
+        (#{documentEntryId}, #{fileAssetId}, #{categoryId}, 'DOSSIER_ATTACHMENT', 'DOSSIER_NODE',
+         #{structureNodeId}, #{docNo}, #{title}, #{instanceId}, #{versionId}, #{structureNodeId},
+         #{aircraftId}, #{bomNodeId}, #{partNumber}, #{partInstanceId}, #{objectLevel}, #{lifecycleStage},
+         #{businessDomain}, #{requiredFlag}, #{includedFlag}, #{completenessStatus}, #{documentStatus},
+         #{sortOrder}, #{sourceSystem}, #{sourceTable}, #{sourceRecordId}, #{sourceRecordKey},
+         #{sourceTraceJson}, #{attrsJson})
     </insert>
 
     <insert id="insertOperationLog">
@@ -885,8 +1163,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         values
         (#{operationLogId}, #{instanceId}, #{versionId}, #{operationType}, #{operationName}, #{operationStatus},
          #{businessSubjectType}, #{businessSubjectId}, #{operatorId}, #{operatorName}, #{sourceIp},
-         #{detailJson}, #{resultMessage})
+          #{detailJson}, #{resultMessage})
     </insert>
+
+    <select id="countDocumentEntries" resultType="java.lang.Integer">
+        select count(1)
+        from t1_file_relation
+        where dossier_version_id = #{versionId}
+          and included_flag = 1
+          and relation_status != 'deleted'
+    </select>
 
     <select id="selectJob" resultType="java.util.HashMap">
         select id as jobId,
@@ -899,7 +1185,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                current_stage as currentStage,
                progress_percent as progressPercent,
                cast(result_summary_json as char) as resultSummaryJson,
-               cast(output_json as char) as outputJson,
                started_at as startedAt,
                finished_at as finishedAt,
                created_at as createdAt

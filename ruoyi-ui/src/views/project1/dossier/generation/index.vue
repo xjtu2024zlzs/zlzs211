@@ -2,11 +2,12 @@
   <div class="app-container dossier-generation-page">
     <div class="page-head">
       <div>
-        <h2>卷宗生成管理</h2>
-        <div class="subline">当前：卷宗生成控制</div>
+        <h2>卷宗生成控制</h2>
+        <div class="subline">当前：数字卷宗 / 卷宗生成管理 / 卷宗生成控制</div>
       </div>
       <div class="actions">
-        <el-button icon="Refresh" :loading="loading" @click="initPage">刷新</el-button>
+        <el-button icon="Refresh" :loading="loading" @click="refreshPage">刷新数据</el-button>
+        <el-button icon="Back" @click="goDossierInstance">返回卷宗实例管理</el-button>
         <el-button type="primary" plain icon="CircleCheck" :loading="checking" :disabled="!selectedAircraftId" @click="handlePrecheck">
           生成前检查
         </el-button>
@@ -27,12 +28,25 @@
           <el-select v-model="selectedModelId" placeholder="选择机型" filterable @change="handleModelChange">
             <el-option v-for="item in modelOptions" :key="item.modelId" :label="modelLabel(item)" :value="item.modelId" />
           </el-select>
-          <el-select v-model="selectedAircraftId" placeholder="选择机号" filterable @change="loadPrepareData">
+          <el-select v-model="selectedAircraftId" placeholder="选择机号" filterable :disabled="!selectedModelId" @change="loadPrepareData">
             <el-option v-for="item in aircraftOptions" :key="item.aircraftId" :label="aircraftLabel(item)" :value="item.aircraftId" />
           </el-select>
-          <el-input :model-value="activeTemplate.templateName || '单台份飞机综合卷宗模板'" readonly>
-            <template #prepend>模板</template>
-          </el-input>
+          <el-select v-model="selectedTemplateId" placeholder="选择模板" filterable @change="loadPrepareData">
+            <el-option
+              v-for="item in templateOptions"
+              :key="item.templateId"
+              :label="templateLabel(item)"
+              :value="item.templateId"
+            >
+              <span>{{ templateLabel(item) }}</span>
+            </el-option>
+          </el-select>
+        </div>
+        <div v-if="selectedAircraftId" class="selection-summary">
+          <span>机号：{{ selectedAircraft.tailNumber || '-' }}</span>
+          <span>MSN：{{ selectedAircraft.msn || '-' }}</span>
+          <span>模板版本：{{ activeTemplate.templateVersion || '-' }}</span>
+          <span>状态：{{ selectedAircraft.operationalStatus || '-' }}</span>
         </div>
       </div>
       <div class="metric"><strong>{{ metricValue('chapterCount') }}</strong><span>模板章节</span></div>
@@ -41,42 +55,6 @@
     </div>
 
     <div v-loading="loading" class="workspace">
-      <section class="object-panel">
-        <div class="panel-head">
-          <span>生成对象</span>
-          <el-tag type="primary" size="small">单台飞机</el-tag>
-        </div>
-        <div class="info-grid">
-          <div class="info-item">
-            <label>机型</label>
-            <strong>{{ selectedAircraft.modelCode || '-' }}</strong>
-          </div>
-          <div class="info-item">
-            <label>机号</label>
-            <strong>{{ selectedAircraft.tailNumber || '-' }}</strong>
-          </div>
-          <div class="info-item">
-            <label>MSN</label>
-            <strong>{{ selectedAircraft.msn || '-' }}</strong>
-          </div>
-          <div class="info-item">
-            <label>状态</label>
-            <strong>{{ selectedAircraft.operationalStatus || '交付前验证' }}</strong>
-          </div>
-        </div>
-
-        <div class="panel-head sub">
-          <span>默认输出</span>
-          <el-tag type="success" size="small">模板驱动</el-tag>
-        </div>
-        <div class="setting-list">
-          <div v-for="item in runtimeSettings" :key="item.code" class="setting-item">
-            <span>{{ item.name }}</span>
-            <strong>{{ item.value }}</strong>
-          </div>
-        </div>
-      </section>
-
       <section class="console-panel">
         <div class="panel-head">
           <span>生成流程</span>
@@ -124,13 +102,25 @@
 
           <el-tab-pane label="模板数据来源" name="source">
             <el-table :data="chapterSources" border height="430">
-              <el-table-column label="章节" prop="chapterName" min-width="190" show-overflow-tooltip />
-              <el-table-column label="来源系统" prop="sourceSystem" width="110" />
+              <el-table-column label="章节" min-width="260" show-overflow-tooltip>
+                <template #default="{ row }">
+                  {{ chapterSourceName(row) }}
+                </template>
+              </el-table-column>
+              <el-table-column label="适用对象" prop="applyObjectType" width="110" align="center">
+                <template #default="{ row }">
+                  {{ applyObjectTypeLabel(row.applyObjectType) }}
+                </template>
+              </el-table-column>
               <el-table-column label="来源表" prop="sourceTable" width="190" show-overflow-tooltip />
               <el-table-column label="来源名称" prop="sourceName" min-width="220" show-overflow-tooltip />
-              <el-table-column label="记录数" prop="recordCount" width="90" align="right" />
-              <el-table-column label="同步时间" prop="lastSyncTime" width="160" />
-              <el-table-column label="追溯键" prop="traceKey" min-width="190" show-overflow-tooltip />
+              <el-table-column label="是否必填" prop="requiredFlag" width="96" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="Number(row.requiredFlag) === 1 ? 'danger' : 'info'" size="small">
+                    {{ Number(row.requiredFlag) === 1 ? '必填' : '可选' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
             </el-table>
           </el-tab-pane>
 
@@ -163,10 +153,6 @@
                     <strong>{{ outputInfo.fileCount || 0 }}</strong>
                   </div>
                   <div class="info-item">
-                    <label>页数</label>
-                    <strong>{{ outputInfo.pageCount || 0 }}</strong>
-                  </div>
-                  <div class="info-item">
                     <label>记录数</label>
                     <strong>{{ outputInfo.sourceRecordCount || 0 }}</strong>
                   </div>
@@ -190,8 +176,6 @@
                 </div>
                 <el-table :data="outputInfo.sections || []" border>
                   <el-table-column label="章节" prop="name" min-width="140" />
-                  <el-table-column label="页数" prop="pageCount" width="70" align="right" />
-                  <el-table-column label="文件" prop="fileCount" width="70" align="right" />
                 </el-table>
               </div>
             </div>
@@ -210,6 +194,7 @@ import { ElMessage } from 'element-plus'
 import {
   listGenerationModels,
   listGenerationAircraft,
+  listGenerationTemplates,
   prepareGeneration,
   runGenerationPrecheck,
   startGeneration
@@ -222,17 +207,24 @@ const generating = ref(false)
 const activeTab = ref('source')
 const modelOptions = ref([])
 const aircraftOptions = ref([])
+const templateOptions = ref([])
 const selectedModelId = ref('')
 const selectedAircraftId = ref('')
+const selectedTemplateId = ref('')
 const prepareData = ref({})
 const precheckResult = ref(null)
 const generationResult = ref(null)
 
 const selectedAircraft = computed(() => prepareData.value.aircraft || {})
-const activeTemplate = computed(() => prepareData.value.template || {})
+const activeTemplate = computed(() => {
+  return prepareData.value.template
+    || templateOptions.value.find(item => item.templateId === selectedTemplateId.value)
+    || {}
+})
 const metrics = computed(() => prepareData.value.metrics || {})
-const runtimeSettings = computed(() => prepareData.value.runtimeSettings || [])
-const chapterSources = computed(() => prepareData.value.chapterSources || [])
+const chapterSources = computed(() => {
+  return sortChapterSourcesByHierarchy(prepareData.value.chapterSources || [], prepareData.value.chapters || [])
+})
 const hasPrecheckResult = computed(() => !!precheckResult.value)
 const checks = computed(() => {
   if (precheckResult.value && precheckResult.value.checks) {
@@ -257,6 +249,9 @@ const outputInfo = computed(() => {
   return (generationResult.value && generationResult.value.output) || (jobInfo.value.output || {})
 })
 const isDuplicateResult = computed(() => !!(generationResult.value && generationResult.value.duplicated))
+const hasFinishedGeneration = computed(() => {
+  return !!generationResult.value && (isDuplicateResult.value || jobInfo.value.jobStatus === 'succeeded')
+})
 const resultInstanceId = computed(() => {
   return (generationResult.value && (generationResult.value.instanceId || generationResult.value.existingInstanceId)) || ''
 })
@@ -272,7 +267,12 @@ const resultVersionId = computed(() => {
 })
 const canOpenDetail = computed(() => !!resultInstanceId.value && !!resultVersionId.value)
 const canStartGeneration = computed(() => {
-  return selectedAircraftId.value && precheckResult.value && (checkSummary.value.blockingCount || 0) === 0
+  return selectedAircraftId.value
+    && selectedTemplateId.value
+    && precheckResult.value
+    && !generating.value
+    && !hasFinishedGeneration.value
+    && (checkSummary.value.blockingCount || 0) === 0
 })
 const flowActiveStep = computed(() => {
   if (jobInfo.value.jobStatus === 'succeeded') {
@@ -320,33 +320,90 @@ const stepTagType = computed(() => {
 async function initPage() {
   loading.value = true
   try {
-    const modelRes = await listGenerationModels()
-    modelOptions.value = modelRes.data || []
-    const defaultModel = modelOptions.value.find(item => item.modelCode === 'C919') || modelOptions.value[0]
-    selectedModelId.value = defaultModel ? defaultModel.modelId : ''
-    await handleModelChange()
+    await loadPageData(false)
   } finally {
     loading.value = false
   }
 }
 
+async function refreshPage() {
+  loading.value = true
+  try {
+    await loadPageData(true)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadPageData(preserveSelection) {
+  const previousModelId = preserveSelection ? selectedModelId.value : ''
+  const previousAircraftId = preserveSelection ? selectedAircraftId.value : ''
+  const previousTemplateId = preserveSelection ? selectedTemplateId.value : ''
+  const [modelRes, templateRes] = await Promise.all([
+    listGenerationModels(),
+    listGenerationTemplates()
+  ])
+  modelOptions.value = modelRes.data || []
+  templateOptions.value = templateRes.data || []
+  selectedTemplateId.value = resolveTemplateId(previousTemplateId)
+  selectedModelId.value = resolveModelId(previousModelId)
+  await loadAircraftOptions(previousAircraftId)
+}
+
+function resolveModelId(preferredId) {
+  if (preferredId && modelOptions.value.some(item => item.modelId === preferredId)) {
+    return preferredId
+  }
+  const defaultModel = modelOptions.value.find(item => item.isDefault === 1 || item.defaultFlag === 1)
+    || modelOptions.value[0]
+  return defaultModel ? defaultModel.modelId : ''
+}
+
+function resolveTemplateId(preferredId) {
+  if (preferredId && templateOptions.value.some(item => item.templateId === preferredId)) {
+    return preferredId
+  }
+  const defaultTemplate = templateOptions.value.find(item => item.isDefault === 1 && item.status === 'active')
+    || templateOptions.value.find(item => item.status === 'active')
+    || templateOptions.value[0]
+  return defaultTemplate ? defaultTemplate.templateId : ''
+}
+
 async function handleModelChange() {
+  await loadAircraftOptions()
+}
+
+async function loadAircraftOptions(preferredAircraftId = '') {
+  if (!selectedModelId.value) {
+    aircraftOptions.value = []
+    selectedAircraftId.value = ''
+    await loadPrepareData()
+    return
+  }
   const aircraftRes = await listGenerationAircraft({ modelId: selectedModelId.value })
   aircraftOptions.value = aircraftRes.data || []
-  const defaultAircraft = aircraftOptions.value.find(item => item.tailNumber === 'B-1234') || aircraftOptions.value[0]
-  selectedAircraftId.value = defaultAircraft ? defaultAircraft.aircraftId : ''
+  selectedAircraftId.value = resolveAircraftId(preferredAircraftId)
   await loadPrepareData()
+}
+
+function resolveAircraftId(preferredAircraftId) {
+  if (preferredAircraftId && aircraftOptions.value.some(item => item.aircraftId === preferredAircraftId)) {
+    return preferredAircraftId
+  }
+  const defaultAircraft = aircraftOptions.value.find(item => item.isDefault === 1 || item.defaultFlag === 1)
+    || aircraftOptions.value[0]
+  return defaultAircraft ? defaultAircraft.aircraftId : ''
 }
 
 async function loadPrepareData() {
   precheckResult.value = null
   generationResult.value = null
   activeTab.value = 'source'
-  if (!selectedAircraftId.value) {
+  if (!selectedAircraftId.value || !selectedTemplateId.value) {
     prepareData.value = {}
     return
   }
-  const res = await prepareGeneration(selectedAircraftId.value)
+  const res = await prepareGeneration(selectedAircraftId.value, { templateId: selectedTemplateId.value })
   prepareData.value = res.data || {}
 }
 
@@ -355,7 +412,7 @@ async function handlePrecheck() {
   try {
     const res = await runGenerationPrecheck({
       aircraftId: selectedAircraftId.value,
-      templateId: activeTemplate.value.templateId
+      templateId: selectedTemplateId.value
     })
     precheckResult.value = res.data || {}
     activeTab.value = 'check'
@@ -370,7 +427,7 @@ async function handleStartGeneration() {
   try {
     const res = await startGeneration({
       aircraftId: selectedAircraftId.value,
-      templateId: activeTemplate.value.templateId,
+      templateId: selectedTemplateId.value,
       precheckRunId: precheckResult.value && precheckResult.value.runId
     })
     generationResult.value = res.data || {}
@@ -398,6 +455,10 @@ function goDossierDetail() {
   })
 }
 
+function goDossierInstance() {
+  router.push('/dossier/manage/instance')
+}
+
 function metricValue(key) {
   return metrics.value[key] || 0
 }
@@ -408,6 +469,113 @@ function modelLabel(item) {
 
 function aircraftLabel(item) {
   return `${item.tailNumber} / MSN ${item.msn || '-'}`
+}
+
+function templateLabel(item) {
+  const statusText = item.status === 'draft' ? '草稿' : '启用'
+  const defaultText = item.isDefault === 1 ? ' / 默认' : ''
+  return `${item.templateName} / ${item.templateVersion} / ${statusText}${defaultText}`
+}
+
+function chapterSourceName(row) {
+  return row.chapterDisplayName || row.chapterName || '-'
+}
+
+function sortChapterSourcesByHierarchy(sources, chapters) {
+  if (!Array.isArray(sources)) {
+    return []
+  }
+  const hierarchyMap = buildChapterHierarchyMap(chapters)
+  return sources.map(item => {
+    const chapterInfo = hierarchyMap[item.chapterId]
+    return {
+      ...item,
+      chapterDisplayName: item.chapterDisplayName || chapterInfo?.displayName || item.chapterName,
+      chapterHierarchyOrder: item.chapterHierarchyOrder || chapterInfo?.order || '9999',
+      chapterDepth: item.chapterDepth || chapterInfo?.depth
+    }
+  }).sort((left, right) => {
+    const chapterCompare = String(left.chapterHierarchyOrder || '9999').localeCompare(String(right.chapterHierarchyOrder || '9999'))
+    if (chapterCompare !== 0) {
+      return chapterCompare
+    }
+    const sourceCompare = Number(left.sortOrder || 0) - Number(right.sortOrder || 0)
+    if (sourceCompare !== 0) {
+      return sourceCompare
+    }
+    return String(left.sourceId || '').localeCompare(String(right.sourceId || ''))
+  })
+}
+
+function buildChapterHierarchyMap(chapters) {
+  const hierarchyMap = {}
+  if (!Array.isArray(chapters)) {
+    return hierarchyMap
+  }
+  const nodeMap = {}
+  const roots = []
+  chapters.forEach(item => {
+    const id = item.chapterId || item.id
+    if (id) {
+      nodeMap[id] = { ...item, id, children: [] }
+    }
+  })
+  Object.values(nodeMap).forEach(node => {
+    if (node.parentId && nodeMap[node.parentId]) {
+      nodeMap[node.parentId].children.push(node)
+    } else {
+      roots.push(node)
+    }
+  })
+  walkChapterTree(roots, hierarchyMap, '', '', 1)
+  return hierarchyMap
+}
+
+function walkChapterTree(nodes, hierarchyMap, parentName, parentOrder, depth) {
+  nodes.sort(compareChapterNode).forEach((node, index) => {
+    const name = node.chapterName || node.id
+    const order = parentOrder ? `${parentOrder}.${orderSegment(index)}` : orderSegment(index)
+    const displayName = parentName ? `${parentName} / ${name}` : name
+    hierarchyMap[node.id] = {
+      displayName,
+      order,
+      depth
+    }
+    walkChapterTree(node.children || [], hierarchyMap, displayName, order, depth + 1)
+  })
+}
+
+function compareChapterNode(left, right) {
+  const sortCompare = Number(left.sortOrder || 0) - Number(right.sortOrder || 0)
+  if (sortCompare !== 0) {
+    return sortCompare
+  }
+  const codeCompare = String(left.chapterCode || '').localeCompare(String(right.chapterCode || ''))
+  if (codeCompare !== 0) {
+    return codeCompare
+  }
+  return String(left.chapterName || '').localeCompare(String(right.chapterName || ''))
+}
+
+function orderSegment(index) {
+  return String(index + 1).padStart(4, '0')
+}
+
+function applyObjectTypeLabel(type) {
+  const map = {
+    all: '全部',
+    aircraft: '整机',
+    system: '系统',
+    subsystem: '子系统',
+    equipment: '设备',
+    component: '组件',
+    part: '零件',
+    tube: '弯管',
+    document: '文档',
+    bom_node: 'BOM节点',
+    node: '节点'
+  }
+  return map[type] || type || '-'
 }
 
 function statusType(status) {
@@ -494,7 +662,6 @@ onMounted(() => {
 
 .overview-main,
 .metric,
-.object-panel,
 .console-panel {
   border: 1px solid #e5e7eb;
   border-radius: 6px;
@@ -521,6 +688,16 @@ onMounted(() => {
   gap: 10px;
 }
 
+.selection-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  color: #4b5563;
+  font-size: 13px;
+}
+
 .metric {
   display: flex;
   flex-direction: column;
@@ -543,12 +720,9 @@ onMounted(() => {
 }
 
 .workspace {
-  display: grid;
-  grid-template-columns: 330px minmax(0, 1fr);
-  gap: 12px;
+  min-width: 0;
 }
 
-.object-panel,
 .console-panel {
   min-width: 0;
 }
@@ -600,30 +774,6 @@ onMounted(() => {
   strong {
     color: #111827;
     font-size: 15px;
-  }
-}
-
-.setting-list {
-  padding: 8px 14px 14px;
-}
-
-.setting-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 38px;
-  border-bottom: 1px solid #f0f2f5;
-  color: #4b5563;
-
-  &:last-child {
-    border-bottom: 0;
-  }
-
-  strong {
-    color: #111827;
-    font-weight: 600;
-    text-align: right;
   }
 }
 
@@ -817,7 +967,6 @@ onMounted(() => {
     grid-column: 1 / -1;
   }
 
-  .workspace,
   .job-layout {
     grid-template-columns: 1fr;
   }

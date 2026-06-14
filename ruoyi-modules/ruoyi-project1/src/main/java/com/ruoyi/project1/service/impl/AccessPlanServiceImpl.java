@@ -124,6 +124,10 @@ public class AccessPlanServiceImpl implements IAccessPlanService
     {
         presetScenarioService.ensurePresetScenario();
         AccessPlan plan = requirePlan(accessPlanId);
+        if (presetScenarioService.isManagedAccessPlan(plan))
+        {
+            return presetScenarioService.refreshManagedAccessPlan(accessPlanId);
+        }
         Datasource datasource = requireDatasource(plan.getSourceDatasourceId());
         AccessBatch runningBatch = findRunningBatch(accessPlanId);
         if (runningBatch != null)
@@ -383,6 +387,14 @@ public class AccessPlanServiceImpl implements IAccessPlanService
         if (latestBatch != null && "running".equals(latestBatch.getBatchStatus()))
         {
             return "running";
+        }
+        if (presetScenarioService.isManagedAccessPlan(plan) && value(plan.getTotalSuccessCount()) > 0L)
+        {
+            return "success";
+        }
+        if (latestBatch != null && !isBlank(latestBatch.getBatchStatus()))
+        {
+            return latestBatch.getBatchStatus();
         }
         if ("continuous".equals(plan.getAccessType()) && "enabled".equals(plan.getUseStatus()))
         {

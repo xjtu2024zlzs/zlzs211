@@ -77,6 +77,7 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
             parseJsonField(row, "generationParamsJson", "generationParams");
             parseJsonField(row, "resultSummaryJson", "resultSummary");
             parseJsonField(row, "outputJson", "output");
+            compactOutputField(row);
         }
         return rows;
     }
@@ -89,6 +90,7 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         {
             parseJsonField(row, "resultSummaryJson", "resultSummary");
             parseJsonField(row, "outputJson", "output");
+            compactOutputField(row);
         }
         return rows;
     }
@@ -108,8 +110,8 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
             return rows;
         }
         List<Map<String, Object>> fallback = new ArrayList<>();
-        addFallbackFile(fallback, "main_pdf", "PDF", detail.get("pdfFileName"), detail.get("pageCount"), "application/pdf");
-        addFallbackFile(fallback, "attachment_zip", "ZIP", detail.get("zipFileName"), detail.get("fileCount"), "application/zip");
+        addFallbackFile(fallback, "main_pdf", "PDF", detail.get("pdfFileName"), "application/pdf");
+        addFallbackFile(fallback, "attachment_zip", "ZIP", detail.get("zipFileName"), "application/zip");
         return fallback;
     }
 
@@ -166,6 +168,129 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         params.put("published", false);
         params.put("archived", true);
         instanceMapper.updateInstanceStatus(params);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteInstance(String instanceId)
+    {
+        Map<String, Object> detail = instanceMapper.selectInstanceDetail(instanceId);
+        if (detail == null)
+        {
+            throw new ServiceException("没有找到卷宗实例");
+        }
+        if ("building".equals(text(detail.get("instanceStatus"))) || "running".equals(text(detail.get("generationJobStatus"))))
+        {
+            throw new ServiceException("卷宗生成中，不能删除");
+        }
+
+        Map<String, Object> params = map();
+        params.put("instanceId", instanceId);
+        params.put("updatedBy", currentUser());
+        instanceMapper.clearInstanceCurrentVersion(instanceId);
+        purgeInstanceData(params);
+        if (instanceMapper.deleteInstance(params) <= 0)
+        {
+            throw new ServiceException("删除卷宗实例失败");
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteVersion(String instanceId, String versionId)
+    {
+        Map<String, Object> detail = instanceMapper.selectInstanceDetail(instanceId);
+        if (detail == null)
+        {
+            throw new ServiceException("没有找到卷宗实例");
+        }
+        if (!hasText(versionId))
+        {
+            throw new ServiceException("请选择要删除的卷宗版本");
+        }
+
+        Map<String, Object> version = null;
+        for (Map<String, Object> row : selectVersionList(instanceId))
+        {
+            if (versionId.equals(text(row.get("versionId"))))
+            {
+                version = row;
+                break;
+            }
+        }
+        if (version == null)
+        {
+            throw new ServiceException("没有找到卷宗版本");
+        }
+        if (versionId.equals(text(detail.get("currentVersionId"))) || toInt(version.get("isCurrent"), 0) == 1)
+        {
+            throw new ServiceException("当前版本不能删除，请先生成新版本后再删除历史版本");
+        }
+        if (hasText(text(version.get("publishedAt"))))
+        {
+            throw new ServiceException("已发布版本不能删除");
+        }
+        if ("running".equals(text(version.get("generationJobStatus"))) || "queued".equals(text(version.get("generationJobStatus"))))
+        {
+            throw new ServiceException("版本生成中，不能删除");
+        }
+
+        Map<String, Object> params = map();
+        params.put("instanceId", instanceId);
+        params.put("versionId", versionId);
+        params.put("deletedBy", currentUser());
+        purgeVersionData(params);
+        if (instanceMapper.deleteVersion(params) <= 0)
+        {
+            throw new ServiceException("删除卷宗版本失败");
+        }
+    }
+
+    private void purgeVersionData(Map<String, Object> params)
+    {
+        instanceMapper.deleteVersionDataIssues(params);
+        instanceMapper.deleteVersionDataSupportItems(params);
+        instanceMapper.deleteVersionFileRelations(params);
+        instanceMapper.deleteVersionFileCategories(params);
+        instanceMapper.deleteVersionCompletenessSummaries(params);
+        instanceMapper.deleteVersionContentItems(params);
+        instanceMapper.deleteVersionDiffs(params);
+        instanceMapper.deleteVersionDataRelationNodes(params);
+        instanceMapper.deleteVersionSearchIndexRecords(params);
+        instanceMapper.deleteVersionOperationLogs(params);
+        instanceMapper.deleteVersionExportFiles(params);
+        instanceMapper.deleteVersionExportJobs(params);
+        instanceMapper.deleteVersionGenerationJobItems(params);
+        instanceMapper.deleteVersionGenerationJobs(params);
+        instanceMapper.deleteVersionInspectionRuns(params);
+        instanceMapper.deleteVersionSnapshots(params);
+        instanceMapper.deleteVersionStructureNodes(params);
+    }
+
+    private void purgeInstanceData(Map<String, Object> params)
+    {
+        instanceMapper.deleteInstanceDataIssues(params);
+        instanceMapper.deleteInstanceDataSupportItems(params);
+        instanceMapper.deleteInstanceDataRelationEdges(params);
+        instanceMapper.deleteInstanceDataRelationNodes(params);
+        instanceMapper.deleteInstanceMonitoringRuns(params);
+        instanceMapper.deleteInstanceUpdateRequests(params);
+        instanceMapper.deleteInstanceFileRelations(params);
+        instanceMapper.deleteInstanceFileCategories(params);
+        instanceMapper.deleteInstanceCompletenessSummaries(params);
+        instanceMapper.deleteInstanceContentItems(params);
+        instanceMapper.deleteInstanceDiffs(params);
+        instanceMapper.deleteInstanceSearchIndexRecords(params);
+        instanceMapper.deleteInstanceQaSessions(params);
+        instanceMapper.deleteInstanceOperationLogs(params);
+        instanceMapper.deleteInstanceExportFiles(params);
+        instanceMapper.deleteInstanceExportJobs(params);
+        instanceMapper.deleteInstanceGenerationJobItems(params);
+        instanceMapper.deleteInstanceGenerationJobs(params);
+        instanceMapper.deleteInstanceInspectionRuns(params);
+        instanceMapper.deleteInstanceSnapshots(params);
+        instanceMapper.deleteInstanceStructureNodes(params);
+        instanceMapper.deleteInstanceVersions(params);
     }
 
     private Map<String, Object> normalizeQuery(Map<String, Object> query)
@@ -238,11 +363,48 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         row.put("archivedAt", displayTimeOrBlank(row.get("archivedAt")));
         row.put("startedAt", displayTimeOrBlank(row.get("startedAt")));
         row.put("finishedAt", displayTimeOrBlank(row.get("finishedAt")));
+        if (row.containsKey("documentEntryCount") && row.get("documentEntryCount") != null)
+        {
+            row.put("fileCount", row.get("documentEntryCount"));
+        }
+        row.put("statusName", statusName(row));
         row.put("fileSizeText", fileSizeText(row.get("fileSize")));
         return row;
     }
 
-    private void addFallbackFile(List<Map<String, Object>> files, String role, String format, Object name, Object pageCount, String mimeType)
+    private String statusName(Map<String, Object> row)
+    {
+        String name = text(row.get("statusName"));
+        if (hasText(name) && !name.contains("?") && !name.contains("�"))
+        {
+            return name;
+        }
+        if ("failed".equals(text(row.get("generationJobStatus"))))
+        {
+            return "生成失败";
+        }
+        String status = text(row.get("instanceStatus"));
+        if ("published".equals(status))
+        {
+            return "已发布";
+        }
+        if ("ready".equals(status))
+        {
+            return "已生成";
+        }
+        if ("building".equals(status) || "queued".equals(text(row.get("generationJobStatus")))
+                || "running".equals(text(row.get("generationJobStatus"))))
+        {
+            return "生成中";
+        }
+        if ("archived".equals(status))
+        {
+            return "已归档";
+        }
+        return "草稿";
+    }
+
+    private void addFallbackFile(List<Map<String, Object>> files, String role, String format, Object name, String mimeType)
     {
         if (!hasText(text(name)))
         {
@@ -253,7 +415,6 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         item.put("fileFormat", format);
         item.put("fileName", name);
         item.put("mimeType", mimeType);
-        item.put("pageCount", pageCount);
         item.put("fileSizeText", "模拟文件");
         files.add(item);
     }
@@ -264,6 +425,7 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         if (raw == null)
         {
             row.put(targetKey, map());
+            row.remove(sourceKey);
             return;
         }
         try
@@ -275,6 +437,39 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         catch (Exception e)
         {
             row.put(targetKey, map());
+        }
+        row.remove(sourceKey);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void compactOutputField(Map<String, Object> row)
+    {
+        Object raw = row.get("output");
+        if (!(raw instanceof Map))
+        {
+            row.put("output", map());
+            return;
+        }
+        Map<String, Object> source = (Map<String, Object>) raw;
+        Map<String, Object> output = map();
+        copyOutputValue(output, source, "jobCode");
+        copyOutputValue(output, source, "fileName");
+        copyOutputValue(output, source, "packageName");
+        copyOutputValue(output, source, "outputPath");
+        copyOutputValue(output, source, "exportFormat");
+        copyOutputValue(output, source, "fileCount");
+        copyOutputValue(output, source, "sourceRecordCount");
+        copyOutputValue(output, source, "contentItemCount");
+        copyOutputValue(output, source, "structureNodeCount");
+        copyOutputValue(output, source, "generatedAt");
+        row.put("output", output);
+    }
+
+    private void copyOutputValue(Map<String, Object> target, Map<String, Object> source, String key)
+    {
+        if (source.containsKey(key))
+        {
+            target.put(key, source.get(key));
         }
     }
 

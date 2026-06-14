@@ -42,7 +42,10 @@ import com.ruoyi.project1.mapper.SchemaFieldMapper;
 import com.ruoyi.project1.mapper.SchemaSnapshotMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Runtime integration for CF API Pull external systems.
@@ -69,6 +72,7 @@ public class ApiPullRuntimeService
     @Autowired private AccessFieldResultMapper accessFieldResultMapper;
     @Autowired private MappingSpecMapper mappingSpecMapper;
     @Autowired private DossierWriteService dossierWriteService;
+    @Autowired private PlatformTransactionManager transactionManager;
 
     public boolean canCallApiPull(ApiPullDatasource detail)
     {
@@ -274,11 +278,7 @@ public class ApiPullRuntimeService
         }
         catch (RuntimeException e)
         {
-            batch.setBatchStatus("failed");
-            batch.setErrorMessage(e.getMessage());
-            batch.setFinishedAt(DateUtils.getNowDate());
-            batch.setUpdateTime(DateUtils.getNowDate());
-            accessBatchMapper.updateAccessBatch(batch);
+            markBatchFailed(batch, e);
             throw e;
         }
     }
@@ -374,8 +374,49 @@ public class ApiPullRuntimeService
         batch.setUpdatedCount(0L);
         batch.setStartedAt(DateUtils.getNowDate());
         batch.setCreateTime(DateUtils.getNowDate());
-        accessBatchMapper.insertAccessBatch(batch);
+        requiresNewTransaction().execute(status -> {
+            accessBatchMapper.insertAccessBatch(batch);
+            return null;
+        });
         return batch;
+    }
+
+    private void markBatchFailed(AccessBatch batch, RuntimeException e)
+    {
+        requiresNewTransaction().execute(status -> {
+            Date now = DateUtils.getNowDate();
+            AccessBatch failedBatch = new AccessBatch();
+            failedBatch.setAccessBatchId(batch.getAccessBatchId());
+            failedBatch.setBatchStatus("failed");
+            failedBatch.setErrorMessage(truncateErrorMessage(e.getMessage()));
+            failedBatch.setFinishedAt(now);
+            failedBatch.setUpdateTime(now);
+            accessBatchMapper.updateAccessBatch(failedBatch);
+
+            AccessPlan failedPlan = new AccessPlan();
+            failedPlan.setAccessPlanId(batch.getAccessPlanId());
+            failedPlan.setCurrentBatchId(batch.getAccessBatchId());
+            failedPlan.setLastExecuteTime(now);
+            failedPlan.setUpdateTime(now);
+            accessPlanMapper.updateAccessPlan(failedPlan);
+            return null;
+        });
+    }
+
+    private TransactionTemplate requiresNewTransaction()
+    {
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        return template;
+    }
+
+    private String truncateErrorMessage(String message)
+    {
+        if (message == null)
+        {
+            return null;
+        }
+        return message.length() > 2000 ? message.substring(0, 2000) : message;
     }
 
     private List<AccessScopeTable> ensureAccessScopes(AccessPlan plan, Datasource datasource)

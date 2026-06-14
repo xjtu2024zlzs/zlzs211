@@ -45,6 +45,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </where>
         order by case when pa.tail_number = 'B-1234' then 0 else 1 end,
                  case when di.status in ('ready','published') then 0 else 1 end,
+                 case when dt.status = 'active' then 0 else 1 end,
+                 case when dt.is_default = 1 then 0 else 1 end,
                  di.updated_at desc
         limit 1
     </select>
@@ -66,6 +68,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                dv.version_reason as versionReason,
                dv.is_current as isCurrent,
                dv.change_summary as changeSummary,
+               cast(dv.template_snapshot_json as char) as templateSnapshotJson,
                cast(dv.content_summary_json as char) as contentSummaryJson,
                cast(dv.generation_params_json as char) as generationParamsJson,
                dv.created_by as createdBy,
@@ -602,12 +605,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                supply_mode as supplyMode,
                source_system as sourceSystem,
                source_table as sourceTable,
+               source_record_id as sourceRecordId,
                source_record_key as sourceRecordKey,
+               item_status as itemStatus,
+               required_flag as requiredFlag,
+               included_flag as includedFlag,
                completeness_status as completenessStatus,
                content_summary as contentSummary,
                file_storage_key as fileStorageKey,
                cast(source_trace_json as char) as sourceTraceJson,
-               cast(attrs_json as char) as attrsJson
+               cast(attrs_json as char) as attrsJson,
+               created_at as createdAt
         from t1_dossier_content_item
         where dossier_version_id = #{versionId}
         <if test="bomNodeId != null and bomNodeId != ''">
@@ -617,46 +625,216 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectDocuments" resultType="java.util.HashMap">
-        select id as documentEntryId,
-               structure_node_id as structureNodeId,
-               doc_no as docNo,
-               title,
-               file_storage_key as fileStorageKey,
-               source_system as sourceSystem,
-               source_table as sourceTable,
-               source_record_key as sourceRecordKey,
-               document_status as documentStatus,
-               completeness_status as completenessStatus,
-               required_flag as requiredFlag,
-               included_flag as includedFlag,
-               cast(source_trace_json as char) as sourceTraceJson,
-               cast(attrs_json as char) as attrsJson
-        from t1_document_entry
-        where dossier_version_id = #{versionId}
+        select fr.id as documentEntryId,
+               fr.file_id as fileAssetId,
+               fr.category_id as categoryId,
+               fr.relation_type as relationType,
+               fr.target_type as targetType,
+               fr.target_id as targetId,
+               fr.target_code as targetCode,
+               fr.target_name as targetName,
+               fr.dossier_instance_id as instanceId,
+               fr.dossier_version_id as versionId,
+               fr.structure_node_id as structureNodeId,
+               fr.aircraft_id as aircraftId,
+               fr.bom_node_id as bomNodeId,
+               fr.part_number as partNumber,
+               fr.part_instance_id as partInstanceId,
+               fr.object_level as objectLevel,
+               fr.lifecycle_stage as lifecycleStage,
+               fr.business_domain as businessDomain,
+               fr.is_primary as isPrimary,
+               fr.is_current as isCurrent,
+               fa.file_code as fileCode,
+               fa.asset_kind as assetKind,
+               coalesce(fa.business_no, fr.target_code, fr.source_record_key) as docNo,
+               fa.business_no as businessNo,
+               fa.business_type as businessType,
+               fa.business_title as businessTitle,
+               fa.revision,
+               fa.file_status as fileStatus,
+               fa.original_file_name as originalFileName,
+               fa.display_name as displayName,
+               coalesce(fa.business_title, fa.display_name) as title,
+               fa.file_ext as fileExt,
+               fa.mime_type as mimeType,
+               fa.storage_type as storageType,
+               fa.storage_bucket as storageBucket,
+               fa.storage_key as storageKey,
+               fa.storage_path as storagePath,
+               fa.access_url as accessUrl,
+               fa.preview_storage_key as previewStorageKey,
+               coalesce(fa.storage_key, fa.storage_path, fa.access_url) as fileStorageKey,
+               fa.file_size as fileSize,
+               fa.hash_algorithm as hashAlgorithm,
+               fa.file_hash as fileHash,
+               fa.issue_date as issueDate,
+               fa.effective_date as effectiveDate,
+               fa.expiry_date as expiryDate,
+               fa.issued_by as issuedBy,
+               fa.security_level as securityLevel,
+               fa.is_latest as isLatest,
+               coalesce(fr.source_system, fa.source_system) as sourceSystem,
+               't1_file_relation' as sourceTable,
+               coalesce(fr.source_record_id, fa.source_record_id) as sourceRecordId,
+               coalesce(fr.source_record_key, fa.source_record_key) as sourceRecordKey,
+               fr.relation_status as documentStatus,
+               fr.completeness_status as completenessStatus,
+               fr.required_flag as requiredFlag,
+               fr.included_flag as includedFlag,
+               cast(fr.source_trace_json as char) as sourceTraceJson,
+               cast(fr.business_meta_json as char) as attrsJson,
+               fr.created_at as createdAt
+        from t1_file_relation fr
+        inner join t1_file_asset fa on fa.id = fr.file_id
+        where fr.dossier_version_id = #{versionId}
+          and fr.relation_status != 'deleted'
         <if test="structureNodeId != null and structureNodeId != ''">
-            and structure_node_id = #{structureNodeId}
+            and fr.structure_node_id = #{structureNodeId}
         </if>
-        order by required_flag desc, title
+        order by fr.required_flag desc, title
     </select>
 
     <select id="selectAllDocuments" resultType="java.util.HashMap">
-        select id as documentEntryId,
-               structure_node_id as structureNodeId,
-               doc_no as docNo,
-               title,
-               file_storage_key as fileStorageKey,
-               source_system as sourceSystem,
-               source_table as sourceTable,
-               source_record_key as sourceRecordKey,
-               document_status as documentStatus,
-               completeness_status as completenessStatus,
-               required_flag as requiredFlag,
-               included_flag as includedFlag,
-               cast(source_trace_json as char) as sourceTraceJson,
-               cast(attrs_json as char) as attrsJson
-        from t1_document_entry
+        select fr.id as documentEntryId,
+               fr.file_id as fileAssetId,
+               fr.category_id as categoryId,
+               fr.relation_type as relationType,
+               fr.target_type as targetType,
+               fr.target_id as targetId,
+               fr.target_code as targetCode,
+               fr.target_name as targetName,
+               fr.dossier_instance_id as instanceId,
+               fr.dossier_version_id as versionId,
+               fr.structure_node_id as structureNodeId,
+               fr.aircraft_id as aircraftId,
+               fr.bom_node_id as bomNodeId,
+               fr.part_number as partNumber,
+               fr.part_instance_id as partInstanceId,
+               fr.object_level as objectLevel,
+               fr.lifecycle_stage as lifecycleStage,
+               fr.business_domain as businessDomain,
+               fr.is_primary as isPrimary,
+               fr.is_current as isCurrent,
+               fa.file_code as fileCode,
+               fa.asset_kind as assetKind,
+               coalesce(fa.business_no, fr.target_code, fr.source_record_key) as docNo,
+               fa.business_no as businessNo,
+               fa.business_type as businessType,
+               fa.business_title as businessTitle,
+               fa.revision,
+               fa.file_status as fileStatus,
+               fa.original_file_name as originalFileName,
+               fa.display_name as displayName,
+               coalesce(fa.business_title, fa.display_name) as title,
+               fa.file_ext as fileExt,
+               fa.mime_type as mimeType,
+               fa.storage_type as storageType,
+               fa.storage_bucket as storageBucket,
+               fa.storage_key as storageKey,
+               fa.storage_path as storagePath,
+               fa.access_url as accessUrl,
+               fa.preview_storage_key as previewStorageKey,
+               coalesce(fa.storage_key, fa.storage_path, fa.access_url) as fileStorageKey,
+               fa.file_size as fileSize,
+               fa.hash_algorithm as hashAlgorithm,
+               fa.file_hash as fileHash,
+               fa.issue_date as issueDate,
+               fa.effective_date as effectiveDate,
+               fa.expiry_date as expiryDate,
+               fa.issued_by as issuedBy,
+               fa.security_level as securityLevel,
+               fa.is_latest as isLatest,
+               coalesce(fr.source_system, fa.source_system) as sourceSystem,
+               't1_file_relation' as sourceTable,
+               coalesce(fr.source_record_id, fa.source_record_id) as sourceRecordId,
+               coalesce(fr.source_record_key, fa.source_record_key) as sourceRecordKey,
+               fr.relation_status as documentStatus,
+               fr.completeness_status as completenessStatus,
+               fr.required_flag as requiredFlag,
+               fr.included_flag as includedFlag,
+               cast(fr.source_trace_json as char) as sourceTraceJson,
+               cast(fr.business_meta_json as char) as attrsJson,
+               fr.created_at as createdAt
+        from t1_file_relation fr
+        inner join t1_file_asset fa on fa.id = fr.file_id
+        where fr.dossier_version_id = #{versionId}
+          and fr.included_flag = 1
+          and fr.relation_status != 'deleted'
+        order by fr.required_flag desc, title
+    </select>
+
+    <select id="selectPreviewFile" resultType="java.util.HashMap">
+        select *
+        from (
+            select fr.id as documentEntryId,
+                   fr.file_id as fileAssetId,
+                   fa.file_code as fileCode,
+                   coalesce(fa.business_no, fr.target_code, fr.source_record_key) as docNo,
+                   coalesce(fa.business_title, fa.display_name, fa.original_file_name, fr.target_name) as title,
+                   fa.original_file_name as originalFileName,
+                   fa.display_name as displayName,
+                   fa.file_ext as fileExt,
+                   fa.mime_type as mimeType,
+                   fa.storage_type as storageType,
+                   fa.storage_bucket as storageBucket,
+                   fa.storage_key as storageKey,
+                   fa.storage_path as storagePath,
+                   fa.access_url as accessUrl,
+                   fa.preview_storage_key as previewStorageKey,
+                   coalesce(fa.preview_storage_key, fa.storage_key, fa.storage_path, fa.access_url,
+                            fr.source_record_key, fa.source_record_key) as fileStorageKey,
+                   fr.source_system as sourceSystem,
+                   't1_file_relation' as sourceTable,
+                   coalesce(fr.source_record_key, fa.source_record_key) as sourceRecordKey,
+                   fr.relation_status as documentStatus,
+                   fr.created_at as createdAt,
+                   1 as sourceOrder
+            from t1_file_relation fr
+            inner join t1_file_asset fa on fa.id = fr.file_id
+            where fr.id = #{documentEntryId}
+              and fr.relation_status != 'deleted'
+            union all
+            select dci.id as documentEntryId,
+                   null as fileAssetId,
+                   dci.item_code as fileCode,
+                   dci.item_code as docNo,
+                   dci.item_name as title,
+                   null as originalFileName,
+                   dci.item_name as displayName,
+                   case
+                       when dci.file_storage_key like '%.%' then substring_index(dci.file_storage_key, '.', -1)
+                       else null
+                   end as fileExt,
+                   null as mimeType,
+                   'LOCAL' as storageType,
+                   null as storageBucket,
+                   null as storageKey,
+                   dci.file_storage_key as storagePath,
+                   null as accessUrl,
+                   null as previewStorageKey,
+                   dci.file_storage_key as fileStorageKey,
+                   dci.source_system as sourceSystem,
+                   dci.source_table as sourceTable,
+                   dci.source_record_key as sourceRecordKey,
+                   dci.item_status as documentStatus,
+                   dci.created_at as createdAt,
+                   2 as sourceOrder
+            from t1_dossier_content_item dci
+            where dci.id = #{documentEntryId}
+              and dci.file_storage_key is not null
+              and dci.file_storage_key != ''
+        ) t
+        order by sourceOrder
+        limit 1
+    </select>
+
+    <select id="countDocuments" resultType="java.lang.Integer">
+        select count(1)
+        from t1_file_relation
         where dossier_version_id = #{versionId}
-        order by required_flag desc, title
+          and included_flag = 1
+          and relation_status != 'deleted'
     </select>
 
     <select id="selectDataSources" resultType="java.util.HashMap">
@@ -665,18 +843,28 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                sum(recordCount) as recordCount
         from (
             select source_system as sourceSystem,
-                   source_table as sourceTable,
+                   case
+                       when source_table in ('t1_document_master','t1_document_entry','t1_document_archive','t1_technical_file','t1_part_document','t1_certificate_record') then 't1_file_relation'
+                       when source_table = 't1_document_category' then 't1_file_category'
+                       else source_table
+                   end as sourceTable,
                    count(1) as recordCount
             from t1_dossier_content_item
             where dossier_version_id = #{versionId}
-            group by source_system, source_table
+            group by source_system,
+                     case
+                       when source_table in ('t1_document_master','t1_document_entry','t1_document_archive','t1_technical_file','t1_part_document','t1_certificate_record') then 't1_file_relation'
+                       when source_table = 't1_document_category' then 't1_file_category'
+                       else source_table
+                     end
             union all
             select source_system as sourceSystem,
-                   source_table as sourceTable,
+                   't1_file_relation' as sourceTable,
                    count(1) as recordCount
-            from t1_document_entry
+            from t1_file_relation
             where dossier_version_id = #{versionId}
-            group by source_system, source_table
+              and relation_status != 'deleted'
+            group by source_system
         ) t
         where sourceSystem is not null
         group by sourceSystem, sourceTable
@@ -701,5 +889,46 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </if>
         order by operated_at desc
         limit 20
+    </select>
+
+    <select id="selectTemplateChapters" resultType="java.util.HashMap">
+        select id as chapterId,
+               parent_id as parentId,
+               chapter_code as chapterCode,
+               chapter_name as chapterName,
+               chapter_level as chapterLevel,
+               chapter_path as chapterPath,
+               node_kind as nodeKind,
+               sort_order as sortOrder,
+               required_flag as requiredFlag,
+               completeness_requirement as completenessRequirement,
+               cast(attrs_json as char) as attrsJson
+        from t1_dossier_template_chapter
+        where template_id = #{templateId}
+          and enabled_flag = 1
+        order by sort_order, chapter_code
+    </select>
+
+    <select id="selectTemplateDataSources" resultType="java.util.HashMap">
+        select id as sourceId,
+               chapter_id as chapterId,
+               source_code as sourceCode,
+               source_system as sourceSystem,
+               source_table as sourceTable,
+               source_name as sourceName,
+               source_record_type as sourceRecordType,
+               cast(join_condition_json as char) as joinConditionJson,
+               cast(filter_condition_json as char) as filterConditionJson,
+               lifecycle_stage as lifecycleStage,
+               apply_object_type as applyObjectType,
+               supply_mode_scope as supplyModeScope,
+               key_part_scope as keyPartScope,
+               required_flag as requiredFlag,
+               sort_order as sortOrder,
+               cast(attrs_json as char) as attrsJson
+        from t1_dossier_template_data_source
+        where template_id = #{templateId}
+          and enabled_flag = 1
+        order by sort_order, source_code
     </select>
 </mapper>

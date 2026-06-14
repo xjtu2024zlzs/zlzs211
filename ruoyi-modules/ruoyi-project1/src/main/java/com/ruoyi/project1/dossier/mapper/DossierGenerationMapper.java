@@ -14,6 +14,10 @@ public interface DossierGenerationMapper
 
     public Map<String, Object> selectActiveTemplate();
 
+    public List<Map<String, Object>> selectGenerationTemplates();
+
+    public Map<String, Object> selectTemplateById(@Param("templateId") String templateId);
+
     public Map<String, Object> selectTemplateMetrics(@Param("templateId") String templateId);
 
     public List<Map<String, Object>> selectTemplateChapters(@Param("templateId") String templateId);
@@ -23,6 +27,12 @@ public interface DossierGenerationMapper
     public List<Map<String, Object>> selectTemplateRules(@Param("templateId") String templateId);
 
     public List<Map<String, Object>> selectTemplateParams(@Param("templateId") String templateId);
+
+    public Integer countRuleRows(Map<String, Object> params);
+
+    public List<String> selectSourceTableColumns(@Param("tableName") String tableName);
+
+    public List<Map<String, Object>> selectTemplateSourceRows(Map<String, Object> params);
 
     public List<Map<String, Object>> selectKeyNodeChain(@Param("aircraftId") String aircraftId);
 
@@ -34,15 +44,26 @@ public interface DossierGenerationMapper
     public List<Map<String, Object>> selectNodeLifecycleSnapshotRows(@Param("aircraftId") String aircraftId,
             @Param("nodeId") String nodeId, @Param("partNumber") String partNumber);
 
+    public List<Map<String, Object>> selectNodeDocumentSourceRows(@Param("aircraftId") String aircraftId,
+            @Param("nodeId") String nodeId, @Param("partNumber") String partNumber,
+            @Param("partInstanceId") String partInstanceId);
+
     public Map<String, Object> selectDossierInstance(@Param("aircraftId") String aircraftId, @Param("templateId") String templateId);
 
     public int insertDossierInstance(Map<String, Object> params);
+
+    public int updateDossierInstanceIdentity(Map<String, Object> params);
 
     public Map<String, Object> selectLatestVersion(@Param("instanceId") String instanceId);
 
     public Map<String, Object> selectDuplicateVersion(Map<String, Object> params);
 
+    public Map<String, Object> selectGeneratedVersionByPrecheckRunId(@Param("instanceId") String instanceId,
+            @Param("precheckRunId") String precheckRunId);
+
     public int updateVersionContentHash(Map<String, Object> params);
+
+    public int updateDossierVersionSummary(Map<String, Object> params);
 
     public int clearCurrentVersion(@Param("instanceId") String instanceId);
 
@@ -66,9 +87,13 @@ public interface DossierGenerationMapper
 
     public int insertContentItem(Map<String, Object> params);
 
-    public int insertDocumentEntry(Map<String, Object> params);
+    public int insertDocumentFileAsset(Map<String, Object> params);
+
+    public int insertDocumentFileRelation(Map<String, Object> params);
 
     public int insertOperationLog(Map<String, Object> params);
+
+    public Integer countDocumentEntries(@Param("versionId") String versionId);
 
     public Map<String, Object> selectJob(@Param("jobId") String jobId);
 

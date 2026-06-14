@@ -151,10 +151,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                dv.change_summary as changeSummary,
                dv.created_by as createdBy,
                dv.created_at as createdAt,
-               dv.published_at as publishedAt
+               dv.published_at as publishedAt,
+               dv.deleted_by as deletedBy,
+               dv.deleted_at as deletedAt
         from t1_dossier_version dv
         left join t1_generation_job gj on gj.id = dv.generation_job_id
         where dv.dossier_instance_id = #{instanceId}
+          and dv.deleted_at is null
         order by dv.version_no desc
     </select>
 
@@ -231,6 +234,336 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         set dv.published_at = sysdate(6)
         where di.id = #{instanceId}
     </update>
+
+    <update id="clearInstanceCurrentVersion">
+        update t1_dossier_instance
+        set current_version_id = null
+        where id = #{instanceId}
+    </update>
+
+    <delete id="deleteVersionDataIssues">
+        delete from t1_data_issue
+        where structure_node_id in (
+            select id from t1_dossier_structure_node
+            where dossier_instance_id = #{instanceId}
+              and dossier_version_id = #{versionId}
+        )
+    </delete>
+
+    <delete id="deleteVersionDataSupportItems">
+        delete from t1_data_support_dataset_item
+        where structure_node_id in (
+            select id from t1_dossier_structure_node
+            where dossier_instance_id = #{instanceId}
+              and dossier_version_id = #{versionId}
+        )
+    </delete>
+
+    <delete id="deleteVersionFileRelations">
+        delete from t1_file_relation
+        where dossier_instance_id = #{instanceId}
+          and (
+              dossier_version_id = #{versionId}
+              or structure_node_id in (
+                  select id from t1_dossier_structure_node
+                  where dossier_instance_id = #{instanceId}
+                    and dossier_version_id = #{versionId}
+              )
+          )
+    </delete>
+
+    <delete id="deleteVersionFileCategories">
+        delete from t1_file_category
+        where dossier_instance_id = #{instanceId}
+          and (
+              dossier_version_id = #{versionId}
+              or structure_node_id in (
+                  select id from t1_dossier_structure_node
+                  where dossier_instance_id = #{instanceId}
+                    and dossier_version_id = #{versionId}
+              )
+          )
+    </delete>
+
+    <delete id="deleteVersionCompletenessSummaries">
+        delete from t1_dossier_completeness_summary
+        where dossier_instance_id = #{instanceId}
+          and (
+              dossier_version_id = #{versionId}
+              or structure_node_id in (
+                  select id from t1_dossier_structure_node
+                  where dossier_instance_id = #{instanceId}
+                    and dossier_version_id = #{versionId}
+              )
+          )
+    </delete>
+
+    <delete id="deleteVersionContentItems">
+        delete from t1_dossier_content_item
+        where dossier_instance_id = #{instanceId}
+          and dossier_version_id = #{versionId}
+    </delete>
+
+    <delete id="deleteVersionDiffs">
+        delete from t1_dossier_version_diff
+        where dossier_instance_id = #{instanceId}
+          and (
+              base_version_id = #{versionId}
+              or compare_version_id = #{versionId}
+              or structure_node_id in (
+                  select id from t1_dossier_structure_node
+                  where dossier_instance_id = #{instanceId}
+                    and dossier_version_id = #{versionId}
+              )
+          )
+    </delete>
+
+    <delete id="deleteVersionDataRelationNodes">
+        delete from t1_data_relation_node
+        where dossier_instance_id = #{instanceId}
+          and dossier_version_id = #{versionId}
+    </delete>
+
+    <delete id="deleteVersionSearchIndexRecords">
+        delete from t1_search_index_record
+        where dossier_instance_id = #{instanceId}
+          and dossier_version_id = #{versionId}
+    </delete>
+
+    <delete id="deleteVersionOperationLogs">
+        delete from t1_dossier_operation_log
+        where dossier_instance_id = #{instanceId}
+          and (
+              dossier_version_id = #{versionId}
+              or (
+                  business_subject_type = 't1_generation_job'
+                  and business_subject_id in (
+                      select id from t1_generation_job
+                      where dossier_instance_id = #{instanceId}
+                        and dossier_version_id = #{versionId}
+                  )
+              )
+          )
+    </delete>
+
+    <delete id="deleteVersionExportFiles">
+        delete from t1_dossier_export_file
+        where export_job_id in (
+            select id from t1_dossier_export_job
+            where dossier_instance_id = #{instanceId}
+              and (
+                  dossier_version_id = #{versionId}
+                  or generation_job_id in (
+                      select id from t1_generation_job
+                      where dossier_instance_id = #{instanceId}
+                        and dossier_version_id = #{versionId}
+                  )
+              )
+        )
+    </delete>
+
+    <delete id="deleteVersionExportJobs">
+        delete from t1_dossier_export_job
+        where dossier_instance_id = #{instanceId}
+          and (
+              dossier_version_id = #{versionId}
+              or generation_job_id in (
+                  select id from t1_generation_job
+                  where dossier_instance_id = #{instanceId}
+                    and dossier_version_id = #{versionId}
+              )
+          )
+    </delete>
+
+    <delete id="deleteVersionGenerationJobItems">
+        delete from t1_generation_job_item
+        where generation_job_id in (
+            select id from t1_generation_job
+            where dossier_instance_id = #{instanceId}
+              and dossier_version_id = #{versionId}
+        )
+    </delete>
+
+    <delete id="deleteVersionGenerationJobs">
+        delete from t1_generation_job
+        where dossier_instance_id = #{instanceId}
+          and dossier_version_id = #{versionId}
+    </delete>
+
+    <delete id="deleteVersionInspectionRuns">
+        delete from t1_data_inspection_run
+        where dossier_instance_id = #{instanceId}
+          and dossier_version_id = #{versionId}
+    </delete>
+
+    <delete id="deleteVersionSnapshots">
+        delete from t1_data_snapshot
+        where id in (
+            select data_snapshot_id from t1_dossier_version
+            where id = #{versionId}
+              and dossier_instance_id = #{instanceId}
+              and data_snapshot_id is not null
+        )
+    </delete>
+
+    <delete id="deleteVersionStructureNodes">
+        delete from t1_dossier_structure_node
+        where dossier_instance_id = #{instanceId}
+          and dossier_version_id = #{versionId}
+    </delete>
+
+    <delete id="deleteVersion">
+        delete from t1_dossier_version
+        where id = #{versionId}
+          and dossier_instance_id = #{instanceId}
+          and is_current = 0
+          and published_at is null
+          and deleted_at is null
+    </delete>
+
+    <delete id="deleteInstanceDataIssues">
+        delete from t1_data_issue
+        where structure_node_id in (
+            select id from t1_dossier_structure_node
+            where dossier_instance_id = #{instanceId}
+        )
+    </delete>
+
+    <delete id="deleteInstanceDataSupportItems">
+        delete from t1_data_support_dataset_item
+        where dossier_instance_id = #{instanceId}
+          or structure_node_id in (
+              select id from t1_dossier_structure_node
+              where dossier_instance_id = #{instanceId}
+          )
+    </delete>
+
+    <delete id="deleteInstanceDataRelationEdges">
+        delete from t1_data_relation_edge
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceDataRelationNodes">
+        delete from t1_data_relation_node
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceMonitoringRuns">
+        delete from t1_data_monitoring_run
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceUpdateRequests">
+        delete from t1_data_update_request
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceFileRelations">
+        delete from t1_file_relation
+        where dossier_instance_id = #{instanceId}
+          or structure_node_id in (
+              select id from t1_dossier_structure_node
+              where dossier_instance_id = #{instanceId}
+          )
+    </delete>
+
+    <delete id="deleteInstanceFileCategories">
+        delete from t1_file_category
+        where dossier_instance_id = #{instanceId}
+          or structure_node_id in (
+              select id from t1_dossier_structure_node
+              where dossier_instance_id = #{instanceId}
+          )
+    </delete>
+
+    <delete id="deleteInstanceCompletenessSummaries">
+        delete from t1_dossier_completeness_summary
+        where dossier_instance_id = #{instanceId}
+          or structure_node_id in (
+              select id from t1_dossier_structure_node
+              where dossier_instance_id = #{instanceId}
+          )
+    </delete>
+
+    <delete id="deleteInstanceContentItems">
+        delete from t1_dossier_content_item
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceDiffs">
+        delete from t1_dossier_version_diff
+        where dossier_instance_id = #{instanceId}
+          or structure_node_id in (
+              select id from t1_dossier_structure_node
+              where dossier_instance_id = #{instanceId}
+          )
+    </delete>
+
+    <delete id="deleteInstanceSearchIndexRecords">
+        delete from t1_search_index_record
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceQaSessions">
+        delete from t1_qa_session
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceOperationLogs">
+        delete from t1_dossier_operation_log
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceExportFiles">
+        delete from t1_dossier_export_file
+        where export_job_id in (
+            select id from t1_dossier_export_job
+            where dossier_instance_id = #{instanceId}
+        )
+    </delete>
+
+    <delete id="deleteInstanceExportJobs">
+        delete from t1_dossier_export_job
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceGenerationJobItems">
+        delete from t1_generation_job_item
+        where generation_job_id in (
+            select id from t1_generation_job
+            where dossier_instance_id = #{instanceId}
+        )
+    </delete>
+
+    <delete id="deleteInstanceGenerationJobs">
+        delete from t1_generation_job
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceInspectionRuns">
+        delete from t1_data_inspection_run
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceSnapshots">
+        delete from t1_data_snapshot
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceStructureNodes">
+        delete from t1_dossier_structure_node
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstanceVersions">
+        delete from t1_dossier_version
+        where dossier_instance_id = #{instanceId}
+    </delete>
+
+    <delete id="deleteInstance">
+        delete from t1_dossier_instance
+        where id = #{instanceId}
+    </delete>
 
     <insert id="insertExportJob">
         insert into t1_dossier_export_job

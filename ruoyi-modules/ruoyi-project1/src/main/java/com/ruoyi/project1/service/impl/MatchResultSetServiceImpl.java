@@ -112,7 +112,7 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
         MatchResultSet target = requireResultSet(resultSetId);
         if (presetScenarioService.isPresetResultSet(target))
         {
-            throw new ServiceException("GroundTruth 预置结果集不在前端展示，也不能手动设为展示默认结果集");
+            throw new ServiceException("该结果集不支持手动设为展示默认结果集");
         }
         MatchResultSet query = new MatchResultSet();
         if (target.getRecordId() != null)
@@ -139,7 +139,7 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
         payload.put("taskId", target.getTaskId());
         payload.put("sourceDatasourceId", target.getSourceDatasourceId());
         payload.put("resultSetId", target.getResultSetId());
-        payload.put("message", "已设为展示默认结果集；接入执行继续使用 GroundTruth 预置规则集");
+        payload.put("message", "已设为展示默认结果集；接入执行继续使用当前最终接入规则");
         return payload;
     }
 
@@ -150,7 +150,7 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
         MatchResultSet resultSet = requireResultSet(resultSetId);
         if (presetScenarioService.isPresetResultSet(resultSet))
         {
-            throw new ServiceException("GroundTruth 预置结果集不在前端展示审核明细");
+            throw new ServiceException("该结果集不在前端展示审核明细");
         }
         MatchResultRow query = new MatchResultRow();
         query.setResultSetId(resultSetId);
@@ -171,7 +171,7 @@ public class MatchResultSetServiceImpl implements IMatchResultSetService
         MatchResultSet resultSet = requireResultSet(resultSetId);
         if (presetScenarioService.isPresetResultSet(resultSet))
         {
-            throw new ServiceException("GroundTruth 预置结果集不在前端展示评估指标");
+            throw new ServiceException("该结果集不在前端展示评估指标");
         }
         TaskMetric query = new TaskMetric();
         query.setResultSetId(resultSetId);

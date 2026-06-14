@@ -1,7 +1,9 @@
 -- ============================================================
 -- project1 menu and permission SQL
 -- Target: RuoYi-Cloud sys_menu / sys_role_menu
--- Menu:
+-- Runtime database: ry-cloud
+--
+-- Unified menu:
 -- 数字卷宗
 --   异构信息集成
 --     数据源管理
@@ -10,19 +12,44 @@
 --   异构数据接入
 --     数据接入管理
 --     数据接入结果展示
+--   卷宗生成管理
+--     卷宗实例管理
+--     卷宗模板管理
+--     卷宗生成控制
+--     卷宗详情可视化
 -- ============================================================
 
 set names utf8mb4;
+use `ry-cloud`;
 
-delete from sys_role_menu where menu_id between 2100 and 2199;
-delete from sys_menu where menu_id between 2100 and 2199;
+-- Remove the duplicate legacy root. Its children are re-parented below.
+delete from sys_role_menu where menu_id = 2010;
 
 insert into sys_menu
     (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
 values
     (2100, '数字卷宗', 0, 5, 'dossier', null, '', 'Dossier', 1, 0, 'M', '0', '0', '', 'documentation', 'admin', sysdate(), '', null, '数字卷宗目录'),
     (2110, '异构信息集成', 2100, 1, 'integration', null, '', 'DossierIntegration', 1, 0, 'M', '0', '0', '', 'tree-table', 'admin', sysdate(), '', null, '异构信息集成目录'),
-    (2120, '异构数据接入', 2100, 2, 'access', null, '', 'DossierAccess', 1, 0, 'M', '0', '0', '', 'list', 'admin', sysdate(), '', null, '异构数据接入目录');
+    (2120, '异构数据接入', 2100, 2, 'access', null, '', 'DossierAccess', 1, 0, 'M', '0', '0', '', 'list', 'admin', sysdate(), '', null, '异构数据接入目录'),
+    (2020, '卷宗生成管理', 2100, 3, 'manage', null, '', 'DossierManage', 1, 0, 'M', '0', '0', '', 'list', 'system', sysdate(), '', null, '卷宗生成管理目录')
+on duplicate key update
+    menu_name = values(menu_name),
+    parent_id = values(parent_id),
+    order_num = values(order_num),
+    path = values(path),
+    component = values(component),
+    query = values(query),
+    route_name = values(route_name),
+    is_frame = values(is_frame),
+    is_cache = values(is_cache),
+    menu_type = values(menu_type),
+    visible = values(visible),
+    status = values(status),
+    perms = values(perms),
+    icon = values(icon),
+    update_by = 'admin',
+    update_time = sysdate(),
+    remark = values(remark);
 
 insert into sys_menu
     (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
@@ -31,7 +58,29 @@ values
     (2112, '模式映射任务创建', 2110, 2, 'matchTask', 'project1/matchTask/index', '', 'Project1MatchTask', 1, 0, 'C', '0', '0', 'project1:matchTask:list', 'edit', 'admin', sysdate(), '', null, '模式映射任务创建菜单'),
     (2113, '模式映射结果展示', 2110, 3, 'matchResult', 'project1/matchResult/index', '', 'Project1MatchResult', 1, 0, 'C', '0', '0', 'project1:matchResult:list', 'table', 'admin', sysdate(), '', null, '模式映射结果展示菜单'),
     (2121, '数据接入管理', 2120, 1, 'accessPlan', 'project1/accessPlan/index', '', 'Project1AccessPlan', 1, 0, 'C', '0', '0', 'project1:accessPlan:list', 'form', 'admin', sysdate(), '', null, '数据接入管理菜单'),
-    (2122, '数据接入结果展示', 2120, 2, 'accessResult', 'project1/accessResult/index', '', 'Project1AccessResult', 1, 0, 'C', '0', '0', 'project1:accessResult:list', 'chart', 'admin', sysdate(), '', null, '数据接入结果展示菜单');
+    (2122, '数据接入结果展示', 2120, 2, 'accessResult', 'project1/accessResult/index', '', 'Project1AccessResult', 1, 0, 'C', '0', '0', 'project1:accessResult:list', 'chart', 'admin', sysdate(), '', null, '数据接入结果展示菜单'),
+    (2029, '卷宗实例管理', 2020, 1, 'instance', 'project1/dossier/instance/index', '', 'DossierInstance', 1, 0, 'C', '0', '0', 'project1:dossier:instance:list', 'documentation', 'system', sysdate(), '', null, '卷宗实例管理'),
+    (2030, '卷宗模板管理', 2020, 2, 'template', 'project1/dossier/template/index', '', 'DossierTemplate', 1, 0, 'C', '0', '0', 'project1:dossier:template:list', 'table', 'system', sysdate(), '', null, '卷宗模板管理'),
+    (2031, '卷宗生成控制', 2020, 3, 'generation', 'project1/dossier/generation/index', '', 'DossierGeneration', 1, 0, 'C', '0', '0', 'project1:dossier:generation:list', 'build', 'system', sysdate(), '', null, '卷宗生成控制'),
+    (2032, '卷宗详情可视化', 2020, 4, 'detail', 'project1/dossier/detail/index', '', 'DossierDetail', 1, 0, 'C', '0', '0', 'project1:dossier:detail:list', 'tree-table', 'system', sysdate(), '', null, '卷宗详情可视化')
+on duplicate key update
+    menu_name = values(menu_name),
+    parent_id = values(parent_id),
+    order_num = values(order_num),
+    path = values(path),
+    component = values(component),
+    query = values(query),
+    route_name = values(route_name),
+    is_frame = values(is_frame),
+    is_cache = values(is_cache),
+    menu_type = values(menu_type),
+    visible = values(visible),
+    status = values(status),
+    perms = values(perms),
+    icon = values(icon),
+    update_by = 'admin',
+    update_time = sysdate(),
+    remark = values(remark);
 
 insert into sys_menu
     (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
@@ -44,7 +93,6 @@ values
     (2135, '连接测试', 2111, 6, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:datasource:test', '#', 'admin', sysdate(), '', null, ''),
     (2136, '模式读取', 2111, 7, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:datasource:schemaRead', '#', 'admin', sysdate(), '', null, ''),
     (2137, '模式查看', 2111, 8, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:datasource:schemaView', '#', 'admin', sysdate(), '', null, ''),
-
     (2140, '映射任务查询', 2112, 1, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchTask:query', '#', 'admin', sysdate(), '', null, ''),
     (2141, '映射任务新增', 2112, 2, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchTask:add', '#', 'admin', sysdate(), '', null, ''),
     (2142, '映射任务修改', 2112, 3, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchTask:edit', '#', 'admin', sysdate(), '', null, ''),
@@ -53,7 +101,6 @@ values
     (2145, '运行映射任务', 2112, 6, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchTask:run', '#', 'admin', sysdate(), '', null, ''),
     (2146, '查看任务版本', 2112, 7, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchTask:version', '#', 'admin', sysdate(), '', null, ''),
     (2147, '查看运行记录', 2112, 8, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchTask:record', '#', 'admin', sysdate(), '', null, ''),
-
     (2150, '映射结果查询', 2113, 1, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchResult:query', '#', 'admin', sysdate(), '', null, ''),
     (2151, '映射结果审核', 2113, 2, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchResult:edit', '#', 'admin', sysdate(), '', null, ''),
     (2152, '设为默认结果集', 2113, 3, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchResult:default', '#', 'admin', sysdate(), '', null, ''),
@@ -61,7 +108,6 @@ values
     (2154, '批量驳回', 2113, 5, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchResult:reject', '#', 'admin', sysdate(), '', null, ''),
     (2155, '自动通过', 2113, 6, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchResult:auto', '#', 'admin', sysdate(), '', null, ''),
     (2156, '审核历史', 2113, 7, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:matchResult:history', '#', 'admin', sysdate(), '', null, ''),
-
     (2160, '接入计划查询', 2121, 1, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:accessPlan:query', '#', 'admin', sysdate(), '', null, ''),
     (2161, '接入计划新增', 2121, 2, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:accessPlan:add', '#', 'admin', sysdate(), '', null, ''),
     (2162, '接入计划修改', 2121, 3, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:accessPlan:edit', '#', 'admin', sysdate(), '', null, ''),
@@ -71,14 +117,46 @@ values
     (2166, '暂停接入计划', 2121, 7, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:accessPlan:pause', '#', 'admin', sysdate(), '', null, ''),
     (2167, '恢复接入计划', 2121, 8, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:accessPlan:resume', '#', 'admin', sysdate(), '', null, ''),
     (2168, '取消当前执行', 2121, 9, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:accessPlan:cancel', '#', 'admin', sysdate(), '', null, ''),
-
     (2170, '接入结果查询', 2122, 1, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:accessResult:query', '#', 'admin', sysdate(), '', null, ''),
-    (2171, '接入结果导出', 2122, 2, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:accessResult:export', '#', 'admin', sysdate(), '', null, '');
+    (2171, '接入结果导出', 2122, 2, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:accessResult:export', '#', 'admin', sysdate(), '', null, ''),
+    (2033, '模板查询', 2030, 1, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:dossier:template:query', '#', 'system', sysdate(), '', null, ''),
+    (2034, '模板新增', 2030, 2, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:dossier:template:add', '#', 'system', sysdate(), '', null, ''),
+    (2035, '模板修改', 2030, 3, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:dossier:template:edit', '#', 'system', sysdate(), '', null, ''),
+    (2036, '模板删除', 2030, 4, '', null, '', '', 1, 0, 'F', '0', '0', 'project1:dossier:template:remove', '#', 'system', sysdate(), '', null, '')
+on duplicate key update
+    menu_name = values(menu_name),
+    parent_id = values(parent_id),
+    order_num = values(order_num),
+    path = values(path),
+    component = values(component),
+    query = values(query),
+    route_name = values(route_name),
+    is_frame = values(is_frame),
+    is_cache = values(is_cache),
+    menu_type = values(menu_type),
+    visible = values(visible),
+    status = values(status),
+    perms = values(perms),
+    icon = values(icon),
+    update_by = 'admin',
+    update_time = sysdate(),
+    remark = values(remark);
+
+delete from sys_menu where menu_id = 2010;
+
+delete rm
+from sys_role_menu rm
+left join sys_menu m on m.menu_id = rm.menu_id
+where rm.menu_id between 2000 and 2199
+  and m.menu_id is null;
 
 insert into sys_role_menu (role_id, menu_id)
 select r.role_id, m.menu_id
 from sys_role r
-join sys_menu m on m.menu_id between 2100 and 2199
+join sys_menu m on (
+    m.menu_id between 2100 and 2171
+    or m.menu_id in (2020, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036)
+)
 where r.role_key = 'common'
   and not exists (
       select 1

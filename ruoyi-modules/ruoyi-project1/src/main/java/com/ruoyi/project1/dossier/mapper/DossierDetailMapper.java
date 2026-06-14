@@ -57,8 +57,16 @@ public interface DossierDetailMapper
 
     public List<Map<String, Object>> selectAllDocuments(@Param("versionId") String versionId);
 
+    public Map<String, Object> selectPreviewFile(@Param("documentEntryId") String documentEntryId);
+
+    public Integer countDocuments(@Param("versionId") String versionId);
+
     public List<Map<String, Object>> selectDataSources(@Param("versionId") String versionId);
 
     public List<Map<String, Object>> selectOperationLogs(@Param("instanceId") String instanceId,
             @Param("versionId") String versionId);
+
+    public List<Map<String, Object>> selectTemplateChapters(@Param("templateId") String templateId);
+
+    public List<Map<String, Object>> selectTemplateDataSources(@Param("templateId") String templateId);
 }

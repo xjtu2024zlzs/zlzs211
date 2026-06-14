@@ -45,10 +45,17 @@ public class DossierGenerationController extends BaseController
     }
 
     @RequiresPermissions("project1:dossier:generation:list")
-    @GetMapping("/prepare/{aircraftId}")
-    public AjaxResult prepare(@PathVariable String aircraftId)
+    @GetMapping("/template/list")
+    public AjaxResult templateList()
     {
-        return success(generationService.prepareGeneration(aircraftId));
+        return success(generationService.selectTemplateList());
+    }
+
+    @RequiresPermissions("project1:dossier:generation:list")
+    @GetMapping("/prepare/{aircraftId}")
+    public AjaxResult prepare(@PathVariable String aircraftId, @RequestParam(required = false) String templateId)
+    {
+        return success(generationService.prepareGeneration(aircraftId, templateId));
     }
 
     @RequiresPermissions("project1:dossier:generation:list")
