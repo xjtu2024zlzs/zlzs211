@@ -216,6 +216,9 @@ const statusOptions = [
   ...useStatusOptions,
   { label: "已完成", value: "success" },
   { label: "执行中", value: "running" },
+  { label: "部分成功", value: "partial" },
+  { label: "失败", value: "failed" },
+  { label: "已取消", value: "canceled" },
   { label: "阻断", value: "blocked" },
   { label: "待执行", value: "pending" }
 ]
@@ -463,9 +466,9 @@ function accessModeTagType(value) {
 
 function statusTagType(value) {
   if (["enabled", "success"].includes(value)) return "success"
-  if (["paused", "running"].includes(value)) return "warning"
-  if (["disabled"].includes(value)) return "info"
-  if (["unavailable", "blocked"].includes(value)) return "danger"
+  if (["paused", "running", "partial"].includes(value)) return "warning"
+  if (["disabled", "canceled"].includes(value)) return "info"
+  if (["unavailable", "blocked", "failed"].includes(value)) return "danger"
   return "info"
 }
 

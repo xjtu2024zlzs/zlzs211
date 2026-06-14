@@ -392,6 +392,10 @@ public class AccessPlanServiceImpl implements IAccessPlanService
         {
             return "success";
         }
+        if (latestBatch != null && !isBlank(latestBatch.getBatchStatus()))
+        {
+            return latestBatch.getBatchStatus();
+        }
         if ("continuous".equals(plan.getAccessType()) && "enabled".equals(plan.getUseStatus()))
         {
             return "running";
