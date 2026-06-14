@@ -9,11 +9,12 @@
 | `00_p1p_business_schema_mysql8.sql` | project1 30 张 `p1p_` 业务表，供若依代码生成器和业务流程使用 |
 | `01_project1_menu_permission.sql` | 若依菜单、页面权限、按钮权限 |
 | `02_p1p_dossier_schema_mysql8.sql` | 数字卷宗目标库表 |
+| `03_p1p_dossier_seed_mysql8.sql` | `p1p_dossier_*` 卷宗目标库种子数据 |
 | `05_p1p_access_scope_field_unique_upgrade_mysql8.sql` | 已有数据库升级脚本，修正接入范围字段唯一键 |
 | `04_p1p_verify.sql` | 数据库验证 SQL |
 | `99_p1p_upgrade_existing_db.sql` | 已有数据库升级脚本，主要修正多结果集相关唯一键 |
 
-说明：旧的 `project1p` 卷宗 seed 已移除。当前卷宗模拟数据统一使用 `../dossier/dossier_mock_data_seed_mysql8.sql`，并配套 `data/dossier/files/2026/06/B-1234` 附件目录。
+说明：`project1p` 与 `dossier` 是两套独立 SQL 构件。`03_p1p_dossier_seed_mysql8.sql` 只写入 `p1p_dossier_*` 表；`../dossier/dossier_mock_data_seed_mysql8.sql` 只用于 `t1_*` 数字卷宗表，不要互相替代。
 
 ## 首次建库执行顺序
 
@@ -22,7 +23,7 @@
 ```text
 1. 00_p1p_business_schema_mysql8.sql
 2. 02_p1p_dossier_schema_mysql8.sql
-3. ../dossier/dossier_mock_data_seed_mysql8.sql
+3. 03_p1p_dossier_seed_mysql8.sql
 4. 01_project1_menu_permission.sql
 5. 04_p1p_verify.sql
 ```
