@@ -27,6 +27,25 @@ def _bounds(request: OptimizeRequest) -> List[Tuple[float, float]]:
     return bounds
 
 
+def _steps(request: OptimizeRequest) -> List[float]:
+    steps = []
+    for key in INPUT_KEYS:
+        item = request.variables.get(key)
+        step = float(item.step or 0) if item is not None else 0
+        steps.append(step if step > 0 else 0)
+    return steps
+
+
+def _snap_to_steps(vector, bounds: List[Tuple[float, float]], steps: List[float]) -> np.ndarray:
+    snapped = []
+    for value, (lower, upper), step in zip(vector, bounds, steps):
+        value = float(value)
+        if step > 0:
+            value = lower + round((value - lower) / step) * step
+        snapped.append(min(max(value, lower), upper))
+    return np.asarray(snapped, dtype=float)
+
+
 def _solution(vector, stress: float) -> BestSolution:
     return BestSolution(
         L1=round(float(vector[0]), 4),
@@ -42,14 +61,16 @@ def optimize(request: OptimizeRequest) -> OptimizeResponse:
     try:
         model_info, model = active_model()
         bounds = _bounds(request)
+        steps = _steps(request)
         history: List[IterationPoint] = []
         candidates = {}
         iteration = {"value": 0}
 
         def objective(x):
-            x_array = np.asarray(x, dtype=float).reshape(1, -1)
+            snapped = _snap_to_steps(x, bounds, steps)
+            x_array = snapped.reshape(1, -1)
             stress = float(model.predict(x_array)[0])
-            candidates[tuple(round(float(v), 6) for v in x)] = stress
+            candidates[tuple(round(float(v), 6) for v in snapped)] = stress
             return stress
 
         def callback(xk, convergence):
@@ -63,13 +84,14 @@ def optimize(request: OptimizeRequest) -> OptimizeResponse:
             maxiter=request.algorithm.maxIterations,
             popsize=request.algorithm.populationSize,
             seed=request.algorithm.seed,
-            polish=True,
+            polish=not any(steps),
             updating="immediate",
             callback=callback,
         )
 
-        best_stress = float(result.fun)
-        best_solution = _solution(result.x, best_stress)
+        best_vector = _snap_to_steps(result.x, bounds, steps)
+        best_stress = float(model.predict(best_vector.reshape(1, -1))[0])
+        best_solution = _solution(best_vector, best_stress)
         ranked = sorted(candidates.items(), key=lambda item: item[1])[:10]
         top_candidates = [
             CandidateSolution(rank=index + 1, **_solution(vector, stress).dict())

@@ -97,7 +97,12 @@
           </div>
         </section>
 
-        <div class="content-grid">
+        <template v-if="isFrameBeamTask">
+          <CrackInputPanel :task-id="taskId" />
+          <LoadSpectrumPanel :task-id="taskId" />
+        </template>
+
+        <div v-if="!isFrameBeamTask" class="content-grid">
           <section class="section-block">
             <div class="section-header">
               <div>
@@ -219,11 +224,14 @@ import {
   getTaskAttachmentFile,
   saveObjectiveConstraints
 } from '@/api/designtask/optimization'
+import CrackInputPanel from '@/views/designtask/frameBeam/CrackInputPanel.vue'
+import LoadSpectrumPanel from '@/views/designtask/frameBeam/LoadSpectrumPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
 const taskId = ref(route.query.taskId ? Number(route.query.taskId) : null)
 const taskTitle = ref('目标与约束选择')
+const taskType = ref('')
 const discipline = ref(route.query.discipline || 'structure')
 const catalog = ref([])
 const saving = ref(false)
@@ -248,6 +256,7 @@ const disciplines = [
 ]
 
 const hasTask = computed(() => !!taskId.value)
+const isFrameBeamTask = computed(() => taskType.value === 'FRAME_BEAM_CRACK_LIFE_PREDICTION')
 const readonlyMode = computed(() => access.value.mode !== 'enter' || route.query.mode === 'view')
 const currentLabel = computed(() => disciplines.find(item => item.value === discipline.value)?.label || '')
 const accessLabel = computed(() => access.value.label || (access.value.mode === 'enter' ? '可处理' : '查看'))
@@ -378,6 +387,7 @@ function loadTaskContext() {
     const nodeKey = data.nodeKey || data.task?.currentNodeKey
     const currentDiscipline = route.query.discipline || nodeDisciplineMap[nodeKey]
     taskTitle.value = data.task?.taskName || '目标与约束选择'
+    taskType.value = data.task?.taskType || ''
     access.value = data.access || { mode: 'wait', label: '等待' }
     taskDescription.value = data.task?.description || ''
     attachments.value = data.attachments || []

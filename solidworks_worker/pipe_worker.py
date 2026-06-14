@@ -41,13 +41,16 @@ def build_model(payload):
         "R_mm": number(payload, "R", "r", "radius", default=20.0),
         "theta1_deg": number(payload, "theta1", "theta1_deg", default=-70.0),
         "theta2_deg": number(payload, "theta2", "theta2_deg", default=55.0),
-        "pipe_outer_diameter_mm": number(payload, "pipeDiameter", "pipe_outer_diameter_mm", default=30.0),
+        "pipe_outer_diameter_mm": number(payload, "pipeDiameter", "pipe_outer_diameter_mm", default=9.53),
+        "pipe_inner_diameter_mm": number(payload, "pipeInnerDiameter", "pipe_inner_diameter_mm", default=7.73),
         "wall_cut_extension_mm": number(payload, "wallCutExtension", default=80.0),
         "centerline_step_mm": 2.0,
         "tube_segments": 32,
         "output_stl": "pipe_model.stl",
         "output_centerline_csv": "pipe_centerline.csv",
     }
+    if params["pipe_inner_diameter_mm"] <= 0 or params["pipe_inner_diameter_mm"] >= params["pipe_outer_diameter_mm"]:
+        raise RuntimeError("Pipe inner diameter must be greater than 0 and smaller than the outer diameter.")
 
     params_path = GENERATOR_DIR / "params.json"
     original_params = params_path.read_text(encoding="utf-8")
@@ -74,9 +77,17 @@ def build_model(payload):
             render_stl_preview(stl_path, preview_path)
 
         sldprt_path = ""
+        step_path = ""
+        parasolid_path = ""
         task_part = job_dir / "pipe_native.SLDPRT"
+        task_step = job_dir / "pipe_model.step"
+        task_parasolid = job_dir / "pipe_model.x_t"
         if task_part.exists():
             task_part.unlink()
+        if task_step.exists():
+            task_step.unlink()
+        if task_parasolid.exists():
+            task_parasolid.unlink()
         if RUN_SOLIDWORKS:
             vbs_path = job_dir / "create_pipe_native.vbs"
             prepare_solidworks_vbs(vbs_path, task_part)
@@ -98,6 +109,10 @@ def build_model(payload):
                 sldprt_path = str(task_part)
             else:
                 raise RuntimeError(solidworks_error_message(job_dir, "SolidWorks did not generate pipe_native.SLDPRT."))
+            if task_step.exists():
+                step_path = str(task_step)
+            if task_parasolid.exists():
+                parasolid_path = str(task_parasolid)
         else:
             raise RuntimeError("SolidWorks generation is disabled. Set PIPE_WORKER_RUN_SOLIDWORKS=1 before starting the worker.")
 
@@ -117,7 +132,13 @@ def build_model(payload):
             "initialAngle": initial_angle,
             "closureStatus": "几何闭合和相切约束满足",
             "sldprtPath": sldprt_path,
+            "stepPath": step_path,
+            "parasolidPath": parasolid_path,
             "stlPath": str(stl_path),
+            "centerlineCsvPath": str(csv_path) if csv_path.exists() else "",
+            "pipeOuterDiameterMm": params["pipe_outer_diameter_mm"],
+            "pipeInnerDiameterMm": params["pipe_inner_diameter_mm"],
+            "pipeWallThicknessMm": (params["pipe_outer_diameter_mm"] - params["pipe_inner_diameter_mm"]) / 2.0,
             "previewPngPath": str(preview_path) if preview_path.exists() else "",
             "errorMessage": "",
         }
@@ -213,7 +234,7 @@ def prepare_solidworks_vbs(vbs_path, output_part_path):
             lines.append("WriteLog \"Path feature lookup completed\"")
             continue
         if stripped == "ok = False":
-            lines.append("WriteLog \"Selecting PipePath3D\"")
+            lines.append("WriteLog \"Selecting sweep path\"")
             lines.append(line)
             continue
         if stripped.startswith("If Not swPathFeat Is Nothing Then ok = swPathFeat.Select2"):
@@ -255,11 +276,35 @@ def prepare_solidworks_vbs(vbs_path, output_part_path):
             continue
         if sweep_block and stripped == "End If":
             lines.append(line)
-            lines.extend(save_vbs_lines(output_text))
-            lines.append("WriteLog \"Saved immediately after sweep; wall trimming skipped in worker mode\"")
-            lines.append("WScript.Echo \"Native SolidWorks pipe model created: \" & outPart")
-            lines.append("WScript.Quit 0")
             sweep_block = False
+            continue
+        if stripped.startswith("Set swShellFeat = ApplyPipeShell"):
+            lines.append("WriteLog \"Starting hollow shell feature\"")
+            lines.append(line)
+            continue
+        if stripped.startswith("ok1 = model.Extension.SelectByRay"):
+            lines.append(line)
+            lines.append("WriteLog \"Shell select start face=\" & CStr(ok1) & \", err=\" & CStr(Err.Number) & \", desc=\" & Err.Description")
+            continue
+        if stripped.startswith("ok2 = model.Extension.SelectByRay"):
+            lines.append(line)
+            lines.append("WriteLog \"Shell select end face=\" & CStr(ok2) & \", err=\" & CStr(Err.Number) & \", desc=\" & Err.Description")
+            continue
+        if stripped.startswith("Set shellFeat = model.FeatureManager.InsertShell"):
+            lines.append(line)
+            lines.append("WriteLog \"InsertShell result=\" & CStr(Not shellFeat Is Nothing) & \", err=\" & CStr(Err.Number) & \", desc=\" & Err.Description")
+            continue
+        if stripped.startswith("Set swInnerCutFeat = ApplySweptInnerCut"):
+            lines.append("WriteLog \"Shell feature failed; trying swept inner bore cut\"")
+            lines.append(line)
+            continue
+        if stripped.startswith("Set cutFeat = model.FeatureManager.InsertCutSwept"):
+            lines.append(line)
+            lines.append("WriteLog \"InsertCutSwept result=\" & CStr(Not cutFeat Is Nothing) & \", err=\" & CStr(Err.Number) & \", desc=\" & Err.Description")
+            continue
+        if stripped == "If swShellFeat Is Nothing And swInnerCutFeat Is Nothing Then":
+            lines.append(line)
+            lines.append("WriteLog \"Hollow bore creation result=False\"")
             continue
         if stripped == "swModel.SaveAs outPart":
             lines.extend(save_vbs_lines(output_text))
@@ -275,6 +320,9 @@ def prepare_solidworks_vbs(vbs_path, output_part_path):
 
 
 def save_vbs_lines(output_text):
+    output_path = Path(output_text)
+    step_text = str(output_path.with_name("pipe_model.step"))
+    parasolid_text = str(output_path.with_name("pipe_model.x_t"))
     return [
         f"outPart = \"{output_text}\"",
         "WriteLog \"Starting SaveAs: \" & outPart",
@@ -301,6 +349,28 @@ def save_vbs_lines(output_text):
         "  WScript.Quit 2",
         "End If",
         "WriteLog \"Save succeeded\"",
+        f"WriteLog \"Starting STEP export: {step_text}\"",
+        "On Error Resume Next",
+        f"saveOk = swModel.Extension.SaveAs(\"{step_text}\", 0, 1, Nothing, longStatus, longWarnings)",
+        "WriteLog \"STEP SaveAs result=\" & CStr(saveOk) & \", status=\" & CStr(longStatus) & \", warnings=\" & CStr(longWarnings) & \", err=\" & CStr(Err.Number) & \", desc=\" & Err.Description",
+        "If Err.Number <> 0 Then Err.Clear",
+        f"If Not fso.FileExists(\"{step_text}\") Then",
+        f"  saveOk = swModel.SaveAs3(\"{step_text}\", 0, 2)",
+        "  WriteLog \"STEP SaveAs3 fallback result=\" & CStr(saveOk) & \", err=\" & CStr(Err.Number) & \", desc=\" & Err.Description",
+        "  If Err.Number <> 0 Then Err.Clear",
+        "End If",
+        f"If Not fso.FileExists(\"{step_text}\") Then WriteLog \"STEP export missing after fallback\"",
+        f"WriteLog \"Starting Parasolid export: {parasolid_text}\"",
+        f"saveOk = swModel.Extension.SaveAs(\"{parasolid_text}\", 0, 1, Nothing, longStatus, longWarnings)",
+        "WriteLog \"Parasolid SaveAs result=\" & CStr(saveOk) & \", status=\" & CStr(longStatus) & \", warnings=\" & CStr(longWarnings) & \", err=\" & CStr(Err.Number) & \", desc=\" & Err.Description",
+        "If Err.Number <> 0 Then Err.Clear",
+        f"If Not fso.FileExists(\"{parasolid_text}\") Then",
+        f"  saveOk = swModel.SaveAs3(\"{parasolid_text}\", 0, 2)",
+        "  WriteLog \"Parasolid SaveAs3 fallback result=\" & CStr(saveOk) & \", err=\" & CStr(Err.Number) & \", desc=\" & Err.Description",
+        "  If Err.Number <> 0 Then Err.Clear",
+        "End If",
+        f"If Not fso.FileExists(\"{parasolid_text}\") Then WriteLog \"Parasolid export missing after fallback\"",
+        "On Error GoTo 0",
     ]
 
 

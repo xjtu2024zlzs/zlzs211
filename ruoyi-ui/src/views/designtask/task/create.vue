@@ -381,7 +381,7 @@ function getSelectedTemplateName() {
 }
 
 function getResponsibleRoleName(taskType) {
-  const map = { STRUCTURE: '结构设计工程师', LAYOUT: '布局设计工程师', MANUFACTURE: '工艺设计工程师' }
+  const map = { FRAME_BEAM_CRACK_LIFE_PREDICTION: '结构设计工程师', STRUCTURE: '结构设计工程师', LAYOUT: '布局设计工程师', MANUFACTURE: '工艺设计工程师' }
   return map[taskType] || '待配置'
 }
 

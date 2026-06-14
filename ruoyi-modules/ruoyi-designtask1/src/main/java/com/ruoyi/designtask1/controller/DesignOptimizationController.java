@@ -153,8 +153,19 @@ public class DesignOptimizationController {
     }
 
     @GetMapping("/task/{taskId}/ansys-simulation")
-    public AjaxResult ansysSimulation(@PathVariable Long taskId) {
-        return AjaxResult.success(optimizationService.ansysSimulation(taskId));
+    public AjaxResult ansysSimulation(@PathVariable Long taskId, @RequestParam(required = false) String simulationMode) {
+        return AjaxResult.success(optimizationService.ansysSimulation(taskId, simulationMode));
+    }
+
+    @GetMapping("/task/{taskId}/ansys-simulation/image")
+    public ResponseEntity<Resource> ansysSimulationImage(@PathVariable Long taskId, @RequestParam(required = false) String simulationMode) {
+        File file = optimizationService.ansysSimulationImage(taskId, simulationMode);
+        Resource resource = new FileSystemResource(file);
+        String contentType = URLConnection.guessContentTypeFromName(file.getName());
+        return ResponseEntity.ok()
+            .contentType(contentType == null ? MediaType.IMAGE_PNG : MediaType.parseMediaType(contentType))
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getName() + "\"")
+            .body(resource);
     }
 
     @PostMapping("/task/{taskId}/cad-model")

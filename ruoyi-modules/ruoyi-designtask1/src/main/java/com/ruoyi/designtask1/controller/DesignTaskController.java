@@ -187,6 +187,7 @@ public class DesignTaskController extends BaseController {
     @GetMapping("/types")
     public AjaxResult getTaskTypes() {
         return success(List.of(
+            java.util.Map.of("taskType", "FRAME_BEAM_CRACK_LIFE_PREDICTION", "typeName", "框梁裂纹扩展与寿命预测", "typeDesc", "面向框梁结构裂纹扩展、剩余寿命预测与维修建议确认", "color", "#2F80ED", "icon", "F", "collaboratorRoles", "STRUCTURE,MANUFACTURE"),
             java.util.Map.of("taskType", "STRUCTURE", "typeName", "结构设计", "typeDesc", "结构优化、强度分析和结构校核", "color", "#409EFF", "icon", "S", "collaboratorRoles", "LAYOUT,MANUFACTURE"),
             java.util.Map.of("taskType", "LAYOUT", "typeName", "布局设计", "typeDesc", "整机布局、装配关系和空间约束", "color", "#67C23A", "icon", "L", "collaboratorRoles", "STRUCTURE,HYDRAULIC"),
             java.util.Map.of("taskType", "MANUFACTURE", "typeName", "工艺设计", "typeDesc", "制造工艺、加工约束和工艺路线", "color", "#E6A23C", "icon", "M", "collaboratorRoles", "STRUCTURE,LAYOUT")

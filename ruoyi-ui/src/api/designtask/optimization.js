@@ -185,10 +185,20 @@ export function submitAnsysSimulationTask(taskId, data = {}) {
   })
 }
 
-export function getAnsysSimulationTask(taskId) {
+export function getAnsysSimulationTask(taskId, params = {}) {
   return request({
     url: `/designtask/task/${taskId}/ansys-simulation`,
-    method: 'get'
+    method: 'get',
+    params
+  })
+}
+
+export function getAnsysSimulationImage(taskId, params = {}) {
+  return request({
+    url: `/designtask/task/${taskId}/ansys-simulation/image`,
+    method: 'get',
+    params,
+    responseType: 'arraybuffer'
   })
 }
 
@@ -218,6 +228,51 @@ export function getCadModelFile(taskId, kind) {
 export function approveTask(taskId, data) {
   return request({
     url: `/designtask/task/${taskId}/approve`,
+    method: 'post',
+    data
+  })
+}
+
+export function getFrameBeamCrackInput(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/frame-beam-crack`,
+    method: 'get'
+  })
+}
+
+export function saveFrameBeamCrackInput(taskId, data) {
+  return request({
+    url: `/designtask/task/${taskId}/frame-beam-crack`,
+    method: 'post',
+    data
+  })
+}
+
+export function saveFrameBeamLoadSpectrum(taskId, data) {
+  return request({
+    url: `/designtask/task/${taskId}/frame-beam-load-spectrum`,
+    method: 'post',
+    data
+  })
+}
+
+export function getFrameBeamLifePrediction(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/frame-beam-life-prediction`,
+    method: 'get'
+  })
+}
+
+export function runFrameBeamLifePrediction(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/frame-beam-life-prediction`,
+    method: 'post'
+  })
+}
+
+export function confirmFrameBeamMaintenanceAdvice(taskId, data = {}) {
+  return request({
+    url: `/designtask/task/${taskId}/frame-beam-maintenance-advice/confirm`,
     method: 'post',
     data
   })

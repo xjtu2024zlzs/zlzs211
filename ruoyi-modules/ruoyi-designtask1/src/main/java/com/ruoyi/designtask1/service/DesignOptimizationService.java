@@ -34,6 +34,8 @@ import java.io.IOException;
 public class DesignOptimizationService {
 
     private static final DateTimeFormatter TASK_NO_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final String ANSYS_MODE_DEMO = "DEMO_SIMULATION_MODEL";
+    private static final String ANSYS_MODE_FSI = "BIDIRECTIONAL_FSI_MODEL";
 
     private final IDesignTaskService taskService;
     private final IDesignTaskFileService taskFileService;
@@ -41,6 +43,7 @@ public class DesignOptimizationService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ExecutorService cadExecutor = Executors.newFixedThreadPool(2);
+    private final ExecutorService ansysExecutor = Executors.newFixedThreadPool(2);
     private final ExecutorService solverExecutor = Executors.newFixedThreadPool(2);
 
     @Value("${designtask.flowable.base-url:http://127.0.0.1:9308}")
@@ -48,6 +51,9 @@ public class DesignOptimizationService {
 
     @Value("${designtask.solidworks.worker-url:http://127.0.0.1:18080/api/pipe-model}")
     private String solidWorksWorkerUrl;
+
+    @Value("${designtask.ansys.worker-url:http://127.0.0.1:18081/api/ansys/import-geometry}")
+    private String ansysWorkerUrl;
 
     @Value("${design.solver.surrogate-base-url:http://127.0.0.1:9721}")
     private String surrogateBaseUrl;
@@ -415,10 +421,13 @@ public class DesignOptimizationService {
             faultPipeItem("material", "材料属性", "TENSILE_YIELD_STRENGTH", "拉伸屈服强度", "2.07E+08", "Pa", "number", "", "拉伸屈服强度，可作为许用应力来源", 80),
             faultPipeItem("material", "材料属性", "COMPRESSIVE_YIELD_STRENGTH", "压缩屈服强度", "2.07E+08", "Pa", "number", "", "压缩屈服强度", 90),
             faultPipeItem("material", "材料属性", "TENSILE_ULTIMATE_STRENGTH", "拉伸极限强度", "5.86E+08", "Pa", "number", "", "拉伸极限强度", 100),
-            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_EXPRESSION", "入口压强表达式", "IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)", "Pa", "formula", "IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)", "0 到 0.001 秒线性升压，之后保持峰值压强", 110),
-            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_INITIAL", "初始压强", "101325", "Pa", "number", "", "入口初始压强", 120),
-            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_PEAK", "峰值压强", "30000000", "Pa", "number", "", "入口峰值压强", 130),
-            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_RISE_TIME", "上升时间", "0.001", "s", "number", "", "压强从初始值升至峰值所需时间", 140)
+            faultPipeItem("geometry", "管段几何参数", "PIPE_OUTER_DIAMETER", "管道外径", "9.53", "mm", "number", "", "当前设计管道外径", 110),
+            faultPipeItem("geometry", "管段几何参数", "PIPE_WALL_THICKNESS", "管道壁厚", "0.9", "mm", "number", "", "当前设计管道壁厚", 120),
+            faultPipeItem("geometry", "管段几何参数", "PIPE_INNER_DIAMETER", "管道内径", "7.73", "mm", "number", "9.53 - 2 * 0.9", "由外径减去两倍壁厚得到", 130),
+            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_EXPRESSION", "入口压强表达式", "IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)", "Pa", "formula", "IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)", "0 到 0.001 秒线性升压，之后保持峰值压强", 210),
+            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_INITIAL", "初始压强", "101325", "Pa", "number", "", "入口初始压强", 220),
+            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_PEAK", "峰值压强", "30000000", "Pa", "number", "", "入口峰值压强", 230),
+            faultPipeItem("pressure_load", "入口压强载荷", "INLET_PRESSURE_RISE_TIME", "上升时间", "0.001", "s", "number", "", "压强从初始值升至峰值所需时间", 240)
         );
         return mapOf(
             "parameterSetId", null,
@@ -620,29 +629,136 @@ public class DesignOptimizationService {
             assertCurrentAssignee(task, "当前任务未流转到你，暂不能启动 ANSYS 仿真。");
         }
         ensureAnsysSimulationTable();
+        String simulationMode = normalizeAnsysSimulationMode(body == null ? null : body.get("simulationMode"));
+        Map<String, Object> geometry = ansysGeometryInput(taskId);
+        Map<String, Object> faultPipeParameters = faultPipeParameters(taskId);
         Map<String, Object> input = mapOf(
             "cadModel", cadModel(taskId),
-            "faultPipeParameters", faultPipeParameters(taskId),
-            "simulationMode", str(body == null ? null : body.get("simulationMode"), "placeholder_transient_structural"),
-            "pressureLoad", "IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)"
+            "geometry", geometry,
+            "faultPipeParameters", faultPipeParameters,
+            "simulationMode", simulationMode,
+            "simulationModelName", ansysSimulationModeLabel(simulationMode),
+            "pressureLoad", inletPressureExpression(faultPipeParameters)
         );
-        Map<String, Object> result = placeholderAnsysResult();
-        upsertAnsysSimulation(taskId, "SUCCESS", input, result, "");
-        return ansysSimulation(taskId);
+        upsertAnsysSimulation(taskId, "RUNNING", input, Collections.emptyMap(), "", true);
+        CompletableFuture.runAsync(() -> runAnsysWorker(taskId, input), ansysExecutor);
+        return ansysSimulation(taskId, simulationMode);
+    }
+
+    private Map<String, Object> ansysGeometryInput(Long taskId) {
+        ensureCadModelTable();
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+            select status, sldprt_path sldprtPath, step_path stepPath, parasolid_path parasolidPath, stl_path stlPath, centerline_csv_path centerlineCsvPath
+            from t2_cad_model_task
+            where task_id = ?
+            """, taskId);
+        if (rows.isEmpty()) {
+            throw new IllegalStateException("Generate the SolidWorks CAD model before starting ANSYS import.");
+        }
+        Map<String, Object> row = rows.get(0);
+        String status = str(row.get("status"), "");
+        if (!"SUCCESS".equalsIgnoreCase(status)) {
+            throw new IllegalStateException("CAD model is not successful. Current status: " + status);
+        }
+        String parasolidPath = str(row.get("parasolidPath"), "");
+        String stepPath = str(row.get("stepPath"), "");
+        String sldprtPath = str(row.get("sldprtPath"), "");
+        String stlPath = str(row.get("stlPath"), "");
+        String centerlineCsvPath = str(row.get("centerlineCsvPath"), "");
+        String geometryPath = "";
+        String geometryType = "";
+        boolean neutralGeometry = true;
+        if (fileExists(stepPath)) {
+            geometryPath = stepPath;
+            geometryType = "STEP";
+        } else if (fileExists(sldprtPath)) {
+            geometryPath = sldprtPath;
+            geometryType = "SLDPRT";
+            neutralGeometry = false;
+        } else if (fileExists(parasolidPath)) {
+            geometryPath = parasolidPath;
+            geometryType = "PARASOLID";
+        } else if (fileExists(stlPath)) {
+            geometryPath = stlPath;
+            geometryType = "STL";
+            neutralGeometry = false;
+        }
+        if (StringUtils.isEmpty(geometryPath)) {
+            throw new IllegalStateException("CAD model does not contain an existing geometry file for ANSYS. Regenerate the CAD model first.");
+        }
+        return mapOf(
+            "geometryPath", geometryPath,
+            "geometryType", geometryType,
+            "neutralGeometry", neutralGeometry,
+            "sldprtPath", sldprtPath,
+            "stlPath", stlPath,
+            "centerlineCsvPath", centerlineCsvPath
+        );
+    }
+
+    private boolean fileExists(String path) {
+        return StringUtils.isNotEmpty(path) && new File(path).isFile();
+    }
+
+    @SuppressWarnings("unchecked")
+    private String inletPressureExpression(Map<String, Object> faultPipeParameters) {
+        Object valuesObject = faultPipeParameters == null ? null : faultPipeParameters.get("values");
+        Map<String, Object> values = valuesObject instanceof Map ? (Map<String, Object>) valuesObject : Collections.emptyMap();
+        String expression = str(values.get("INLET_PRESSURE_EXPRESSION"), "");
+        if (StringUtils.isNotEmpty(expression)) {
+            return expression;
+        }
+        String initial = str(values.get("INLET_PRESSURE_INITIAL"), "101325");
+        String peak = str(values.get("INLET_PRESSURE_PEAK"), "30000000");
+        String riseTime = str(values.get("INLET_PRESSURE_RISE_TIME"), "0.001");
+        return "IF(t <= " + riseTime + ", " + initial + " + (" + peak + " - " + initial + ") * t / " + riseTime + ", " + peak + ")";
+    }
+
+    private void runAnsysWorker(Long taskId, Map<String, Object> input) {
+        try {
+            upsertAnsysSimulation(taskId, "RUNNING", input, Collections.emptyMap(), "", true);
+            Map<String, Object> request = new LinkedHashMap<>(input);
+            request.put("taskId", taskId);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> workerResponse = restTemplate.postForObject(ansysWorkerUrl, request, Map.class);
+            Map<String, Object> data = responseData(workerResponse);
+            if (data.isEmpty() && workerResponse != null) {
+                data = workerResponse;
+            }
+            String status = str(data.get("status"), "SUCCESS");
+            if (!"SUCCESS".equalsIgnoreCase(status) && !"COMPLETED".equalsIgnoreCase(status)) {
+                upsertAnsysSimulation(taskId, "FAILED", input, data, str(data.get("errorMessage"), "ANSYS Worker failed to import geometry."), false);
+                return;
+            }
+            upsertAnsysSimulation(taskId, "SUCCESS", input, data, "", false);
+        } catch (Exception e) {
+            upsertAnsysSimulation(taskId, "FAILED", input, Collections.emptyMap(), "ANSYS Worker unavailable: " + e.getMessage(), false);
+        }
     }
 
     public Map<String, Object> ansysSimulation(Long taskId) {
+        return ansysSimulation(taskId, ANSYS_MODE_DEMO);
+    }
+
+    public Map<String, Object> ansysSimulation(Long taskId, String simulationModeRaw) {
         ensureAnsysSimulationTable();
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("select * from t2_design_ansys_simulation_task where task_id = ?", taskId);
+        String simulationMode = normalizeAnsysSimulationMode(simulationModeRaw);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+            "select * from t2_design_ansys_simulation_task where task_id = ? and simulation_mode = ?",
+            taskId,
+            simulationMode
+        );
         if (rows.isEmpty()) {
-            return defaultAnsysSimulation();
+            return defaultAnsysSimulation(simulationMode);
         }
         Map<String, Object> row = rows.get(0);
         String status = str(row.get("status"), "NOT_SUBMITTED");
         return mapOf(
             "status", status,
             "statusLabel", ansysStatusLabel(status),
-            "simulationType", str(row.get("simulation_type"), "Transient Structural"),
+            "simulationMode", simulationMode,
+            "simulationModelName", ansysSimulationModeLabel(simulationMode),
+            "simulationType", str(row.get("simulation_type"), "ANSYS Static Structural"),
             "input", fromJson(str(row.get("input_json"), "{}")),
             "result", fromJson(str(row.get("result_json"), "{}")),
             "metrics", fromJsonList(str(row.get("metrics_json"), "[]")),
@@ -654,13 +770,36 @@ public class DesignOptimizationService {
         );
     }
 
+    public File ansysSimulationImage(Long taskId) {
+        return ansysSimulationImage(taskId, ANSYS_MODE_DEMO);
+    }
+
+    public File ansysSimulationImage(Long taskId, String simulationModeRaw) {
+        ensureAnsysSimulationTable();
+        String simulationMode = normalizeAnsysSimulationMode(simulationModeRaw);
+        List<String> paths = jdbcTemplate.queryForList(
+            "select stress_image_url from t2_design_ansys_simulation_task where task_id = ? and simulation_mode = ?",
+            String.class,
+            taskId,
+            simulationMode
+        );
+        if (paths.isEmpty() || StringUtils.isEmpty(paths.get(0))) {
+            throw new IllegalStateException("ANSYS 应力云图尚未生成。");
+        }
+        File file = new File(paths.get(0));
+        if (!file.exists() || !file.isFile()) {
+            throw new IllegalStateException("ANSYS 应力云图不存在：" + file.getAbsolutePath());
+        }
+        return file;
+    }
+
     public Map<String, Object> submitCadModel(Long taskId, Map<String, Object> body) {
         DesignTask task = taskService.selectTaskById(taskId);
         if (task != null) {
             assertCurrentAssignee(task, "当前任务未流转到你，暂不能执行 CAD 参数建模验证。");
         }
         ensureCadModelTable();
-        Map<String, Object> params = cadParams(body);
+        Map<String, Object> params = cadParams(body, faultPipeParameters(taskId));
         validateCadParams(params);
         String paramsJson = toJson(params);
         upsertCadTask(taskId, "QUEUED", paramsJson, "", Collections.emptyMap());
@@ -670,10 +809,17 @@ public class DesignOptimizationService {
     }
 
     private Map<String, Object> defaultAnsysSimulation() {
+        return defaultAnsysSimulation(ANSYS_MODE_DEMO);
+    }
+
+    private Map<String, Object> defaultAnsysSimulation(String simulationModeRaw) {
+        String simulationMode = normalizeAnsysSimulationMode(simulationModeRaw);
         return mapOf(
             "status", "NOT_SUBMITTED",
             "statusLabel", "未提交",
-            "simulationType", "Transient Structural",
+            "simulationMode", simulationMode,
+            "simulationModelName", ansysSimulationModeLabel(simulationMode),
+            "simulationType", ansysSimulationTypeByMode(simulationMode),
             "input", Collections.emptyMap(),
             "result", Collections.emptyMap(),
             "metrics", Collections.emptyList(),
@@ -710,10 +856,44 @@ public class DesignOptimizationService {
         };
     }
 
+    private String ansysSimulationType(Map<String, Object> input) {
+        return ansysSimulationTypeByMode(normalizeAnsysSimulationMode(input == null ? null : input.get("simulationMode")));
+    }
+
+    private String ansysSimulationTypeByMode(String mode) {
+        return switch (normalizeAnsysSimulationMode(mode)) {
+            case ANSYS_MODE_FSI -> "ANSYS Fluent + Transient Structural + System Coupling";
+            default -> "ANSYS Static Structural";
+        };
+    }
+
+    private String ansysSimulationModeLabel(String mode) {
+        return switch (normalizeAnsysSimulationMode(mode)) {
+            case ANSYS_MODE_FSI -> "双向流固耦合仿真模型";
+            default -> "演示仿真模型";
+        };
+    }
+
+    private String normalizeAnsysSimulationMode(Object modeObject) {
+        String mode = str(modeObject, ANSYS_MODE_DEMO).trim();
+        if (StringUtils.isEmpty(mode)) {
+            return ANSYS_MODE_DEMO;
+        }
+        String upper = mode.toUpperCase(Locale.ROOT);
+        if ("BIDIRECTIONAL_FSI_MODEL".equals(upper)
+            || "BIDIRECTIONAL_FSI".equals(upper)
+            || "FSI_REFERENCE".equals(upper)
+            || "双向流固耦合仿真模型".equals(mode)) {
+            return ANSYS_MODE_FSI;
+        }
+        return ANSYS_MODE_DEMO;
+    }
+
     private void ensureAnsysSimulationTable() {
         jdbcTemplate.execute("""
             create table if not exists t2_design_ansys_simulation_task (
-              task_id bigint not null primary key,
+              task_id bigint not null,
+              simulation_mode varchar(64) not null default 'DEMO_SIMULATION_MODEL',
               status varchar(32) not null,
               simulation_type varchar(100),
               input_json text,
@@ -721,22 +901,59 @@ public class DesignOptimizationService {
               metrics_json text,
               stress_image_url varchar(1000),
               result_file_path varchar(1000),
-              error_message varchar(1000),
+              error_message text,
               placeholder char(1) default '1',
               create_time datetime default current_timestamp,
-              update_time datetime default current_timestamp
+              update_time datetime default current_timestamp,
+              primary key (task_id, simulation_mode)
             )
             """);
+        ensureColumn("t2_design_ansys_simulation_task", "simulation_mode", "varchar(64) not null default 'DEMO_SIMULATION_MODEL'");
+        try {
+            jdbcTemplate.execute("update t2_design_ansys_simulation_task set simulation_mode = 'DEMO_SIMULATION_MODEL' where simulation_mode is null or simulation_mode = ''");
+        } catch (Exception ignored) {
+        }
+        ensureAnsysSimulationCompositeKey();
     }
 
-    private void upsertAnsysSimulation(Long taskId, String status, Map<String, Object> input, Map<String, Object> result, String errorMessage) {
+    private void ensureAnsysSimulationCompositeKey() {
+        try {
+            Integer columns = jdbcTemplate.queryForObject(
+                """
+                select count(1)
+                from information_schema.key_column_usage
+                where table_schema = database()
+                  and table_name = 't2_design_ansys_simulation_task'
+                  and constraint_name = 'PRIMARY'
+                  and column_name in ('task_id', 'simulation_mode')
+                """,
+                Integer.class
+            );
+            if (columns != null && columns >= 2) {
+                return;
+            }
+        } catch (Exception ignored) {
+            return;
+        }
+        try {
+            jdbcTemplate.execute("alter table t2_design_ansys_simulation_task drop primary key");
+        } catch (Exception ignored) {
+        }
+        try {
+            jdbcTemplate.execute("alter table t2_design_ansys_simulation_task add primary key (task_id, simulation_mode)");
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void upsertAnsysSimulation(Long taskId, String status, Map<String, Object> input, Map<String, Object> result, String errorMessage, boolean placeholder) {
         ensureAnsysSimulationTable();
+        String simulationMode = normalizeAnsysSimulationMode(input == null ? null : input.get("simulationMode"));
         Object metrics = firstNonNull(result.get("metrics"), Collections.emptyList());
         jdbcTemplate.update("""
             insert into t2_design_ansys_simulation_task (
-              task_id, status, simulation_type, input_json, result_json, metrics_json,
+              task_id, simulation_mode, status, simulation_type, input_json, result_json, metrics_json,
               stress_image_url, result_file_path, error_message, placeholder, create_time, update_time
-            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, '1', sysdate(), sysdate())
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate(), sysdate())
             on duplicate key update
               status = values(status),
               simulation_type = values(simulation_type),
@@ -750,14 +967,16 @@ public class DesignOptimizationService {
               update_time = sysdate()
             """,
             taskId,
+            simulationMode,
             status,
-            "ANSYS Transient Structural",
+            ansysSimulationType(input),
             toJson(input),
             toJson(result),
             toJson(metrics),
-            "",
-            "",
-            errorMessage
+            str(firstNonNull(result.get("stressImageUrl"), result.get("previewImagePath")), ""),
+            str(firstNonNull(result.get("resultFilePath"), result.get("projectPath"), result.get("workDir")), ""),
+            limitText(errorMessage, 950),
+            placeholder ? "1" : "0"
         );
     }
 
@@ -771,7 +990,10 @@ public class DesignOptimizationService {
         Map<String, Object> params = fromJson(str(row.get("params_json"), "{}"));
         Map<String, Object> files = new LinkedHashMap<>();
         putFileIfExists(files, "sldprt", taskId, "CAD_SLDPRT", str(row.get("sldprt_path"), ""));
+        putFileIfExists(files, "step", taskId, "CAD_STEP", str(row.get("step_path"), ""));
+        putFileIfExists(files, "parasolid", taskId, "CAD_PARASOLID", str(row.get("parasolid_path"), ""));
         putFileIfExists(files, "stl", taskId, "CAD_STL", str(row.get("stl_path"), ""));
+        putFileIfExists(files, "centerlineCsv", taskId, "CAD_CENTERLINE_CSV", str(row.get("centerline_csv_path"), ""));
         putFileIfExists(files, "previewPng", taskId, "CAD_PREVIEW_PNG", str(row.get("preview_png_path"), ""));
         return mapOf(
             "status", str(row.get("status"), "NOT_SUBMITTED"),
@@ -790,7 +1012,10 @@ public class DesignOptimizationService {
         ensureCadModelTable();
         String column = switch (kind == null ? "" : kind.toLowerCase(Locale.ROOT)) {
             case "sldprt" -> "sldprt_path";
+            case "step", "stp" -> "step_path";
+            case "parasolid", "x_t", "xt" -> "parasolid_path";
             case "stl" -> "stl_path";
+            case "centerline", "centerlinecsv", "csv" -> "centerline_csv_path";
             case "preview", "png", "previewpng" -> "preview_png_path";
             default -> throw new IllegalStateException("不支持的 CAD 文件类型：" + kind);
         };
@@ -1097,13 +1322,34 @@ public class DesignOptimizationService {
     }
 
     private Map<String, Object> cadParams(Map<String, Object> body) {
+        return cadParams(body, fallbackFaultPipeParameters());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> faultPipeValues(Map<String, Object> faultPipeParameters) {
+        Object valuesObject = faultPipeParameters == null ? null : faultPipeParameters.get("values");
+        return valuesObject instanceof Map ? (Map<String, Object>) valuesObject : Collections.emptyMap();
+    }
+
+    private double faultPipeNumber(Map<String, Object> values, String code, double defaultValue) {
+        return doubleValue(values == null ? null : values.get(code), defaultValue);
+    }
+
+    private Map<String, Object> cadParams(Map<String, Object> body, Map<String, Object> faultPipeParameters) {
+        if (body == null) {
+            body = Collections.emptyMap();
+        }
+        Map<String, Object> faultValues = faultPipeValues(faultPipeParameters);
+        double defaultOuterDiameter = faultPipeNumber(faultValues, "PIPE_OUTER_DIAMETER", 9.53);
+        double defaultInnerDiameter = faultPipeNumber(faultValues, "PIPE_INNER_DIAMETER", defaultOuterDiameter - 1.8);
         return mapOf(
             "L1", doubleValue(firstNonNull(body.get("L1"), body.get("l1"), body.get("L1_mm"), body.get("l1Mm")), 280.0),
             "L2", doubleValue(firstNonNull(body.get("L2"), body.get("l2"), body.get("L2_mm"), body.get("l2Mm")), 150.0),
             "R", doubleValue(firstNonNull(body.get("R"), body.get("r"), body.get("R_mm"), body.get("radius")), 20.0),
             "theta1", doubleValue(firstNonNull(body.get("theta1"), body.get("angle1")), 110.0),
             "theta2", doubleValue(firstNonNull(body.get("theta2"), body.get("angle2")), 120.0),
-            "pipeDiameter", doubleValue(firstNonNull(body.get("pipeDiameter"), body.get("pipe_outer_diameter_mm")), 30.0),
+            "pipeDiameter", doubleValue(firstNonNull(body.get("pipeDiameter"), body.get("pipe_outer_diameter_mm")), defaultOuterDiameter),
+            "pipeInnerDiameter", doubleValue(firstNonNull(body.get("pipeInnerDiameter"), body.get("pipe_inner_diameter_mm")), defaultInnerDiameter),
             "totalHorizontal", 600.0,
             "totalVertical", 300.0
         );
@@ -1114,6 +1360,7 @@ public class DesignOptimizationService {
         double l2 = doubleValue(params.get("L2"), 0);
         double radius = doubleValue(params.get("R"), 0);
         double pipeDiameter = doubleValue(params.get("pipeDiameter"), 0);
+        double pipeInnerDiameter = doubleValue(params.get("pipeInnerDiameter"), 0);
         double theta1 = doubleValue(params.get("theta1"), 0);
         double theta2 = doubleValue(params.get("theta2"), 0);
         if (l1 <= 0 || l2 <= 0) {
@@ -1124,6 +1371,9 @@ public class DesignOptimizationService {
         }
         if (pipeDiameter <= 0) {
             throw new IllegalStateException("管径必须大于 0。");
+        }
+        if (pipeInnerDiameter <= 0 || pipeInnerDiameter >= pipeDiameter) {
+            throw new IllegalStateException("管道内径必须大于 0 且小于管道外径。");
         }
         if (radius <= pipeDiameter / 2.0) {
             throw new IllegalStateException("弯曲半径 R 应大于管外径的一半。");
@@ -1167,13 +1417,18 @@ public class DesignOptimizationService {
         request.put("theta2", 180.0 - theta2);
         request.put("angle1", theta1);
         request.put("angle2", theta2);
+        request.put("pipe_outer_diameter_mm", doubleValue(params.get("pipeDiameter"), 9.53));
+        request.put("pipe_inner_diameter_mm", doubleValue(params.get("pipeInnerDiameter"), 7.73));
         return request;
     }
 
     private void registerCadFiles(Long taskId, Map<String, Object> data, String username) {
-        jdbcTemplate.update("delete from t2_design_task_file where task_id = ? and file_type in ('CAD_SLDPRT','CAD_STL','CAD_PREVIEW_PNG')", taskId);
+        jdbcTemplate.update("delete from t2_design_task_file where task_id = ? and file_type in ('CAD_SLDPRT','CAD_STEP','CAD_PARASOLID','CAD_STL','CAD_PREVIEW_PNG','CAD_CENTERLINE_CSV')", taskId);
         insertCadFile(taskId, str(data.get("sldprtPath"), ""), "CAD_SLDPRT", username);
+        insertCadFile(taskId, str(data.get("stepPath"), ""), "CAD_STEP", username);
+        insertCadFile(taskId, str(data.get("parasolidPath"), ""), "CAD_PARASOLID", username);
         insertCadFile(taskId, str(data.get("stlPath"), ""), "CAD_STL", username);
+        insertCadFile(taskId, str(data.get("centerlineCsvPath"), ""), "CAD_CENTERLINE_CSV", username);
         insertCadFile(taskId, str(data.get("previewPngPath"), ""), "CAD_PREVIEW_PNG", username);
     }
 
@@ -1199,7 +1454,10 @@ public class DesignOptimizationService {
         }
         String kind = switch (key) {
             case "sldprt" -> "sldprt";
+            case "step" -> "step";
+            case "parasolid" -> "parasolid";
             case "previewPng" -> "preview";
+            case "centerlineCsv" -> "centerline";
             default -> "stl";
         };
         files.put(key, mapOf(
@@ -1221,12 +1479,34 @@ public class DesignOptimizationService {
               closure_status varchar(128),
               error_message varchar(1000),
               sldprt_path varchar(1000),
+              step_path varchar(1000),
+              parasolid_path varchar(1000),
               stl_path varchar(1000),
+              centerline_csv_path varchar(1000),
               preview_png_path varchar(1000),
               create_time datetime default current_timestamp,
               update_time datetime default current_timestamp
             )
             """);
+        addColumnIfMissing("t2_cad_model_task", "step_path", "varchar(1000)");
+        addColumnIfMissing("t2_cad_model_task", "parasolid_path", "varchar(1000)");
+        addColumnIfMissing("t2_cad_model_task", "centerline_csv_path", "varchar(1000)");
+    }
+
+    private void addColumnIfMissing(String tableName, String columnName, String definition) {
+        try {
+            Integer count = jdbcTemplate.queryForObject("""
+                select count(1)
+                from information_schema.columns
+                where table_schema = database()
+                  and table_name = ?
+                  and column_name = ?
+                """, Integer.class, tableName, columnName);
+            if (count == null || count == 0) {
+                jdbcTemplate.execute("alter table " + tableName + " add column " + columnName + " " + definition);
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     private void upsertCadTask(Long taskId, String status, String paramsJson, String errorMessage, Map<String, Object> data) {
@@ -1234,8 +1514,8 @@ public class DesignOptimizationService {
         jdbcTemplate.update("""
             insert into t2_cad_model_task (
               task_id, status, params_json, l3, initial_angle, closure_status, error_message,
-              sldprt_path, stl_path, preview_png_path, create_time, update_time
-            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate(), sysdate())
+              sldprt_path, step_path, parasolid_path, stl_path, centerline_csv_path, preview_png_path, create_time, update_time
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate(), sysdate())
             on duplicate key update
               status = values(status),
               params_json = values(params_json),
@@ -1244,7 +1524,10 @@ public class DesignOptimizationService {
               closure_status = values(closure_status),
               error_message = values(error_message),
               sldprt_path = values(sldprt_path),
+              step_path = values(step_path),
+              parasolid_path = values(parasolid_path),
               stl_path = values(stl_path),
+              centerline_csv_path = values(centerline_csv_path),
               preview_png_path = values(preview_png_path),
               update_time = sysdate()
             """,
@@ -1256,7 +1539,10 @@ public class DesignOptimizationService {
             str(data.get("closureStatus"), "几何闭合状态待 Worker 返回"),
             errorMessage,
             str(data.get("sldprtPath"), ""),
+            str(data.get("stepPath"), ""),
+            str(data.get("parasolidPath"), ""),
             str(data.get("stlPath"), ""),
+            str(data.get("centerlineCsvPath"), ""),
             str(data.get("previewPngPath"), "")
         );
     }
@@ -1627,7 +1913,7 @@ public class DesignOptimizationService {
         );
         try {
             List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
-                select variable_code variableCode, lower_bound lowerBound, upper_bound upperBound
+                select variable_code variableCode, lower_bound lowerBound, upper_bound upperBound, step_value stepValue
                 from t2_design_task_variable_selection
                 where task_id = ?
                 order by id
@@ -1639,7 +1925,8 @@ public class DesignOptimizationService {
                 }
                 bounds.put(key, mapOf(
                     "lower", doubleValue(row.get("lowerBound"), 0),
-                    "upper", doubleValue(row.get("upperBound"), 0)
+                    "upper", doubleValue(row.get("upperBound"), 0),
+                    "step", doubleValue(row.get("stepValue"), 0)
                 ));
             }
         } catch (Exception ignored) {
@@ -2342,6 +2629,16 @@ public class DesignOptimizationService {
 
     private String str(Object value, String fallback) {
         return value == null || String.valueOf(value).isBlank() || "null".equals(String.valueOf(value)) ? fallback : String.valueOf(value);
+    }
+
+    private String limitText(String text, int maxLength) {
+        if (text == null) {
+            return "";
+        }
+        if (text.length() <= maxLength) {
+            return text;
+        }
+        return text.substring(0, Math.max(0, maxLength - 3)) + "...";
     }
 
     private Integer intValue(Object value, Integer fallback) {

@@ -189,10 +189,22 @@ export const constantRoutes = [
         meta: { title: '模型解耦求解', icon: 'component' }
       },
       {
+        path: 'life-prediction',
+        component: () => import('@/views/designtask/frameBeam/life-prediction'),
+        name: 'FrameBeamLifePrediction',
+        meta: { title: '寿命预测评估', icon: 'chart' }
+      },
+      {
         path: 'simulation',
         component: () => import('@/views/designtask/simulation/index'),
         name: 'DesignTaskSimulation',
         meta: { title: '仿真验证确认', icon: 'chart' }
+      },
+      {
+        path: 'decision-advice',
+        component: () => import('@/views/designtask/frameBeam/decision-advice'),
+        name: 'FrameBeamDecisionAdvice',
+        meta: { title: '决策建议确认', icon: 'checkbox' }
       },
       {
         path: 'archive',

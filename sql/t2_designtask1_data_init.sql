@@ -32,9 +32,6 @@ VALUES
   (2605, '仿真验证确认', 2600, 5, 'simulation', 'designtask/simulation/index', '', '',
    1, 0, 'C', '0', '0', 'designtask:task:simulate', 'chart',
    'admin', SYSDATE(), '', NULL, ''),
-  (2614, '标准资源管理', 2600, 6, 'resource', 'designtask/resource/index', '', '',
-   1, 0, 'C', '0', '0', 'designtask:resource:list', 'documentation',
-   'admin', SYSDATE(), '', NULL, ''),
   (2621, '任务归档文档', 2600, 7, 'archive', 'designtask/archive/index', '', '',
    1, 0, 'C', '1', '0', 'designtask:archive:view', 'documentation',
    'admin', SYSDATE(), '', NULL, '已完成任务归档查看页面')
@@ -70,7 +67,6 @@ VALUES
   (2611, '仿真验证', 2605, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:task:simulate', '#', 'admin', SYSDATE(), '', NULL, ''),
   (2612, '领导审批', 2605, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:task:approve', '#', 'admin', SYSDATE(), '', NULL, ''),
   (2613, '流程模板查询', 2602, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:flow:list', '#', 'admin', SYSDATE(), '', NULL, ''),
-  (2615, '标准资源新增', 2614, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:resource:add', '#', 'admin', SYSDATE(), '', NULL, ''),
   (2616, '流程模板详情', 2602, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:flow:query', '#', 'admin', SYSDATE(), '', NULL, ''),
   (2617, '流程模板新增', 2602, 3, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:flow:add', '#', 'admin', SYSDATE(), '', NULL, ''),
   (2618, '流程模板修改', 2602, 4, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:flow:edit', '#', 'admin', SYSDATE(), '', NULL, ''),
@@ -152,7 +148,7 @@ WHERE r.del_flag <> '2';
 INSERT IGNORE INTO sys_role_menu(role_id, menu_id)
 SELECT r.role_id, m.menu_id
 FROM sys_role r
-JOIN sys_menu m ON m.menu_id IN (2602, 2604, 2605, 2608, 2609, 2610, 2611, 2613, 2614, 2615, 2616, 2620, 2621, 2622)
+JOIN sys_menu m ON m.menu_id IN (2602, 2604, 2605, 2608, 2609, 2610, 2611, 2613, 2616, 2620, 2621, 2622)
 WHERE r.role_key = 'design_task_owner'
   AND r.del_flag <> '2';
 
@@ -453,10 +449,13 @@ VALUES
   (@fault_pipe_default_set_id, 'material', '材料属性', 'TENSILE_YIELD_STRENGTH', '拉伸屈服强度', '2.07E+08', 'Pa', 'number', '', '拉伸屈服强度，可作为许用应力来源', 80, '0', 'admin', SYSDATE()),
   (@fault_pipe_default_set_id, 'material', '材料属性', 'COMPRESSIVE_YIELD_STRENGTH', '压缩屈服强度', '2.07E+08', 'Pa', 'number', '', '压缩屈服强度', 90, '0', 'admin', SYSDATE()),
   (@fault_pipe_default_set_id, 'material', '材料属性', 'TENSILE_ULTIMATE_STRENGTH', '拉伸极限强度', '5.86E+08', 'Pa', 'number', '', '拉伸极限强度', 100, '0', 'admin', SYSDATE()),
-  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_EXPRESSION', '入口压强表达式', 'IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)', 'Pa', 'formula', 'IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)', '0 到 0.001 秒线性升压，之后保持峰值压强', 110, '0', 'admin', SYSDATE()),
-  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_INITIAL', '初始压强', '101325', 'Pa', 'number', '', '入口初始压强', 120, '0', 'admin', SYSDATE()),
-  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_PEAK', '峰值压强', '30000000', 'Pa', 'number', '', '入口峰值压强', 130, '0', 'admin', SYSDATE()),
-  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_RISE_TIME', '上升时间', '0.001', 's', 'number', '', '压强从初始值升至峰值所需时间', 140, '0', 'admin', SYSDATE())
+  (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_OUTER_DIAMETER', '管道外径', '9.53', 'mm', 'number', '', '当前设计管道外径', 110, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_WALL_THICKNESS', '管道壁厚', '0.9', 'mm', 'number', '', '当前设计管道壁厚', 120, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_INNER_DIAMETER', '管道内径', '7.73', 'mm', 'number', '9.53 - 2 * 0.9', '由外径减去两倍壁厚得到', 130, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_EXPRESSION', '入口压强表达式', 'IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)', 'Pa', 'formula', 'IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)', '0 到 0.001 秒线性升压，之后保持峰值压强', 140, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_INITIAL', '初始压强', '101325', 'Pa', 'number', '', '入口初始压强', 150, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_PEAK', '峰值压强', '30000000', 'Pa', 'number', '', '入口峰值压强', 160, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_RISE_TIME', '上升时间', '0.001', 's', 'number', '', '压强从初始值升至峰值所需时间', 170, '0', 'admin', SYSDATE())
 ON DUPLICATE KEY UPDATE
   param_group = VALUES(param_group),
   group_name = VALUES(group_name),

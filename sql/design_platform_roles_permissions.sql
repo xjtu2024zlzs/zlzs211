@@ -42,8 +42,6 @@ VALUES
   (2611, '仿真验证', 2605, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:task:simulate', '#', 'admin', SYSDATE(), '', NULL, ''),
   (2612, '领导审批', 2605, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:task:approve', '#', 'admin', SYSDATE(), '', NULL, ''),
   (2613, '流程模板查询', 2602, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:flow:list', '#', 'admin', SYSDATE(), '', NULL, ''),
-  (2614, '标准资源管理', 2600, 6, 'resource', 'designtask/resource/index', '', '', 1, 0, 'C', '0', '0', 'designtask:resource:list', 'documentation', 'admin', SYSDATE(), '', NULL, ''),
-  (2615, '标准资源新增', 2614, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:resource:add', '#', 'admin', SYSDATE(), '', NULL, ''),
   (2616, '流程模板详情', 2602, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:flow:query', '#', 'admin', SYSDATE(), '', NULL, ''),
   (2617, '流程模板新增', 2602, 3, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:flow:add', '#', 'admin', SYSDATE(), '', NULL, ''),
   (2618, '流程模板修改', 2602, 4, '', '', '', '', 1, 0, 'F', '0', '0', 'designtask:flow:edit', '#', 'admin', SYSDATE(), '', NULL, ''),
@@ -124,7 +122,7 @@ WHERE r.del_flag <> '2';
 INSERT IGNORE INTO sys_role_menu(role_id, menu_id)
 SELECT r.role_id, m.menu_id
 FROM sys_role r
-JOIN sys_menu m ON m.menu_id IN (2602, 2604, 2605, 2608, 2609, 2610, 2611, 2613, 2614, 2615, 2616, 2620)
+JOIN sys_menu m ON m.menu_id IN (2602, 2604, 2605, 2608, 2609, 2610, 2611, 2613, 2616, 2620)
 WHERE (r.role_key = 'design_task_owner' OR r.role_name = '任务负责人')
   AND r.del_flag <> '2';
 

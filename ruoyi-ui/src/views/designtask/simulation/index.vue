@@ -108,12 +108,20 @@
                 <el-form-item label="θ2 / °">
                   <el-input-number v-model="cadForm.theta2" :precision="2" :step="5" :disabled="!canEditCad" controls-position="right" />
                 </el-form-item>
+                <el-form-item label="外径 / mm">
+                  <el-input-number v-model="cadForm.pipeDiameter" :min="0.1" :precision="2" :step="0.1" :disabled="!canEditCad" controls-position="right" />
+                </el-form-item>
+                <el-form-item label="内径 / mm">
+                  <el-input-number v-model="cadForm.pipeInnerDiameter" :min="0.1" :max="cadForm.pipeDiameter - 0.1" :precision="2" :step="0.1" :disabled="!canEditCad" controls-position="right" />
+                </el-form-item>
               </el-form>
 
               <div class="cad-constraint-list">
                 <div><span>水平总长</span><strong>600 mm</strong></div>
                 <div><span>竖直总高</span><strong>300 mm</strong></div>
-                <div><span>管径</span><strong>30 mm</strong></div>
+                <div><span>管道外径</span><strong>{{ cadPipeDiameter }} mm</strong></div>
+                <div><span>管道内径</span><strong>{{ cadPipeInnerDiameter }} mm</strong></div>
+                <div><span>管道壁厚</span><strong>{{ cadWallThickness }} mm</strong></div>
               </div>
             </div>
 
@@ -167,6 +175,19 @@
             </div>
           </div>
 
+          <div class="ansys-model-selector">
+            <el-radio-group v-model="selectedAnsysSimulationMode" :disabled="ansysSubmitting || ansysRefreshing">
+              <el-radio-button
+                v-for="mode in ansysSimulationModes"
+                :key="mode.value"
+                :label="mode.value"
+              >
+                {{ mode.label }}
+              </el-radio-button>
+            </el-radio-group>
+            <span class="ansys-model-desc">{{ currentAnsysSimulationMode.description }}</span>
+          </div>
+
           <el-alert
             v-if="ansysSimulation.placeholder && ansysSimulation.status === 'SUCCESS'"
             class="mb-16"
@@ -194,12 +215,16 @@
               </el-table>
             </div>
             <div class="ansys-image-panel">
-              <img
-                v-if="ansysSimulation.status && ansysSimulation.status !== 'NOT_SUBMITTED'"
-                :src="ansysStressImage"
-                alt="ANSYS stress contour placeholder"
-              />
-              <span v-else>点击“开始 ANSYS 仿真”后展示应力云图</span>
+              <template v-if="ansysStressImage">
+                <div class="ansys-image-actions">
+                  <el-button size="small" plain @click="ansysImagePreviewVisible = true">查看原图</el-button>
+                </div>
+                <img
+                  :src="ansysStressImage"
+                  alt="ANSYS stress contour"
+                />
+              </template>
+              <span v-else>{{ ansysImageEmptyText }}</span>
             </div>
           </div>
         </section>
@@ -302,6 +327,17 @@
         </section>
       </template>
     </div>
+    <el-dialog
+      v-model="ansysImagePreviewVisible"
+      title="ANSYS 应力云图"
+      width="92vw"
+      append-to-body
+      class="ansys-image-dialog"
+    >
+      <div class="ansys-preview-scroll">
+        <img v-if="ansysStressImage" :src="ansysStressImage" alt="ANSYS stress contour preview" />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -312,6 +348,7 @@ import { ElMessage } from 'element-plus'
 import { saveAs } from 'file-saver'
 import {
   approveTask,
+  getAnsysSimulationImage,
   getAnsysSimulationTask,
   getCadModelFile,
   getCadModelTask,
@@ -332,16 +369,44 @@ const currentNodeKey = ref('')
 const access = ref({ mode: 'wait', label: '等待' })
 const simulation = ref({ passed: true, metrics: [], conclusion: '' })
 const ansysSimulation = ref({ status: 'NOT_SUBMITTED', statusLabel: '未提交', metrics: [], placeholder: true })
+const ansysStressObjectUrl = ref('')
+const ansysStressImageKey = ref('')
+const ansysImagePreviewVisible = ref(false)
 const faultPipeParameters = ref({ groups: [] })
 const approval = ref({ approved: true, comment: '仿真验证结果满足设计要求，同意通过。' })
-const cadForm = ref({ L1: 280, L2: 150, R: 20, theta1: 110, theta2: 120 })
+const cadForm = ref({ L1: 280, L2: 150, R: 20, theta1: 110, theta2: 120, pipeDiameter: 9.53, pipeInnerDiameter: 7.73 })
+const cadPipeDiameter = computed(() => Number(cadForm.value.pipeDiameter || 9.53).toFixed(2))
+const cadPipeInnerDiameter = computed(() => Number(cadForm.value.pipeInnerDiameter || 7.73).toFixed(2))
+const cadWallThickness = computed(() => {
+  const outer = Number(cadForm.value.pipeDiameter || 0)
+  const inner = Number(cadForm.value.pipeInnerDiameter || 0)
+  return Math.max((outer - inner) / 2, 0).toFixed(2)
+})
 const cadModel = ref({ status: 'NOT_SUBMITTED', statusLabel: '未提交', params: {}, files: {} })
 const cadStlData = ref(null)
 const cadSubmitting = ref(false)
 const cadRefreshing = ref(false)
 const ansysSubmitting = ref(false)
 const ansysRefreshing = ref(false)
+const ANSYS_MODE_DEMO = 'DEMO_SIMULATION_MODEL'
+const ANSYS_MODE_FSI = 'BIDIRECTIONAL_FSI_MODEL'
+const ansysSimulationModes = [
+  {
+    value: ANSYS_MODE_DEMO,
+    label: '演示仿真模型',
+    description: '保留当前 Mechanical 静力结构流程，用于快速展示和结构校核。'
+  },
+  {
+    value: ANSYS_MODE_FSI,
+    label: '双向流固耦合仿真模型',
+    description: '按参考模型参数创建 Fluent + Transient Structural + System Coupling 双向耦合工程。'
+  }
+]
+const selectedAnsysSimulationMode = ref(
+  [ANSYS_MODE_DEMO, ANSYS_MODE_FSI].includes(route.query.ansysMode) ? route.query.ansysMode : ANSYS_MODE_DEMO
+)
 let cadPollTimer = null
+let ansysPollTimer = null
 const inboxLoading = ref(false)
 const pendingTasks = ref([])
 const handledTasks = ref([])
@@ -360,8 +425,20 @@ const viewOnly = computed(() => route.query.mode === 'view')
 const canSimulate = computed(() => !viewOnly.value && access.value.mode === 'enter' && currentNodeKey.value === 'simulation_confirm')
 const canEditCad = computed(() => !viewOnly.value && access.value.mode === 'enter')
 const canApprove = computed(() => !viewOnly.value && access.value.mode === 'enter' && currentNodeKey.value === 'leader_approve')
+const currentAnsysSimulationMode = computed(() => {
+  return ansysSimulationModes.find(item => item.value === selectedAnsysSimulationMode.value) || ansysSimulationModes[0]
+})
 const faultPipeParameterGroups = computed(() => faultPipeParameters.value.groups || [])
-const ansysStressImage = computed(() => ansysSimulation.value.stressImageUrl || ansysStressPlaceholder)
+const ansysStressImage = computed(() => {
+  if (ansysStressObjectUrl.value) return ansysStressObjectUrl.value
+  if (ansysSimulation.value.placeholder && ansysSimulation.value.status === 'SUCCESS') return ansysStressPlaceholder
+  return ''
+})
+const ansysImageEmptyText = computed(() => {
+  if (ansysSimulation.value.status === 'FAILED') return 'ANSYS 仿真失败，暂无真实云图'
+  if (['QUEUED', 'RUNNING'].includes(ansysSimulation.value.status)) return 'ANSYS 仿真处理中'
+  return '点击“开始 ANSYS 仿真”后展示应力云图'
+})
 const cadEmptyText = computed(() => {
   if (cadModel.value.status === 'FAILED') return cadModel.value.errorMessage || 'CAD 建模失败'
   if (['QUEUED', 'RUNNING'].includes(cadModel.value.status)) return 'CAD 模型生成中'
@@ -470,7 +547,10 @@ function loadData() {
     currentNodeKey.value = data.nodeKey || data.task?.currentNodeKey || ''
     access.value = data.access || { mode: 'wait', label: '等待' }
     simulation.value = data.simulation || simulation.value
-    ansysSimulation.value = data.ansysSimulation || ansysSimulation.value
+    applyAnsysSimulation(data.ansysSimulation)
+    if (data.ansysSimulation?.simulationMode !== selectedAnsysSimulationMode.value) {
+      refreshAnsysSimulation(true)
+    }
     faultPipeParameters.value = data.faultPipeParameters || { groups: [] }
     applyCadModel(data.cadModel)
     applySurrogateSolution(data.surrogateSolve)
@@ -485,7 +565,9 @@ function applyCadModel(model) {
       L2: Number(cadModel.value.params.L2 ?? cadForm.value.L2),
       R: Number(cadModel.value.params.R ?? cadForm.value.R),
       theta1: Number(cadModel.value.params.theta1 ?? cadForm.value.theta1),
-      theta2: Number(cadModel.value.params.theta2 ?? cadForm.value.theta2)
+      theta2: Number(cadModel.value.params.theta2 ?? cadForm.value.theta2),
+      pipeDiameter: Number(cadModel.value.params.pipeDiameter ?? cadForm.value.pipeDiameter),
+      pipeInnerDiameter: Number(cadModel.value.params.pipeInnerDiameter ?? cadForm.value.pipeInnerDiameter)
     }
   }
   if (cadModel.value.status === 'SUCCESS' && cadModel.value.files?.stl) {
@@ -502,37 +584,81 @@ function applyCadModel(model) {
 
 function applySurrogateSolution(surrogateSolve) {
   const best = surrogateSolve?.bestSolution || {}
-  const shouldUseSurrogate = surrogateSolve?.confirmed && cadModel.value.status === 'NOT_SUBMITTED' && Object.keys(best).length
+  const surrogateConfirmed = surrogateSolve?.confirmed || surrogateSolve?.status === 'CONFIRMED'
+  const shouldUseSurrogate = surrogateConfirmed && cadModel.value.status === 'NOT_SUBMITTED' && Object.keys(best).length
   if (!shouldUseSurrogate) return
   cadForm.value = {
     L1: Number(best.L1 ?? cadForm.value.L1),
     L2: Number(best.L2 ?? cadForm.value.L2),
     R: Number(best.R ?? cadForm.value.R),
     theta1: Number(best.theta1 ?? cadForm.value.theta1),
-    theta2: Number(best.theta2 ?? cadForm.value.theta2)
+    theta2: Number(best.theta2 ?? cadForm.value.theta2),
+    pipeDiameter: Number(cadForm.value.pipeDiameter || 9.53),
+    pipeInnerDiameter: Number(cadForm.value.pipeInnerDiameter || 7.73)
   }
+}
+
+function applyAnsysSimulation(model) {
+  ansysSimulation.value = model || ansysSimulation.value
+  if (['QUEUED', 'RUNNING'].includes(ansysSimulation.value.status)) {
+    clearAnsysStressImage()
+    startAnsysPolling()
+  } else {
+    stopAnsysPolling()
+    loadAnsysStressImage()
+  }
+}
+
+function clearAnsysStressImage() {
+  if (ansysStressObjectUrl.value) {
+    URL.revokeObjectURL(ansysStressObjectUrl.value)
+  }
+  ansysStressObjectUrl.value = ''
+  ansysStressImageKey.value = ''
+}
+
+function loadAnsysStressImage() {
+  const imagePath = ansysSimulation.value.stressImageUrl
+  const shouldLoad = taskId.value &&
+    ansysSimulation.value.status === 'SUCCESS' &&
+    !ansysSimulation.value.placeholder &&
+    imagePath
+  if (!shouldLoad) {
+    clearAnsysStressImage()
+    return
+  }
+  const imageKey = `${taskId.value}:${selectedAnsysSimulationMode.value}:${imagePath}:${ansysSimulation.value.updatedAt || ''}`
+  if (ansysStressImageKey.value === imageKey && ansysStressObjectUrl.value) return
+  getAnsysSimulationImage(taskId.value, { simulationMode: selectedAnsysSimulationMode.value }).then(data => {
+    clearAnsysStressImage()
+    ansysStressObjectUrl.value = URL.createObjectURL(new Blob([data], { type: 'image/png' }))
+    ansysStressImageKey.value = imageKey
+  }).catch(() => {
+    clearAnsysStressImage()
+  })
 }
 
 function startAnsysSimulation() {
   if (!taskId.value) return
   ansysSubmitting.value = true
   submitAnsysSimulationTask(taskId.value, {
-    simulationMode: 'placeholder_transient_structural'
+    simulationMode: selectedAnsysSimulationMode.value
   }).then(res => {
-    ansysSimulation.value = res.data || ansysSimulation.value
-    ElMessage.success('ANSYS 仿真占位任务已完成')
+    applyAnsysSimulation(res.data)
+    ElMessage.success('ANSYS 仿真任务已提交')
   }).finally(() => {
     ansysSubmitting.value = false
   })
 }
 
-function refreshAnsysSimulation() {
+function refreshAnsysSimulation(silent = false) {
   if (!taskId.value) return
-  ansysRefreshing.value = true
-  getAnsysSimulationTask(taskId.value).then(res => {
-    ansysSimulation.value = res.data || ansysSimulation.value
+  const silentMode = silent === true
+  if (!silentMode) ansysRefreshing.value = true
+  getAnsysSimulationTask(taskId.value, { simulationMode: selectedAnsysSimulationMode.value }).then(res => {
+    applyAnsysSimulation(res.data)
   }).finally(() => {
-    ansysRefreshing.value = false
+    if (!silentMode) ansysRefreshing.value = false
   })
 }
 
@@ -549,9 +675,15 @@ function ansysStatusType(status) {
 function submitCadModel() {
   if (!taskId.value) return
   cadSubmitting.value = true
-  submitCadModelTask(taskId.value, cadForm.value).then(res => {
+  const useSurrogateBest = cadModel.value.status === 'SUCCESS' ||
+    cadModel.value.resetRequired ||
+    cadModel.value.params?.source === 'surrogate_best_solution'
+  submitCadModelTask(taskId.value, {
+    ...cadForm.value,
+    useSurrogateBest
+  }).then(res => {
     applyCadModel(res.data)
-    ElMessage.success('CAD 建模任务已提交')
+    ElMessage.success(useSurrogateBest ? '已按模型最优解重新提交 CAD 建模' : 'CAD 建模任务已提交')
   }).finally(() => {
     cadSubmitting.value = false
   })
@@ -576,6 +708,17 @@ function stopCadPolling() {
   if (!cadPollTimer) return
   window.clearInterval(cadPollTimer)
   cadPollTimer = null
+}
+
+function startAnsysPolling() {
+  if (ansysPollTimer) return
+  ansysPollTimer = window.setInterval(() => refreshAnsysSimulation(true), 5000)
+}
+
+function stopAnsysPolling() {
+  if (!ansysPollTimer) return
+  window.clearInterval(ansysPollTimer)
+  ansysPollTimer = null
 }
 
 function loadCadStl() {
@@ -630,12 +773,26 @@ function submitApproval() {
 onMounted(loadData)
 onBeforeUnmount(() => {
   stopCadPolling()
+  stopAnsysPolling()
+  clearAnsysStressImage()
 })
 
 watch(() => route.query.taskId, value => {
   taskId.value = value ? Number(value) : null
   activeTab.value = ['handled', 'related'].includes(route.query.tab) ? route.query.tab : activeTab.value
+  selectedAnsysSimulationMode.value = [ANSYS_MODE_DEMO, ANSYS_MODE_FSI].includes(route.query.ansysMode)
+    ? route.query.ansysMode
+    : selectedAnsysSimulationMode.value
   loadData()
+})
+
+watch(selectedAnsysSimulationMode, mode => {
+  if (!taskId.value) return
+  router.replace({
+    path: '/designtask/simulation',
+    query: { ...route.query, ansysMode: mode }
+  })
+  refreshAnsysSimulation(true)
 })
 </script>
 
@@ -689,12 +846,32 @@ watch(() => route.query.taskId, value => {
   align-items: stretch;
 }
 
+.ansys-model-selector {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(128, 158, 195, 0.22);
+  border-radius: 8px;
+  background: rgba(248, 251, 255, 0.78);
+}
+
+.ansys-model-desc {
+  min-width: 0;
+  color: #708198;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .ansys-image-panel {
   display: flex;
+  flex-direction: column;
   min-height: 260px;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: auto;
+  padding: 10px;
   border: 1px solid rgba(128, 158, 195, 0.22);
   border-radius: 8px;
   background: #eef3fb;
@@ -702,9 +879,34 @@ watch(() => route.query.taskId, value => {
   img {
     display: block;
     width: 100%;
-    height: 100%;
+    height: auto;
+    max-height: 520px;
     object-fit: contain;
   }
+}
+
+.ansys-image-actions {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.ansys-preview-scroll {
+  max-height: 78vh;
+  overflow: auto;
+  text-align: center;
+  background: #eef3fb;
+
+  img {
+    display: block;
+    max-width: none;
+    margin: 0 auto;
+  }
+}
+
+:global(.ansys-image-dialog .el-dialog__body) {
+  padding: 10px;
 }
 
 .cad-model-grid {

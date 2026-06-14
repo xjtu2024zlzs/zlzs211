@@ -1,9 +1,6 @@
--- Project 2 / designtask1 full schema.
--- Use this file for a clean master import. It contains final table definitions only.
--- It intentionally excludes rename scripts, alter-upgrade scripts, cleanup scripts, and seed data.
-
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+-- GUI friendly startup fix for t2_ tables.
+-- Use this file in DBeaver/Navicat/DataGrip when DELIMITER/PROCEDURE execution fails.
+-- It does not rename old tables. Run it after t2 tables exist or for a fresh t2 schema.
 
 CREATE TABLE IF NOT EXISTS t2_design_task (
   task_id bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'Task ID',
@@ -13,10 +10,6 @@ CREATE TABLE IF NOT EXISTS t2_design_task (
   template_id bigint(20) DEFAULT NULL COMMENT 'Template ID',
   priority int(2) DEFAULT 2 COMMENT 'Priority',
   description text COMMENT 'Description',
-  planned_start_time datetime DEFAULT NULL COMMENT 'Planned start time',
-  planned_end_time datetime DEFAULT NULL COMMENT 'Planned end time',
-  plan_start_time datetime DEFAULT NULL COMMENT 'Legacy planned start time',
-  expected_end_time datetime DEFAULT NULL COMMENT 'Legacy expected end time',
   status varchar(20) DEFAULT 'DRAFT' COMMENT 'Task status',
   responsible_role varchar(50) DEFAULT NULL COMMENT 'Responsible role',
   collab_roles varchar(200) DEFAULT NULL COMMENT 'Collaboration roles',
@@ -34,6 +27,8 @@ CREATE TABLE IF NOT EXISTS t2_design_task (
   manufacturing_user_id bigint(20) DEFAULT NULL COMMENT 'Manufacturing engineer user ID',
   design_user_id bigint(20) DEFAULT NULL COMMENT 'Design engineer user ID',
   leader_user_id bigint(20) DEFAULT NULL COMMENT 'Approval leader user ID',
+  plan_start_time datetime DEFAULT NULL COMMENT 'Planned start time',
+  expected_end_time datetime DEFAULT NULL COMMENT 'Expected end time',
   create_by varchar(64) DEFAULT '' COMMENT 'Created by',
   create_time datetime DEFAULT NULL COMMENT 'Created time',
   update_by varchar(64) DEFAULT '' COMMENT 'Updated by',
@@ -124,6 +119,7 @@ CREATE TABLE IF NOT EXISTS t2_design_task_file (
   KEY idx_t2_task_file_task (task_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Design task file';
 
+
 CREATE TABLE IF NOT EXISTS t2_design_task_log (
   log_id bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'Log ID',
   task_id bigint(20) NOT NULL COMMENT 'Task ID',
@@ -151,14 +147,6 @@ CREATE TABLE IF NOT EXISTS t2_design_objective_catalog (
   sort_order int(4) DEFAULT 0 COMMENT 'Sort order',
   status char(1) DEFAULT '0' COMMENT 'Status',
   remark varchar(500) DEFAULT NULL COMMENT 'Remark',
-  rule_type varchar(64) DEFAULT NULL COMMENT 'Executable rule type',
-  rule_expression varchar(500) DEFAULT NULL COMMENT 'Executable rule expression',
-  target_field varchar(128) DEFAULT NULL COMMENT 'Rule target field',
-  reference_field varchar(128) DEFAULT NULL COMMENT 'Rule reference field',
-  operator_code varchar(32) DEFAULT NULL COMMENT 'Rule operator code',
-  threshold_value varchar(100) DEFAULT NULL COMMENT 'Rule threshold value',
-  execute_mode varchar(32) DEFAULT 'reserved' COMMENT 'Execution mode',
-  rule_payload text COMMENT 'Extended rule payload JSON',
   create_by varchar(64) DEFAULT '',
   create_time datetime DEFAULT NULL,
   update_by varchar(64) DEFAULT '',
@@ -180,14 +168,6 @@ CREATE TABLE IF NOT EXISTS t2_design_objective_constraint (
   limit_value varchar(100) DEFAULT NULL COMMENT 'Limit value',
   unit varchar(50) DEFAULT NULL COMMENT 'Unit',
   remark varchar(500) DEFAULT NULL COMMENT 'Remark',
-  rule_type varchar(64) DEFAULT NULL COMMENT 'Executable rule type',
-  rule_expression varchar(500) DEFAULT NULL COMMENT 'Executable rule expression',
-  target_field varchar(128) DEFAULT NULL COMMENT 'Rule target field',
-  reference_field varchar(128) DEFAULT NULL COMMENT 'Rule reference field',
-  operator_code varchar(32) DEFAULT NULL COMMENT 'Rule operator code',
-  threshold_value varchar(100) DEFAULT NULL COMMENT 'Rule threshold value',
-  execute_mode varchar(32) DEFAULT 'reserved' COMMENT 'Execution mode',
-  rule_payload text COMMENT 'Extended rule payload JSON',
   create_by varchar(64) DEFAULT '',
   create_time datetime DEFAULT NULL,
   PRIMARY KEY (id),
@@ -327,6 +307,106 @@ CREATE TABLE IF NOT EXISTS t2_design_resource (
   PRIMARY KEY (resource_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Design resource';
 
+INSERT INTO t2_design_template
+  (template_id, template_name, template_desc, template_config, is_default, status, create_by, create_time, remark)
+VALUES
+  (1, '标准协同优化流程', '液压弯管抗冲击优化与线缆管路布局设计两子任务流程',
+   '[{"nodeCode":"objective_select","nodeName":"目标约束选择"},{"nodeCode":"conflict_check","nodeName":"冲突校验"},{"nodeCode":"model_decompose_solve","nodeName":"模型分解求解"},{"nodeCode":"simulation_verify","nodeName":"仿真验证"},{"nodeCode":"approval","nodeName":"审批归档"}]',
+   '1', '0', 'admin', SYSDATE(), 'designtask1 default template')
+ON DUPLICATE KEY UPDATE
+  template_name = VALUES(template_name),
+  template_desc = VALUES(template_desc),
+  template_config = VALUES(template_config),
+  is_default = VALUES(is_default),
+  status = VALUES(status),
+  update_by = 'admin',
+  update_time = SYSDATE();
+
+INSERT INTO t2_design_template_node
+  (template_id, node_code, node_name, node_order, responsible_role, create_by, create_time)
+VALUES
+  (1, 'objective_select', '目标约束选择', 1, 'structure_engineer', 'admin', SYSDATE()),
+  (1, 'conflict_check', '冲突校验', 2, 'design_task_owner', 'admin', SYSDATE()),
+  (1, 'model_decompose_solve', '模型分解求解', 3, 'design_task_owner', 'admin', SYSDATE()),
+  (1, 'simulation_verify', '仿真验证', 4, 'manufacturing_engineer', 'admin', SYSDATE()),
+  (1, 'approval', '审批归档', 5, 'approval_leader', 'admin', SYSDATE())
+ON DUPLICATE KEY UPDATE
+  node_name = VALUES(node_name),
+  node_order = VALUES(node_order),
+  responsible_role = VALUES(responsible_role),
+  update_by = 'admin',
+  update_time = SYSDATE();
+
+UPDATE t2_design_variable_catalog
+SET status = '1', update_by = 'admin', update_time = SYSDATE()
+WHERE variable_code NOT IN (
+  'PIPE_L1', 'PIPE_L2', 'PIPE_BEND_RADIUS', 'PIPE_THETA_1', 'PIPE_THETA_2',
+  'CABLE_ROUTE_SIDE', 'CABLE_PIPE_CLEARANCE', 'CABLE_OFFSET',
+  'CABLE_BEND_RADIUS', 'CLAMP_SPACING', 'SERVICE_MARGIN'
+);
+
+INSERT INTO t2_design_variable_catalog
+  (discipline, discipline_name, subtask_code, variable_code, variable_name, variable_type, default_value, lower_bound, upper_bound, step_value, unit, sort_order, status, remark, create_by, create_time)
+VALUES
+  ('hydraulic', '液压工程师', 'hydraulic_impact', 'PIPE_L1', 'L1 第一段直管长度', 'continuous', '300', '50', '550', '1', 'mm', 10, '0', '液压弯管抗冲击优化几何变量', 'admin', SYSDATE()),
+  ('hydraulic', '液压工程师', 'hydraulic_impact', 'PIPE_L2', 'L2 第二段直管长度', 'continuous', '150', '50', '300', '1', 'mm', 20, '0', '液压弯管抗冲击优化几何变量', 'admin', SYSDATE()),
+  ('hydraulic', '液压工程师', 'hydraulic_impact', 'PIPE_BEND_RADIUS', 'R 两处弯管圆角半径', 'continuous', '30', '20', '80', '1', 'mm', 30, '0', '液压弯管抗冲击优化几何变量', 'admin', SYSDATE()),
+  ('hydraulic', '液压工程师', 'hydraulic_impact', 'PIPE_THETA_1', 'θ1 第一个弯角弯曲角度', 'continuous', '110', '30', '150', '1', 'deg', 40, '0', '液压弯管抗冲击优化几何变量', 'admin', SYSDATE()),
+  ('hydraulic', '液压工程师', 'hydraulic_impact', 'PIPE_THETA_2', 'θ2 第二个弯角弯曲角度', 'continuous', '120', '30', '150', '1', 'deg', 50, '0', '液压弯管抗冲击优化几何变量', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'cable_pipe_layout', 'CABLE_ROUTE_SIDE', '线缆布置侧别', 'enum', 'upper', 'upper', 'outer', '', '', 60, '0', '可选 upper/lower/inner/outer', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'cable_pipe_layout', 'CABLE_PIPE_CLEARANCE', '线缆与液压管最小隔离距离', 'continuous', '40', '20', '80', '1', 'mm', 70, '0', '线缆与液压管保持安全距离', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'cable_pipe_layout', 'CABLE_OFFSET', '线缆相对液压管中心线偏移距离', 'continuous', '60', '30', '120', '1', 'mm', 80, '0', '围绕液压管路径的偏移布置参数', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'cable_pipe_layout', 'CABLE_BEND_RADIUS', '线缆最小弯曲半径', 'continuous', '50', '30', '120', '1', 'mm', 90, '0', '满足线缆弯曲半径要求', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'cable_pipe_layout', 'CLAMP_SPACING', '线夹/管夹布置间距', 'continuous', '180', '100', '250', '5', 'mm', 100, '0', '控制线夹和管夹支撑间距', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'cable_pipe_layout', 'SERVICE_MARGIN', '检修操作预留空间', 'continuous', '40', '30', '100', '1', 'mm', 110, '0', '保证维护和装配操作空间', 'admin', SYSDATE())
+ON DUPLICATE KEY UPDATE
+  discipline = VALUES(discipline), discipline_name = VALUES(discipline_name), subtask_code = VALUES(subtask_code),
+  variable_name = VALUES(variable_name), variable_type = VALUES(variable_type), default_value = VALUES(default_value),
+  lower_bound = VALUES(lower_bound), upper_bound = VALUES(upper_bound), step_value = VALUES(step_value), unit = VALUES(unit),
+  sort_order = VALUES(sort_order), status = VALUES(status), remark = VALUES(remark), update_by = 'admin', update_time = SYSDATE();
+
+UPDATE t2_design_objective_catalog
+SET status = '1', update_by = 'admin', update_time = SYSDATE()
+WHERE item_code IN (
+  'LAY_LENGTH_MIN', 'LAY_INTERFERENCE_MIN', 'LAY_CLEARANCE_LIMIT', 'LAY_PIPE_CABLE_DISTANCE',
+  'LAY_FORBIDDEN_ZONE', 'LAY_CLAMP_INTERVAL', 'LAY_BEND_RADIUS_LIMIT', 'LAY_PIPE_ENDPOINT_FIXED',
+  'LAY_PIPE_HORIZONTAL_SPAN', 'LAY_PIPE_VERTICAL_SPAN'
+);
+
+INSERT INTO t2_design_objective_catalog
+  (discipline, discipline_name, item_type, item_code, item_name, direction, default_weight, default_limit_value, unit, sort_order, status, remark, create_by, create_time)
+VALUES
+  ('hydraulic', '液压工程师', 'objective', 'HYD_STRESS_MIN', '最大等效应力最小', 'min', 50, '', 'MPa', 10, '0', '降低液压管路冲击工况下应力水平', 'admin', SYSDATE()),
+  ('hydraulic', '液压工程师', 'objective', 'HYD_DEFORMATION_MIN', '最大变形量最小', 'min', 50, '', 'mm', 20, '0', '降低液压管路变形', 'admin', SYSDATE()),
+  ('hydraulic', '液压工程师', 'constraint', 'HYD_STRESS_LIMIT', '最大等效应力不超过屈服强度', '<=', 50, '', 'MPa', 30, '0', '满足液压管路强度约束', 'admin', SYSDATE()),
+  ('hydraulic', '液压工程师', 'constraint', 'HYD_DEFORMATION_LIMIT', '最大变形量不超过允许变形', '<=', 50, '', 'mm', 40, '0', '满足液压管路变形约束', 'admin', SYSDATE()),
+  ('hydraulic', '液压工程师', 'constraint', 'HYD_MIN_BEND_RADIUS', '液压管弯曲半径不小于下限', '>=', 50, '20', 'mm', 50, '0', '弯曲半径 R 不小于 20 mm', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'objective', 'LAY_INTERFERENCE_RISK_MIN', '线缆与液压管干涉风险最小', 'min', 50, '', 'risk', 60, '0', '降低线缆与液压管、结构件、运动件的干涉风险', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'objective', 'LAY_CABLE_LENGTH_MIN', '线缆路径长度最小', 'min', 50, '', 'm', 70, '0', '在满足避让条件下缩短线缆路径', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'objective', 'LAY_MAINTAINABILITY_MAX', '维护可达性最大', 'max', 50, '', 'score', 80, '0', '提升检查、维护与更换便利性', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'objective', 'LAY_COMPACTNESS_MAX', '布局紧凑度最大', 'max', 50, '', 'score', 90, '0', '提升局部管线布置紧凑性', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'constraint', 'LAY_PIPE_CLEARANCE_LIMIT', '线缆与液压管保持安全间距', '>=', 50, '40', 'mm', 100, '0', 'clearance >= CABLE_PIPE_CLEARANCE', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'constraint', 'LAY_FORBIDDEN_ZONE_AVOID', '线缆不得穿越结构禁布区域', 'avoid', 50, '', '', 110, '0', '避让结构禁布区域', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'constraint', 'LAY_DOOR_ENVELOPE_AVOID', '线缆不得进入舱门运动包络', 'avoid', 50, '', '', 120, '0', '避让舱门运动包络', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'constraint', 'LAY_CABLE_BEND_RADIUS_LIMIT', '线缆弯曲半径满足要求', '>=', 50, '50', 'mm', 130, '0', 'CABLE_BEND_RADIUS 满足线缆弯曲要求', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'constraint', 'LAY_CLAMP_SPACING_LIMIT', '线夹间距不超过上限', '<=', 50, '250', 'mm', 140, '0', 'CLAMP_SPACING <= 250 mm', 'admin', SYSDATE()),
+  ('layout', '布局工程师', 'constraint', 'LAY_SERVICE_MARGIN_LIMIT', '检修空间满足要求', '>=', 50, '30', 'mm', 150, '0', 'SERVICE_MARGIN >= 30 mm', 'admin', SYSDATE())
+ON DUPLICATE KEY UPDATE
+  discipline = VALUES(discipline), discipline_name = VALUES(discipline_name), item_type = VALUES(item_type),
+  item_name = VALUES(item_name), direction = VALUES(direction), default_weight = VALUES(default_weight),
+  default_limit_value = VALUES(default_limit_value), unit = VALUES(unit), sort_order = VALUES(sort_order),
+  status = VALUES(status), remark = VALUES(remark), update_by = 'admin', update_time = SYSDATE();
+
+INSERT INTO t2_design_resource
+  (resource_id, resource_name, category, version, file_type, file_path, description, status, create_by, create_time)
+VALUES
+  (9001, '起落架舱门结构边界条件', '结构资源', 'v1.0', 'PDF', '/profile/design/resource/lgd_structure_boundary.pdf', '用于结构目标约束选择', '0', 'admin', SYSDATE()),
+  (9002, '舱门线缆管路禁布区域', '布局资源', 'v1.0', 'DWG', '/profile/design/resource/lgd_forbidden_zone.dwg', '用于线缆管路布局避让', '0', 'admin', SYSDATE()),
+  (9003, '液压弯管冲击载荷谱', '液压资源', 'v1.0', 'XLSX', '/profile/design/resource/hydraulic_impact_load.xlsx', '用于液压弯管抗冲击优化', '0', 'admin', SYSDATE())
+ON DUPLICATE KEY UPDATE
+  resource_name = VALUES(resource_name), category = VALUES(category), version = VALUES(version), file_type = VALUES(file_type),
+  file_path = VALUES(file_path), description = VALUES(description), status = VALUES(status), update_by = 'admin', update_time = SYSDATE();
+
 CREATE TABLE IF NOT EXISTS t2_design_fault_pipe_parameter_set (
   parameter_set_id bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'Parameter set ID',
   task_id bigint(20) DEFAULT NULL COMMENT 'Task ID, null means reusable default set',
@@ -372,57 +452,42 @@ CREATE TABLE IF NOT EXISTS t2_design_fault_pipe_parameter_item (
   KEY idx_t2_fault_pipe_param_item_group (param_group)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Fault pipe original design parameter item';
 
-CREATE TABLE IF NOT EXISTS t2_surrogate_solve_task (
-  task_id bigint(20) NOT NULL COMMENT 'Task ID',
-  status varchar(32) NOT NULL COMMENT 'Solve status',
-  model_name varchar(255) DEFAULT NULL COMMENT 'Model name',
-  model_type varchar(255) DEFAULT NULL COMMENT 'Model type',
-  objective_name varchar(128) DEFAULT NULL COMMENT 'Objective name',
-  objective_unit varchar(64) DEFAULT NULL COMMENT 'Objective unit',
-  params_json text COMMENT 'Input params JSON',
-  best_solution_json text COMMENT 'Best solution JSON',
-  candidate_solutions_json text COMMENT 'Candidate solutions JSON',
-  iteration_history_json text COMMENT 'Iteration history JSON',
-  iterations int DEFAULT 0 COMMENT 'Iterations',
-  error_message varchar(1000) DEFAULT NULL COMMENT 'Error message',
-  confirmed char(1) DEFAULT '0' COMMENT 'Confirmed flag',
-  create_time datetime DEFAULT CURRENT_TIMESTAMP,
-  update_time datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (task_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Surrogate solve task';
+INSERT INTO t2_design_fault_pipe_parameter_set
+  (set_code, set_name, fault_segment_name, material_name, source_type, is_default, status, remark, create_by, create_time)
+VALUES
+  ('FAULT_PIPE_DEFAULT_001', '故障管段默认原始设计参数', '故障液压弯管段', '不锈钢', 'database', '1', '0', '材料属性与入口压强载荷谱默认值', 'admin', SYSDATE())
+ON DUPLICATE KEY UPDATE
+  set_name = VALUES(set_name), fault_segment_name = VALUES(fault_segment_name), material_name = VALUES(material_name),
+  source_type = VALUES(source_type), is_default = VALUES(is_default), status = VALUES(status), remark = VALUES(remark),
+  update_by = 'admin', update_time = SYSDATE();
 
-CREATE TABLE IF NOT EXISTS t2_cad_model_task (
-  task_id bigint(20) NOT NULL COMMENT 'Task ID',
-  status varchar(32) NOT NULL COMMENT 'CAD status',
-  params_json text COMMENT 'Input params JSON',
-  l3 decimal(18,6) DEFAULT NULL COMMENT 'Computed L3',
-  initial_angle decimal(18,6) DEFAULT NULL COMMENT 'Initial angle',
-  closure_status varchar(128) DEFAULT NULL COMMENT 'Geometry closure status',
-  error_message varchar(1000) DEFAULT NULL COMMENT 'Error message',
-  sldprt_path varchar(1000) DEFAULT NULL COMMENT 'SLDPRT path',
-  step_path varchar(1000) DEFAULT NULL COMMENT 'STEP path for ANSYS import',
-  parasolid_path varchar(1000) DEFAULT NULL COMMENT 'Parasolid path for ANSYS import',
-  stl_path varchar(1000) DEFAULT NULL COMMENT 'STL path',
-  preview_png_path varchar(1000) DEFAULT NULL COMMENT 'Preview image path',
-  create_time datetime DEFAULT CURRENT_TIMESTAMP,
-  update_time datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (task_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='CAD model task';
+SET @fault_pipe_default_set_id = (SELECT parameter_set_id FROM t2_design_fault_pipe_parameter_set WHERE set_code = 'FAULT_PIPE_DEFAULT_001' LIMIT 1);
 
-CREATE TABLE IF NOT EXISTS t2_design_ansys_simulation_task (
-  task_id bigint(20) NOT NULL COMMENT 'Task ID',
-  status varchar(32) NOT NULL COMMENT 'Simulation status',
-  simulation_type varchar(100) DEFAULT NULL COMMENT 'Simulation type',
-  input_json text COMMENT 'Input JSON',
-  result_json text COMMENT 'Result JSON',
-  metrics_json text COMMENT 'Metrics JSON',
-  stress_image_url varchar(1000) DEFAULT NULL COMMENT 'Stress image URL',
-  result_file_path varchar(1000) DEFAULT NULL COMMENT 'Result file path',
-  error_message varchar(1000) DEFAULT NULL COMMENT 'Error message',
-  placeholder char(1) DEFAULT '1' COMMENT 'Placeholder flag',
-  create_time datetime DEFAULT CURRENT_TIMESTAMP,
-  update_time datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (task_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='ANSYS simulation task';
+INSERT INTO t2_design_fault_pipe_parameter_item
+  (parameter_set_id, param_group, group_name, param_code, param_name, param_value, param_unit, value_type, formula_text, description, sort_order, status, create_by, create_time)
+VALUES
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'MATERIAL_NAME', '材料', '不锈钢', '', 'text', '', '故障管段材料名称', 10, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'MATERIAL_DENSITY', '密度', '7750', 'kg*m^-3', 'number', '', '材料密度', 20, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'THERMAL_EXPANSION_COEFFICIENT', '热膨胀系数', '1.7E-05', 'C^-1', 'number', '', '热膨胀系数', 30, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'YOUNG_MODULUS', '杨氏模量', '1.93E+11', 'Pa', 'number', '', '弹性模量', 40, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'POISSON_RATIO', '泊松比', '0.31', '', 'number', '', '泊松比', 50, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'BULK_MODULUS', '体积模量', '1.693E+11', 'Pa', 'number', '', '体积模量', 60, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'SHEAR_MODULUS', '剪切模量', '7.3664E+10', 'Pa', 'number', '', '剪切模量', 70, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'TENSILE_YIELD_STRENGTH', '拉伸屈服强度', '2.07E+08', 'Pa', 'number', '', '拉伸屈服强度，可作为许用应力来源', 80, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'COMPRESSIVE_YIELD_STRENGTH', '压缩屈服强度', '2.07E+08', 'Pa', 'number', '', '压缩屈服强度', 90, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'TENSILE_ULTIMATE_STRENGTH', '拉伸极限强度', '5.86E+08', 'Pa', 'number', '', '拉伸极限强度', 100, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_OUTER_DIAMETER', '管道外径', '9.53', 'mm', 'number', '', '当前设计管道外径', 110, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_WALL_THICKNESS', '管道壁厚', '0.9', 'mm', 'number', '', '当前设计管道壁厚', 120, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_INNER_DIAMETER', '管道内径', '7.73', 'mm', 'number', '9.53 - 2 * 0.9', '由外径减去两倍壁厚得到', 130, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_EXPRESSION', '入口压强表达式', 'IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)', 'Pa', 'formula', 'IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)', '0 到 0.001 秒线性升压，之后保持峰值压强', 140, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_INITIAL', '初始压强', '101325', 'Pa', 'number', '', '入口初始压强', 150, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_PEAK', '峰值压强', '30000000', 'Pa', 'number', '', '入口峰值压强', 160, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_RISE_TIME', '上升时间', '0.001', 's', 'number', '', '压强从初始值升至峰值所需时间', 170, '0', 'admin', SYSDATE())
+ON DUPLICATE KEY UPDATE
+  param_group = VALUES(param_group), group_name = VALUES(group_name), param_name = VALUES(param_name),
+  param_value = VALUES(param_value), param_unit = VALUES(param_unit), value_type = VALUES(value_type),
+  formula_text = VALUES(formula_text), description = VALUES(description), sort_order = VALUES(sort_order),
+  status = VALUES(status), update_by = 'admin', update_time = SYSDATE();
+
 
 SET FOREIGN_KEY_CHECKS = 1;

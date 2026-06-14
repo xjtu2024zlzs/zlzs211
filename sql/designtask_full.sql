@@ -260,18 +260,4 @@ INSERT INTO sys_menu (
   'admin', SYSDATE(), '流程模板管理'
 );
 
--- 6、添加资源管理菜单
-INSERT INTO sys_menu (
-  menu_id, menu_name, parent_name, parent_id, order_num,
-  path, component, is_frame, is_cache, menu_type,
-  visible, status, perms, icon, create_by, create_time, remark
-) VALUES (
-  2005, '资源管理', '设计任务', 2000, 5,
-  'resource', 'designtask/resource/index',
-  1, 0, 'C',
-  '0', '0', 'designtask:resource:list',
-  '#',
-  'admin', SYSDATE(), '资源管理中心'
-);
-
 SET FOREIGN_KEY_CHECKS = 1;

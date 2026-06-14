@@ -299,8 +299,27 @@ def tube_vertices(points, tube_radius, segments):
     return rings
 
 
-def write_ascii_stl(path, points, tube_radius, segments):
-    rings = tube_vertices(points, tube_radius, segments)
+def pipe_diameters(cfg):
+    outer_diameter = float(cfg["pipe_outer_diameter_mm"])
+    if "pipe_inner_diameter_mm" in cfg and str(cfg["pipe_inner_diameter_mm"]).strip():
+        inner_diameter = float(cfg["pipe_inner_diameter_mm"])
+    else:
+        wall_thickness = float(cfg.get("wall_thickness_mm", 0.9))
+        inner_diameter = outer_diameter - 2.0 * wall_thickness
+
+    if outer_diameter <= 0:
+        raise ValueError("pipe_outer_diameter_mm must be greater than 0.")
+    if inner_diameter <= 0:
+        raise ValueError("pipe_inner_diameter_mm must be greater than 0.")
+    if inner_diameter >= outer_diameter:
+        raise ValueError("pipe_inner_diameter_mm must be smaller than pipe_outer_diameter_mm.")
+
+    return outer_diameter, inner_diameter, (outer_diameter - inner_diameter) / 2.0
+
+
+def write_ascii_stl(path, points, outer_radius, inner_radius, segments):
+    outer_rings = tube_vertices(points, outer_radius, segments)
+    inner_rings = tube_vertices(points, inner_radius, segments)
 
     def facet(f, a, b, c):
         normal = v3_norm(v3_cross(v3_sub(b, a), v3_sub(c, a)))
@@ -312,28 +331,47 @@ def write_ascii_stl(path, points, tube_radius, segments):
         f.write("  endfacet\n")
 
     with path.open("w", encoding="ascii") as f:
-        f.write("solid parametric_pipe\n")
-        for i in range(len(rings) - 1):
+        f.write("solid parametric_hollow_pipe\n")
+        for i in range(len(outer_rings) - 1):
             for j in range(segments):
                 j2 = (j + 1) % segments
-                facet(f, rings[i][j], rings[i + 1][j], rings[i + 1][j2])
-                facet(f, rings[i][j], rings[i + 1][j2], rings[i][j2])
+                facet(f, outer_rings[i][j], outer_rings[i + 1][j], outer_rings[i + 1][j2])
+                facet(f, outer_rings[i][j], outer_rings[i + 1][j2], outer_rings[i][j2])
+                facet(f, inner_rings[i][j2], inner_rings[i + 1][j2], inner_rings[i + 1][j])
+                facet(f, inner_rings[i][j2], inner_rings[i + 1][j], inner_rings[i][j])
 
-        start_center = (points[0][0], points[0][1], 0.0)
-        end_center = (points[-1][0], points[-1][1], 0.0)
         for j in range(segments):
             j2 = (j + 1) % segments
-            facet(f, start_center, rings[0][j2], rings[0][j])
-            facet(f, end_center, rings[-1][j], rings[-1][j2])
-        f.write("endsolid parametric_pipe\n")
+            facet(f, outer_rings[0][j2], outer_rings[0][j], inner_rings[0][j])
+            facet(f, outer_rings[0][j2], inner_rings[0][j], inner_rings[0][j2])
+            facet(f, outer_rings[-1][j], outer_rings[-1][j2], inner_rings[-1][j])
+            facet(f, outer_rings[-1][j2], inner_rings[-1][j2], inner_rings[-1][j])
+        f.write("endsolid parametric_hollow_pipe\n")
 
 
 def write_solidworks_vbs(path, cfg, path_segments, sampled_points, phi, l3):
     out_part = path.with_name("pipe_native.SLDPRT")
-    diameter_m = float(cfg["pipe_outer_diameter_mm"]) / 1000.0
-    total_x = float(cfg["total_horizontal_mm"])
-    total_y = float(cfg["total_vertical_mm"])
-    extension = float(cfg.get("wall_cut_extension_mm", 80.0))
+    outer_diameter_mm, inner_diameter_mm, wall_thickness_mm = pipe_diameters(cfg)
+    cut_extension_mm = max(
+        float(cfg.get("wall_cut_extension_mm", 80.0)),
+        outer_diameter_mm * 3.0,
+        20.0,
+    )
+    opening_cut_depth_mm = max(outer_diameter_mm * 6.0, 30.0)
+    inner_cut_segments = extended_wall_cut_segments(path_segments, cut_extension_mm)
+    diameter_m = outer_diameter_mm / 1000.0
+    inner_diameter_m = inner_diameter_mm / 1000.0
+    wall_thickness_m = wall_thickness_mm / 1000.0
+
+    first_kind, first_start, first_end, _first_center, _first_is_ccw, _first_mid = path_segments[0]
+    last_kind, last_start, last_end, _last_center, _last_is_ccw, _last_mid = path_segments[-1]
+    if first_kind != "line" or last_kind != "line":
+        raise ValueError("The first and last path entities must be straight segments.")
+    first_len = math.hypot(first_end[0] - first_start[0], first_end[1] - first_start[1])
+    last_len = math.hypot(last_end[0] - last_start[0], last_end[1] - last_start[1])
+    first_u = ((first_end[0] - first_start[0]) / first_len, (first_end[1] - first_start[1]) / first_len)
+    last_u = ((last_end[0] - last_start[0]) / last_len, (last_end[1] - last_start[1]) / last_len)
+    select_radius_m = max(diameter_m * 2.0, 0.01)
     lines = [
         "Option Explicit",
         "",
@@ -381,6 +419,55 @@ def write_solidworks_vbs(path, cfg, path_segments, sampled_points, phi, l3):
         "  Set FindLastFeatureByType = lastFeat",
         "End Function",
         "",
+        "Function SelectPipeEndFacesForShell(model, sx, sy, sz, stx, sty, stz, ex, ey, ez, etx, ety, etz, searchRadius)",
+        "  Dim ok1, ok2",
+        "  model.ClearSelection2 True",
+        "  ok1 = model.Extension.SelectByRay(sx - stx * searchRadius, sy - sty * searchRadius, sz - stz * searchRadius, stx, sty, stz, searchRadius, 2, False, 0, 0)",
+        "  ok2 = model.Extension.SelectByRay(ex + etx * searchRadius, ey + ety * searchRadius, ez + etz * searchRadius, -etx, -ety, -etz, searchRadius, 2, True, 0, 0)",
+        "  SelectPipeEndFacesForShell = ok1 And ok2",
+        "End Function",
+        "",
+        "Function ApplyPipeShell(model, thickness, sx, sy, sz, stx, sty, stz, ex, ey, ez, etx, ety, etz, searchRadius)",
+        "  Dim ok, shellFeat",
+        "  Set shellFeat = Nothing",
+        "  ok = SelectPipeEndFacesForShell(model, sx, sy, sz, stx, sty, stz, ex, ey, ez, etx, ety, etz, searchRadius)",
+        "  If Not ok Then",
+        "    Set ApplyPipeShell = Nothing",
+        "    Exit Function",
+        "  End If",
+        "  On Error Resume Next",
+        "  Set shellFeat = model.FeatureManager.InsertShell(thickness, False)",
+        "  If shellFeat Is Nothing Then",
+        "    Err.Clear",
+        "    model.ClearSelection2 True",
+        "    ok = SelectPipeEndFacesForShell(model, sx, sy, sz, stx, sty, stz, ex, ey, ez, etx, ety, etz, searchRadius)",
+        "    If ok Then Set shellFeat = model.FeatureManager.InsertShell(thickness, True)",
+        "  End If",
+        "  If Err.Number <> 0 Then Err.Clear",
+        "  On Error GoTo 0",
+        "  If Not shellFeat Is Nothing Then shellFeat.Name = \"PipeHollowShell\"",
+        "  Set ApplyPipeShell = shellFeat",
+        "End Function",
+        "",
+        "Function ApplySweptInnerCut(model, pathFeat, innerDiameter)",
+        "  Dim ok, cutFeat",
+        "  Set cutFeat = Nothing",
+        "  model.ClearSelection2 True",
+        "  ok = False",
+        "  If Not pathFeat Is Nothing Then ok = pathFeat.Select2(False, 4)",
+        "  If Not ok Then ok = model.Extension.SelectByID2(\"InnerBorePath3D\", \"SKETCH\", 0, 0, 0, False, 4, Nothing, 0)",
+        "  If Not ok Then",
+        "    Set ApplySweptInnerCut = Nothing",
+        "    Exit Function",
+        "  End If",
+        "  On Error Resume Next",
+        "  Set cutFeat = model.FeatureManager.InsertCutSwept5(False, False, 0, False, False, 0, 0, False, 0, 0, 0, 0, True, True, 0, True, False, True, True, True, innerDiameter, 0)",
+        "  If Err.Number <> 0 Then Err.Clear",
+        "  On Error GoTo 0",
+        "  If Not cutFeat Is Nothing Then cutFeat.Name = \"PipeInnerBoreCut\"",
+        "  Set ApplySweptInnerCut = cutFeat",
+        "End Function",
+        "",
         "Function CutWithPlane(model, planeFeat, cutName, flipSide)",
         "  Dim ok, cutFeat, errors",
         "  Set cutFeat = Nothing",
@@ -396,7 +483,8 @@ def write_solidworks_vbs(path, cfg, path_segments, sampled_points, phi, l3):
         "  Set CutWithPlane = cutFeat",
         "End Function",
         "",
-        "Dim swApp, swModel, swFeat, swPathSketch, swPathFeat, ok, partTemplate, outPart",
+        "Dim swApp, swModel, swFeat, swPathSketch, swPathFeat, swInnerPathSketch, swInnerPathFeat, swShellFeat, swInnerCutFeat, ok, partTemplate, outPart",
+        "Dim swStartOpenPathFeat, swEndOpenPathFeat, swStartOpenCutFeat, swEndOpenCutFeat",
         "Dim swRightBasePlaneFeat, swRightWallPlaneFeat, swLeftCutFeat, swRightCutFeat, swRefPlane",
         "Set swApp = CreateObject(\"SldWorks.Application\")",
         "swApp.Visible = True",
@@ -455,36 +543,81 @@ def write_solidworks_vbs(path, cfg, path_segments, sampled_points, phi, l3):
             f"{diameter_m:.10f}, 0)",
             "If swFeat Is Nothing Then",
             "  MsgBox \"The 3D path was created, but the automatic sweep failed. Please check that pipe_outer_diameter_mm is smaller than the bend radius, then run Sweep Boss/Base using circular profile.\", vbExclamation, \"Native pipe model\"",
-            "  WScript.Quit 0",
+            "  WScript.Quit 1",
             "End If",
             "",
+            "swModel.SketchManager.Insert3DSketch True",
+            "Set swInnerPathSketch = swModel.GetActiveSketch2",
+            "swModel.SketchManager.AddToDB = True",
+        ]
+    )
+
+    for kind, start, end, center, _is_counterclockwise, mid in inner_cut_segments:
+        if kind == "line":
+            lines.append(
+                "swModel.SketchManager.CreateLine "
+                f"{m(start[0]):.10f}, {m(start[1]):.10f}, 0, "
+                f"{m(end[0]):.10f}, {m(end[1]):.10f}, 0"
+            )
+        else:
+            lines.append(
+                "swModel.SketchManager.Create3PointArc "
+                f"{m(start[0]):.10f}, {m(start[1]):.10f}, 0, "
+                f"{m(end[0]):.10f}, {m(end[1]):.10f}, 0, "
+                f"{m(mid[0]):.10f}, {m(mid[1]):.10f}, 0"
+            )
+
+    lines.extend(
+        [
+            "swModel.SketchManager.AddToDB = False",
+            "swModel.SketchManager.Insert3DSketch True",
+            "Set swInnerPathFeat = FindLast3DSketchFeature(swModel)",
+            "If Not swInnerPathFeat Is Nothing Then swInnerPathFeat.Name = \"InnerBorePath3D\"",
             "swModel.ClearSelection2 True",
-            "Set swRightBasePlaneFeat = FindNthFeatureByType(swModel, \"RefPlane\", 3)",
-            "If swRightBasePlaneFeat Is Nothing Then",
-            "  MsgBox \"The pipe was created, but the right reference plane could not be found for wall cutting.\", vbExclamation, \"Native pipe model\"",
-            "Else",
-            "  swRightBasePlaneFeat.Name = \"PipeLeftWallPlane\"",
-            "  Set swLeftCutFeat = CutWithPlane(swModel, swRightBasePlaneFeat, \"PipeLeftWallTrim\", False)",
-            "  swModel.ClearSelection2 True",
-            "  ok = swRightBasePlaneFeat.Select2(False, 0)",
-            "  If ok Then",
-            f"    Set swRefPlane = swModel.FeatureManager.InsertRefPlane(8, {m(total_x):.10f}, 0, 0, 0, 0)",
-            "    Set swRightWallPlaneFeat = FindLastFeatureByType(swModel, \"RefPlane\")",
-            "    If Not swRightWallPlaneFeat Is Nothing Then swRightWallPlaneFeat.Name = \"PipeRightWallPlane\"",
+            "",
+            "Set swShellFeat = ApplyPipeShell(swModel, "
+            f"{wall_thickness_m:.10f}, "
+            f"{m(first_start[0]):.10f}, {m(first_start[1]):.10f}, 0, "
+            f"{first_u[0]:.10f}, {first_u[1]:.10f}, 0, "
+            f"{m(last_end[0]):.10f}, {m(last_end[1]):.10f}, 0, "
+            f"{last_u[0]:.10f}, {last_u[1]:.10f}, 0, {select_radius_m:.10f})",
+            "If swShellFeat Is Nothing Then",
+            f"  Set swInnerCutFeat = ApplySweptInnerCut(swModel, swInnerPathFeat, {inner_diameter_m:.10f})",
+            "  If Not swInnerCutFeat Is Nothing Then",
+            "    swModel.SketchManager.Insert3DSketch True",
+            "    swModel.SketchManager.AddToDB = True",
+            "    swModel.SketchManager.CreateLine "
+            f"{m(first_start[0] - first_u[0] * cut_extension_mm):.10f}, {m(first_start[1] - first_u[1] * cut_extension_mm):.10f}, 0, "
+            f"{m(first_start[0] + first_u[0] * opening_cut_depth_mm):.10f}, {m(first_start[1] + first_u[1] * opening_cut_depth_mm):.10f}, 0",
+            "    swModel.SketchManager.AddToDB = False",
+            "    swModel.SketchManager.Insert3DSketch True",
+            "    Set swStartOpenPathFeat = FindLast3DSketchFeature(swModel)",
+            "    If Not swStartOpenPathFeat Is Nothing Then swStartOpenPathFeat.Name = \"InnerBoreStartOpen3D\"",
+            "    Set swStartOpenCutFeat = ApplySweptInnerCut(swModel, swStartOpenPathFeat, "
+            f"{inner_diameter_m:.10f})",
+            "    swModel.SketchManager.Insert3DSketch True",
+            "    swModel.SketchManager.AddToDB = True",
+            "    swModel.SketchManager.CreateLine "
+            f"{m(last_end[0] + last_u[0] * cut_extension_mm):.10f}, {m(last_end[1] + last_u[1] * cut_extension_mm):.10f}, 0, "
+            f"{m(last_end[0] - last_u[0] * opening_cut_depth_mm):.10f}, {m(last_end[1] - last_u[1] * opening_cut_depth_mm):.10f}, 0",
+            "    swModel.SketchManager.AddToDB = False",
+            "    swModel.SketchManager.Insert3DSketch True",
+            "    Set swEndOpenPathFeat = FindLast3DSketchFeature(swModel)",
+            "    If Not swEndOpenPathFeat Is Nothing Then swEndOpenPathFeat.Name = \"InnerBoreEndOpen3D\"",
+            "    Set swEndOpenCutFeat = ApplySweptInnerCut(swModel, swEndOpenPathFeat, "
+            f"{inner_diameter_m:.10f})",
             "  End If",
-            "  If Not swRightWallPlaneFeat Is Nothing Then",
-            "    Set swRightCutFeat = CutWithPlane(swModel, swRightWallPlaneFeat, \"PipeRightWallTrim\", True)",
-            "  End If",
-            "  If swLeftCutFeat Is Nothing Or swRightCutFeat Is Nothing Then",
-            "    MsgBox \"The pipe was created, but one surface trim failed. The model may still contain an extended end; please report this message so the trim direction can be adjusted for your SolidWorks version.\", vbExclamation, \"Native pipe model\"",
-            "  End If",
+            "End If",
+            "If swShellFeat Is Nothing And swInnerCutFeat Is Nothing Then",
+            "  MsgBox \"The pipe outer sweep succeeded, but SolidWorks could not create the hollow bore. The model was not saved to avoid sending a solid pipe to ANSYS.\", vbExclamation, \"Native hollow pipe model\"",
+            "  WScript.Quit 1",
             "End If",
             "",
             f"outPart = \"{str(out_part).replace(chr(92), chr(92) + chr(92))}\"",
             "swModel.SaveAs outPart",
             "swModel.ViewZoomtofit2",
             "MsgBox \"Native SolidWorks pipe model created.\" & vbCrLf & outPart & vbCrLf & \"L3 = "
-            f"{l3:.3f} mm, initial angle = {math.degrees(phi):.3f} deg\", vbInformation, \"Native pipe model\"",
+            f"{l3:.3f} mm, initial angle = {math.degrees(phi):.3f} deg, wall = {wall_thickness_mm:.3f} mm\", vbInformation, \"Native pipe model\"",
         ]
     )
     path.write_text("\n".join(lines) + "\n", encoding="ascii")
@@ -497,18 +630,17 @@ def main():
 
     points, phi, l3 = centerline_points(cfg)
     path_segments, _, _ = exact_path_segments(cfg)
-    solidworks_path_segments = extended_wall_cut_segments(
-        path_segments, float(cfg.get("wall_cut_extension_mm", 80.0))
-    )
     stl_path = base / cfg.get("output_stl", "pipe_model.stl")
     csv_path = base / cfg.get("output_centerline_csv", "pipe_centerline.csv")
     native_vbs_path = base / "create_pipe_native.vbs"
 
-    tube_radius = float(cfg["pipe_outer_diameter_mm"]) / 2.0
+    outer_diameter_mm, inner_diameter_mm, wall_thickness_mm = pipe_diameters(cfg)
+    outer_radius = outer_diameter_mm / 2.0
+    inner_radius = inner_diameter_mm / 2.0
     segments = max(12, int(cfg.get("tube_segments", 32)))
-    write_ascii_stl(stl_path, points, tube_radius, segments)
+    write_ascii_stl(stl_path, points, outer_radius, inner_radius, segments)
     write_centerline_csv(csv_path, points, phi, l3)
-    write_solidworks_vbs(native_vbs_path, cfg, solidworks_path_segments, points, phi, l3)
+    write_solidworks_vbs(native_vbs_path, cfg, path_segments, points, phi, l3)
 
     print(f"Generated: {stl_path}")
     print(f"Generated: {csv_path}")
@@ -516,7 +648,9 @@ def main():
     print(f"Initial angle: {math.degrees(phi):.6f} deg")
     print(f"L3: {l3:.6f} mm")
     print(f"Max tangent error: {max_tangent_error_deg(path_segments):.9f} deg")
-    print(f"Wall cut extension: {float(cfg.get('wall_cut_extension_mm', 80.0)):.6f} mm")
+    print(f"Outer diameter: {outer_diameter_mm:.6f} mm")
+    print(f"Inner diameter: {inner_diameter_mm:.6f} mm")
+    print(f"Wall thickness: {wall_thickness_mm:.6f} mm")
 
 
 if __name__ == "__main__":

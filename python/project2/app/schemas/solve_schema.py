@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class VariableBound(BaseModel):
     lower: float
     upper: float
+    step: Optional[float] = None
 
 
 class AlgorithmConfig(BaseModel):
