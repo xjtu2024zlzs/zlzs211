@@ -1,0 +1,31 @@
+# Tomcat
+server:
+  port: 9308
+
+# Spring
+spring:
+  main:
+    lazy-initialization: true
+  application:
+    name: ruoyi-flowable
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
+      discovery:
+        server-addr: 127.0.0.1:8848
+        ip: 127.0.0.1
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 127.0.0.1:8848
+        group: DEFAULT_GROUP
+        file-extension: yml
+        username: nacos
+        password: nacos
+        enabled: false
+        import-check:
+          enabled: false

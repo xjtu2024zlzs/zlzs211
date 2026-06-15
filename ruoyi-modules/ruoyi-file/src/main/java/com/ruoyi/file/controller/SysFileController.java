@@ -11,7 +11,8 @@ import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.utils.StringUtils;
 import com.ruoyi.common.core.utils.file.FileUtils;
 import com.ruoyi.file.service.ISysFileService;
-import com.ruoyi.system.api.domain.SysFile;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 文件请求处理
@@ -30,15 +31,15 @@ public class SysFileController
      * 文件上传请求
      */
     @PostMapping("upload")
-    public R<SysFile> upload(MultipartFile file)
+    public R<Map<String, Object>> upload(MultipartFile file)
     {
         try
         {
             // 上传并返回访问地址
             String url = sysFileService.uploadFile(file);
-            SysFile sysFile = new SysFile();
-            sysFile.setName(FileUtils.getName(url));
-            sysFile.setUrl(url);
+            Map<String, Object> sysFile = new HashMap<>();
+            sysFile.put("name", FileUtils.getName(url));
+            sysFile.put("url", url);
             return R.ok(sysFile);
         }
         catch (Exception e)

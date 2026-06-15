@@ -21,4 +21,9 @@ public class ServiceNameConstants
      * 文件服务的serviceid
      */
     public static final String FILE_SERVICE = "ruoyi-file";
+
+    /**
+     * 设计任务服务的serviceid
+     */
+    public static final String DESIGN_SERVICE = "ruoyi-designtask1";
 }
