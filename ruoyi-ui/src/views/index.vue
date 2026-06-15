@@ -1,1005 +1,814 @@
 <template>
-  <div class="dashboard-view">
-    <div class="dashboard-shell">
-      <section class="dashboard-topbar">
+  <div class="home-page">
+    <!-- 顶部标题区 -->
+    <section class="hero-card">
+      <div>
+        <div class="eyebrow">航空科技 · 质量追溯中心</div>
+        <h1>智能质量运营仪表盘</h1>
+        <p>
+          面向关键工序、质量闭环与追溯活动的实时监控中心，支持专题切换、异常预警及追溯详情回溯。
+        </p>
+      </div>
+
+      <div class="status-group">
+        <span class="status-pill">
+          <i class="dot green"></i>
+          系统在线
+        </span>
+        <span class="status-pill">
+          <i class="dot blue"></i>
+          实时采集
+        </span>
+        <span class="status-pill">
+          <i class="dot cyan"></i>
+          追溯完备
+        </span>
+      </div>
+    </section>
+
+    <!-- 运营概览 -->
+    <section class="panel-card">
+      <div class="section-header">
         <div>
-          <p class="eyebrow">航空科技 · 质量追溯中心</p>
-          <h1 class="dashboard-title">智能质量运营仪表盘</h1>
-          <p class="dashboard-subtitle">
-            面向关键工序、质量闭环与追溯活动的实时监控中心，支持专题切换、异常预警及追溯详情回溯。
-          </p>
+          <div class="eyebrow">关键指标</div>
+          <h2>运营概览</h2>
         </div>
+        <span class="mock-tag">模拟数据 · 2026</span>
+      </div>
 
-        <div class="topbar-meta">
-          <div class="meta-chip">
-            <span class="meta-dot meta-dot--green"></span>
-            <span>系统在线</span>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-top">
+            <span>质量合格率</span>
+            <span class="mini-icon">●</span>
           </div>
-          <div class="meta-chip">
-            <span class="meta-dot meta-dot--blue"></span>
-            <span>实时采集</span>
-          </div>
-          <div class="meta-chip">
-            <span class="meta-dot meta-dot--cyan"></span>
-            <span>追溯完备</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="section-block">
-        <div class="section-header">
-          <div>
-            <p class="section-label">关键指标</p>
-            <h2 class="section-title">运营概览</h2>
-          </div>
-          <el-tag round size="small" type="success" class="live-tag">模拟数据 · 2026</el-tag>
-        </div>
-
-        <div class="metric-grid" v-loading="loading">
-          <div v-for="metric in keyMetrics" :key="metric.key" class="metric-card">
-            <div class="metric-card__header">
-              <span class="metric-card__label">{{ metric.label }}</span>
-              <span class="metric-card__icon">{{ metric.icon }}</span>
-            </div>
-            <div class="metric-card__value">{{ metric.value }}</div>
-            <div class="metric-card__footer">
-              <span class="metric-card__trend" :class="metric.trendClass">{{ metric.change }}</span>
-              <span class="metric-card__unit">{{ metric.unit }}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section-block mix-zone">
-        <div class="mix-zone__left">
-          <div class="section-header">
-            <div>
-              <p class="section-label">专题切换</p>
-              <h2 class="section-title">质量趋势</h2>
-            </div>
-            <div class="insight-badge">{{ activeTopic.title }}</div>
-          </div>
-
-          <div class="split-layout">
-            <aside class="topic-nav" aria-label="子课题导航">
-              <div
-                v-for="item in topicOptions"
-                :key="item.key"
-                class="topic-nav__item"
-                :class="{ active: selectedTopic === item.key }"
-                @click="navigateToTopic(item)"
-              >
-                <div class="topic-nav__icon">{{ item.icon }}</div>
-                <div class="topic-nav__content">
-                  <p class="topic-nav__title">{{ item.title }}</p>
-                  <p class="topic-nav__desc">{{ item.summary }}</p>
-                </div>
-                <span class="topic-nav__chevron">→</span>
-              </div>
-            </aside>
-
-            <article class="chart-panel">
-              <div class="chart-panel__header">
-                <div>
-                  <p class="chart-panel__label">{{ activeTopic.subtitle }}</p>
-                  <h3 class="chart-panel__title">{{ activeTopic.title }}趋势</h3>
-                </div>
-                <div class="chart-panel__status">
-                  <span class="status-ring"></span>
-                  追溯联动中
-                </div>
-              </div>
-
-              <TrendChart :x-axis-data="chartData.xAxis" :series-data="chartData.series" />
-
-              <div class="chart-caption">
-                <span class="caption-dot"></span>
-                当前专题质量波动由设备状态、工序参数与检验结果联合驱动，已接入AI预警模型。
-              </div>
-            </article>
+          <div class="metric-value">96.4%</div>
+          <div class="metric-bottom">
+            <span class="up">+2.8%</span>
+            <span>连续达标</span>
           </div>
         </div>
 
-        <div class="mix-zone__right">
-          <div class="section-header">
-            <div>
-              <p class="section-label">快捷入口</p>
-              <h2 class="section-title">五大子课题</h2>
-            </div>
+        <div class="metric-card">
+          <div class="metric-top">
+            <span>追溯覆盖率</span>
+            <span class="mini-icon">?</span>
           </div>
-
-          <div class="shortcut-grid">
-            <ShortcutCard
-              v-for="entry in shortcutEntries"
-              :key="entry.key"
-              :item="entry"
-              @navigate="navigateToTopic"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section class="section-block activity-block">
-        <div class="section-header">
-          <div>
-            <p class="section-label">最新活动</p>
-            <h2 class="section-title">最近追溯活动</h2>
-          </div>
-          <div class="activity-summary">
-            <span class="summary-pill">{{ recentRecords.length }} 条记录</span>
-            <span class="summary-pill summary-pill--accent">分页浏览</span>
+          <div class="metric-value">99.1%</div>
+          <div class="metric-bottom">
+            <span class="up">+1.4%</span>
+            <span>全链路</span>
           </div>
         </div>
 
-        <div class="table-shell">
-          <el-table
-            :data="pagedRecords"
-            stripe
-            highlight-current-row
-            @row-click="openRecordDetail"
-            class="dashboard-table"
-          >
-            <el-table-column prop="time" label="时间" width="150" />
-            <el-table-column prop="project" label="项目" width="170" />
-
-            <el-table-column prop="summary" label="追溯摘要" show-overflow-tooltip />
-            <el-table-column prop="status" label="状态" width="120">
-              <template #default="scope">
-                <el-tag size="small" :type="scope.row.statusType">{{ scope.row.status }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="owner" label="责任人" width="120" />
-          </el-table>
-
-          <div class="table-footer">
-            <div class="table-footer__hint">点击任意行查看详情</div>
-            <el-pagination
-              v-model:current-page="currentPage"
-              v-model:page-size="pageSize"
-              :page-sizes="[5, 10, 15]"
-              layout="total, sizes, prev, pager, next"
-              :total="recentRecords.length"
-              @size-change="handlePageSizeChange"
-            />
+        <div class="metric-card">
+          <div class="metric-top">
+            <span>预警处置</span>
+            <span class="mini-icon">?</span>
+          </div>
+          <div class="metric-value">24</div>
+          <div class="metric-bottom">
+            <span class="down">-11%</span>
+            <span>待处置</span>
           </div>
         </div>
-      </section>
-    </div>
 
-    <el-dialog v-model="detailVisible" title="追溯详情" width="760px" custom-class="track-dialog">
-      <div v-if="selectedRecord" class="detail-dialog">
-        <div class="detail-dialog__header">
-          <div>
-            <p class="detail-dialog__eyebrow">{{ selectedRecord.project }}</p>
-            <h3 class="detail-dialog__title">{{ selectedRecord.summary }}</h3>
+        <div class="metric-card">
+          <div class="metric-top">
+            <span>工艺稳定度</span>
+            <span class="mini-icon">↗</span>
           </div>
-          <el-tag size="small" :type="selectedRecord.statusType">{{ selectedRecord.status }}</el-tag>
-        </div>
-
-        <div class="detail-grid">
-          <div class="detail-block">
-            <p class="detail-label">追溯时间</p>
-            <p class="detail-value">{{ selectedRecord.time }}</p>
-          </div>
-          <div class="detail-block">
-            <p class="detail-label">责任人</p>
-            <p class="detail-value">{{ selectedRecord.owner }}</p>
-          </div>
-          <div class="detail-block detail-block--wide">
-            <p class="detail-label">关联子课题</p>
-            <p class="detail-value">{{ selectedRecord.topic }}</p>
-          </div>
-          <div class="detail-block detail-block--wide">
-            <p class="detail-label">追溯说明</p>
-            <p class="detail-value detail-value--muted">{{ selectedRecord.detail }}</p>
+          <div class="metric-value">91.6</div>
+          <div class="metric-bottom">
+            <span class="up">+4.3%</span>
+            <span>评分</span>
           </div>
         </div>
       </div>
-    </el-dialog>
+    </section>
+
+    <!-- 中部内容 -->
+    <section class="middle-grid">
+      <!-- 左侧质量趋势 -->
+      <div class="panel-card trend-panel">
+        <div class="section-header">
+          <div>
+            <div class="eyebrow">专题切换</div>
+            <h2>质量趋势</h2>
+          </div>
+          <button class="small-pill" @click="goProject4">质量追溯</button>
+        </div>
+
+        <div class="trend-content">
+          <div class="trend-menu">
+            <div class="trend-item active" @click="goProject4">
+              <div class="letter">Q</div>
+              <div>
+                <strong>质量追溯</strong>
+                <span>检验指标与批次关联</span>
+              </div>
+              <em>→</em>
+            </div>
+
+            <div class="trend-item" @click="goProject4">
+              <div class="letter">G</div>
+              <div>
+                <strong>工艺治理</strong>
+                <span>工序偏差与治理</span>
+              </div>
+              <em>→</em>
+            </div>
+
+            <div class="trend-item" @click="goProject4">
+              <div class="letter">F</div>
+              <div>
+                <strong>故障分析</strong>
+                <span>异常模式识别</span>
+              </div>
+              <em>→</em>
+            </div>
+
+            <div class="trend-item" @click="goProject4">
+              <div class="letter">E</div>
+              <div>
+                <strong>设备监测</strong>
+                <span>设备健康状态</span>
+              </div>
+              <em>→</em>
+            </div>
+
+            <div class="trend-item" @click="goProject4">
+              <div class="letter">D</div>
+              <div>
+                <strong>数据归档</strong>
+                <span>归档、审计与留痕</span>
+              </div>
+              <em>→</em>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title">
+              <div>
+                <div class="eyebrow">质量追溯链路</div>
+                <h3>质量追溯趋势</h3>
+              </div>
+              <span class="running-dot">
+                <i></i>
+                追溯联动中
+              </span>
+            </div>
+
+            <div class="fake-chart">
+              <div class="chart-line line-main"></div>
+              <div class="chart-line line-sub"></div>
+
+              <div class="chart-grid">
+                <span>100</span>
+                <span>80</span>
+                <span>60</span>
+                <span>40</span>
+                <span>20</span>
+              </div>
+
+              <div class="month-axis">
+                <span>一月</span>
+                <span>二月</span>
+                <span>三月</span>
+                <span>四月</span>
+                <span>五月</span>
+                <span>六月</span>
+              </div>
+            </div>
+
+            <p class="chart-note">
+              当前专题质量波动由设备状态、工序参数与检验结果联合驱动，已接入质量追溯模型。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧五大子课题 -->
+      <div class="panel-card subject-panel">
+        <div class="section-header">
+          <div>
+            <div class="eyebrow">快速入口</div>
+            <h2>五大子课题</h2>
+          </div>
+        </div>
+
+        <div class="subject-grid">
+          <div class="subject-card" @click="goSubject('/project1')">
+            <div class="subject-icon">一</div>
+            <span class="subject-badge green">课题</span>
+            <h3>课题一</h3>
+            <p>进入课题一专题页面查看详情与运行看板。</p>
+            <strong>专题 1 →</strong>
+          </div>
+
+          <div class="subject-card" @click="goSubject('/project2')">
+            <div class="subject-icon">二</div>
+            <span class="subject-badge blue">课题</span>
+            <h3>课题二</h3>
+            <p>进入课题二专题页面查看重点数据与状态。</p>
+            <strong>专题 2 →</strong>
+          </div>
+
+          <div class="subject-card" @click="goSubject('/project3')">
+            <div class="subject-icon">三</div>
+            <span class="subject-badge red">课题</span>
+            <h3>课题三</h3>
+            <p>进入课题三专题页面查看异常与治理情况。</p>
+            <strong>专题 3 →</strong>
+          </div>
+
+          <!-- 课题四：重点修改处，点击直接进入课题四数据文件管理 -->
+          <div class="subject-card project4-card" @click="goProject4">
+            <div class="subject-icon">四</div>
+            <span class="subject-badge gray">课题</span>
+            <h3>课题四</h3>
+            <p>进入课题四专题页面查看质量追溯、样本增强、特征融合与诊断结果。</p>
+            <strong>专题 4 →</strong>
+          </div>
+
+          <div class="subject-card" @click="goSubject('/project5')">
+            <div class="subject-icon">五</div>
+            <span class="subject-badge orange">课题</span>
+            <h3>课题五</h3>
+            <p>进入课题五专题页面查看归档与汇总结果。</p>
+            <strong>专题 5 →</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 最近活动 -->
+    <section class="panel-card activity-panel">
+      <div class="section-header">
+        <div>
+          <div class="eyebrow">最新活动</div>
+          <h2>最近追溯活动</h2>
+        </div>
+
+        <div class="activity-actions">
+          <button>10 条记录</button>
+          <button>分页浏览</button>
+        </div>
+      </div>
+
+      <table class="activity-table">
+        <thead>
+        <tr>
+          <th>时间</th>
+          <th>项目</th>
+          <th>追溯摘要</th>
+          <th>状态</th>
+          <th>责任人</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>2026-05-29 09:20</td>
+          <td>航电系统</td>
+          <td>A-12 批次抽检通过并完成闭环记录</td>
+          <td><span class="success-tag">已完成</span></td>
+          <td>李工</td>
+        </tr>
+        <tr>
+          <td>2026-05-29 08:40</td>
+          <td>轴承系统</td>
+          <td>故障诊断结果已完成根因分析</td>
+          <td><span class="success-tag">已完成</span></td>
+          <td>张工</td>
+        </tr>
+        <tr>
+          <td>2026-05-28 17:35</td>
+          <td>质量追溯</td>
+          <td>样本增强与特征融合结果已归档</td>
+          <td><span class="warning-tag">待复核</span></td>
+          <td>王工</td>
+        </tr>
+        </tbody>
+      </table>
+    </section>
   </div>
 </template>
 
-<script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import TrendChart from '@/components/dashboard/TrendChart.vue'
-import ShortcutCard from '@/components/dashboard/ShortcutCard.vue'
+<script setup name="Index">
+import { useRouter } from "vue-router"
 
-const route = useRoute()
 const router = useRouter()
 
-const loading = ref(true)
-const selectedTopic = ref('quality')
-const currentPage = ref(1)
-const pageSize = ref(10)
-const detailVisible = ref(false)
-const selectedRecord = ref(null)
-
-const keyMetrics = ref([])
-const recentRecords = ref([])
-
-const topicOptions = [
-  {
-    key: 'quality',
-    title: '质量追溯',
-    icon: 'Q',
-    summary: '检验指标与批次关联',
-    subtitle: '质量追溯链路',
-    route: '/index?topic=quality'
-  },
-  {
-    key: 'process',
-    title: '工艺治理',
-    icon: 'G',
-    summary: '工序偏差与治理',
-    subtitle: '工艺治理监测',
-    route: '/index?topic=process'
-  },
-  {
-    key: 'fault',
-    title: '故障分析',
-    icon: 'F',
-    summary: '异常模式识别',
-    subtitle: '故障分析看板',
-    route: '/index?topic=fault'
-  },
-  {
-    key: 'equipment',
-    title: '设备监测',
-    icon: 'E',
-    summary: '设备健康状态',
-    subtitle: '设备监测趋势',
-    route: '/index?topic=equipment'
-  },
-  {
-    key: 'archive',
-    title: '数据归档',
-    icon: 'D',
-    summary: '归档、审计与留痕',
-    subtitle: '数据归档分析',
-    route: '/index?topic=archive'
-  }
-]
-
-const shortcutEntries = [
-  {
-    key: 'project-1',
-    title: '课题一',
-    icon: '一',
-    badge: '课题',
-    tagType: 'success',
-    description: '进入课题一专题页面查看详情与运行看板。',
-    meta: '专题 1',
-    route: '/project_1'
-  },
-  {
-    key: 'project-2',
-    title: '课题二',
-    icon: '二',
-    badge: '课题',
-    tagType: 'primary',
-    description: '进入课题二专题页面查看重点数据与状态。',
-    meta: '专题 2',
-    route: '/project_2'
-  },
-  {
-    key: 'project-3',
-    title: '课题三',
-    icon: '三',
-    badge: '课题',
-    tagType: 'danger',
-    description: '进入课题三专题页面查看异常与治理情况。',
-    meta: '专题 3',
-    route: '/project_3'
-  },
-  {
-    key: 'project-4',
-    title: '课题四',
-    icon: '四',
-    badge: '课题',
-    tagType: 'info',
-    description: '进入课题四专题页面查看设备与监测汇总。',
-    meta: '专题 4',
-    route: '/project_4'
-  },
-  {
-    key: 'project-5',
-    title: '课题五',
-    icon: '五',
-    badge: '课题',
-    tagType: 'warning',
-    description: '进入课题五专题页面查看归档与汇总结果。',
-    meta: '专题 5',
-    route: '/project_5'
-  }
-]
-
-const chartDataset = {
-  quality: {
-    xAxis: ['一月', '二月', '三月', '四月', '五月', '六月'],
-    series: [
-      { name: '综合质量', color: '#19b5ff', data: [86, 89, 91, 94, 92, 96] },
-      { name: '批次一致性', color: '#5dd4a4', data: [79, 84, 86, 88, 90, 93] }
-    ]
-  },
-  process: {
-    xAxis: ['一月', '二月', '三月', '四月', '五月', '六月'],
-    series: [
-      { name: '工艺稳定度', color: '#23b8ff', data: [74, 76, 79, 81, 84, 88] },
-      { name: '工艺稳定度', color: '#6fd9f9', data: [68, 71, 74, 78, 82, 86] }
-    ]
-  },
-  fault: {
-    xAxis: ['一月', '二月', '三月', '四月', '五月', '六月'],
-    series: [
-      { name: '异常识别率', color: '#ff8f5c', data: [70, 73, 76, 79, 82, 85] },
-      { name: '处置效率', color: '#ffa756', data: [64, 67, 69, 73, 76, 79] }
-    ]
-  },
-  equipment: {
-    xAxis: ['一月', '二月', '三月', '四月', '五月', '六月'],
-    series: [
-      { name: '设备健康', color: '#32c1ff', data: [82, 84, 87, 89, 91, 94] },
-      { name: '预防性维护', color: '#8fd2ff', data: [75, 79, 81, 84, 88, 91] }
-    ]
-  },
-  archive: {
-    xAxis: ['一月', '二月', '三月', '四月', '五月', '六月'],
-    series: [
-      { name: '档案完整率', color: '#9b87ff', data: [88, 90, 91, 92, 94, 95] },
-      { name: '审计通过率', color: '#c4adff', data: [83, 85, 88, 90, 92, 94] }
-    ]
-  }
+/**
+ * 首页课题四快捷入口
+ * 当前跳转到：课题四 -> 数据文件管理
+ */
+function goProject4() {
+  router.push("/project4/fileofda")
 }
 
-const activeTopic = computed(() => topicOptions.find((item) => item.key === selectedTopic.value) || topicOptions[0])
-
-const chartData = computed(() => chartDataset[selectedTopic.value] || chartDataset.quality)
-
-const pagedRecords = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return recentRecords.value.slice(start, start + pageSize.value)
-})
-
-const navigateToTopic = (topic) => {
-  const target = typeof topic === 'string' ? { key: topic } : topic
-  const key = target.key
-
-  if (target.route) {
-    router.push(target.route)
-    return
-  }
-
-  selectedTopic.value = key
-  router.push({ path: '/index', query: { topic: key } })
+/**
+ * 其他课题入口。
+ * 当前未迁移完整模块时，点击会先尝试跳转。
+ */
+function goSubject(path) {
+  router.push(path)
 }
-
-const openRecordDetail = (row) => {
-  selectedRecord.value = row
-  detailVisible.value = true
-}
-
-const handlePageSizeChange = (size) => {
-  pageSize.value = size
-  currentPage.value = 1
-}
-
-const loadDashboardData = async () => {
-  loading.value = true
-  await new Promise((resolve) => setTimeout(resolve, 650))
-
-  keyMetrics.value = [
-    { key: 'quality-score', label: '质量合格率', value: '96.4%', change: '+2.8%', trendClass: 'positive', icon: '◎', unit: '连续达标' },
-    { key: 'trace-rate', label: '追溯覆盖率', value: '99.1%', change: '+1.4%', trendClass: 'positive', icon: '?', unit: '全链路' },
-    { key: 'alarm-count', label: '预警处置', value: '24', change: '-11%', trendClass: 'negative', icon: '?', unit: '待处置' },
-    { key: 'trend-score', label: '工艺稳定度', value: '91.6', change: '+4.3%', trendClass: 'positive', icon: '↗', unit: '评分' }
-  ]
-
-  recentRecords.value = [
-    {
-      time: '2026-05-29 09:20',
-      project: '航电系统',
-      topic: '质量追溯',
-      summary: 'A-12批次抽检通过并完成闭环记录',
-      detail: '从原材料入库、试验记录到终检报告全部关联，异常波动已归档，责任人已确认。',
-      status: '已完成',
-      owner: '李工',
-      statusType: 'success',
-      tagType: 'success'
-    },
-    {
-      time: '2026-05-29 08:10',
-      project: '发动机舱',
-      topic: '工艺治理',
-      summary: '工序温度超限已执行整改并复测',
-      detail: '工艺微调策略已提交，设备回路校准完成，第二轮监测结果正常。',
-      status: '整改中',
-      owner: '张工',
-      statusType: 'warning',
-      tagType: 'primary'
-    },
-    {
-      time: '2026-05-28 17:45',
-      project: '雷达单元',
-      topic: '故障分析',
-      summary: '信号异常更新为典型振荡故障模式',
-      detail: '异常路径已追踪至传感器供电波动，推荐更换滤波模块并排查接线。',
-      status: '分析中',
-      owner: '周工',
-      statusType: 'danger',
-      tagType: 'danger'
-    },
-    {
-      time: '2026-05-28 15:30',
-      project: '机载导航',
-      topic: '设备监测',
-      summary: '振动监测数据正常，设备运行稳定',
-      detail: '最新一轮运行时长健康评分达到94分，设备保持轻载稳定运行。',
-      status: '正常',
-      owner: '王工',
-      statusType: 'success',
-      tagType: 'info'
-    },
-    {
-      time: '2026-05-28 13:20',
-      project: '机载系统',
-      topic: '数据归档',
-      summary: '归档包已完成审计并更新留痕',
-      detail: '对应项目归档版本已提交档案库，审计记录与责任链完整同步。',
-      status: '已归档',
-      owner: '刘工',
-      statusType: 'success',
-      tagType: 'warning'
-    },
-    {
-      time: '2026-05-27 10:50',
-      project: '电源模块',
-      topic: '工艺治理',
-      summary: '工艺参数回归监测完成',
-      detail: '工艺管控调整后的复测结果稳定在预期区间内，建议继续跟踪。',
-      status: '已完成',
-      owner: '陈工',
-      statusType: 'success',
-      tagType: 'primary'
-    },
-    {
-      time: '2026-05-27 09:05',
-      project: '飞控系统',
-      topic: '故障分析',
-      summary: '回归工单已送达运维复核',
-      detail: '根因分析摘要已附带整改建议，等待运维复核并进入二次验证。',
-      status: '待复核',
-      owner: '邓工',
-      statusType: 'warning',
-      tagType: 'danger'
-    },
-    {
-      time: '2026-05-26 16:30',
-      project: '传感器阵列',
-      topic: '质量追溯',
-      summary: '异常样本已标记并进入二次检验',
-      detail: '样本编号已同步到追溯系统，追溯链路覆盖到设备运行记录。',
-      status: '复检中',
-      owner: '孙工',
-      statusType: 'warning',
-      tagType: 'success'
-    },
-    {
-      time: '2026-05-26 14:10',
-      project: '机载传感',
-      topic: '设备监测',
-      summary: '传感器预警阈值已更新',
-      detail: '设备监测阈值已滚动调整，结合历史数据重新生成阈值区间。',
-      status: '已更新',
-      owner: '赵工',
-      statusType: 'success',
-      tagType: 'info'
-    },
-    {
-      time: '2026-05-25 11:40',
-      project: '结构件',
-      topic: '数据归档',
-      summary: '年度归档索引已重新生成',
-      detail: '下载与留痕记录完成自动归档，索引已更新至主数据仓库。',
-      status: '已归档',
-      owner: '吴工',
-      statusType: 'success',
-      tagType: 'warning'
-    }
-  ]
-
-  loading.value = false
-}
-
-watch(
-  () => route.query.topic,
-  (newTopic) => {
-    if (newTopic) {
-      selectedTopic.value = String(newTopic)
-    }
-  },
-  { immediate: true }
-)
-
-onMounted(() => {
-  loadDashboardData()
-})
 </script>
 
 <style scoped lang="scss">
-.dashboard-view {
-  min-height: calc(100vh - 24px);
-  padding: 12px;
-  box-sizing: border-box;
-  background:
-    radial-gradient(circle at top, rgba(93, 149, 212, 0.24), transparent 24%),
-    linear-gradient(180deg, #f3f8ff 0%, #e4edf8 42%, #dfe8f4 100%);
+.home-page {
+  padding: 18px;
+  background: #eef5fb;
+  min-height: calc(100vh - 84px);
+  color: #12213a;
 }
 
-.dashboard-shell {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+.hero-card,
+.panel-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  border: 1px solid #cfe2f5;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(38, 92, 145, 0.08);
 }
 
-.dashboard-topbar {
+.hero-card {
+  padding: 28px 34px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 18px 20px;
-  border-radius: 22px;
-  border: 1px solid rgba(89, 145, 202, 0.28);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(243, 248, 255, 0.92));
-  box-shadow: 0 18px 44px rgba(76, 112, 150, 0.18);
+  margin-bottom: 18px;
+
+  h1 {
+    margin: 4px 0 8px;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #0c2b52;
+  }
+
+  p {
+    margin: 0;
+    color: #4b688c;
+    font-size: 16px;
+  }
 }
 
 .eyebrow {
-  margin: 0 0 6px;
-  color: #2f6cb3;
-  text-transform: uppercase;
-  letter-spacing: 0.24em;
-  font-size: 10px;
+  color: #1d7ed0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
-.dashboard-title {
-  margin: 0;
-  color: #172c4e;
-  font-size: 30px;
-  font-weight: 800;
-}
-
-.dashboard-subtitle {
-  margin: 8px 0 0;
-  max-width: 760px;
-  color: #60728f;
-  line-height: 1.5;
-}
-
-.topbar-meta {
+.status-group {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
-.meta-chip {
+.status-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 12px;
+  padding: 8px 16px;
+  border: 1px solid #c9def3;
   border-radius: 999px;
-  border: 1px solid rgba(100, 154, 212, 0.32);
-  background: rgba(255, 255, 255, 0.84);
-  color: #4c638c;
-  font-size: 11px;
+  background: #ffffff;
+  color: #2f5f91;
+  font-size: 14px;
 }
 
-.meta-dot {
+.dot {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: 50%;
 }
 
-.meta-dot--green { background: #20b26f; }
-.meta-dot--blue { background: #1f8df0; }
-.meta-dot--cyan { background: #10afdb; }
+.green {
+  background: #20c997;
+}
 
-.section-block {
-  border-radius: 24px;
-  border: 1px solid rgba(118, 152, 197, 0.32);
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 18px 44px rgba(70, 97, 132, 0.16);
-  padding: 18px 18px 20px;
+.blue {
+  background: #2d8cf0;
+}
+
+.cyan {
+  background: #00a3c4;
+}
+
+.panel-card {
+  padding: 20px 22px;
+  margin-bottom: 18px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 3px 0 0;
+    font-size: 22px;
+    color: #0c2b52;
+  }
 }
 
-.section-label {
-  margin: 0 0 4px;
-  color: #2364aa;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.24em;
-}
-
-.section-title {
-  margin: 0;
-  color: #122641;
-  font-size: 18px;
+.mock-tag {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #e9fff5;
+  color: #189b6b;
   font-weight: 700;
-}
-
-.live-tag {
-  border: 0;
-  background: rgba(16, 177, 107, 0.14);
-  color: #11774d;
+  font-size: 13px;
 }
 
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.metric-card {
-  border-radius: 20px;
-  padding: 16px;
-  border: 1px solid rgba(112, 154, 205, 0.4);
-  background:
-    linear-gradient(180deg, #ffffff, #f5f8fe),
-    rgba(244, 248, 255, 0.96);
-  box-shadow: 0 12px 24px rgba(72, 106, 149, 0.12);
-}
-
-.metric-card__header,
-.metric-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.metric-card__label {
-  color: #6b7f98;
-  font-size: 12px;
-}
-
-.metric-card__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: linear-gradient(180deg, #127fd5, #0e5aa4);
-  color: #fff;
-  font-size: 12px;
-}
-
-.metric-card__value {
-  margin: 12px 0 10px;
-  color: #091a2f;
-  font-size: 30px;
-  font-weight: 800;
-}
-
-.metric-card__trend {
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.metric-card__trend.positive { color: #1f9d6b; }
-.metric-card__trend.negative { color: #f29733; }
-
-.metric-card__unit {
-  color: #6f7f97;
-  font-size: 11px;
-}
-
-.mix-zone {
-  display: grid;
-  grid-template-columns: 1.55fr 0.95fr;
   gap: 16px;
 }
 
-.mix-zone__left,
-.mix-zone__right {
-  display: flex;
-  flex-direction: column;
-}
-
-.split-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 14px;
-  min-height: 360px;
-}
-
-.topic-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.topic-nav__item {
-  display: grid;
-  grid-template-columns: 32px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
+.metric-card {
+  padding: 18px;
+  border: 1px solid #bdd7f1;
   border-radius: 16px;
-  border: 1px solid rgba(107, 149, 198, 0.34);
-  background: rgba(255, 255, 255, 0.72);
-  cursor: pointer;
-  transition: all 0.22s ease;
+  background: #fbfdff;
 }
 
-.topic-nav__item:hover,
-.topic-nav__item.active {
-  border-color: rgba(27, 129, 215, 0.72);
-  box-shadow: 0 0 0 1px rgba(27, 129, 215, 0.24), 0 12px 24px rgba(67, 109, 153, 0.16);
-  transform: translateX(2px);
+.metric-top,
+.metric-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.topic-nav__icon {
+.metric-top {
+  color: #6b7f99;
+  font-size: 13px;
+}
+
+.mini-icon {
+  background: #1976c9;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #2d8ce4, #0f5f9e);
-  color: #fff;
   font-size: 12px;
+}
+
+.metric-value {
+  margin: 18px 0 8px;
+  font-size: 32px;
+  font-weight: 800;
+  color: #0d1b2f;
+}
+
+.metric-bottom {
+  font-size: 13px;
+  color: #6b7f99;
+}
+
+.up {
+  color: #11a36a;
   font-weight: 800;
 }
 
-.topic-nav__content {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+.down {
+  color: #ff8a00;
+  font-weight: 800;
 }
 
-.topic-nav__title {
-  margin: 0;
-  color: #132b45;
-  font-size: 13px;
-  font-weight: 700;
+.middle-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 18px;
 }
 
-.topic-nav__desc {
-  margin: 0;
-  color: #6e7890;
-  font-size: 10px;
+.trend-content {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 18px;
 }
 
-.topic-nav__chevron {
-  color: #1a72c2;
-  font-size: 14px;
+.trend-menu {
+  background: #f1f6fb;
+  border-radius: 14px;
+  padding: 12px;
 }
 
-.chart-panel {
-  display: flex;
-  flex-direction: column;
+.trend-item {
+  display: grid;
+  grid-template-columns: 44px 1fr 20px;
+  align-items: center;
   gap: 12px;
   padding: 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(101, 145, 193, 0.3);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 249, 255, 0.9)),
-    rgba(249, 251, 255, 0.96);
+  margin-bottom: 10px;
+  border: 1px solid #d7e5f3;
+  border-radius: 14px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: #5fa7e8;
+  }
+
+  &.active {
+    border: 2px solid #49a3ff;
+    box-shadow: 0 8px 18px rgba(45, 140, 240, 0.12);
+  }
+
+  strong {
+    display: block;
+    color: #173b63;
+    margin-bottom: 5px;
+  }
+
+  span {
+    color: #7c8fa6;
+    font-size: 12px;
+  }
+
+  em {
+    color: #1976c9;
+    font-style: normal;
+  }
 }
 
-.chart-panel__header,
-.chart-panel__status {
+.letter,
+.subject-icon {
+  background: linear-gradient(135deg, #1a91f0, #0a63b7);
+  color: #fff;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.letter {
+  width: 40px;
+  height: 40px;
+}
+
+.chart-card {
+  border: 1px solid #cfe2f5;
+  border-radius: 18px;
+  padding: 18px;
+  background: #fbfdff;
+}
+
+.chart-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+
+  h3 {
+    margin: 2px 0 0;
+    font-size: 20px;
+  }
 }
 
-.chart-panel__label {
-  margin: 0 0 4px;
-  color: #2b78ca;
-  font-size: 10px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-}
-
-.chart-panel__title {
-  margin: 0;
-  color: #152842;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.chart-panel__status {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(225, 241, 255, 0.9);
-  color: #4f6f8e;
-  font-size: 10px;
-}
-
-.status-ring {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #13b16d;
-  box-shadow: 0 0 0 4px rgba(19, 177, 109, 0.16);
-}
-
-.insight-badge {
-  padding: 8px 10px;
-  border-radius: 999px;
-  color: #1d5c9d;
-  background: rgba(219, 238, 255, 0.92);
-  border: 1px solid rgba(86, 143, 204, 0.32);
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.chart-caption {
-  display: flex;
+.running-dot {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: #5f6f80;
-}
-
-.caption-dot {
-  width: 8px;
-  height: 8px;
+  gap: 7px;
+  padding: 6px 12px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #2ea2f8, #1273c5);
+  background: #eaf8f3;
+  color: #158b65;
+  font-size: 12px;
+
+  i {
+    width: 8px;
+    height: 8px;
+    background: #18c78a;
+    border-radius: 50%;
+  }
 }
 
-.shortcut-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+.fake-chart {
+  position: relative;
+  height: 270px;
+  margin-top: 20px;
+  border-left: 1px solid #b9d4ef;
+  border-bottom: 1px solid #b9d4ef;
+  background:
+      linear-gradient(to bottom, transparent 19%, #d9e8f8 20%, transparent 21%),
+      linear-gradient(to bottom, transparent 39%, #d9e8f8 40%, transparent 41%),
+      linear-gradient(to bottom, transparent 59%, #d9e8f8 60%, transparent 61%),
+      linear-gradient(to bottom, transparent 79%, #d9e8f8 80%, transparent 81%),
+      linear-gradient(180deg, rgba(54, 179, 232, 0.08), rgba(54, 179, 232, 0.18));
 }
 
-.activity-block {
+.chart-line {
+  position: absolute;
+  left: 8%;
+  right: 5%;
+  height: 3px;
+  border-radius: 999px;
+  transform-origin: left center;
+}
+
+.line-main {
+  top: 35%;
+  background: #18aaf5;
+  transform: rotate(-4deg);
+}
+
+.line-sub {
+  top: 43%;
+  background: #55d28d;
+  transform: rotate(-5deg);
+}
+
+.chart-grid {
+  position: absolute;
+  left: -38px;
+  top: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  color: #7d93ad;
+  font-size: 12px;
 }
 
-.activity-summary {
+.month-axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -28px;
   display: flex;
-  gap: 8px;
+  justify-content: space-around;
+  color: #7d93ad;
+  font-size: 12px;
 }
 
-.summary-pill {
-  padding: 6px 9px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  color: #556679;
-  font-size: 10px;
-  border: 1px solid rgba(109, 147, 194, 0.28);
+.chart-note {
+  margin-top: 42px;
+  color: #5b7490;
+  font-size: 13px;
 }
 
-.summary-pill--accent {
-  color: #1b79bb;
-  border-color: rgba(28, 132, 208, 0.34);
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
-.table-shell {
+.subject-card {
+  position: relative;
+  min-height: 150px;
+  padding: 20px;
+  border: 1px solid #c7ddf4;
   border-radius: 18px;
-  border: 1px solid rgba(98, 136, 186, 0.28);
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.9);
-}
+  background: #fbfdff;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
-.dashboard-table {
-  :deep(.el-table__header) {
-    background: #eaf2fb;
-    color: #223b57;
+  &:hover {
+    transform: translateY(-3px);
+    border-color: #2d8cf0;
+    box-shadow: 0 14px 26px rgba(45, 140, 240, 0.16);
   }
 
-  :deep(th.el-table__cell) {
-    background: #eaf2fb;
-    color: #223b57;
-    border-bottom-color: rgba(77, 118, 168, 0.24);
+  h3 {
+    margin: 15px 0 8px;
+    color: #0c2b52;
+    font-size: 20px;
   }
 
-  :deep(td.el-table__cell) {
-    background: #fff;
-    color: #1a2f43;
-    border-bottom-color: rgba(76, 113, 154, 0.18);
+  p {
+    margin: 0 0 12px;
+    color: #617897;
+    line-height: 1.6;
+    font-size: 14px;
   }
 
-  :deep(.el-table__row:hover > td) {
-    background: #f4f8fe;
+  strong {
+    color: #1976c9;
+    font-size: 14px;
   }
 }
 
-.table-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border-top: 1px solid rgba(98, 136, 186, 0.24);
+.project4-card {
+  border-color: #90c2f5;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f8ff 100%);
 }
 
-.table-footer__hint {
-  color: #60718e;
-  font-size: 11px;
+.subject-icon {
+  width: 38px;
+  height: 38px;
 }
 
-.detail-dialog :deep(.el-dialog__body) {
-  padding-top: 12px;
+.subject-badge {
+  position: absolute;
+  right: 16px;
+  top: 18px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+
+  &.green {
+    background: #67c23a;
+  }
+
+  &.blue {
+    background: #409eff;
+  }
+
+  &.red {
+    background: #f56c6c;
+  }
+
+  &.gray {
+    background: #909399;
+  }
+
+  &.orange {
+    background: #e6a23c;
+  }
 }
 
-.detail-dialog__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.detail-dialog__eyebrow {
-  margin: 0 0 4px;
-  color: #2674bc;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.detail-dialog__title {
-  margin: 0;
-  color: #15233d;
-  font-size: 18px;
+.small-pill {
+  border: 1px solid #b9d6f3;
+  background: #eaf5ff;
+  color: #1976c9;
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
   font-weight: 700;
 }
 
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.activity-panel {
+  overflow: hidden;
+}
+
+.activity-actions {
+  display: flex;
   gap: 10px;
+
+  button {
+    border: 1px solid #c7ddf4;
+    background: #fff;
+    color: #1976c9;
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
 }
 
-.detail-block {
-  padding: 12px 13px;
-  border-radius: 14px;
-  border: 1px solid rgba(71, 119, 171, 0.28);
-  background: #f8fbff;
+.activity-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+
+  th,
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e7eef7;
+    text-align: left;
+    color: #324b67;
+  }
+
+  th {
+    background: #f4f8fc;
+    color: #25476c;
+    font-weight: 800;
+  }
 }
 
-.detail-block--wide {
-  grid-column: 1 / span 2;
+.success-tag,
+.warning-tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.detail-label {
-  margin: 0 0 6px;
-  color: #5e7f9f;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
+.success-tag {
+  background: #ecf9f1;
+  color: #19a66a;
 }
 
-.detail-value {
-  margin: 0;
-  color: #16314c;
-  font-size: 13px;
-  line-height: 1.5;
+.warning-tag {
+  background: #fff7e6;
+  color: #e69a00;
 }
 
-.detail-value--muted {
-  color: #597189;
-}
-
-@media (max-width: 1100px) {
-  .mix-zone {
+@media screen and (max-width: 1400px) {
+  .middle-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1008,25 +817,20 @@ onMounted(() => {
   }
 }
 
-@media (max-width: 780px) {
-  .dashboard-topbar,
-  .section-header,
-  .table-footer {
-    align-items: flex-start;
+@media screen and (max-width: 900px) {
+  .hero-card {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
   }
 
-  .split-layout {
+  .trend-content {
     grid-template-columns: 1fr;
   }
 
+  .subject-grid,
   .metric-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .shortcut-grid {
     grid-template-columns: 1fr;
   }
 }
 </style>
-

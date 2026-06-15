@@ -27,3 +27,8 @@ spring:
     import:
       - nacos:application-dev.yml?group=DEFAULT_GROUP
       - nacos:ruoyi-system-dev.yml?group=DEFAULT_GROUP
+project4:
+  python-command: python
+  script-root: D:/科研/课题项目/航空装备智能故障诊断软件系统/若依/RuoYi-Vue3/algorithm/project4
+  model-path: D:/科研/课题项目/航空装备智能故障诊断软件系统/若依/RuoYi-Vue3/algorithm/project4/model.pt
+  output-root: D:/topic4-output

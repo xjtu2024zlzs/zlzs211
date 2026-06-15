@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.FdAugmentResultMapper">
+    
+    <resultMap type="FdAugmentResult" id="FdAugmentResultResult">
+        <result property="augmentId"    column="augment_id"    />
+        <result property="augmentCode"    column="augment_code"    />
+        <result property="rawSampleId"    column="raw_sample_id"    />
+        <result property="rawSampleCode"    column="raw_sample_code"    />
+        <result property="algorithmName"    column="algorithm_name"    />
+        <result property="multiplier"    column="multiplier"    />
+        <result property="generatedCount"    column="generated_count"    />
+        <result property="qualityPolicy"    column="quality_policy"    />
+        <result property="validity"    column="validity"    />
+        <result property="paramJson"    column="param_json"    />
+        <result property="resultSummary"    column="result_summary"    />
+        <result property="outputPath"    column="output_path"    />
+        <result property="generateTime"    column="generate_time"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectFdAugmentResultVo">
+        select augment_id, augment_code, raw_sample_id, raw_sample_code, algorithm_name, multiplier, generated_count, quality_policy, validity, param_json, result_summary, output_path, generate_time, del_flag, create_by, create_time, update_by, update_time, remark from fd_augment_result
+    </sql>
+
+    <select id="selectFdAugmentResultList" parameterType="FdAugmentResult" resultMap="FdAugmentResultResult">
+        <include refid="selectFdAugmentResultVo"/>
+        <where>  
+            <if test="augmentCode != null  and augmentCode != ''"> and augment_code = #{augmentCode}</if>
+            <if test="rawSampleId != null "> and raw_sample_id = #{rawSampleId}</if>
+            <if test="rawSampleCode != null  and rawSampleCode != ''"> and raw_sample_code = #{rawSampleCode}</if>
+            <if test="algorithmName != null  and algorithmName != ''"> and algorithm_name like concat('%', #{algorithmName}, '%')</if>
+            <if test="multiplier != null "> and multiplier = #{multiplier}</if>
+            <if test="generatedCount != null "> and generated_count = #{generatedCount}</if>
+            <if test="qualityPolicy != null  and qualityPolicy != ''"> and quality_policy = #{qualityPolicy}</if>
+            <if test="validity != null  and validity != ''"> and validity = #{validity}</if>
+            <if test="paramJson != null  and paramJson != ''"> and param_json = #{paramJson}</if>
+            <if test="resultSummary != null  and resultSummary != ''"> and result_summary = #{resultSummary}</if>
+            <if test="outputPath != null  and outputPath != ''"> and output_path = #{outputPath}</if>
+            <if test="generateTime != null "> and generate_time = #{generateTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFdAugmentResultByAugmentId" parameterType="Long" resultMap="FdAugmentResultResult">
+        <include refid="selectFdAugmentResultVo"/>
+        where augment_id = #{augmentId}
+    </select>
+
+    <insert id="insertFdAugmentResult" parameterType="FdAugmentResult" useGeneratedKeys="true" keyProperty="augmentId">
+        insert into fd_augment_result
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="augmentCode != null and augmentCode != ''">augment_code,</if>
+            <if test="rawSampleId != null">raw_sample_id,</if>
+            <if test="rawSampleCode != null">raw_sample_code,</if>
+            <if test="algorithmName != null">algorithm_name,</if>
+            <if test="multiplier != null">multiplier,</if>
+            <if test="generatedCount != null">generated_count,</if>
+            <if test="qualityPolicy != null">quality_policy,</if>
+            <if test="validity != null">validity,</if>
+            <if test="paramJson != null">param_json,</if>
+            <if test="resultSummary != null">result_summary,</if>
+            <if test="outputPath != null">output_path,</if>
+            <if test="generateTime != null">generate_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="augmentCode != null and augmentCode != ''">#{augmentCode},</if>
+            <if test="rawSampleId != null">#{rawSampleId},</if>
+            <if test="rawSampleCode != null">#{rawSampleCode},</if>
+            <if test="algorithmName != null">#{algorithmName},</if>
+            <if test="multiplier != null">#{multiplier},</if>
+            <if test="generatedCount != null">#{generatedCount},</if>
+            <if test="qualityPolicy != null">#{qualityPolicy},</if>
+            <if test="validity != null">#{validity},</if>
+            <if test="paramJson != null">#{paramJson},</if>
+            <if test="resultSummary != null">#{resultSummary},</if>
+            <if test="outputPath != null">#{outputPath},</if>
+            <if test="generateTime != null">#{generateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFdAugmentResult" parameterType="FdAugmentResult">
+        update fd_augment_result
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="augmentCode != null and augmentCode != ''">augment_code = #{augmentCode},</if>
+            <if test="rawSampleId != null">raw_sample_id = #{rawSampleId},</if>
+            <if test="rawSampleCode != null">raw_sample_code = #{rawSampleCode},</if>
+            <if test="algorithmName != null">algorithm_name = #{algorithmName},</if>
+            <if test="multiplier != null">multiplier = #{multiplier},</if>
+            <if test="generatedCount != null">generated_count = #{generatedCount},</if>
+            <if test="qualityPolicy != null">quality_policy = #{qualityPolicy},</if>
+            <if test="validity != null">validity = #{validity},</if>
+            <if test="paramJson != null">param_json = #{paramJson},</if>
+            <if test="resultSummary != null">result_summary = #{resultSummary},</if>
+            <if test="outputPath != null">output_path = #{outputPath},</if>
+            <if test="generateTime != null">generate_time = #{generateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where augment_id = #{augmentId}
+    </update>
+
+    <delete id="deleteFdAugmentResultByAugmentId" parameterType="Long">
+        delete from fd_augment_result where augment_id = #{augmentId}
+    </delete>
+
+    <delete id="deleteFdAugmentResultByAugmentIds" parameterType="String">
+        delete from fd_augment_result where augment_id in 
+        <foreach item="augmentId" collection="array" open="(" separator="," close=")">
+            #{augmentId}
+        </foreach>
+    </delete>
+</mapper>
