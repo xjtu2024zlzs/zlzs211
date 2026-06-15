@@ -71,13 +71,13 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/project_1',
+    path: '/project1',
     component: Layout,
     hidden: true,
     children: [
       {
         path: '',
-        component: () => import('@/views/project_1/index.vue'),
+        component: () => import('@/views/project1/datasource/index.vue'),
         name: 'Project1',
         meta: { title: '课题一', icon: 'dashboard' }
       }
@@ -162,7 +162,7 @@ export const constantRoutes = [
     children: [
       {
         path: '',
-        component: () => import('@/views/topic5/index.vue'),
+        component: () => import('@/views/topic5/trace/index.vue'),
         name: 'Project5',
         meta: { title: '课题五', icon: 'dashboard' }
       }

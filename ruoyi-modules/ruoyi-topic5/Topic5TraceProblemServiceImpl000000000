@@ -1,21 +1,6 @@
 package com.ruoyi.topic5.service.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import com.alibaba.fastjson2.JSON;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.ruoyi.common.core.exception.ServiceException;
 import com.ruoyi.common.core.utils.DateUtils;
 import com.ruoyi.topic5.domain.Topic5TraceAttachment;
@@ -26,6 +11,18 @@ import com.ruoyi.topic5.mapper.Topic5TraceAttachmentMapper;
 import com.ruoyi.topic5.mapper.Topic5TraceFlowLogMapper;
 import com.ruoyi.topic5.mapper.Topic5TraceProblemMapper;
 import com.ruoyi.topic5.service.ITopic5TraceProblemService;
+import org.apache.poi.xwpf.usermodel.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -33,17 +30,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
-import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import java.util.*;
 
 
 /**
@@ -53,7 +41,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
  * @date 2026-06-03
  */
 @Service
-public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
+public class Topic5TraceProblemServiceImpl000000000 implements ITopic5TraceProblemService
 {
     @Value("${topic5.python.first-algorithm-url:http://127.0.0.1:9781/api/v1/diagnose}")
     private String firstAlgorithmUrl;
@@ -124,9 +112,8 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         topic5TraceProblem.setStatus("未处理");
 
         // 3. 初始化课题四状态
-        // 当前版本暂时取消课题四前置流程，以下字段初始化逻辑保留但不启用。
-        // topic5TraceProblem.setTopic4Status(0L);
-        // topic5TraceProblem.setTopic4ResultFilled(0L);
+        topic5TraceProblem.setTopic4Status(0L);
+        topic5TraceProblem.setTopic4ResultFilled(0L);
 
         // 4. 初始化算法状态
         topic5TraceProblem.setAlgorithmStatus(0L);
@@ -295,27 +282,8 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             traceAttachmentMapper.insertTopic5TraceAttachment(item);
         }
 
-        // 3. 当前流程取消课题四前置依赖：
-        //    保存数字卷宗附件后，直接进入 workflow_stage = 2，
-        //    后续即可运行第一部分算法。
-        Topic5TraceProblem updateProblem = new Topic5TraceProblem();
-        updateProblem.setId(id);
-        updateProblem.setWorkflowStage(2L);
-        updateProblem.setStatus("处理中");
-        updateProblem.setUpdateTime(DateUtils.getNowDate());
-
-        topic5TraceProblemMapper.updateTopic5TraceProblem(updateProblem);
-
-        insertFlowLog(
-                id,
-                2L,
-                "数字卷宗附件保存",
-                "成功",
-                "已保存数字卷宗附件，当前流程已进入多元特征提取/数据处理阶段，可运行第一部分算法"
-        );
-
-        // 原逻辑保留，暂不启用：
-        // updateWorkflowStage(id, 3L, "数字卷宗传感器附件已保存到追溯任务");
+        // 3. 更新流程到第3步：追溯任务保存
+        //updateWorkflowStage(id, 3L, "数字卷宗传感器附件已保存到追溯任务");
     }
 
     /**
@@ -332,21 +300,37 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("追溯任务不存在，无法推送课题四");
         }
 
-        /*
-         * 课题四推送逻辑暂时停用。
-         * 当前流程调整为：
-         * 数字卷宗调用并保存附件完成后，即 workflow_stage = 2，
-         * 可直接运行第一部分算法，不再要求推送课题四或等待课题四反馈。
-         *
-         * 原课题四推送逻辑保留在历史版本中，不删除。
-         */
+        // 新流程下，不能再用 workflowStage 判断附件是否保存。
+        // 因为 workflowStage = 1 表示问题填报完成，workflowStage = 2 要等课题四结果回填后才更新。
+        // 这里应当直接检查附件表中是否已经保存了附件。
+        Topic5TraceAttachment attachmentQuery = new Topic5TraceAttachment();
+        attachmentQuery.setTraceId(id);
+        attachmentQuery.setSavedFlag(1L);
+
+        List<Topic5TraceAttachment> savedAttachments =
+                traceAttachmentMapper.selectTopic5TraceAttachmentList(attachmentQuery);
+
+        if (savedAttachments == null || savedAttachments.isEmpty())
+        {
+            throw new ServiceException("请先完成数字卷宗数据调用和附件保存，再推送课题四");
+        }
+
+        Topic5TraceProblem update = new Topic5TraceProblem();
+        update.setId(id);
+        update.setTopic4Status(1L);
+        update.setStatus("处理中");
+        update.setUpdateTime(DateUtils.getNowDate());
+
+        // 注意：这里不要再设置 workflowStage。
+        // 数据处理阶段要等“课题四结果回填完成”后，才设置 workflowStage = 2L。
+        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
 
         insertFlowLog(
                 id,
-                2L,
-                "课题四推送",
-                "跳过",
-                "当前版本已取消课题四前置流程，未执行课题四推送"
+                1L,
+                "推送课题四处理",
+                "成功",
+                "已将追溯任务模拟推送给课题四，等待课题四返回处理结果"
         );
     }
 
@@ -357,29 +341,39 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     @Transactional
     public void receiveTopic4Callback(Topic4CallbackDTO dto)
     {
-        /*
-         * 课题四回调逻辑暂时停用。
-         * 当前版本不再依赖课题四返回结果驱动 workflow_stage。
-         *
-         * 原逻辑包括：
-         * 1. 校验 dto.traceId；
-         * 2. 写入 topic4Status、topic4FaultType、topic4FaultLocation、
-         *    topic4CauseAnalysis、topic4DeductionProcess、topic4RootConfidence；
-         * 3. 写入“接收课题四结果”流程日志。
-         *
-         * 以上逻辑保留为注释说明，不删除。
-         */
         if (dto == null || dto.getTraceId() == null)
         {
-            return;
+            throw new ServiceException("课题四回调参数错误，traceId不能为空");
         }
+
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(dto.getTraceId());
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在，无法接收课题四结果");
+        }
+
+        Topic5TraceProblem update = new Topic5TraceProblem();
+        update.setId(dto.getTraceId());
+
+        update.setTopic4Status(dto.getTopic4Status());
+
+        update.setTopic4FaultType(dto.getFaultType());
+        update.setTopic4FaultLocation(dto.getFaultLocation());
+        update.setTopic4CauseAnalysis(dto.getCauseAnalysis());
+        update.setTopic4DeductionProcess(dto.getDeductionProcess());
+        update.setTopic4RootConfidence(dto.getRootConfidence());
+
+        update.setUpdateTime(DateUtils.getNowDate());
+
+        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
 
         insertFlowLog(
                 dto.getTraceId(),
-                2L,
-                "课题四回调",
-                "跳过",
-                "当前版本已取消课题四前置流程，未写入课题四回调结果"
+                5L,
+                "接收课题四结果",
+                "成功",
+                "课题四已完成处理，并返回初步识别结果"
         );
     }
 
@@ -397,23 +391,27 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("追溯任务不存在，无法回填课题四结果");
         }
 
-        /*
-         * 课题四结果回填逻辑暂时停用。
-         * 原逻辑会检查 topic4Status == 2，并设置：
-         * topic4ResultFilled = 1
-         * workflowStage = 2
-         * status = 处理中
-         *
-         * 当前版本 workflowStage = 2 已改由“保存数字卷宗附件”触发，
-         * 因此这里不再更新课题四字段，也不再作为第一部分算法前置条件。
-         */
+        // topic4Status 是 Long 类型，所以这里不能用 Integer.valueOf(2)
+        if (!Long.valueOf(2L).equals(problem.getTopic4Status()))
+        {
+            throw new ServiceException("课题四尚未处理完成，不能回填结果");
+        }
+
+        Topic5TraceProblem update = new Topic5TraceProblem();
+        update.setId(id);
+        update.setTopic4ResultFilled(1L);
+        update.setWorkflowStage(2L);
+        update.setStatus("处理中");
+        update.setUpdateTime(DateUtils.getNowDate());
+
+        topic5TraceProblemMapper.updateTopic5TraceProblem(update);
 
         insertFlowLog(
                 id,
                 2L,
-                "课题四结果回填",
-                "跳过",
-                "当前版本已取消课题四前置流程，workflow_stage 由数字卷宗附件保存触发"
+                "数据处理",
+                "成功",
+                "课题四返回结果已回填，数据处理阶段完成"
         );
     }
 
@@ -447,19 +445,15 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("追溯任务不存在，无法运行第一部分算法");
         }
 
-        // 第一部分算法前置条件已调整：
-        // 当前版本不再判断课题四结果是否回填；
-        // 只要数字卷宗附件保存完成，即 workflow_stage >= 2，就可以运行第一部分算法。
-        /*
-        if (!Long.valueOf(1L).equals(problem.getTopic4ResultFilled()))
-        {
-            throw new ServiceException("请先完成课题四结果回填，再运行第一部分算法");
-        }
-        */
+        // 第一部分算法前置条件：课题四反馈已经回填，且流程至少完成多元特征提取
+//        if (!Long.valueOf(1L).equals(problem.getTopic4ResultFilled()))
+//        {
+//            throw new ServiceException("请先完成课题四结果回填，再运行第一部分算法");
+//        }
 
         if (problem.getWorkflowStage() == null || problem.getWorkflowStage() < 2L)
         {
-            throw new ServiceException("请先调用课题一数字卷宗并保存附件，再运行第一部分算法");
+            throw new ServiceException("请先完成数据处理，再运行第一部分算法");
         }
 
         // 先更新为运行中
@@ -579,8 +573,8 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
      */
     private String generateTraceNo()
     {
-        String dateStr = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
-        String timeStr = new java.text.SimpleDateFormat("HHmmss").format(new java.util.Date());
+        String dateStr = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        String timeStr = new SimpleDateFormat("HHmmss").format(new Date());
         return "TS" + dateStr + timeStr;
     }
 
@@ -766,22 +760,16 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         Topic5TraceProblem updateProblem = new Topic5TraceProblem();
         updateProblem.setId(id);
         updateProblem.setAttachmentSavePath(basePath);
-
-        // 当前流程取消课题四前置依赖：
-        // 保存数字卷宗附件后，直接进入 workflow_stage = 2，
-        // 后续即可运行第一部分算法。
-        updateProblem.setWorkflowStage(2L);
-        updateProblem.setStatus("处理中");
         updateProblem.setUpdateTime(DateUtils.getNowDate());
 
         topic5TraceProblemMapper.updateTopic5TraceProblem(updateProblem);
 
         insertFlowLog(
                 id,
-                2L,
-                "数字卷宗附件保存",
+                1L,
+                "附件保存",
                 "成功",
-                "已将课题一传感器文件复制到：" + basePath + "，当前流程已进入多元特征提取/数据处理阶段，可运行第一部分算法"
+                "已将课题一传感器文件复制到：" + basePath
         );
     }
     /**
@@ -2417,7 +2405,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             addTitle(document, "课题五质量追溯任务报告");
 
             addParagraph(document, "报告生成时间：" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-            addParagraph(document, "本报告由课题五质量追溯系统自动生成，内容包括追溯任务基本信息、数字卷宗附件信息、第一部分算法结果、第二部分算法结果、最终溯源知识图谱与最终溯源结论。");
+            addParagraph(document, "本报告由课题五质量追溯系统自动生成，内容包括追溯任务基本信息、课题四反馈结果、数字卷宗附件信息、第一部分算法结果、第二部分算法结果、最终溯源知识图谱与最终溯源结论。");
 
             addSectionTitle(document, "一、追溯任务基本信息");
             addKeyValueTable(document, new String[][]{
@@ -2437,33 +2425,27 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                     {"备注", valueToText(problem.getRemark())}
             });
 
-            /*
-             * 课题四反馈结果章节暂时停用。
-             * 当前版本不再将课题四作为第一部分算法的前置环节。
-             *
-             * 原报告章节如下，保留但不输出：
-             * addSectionTitle(document, "二、课题四反馈结果");
-             * addKeyValueTable(document, new String[][]{
-             *         {"课题四处理状态", topic4StatusNameForReport(problem.getTopic4Status())},
-             *         {"故障类型", valueToText(problem.getTopic4FaultType())},
-             *         {"故障位置", valueToText(problem.getTopic4FaultLocation())},
-             *         {"根因置信度", valueToText(problem.getTopic4RootConfidence())},
-             *         {"原因分析", valueToText(problem.getTopic4CauseAnalysis())},
-             *         {"故障推演过程", valueToText(problem.getTopic4DeductionProcess())}
-             * });
-             */
+            addSectionTitle(document, "二、课题四反馈结果");
+            addKeyValueTable(document, new String[][]{
+                    {"课题四处理状态", topic4StatusNameForReport(problem.getTopic4Status())},
+                    {"故障类型", valueToText(problem.getTopic4FaultType())},
+                    {"故障位置", valueToText(problem.getTopic4FaultLocation())},
+                    {"根因置信度", valueToText(problem.getTopic4RootConfidence())},
+                    {"原因分析", valueToText(problem.getTopic4CauseAnalysis())},
+                    {"故障推演过程", valueToText(problem.getTopic4DeductionProcess())}
+            });
 
-            addSectionTitle(document, "二、数字卷宗附件信息");
+            addSectionTitle(document, "三、数字卷宗附件信息");
             addParagraph(document, "附件保存位置：" + valueToText(problem.getAttachmentSavePath()));
             addAttachmentTable(document, problem.getId());
 
-            addSectionTitle(document, "三、第一部分算法运行结果");
+            addSectionTitle(document, "四、第一部分算法运行结果");
             addFirstAlgorithmResult(document, problem.getAlgorithmResult());
 
-            addSectionTitle(document, "四、第二部分算法运行结果");
+            addSectionTitle(document, "五、第二部分算法运行结果");
             addSecondAlgorithmResult(document, problem.getSecondAlgorithmResultJson());
 
-            addSectionTitle(document, "五、最终溯源算法结果");
+            addSectionTitle(document, "六、最终溯源算法结果");
             addKeyValueTable(document, new String[][]{
                     {"最终溯源算法", valueToText(problem.getSourceAlgorithmName())},
                     {"最终溯源状态", sourceAlgorithmStatusNameForReport(problem.getSourceAlgorithmStatus())},
@@ -2472,10 +2454,10 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                     {"报告路径", valueToText(problem.getTraceReportUrl())}
             });
 
-            addSectionTitle(document, "六、最终溯源原因表");
+            addSectionTitle(document, "七、最终溯源原因表");
             addSourceReasonTable(document, problem.getSourceReasonTableJson());
 
-            addSectionTitle(document, "七、结论");
+            addSectionTitle(document, "八、结论");
             addParagraph(document, buildReportConclusion(problem));
 
             try (FileOutputStream out = new FileOutputStream(reportPath.toFile()))
@@ -2912,9 +2894,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         if (summary != null && !"".equals(summary.trim()))
         {
-            // 原表述包含“课题四反馈结果”，当前版本课题四流程暂时停用，故不再写入报告结论。
-            // return "根据课题四反馈结果、第一部分故障根因分析、第二部分知识图谱推理以及最终溯源算法结果，系统形成如下结论：" + summary;
-            return "根据数字卷宗附件数据、第一部分故障根因分析、第二部分知识图谱推理以及最终溯源算法结果，系统形成如下结论：" + summary;
+            return "根据课题四反馈结果、第一部分故障根因分析、第二部分知识图谱推理以及最终溯源算法结果，系统形成如下结论：" + summary;
         }
 
         return "根据当前追溯任务相关数据，系统已完成质量问题填报、数字卷宗数据调用、故障根因分析、知识图谱推理和最终溯源闭环。建议结合报告中的候选原因、关键证据和处置建议开展后续复核与闭环处理。";

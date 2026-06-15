@@ -71,9 +71,32 @@
       <template #header>
         <div class="card-header">
           <span>历史追溯问题</span>
-          <el-button type="primary" icon="Plus" @click="handleAdd">
-            填写新的追溯问题
-          </el-button>
+
+          <div class="trace-header-actions">
+            <el-button
+              type="danger"
+              icon="Delete"
+              :disabled="selectedIds.length === 0"
+              @click="handleDeleteSelected"
+            >
+              删除问题
+            </el-button>
+            
+            <el-button
+              type="success"
+              plain
+              icon="Refresh"
+              :loading="syncLoading"
+              @click="handleSyncQualityProblems"
+            >
+              同步问题
+            </el-button>
+
+
+            <el-button type="primary" icon="Plus" @click="handleAdd">
+              填写新的追溯问题
+            </el-button>
+          </div>
         </div>
       </template>
 
@@ -83,7 +106,9 @@
         border
         highlight-current-row
         @row-click="handleRowClick"
+        @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
         <el-table-column prop="traceNo" label="追溯任务编号" min-width="170" />
         <el-table-column prop="eventTime" label="发生时间" min-width="170" />
         <el-table-column prop="aircraftNo" label="架次" min-width="120" />
@@ -622,8 +647,8 @@
         <el-descriptions-item label="问题描述" :span="2">
           {{ detail.problemDescription }}
         </el-descriptions-item>
-
-        <el-descriptions-item label="课题四故障类型">
+      
+        <!-- <el-descriptions-item label="课题四故障类型">
           {{ detail.topic4FaultType || '-' }}
         </el-descriptions-item>
 
@@ -641,7 +666,8 @@
 
         <el-descriptions-item label="故障推演过程" :span="2">
           {{ detail.topic4DeductionProcess || '-' }}
-        </el-descriptions-item>
+        </el-descriptions-item> -->
+
 
         <el-descriptions-item label="第一部分算法结果" :span="2">
           <div v-if="detailFirstAlgorithmResult" class="first-algorithm-detail-box">
@@ -694,6 +720,7 @@ import {
   listTrace,
   getTrace,
   addTrace,
+  delTrace,
   importDossierFiles,
   saveAttachmentsWithPath,
   pushTopic4,
@@ -701,11 +728,13 @@ import {
   fillTopic4Result,
   runAlgorithm
 } from '@/api/topic5/trace'
+import { listProblem } from '@/api/quality/problem'
 import { getSourceResult } from '@/api/topic5/source'
 
 const { proxy } = getCurrentInstance()
 
 const loading = ref(false)
+const syncLoading = ref(false)
 const open = ref(false)
 const detailOpen = ref(false)
 const savePathOpen = ref(false)
@@ -722,6 +751,8 @@ const traceList = ref([])
 const attachmentList = ref([])
 const selectedTraceId = ref(null)
 const currentTrace = ref({})
+const selectedRows = ref([])
+const selectedIds = ref([])
 const detail = ref({})
 const total = ref(0)
 
@@ -850,6 +881,38 @@ function resetQuery() {
   getList()
 }
 
+function handleSelectionChange(selection) {
+  selectedRows.value = selection || []
+  selectedIds.value = selection.map(item => item.id)
+}
+
+function handleDeleteSelected() {
+  if (!selectedIds.value || selectedIds.value.length === 0) {
+    proxy.$modal.msgWarning('请先选择要删除的追溯问题')
+    return
+  }
+
+  const ids = selectedIds.value.join(',')
+
+  proxy.$modal.confirm('确认删除选中的 ' + selectedIds.value.length + ' 条追溯问题吗？').then(() => {
+    return delTrace(ids)
+  }).then(() => {
+    proxy.$modal.msgSuccess('删除成功')
+
+    // 如果当前选择的任务被删除，则清空当前任务
+    if (selectedTraceId.value && selectedIds.value.includes(selectedTraceId.value)) {
+      selectedTraceId.value = null
+      currentTrace.value = {}
+      attachmentList.value = []
+    }
+
+    selectedRows.value = []
+    selectedIds.value = []
+
+    getList()
+  }).catch(() => {})
+}
+
 function resetFormData() {
   form.id = null
   form.traceNo = null
@@ -869,6 +932,199 @@ function resetFormData() {
 function handleAdd() {
   resetFormData()
   open.value = true
+}
+
+async function handleSyncQualityProblems() {
+  syncLoading.value = true
+
+  try {
+    const [qualityRes, traceRes] = await Promise.all([
+      listProblem({}),
+      listTrace({
+        pageNum: 1,
+        pageSize: 10000
+      })
+    ])
+
+    const qualityProblems = qualityRes.rows || []
+    const existedTraceList = traceRes.rows || []
+
+    if (qualityProblems.length === 0) {
+      proxy.$modal.msgWarning('质量问题管理中心暂无可同步的问题')
+      return
+    }
+
+    const existedTraceNoSet = new Set(
+      existedTraceList
+        .map(item => item.traceNo)
+        .filter(Boolean)
+    )
+
+    const waitSyncProblems = qualityProblems.filter(item => {
+      if (!item.problemCode) {
+        return true
+      }
+
+      return !existedTraceNoSet.has(item.problemCode)
+    })
+
+    if (waitSyncProblems.length === 0) {
+      proxy.$modal.msgWarning('质量问题管理中心的问题均已同步，无需重复同步')
+      return
+    }
+
+    for (const problem of waitSyncProblems) {
+      await addTrace(buildTraceFromQualityProblem(problem))
+    }
+
+    proxy.$modal.msgSuccess(`同步完成，新增 ${waitSyncProblems.length} 条追溯问题`)
+
+    queryParams.pageNum = 1
+    getList()
+  } catch (error) {
+    console.error('同步质量问题失败：', error)
+    proxy.$modal.msgError('同步质量问题失败，请检查质量问题接口或追溯问题新增接口')
+  } finally {
+    syncLoading.value = false
+  }
+}
+
+function buildTraceFromQualityProblem(problem) {
+  return {
+    traceNo: problem.problemCode || null,
+
+    eventTime: normalizeQualityTime(
+      problem.occurTime ||
+      problem.createTime ||
+      problem.updateTime
+    ),
+
+    // 质量问题管理中心中“产品型号”对应这里原来的“架次”字段
+    aircraftNo: problem.productModel || problem.aircraftNo || '未填写',
+
+    // 发生部位优先取质量问题的发生部位，其次取涉及系统
+    partName: problem.occurPart || problem.involvedSystem || '未填写',
+
+    // 部件编号
+    partCode: problem.componentCode || null,
+
+    // 具体位置
+    occurrencePosition: problem.occurPart || null,
+
+    // 课题五追溯问题类型
+    problemType: inferTraceProblemType(problem),
+
+    // 严重程度映射
+    severityLevel: normalizeSeverityLevel(problem.severity),
+
+    // 问题描述整合质量问题管理中心中的关键信息
+    problemDescription: buildTraceProblemDescription(problem),
+
+    reporter: problem.reporter || problem.createBy || null,
+
+    source: '质量问题管理中心同步',
+
+    remark: buildTraceRemark(problem),
+
+    // 初始流程状态：问题填报
+    workflowStage: 1,
+
+    // 初始任务状态
+    status: '未处理'
+  }
+}
+
+function normalizeQualityTime(value) {
+  if (!value) {
+    return getNowDateTime()
+  }
+
+  const str = String(value).replace('T', ' ').trim()
+
+  if (str.length >= 19) {
+    return str.substring(0, 19)
+  }
+
+  return str
+}
+
+function getNowDateTime() {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  const h = String(now.getHours()).padStart(2, '0')
+  const min = String(now.getMinutes()).padStart(2, '0')
+  const s = String(now.getSeconds()).padStart(2, '0')
+  return `${y}-${m}-${d} ${h}:${min}:${s}`
+}
+
+function inferTraceProblemType(problem) {
+  const text = [
+    problem.title,
+    problem.involvedSystem,
+    problem.occurPart,
+    problem.description
+  ].filter(Boolean).join('')
+
+  if (text.includes('液压')) {
+    return '液压异常'
+  }
+
+  if (text.includes('传感器')) {
+    return '传感器异常'
+  }
+
+  if (text.includes('装配')) {
+    return '装配异常'
+  }
+
+  if (text.includes('结构')) {
+    return '结构异常'
+  }
+
+  return '质量异常'
+}
+
+function normalizeSeverityLevel(value) {
+  if (!value) {
+    return '一般'
+  }
+
+  if (value === '紧急') {
+    return '严重'
+  }
+
+  if (['一般', '重要', '严重'].includes(value)) {
+    return value
+  }
+
+  return '一般'
+}
+
+function buildTraceProblemDescription(problem) {
+  const lines = [
+    `质量问题标题：${problem.title || '-'}`,
+    `质量问题编号：${problem.problemCode || '-'}`,
+    `产品型号：${problem.productModel || '-'}`,
+    `涉及系统：${problem.involvedSystem || '-'}`,
+    `发生部位：${problem.occurPart || '-'}`,
+    `部件编号：${problem.componentCode || '-'}`,
+    `严重程度：${problem.severity || '-'}`,
+    `问题来源：${problem.source || '-'}`,
+    `问题描述：${problem.description || '-'}`,
+    `影响范围：${problem.influenceScope || '-'}`
+  ]
+
+  return lines.join('\n')
+}
+
+function buildTraceRemark(problem) {
+  return [
+    '由质量问题管理中心同步生成。',
+    `原质量问题编号：${problem.problemCode || '-'}`,
+    `原问题状态：${problem.status || '-'}`
+  ].join('\n')
 }
 
 function submitForm() {
@@ -1564,6 +1820,18 @@ onMounted(() => {
 <style scoped>
 .topic5-trace-page {
   padding-bottom: 24px;
+}
+
+.trace-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .mt15 {

@@ -151,6 +151,7 @@
             <if test="reporter != null and reporter != ''"> and reporter = #{reporter}</if>
             <if test="source != null and source != ''"> and source = #{source}</if>
         </where>
+        ORDER BY event_time DESC, create_time DESC
     </select>
 
     <select id="selectTopic5TraceProblemById" parameterType="Long" resultMap="Topic5TraceProblemResult">
