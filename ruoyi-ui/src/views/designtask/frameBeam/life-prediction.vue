@@ -5,14 +5,13 @@
         <div>
           <p class="platform-eyebrow">FRAME BEAM</p>
           <h1 class="platform-title">寿命预测评估</h1>
-          <p class="platform-subtitle">框梁裂纹任务专用页面，仅处理 FRAME_BEAM_CRACK_LIFE_PREDICTION。</p>
         </div>
         <el-button plain @click="goDashboard">返回看板</el-button>
       </section>
       <CrackInputPanel v-if="taskId" :task-id="taskId" />
       <LoadSpectrumPanel v-if="taskId" :task-id="taskId" />
       <LifePredictionPanel v-if="taskId" :task-id="taskId" />
-      <el-empty v-else description="请从任务看板带 taskId 进入寿命预测评估" />
+      <el-empty v-else description="未选择任务" />
     </div>
   </div>
 </template>

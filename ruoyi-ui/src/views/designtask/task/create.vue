@@ -4,11 +4,10 @@
       <div class="page-header">
         <div>
           <div class="page-title">课题二 · 设计任务平台</div>
-          <div class="page-desc">统一管理任务管理与流程发起模块，保持与若依平台一致的视觉和交互风格。</div>
         </div>
         <div class="page-actions">
-          <el-button @click="activeTab = 'manage'">任务管理</el-button>
-          <el-button type="primary" @click="activeTab = 'create'">流程发起</el-button>
+          <el-button icon="Tickets" @click="activeTab = 'manage'">任务管理</el-button>
+          <el-button type="primary" icon="Plus" @click="activeTab = 'create'">流程发起</el-button>
         </div>
       </div>
     </el-card>
@@ -54,8 +53,8 @@
                   <el-option label="已完成" value="FINISHED" />
                   <el-option label="已取消" value="CANCELLED" />
                 </el-select>
-                <el-button type="primary" @click="handleSearch">查询</el-button>
-                <el-button @click="resetQuery">重置</el-button>
+                <el-button type="primary" icon="Search" @click="handleSearch">查询</el-button>
+                <el-button icon="Refresh" @click="resetQuery">重置</el-button>
               </div>
             </div>
           </template>
@@ -78,9 +77,9 @@
             <el-table-column label="创建时间" prop="createTime" width="180" />
             <el-table-column label="操作" width="220" fixed="right">
               <template #default="scope">
-                <el-button link type="primary" @click="openDetail(scope.row)">详情</el-button>
-                <el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button>
-                <el-button link type="danger" @click="removeTask(scope.row)">删除</el-button>
+                <el-button link type="primary" icon="View" @click="openDetail(scope.row)">详情</el-button>
+                <el-button link type="primary" icon="Edit" @click="openEdit(scope.row)">编辑</el-button>
+                <el-button link type="danger" icon="Delete" @click="removeTask(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -128,8 +127,8 @@
                   <el-select v-model="form.templateId" placeholder="请选择流程模板" style="width: 380px" @change="handleTemplateChange">
                     <el-option v-for="template in flowTemplates" :key="template.templateId" :label="template.templateName" :value="template.templateId" />
                   </el-select>
-                  <el-button text type="primary" class="ml-12" @click="showTemplateDialog = true">查看模板</el-button>
-                  <el-button text type="primary">新建模板</el-button>
+                  <el-button text type="primary" icon="View" class="ml-12" @click="showTemplateDialog = true">查看模板</el-button>
+                  <el-button text type="primary" icon="Plus">新建模板</el-button>
                 </el-form-item>
               </el-form>
               <el-card v-if="selectedTemplate" shadow="never" class="preview-card">
@@ -172,17 +171,14 @@
                     v-model="form.description"
                     type="textarea"
                     :rows="6"
-                    placeholder="请详细描述需要解决的问题，包括背景、目标和约束条件"
+                    placeholder="输入问题描述"
                     maxlength="2000"
                     show-word-limit
                   />
                 </el-form-item>
                 <el-form-item label="附件上传">
                   <el-upload action="#" :auto-upload="false" :file-list="fileList" :on-change="handleFileChange" :on-remove="handleFileRemove" :limit="10">
-                    <el-button type="primary">选择文件</el-button>
-                    <template #tip>
-                      <div class="el-upload__tip">支持 PDF、Word、Excel、图片和模型文件</div>
-                    </template>
+                    <el-button type="primary" icon="FolderOpened">选择文件</el-button>
                   </el-upload>
                 </el-form-item>
               </el-form>
@@ -202,17 +198,14 @@
                 <el-descriptions-item label="问题描述" :span="2">{{ form.description || '-' }}</el-descriptions-item>
                 <el-descriptions-item label="附件数量">{{ fileList.length }} 个文件</el-descriptions-item>
               </el-descriptions>
-              <el-alert title="提交提示" type="info" :closable="false" show-icon class="mt-16">
-                确认无误后点击“提交任务”，任务将进入流程创建阶段。
-              </el-alert>
             </div>
           </div>
 
           <div class="wizard-footer">
-            <el-button v-if="step > 0" @click="handlePrev">上一步</el-button>
-            <el-button v-if="step < 3" type="primary" :disabled="!canNext" @click="handleNext">下一步</el-button>
-            <el-button v-if="step === 3" @click="handleSaveDraft">保存草稿</el-button>
-            <el-button v-if="step === 3" type="primary" :loading="submitLoading" @click="handleSubmit">提交任务</el-button>
+            <el-button v-if="step > 0" icon="ArrowLeft" @click="handlePrev">上一步</el-button>
+            <el-button v-if="step < 3" type="primary" icon="ArrowRight" :disabled="!canNext" @click="handleNext">下一步</el-button>
+            <el-button v-if="step === 3" icon="Document" @click="handleSaveDraft">保存草稿</el-button>
+            <el-button v-if="step === 3" type="primary" icon="Check" :loading="submitLoading" @click="handleSubmit">提交任务</el-button>
           </div>
         </el-card>
       </el-tab-pane>
@@ -229,7 +222,7 @@
         </el-table-column>
       </el-table>
       <template #footer>
-        <el-button @click="showTemplateDialog = false">关闭</el-button>
+        <el-button icon="Close" @click="showTemplateDialog = false">关闭</el-button>
       </template>
     </el-dialog>
 
@@ -244,7 +237,7 @@
         <el-descriptions-item label="问题描述" :span="2">{{ currentTask.description || '-' }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
-        <el-button @click="showDetailDialog = false">关闭</el-button>
+        <el-button icon="Close" @click="showDetailDialog = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -504,12 +497,24 @@ onMounted(() => {
 
 <style scoped>
 .designtask-page {
-  background: #f5f7fa;
   min-height: calc(100vh - 84px);
+  padding: 12px;
+  background:
+    linear-gradient(90deg, rgba(18, 73, 119, 0.08), transparent 260px),
+    linear-gradient(180deg, #f6f8fb 0%, #edf2f7 100%);
 }
 
 .page-header-card {
+  border: 1px solid #d8e0ea;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffffff 0%, #f7fbff 100%);
+  box-shadow: 0 8px 22px rgba(38, 65, 92, 0.08);
   margin-bottom: 16px;
+}
+
+.page-header-card :deep(.el-card__body) {
+  min-height: 104px;
+  padding: 20px 24px;
 }
 
 .page-header {
@@ -520,15 +525,9 @@ onMounted(() => {
 }
 
 .page-title {
-  font-size: 18px;
+  font-size: 28px;
   font-weight: 600;
-  color: #303133;
-}
-
-.page-desc {
-  margin-top: 6px;
-  color: #909399;
-  font-size: 13px;
+  color: #1f3554;
 }
 
 .page-actions {
@@ -539,6 +538,7 @@ onMounted(() => {
 .task-tabs :deep(.el-tabs__nav-wrap) {
   padding: 0 16px;
   background: #fff;
+  border: 1px solid #d8e0ea;
   border-radius: 8px 8px 0 0;
 }
 
@@ -546,7 +546,15 @@ onMounted(() => {
 .table-card,
 .wizard-card,
 .preview-card {
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(49, 76, 108, 0.06);
   margin-bottom: 16px;
+}
+
+.stat-card {
+  border-left: 3px solid #4f8edc;
 }
 
 .stat-label {
@@ -555,8 +563,8 @@ onMounted(() => {
 }
 
 .stat-value {
-  margin-top: 10px;
-  font-size: 28px;
+  margin-top: 8px;
+  font-size: 26px;
   font-weight: 700;
   color: #303133;
 }
@@ -608,14 +616,16 @@ onMounted(() => {
 
 .type-card {
   cursor: pointer;
-  border: 1px solid #ebeef5;
+  border: 1px solid #e6ebf1;
+  border-radius: 6px;
   transition: all 0.2s;
   margin-bottom: 16px;
 }
 
 .type-card.active {
-  border-color: #409eff;
-  background: #ecf5ff;
+  border-color: #4f8edc;
+  border-left: 3px solid #4f8edc;
+  background: #f1f7ff;
 }
 
 .type-card-head {
@@ -627,7 +637,7 @@ onMounted(() => {
 .type-icon {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -664,16 +674,17 @@ onMounted(() => {
   gap: 12px;
   align-items: flex-start;
   padding: 12px;
-  border: 1px solid #ebeef5;
-  border-radius: 8px;
-  background: #fafafa;
+  border: 1px solid #e6ebf1;
+  border-left: 3px solid #4f8edc;
+  border-radius: 6px;
+  background: #fbfcfe;
 }
 
 .flow-index {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: #409eff;
+  border-radius: 6px;
+  background: #176db6;
   color: #fff;
   display: flex;
   align-items: center;

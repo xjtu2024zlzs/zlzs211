@@ -97,6 +97,11 @@ public class DesignOptimizationController {
         return AjaxResult.success(optimizationService.defaultFaultPipeParameters());
     }
 
+    @GetMapping("/fault-pipe-parameters/options")
+    public AjaxResult faultPipeParameterOptions() {
+        return AjaxResult.success(optimizationService.faultPipeParameterOptions());
+    }
+
     @GetMapping("/task/{taskId}/fault-pipe-parameters")
     public AjaxResult taskFaultPipeParameters(@PathVariable Long taskId) {
         return AjaxResult.success(optimizationService.faultPipeParameters(taskId));
@@ -105,6 +110,11 @@ public class DesignOptimizationController {
     @PostMapping("/task/{taskId}/objective-constraints")
     public AjaxResult saveObjectiveConstraints(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
         return AjaxResult.success(optimizationService.saveObjectiveConstraints(taskId, body));
+    }
+
+    @PostMapping("/task/{taskId}/objective-weights")
+    public AjaxResult saveObjectiveWeights(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
+        return AjaxResult.success(optimizationService.saveObjectiveWeights(taskId, body));
     }
 
     @PostMapping("/task/{taskId}/design-variables")

@@ -101,6 +101,13 @@ export function getDefaultFaultPipeParameters() {
   })
 }
 
+export function listFaultPipeParameterOptions() {
+  return request({
+    url: '/designtask/fault-pipe-parameters/options',
+    method: 'get'
+  })
+}
+
 export function getTaskFaultPipeParameters(taskId) {
   return request({
     url: `/designtask/task/${taskId}/fault-pipe-parameters`,
@@ -111,6 +118,14 @@ export function getTaskFaultPipeParameters(taskId) {
 export function saveObjectiveConstraints(taskId, data) {
   return request({
     url: `/designtask/task/${taskId}/objective-constraints`,
+    method: 'post',
+    data
+  })
+}
+
+export function saveObjectiveWeights(taskId, data) {
+  return request({
+    url: `/designtask/task/${taskId}/objective-weights`,
     method: 'post',
     data
   })

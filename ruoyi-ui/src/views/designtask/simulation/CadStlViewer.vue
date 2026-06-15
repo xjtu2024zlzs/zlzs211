@@ -143,8 +143,8 @@ onBeforeUnmount(() => {
   position: relative;
   min-height: 500px;
   overflow: hidden;
-  border: 1px solid rgba(128, 158, 195, 0.24);
-  border-radius: 16px;
+  border: 1px solid #e1e7ef;
+  border-radius: 6px;
   background: #c3cad4;
 }
 

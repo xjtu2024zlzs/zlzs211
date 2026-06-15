@@ -5,14 +5,11 @@
         <div>
           <p class="platform-eyebrow">TASK ARCHIVE</p>
           <h1 class="platform-title">任务归档文档</h1>
-          <p class="platform-subtitle">
-            汇总目标约束、模型解耦、设计变量、代理模型、CAD 建模、仿真验证和审批记录，形成已完成任务的归档快照。
-          </p>
         </div>
         <div class="topbar-meta">
           <el-tag type="success">{{ archive.archiveStatus || 'ARCHIVED' }}</el-tag>
-          <el-button plain @click="goBack">返回看板</el-button>
-          <el-button type="primary" @click="printArchive">打印 / 导出</el-button>
+          <el-button plain icon="Back" @click="goBack">返回看板</el-button>
+          <el-button type="primary" icon="Printer" @click="printArchive">打印 / 导出</el-button>
         </div>
       </section>
 
@@ -290,10 +287,11 @@ watch(() => route.query.taskId, value => {
     gap: 12px;
 
     > div {
-      padding: 12px 14px;
-      border: 1px solid #e4edf7;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.72);
+      padding: 10px 12px;
+      border: 1px solid #e6ebf1;
+      border-left: 3px solid #4f8edc;
+      border-radius: 6px;
+      background: #fbfcfe;
       display: flex;
       flex-direction: column;
       gap: 6px;

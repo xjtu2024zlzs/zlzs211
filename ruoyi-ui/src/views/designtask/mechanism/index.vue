@@ -5,18 +5,15 @@
         <div>
           <p class="platform-eyebrow">COLLABORATIVE MECHANISM</p>
           <h1 class="platform-title">协同机制生成</h1>
-          <p class="platform-subtitle">
-            任务负责人选择已部署的 Flowable 工作流模板，指定各学科工程师与审批领导，发起起落架舱门优化任务。
-          </p>
         </div>
         <div class="topbar-meta">
           <div class="meta-chip">
             <span class="meta-dot meta-dot--green"></span>
-            <span>发起人即负责人</span>
+            <span>任务发起</span>
           </div>
           <div class="meta-chip">
             <span class="meta-dot"></span>
-            <span>{{ definitions.length ? '已读取 Flowable 模板' : '等待 Flowable 模板' }}</span>
+            <span>{{ definitions.length ? '模板已读取' : '模板待选择' }}</span>
           </div>
         </div>
       </section>
@@ -29,8 +26,8 @@
               <h2 class="section-title">任务信息</h2>
             </div>
             <div class="section-actions">
-              <el-button plain :loading="deploying" @click="deployTemplate">部署默认模板</el-button>
-              <el-button type="primary" :loading="submitting" @click="submitTask">发起任务</el-button>
+              <el-button plain icon="Upload" :loading="deploying" @click="deployTemplate">部署默认模板</el-button>
+              <el-button type="primary" icon="Promotion" :loading="submitting" @click="submitTask">发起任务</el-button>
             </div>
           </div>
 
@@ -57,7 +54,7 @@
             <el-alert
               v-if="!loadingDefinitions && !definitions.length"
               class="template-alert"
-              title="未读取到 Flowable 流程模板，请先启动 ruoyi-flowable，或点击部署默认模板后再选择。"
+              title="未读取到 Flowable 流程模板"
               type="warning"
               :closable="false"
               show-icon
@@ -90,6 +87,46 @@
                 <el-radio :value="3">高</el-radio>
               </el-radio-group>
             </el-form-item>
+            <el-form-item label="管段编号">
+              <el-select
+                v-model="form.faultPipeParameterSetId"
+                filterable
+                clearable
+                :loading="loadingFaultPipeOptions"
+                placeholder="请选择本次任务处置的管段编号"
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="item in faultPipeOptions"
+                  :key="faultPipeOptionKey(item)"
+                  :label="faultPipeOptionLabel(item)"
+                  :value="Number(item.parameterSetId)"
+                >
+                  <span>{{ item.faultSegmentName || item.setName }}</span>
+                  <span class="option-meta">{{ item.materialName || '-' }} / {{ item.setCode || '-' }}</span>
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item v-if="selectedFaultPipe" label="管段参数">
+              <div class="fault-pipe-preview">
+                <div>
+                  <span>材料</span>
+                  <strong>{{ selectedFaultPipe.materialName || faultPipeValue('MATERIAL_NAME') || '-' }}</strong>
+                </div>
+                <div>
+                  <span>外径</span>
+                  <strong>{{ valueWithUnit('PIPE_OUTER_DIAMETER') }}</strong>
+                </div>
+                <div>
+                  <span>内径</span>
+                  <strong>{{ valueWithUnit('PIPE_INNER_DIAMETER') }}</strong>
+                </div>
+                <div>
+                  <span>壁厚</span>
+                  <strong>{{ valueWithUnit('PIPE_WALL_THICKNESS') }}</strong>
+                </div>
+              </div>
+            </el-form-item>
             <el-form-item label="任务需求">
               <el-input v-model="form.description" type="textarea" :rows="5" placeholder="请输入任务需求" />
             </el-form-item>
@@ -107,7 +144,7 @@
                   提交附件
                 </el-button>
                 <template #tip>
-                  <div class="upload-tip">可先选择需求说明、参数表或模型文件，发起任务时会随任务一起记录。</div>
+                  <div />
                 </template>
               </el-upload>
             </el-form-item>
@@ -150,12 +187,11 @@
             <p class="section-label">FLOWABLE TEMPLATE</p>
             <h2 class="section-title">工作流模板内容</h2>
           </div>
-          <el-button plain :loading="loadingDefinitions" @click="loadDefinitions">刷新流程模板</el-button>
+          <el-button plain icon="Refresh" :loading="loadingDefinitions" @click="loadDefinitions">刷新流程模板</el-button>
         </div>
 
         <div v-if="!selectedDefinition" class="template-placeholder">
-          <strong>请选择流程模板</strong>
-          <span>选择后系统会读取 Flowable 节点，并检查是否能驱动当前协同优化流程。</span>
+          <strong>未选择流程模板</strong>
         </div>
 
         <template v-else>
@@ -183,15 +219,6 @@
             class="node-alert"
             :title="`当前流程模板缺少节点 Key：${missingNodeKeys.join('、')}`"
             type="warning"
-            :closable="false"
-            show-icon
-          />
-
-          <el-alert
-            v-if="!missingNodeKeys.length && workflowNodes.length"
-            class="node-alert"
-            title="当前流程模板节点完整，可用于驱动起落架舱门优化任务。"
-            type="success"
             :closable="false"
             show-icon
           />
@@ -230,6 +257,7 @@ import { Upload } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import {
   deployDefaultProcess,
+  listFaultPipeParameterOptions,
   listAssigneeOptions,
   listProcessDefinitionNodes,
   listProcessDefinitions,
@@ -243,9 +271,11 @@ const deploying = ref(false)
 const loadingDefinitions = ref(false)
 const loadingNodes = ref(false)
 const loadingAssignees = ref(false)
+const loadingFaultPipeOptions = ref(false)
 const definitions = ref([])
 const workflowNodes = ref([])
 const assigneeOptions = ref({})
+const faultPipeOptions = ref([])
 const fileList = ref([])
 
 const form = ref({
@@ -255,6 +285,7 @@ const form = ref({
   plannedStartTime: '',
   plannedEndTime: '',
   priority: 3,
+  faultPipeParameterSetId: undefined,
   description: '基于前置故障追因结论，当前任务先由各专业工程师选择与舱门管线问题相关的优化目标、约束条件和必要设计变量。任务解耦将在目标与约束选择完成后执行，解耦前不预先固定子任务关系或上下游边界。',
   structureUserId: undefined,
   layoutUserId: undefined,
@@ -287,6 +318,10 @@ const nodes = [
 
 const expectedNodeKeys = nodes.map(item => item.key)
 const selectedDefinition = computed(() => definitions.value.find(item => item.definitionId === form.value.processDefinitionId))
+const selectedFaultPipe = computed(() => {
+  const selectedId = Number(form.value.faultPipeParameterSetId)
+  return faultPipeOptions.value.find(item => Number(item.parameterSetId) === selectedId)
+})
 const missingNodeKeys = computed(() => {
   const actualKeys = workflowNodes.value.map(item => item.nodeKey)
   return expectedNodeKeys.filter(key => !actualKeys.includes(key))
@@ -295,6 +330,30 @@ const missingNodeKeys = computed(() => {
 function userLabel(user) {
   const nickName = user.nickName || user.userName
   return `${nickName}（${user.userName} / ID ${user.userId}）`
+}
+
+function faultPipeOptionKey(item) {
+  return item.parameterSetId || item.setCode || item.faultSegmentName
+}
+
+function faultPipeOptionLabel(item) {
+  const code = item.faultSegmentName || item.setCode || '未编号管段'
+  return `${code}（${item.materialName || '材料未配置'}）`
+}
+
+function faultPipeValue(code) {
+  return selectedFaultPipe.value?.values?.[code] || ''
+}
+
+function faultPipeUnit(code) {
+  const item = selectedFaultPipe.value?.items?.find(row => row.paramCode === code)
+  return item?.paramUnit || ''
+}
+
+function valueWithUnit(code) {
+  const value = faultPipeValue(code)
+  const unit = faultPipeUnit(code)
+  return value ? `${value}${unit ? ` ${unit}` : ''}` : '-'
 }
 
 function rolePlaceholder(role) {
@@ -308,6 +367,19 @@ function loadAssignees() {
     assigneeOptions.value = res.data || {}
   }).finally(() => {
     loadingAssignees.value = false
+  })
+}
+
+function loadFaultPipeOptions() {
+  loadingFaultPipeOptions.value = true
+  listFaultPipeParameterOptions().then(res => {
+    faultPipeOptions.value = res.data || []
+    if (!form.value.faultPipeParameterSetId && faultPipeOptions.value.length) {
+      const defaultOption = faultPipeOptions.value.find(item => item.isDefault === '1') || faultPipeOptions.value[0]
+      form.value.faultPipeParameterSetId = Number(defaultOption.parameterSetId)
+    }
+  }).finally(() => {
+    loadingFaultPipeOptions.value = false
   })
 }
 
@@ -378,6 +450,10 @@ function validateBeforeSubmit() {
     ElMessage.warning('预计结束时间不能早于任务开始时间')
     return false
   }
+  if (!form.value.faultPipeParameterSetId) {
+    ElMessage.warning('请选择本次任务处置的管段编号')
+    return false
+  }
   const missingRole = roles.find(role => !form.value[role.key])
   if (missingRole) {
     ElMessage.warning(`请选择${missingRole.label}`)
@@ -406,6 +482,7 @@ async function submitTask() {
 watch(() => form.value.processDefinitionId, loadWorkflowNodes)
 onMounted(() => {
   loadAssignees()
+  loadFaultPipeOptions()
   loadDefinitions()
 })
 </script>
@@ -441,20 +518,54 @@ onMounted(() => {
   line-height: 1.7;
 }
 
+.fault-pipe-preview {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+
+  > div {
+    min-width: 0;
+    padding: 9px 12px;
+    border: 1px solid #e6ebf1;
+    border-left: 3px solid #4f8edc;
+    border-radius: 6px;
+    background: #fbfcfe;
+  }
+
+  span {
+    display: block;
+    color: #6b7688;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  strong {
+    display: block;
+    margin-top: 4px;
+    color: #172033;
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .template-block {
-  margin-top: 24px;
+  margin-top: 14px;
 }
 
 .template-placeholder {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-height: 96px;
+  min-height: 76px;
   justify-content: center;
-  padding: 18px 20px;
+  padding: 14px 16px;
   border: 1px dashed #cfd8e6;
-  border-radius: 8px;
-  background: #f8fafd;
+  border-radius: 6px;
+  background: #fbfcfe;
   color: #6b7688;
 
   strong {
@@ -471,10 +582,11 @@ onMounted(() => {
 
   > div {
     min-width: 0;
-    padding: 12px 14px;
-    border: 1px solid #e5e9f2;
-    border-radius: 8px;
-    background: #f8fafd;
+    padding: 10px 12px;
+    border: 1px solid #e6ebf1;
+    border-left: 3px solid #4f8edc;
+    border-radius: 6px;
+    background: #fbfcfe;
   }
 
   strong {
@@ -505,8 +617,8 @@ onMounted(() => {
 }
 
 .workflow-node-table {
-  border: 1px solid #e5e9f2;
-  border-radius: 8px;
+  border: 1px solid #e1e7ef;
+  border-radius: 6px;
   overflow: hidden;
   background: #fff;
 }
@@ -579,7 +691,8 @@ onMounted(() => {
   }
 
   .time-range,
-  .template-summary {
+  .template-summary,
+  .fault-pipe-preview {
     grid-template-columns: 1fr;
   }
 }

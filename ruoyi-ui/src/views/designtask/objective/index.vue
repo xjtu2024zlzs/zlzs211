@@ -13,7 +13,7 @@
           </div>
           <div class="meta-chip">
             <span class="meta-dot meta-dot--cyan"></span>
-            <span>{{ hasTask ? accessLabel : '选择后进入' }}</span>
+            <span>{{ hasTask ? accessLabel : '任务入口' }}</span>
           </div>
         </div>
       </section>
@@ -24,7 +24,7 @@
             <p class="section-label">TASK INBOX</p>
             <h2 class="section-title">我的目标约束任务</h2>
           </div>
-          <el-button plain :loading="inboxLoading" @click="loadInbox">刷新</el-button>
+          <el-button plain icon="Refresh" :loading="inboxLoading" @click="loadInbox">刷新</el-button>
         </div>
 
         <el-tabs v-model="activeTab" class="mt-12" @tab-change="changeTab">
@@ -42,7 +42,7 @@
                 <el-tag :type="actionType(row.action?.mode)">{{ row.action?.label || (activeTab === 'handled' ? '查看' : '等待') }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="说明" min-width="180">
+            <el-table-column label="备注" min-width="180">
               <template #default="{ row }">{{ row.action?.reason || row.handledRemark || '-' }}</template>
             </el-table-column>
             <el-table-column label="操作" width="120" fixed="right">
@@ -78,7 +78,7 @@
               <p class="section-label">PROBLEM OVERVIEW</p>
               <h2 class="section-title">当前问题概览</h2>
             </div>
-            <el-button v-if="attachments.length" plain @click="openAttachmentViewer(previewAttachment || attachments[0])">查看示意图</el-button>
+            <el-button v-if="attachments.length" plain icon="Picture" @click="openAttachmentViewer(previewAttachment || attachments[0])">查看示意图</el-button>
           </div>
 
           <div class="fault-overview-body">
@@ -90,9 +90,9 @@
               <div class="fault-attachment-icon">PNG</div>
               <div class="fault-attachment-meta">
                 <strong>{{ previewAttachment?.fileName || attachments[0]?.fileName || '问题示意图' }}</strong>
-                <span>点击查看任务负责人提交的故障示意图</span>
+                <span>任务附件</span>
               </div>
-              <el-button type="primary" plain>查看示意图</el-button>
+              <el-button type="primary" plain icon="View">查看示意图</el-button>
             </div>
           </div>
         </section>
@@ -128,12 +128,7 @@
                   </template>
                 </el-table-column>
                 <el-table-column label="名称" prop="itemName" min-width="220" show-overflow-tooltip />
-                <el-table-column label="方向" prop="direction" width="120" />
-                <el-table-column label="权重" width="210">
-                  <template #default="{ row }">
-                    <el-slider v-model="row.weight" :min="0" :max="100" :disabled="readonlyMode" />
-                  </template>
-                </el-table-column>
+                <el-table-column label="优化类型" prop="direction" width="120" />
               </el-table>
             </div>
 
@@ -169,13 +164,13 @@
                 <el-form-item label="任务 ID">
                   <el-input-number v-model="taskId" :min="1" disabled />
                 </el-form-item>
-                <el-form-item label="说明">
+                <el-form-item label="备注">
                   <el-input v-model="remark" type="textarea" :rows="5" :disabled="readonlyMode" />
                 </el-form-item>
-                <el-button v-if="!readonlyMode" type="primary" :loading="saving" @click="submit">
+                <el-button v-if="!readonlyMode" type="primary" icon="Check" :loading="saving" @click="submit">
                   提交当前学科
                 </el-button>
-                <el-button v-else plain @click="backToInbox">返回任务列表</el-button>
+                <el-button v-else plain icon="Back" @click="backToInbox">返回任务列表</el-button>
               </el-form>
             </section>
 
@@ -545,7 +540,7 @@ watch(() => route.query.taskId, value => {
 }
 
 .fault-attachment-card {
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
 
 .fault-overview-body {
@@ -555,10 +550,11 @@ watch(() => route.query.taskId, value => {
 }
 
 .fault-task-description {
-  padding: 16px 18px;
-  border: 1px solid rgba(128, 158, 195, 0.22);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.78);
+  padding: 12px 14px;
+  border: 1px solid #e6ebf1;
+  border-left: 3px solid #4f8edc;
+  border-radius: 6px;
+  background: #fbfcfe;
 
   b {
     display: block;
@@ -579,19 +575,18 @@ watch(() => route.query.taskId, value => {
 .fault-attachment-entry {
   display: grid;
   grid-template-columns: 56px 1fr auto;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
-  padding: 14px 16px;
+  padding: 12px 14px;
   cursor: pointer;
-  border: 1px solid rgba(128, 158, 195, 0.24);
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(248, 251, 255, 0.96), rgba(239, 246, 255, 0.88));
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  border: 1px solid #e6ebf1;
+  border-radius: 6px;
+  background: #ffffff;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 
   &:hover {
-    border-color: rgba(74, 126, 210, 0.38);
-    box-shadow: 0 10px 24px rgba(63, 94, 140, 0.12);
-    transform: translateY(-1px);
+    border-color: #c7d6e8;
+    background: #fbfcfe;
   }
 }
 
@@ -605,7 +600,7 @@ watch(() => route.query.taskId, value => {
   font-size: 13px;
   font-weight: 700;
   border: 1px solid #c8daf4;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #f4f8ff;
 }
 
@@ -639,7 +634,7 @@ watch(() => route.query.taskId, value => {
   padding: 20px;
   text-align: center;
   border: 1px dashed #cbd9ea;
-  border-radius: 12px;
+  border-radius: 6px;
   background: #f8fbff;
 
   strong {

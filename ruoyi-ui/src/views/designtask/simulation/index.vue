@@ -5,11 +5,9 @@
         <div>
           <p class="platform-eyebrow">SIMULATION CONFIRMATION</p>
           <h1 class="platform-title">{{ hasTask ? taskTitle : '仿真验证确认' }}</h1>
-          <p v-if="!hasTask" class="platform-subtitle">
-            请选择一个仿真确认或领导审批相关任务。
-          </p>
         </div>
         <div class="topbar-meta">
+          <el-button v-if="hasTask" plain icon="Back" class="topbar-return" @click="backToInbox">返回任务列表</el-button>
           <div class="meta-chip">
             <span class="meta-dot meta-dot--cyan"></span>
             <span>{{ hasTask ? accessLabel : tabLabel }}</span>
@@ -27,7 +25,7 @@
             <p class="section-label">TASK INBOX</p>
             <h2 class="section-title">我的仿真验证确认任务</h2>
           </div>
-          <el-button plain :loading="inboxLoading" @click="loadInbox">刷新</el-button>
+          <el-button plain icon="Refresh" :loading="inboxLoading" @click="loadInbox">刷新</el-button>
         </div>
 
         <el-tabs v-model="activeTab" class="mt-12" @tab-change="changeTab">
@@ -45,7 +43,7 @@
                 <el-tag :type="actionType(row.action?.mode)">{{ row.action?.label || (activeTab === 'pending' ? '等待' : '查看') }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="说明" min-width="180">
+            <el-table-column label="备注" min-width="180">
               <template #default="{ row }">{{ row.action?.reason || row.handledReason || '-' }}</template>
             </el-table-column>
             <el-table-column label="操作" width="120" fixed="right">
@@ -83,8 +81,8 @@
             </div>
             <div class="action-row">
               <el-tag :type="cadStatusType(cadModel.status)" effect="light">{{ cadModel.statusLabel || '未提交' }}</el-tag>
-              <el-button plain :loading="cadRefreshing" @click="refreshCadModel">刷新状态</el-button>
-              <el-button type="primary" :loading="cadSubmitting" :disabled="!canEditCad" @click="submitCadModel">
+              <el-button plain icon="Refresh" :loading="cadRefreshing" @click="refreshCadModel">刷新状态</el-button>
+              <el-button type="primary" icon="Box" :loading="cadSubmitting" :disabled="!canEditCad" @click="submitCadModel">
                 {{ cadModel.status === 'SUCCESS' ? '重新生成' : '生成 CAD 模型' }}
               </el-button>
             </div>
@@ -92,70 +90,74 @@
 
           <div class="cad-model-grid">
             <div class="cad-form-panel">
-              <el-form :model="cadForm" label-width="120px" class="cad-param-form">
-                <el-form-item label="L1 / mm">
-                  <el-input-number v-model="cadForm.L1" :min="1" :precision="2" :step="10" :disabled="!canEditCad" controls-position="right" />
-                </el-form-item>
-                <el-form-item label="L2 / mm">
-                  <el-input-number v-model="cadForm.L2" :min="1" :precision="2" :step="10" :disabled="!canEditCad" controls-position="right" />
-                </el-form-item>
-                <el-form-item label="R / mm">
-                  <el-input-number v-model="cadForm.R" :min="1" :precision="2" :step="1" :disabled="!canEditCad" controls-position="right" />
-                </el-form-item>
-                <el-form-item label="θ1 / °">
-                  <el-input-number v-model="cadForm.theta1" :precision="2" :step="5" :disabled="!canEditCad" controls-position="right" />
-                </el-form-item>
-                <el-form-item label="θ2 / °">
-                  <el-input-number v-model="cadForm.theta2" :precision="2" :step="5" :disabled="!canEditCad" controls-position="right" />
-                </el-form-item>
-                <el-form-item label="外径 / mm">
-                  <el-input-number v-model="cadForm.pipeDiameter" :min="0.1" :precision="2" :step="0.1" :disabled="!canEditCad" controls-position="right" />
-                </el-form-item>
-                <el-form-item label="内径 / mm">
-                  <el-input-number v-model="cadForm.pipeInnerDiameter" :min="0.1" :max="cadForm.pipeDiameter - 0.1" :precision="2" :step="0.1" :disabled="!canEditCad" controls-position="right" />
-                </el-form-item>
-              </el-form>
+              <div class="cad-form-scroll">
+                <el-form :model="cadForm" label-width="120px" class="cad-param-form">
+                  <el-form-item label="L1 / mm">
+                    <el-input-number v-model="cadForm.L1" :min="1" :precision="2" :step="10" :disabled="!canEditCad" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="L2 / mm">
+                    <el-input-number v-model="cadForm.L2" :min="1" :precision="2" :step="10" :disabled="!canEditCad" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="R / mm">
+                    <el-input-number v-model="cadForm.R" :min="1" :precision="2" :step="1" :disabled="!canEditCad" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="θ1 / °">
+                    <el-input-number v-model="cadForm.theta1" :precision="2" :step="5" :disabled="!canEditCad" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="θ2 / °">
+                    <el-input-number v-model="cadForm.theta2" :precision="2" :step="5" :disabled="!canEditCad" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="外径 / mm">
+                    <el-input-number v-model="cadForm.pipeDiameter" :min="0.1" :precision="2" :step="0.1" :disabled="!canEditCad" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="内径 / mm">
+                    <el-input-number v-model="cadForm.pipeInnerDiameter" :min="0.1" :max="cadForm.pipeDiameter - 0.1" :precision="2" :step="0.1" :disabled="!canEditCad" controls-position="right" />
+                  </el-form-item>
+                </el-form>
 
-              <div class="cad-constraint-list">
-                <div><span>水平总长</span><strong>600 mm</strong></div>
-                <div><span>竖直总高</span><strong>300 mm</strong></div>
-                <div><span>管道外径</span><strong>{{ cadPipeDiameter }} mm</strong></div>
-                <div><span>管道内径</span><strong>{{ cadPipeInnerDiameter }} mm</strong></div>
-                <div><span>管道壁厚</span><strong>{{ cadWallThickness }} mm</strong></div>
+                <div class="cad-constraint-list">
+                  <div><span>水平总长</span><strong>600 mm</strong></div>
+                  <div><span>竖直总高</span><strong>300 mm</strong></div>
+                  <div><span>管道外径</span><strong>{{ cadPipeDiameter }} mm</strong></div>
+                  <div><span>管道内径</span><strong>{{ cadPipeInnerDiameter }} mm</strong></div>
+                  <div><span>管道壁厚</span><strong>{{ cadWallThickness }} mm</strong></div>
+                </div>
               </div>
             </div>
 
             <div class="cad-result-panel">
-              <div class="cad-result-grid">
-                <div>
-                  <span>L3</span>
-                  <strong>{{ valueOrDash(cadModel.l3, ' mm') }}</strong>
+              <div class="cad-result-scroll">
+                <div class="cad-result-grid">
+                  <div>
+                    <span>L3</span>
+                    <strong>{{ valueOrDash(cadModel.l3, ' mm') }}</strong>
+                  </div>
+                  <div>
+                    <span>起始方向角</span>
+                    <strong>{{ valueOrDash(cadModel.initialAngle, ' °') }}</strong>
+                  </div>
+                  <div>
+                    <span>几何闭合状态</span>
+                    <strong>{{ cadModel.closureStatus || '-' }}</strong>
+                  </div>
                 </div>
-                <div>
-                  <span>起始方向角</span>
-                  <strong>{{ valueOrDash(cadModel.initialAngle, ' °') }}</strong>
+
+                <el-alert
+                  v-if="cadModel.status === 'FAILED'"
+                  class="mt-12"
+                  :title="cadModel.errorMessage || 'CAD 建模失败'"
+                  type="error"
+                  show-icon
+                  :closable="false"
+                />
+
+                <div class="cad-file-actions">
+                  <el-button icon="Download" :disabled="!cadModel.files?.sldprt" @click="downloadCadFile('sldprt')">下载 SLDPRT</el-button>
+                  <el-button icon="Download" :disabled="!cadModel.files?.stl" @click="downloadCadFile('stl')">下载 STL</el-button>
                 </div>
-                <div>
-                  <span>几何闭合状态</span>
-                  <strong>{{ cadModel.closureStatus || '-' }}</strong>
-                </div>
+
+                <cad-stl-viewer :model-data="cadStlData" :empty-text="cadEmptyText" />
               </div>
-
-              <el-alert
-                v-if="cadModel.status === 'FAILED'"
-                class="mt-12"
-                :title="cadModel.errorMessage || 'CAD 建模失败'"
-                type="error"
-                show-icon
-                :closable="false"
-              />
-
-              <div class="cad-file-actions">
-                <el-button :disabled="!cadModel.files?.sldprt" @click="downloadCadFile('sldprt')">下载 SLDPRT</el-button>
-                <el-button :disabled="!cadModel.files?.stl" @click="downloadCadFile('stl')">下载 STL</el-button>
-              </div>
-
-              <cad-stl-viewer :model-data="cadStlData" :empty-text="cadEmptyText" />
             </div>
           </div>
         </section>
@@ -168,8 +170,8 @@
             </div>
             <div class="action-row">
               <el-tag :type="ansysStatusType(ansysSimulation.status)">{{ ansysSimulation.statusLabel || '未提交' }}</el-tag>
-              <el-button plain :loading="ansysRefreshing" @click="refreshAnsysSimulation">刷新状态</el-button>
-              <el-button type="primary" :loading="ansysSubmitting" :disabled="!canSimulate" @click="startAnsysSimulation">
+              <el-button plain icon="Refresh" :loading="ansysRefreshing" @click="refreshAnsysSimulation">刷新状态</el-button>
+              <el-button type="primary" icon="CaretRight" :loading="ansysSubmitting" :disabled="!canSimulate" @click="startAnsysSimulation">
                 开始 ANSYS 仿真
               </el-button>
             </div>
@@ -185,17 +187,8 @@
                 {{ mode.label }}
               </el-radio-button>
             </el-radio-group>
-            <span class="ansys-model-desc">{{ currentAnsysSimulationMode.description }}</span>
           </div>
 
-          <el-alert
-            v-if="ansysSimulation.placeholder && ansysSimulation.status === 'SUCCESS'"
-            class="mb-16"
-            title="当前显示的是预置应力云图；接入 ANSYS Worker 后将替换为真实仿真结果。"
-            type="info"
-            :closable="false"
-            show-icon
-          />
           <el-alert
             v-if="ansysSimulation.status === 'FAILED'"
             class="mb-16"
@@ -206,7 +199,7 @@
           />
 
           <div class="ansys-result-grid">
-            <div class="table-shell">
+            <div class="table-shell ansys-table-panel">
               <el-table :data="ansysSimulation.metrics || []" stripe class="platform-table">
                 <el-table-column label="指标" prop="name" min-width="160" />
                 <el-table-column label="数值" prop="value" width="130" />
@@ -217,7 +210,7 @@
             <div class="ansys-image-panel">
               <template v-if="ansysStressImage">
                 <div class="ansys-image-actions">
-                  <el-button size="small" plain @click="ansysImagePreviewVisible = true">查看原图</el-button>
+                  <el-button size="small" plain icon="View" @click="ansysImagePreviewVisible = true">查看原图</el-button>
                 </div>
                 <img
                   :src="ansysStressImage"
@@ -229,23 +222,24 @@
           </div>
         </section>
 
-        <div class="content-grid">
+        <div class="content-grid content-grid--balanced simulation-summary-grid">
           <section class="section-block">
             <div class="section-header">
               <div>
                 <p class="section-label">SIMULATION INPUTS</p>
-                <h2 class="section-title">故障管段原始设计参数</h2>
+              <h2 class="section-title">管段原始设计参数</h2>
+            </div>
+              <el-tag v-if="faultPipeParameters.setCode">{{ faultPipeParameters.setCode }}</el-tag>
+            </div>
+
+            <div v-if="faultPipeSummaryItems.length" class="fixed-input-meta">
+              <div v-for="item in faultPipeSummaryItems" :key="item.label" class="fixed-input-meta__item">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
               </div>
-              <el-tag>{{ faultPipeParameters.setCode || 'FAULT_PIPE_DEFAULT_001' }}</el-tag>
             </div>
 
-            <div class="fixed-input-summary">
-              <div><span>参数集</span><strong>{{ faultPipeParameters.setName || '-' }}</strong></div>
-              <div><span>故障管段</span><strong>{{ faultPipeParameters.faultSegmentName || '-' }}</strong></div>
-              <div><span>材料</span><strong>{{ faultPipeParameters.materialName || '-' }}</strong></div>
-            </div>
-
-            <el-collapse class="mt-12">
+            <el-collapse v-if="faultPipeParameterGroups.length" class="mt-12">
               <el-collapse-item v-for="group in faultPipeParameterGroups" :key="group.groupCode" :title="group.groupName">
                 <div class="table-shell">
                   <el-table :data="group.items || []" stripe class="platform-table">
@@ -267,8 +261,7 @@
                 <h2 class="section-title">优化前后指标对比</h2>
               </div>
               <div class="action-row">
-                <el-button plain @click="backToInbox">返回任务列表</el-button>
-                <el-button type="primary" :disabled="!canSimulate" @click="simulate">Mock 仿真</el-button>
+                <el-button type="primary" icon="Refresh" :disabled="!hasTask" @click="refreshComparison">刷新对比</el-button>
               </div>
             </div>
 
@@ -280,29 +273,49 @@
                 <el-table-column label="单位" prop="unit" />
                 <el-table-column label="趋势" width="120">
                   <template #default="{ row }">
-                    <el-tag :type="row.trend === 'up' ? 'success' : 'primary'">{{ row.trend === 'up' ? '提升' : '降低' }}</el-tag>
+                    <el-tag :type="metricTrendType(row.trend)">{{ metricTrendLabel(row.trend) }}</el-tag>
                   </template>
                 </el-table-column>
               </el-table>
             </div>
           </section>
-
-          <aside class="side-stack">
-            <section class="section-block">
-              <div class="section-header">
-                <div>
-                  <p class="section-label">CONCLUSION</p>
-                  <h2 class="section-title">验证结论</h2>
-                </div>
-              </div>
-              <el-result
-                :icon="simulation.passed ? 'success' : 'warning'"
-                :title="simulation.passed ? '仿真验证通过' : '仿真验证未通过'"
-                :sub-title="simulation.conclusion"
-              />
-            </section>
-          </aside>
         </div>
+
+        <section class="section-block conclusion-section">
+          <div class="section-header">
+            <div>
+              <p class="section-label">CONCLUSION</p>
+              <h2 class="section-title">验证结论</h2>
+            </div>
+          </div>
+          <div class="conclusion-body">
+            <el-result
+              v-if="simulation.verified"
+              :icon="simulation.passed ? 'success' : 'warning'"
+              :title="simulation.passed ? '仿真验证通过' : '仿真验证未通过'"
+              :sub-title="simulation.conclusion"
+            />
+            <el-form v-else :model="simulationDecision" label-width="90px" class="conclusion-form">
+              <el-form-item label="验证结论">
+                <el-radio-group v-model="simulationDecision.passed" :disabled="!canConfirmSimulationDecision">
+                  <el-radio :value="true">仿真验证通过</el-radio>
+                  <el-radio :value="false">仿真验证不通过</el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <el-alert
+                v-if="simulation.conclusion"
+                class="mb-16"
+                type="info"
+                :title="simulation.conclusion"
+                :closable="false"
+                show-icon
+              />
+              <div class="conclusion-actions">
+                <el-button type="primary" icon="Check" :disabled="!canSubmitSimulationDecision" @click="submitSimulationDecision">提交验证结论</el-button>
+              </div>
+            </el-form>
+          </div>
+        </section>
 
         <section class="section-block">
           <div class="section-header">
@@ -322,7 +335,7 @@
             <el-form-item label="审批意见">
               <el-input v-model="approval.comment" type="textarea" :rows="4" :disabled="!canApprove" />
             </el-form-item>
-            <el-button type="primary" :disabled="!canApprove" @click="submitApproval">提交审批</el-button>
+            <el-button type="primary" icon="Select" :disabled="!canApprove" @click="submitApproval">提交审批</el-button>
           </el-form>
         </section>
       </template>
@@ -367,7 +380,9 @@ const taskId = ref(route.query.taskId ? Number(route.query.taskId) : null)
 const taskTitle = ref('仿真验证确认')
 const currentNodeKey = ref('')
 const access = ref({ mode: 'wait', label: '等待' })
-const simulation = ref({ passed: true, metrics: [], conclusion: '' })
+const simulation = ref({ verified: false, passed: null, metrics: [], conclusion: '' })
+const simulationDecision = ref({ passed: null })
+const canConfirmSimulation = ref(false)
 const ansysSimulation = ref({ status: 'NOT_SUBMITTED', statusLabel: '未提交', metrics: [], placeholder: true })
 const ansysStressObjectUrl = ref('')
 const ansysStressImageKey = ref('')
@@ -393,13 +408,11 @@ const ANSYS_MODE_FSI = 'BIDIRECTIONAL_FSI_MODEL'
 const ansysSimulationModes = [
   {
     value: ANSYS_MODE_DEMO,
-    label: '演示仿真模型',
-    description: '保留当前 Mechanical 静力结构流程，用于快速展示和结构校核。'
+    label: '演示仿真模型'
   },
   {
     value: ANSYS_MODE_FSI,
-    label: '双向流固耦合仿真模型',
-    description: '按参考模型参数创建 Fluent + Transient Structural + System Coupling 双向耦合工程。'
+    label: '双向流固耦合仿真模型'
   }
 ]
 const selectedAnsysSimulationMode = ref(
@@ -421,14 +434,20 @@ const visibleInboxTasks = computed(() => {
   if (activeTab.value === 'handled') return handledTasks.value
   return relatedTasks.value
 })
-const viewOnly = computed(() => route.query.mode === 'view')
+const viewOnly = computed(() => route.query.mode === 'view' && access.value.mode !== 'enter')
 const canSimulate = computed(() => !viewOnly.value && access.value.mode === 'enter' && currentNodeKey.value === 'simulation_confirm')
+const canConfirmSimulationDecision = computed(() => !viewOnly.value && canConfirmSimulation.value)
+const canSubmitSimulationDecision = computed(() => canConfirmSimulationDecision.value && simulationDecision.value.passed !== null && simulationDecision.value.passed !== undefined)
 const canEditCad = computed(() => !viewOnly.value && access.value.mode === 'enter')
 const canApprove = computed(() => !viewOnly.value && access.value.mode === 'enter' && currentNodeKey.value === 'leader_approve')
-const currentAnsysSimulationMode = computed(() => {
-  return ansysSimulationModes.find(item => item.value === selectedAnsysSimulationMode.value) || ansysSimulationModes[0]
-})
 const faultPipeParameterGroups = computed(() => faultPipeParameters.value.groups || [])
+const faultPipeSummaryItems = computed(() => {
+  return [
+    { label: '参数集', value: faultPipeParameters.value.setName },
+    { label: '管段编号', value: faultPipeParameters.value.faultSegmentName },
+    { label: '材料', value: faultPipeParameters.value.materialName }
+  ].filter(item => item.value)
+})
 const ansysStressImage = computed(() => {
   if (ansysStressObjectUrl.value) return ansysStressObjectUrl.value
   if (ansysSimulation.value.placeholder && ansysSimulation.value.status === 'SUCCESS') return ansysStressPlaceholder
@@ -437,7 +456,7 @@ const ansysStressImage = computed(() => {
 const ansysImageEmptyText = computed(() => {
   if (ansysSimulation.value.status === 'FAILED') return 'ANSYS 仿真失败，暂无真实云图'
   if (['QUEUED', 'RUNNING'].includes(ansysSimulation.value.status)) return 'ANSYS 仿真处理中'
-  return '点击“开始 ANSYS 仿真”后展示应力云图'
+  return '暂无应力云图'
 })
 const cadEmptyText = computed(() => {
   if (cadModel.value.status === 'FAILED') return cadModel.value.errorMessage || 'CAD 建模失败'
@@ -547,6 +566,8 @@ function loadData() {
     currentNodeKey.value = data.nodeKey || data.task?.currentNodeKey || ''
     access.value = data.access || { mode: 'wait', label: '等待' }
     simulation.value = data.simulation || simulation.value
+    canConfirmSimulation.value = !!data.canConfirmSimulation
+    simulationDecision.value.passed = simulation.value.verified ? simulation.value.passed : null
     applyAnsysSimulation(data.ansysSimulation)
     if (data.ansysSimulation?.simulationMode !== selectedAnsysSimulationMode.value) {
       refreshAnsysSimulation(true)
@@ -755,12 +776,35 @@ function valueOrDash(value, suffix = '') {
   return Number.isFinite(number) ? `${number.toFixed(3)}${suffix}` : `${value}${suffix}`
 }
 
-function simulate() {
-  runSimulation(taskId.value).then(res => {
+function refreshComparison() {
+  loadData()
+  ElMessage.success('指标对比已刷新')
+}
+
+function submitSimulationDecision() {
+  if (!canSubmitSimulationDecision.value) {
+    ElMessage.warning('请先选择仿真验证通过或不通过。')
+    return
+  }
+  runSimulation(taskId.value, { simulationPassed: simulationDecision.value.passed }).then(res => {
     simulation.value = res.data || {}
-    ElMessage.success('Mock 仿真完成')
+    ElMessage.success(simulationDecision.value.passed ? '已提交仿真验证通过' : '已提交仿真验证不通过')
     loadData()
   })
+}
+
+function metricTrendLabel(trend) {
+  if (trend === 'up') return '提升'
+  if (trend === 'down') return '降低'
+  if (trend === 'change') return '变化'
+  return '基准'
+}
+
+function metricTrendType(trend) {
+  if (trend === 'up') return 'success'
+  if (trend === 'down') return 'primary'
+  if (trend === 'change') return 'warning'
+  return 'info'
 }
 
 function submitApproval() {
@@ -808,32 +852,78 @@ watch(selectedAnsysSimulationMode, mode => {
   font-size: 13px;
 }
 
-.fixed-input-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 12px;
+.topbar-return {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 4px;
+}
 
-  div {
+.simulation-summary-grid {
+  align-items: stretch;
+
+  > .section-block {
     min-width: 0;
-    padding: 12px;
-    border: 1px solid rgba(128, 158, 195, 0.18);
-    border-radius: 8px;
-    background: rgba(248, 251, 255, 0.72);
+  }
+}
+
+.conclusion-section {
+  min-height: 220px;
+}
+
+.conclusion-body {
+  display: flex;
+  min-height: 150px;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.conclusion-form {
+  width: 100%;
+  max-width: none;
+}
+
+.conclusion-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.fixed-input-meta {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border: 1px solid #e6ebf1;
+  border-radius: 6px;
+  background: #fbfcfe;
+}
+
+.fixed-input-meta__item {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 18px;
+  border-right: 1px solid #e2e8f0;
+
+  &:first-child {
+    padding-left: 0;
+  }
+
+  &:last-child {
+    border-right: 0;
   }
 
   span {
-    display: block;
+    flex-shrink: 0;
+    margin-right: 8px;
     color: #708198;
     font-size: 12px;
   }
 
   strong {
-    display: block;
     min-width: 0;
-    margin-top: 5px;
     overflow: hidden;
     color: #24324f;
+    font-size: 13px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -842,8 +932,9 @@ watch(selectedAnsysSimulationMode, mode => {
 .ansys-result-grid {
   display: grid;
   grid-template-columns: minmax(360px, 0.9fr) minmax(520px, 1.1fr);
-  gap: 18px;
+  gap: 14px;
   align-items: stretch;
+  min-height: 420px;
 }
 
 .ansys-model-selector {
@@ -851,38 +942,40 @@ watch(selectedAnsysSimulationMode, mode => {
   gap: 12px;
   align-items: center;
   margin: 0 0 16px;
-  padding: 10px 12px;
-  border: 1px solid rgba(128, 158, 195, 0.22);
-  border-radius: 8px;
-  background: rgba(248, 251, 255, 0.78);
-}
-
-.ansys-model-desc {
-  min-width: 0;
-  color: #708198;
-  font-size: 13px;
-  line-height: 1.5;
+  padding: 9px 12px;
+  border: 1px solid #e6ebf1;
+  border-radius: 6px;
+  background: #fbfcfe;
 }
 
 .ansys-image-panel {
   display: flex;
   flex-direction: column;
-  min-height: 260px;
+  height: 100%;
+  min-height: 420px;
+  max-height: 560px;
   align-items: center;
   justify-content: center;
   overflow: auto;
   padding: 10px;
-  border: 1px solid rgba(128, 158, 195, 0.22);
-  border-radius: 8px;
+  border: 1px solid #e1e7ef;
+  border-radius: 6px;
   background: #eef3fb;
 
   img {
     display: block;
     width: 100%;
     height: auto;
-    max-height: 520px;
+    max-height: 500px;
     object-fit: contain;
   }
+}
+
+.ansys-table-panel {
+  height: 100%;
+  min-height: 420px;
+  max-height: 560px;
+  overflow: auto;
 }
 
 .ansys-image-actions {
@@ -912,20 +1005,34 @@ watch(selectedAnsysSimulationMode, mode => {
 .cad-model-grid {
   display: grid;
   grid-template-columns: 360px minmax(0, 1fr);
-  gap: 16px;
+  gap: 14px;
+  align-items: stretch;
   margin-top: 16px;
+  min-height: 560px;
 }
 
 .cad-form-panel,
 .cad-result-panel {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 560px;
+}
+
+.cad-form-scroll,
+.cad-result-scroll {
+  flex: 1;
+  min-height: 0;
+  max-height: 620px;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .cad-param-form {
-  padding: 14px 14px 2px;
-  border: 1px solid rgba(128, 158, 195, 0.22);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.68);
+  padding: 12px 12px 2px;
+  border: 1px solid #e1e7ef;
+  border-radius: 6px;
+  background: #ffffff;
 
   :deep(.el-input-number) {
     width: 100%;
@@ -942,10 +1049,11 @@ watch(selectedAnsysSimulationMode, mode => {
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    border: 1px solid rgba(128, 158, 195, 0.2);
-    border-radius: 12px;
+    border: 1px solid #e6ebf1;
+    border-left: 3px solid #4f8edc;
+    border-radius: 6px;
     color: #65788d;
-    background: rgba(255, 255, 255, 0.62);
+    background: #fbfcfe;
   }
 
   strong {
@@ -962,9 +1070,10 @@ watch(selectedAnsysSimulationMode, mode => {
   div {
     min-height: 72px;
     padding: 12px;
-    border: 1px solid rgba(128, 158, 195, 0.22);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.68);
+    border: 1px solid #e6ebf1;
+    border-left: 3px solid #4f8edc;
+    border-radius: 6px;
+    background: #fbfcfe;
   }
 
   span {
@@ -988,13 +1097,49 @@ watch(selectedAnsysSimulationMode, mode => {
   margin: 12px 0;
 }
 
+.cad-result-panel :deep(.cad-viewer) {
+  min-height: 0;
+  height: 420px;
+}
+
 @media (max-width: 1200px) {
   .cad-model-grid {
     grid-template-columns: 1fr;
+    min-height: auto;
   }
 
   .cad-result-grid {
     grid-template-columns: 1fr;
+  }
+
+  .cad-form-panel,
+  .cad-result-panel {
+    min-height: auto;
+  }
+
+  .cad-form-scroll,
+  .cad-result-scroll {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .ansys-result-grid {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .ansys-table-panel,
+  .ansys-image-panel {
+    min-height: 320px;
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .conclusion-body {
+    align-items: stretch;
+    justify-content: flex-start;
   }
 }
 </style>

@@ -1,4 +1,4 @@
-
+﻿
 -- =====================================================================
 -- 00 Header
 -- =====================================================================
@@ -1036,7 +1036,7 @@ DROP TEMPORARY TABLE IF EXISTS tmp_t2_design_resource_seed;
 INSERT INTO t2_design_fault_pipe_parameter_set
   (set_code, set_name, fault_segment_name, material_name, source_type, is_default, status, remark, create_by, create_time)
 VALUES
-  ('FAULT_PIPE_DEFAULT_001', '故障管段默认原始设计参数', '故障液压弯管段', '不锈钢', 'database', '1', '0', '材料属性与入口压强载荷谱默认值', 'admin', SYSDATE())
+  ('HP-PIPE-SEG-001', 'HP-PIPE-SEG-001 原始设计参数', 'HP-PIPE-SEG-001', '不锈钢', 'database', '1', '0', '材料属性与入口压强载荷谱默认值', 'admin', SYSDATE())
 ON DUPLICATE KEY UPDATE
   set_name = VALUES(set_name),
   fault_segment_name = VALUES(fault_segment_name),
@@ -1051,14 +1051,14 @@ ON DUPLICATE KEY UPDATE
 SET @fault_pipe_default_set_id = (
   SELECT parameter_set_id
   FROM t2_design_fault_pipe_parameter_set
-  WHERE set_code = 'FAULT_PIPE_DEFAULT_001'
+  WHERE set_code = 'HP-PIPE-SEG-001'
   LIMIT 1
 );
 
 INSERT INTO t2_design_fault_pipe_parameter_item
   (parameter_set_id, param_group, group_name, param_code, param_name, param_value, param_unit, value_type, formula_text, description, sort_order, status, create_by, create_time)
 VALUES
-  (@fault_pipe_default_set_id, 'material', '材料属性', 'MATERIAL_NAME', '材料', '不锈钢', '', 'text', '', '故障管段材料名称', 10, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'material', '材料属性', 'MATERIAL_NAME', '材料', '不锈钢', '', 'text', '', '管段材料名称', 10, '0', 'admin', SYSDATE()),
   (@fault_pipe_default_set_id, 'material', '材料属性', 'MATERIAL_DENSITY', '密度', '7750', 'kg*m^-3', 'number', '', '材料密度', 20, '0', 'admin', SYSDATE()),
   (@fault_pipe_default_set_id, 'material', '材料属性', 'THERMAL_EXPANSION_COEFFICIENT', '热膨胀系数', '1.7E-05', 'C^-1', 'number', '', '热膨胀系数', 30, '0', 'admin', SYSDATE()),
   (@fault_pipe_default_set_id, 'material', '材料属性', 'YOUNG_MODULUS', '杨氏模量', '1.93E+11', 'Pa', 'number', '', '弹性模量', 40, '0', 'admin', SYSDATE()),
@@ -1071,10 +1071,15 @@ VALUES
   (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_OUTER_DIAMETER', '管道外径', '9.53', 'mm', 'number', '', '当前设计管道外径', 110, '0', 'admin', SYSDATE()),
   (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_WALL_THICKNESS', '管道壁厚', '0.9', 'mm', 'number', '', '当前设计管道壁厚', 120, '0', 'admin', SYSDATE()),
   (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_INNER_DIAMETER', '管道内径', '7.73', 'mm', 'number', '9.53 - 2 * 0.9', '由外径减去两倍壁厚得到', 130, '0', 'admin', SYSDATE()),
-  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_EXPRESSION', '入口压强表达式', 'IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)', 'Pa', 'formula', 'IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)', '0 到 0.001 秒线性升压，之后保持峰值压强', 140, '0', 'admin', SYSDATE()),
-  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_INITIAL', '初始压强', '101325', 'Pa', 'number', '', '入口初始压强', 150, '0', 'admin', SYSDATE()),
-  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_PEAK', '峰值压强', '30000000', 'Pa', 'number', '', '入口峰值压强', 160, '0', 'admin', SYSDATE()),
-  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_RISE_TIME', '上升时间', '0.001', 's', 'number', '', '压强从初始值升至峰值所需时间', 170, '0', 'admin', SYSDATE())
+  (@fault_pipe_default_set_id, 'design_variable_baseline', '管道设计变量基准', 'PIPE_L1', 'L1 第一段直管长度', '280', 'mm', 'number', '', '优化前管道设计变量基准值', 140, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'design_variable_baseline', '管道设计变量基准', 'PIPE_L2', 'L2 第二段直管长度', '150', 'mm', 'number', '', '优化前管道设计变量基准值', 150, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'design_variable_baseline', '管道设计变量基准', 'PIPE_THETA_1', 'θ1 第一个弯角弯曲角度', '110', 'deg', 'number', '', '优化前管道设计变量基准值', 160, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'design_variable_baseline', '管道设计变量基准', 'PIPE_THETA_2', 'θ2 第二个弯角弯曲角度', '120', 'deg', 'number', '', '优化前管道设计变量基准值', 170, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'design_variable_baseline', '管道设计变量基准', 'PIPE_BEND_RADIUS', 'R 两处弯管圆角半径', '20', 'mm', 'number', '', '优化前管道设计变量基准值', 180, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_EXPRESSION', '入口压强表达式', 'IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)', 'Pa', 'formula', 'IF(t <= 0.001, 101325 + (30000000 - 101325) * t / 0.001, 30000000)', '0 到 0.001 秒线性升压，之后保持峰值压强', 210, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_INITIAL', '初始压强', '101325', 'Pa', 'number', '', '入口初始压强', 220, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_PEAK', '峰值压强', '30000000', 'Pa', 'number', '', '入口峰值压强', 230, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'pressure_load', '入口压强载荷', 'INLET_PRESSURE_RISE_TIME', '上升时间', '0.001', 's', 'number', '', '压强从初始值升至峰值所需时间', 240, '0', 'admin', SYSDATE())
 ON DUPLICATE KEY UPDATE
   param_group = VALUES(param_group),
   group_name = VALUES(group_name),
@@ -1328,10 +1333,38 @@ WHERE description LIKE '%任务拆分为%'
 
 -- Update the default fault-pipe geometry parameters for existing databases.
 
+-- Source: sql\t2_fault_pipe_segment_code_update.sql
+
+UPDATE t2_design_fault_pipe_parameter_set
+SET set_code = 'HP-PIPE-SEG-001',
+    set_name = 'HP-PIPE-SEG-001 原始设计参数',
+    fault_segment_name = 'HP-PIPE-SEG-001',
+    update_by = 'admin',
+    update_time = SYSDATE()
+WHERE set_code = 'FAULT_PIPE_DEFAULT_001';
+
+UPDATE t2_design_fault_pipe_parameter_set
+SET set_name = 'HP-PIPE-SEG-001 原始设计参数',
+    fault_segment_name = 'HP-PIPE-SEG-001',
+    update_by = 'admin',
+    update_time = SYSDATE()
+WHERE set_code = 'HP-PIPE-SEG-001'
+  AND task_id IS NULL;
+
+UPDATE t2_design_fault_pipe_parameter_item item
+JOIN t2_design_fault_pipe_parameter_set param_set
+  ON param_set.parameter_set_id = item.parameter_set_id
+SET item.description = '管段材料名称',
+    item.update_by = 'admin',
+    item.update_time = SYSDATE()
+WHERE param_set.set_code = 'HP-PIPE-SEG-001'
+  AND item.param_code = 'MATERIAL_NAME'
+  AND item.description = '故障管段材料名称';
+
 SET @fault_pipe_default_set_id = (
   SELECT parameter_set_id
   FROM t2_design_fault_pipe_parameter_set
-  WHERE set_code = 'FAULT_PIPE_DEFAULT_001'
+  WHERE set_code = 'HP-PIPE-SEG-001'
   LIMIT 1
 );
 
@@ -1340,7 +1373,12 @@ INSERT INTO t2_design_fault_pipe_parameter_item
 VALUES
   (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_OUTER_DIAMETER', '管道外径', '9.53', 'mm', 'number', '', '当前设计管道外径', 110, '0', 'admin', SYSDATE()),
   (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_WALL_THICKNESS', '管道壁厚', '0.9', 'mm', 'number', '', '当前设计管道壁厚', 120, '0', 'admin', SYSDATE()),
-  (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_INNER_DIAMETER', '管道内径', '7.73', 'mm', 'number', '9.53 - 2 * 0.9', '由外径减去两倍壁厚得到', 130, '0', 'admin', SYSDATE())
+  (@fault_pipe_default_set_id, 'geometry', '管段几何参数', 'PIPE_INNER_DIAMETER', '管道内径', '7.73', 'mm', 'number', '9.53 - 2 * 0.9', '由外径减去两倍壁厚得到', 130, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'design_variable_baseline', '管道设计变量基准', 'PIPE_L1', 'L1 第一段直管长度', '280', 'mm', 'number', '', '优化前管道设计变量基准值', 140, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'design_variable_baseline', '管道设计变量基准', 'PIPE_L2', 'L2 第二段直管长度', '150', 'mm', 'number', '', '优化前管道设计变量基准值', 150, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'design_variable_baseline', '管道设计变量基准', 'PIPE_THETA_1', 'θ1 第一个弯角弯曲角度', '110', 'deg', 'number', '', '优化前管道设计变量基准值', 160, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'design_variable_baseline', '管道设计变量基准', 'PIPE_THETA_2', 'θ2 第二个弯角弯曲角度', '120', 'deg', 'number', '', '优化前管道设计变量基准值', 170, '0', 'admin', SYSDATE()),
+  (@fault_pipe_default_set_id, 'design_variable_baseline', '管道设计变量基准', 'PIPE_BEND_RADIUS', 'R 两处弯管圆角半径', '20', 'mm', 'number', '', '优化前管道设计变量基准值', 180, '0', 'admin', SYSDATE())
 ON DUPLICATE KEY UPDATE
   param_group = VALUES(param_group),
   group_name = VALUES(group_name),
@@ -1357,10 +1395,10 @@ ON DUPLICATE KEY UPDATE
 
 UPDATE t2_design_fault_pipe_parameter_item
 SET sort_order = CASE param_code
-    WHEN 'INLET_PRESSURE_EXPRESSION' THEN 140
-    WHEN 'INLET_PRESSURE_INITIAL' THEN 150
-    WHEN 'INLET_PRESSURE_PEAK' THEN 160
-    WHEN 'INLET_PRESSURE_RISE_TIME' THEN 170
+    WHEN 'INLET_PRESSURE_EXPRESSION' THEN 210
+    WHEN 'INLET_PRESSURE_INITIAL' THEN 220
+    WHEN 'INLET_PRESSURE_PEAK' THEN 230
+    WHEN 'INLET_PRESSURE_RISE_TIME' THEN 240
     ELSE sort_order
   END,
   update_by = 'admin',
@@ -1559,6 +1597,82 @@ WHERE menu_id IN (2615, 2614)
    OR component = 'designtask/resource/index';
 
 -- =====================================================================
--- 12 Footer
+-- 12 Fault-pipe design variable baseline backfill
+-- =====================================================================
+-- Source: sql\t2_fault_pipe_design_variable_baseline.sql
+-- Backfill baseline design variables for all active reusable sets and task snapshots.
+
+INSERT INTO t2_design_fault_pipe_parameter_item
+  (parameter_set_id, param_group, group_name, param_code, param_name, param_value, param_unit, value_type, formula_text, description, sort_order, status, create_by, create_time)
+SELECT param_set.parameter_set_id,
+       baseline.param_group,
+       baseline.group_name,
+       baseline.param_code,
+       baseline.param_name,
+       baseline.param_value,
+       baseline.param_unit,
+       baseline.value_type,
+       baseline.formula_text,
+       baseline.description,
+       baseline.sort_order,
+       baseline.status,
+       'admin',
+       SYSDATE()
+FROM t2_design_fault_pipe_parameter_set param_set
+JOIN (
+  SELECT 'design_variable_baseline' AS param_group, '管道设计变量基准' AS group_name, 'PIPE_L1' AS param_code,
+         'L1 第一段直管长度' AS param_name, '280' AS param_value, 'mm' AS param_unit, 'number' AS value_type,
+         '' AS formula_text, '优化前管道设计变量基准值' AS description, 140 AS sort_order, '0' AS status
+  UNION ALL
+  SELECT 'design_variable_baseline', '管道设计变量基准', 'PIPE_L2',
+         'L2 第二段直管长度', '150', 'mm', 'number',
+         '', '优化前管道设计变量基准值', 150, '0'
+  UNION ALL
+  SELECT 'design_variable_baseline', '管道设计变量基准', 'PIPE_THETA_1',
+         'theta1 第一个弯角弯曲角度', '110', 'deg', 'number',
+         '', '优化前管道设计变量基准值', 160, '0'
+  UNION ALL
+  SELECT 'design_variable_baseline', '管道设计变量基准', 'PIPE_THETA_2',
+         'theta2 第二个弯角弯曲角度', '120', 'deg', 'number',
+         '', '优化前管道设计变量基准值', 170, '0'
+  UNION ALL
+  SELECT 'design_variable_baseline', '管道设计变量基准', 'PIPE_BEND_RADIUS',
+         'R 两处弯管圆角半径', '20', 'mm', 'number',
+         '', '优化前管道设计变量基准值', 180, '0'
+) baseline
+WHERE param_set.status = '0'
+ON DUPLICATE KEY UPDATE
+  param_group = VALUES(param_group),
+  group_name = VALUES(group_name),
+  param_name = VALUES(param_name),
+  param_value = VALUES(param_value),
+  param_unit = VALUES(param_unit),
+  value_type = VALUES(value_type),
+  formula_text = VALUES(formula_text),
+  description = VALUES(description),
+  sort_order = VALUES(sort_order),
+  status = VALUES(status),
+  update_by = 'admin',
+  update_time = SYSDATE();
+
+UPDATE t2_design_fault_pipe_parameter_item
+SET sort_order = CASE param_code
+    WHEN 'INLET_PRESSURE_EXPRESSION' THEN 210
+    WHEN 'INLET_PRESSURE_INITIAL' THEN 220
+    WHEN 'INLET_PRESSURE_PEAK' THEN 230
+    WHEN 'INLET_PRESSURE_RISE_TIME' THEN 240
+    ELSE sort_order
+  END,
+  update_by = 'admin',
+  update_time = SYSDATE()
+WHERE param_code IN (
+  'INLET_PRESSURE_EXPRESSION',
+  'INLET_PRESSURE_INITIAL',
+  'INLET_PRESSURE_PEAK',
+  'INLET_PRESSURE_RISE_TIME'
+);
+
+-- =====================================================================
+-- 13 Footer
 -- =====================================================================
 SET FOREIGN_KEY_CHECKS = 1;

@@ -1,13 +1,10 @@
 <template>
-  <div class="design-platform-view">
+  <div class="design-platform-view solve-industrial-view">
     <div class="design-platform-shell">
       <section class="platform-topbar">
         <div>
           <p class="platform-eyebrow">MODEL DECOMPOSITION & SOLVING</p>
           <h1 class="platform-title">{{ hasTask ? taskTitle : '模型解耦求解' }}</h1>
-          <p v-if="!hasTask" class="platform-subtitle">
-            请选择一个模型解耦求解相关任务。
-          </p>
         </div>
         <div class="topbar-meta">
           <div class="meta-chip">
@@ -27,7 +24,7 @@
             <p class="section-label">TASK INBOX</p>
             <h2 class="section-title">我的模型解耦求解任务</h2>
           </div>
-          <el-button plain :loading="inboxLoading" @click="loadInbox">刷新</el-button>
+          <el-button plain icon="Refresh" :loading="inboxLoading" @click="loadInbox">刷新</el-button>
         </div>
 
         <el-tabs v-model="activeTab" class="mt-12" @tab-change="changeTab">
@@ -45,7 +42,7 @@
                 <el-tag :type="actionType(row.action?.mode)">{{ row.action?.label || (activeTab === 'pending' ? '等待' : '查看') }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="说明" min-width="180">
+            <el-table-column label="备注" min-width="180">
               <template #default="{ row }">{{ row.action?.reason || row.handledReason || '-' }}</template>
             </el-table-column>
             <el-table-column label="操作" width="120" fixed="right">
@@ -75,47 +72,113 @@
           show-icon
         />
 
-        <div class="content-grid">
-          <section class="section-block">
+        <div class="content-grid solve-command-grid">
+          <section class="section-block objective-workbench">
             <div class="section-header">
               <div>
                 <p class="section-label">SUMMARY</p>
-                <h2 class="section-title">目标约束汇总</h2>
+                <h2 class="section-title">目标与约束归口确认</h2>
               </div>
-              <el-button plain @click="backToInbox">返回任务列表</el-button>
+              <div class="action-row">
+                <el-tag type="success">{{ objectiveCount }} 个目标</el-tag>
+                <el-tag type="warning">{{ constraintCount }} 个约束</el-tag>
+                <el-tag type="info">权重 {{ objectiveWeightTotal }} / 10</el-tag>
+              </div>
             </div>
 
-            <el-collapse class="mt-12">
-              <el-collapse-item v-for="group in detail.objectiveConstraints || []" :key="group.discipline" :title="group.disciplineName">
-                <el-tag
-                  v-for="item in group.items"
-                  :key="item.itemCode"
-                  class="tag-item"
-                  :type="item.itemType === 'objective' ? 'success' : 'warning'"
-                >
-                  {{ item.itemName }}
-                </el-tag>
-              </el-collapse-item>
-            </el-collapse>
+            <div class="objective-workbench-toolbar">
+              <span>目标权重 {{ objectiveWeightTotal }} / 10</span>
+              <div>
+                <el-button plain icon="Back" class="btn-soft-blue" @click="backToInbox">返回任务列表</el-button>
+                <el-button plain icon="Operation" class="btn-soft-purple" :disabled="readonlyMode || !objectiveWeightRows.length" @click="normalizeObjectiveWeights">归一到 10</el-button>
+                <el-button type="primary" icon="Check" class="btn-strong-blue" :disabled="!canEditObjectiveWeights || !objectiveWeightRows.length" :loading="objectiveWeightSaving" @click="saveObjectiveWeightSettings">
+                  保存目标权重
+                </el-button>
+              </div>
+            </div>
+
+            <div class="objective-constraint-columns">
+              <div class="oc-panel oc-panel--objective">
+                <div class="oc-panel__head">
+                  <strong><span class="panel-icon panel-icon--objective">O</span>优化目标池</strong>
+                  <span class="panel-badge panel-badge--objective">{{ objectiveCount }} 个目标</span>
+                </div>
+                <div class="oc-card-list">
+                  <div v-for="row in objectiveWeightRows" :key="`${row.discipline}-${row.itemCode}`" class="oc-item oc-item--objective">
+                    <div class="oc-item__top">
+                      <div>
+                        <div class="oc-item__title">{{ row.itemName }}</div>
+                        <div class="oc-item__meta">
+                          <span :class="['discipline-pill', disciplinePillClass(row.discipline)]">{{ row.disciplineName }}</span>
+                          <span>优化类型：{{ row.direction || '-' }}</span>
+                        </div>
+                      </div>
+                      <span :class="['priority-badge', objectivePriorityClass(row.weight)]">{{ objectivePriorityLabel(row.weight) }}</span>
+                    </div>
+                    <p v-if="row.description || row.remark" class="oc-item__desc">{{ row.description || row.remark }}</p>
+                    <div class="oc-item__footer">
+                      <span class="selection-badge">已选择</span>
+                      <div class="weight-editor weight-editor--card">
+                        <span>权重</span>
+                        <el-slider v-model="row.weight" :min="0" :max="10" :disabled="!canEditObjectiveWeights" />
+                        <el-input-number v-model="row.weight" :min="0" :max="10" :precision="0" :disabled="!canEditObjectiveWeights" controls-position="right" />
+                      </div>
+                    </div>
+                  </div>
+                  <el-empty v-if="!objectiveWeightRows.length" description="暂无已选目标" :image-size="70" />
+                </div>
+              </div>
+
+              <div class="oc-panel oc-panel--constraint">
+                <div class="oc-panel__head">
+                  <strong><span class="panel-icon panel-icon--constraint">C</span>设计约束池</strong>
+                  <span class="panel-badge panel-badge--constraint">{{ constraintCount }} 个约束</span>
+                </div>
+                <div class="oc-card-list">
+                  <div v-for="row in constraintRows" :key="`${row.discipline}-${row.itemCode}`" class="oc-item oc-item--constraint">
+                    <div class="oc-item__top">
+                      <div>
+                        <div class="oc-item__title">{{ row.itemName }}</div>
+                        <div class="oc-item__meta">
+                          <span :class="['discipline-pill', disciplinePillClass(row.discipline)]">{{ row.disciplineName }}</span>
+                          <span>约束关系：{{ row.direction || '-' }}</span>
+                        </div>
+                      </div>
+                      <span class="constraint-value">{{ row.limitValue || '-' }} {{ row.unit || '' }}</span>
+                    </div>
+                    <p v-if="row.description || row.remark" class="oc-item__desc">{{ row.description || row.remark }}</p>
+                    <div class="oc-item__footer">
+                      <span class="selection-badge selection-badge--constraint">已选择</span>
+                      <span class="compatibility-note">与前置节点约束兼容</span>
+                    </div>
+                  </div>
+                  <el-empty v-if="!constraintRows.length" description="暂无已选约束" :image-size="70" />
+                </div>
+              </div>
+            </div>
           </section>
 
-          <section class="section-block">
+          <section class="section-block conflict-panel">
             <div class="section-header">
               <div>
                 <p class="section-label">CONFLICT CHECK</p>
                 <h2 class="section-title">目标约束冲突校验</h2>
               </div>
               <div class="action-row">
-                <el-button :disabled="readonlyMode" @click="check(false)">模拟不通过</el-button>
-                <el-button type="primary" :disabled="readonlyMode" @click="check(true)">执行校验</el-button>
+                <el-button icon="Warning" class="btn-soft-amber" :disabled="!canCheckConflict" @click="check(false)">模拟不通过</el-button>
+                <el-button type="success" icon="CircleCheck" :disabled="!canCheckConflict" @click="check(true)">执行校验</el-button>
               </div>
             </div>
 
             <el-result
-              v-if="conflict.passed"
+              v-if="!conflict.checked"
+              icon="info"
+              title="待执行目标约束校验"
+            />
+            <el-result
+              v-else-if="conflict.passed"
               icon="success"
               title="目标约束校验通过"
-              sub-title="可进入模型解耦求解。"
             />
             <div v-else class="mt-12">
               <el-alert type="warning" title="发现目标 / 约束冲突" show-icon :closable="false" />
@@ -134,18 +197,28 @@
           <div class="section-header">
             <div>
               <p class="section-label">FIXED INPUTS</p>
-              <h2 class="section-title">故障管段原始设计参数</h2>
+              <h2 class="section-title">管段原始设计参数</h2>
             </div>
-            <el-tag>{{ faultPipeParameters.setCode || 'FAULT_PIPE_DEFAULT_001' }}</el-tag>
+            <el-tag v-if="faultPipeParameters.setCode">{{ faultPipeParameters.setCode }}</el-tag>
           </div>
 
-          <div class="fixed-input-summary">
-            <div><span>参数集</span><strong>{{ faultPipeParameters.setName || '-' }}</strong></div>
-            <div><span>故障管段</span><strong>{{ faultPipeParameters.faultSegmentName || '-' }}</strong></div>
-            <div><span>材料</span><strong>{{ faultPipeParameters.materialName || '-' }}</strong></div>
+          <div v-if="faultPipeSummaryItems.length" class="fixed-input-meta">
+            <div v-for="item in faultPipeSummaryItems" :key="item.label" class="fixed-input-meta__item">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
           </div>
 
-          <el-collapse class="mt-12">
+          <el-alert
+            v-else
+            class="mt-12"
+            title="未读取到任务绑定的管段参数。"
+            type="info"
+            :closable="false"
+            show-icon
+          />
+
+          <el-collapse v-if="faultPipeParameterGroups.length" class="mt-12">
             <el-collapse-item v-for="group in faultPipeParameterGroups" :key="group.groupCode" :title="group.groupName">
               <div class="table-shell">
                 <el-table :data="group.items || []" stripe class="platform-table">
@@ -168,18 +241,9 @@
               <h2 class="section-title">解耦子任务</h2>
             </div>
             <div class="action-row">
-              <el-button :disabled="readonlyMode || decomposed" @click="decompose">{{ decomposed ? '已解耦' : '任务解耦' }}</el-button>
+              <el-button icon="Connection" class="btn-soft-green" :disabled="readonlyMode || decomposed" @click="decompose">{{ decomposed ? '已解耦' : '任务解耦' }}</el-button>
             </div>
           </div>
-
-          <el-alert
-            v-if="!decomposed"
-            class="mb-16"
-            title="点击任务解耦后，系统会根据已选择的目标和约束拆分出子任务；随后再按子任务选择设计变量。"
-            type="info"
-            :closable="false"
-            show-icon
-          />
 
           <div class="content-grid content-grid--balanced mt-12">
             <div v-for="subtask in subtasks" :key="subtask.subtaskCode" class="soft-panel">
@@ -234,8 +298,8 @@
               <h2 class="section-title">设计变量统一选择</h2>
             </div>
             <div class="action-row">
-              <el-button plain :disabled="readonlyMode" :loading="variableLoading" @click="loadVariableCatalogs">刷新变量</el-button>
-              <el-button type="primary" :disabled="readonlyMode || !selectedVariableCount" :loading="variableSaving" @click="saveVariables">
+              <el-button plain icon="Refresh" class="btn-soft-blue" :disabled="readonlyMode" :loading="variableLoading" @click="loadVariableCatalogs">刷新变量</el-button>
+              <el-button type="primary" icon="Check" class="btn-strong-blue" :disabled="readonlyMode || !selectedVariableCount" :loading="variableSaving" @click="saveVariables">
                 保存设计变量
               </el-button>
             </div>
@@ -307,11 +371,11 @@
             </div>
             <div class="action-row">
               <el-tag :type="surrogateStatusType">{{ surrogateSolve.statusLabel || '未提交' }}</el-tag>
-              <el-button plain :loading="surrogateRefreshing" @click="refreshSurrogateSolve">刷新状态</el-button>
-              <el-button type="primary" :disabled="readonlyMode || !canSolve" :loading="surrogateSubmitting" @click="solve">
+              <el-button plain icon="Refresh" class="btn-soft-blue" :loading="surrogateRefreshing" @click="refreshSurrogateSolve">刷新状态</el-button>
+              <el-button type="primary" icon="CaretRight" :disabled="readonlyMode || !canSolve" :loading="surrogateSubmitting" @click="solve">
                 {{ hasSurrogateResult ? '重新优化' : '启动代理模型优化' }}
               </el-button>
-              <el-button type="success" :disabled="readonlyMode || !canConfirmSurrogate" :loading="surrogateConfirming" @click="confirmSurrogate">
+              <el-button type="success" icon="Select" :disabled="readonlyMode || !canConfirmSurrogate" :loading="surrogateConfirming" @click="confirmSurrogate">
                 确认最优方案
               </el-button>
             </div>
@@ -361,7 +425,7 @@
                 <div><span>R</span><strong>{{ best.R }}</strong><em>mm</em></div>
                 <div class="stress"><span>预测应力</span><strong>{{ best.predictedStress }}</strong><em>MPa</em></div>
               </div>
-              <el-empty v-else description="请先启动代理模型优化" :image-size="80" />
+              <el-empty v-else description="暂无优化结果" :image-size="80" />
             </div>
           </div>
 
@@ -417,6 +481,7 @@ import {
   getSurrogateSolveTask,
   confirmSurrogateSolveTask,
   runConflictCheck,
+  saveObjectiveWeights,
   saveDesignVariables,
   submitSurrogateSolveTask
 } from '@/api/designtask/optimization'
@@ -427,7 +492,7 @@ const taskId = ref(route.query.taskId ? Number(route.query.taskId) : null)
 const taskTitle = ref('模型解耦求解')
 const detail = ref({})
 const access = ref({ mode: 'wait', label: '等待' })
-const conflict = ref({ passed: true, conflicts: [] })
+const conflict = ref({ checked: false, passed: false, conflicts: [] })
 const subtasks = ref([])
 const faultPipeParameters = ref({ groups: [] })
 const surrogateSolve = ref({
@@ -453,6 +518,8 @@ const designVariables = ref([])
 const variablesSaved = ref(false)
 const variableLoading = ref(false)
 const variableSaving = ref(false)
+const objectiveWeightRows = ref([])
+const objectiveWeightSaving = ref(false)
 const inboxLoading = ref(false)
 const pendingTasks = ref([])
 const handledTasks = ref([])
@@ -461,6 +528,9 @@ const activeTab = ref(['handled', 'related'].includes(route.query.tab) ? route.q
 
 const hasTask = computed(() => !!taskId.value)
 const readonlyMode = computed(() => access.value.mode !== 'enter' || route.query.mode === 'view')
+const currentNodeKey = computed(() => detail.value.nodeKey || detail.value.task?.currentNodeKey || '')
+const canCheckConflict = computed(() => !readonlyMode.value && currentNodeKey.value === 'conflict_check')
+const canEditObjectiveWeights = computed(() => !readonlyMode.value && ['conflict_check', 'model_decompose_solve'].includes(currentNodeKey.value))
 const accessLabel = computed(() => access.value.label || (access.value.mode === 'enter' ? '可处理' : '查看'))
 const readonlyReason = computed(() => {
   if (route.query.mode === 'view') return '当前以查看方式打开任务，设计变量只能查看，不能编辑。'
@@ -517,6 +587,36 @@ const variablesBySubtask = computed(() => {
   return Array.from(groups.values())
 })
 const faultPipeParameterGroups = computed(() => faultPipeParameters.value.groups || [])
+const faultPipeSummaryItems = computed(() => {
+  return [
+    { label: '参数集', value: faultPipeParameters.value.setName },
+    { label: '管段编号', value: faultPipeParameters.value.faultSegmentName },
+    { label: '材料', value: faultPipeParameters.value.materialName }
+  ].filter(item => item.value)
+})
+const objectiveWeightTotal = computed(() => objectiveWeightRows.value.reduce((sum, item) => sum + Number(item.weight || 0), 0))
+const objectiveSummaryGroups = computed(() => {
+  return (detail.value.objectiveConstraints || []).map(group => {
+    const items = group.items || []
+    return {
+      ...group,
+      objectives: items.filter(item => item.itemType === 'objective'),
+      constraints: items.filter(item => item.itemType === 'constraint')
+    }
+  })
+})
+const objectiveCount = computed(() => objectiveSummaryGroups.value.reduce((sum, group) => sum + group.objectives.length, 0))
+const constraintCount = computed(() => objectiveSummaryGroups.value.reduce((sum, group) => sum + group.constraints.length, 0))
+const constraintRows = computed(() => {
+  return objectiveSummaryGroups.value.flatMap(group => {
+    const disciplineName = group.disciplineName || disciplineLabel(group.discipline)
+    return group.constraints.map(item => ({
+      ...item,
+      discipline: group.discipline,
+      disciplineName
+    }))
+  })
+})
 
 const disciplines = [
   { value: 'structure', label: '结构' },
@@ -624,6 +724,7 @@ function loadDetail() {
     subtasks.value = detail.value.subtasks || []
     faultPipeParameters.value = detail.value.faultPipeParameters || { groups: [] }
     surrogateSolve.value = detail.value.surrogateSolve || surrogateSolve.value
+    loadObjectiveWeights(detail.value)
     syncSurrogatePolling()
     loadSelectedVariables(detail.value)
     decomposed.value = Boolean(detail.value.decomposed)
@@ -634,6 +735,10 @@ function loadDetail() {
 }
 
 function check(passed) {
+  if (!canCheckConflict.value) {
+    ElMessage.warning('当前节点不可执行目标约束校验。')
+    return
+  }
   runConflictCheck(taskId.value, { passed }).then(res => {
     conflict.value = res.data || {}
     ElMessage[passed ? 'success' : 'warning'](passed ? '冲突校验通过' : '已模拟冲突校验不通过')
@@ -648,6 +753,72 @@ function decompose() {
     loadVariableCatalogs()
     ElMessage.success('已解耦为两个子任务，请继续选择设计变量。')
   })
+}
+
+function loadObjectiveWeights(data) {
+  objectiveWeightRows.value = (data.objectiveConstraints || []).flatMap(group => {
+    return (group.items || [])
+      .filter(item => item.itemType === 'objective')
+      .map(item => ({
+        ...item,
+        discipline: group.discipline,
+        disciplineName: group.disciplineName || disciplineLabel(group.discipline),
+        weight: normalizeDisplayWeight(item.weight)
+      }))
+  })
+}
+
+function normalizeObjectiveWeights() {
+  const rows = objectiveWeightRows.value
+  if (!rows.length) return
+  const base = Math.floor(10 / rows.length)
+  let remain = 10 - base * rows.length
+  rows.forEach(row => {
+    row.weight = base + (remain > 0 ? 1 : 0)
+    remain -= 1
+  })
+}
+
+function saveObjectiveWeightSettings() {
+  if (!canEditObjectiveWeights.value) {
+    ElMessage.warning('当前节点不可归口目标权重。')
+    return
+  }
+  objectiveWeightSaving.value = true
+  saveObjectiveWeights(taskId.value, {
+    items: objectiveWeightRows.value.map(item => ({
+      discipline: item.discipline,
+      itemCode: item.itemCode,
+      weight: normalizeDisplayWeight(item.weight)
+    }))
+  }).then(res => {
+    detail.value = res.data || detail.value
+    loadObjectiveWeights(detail.value)
+    ElMessage.success('目标权重已统一保存。')
+  }).finally(() => {
+    objectiveWeightSaving.value = false
+  })
+}
+
+function normalizeDisplayWeight(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return 5
+  if (number > 10) return Math.max(0, Math.min(10, Math.round(number / 10)))
+  return Math.max(0, Math.min(10, Math.round(number)))
+}
+
+function objectivePriorityLabel(weight) {
+  const value = Number(weight)
+  if (value >= 8) return '高优先级'
+  if (value >= 5) return '中优先级'
+  return '低优先级'
+}
+
+function objectivePriorityClass(weight) {
+  const value = Number(weight)
+  if (value >= 8) return 'priority-badge--high'
+  if (value >= 5) return 'priority-badge--medium'
+  return 'priority-badge--low'
 }
 
 function solve() {
@@ -822,6 +993,10 @@ function disciplineLabel(value) {
   return disciplines.find(item => item.value === value)?.label || value
 }
 
+function disciplinePillClass(value) {
+  return `discipline-pill--${value || 'default'}`
+}
+
 function variableTypeLabel(value) {
   return { continuous: '连续型', discrete: '离散型', enum: '枚举型' }[value] || value || '-'
 }
@@ -843,15 +1018,148 @@ watch(() => route.query.taskId, value => {
 <style scoped lang="scss">
 @use "../platform-theme.scss";
 
+.solve-industrial-view {
+  background:
+    linear-gradient(90deg, rgba(18, 73, 119, 0.08), transparent 260px),
+    linear-gradient(180deg, #f6f8fb 0%, #edf2f7 100%);
+
+  .design-platform-shell {
+    gap: 14px;
+  }
+
+  .platform-topbar {
+    min-height: 104px;
+    padding: 20px 24px;
+    border: 1px solid #d8e0ea;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #ffffff 0%, #f7fbff 100%);
+    box-shadow: 0 8px 22px rgba(38, 65, 92, 0.08);
+  }
+
+  .platform-eyebrow,
+  .section-label {
+    margin-bottom: 6px;
+    color: #176db6;
+    letter-spacing: 0.06em;
+  }
+
+  .platform-title {
+    font-size: 28px;
+  }
+
+  .meta-chip {
+    min-height: 34px;
+    border-radius: 999px;
+    background: #f7f9fc;
+  }
+
+  .section-block {
+    padding: 15px;
+    border-color: #d8e0ea;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(49, 76, 108, 0.06);
+  }
+
+  .section-header {
+    min-height: 38px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e6ebf1;
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
+  .table-shell {
+    border-color: #e1e7ef;
+    border-radius: 6px;
+    background: #ffffff;
+  }
+
+  .soft-panel {
+    position: relative;
+    overflow: hidden;
+    border-color: #dfe6ef;
+    border-radius: 6px;
+    background: #ffffff;
+
+    &::before {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 3px;
+      background: #4f8edc;
+      content: "";
+    }
+  }
+
+  :deep(.el-button) {
+    border-radius: 4px;
+  }
+
+  :deep(.el-tag) {
+    border-radius: 4px;
+  }
+
+  :deep(.el-alert) {
+    border-radius: 6px;
+  }
+
+  :deep(.el-collapse) {
+    --el-collapse-header-bg-color: #ffffff;
+    --el-collapse-content-bg-color: #ffffff;
+    border-top: 0;
+  }
+
+  :deep(.el-collapse-item__header) {
+    padding: 0 10px;
+    border-bottom-color: #e6ebf1;
+    color: #273d5b;
+    font-weight: 600;
+  }
+
+  :deep(.el-collapse-item__content) {
+    padding: 10px;
+  }
+
+  :deep(.el-table__cell) {
+    padding: 8px 0;
+  }
+}
+
+.content-grid--balanced {
+  gap: 14px;
+}
+
+.card-head {
+  min-height: 44px;
+  margin: -2px -2px 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e6ebf1;
+  background: #f8fafc;
+
+  .section-title {
+    font-size: 15px;
+  }
+}
+
 .subtask-group {
-  margin: 12px 0;
+  margin: 10px 0;
+  padding: 0 2px;
 }
 
 .subtask-group__title {
-  margin: 0 0 8px;
-  color: #5c6680;
-  font-size: 13px;
+  margin: 0 0 7px;
+  color: #40556f;
+  font-size: 12px;
   font-weight: 700;
+}
+
+.tag-item {
+  margin: 0 6px 6px 0;
+  border-radius: 4px;
 }
 
 .mb-16 {
@@ -863,41 +1171,420 @@ watch(() => route.query.taskId, value => {
   font-size: 13px;
 }
 
-.fixed-input-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 12px;
+.solve-command-grid {
+  grid-template-columns: minmax(720px, 1.42fr) minmax(360px, 0.58fr);
+  align-items: start;
+}
+
+.objective-workbench {
+  min-width: 0;
+}
+
+.objective-workbench-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 10px 0 12px;
+  padding: 9px 12px;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #4f8edc;
+  border-radius: 6px;
+  background: #f8fafc;
+
+  span {
+    color: #52667a;
+    font-size: 13px;
+  }
 
   div {
-    min-width: 0;
-    padding: 12px;
-    border: 1px solid rgba(128, 158, 195, 0.18);
-    border-radius: 8px;
-    background: rgba(248, 251, 255, 0.72);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+}
+
+.objective-constraint-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  gap: 14px;
+}
+
+.oc-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dfe6ef;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.oc-panel--objective {
+  border-top: 3px solid #2f80d8;
+}
+
+.oc-panel--constraint {
+  border-top: 3px solid #d9822b;
+}
+
+.oc-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e6ebf1;
+  background: #f8fafc;
+
+  strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #19375a;
+    font-size: 15px;
   }
 
   span {
-    display: block;
+    color: #75869b;
+    font-size: 12px;
+  }
+}
+
+.panel-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.panel-icon--objective {
+  background: #2f80d8;
+}
+
+.panel-icon--constraint {
+  background: #d9822b;
+}
+
+.panel-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.panel-badge--objective {
+  color: #176db6;
+  background: #eaf4ff;
+}
+
+.panel-badge--constraint {
+  color: #9a5a10;
+  background: #fff3dd;
+}
+
+.oc-card-list {
+  display: grid;
+  gap: 9px;
+  max-height: 368px;
+  padding: 10px 12px 12px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 2px solid #f8fafc;
+    border-radius: 999px;
+    background: #c7d6e8;
+  }
+}
+
+.oc-item {
+  position: relative;
+  padding: 10px 12px 10px 14px;
+  border: 1px solid #e6ebf1;
+  border-left-width: 4px;
+  border-radius: 6px;
+  background: #fbfcfe;
+  color: #32415f;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: #c7d6e8;
+    background: #ffffff;
+    box-shadow: 0 6px 16px rgba(36, 63, 94, 0.08);
+  }
+}
+
+.oc-item--objective {
+  border-left-color: #2f80d8;
+}
+
+.oc-item--constraint {
+  border-left-color: #d9822b;
+}
+
+.oc-item__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.oc-item__title {
+  color: #19375a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.oc-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 5px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.oc-item__desc {
+  display: -webkit-box;
+  margin: 7px 0 0;
+  overflow: hidden;
+  color: #5e6c7d;
+  font-size: 12px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.oc-item__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.priority-badge,
+.constraint-value,
+.selection-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.priority-badge--high {
+  color: #c73535;
+  background: #fff0f0;
+}
+
+.priority-badge--medium {
+  color: #a56511;
+  background: #fff5dc;
+}
+
+.priority-badge--low {
+  color: #16814f;
+  background: #edf9f1;
+}
+
+.constraint-value {
+  color: #9a5a10;
+  background: #fff3dd;
+}
+
+.selection-badge {
+  color: #176db6;
+  background: #eaf4ff;
+}
+
+.selection-badge--constraint {
+  color: #9a5a10;
+  background: #fff3dd;
+}
+
+.compatibility-note {
+  color: #76879b;
+  font-size: 12px;
+}
+
+.discipline-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 52px;
+  max-width: 76px;
+  padding: 3px 8px;
+  overflow: hidden;
+  border: 1px solid #cfd8e3;
+  border-radius: 999px;
+  color: #415166;
+  background: #f7f9fc;
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.discipline-pill--structure {
+  border-color: #bfd8ff;
+  color: #176db6;
+  background: #eef6ff;
+}
+
+.discipline-pill--layout {
+  border-color: #b8e3df;
+  color: #08766d;
+  background: #edfafa;
+}
+
+.discipline-pill--aero {
+  border-color: #d8ccff;
+  color: #6547b8;
+  background: #f5f1ff;
+}
+
+.discipline-pill--hydraulic {
+  border-color: #f3d0a2;
+  color: #9a5a10;
+  background: #fff5e8;
+}
+
+.discipline-pill--manufacturing {
+  border-color: #bfe5c8;
+  color: #16814f;
+  background: #effaf2;
+}
+
+.discipline-pill--default {
+  border-color: #cfd8e3;
+  color: #415166;
+  background: #f7f9fc;
+}
+
+.btn-soft-blue {
+  border-color: #c9ddff;
+  color: #176db6;
+  background: #f1f7ff;
+}
+
+.btn-soft-green {
+  border-color: #c8e8d7;
+  color: #16814f;
+  background: #f0fbf5;
+}
+
+.btn-soft-amber {
+  border-color: #f4d6a7;
+  color: #a56511;
+  background: #fff8ed;
+}
+
+.btn-soft-purple {
+  border-color: #d9ccff;
+  color: #6b4cc2;
+  background: #f6f2ff;
+}
+
+.btn-strong-blue {
+  border-color: #176db6;
+  background: #176db6;
+}
+
+.fixed-input-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border: 1px solid #e6ebf1;
+  border-radius: 6px;
+  background: #fbfcfe;
+}
+
+.fixed-input-meta__item {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 18px;
+  border-right: 1px solid #e2e8f0;
+
+  &:first-child {
+    padding-left: 0;
+  }
+
+  &:last-child {
+    border-right: 0;
+  }
+
+  span {
+    flex-shrink: 0;
+    margin-right: 8px;
     color: #708198;
     font-size: 12px;
   }
 
   strong {
-    display: block;
     min-width: 0;
-    margin-top: 5px;
     overflow: hidden;
     color: #24324f;
+    font-size: 13px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 }
 
+.weight-editor {
+  display: grid;
+  grid-template-columns: auto minmax(100px, 150px) 76px;
+  gap: 8px;
+  align-items: center;
+  min-width: 238px;
+
+  span {
+    color: #52667a;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  :deep(.el-slider) {
+    --el-slider-main-bg-color: #176db6;
+  }
+
+  :deep(.el-input-number) {
+    width: 76px;
+  }
+}
+
+.weight-editor--card {
+  flex: 1;
+  max-width: 310px;
+}
+
 .surrogate-grid {
   display: grid;
   grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.2fr);
-  gap: 18px;
+  gap: 14px;
 }
 
 .metric-list {
@@ -909,10 +1596,11 @@ watch(() => route.query.taskId, value => {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 10px 12px;
-    border: 1px solid rgba(128, 158, 195, 0.18);
-    border-radius: 8px;
-    background: rgba(248, 251, 255, 0.72);
+    padding: 9px 12px;
+    border: 1px solid #e6ebf1;
+    border-left: 3px solid #4f8edc;
+    border-radius: 6px;
+    background: #fbfcfe;
   }
 
   span {
@@ -936,10 +1624,10 @@ watch(() => route.query.taskId, value => {
 
   div {
     min-height: 82px;
-    padding: 12px;
-    border: 1px solid rgba(128, 158, 195, 0.18);
-    border-radius: 8px;
-    background: #f8fbff;
+    padding: 11px 12px;
+    border: 1px solid #e6ebf1;
+    border-radius: 6px;
+    background: #fbfcfe;
   }
 
   span,
@@ -958,7 +1646,7 @@ watch(() => route.query.taskId, value => {
   }
 
   .stress {
-    border-color: rgba(95, 147, 224, 0.35);
+    border-left: 3px solid #4f8edc;
     background: #eef6ff;
   }
 }
@@ -973,8 +1661,12 @@ watch(() => route.query.taskId, value => {
   grid-template-columns: 54px 1fr 90px;
   gap: 10px;
   align-items: center;
+  padding: 8px 10px;
+  border: 1px solid #e6ebf1;
+  border-radius: 6px;
   color: #5c6680;
   font-size: 13px;
+  background: #fbfcfe;
 
   div {
     height: 8px;
@@ -997,12 +1689,30 @@ watch(() => route.query.taskId, value => {
 }
 
 @media (max-width: 1100px) {
+  .solve-command-grid,
+  .objective-constraint-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .objective-workbench-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+
+    div {
+      justify-content: flex-start;
+    }
+  }
+
   .surrogate-grid {
     grid-template-columns: 1fr;
   }
 
   .best-solution {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .weight-editor {
+    grid-template-columns: 1fr;
   }
 }
 </style>

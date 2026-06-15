@@ -5,9 +5,6 @@
         <div>
           <p class="platform-eyebrow">DESIGN OPTIMIZATION / TASK BOARD</p>
           <h1 class="platform-title">首页（任务看板）</h1>
-          <p class="platform-subtitle">
-            面向起落架舱门协同优化任务，集中查看流程进度、学科协同状态、模型求解结果与仿真验证结论。
-          </p>
         </div>
         <div class="topbar-meta">
           <div class="meta-chip">
@@ -90,6 +87,7 @@
                     v-if="taskAction(row).mode === 'enter'"
                     link
                     type="primary"
+                    icon="Position"
                     @click.stop="enterTask(row)"
                   >
                     进入处置
@@ -98,6 +96,7 @@
                     v-else-if="taskAction(row).mode === 'view'"
                     link
                     type="info"
+                    icon="View"
                     @click.stop="enterTask(row)"
                   >
                     查看
@@ -123,7 +122,7 @@
                 {{ item.name }}：{{ progressLabel(item.status) }}
               </el-timeline-item>
             </el-timeline>
-            <el-empty v-else description="请先在左侧选择任务" />
+            <el-empty v-else description="未选择任务" />
           </section>
 
           <section class="section-block">
@@ -140,7 +139,7 @@
                 <el-tag :type="item.status === 'DONE' ? 'success' : 'info'">{{ statusText(item.status) }}</el-tag>
               </div>
             </div>
-            <el-empty v-else :description="selectedTask ? '当前任务尚未完成任务解耦' : '请先在左侧选择任务'" />
+            <el-empty v-else :description="selectedTask ? '未完成任务解耦' : '未选择任务'" />
           </section>
         </aside>
       </div>
