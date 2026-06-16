@@ -1,67 +1,67 @@
 ﻿<template>
   <div class="project4-page">
-    <!-- 椤甸潰鏍囬鍗＄墖 -->
+    <!-- 页面标题卡片 -->
     <section class="module-hero">
       <div>
-        <div class="module-eyebrow">璇鹃鍥?路 鑸┖瑁呭璐ㄩ噺杩芥函</div>
-        <h2>鏁版嵁鏂囦欢绠＄悊</h2>
+        <div class="module-eyebrow">课题四 · 航空装备质量追溯</div>
+        <h2>数据文件管理</h2>
         <p>
-          绠＄悊鍘熷鏁版嵁鏂囦欢銆佹枃浠惰В鏋愮姸鎬併€佹牱鏈暟閲忎笌鏁版嵁褰掓。淇℃伅锛屼负鍚庣画鏍锋湰澧炲己銆佺壒寰佽瀺鍚堜笌鏁呴殰璇婃柇鎻愪緵鏁版嵁鍩虹銆?
+          管理原始数据文件、文件解析状态、样本数量与数据归档信息，为后续样本增强、特征融合与故障诊断提供数据基础。
         </p>
       </div>
 
       <div class="module-status">
-        <span>鏁版嵁宸叉帴鍏?/span>
-        <span>婕旂ず妯″紡</span>
+        <span>数据已接入</span>
+        <span>演示模式</span>
       </div>
     </section>
 
-    <!-- 鎸囨爣鍗＄墖 -->
+    <!-- 指标卡片 -->
     <section class="metric-strip">
       <div class="metric-mini">
-        <span>鏂囦欢鎬绘暟</span>
+        <span>文件总数</span>
         <strong>{{ total }}</strong>
-        <em>褰撳墠鏁版嵁闆?/em>
+        <em>当前数据集</em>
       </div>
 
       <div class="metric-mini">
-        <span>褰撳墠椤佃В鏋愭垚鍔?/span>
+        <span>当前页解析成功</span>
         <strong>{{ parseSuccessCount }}</strong>
-        <em>parseStatus = 鎴愬姛</em>
+        <em>parseStatus = 成功</em>
       </div>
 
       <div class="metric-mini">
-        <span>褰撳墠椤靛鍏ユ垚鍔?/span>
+        <span>当前页导入成功</span>
         <strong>{{ importSuccessCount }}</strong>
-        <em>importStatus = 鎴愬姛</em>
+        <em>importStatus = 成功</em>
       </div>
 
       <div class="metric-mini">
-        <span>褰撳墠椤垫牱鏈暟閲?/span>
+        <span>当前页样本数量</span>
         <strong>{{ sampleTotal }}</strong>
-        <em>sampleCount 姹囨€?/em>
+        <em>sampleCount 汇总</em>
       </div>
     </section>
 
-    <!-- 鏁版嵁闆嗗鍏ヤ笌閫夋嫨 -->
+    <!-- 数据集导入与选择 -->
     <section class="dataset-card">
       <div class="card-header">
         <div>
-          <div class="module-eyebrow">鏁版嵁闆嗙鐞?/div>
-          <h3>瀵煎叆鏁版嵁闆嗕笌閫夋嫨鏁版嵁闆?/h3>
+          <div class="module-eyebrow">数据集管理</div>
+          <h3>导入数据集与选择数据集</h3>
           <p class="section-desc">
-            鏀寔瀵煎叆鍘熷杞存壙鎸姩鏁版嵁闆嗘枃浠跺す鎴栧崟涓暟鎹枃浠讹紝骞堕€夋嫨褰撳墠鐢ㄤ簬棰勫鐞嗐€佹牱鏈垎甯у拰鍚庣画璇婃柇鍒嗘瀽鐨勬暟鎹泦銆?
+            支持导入原始轴承振动数据集文件夹或单个数据文件，并选择当前用于预处理、样本分帧和后续诊断分析的数据集。
           </p>
         </div>
 
         <el-tag type="primary" effect="plain">
-          褰撳墠鏁版嵁闆嗭細{{ currentDataset?.datasetName || "鏈€夋嫨" }}
+          当前数据集：{{ currentDataset?.datasetName || "未选择" }}
         </el-tag>
       </div>
 
       <div class="dataset-grid">
         <div class="dataset-panel">
-          <div class="panel-title">瀵煎叆鏁版嵁闆嗘枃浠跺す</div>
+          <div class="panel-title">导入数据集文件夹</div>
 
           <div class="folder-upload-box">
             <div class="folder-upload-icon">
@@ -69,19 +69,19 @@
             </div>
 
             <div class="folder-upload-title">
-              閫夋嫨 CWRU 鏁版嵁闆嗘枃浠跺す鎴栧崟涓暟鎹枃浠?
+              选择 CWRU 数据集文件夹或单个数据文件
             </div>
 
             <div class="folder-upload-desc">
-              鎺ㄨ崘閫夋嫨鏁版嵁闆嗘牴鐩綍鎴栧瓙鐩綍锛岀郴缁熶細鑷姩璇嗗埆鍏朵腑鐨?MAT銆丆SV銆乀XT銆乆LSX 鏂囦欢锛涗篃鍙互閫夋嫨鍗曚釜鏂囦欢杩涜婕旂ず瀵煎叆銆?
+              推荐选择数据集根目录或子目录，系统会自动识别其中的 MAT、CSV、TXT、XLSX 文件；也可以选择单个文件进行演示导入。
             </div>
 
             <div class="folder-upload-actions">
               <el-button type="primary" icon="FolderOpened" @click="handleChooseDatasetFolder">
-                閫夋嫨鏂囦欢澶?
+                选择文件夹
               </el-button>
               <el-button plain icon="Document" @click="handleChooseSingleDatasetFile">
-                閫夋嫨鍗曚釜鏂囦欢
+                选择单个文件
               </el-button>
             </div>
 
@@ -105,31 +105,31 @@
 
             <div v-if="datasetUploadFiles.length" class="selected-dataset-summary">
               <div>
-                <span>{{ datasetUploadMode === "folder" ? "宸查€夋嫨鏂囦欢澶? : "宸查€夋嫨鏂囦欢" }}</span>
+                <span>{{ datasetUploadMode === "folder" ? "已选择文件夹" : "已选择文件" }}</span>
                 <strong>{{ datasetUploadName }}</strong>
               </div>
-              <el-tag type="success" effect="plain">鏈夋晥鏂囦欢 {{ datasetUploadFiles.length }} 涓?/el-tag>
+              <el-tag type="success" effect="plain">有效文件 {{ datasetUploadFiles.length }} 个</el-tag>
             </div>
           </div>
 
           <div class="upload-actions">
             <el-button type="primary" icon="Upload" @click="handleImportDataset">
-              瀵煎叆鏁版嵁闆?
+              导入数据集
             </el-button>
             <el-button icon="Refresh" @click="handleResetDatasetImport">
-              娓呯┖
+              清空
             </el-button>
           </div>
         </div>
 
         <div class="dataset-panel">
-          <div class="panel-title">閫夋嫨鏁版嵁闆?/div>
+          <div class="panel-title">选择数据集</div>
 
           <el-form :model="datasetForm" label-width="110px">
-            <el-form-item label="褰撳墠鏁版嵁闆?>
+            <el-form-item label="当前数据集">
               <el-select
                   v-model="datasetForm.datasetId"
-                  placeholder="璇烽€夋嫨鏁版嵁闆?
+                  placeholder="请选择数据集"
                   style="width: 100%"
                   @change="handleDatasetChange"
               >
@@ -142,15 +142,15 @@
               </el-select>
             </el-form-item>
 
-            <el-form-item label="鏁版嵁闆嗙被鍨?>
+            <el-form-item label="数据集类型">
               <el-input v-model="datasetForm.datasetType" disabled />
             </el-form-item>
 
-            <el-form-item label="鏂囦欢鏁伴噺">
+            <el-form-item label="文件数量">
               <el-input v-model="datasetForm.fileCount" disabled />
             </el-form-item>
 
-            <el-form-item label="鏍锋湰鎬婚噺">
+            <el-form-item label="样本总量">
               <el-input v-model="datasetForm.sampleCount" disabled />
             </el-form-item>
           </el-form>
@@ -158,12 +158,12 @@
       </div>
     </section>
 
-    <!-- 鏁版嵁琛ㄦ牸 -->
+    <!-- 数据表格 -->
     <section class="table-card">
       <div class="card-header table-card-header">
         <div>
-          <div class="module-eyebrow">鏁版嵁鍒楄〃</div>
-          <h3>鍘熷鏁版嵁鏂囦欢</h3>
+          <div class="module-eyebrow">数据列表</div>
+          <h3>原始数据文件</h3>
         </div>
 
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" />
@@ -171,7 +171,7 @@
 
       <el-collapse-transition>
         <div v-show="showSearch" class="raw-query-box">
-          <div class="inline-section-title">鏁版嵁鏂囦欢鏌ヨ</div>
+          <div class="inline-section-title">数据文件查询</div>
           <el-form
               :model="queryParams"
               ref="queryRef"
@@ -179,61 +179,61 @@
               class="raw-query-form"
               label-width="92px"
           >
-            <el-form-item label="鏁版嵁闆咺D" prop="datasetId">
+            <el-form-item label="数据集ID" prop="datasetId">
               <el-input-number
                   v-model="queryParams.datasetId"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ユ暟鎹泦ID"
+                  placeholder="请输入数据集ID"
                   clearable
                   style="width: 170px"
                   @keyup.enter="handleQuery"
               />
             </el-form-item>
 
-            <el-form-item label="鏂囦欢缂栧彿" prop="fileCode">
+            <el-form-item label="文件编号" prop="fileCode">
               <el-input
                   v-model="queryParams.fileCode"
-                  placeholder="璇疯緭鍏ユ枃浠剁紪鍙?
+                  placeholder="请输入文件编号"
                   clearable
                   @keyup.enter="handleQuery"
               />
             </el-form-item>
 
-            <el-form-item label="鍘熷鏂囦欢鍚? prop="originalFileName">
+            <el-form-item label="原始文件名" prop="originalFileName">
               <el-input
                   v-model="queryParams.originalFileName"
-                  placeholder="璇疯緭鍏ュ師濮嬫枃浠跺悕"
+                  placeholder="请输入原始文件名"
                   clearable
                   @keyup.enter="handleQuery"
               />
             </el-form-item>
 
-            <el-form-item label="鏂囦欢鍚庣紑" prop="fileSuffix">
+            <el-form-item label="文件后缀" prop="fileSuffix">
               <el-input
                   v-model="queryParams.fileSuffix"
-                  placeholder="璇疯緭鍏ユ枃浠跺悗缂€"
+                  placeholder="请输入文件后缀"
                   clearable
                   @keyup.enter="handleQuery"
               />
             </el-form-item>
 
-            <el-form-item label="瑙ｆ瀽鐘舵€? prop="parseStatus">
+            <el-form-item label="解析状态" prop="parseStatus">
               <el-select
                   v-model="queryParams.parseStatus"
-                  placeholder="璇烽€夋嫨瑙ｆ瀽鐘舵€?
+                  placeholder="请选择解析状态"
                   clearable
                   style="width: 170px"
               >
-                <el-option label="鎴愬姛" value="鎴愬姛" />
-                <el-option label="澶辫触" value="澶辫触" />
-                <el-option label="鏈В鏋? value="鏈В鏋? />
+                <el-option label="成功" value="成功" />
+                <el-option label="失败" value="失败" />
+                <el-option label="未解析" value="未解析" />
               </el-select>
             </el-form-item>
 
             <el-form-item class="query-actions">
-              <el-button type="primary" icon="Search" @click="handleQuery">鎼滅储</el-button>
-              <el-button icon="Refresh" @click="resetQuery">閲嶇疆</el-button>
+              <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button icon="Refresh" @click="resetQuery">重置</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -248,7 +248,7 @@
               @click="handleAdd"
               v-hasPermi="['system:fileofda:add']"
           >
-            鏂板
+            新增
           </el-button>
         </el-col>
 
@@ -261,7 +261,7 @@
               @click="handleUpdate"
               v-hasPermi="['system:fileofda:edit']"
           >
-            淇敼
+            修改
           </el-button>
         </el-col>
 
@@ -274,7 +274,7 @@
               @click="handleDelete"
               v-hasPermi="['system:fileofda:remove']"
           >
-            鍒犻櫎
+            删除
           </el-button>
         </el-col>
 
@@ -286,7 +286,7 @@
               @click="handleExport"
               v-hasPermi="['system:fileofda:export']"
           >
-            瀵煎嚭
+            导出
           </el-button>
         </el-col>
       </el-row>
@@ -300,29 +300,29 @@
       >
         <el-table-column type="selection" width="55" align="center" />
 
-        <el-table-column label="鏂囦欢ID" align="center" prop="fileId" width="90" />
-        <el-table-column label="鏁版嵁闆咺D" align="center" prop="datasetId" width="100" />
-        <el-table-column label="鏂囦欢缂栧彿" align="center" prop="fileCode" width="150" show-overflow-tooltip />
-        <el-table-column label="鍘熷鏂囦欢鍚? align="center" prop="originalFileName" width="180" show-overflow-tooltip />
-        <el-table-column label="鍚庣紑" align="center" prop="fileSuffix" width="80" />
-        <el-table-column label="绫诲瀷" align="center" prop="fileType" width="90" />
+        <el-table-column label="文件ID" align="center" prop="fileId" width="90" />
+        <el-table-column label="数据集ID" align="center" prop="datasetId" width="100" />
+        <el-table-column label="文件编号" align="center" prop="fileCode" width="150" show-overflow-tooltip />
+        <el-table-column label="原始文件名" align="center" prop="originalFileName" width="180" show-overflow-tooltip />
+        <el-table-column label="后缀" align="center" prop="fileSuffix" width="80" />
+        <el-table-column label="类型" align="center" prop="fileType" width="90" />
 
-        <el-table-column label="鏂囦欢澶у皬" align="center" prop="fileSize" width="110">
+        <el-table-column label="文件大小" align="center" prop="fileSize" width="110">
           <template #default="scope">
             {{ formatFileSize(scope.row.fileSize) }}
           </template>
         </el-table-column>
 
-        <el-table-column label="瀛樺偍璺緞" align="center" prop="storagePath" width="220" show-overflow-tooltip />
-        <el-table-column label="鏂囦欢MD5" align="center" prop="fileMd5" width="180" show-overflow-tooltip />
+        <el-table-column label="存储路径" align="center" prop="storagePath" width="220" show-overflow-tooltip />
+        <el-table-column label="文件MD5" align="center" prop="fileMd5" width="180" show-overflow-tooltip />
 
-        <el-table-column label="鏁版嵁鏉ユ簮" align="center" prop="sourceType" width="110">
+        <el-table-column label="数据来源" align="center" prop="sourceType" width="110">
           <template #default="scope">
             <el-tag type="info" effect="plain">{{ scope.row.sourceType || "-" }}</el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="瀵煎叆鐘舵€? align="center" prop="importStatus" width="110">
+        <el-table-column label="导入状态" align="center" prop="importStatus" width="110">
           <template #default="scope">
             <el-tag :type="statusTagType(scope.row.importStatus)" effect="plain">
               {{ scope.row.importStatus || "-" }}
@@ -330,7 +330,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="瑙ｆ瀽鐘舵€? align="center" prop="parseStatus" width="110">
+        <el-table-column label="解析状态" align="center" prop="parseStatus" width="110">
           <template #default="scope">
             <el-tag :type="statusTagType(scope.row.parseStatus)" effect="plain">
               {{ scope.row.parseStatus || "-" }}
@@ -338,11 +338,11 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="鏍锋湰鏁伴噺" align="center" prop="sampleCount" width="110" />
-        <el-table-column label="閿欒淇℃伅" align="center" prop="errorMsg" width="200" show-overflow-tooltip />
-        <el-table-column label="澶囨敞" align="center" prop="remark" width="220" show-overflow-tooltip />
+        <el-table-column label="样本数量" align="center" prop="sampleCount" width="110" />
+        <el-table-column label="错误信息" align="center" prop="errorMsg" width="200" show-overflow-tooltip />
+        <el-table-column label="备注" align="center" prop="remark" width="220" show-overflow-tooltip />
 
-        <el-table-column label="鎿嶄綔" align="center" width="150" fixed="right">
+        <el-table-column label="操作" align="center" width="150" fixed="right">
           <template #default="scope">
             <el-button
                 link
@@ -351,7 +351,7 @@
                 @click="handleUpdate(scope.row)"
                 v-hasPermi="['system:fileofda:edit']"
             >
-              淇敼
+              修改
             </el-button>
 
             <el-button
@@ -361,7 +361,7 @@
                 @click="handleDelete(scope.row)"
                 v-hasPermi="['system:fileofda:remove']"
             >
-              鍒犻櫎
+              删除
             </el-button>
           </template>
         </el-table-column>
@@ -377,19 +377,19 @@
     </section>
 
 
-    <!-- 鏁版嵁棰勫鐞?-->
+    <!-- 数据预处理 -->
     <section class="preprocess-card">
       <div class="card-header">
         <div>
-          <div class="module-eyebrow">鏁版嵁棰勫鐞?/div>
-          <h3>鏁版嵁棰勫鐞嗛厤缃?/h3>
+          <div class="module-eyebrow">数据预处理</div>
+          <h3>数据预处理配置</h3>
           <p class="section-desc">
-            瀵瑰綋鍓嶆暟鎹泦鎵ц婊ゆ尝鍘诲櫔銆佸綊涓€鍖栦笌鏁版嵁鍒嗗抚锛屽叾涓暟鎹垎甯т负蹇呴€夋楠わ紱澶勭悊瀹屾垚鍚庣敓鎴愬彲鐢ㄤ簬鏍锋湰澧炲己銆佺壒寰佽瀺鍚堝拰鏁呴殰璇婃柇鐨勬牱鏈獥鍙ｃ€?
+            对当前数据集执行滤波去噪、归一化与数据分帧，其中数据分帧为必选步骤；处理完成后生成可用于样本增强、特征融合和故障诊断的样本窗口。
           </p>
         </div>
 
-        <el-tag :type="preprocessStatus === '宸插畬鎴? ? 'success' : 'warning'" effect="plain">
-          澶勭悊鐘舵€侊細{{ preprocessStatus }}
+        <el-tag :type="preprocessStatus === '已完成' ? 'success' : 'warning'" effect="plain">
+          处理状态：{{ preprocessStatus }}
         </el-tag>
       </div>
 
@@ -397,51 +397,51 @@
         <div class="preprocess-layout">
           <div class="preprocess-main">
             <div class="preprocess-panel preprocess-panel-compact">
-              <div class="panel-title">棰勫鐞嗘搷浣?/div>
+              <div class="panel-title">预处理操作</div>
 
-              <el-form-item label="鎿嶄綔閫夋嫨">
+              <el-form-item label="操作选择">
                 <el-checkbox-group v-model="preprocessForm.steps">
-                  <el-checkbox label="denoise">婊ゆ尝鍘诲櫔</el-checkbox>
-                  <el-checkbox label="normalize">褰掍竴鍖?/el-checkbox>
-                  <el-checkbox label="frame" disabled>鏁版嵁鍒嗗抚锛堝繀閫夛級</el-checkbox>
+                  <el-checkbox label="denoise">滤波去噪</el-checkbox>
+                  <el-checkbox label="normalize">归一化</el-checkbox>
+                  <el-checkbox label="frame" disabled>数据分帧（必选）</el-checkbox>
                 </el-checkbox-group>
               </el-form-item>
 
               <el-form-item
                   v-if="preprocessForm.steps.includes('denoise')"
-                  label="鍘诲櫔鏂规硶"
+                  label="去噪方法"
               >
                 <el-select
                     v-model="preprocessForm.denoiseMethod"
-                    placeholder="璇烽€夋嫨鍘诲櫔鏂规硶"
+                    placeholder="请选择去噪方法"
                     style="width: 100%"
                 >
-                  <el-option label="灏忔尝鍘诲櫔" value="wavelet" />
-                  <el-option label="宸寸壒娌冩柉甯﹂€氭护娉? value="butterworth" />
-                  <el-option label="甯屽皵浼壒榛勫彉鎹? value="hht" />
+                  <el-option label="小波去噪" value="wavelet" />
+                  <el-option label="巴特沃斯带通滤波" value="butterworth" />
+                  <el-option label="希尔伯特黄变换" value="hht" />
                 </el-select>
               </el-form-item>
 
               <el-form-item
                   v-if="preprocessForm.steps.includes('normalize')"
-                  label="褰掍竴鍖栨柟娉?
+                  label="归一化方法"
               >
                 <el-select
                     v-model="preprocessForm.normalizeMethod"
-                    placeholder="璇烽€夋嫨褰掍竴鍖栨柟娉?
+                    placeholder="请选择归一化方法"
                     style="width: 100%"
                 >
-                  <el-option label="Z-score 鏍囧噯鍖? value="zscore" />
-                  <el-option label="Min-Max 褰掍竴鍖? value="minmax" />
+                  <el-option label="Z-score 标准化" value="zscore" />
+                  <el-option label="Min-Max 归一化" value="minmax" />
                 </el-select>
               </el-form-item>
             </div>
 
             <div class="preprocess-panel preprocess-panel-compact">
-              <div class="panel-title">鏁版嵁鍒嗗抚鍙傛暟</div>
+              <div class="panel-title">数据分帧参数</div>
 
               <div class="frame-param-grid">
-                <el-form-item label="鏃堕棿绐楅暱搴?>
+                <el-form-item label="时间窗长度">
                   <el-input-number
                       v-model="preprocessForm.windowSize"
                       :min="128"
@@ -450,7 +450,7 @@
                   />
                 </el-form-item>
 
-                <el-form-item label="姝ラ暱璁惧畾">
+                <el-form-item label="步长设定">
                   <el-input-number
                       v-model="preprocessForm.stride"
                       :min="1"
@@ -460,7 +460,7 @@
                 </el-form-item>
               </div>
 
-              <el-form-item label="閲嶅彔鐜?>
+              <el-form-item label="重叠率">
                 <el-slider
                     v-model="preprocessForm.overlapRate"
                     :min="0"
@@ -473,20 +473,20 @@
           </div>
 
           <div class="preprocess-panel preprocess-summary">
-            <div class="panel-title">澶勭悊鎽樿</div>
+            <div class="panel-title">处理摘要</div>
 
             <div class="summary-item">
-              <span>褰撳墠鏁版嵁闆?/span>
+              <span>当前数据集</span>
               <strong>{{ currentDataset?.datasetName || "-" }}</strong>
             </div>
 
             <div class="summary-item">
-              <span>澶勭悊娴佺▼</span>
+              <span>处理流程</span>
               <strong>{{ buildPreprocessFlowText() }}</strong>
             </div>
 
             <div class="summary-item">
-              <span>棰勮鐢熸垚鏍锋湰鏁?/span>
+              <span>预计生成样本数</span>
               <strong>{{ estimatedFrameCount }}</strong>
             </div>
 
@@ -496,21 +496,21 @@
                 style="width: 100%; margin-top: 10px"
                 @click="handleRunPreprocess"
             >
-              鎵ц鏁版嵁棰勫鐞?
+              执行数据预处理
             </el-button>
           </div>
         </div>
       </el-form>
     </section>
 
-    <!-- 棰勫鐞嗗悗鏍锋湰鍒楄〃 -->
+    <!-- 预处理后样本列表 -->
     <section class="table-card">
       <div class="card-header table-card-header">
         <div>
-          <div class="module-eyebrow">澶勭悊缁撴灉</div>
-          <h3>棰勫鐞嗗悗鏁版嵁鏍锋湰鍒楄〃</h3>
+          <div class="module-eyebrow">处理结果</div>
+          <h3>预处理后数据样本列表</h3>
           <p class="section-desc">
-            灞曠ず瀹屾垚鍘诲櫔銆佸綊涓€鍖栧拰鏁版嵁鍒嗗抚鍚庣殑鏍锋湰绐楀彛锛岀敤浜庡悗缁牱鏈寮恒€佺壒寰佽瀺鍚堝拰鏁呴殰璇婃柇銆?
+            展示完成去噪、归一化和数据分帧后的样本窗口，用于后续样本增强、特征融合和故障诊断。
           </p>
         </div>
 
@@ -523,7 +523,7 @@
               :disabled="!canGoAugment"
               @click="handleGoAugment"
           >
-            杩涘叆鏍锋湰澧炲己
+            进入样本增强
           </el-button>
 
           <el-button
@@ -533,7 +533,7 @@
               icon="Download"
               @click="handleExportProcessedSamples"
           >
-            瀵煎嚭鏍锋湰鍒楄〃
+            导出样本列表
           </el-button>
         </div>
       </div>
@@ -542,148 +542,148 @@
           :data="processedSampleList"
           border
           stripe
-          empty-text="璇峰厛閫夋嫨鏁版嵁闆嗗苟鎵ц鏁版嵁棰勫鐞?
+          empty-text="请先选择数据集并执行数据预处理"
       >
-        <el-table-column label="鏍锋湰ID" align="center" prop="sampleId" width="90" />
-        <el-table-column label="鏍锋湰缂栧彿" align="center" prop="sampleCode" width="150" />
-        <el-table-column label="鏉ユ簮鏂囦欢" align="center" prop="sourceFileName" width="220" show-overflow-tooltip />
-        <el-table-column label="鏃堕棿绐楅暱搴? align="center" prop="windowSize" width="120" />
-        <el-table-column label="姝ラ暱" align="center" prop="stride" width="90" />
-        <el-table-column label="閲嶅彔鐜? align="center" prop="overlapRate" width="100">
+        <el-table-column label="样本ID" align="center" prop="sampleId" width="90" />
+        <el-table-column label="样本编号" align="center" prop="sampleCode" width="150" />
+        <el-table-column label="来源文件" align="center" prop="sourceFileName" width="220" show-overflow-tooltip />
+        <el-table-column label="时间窗长度" align="center" prop="windowSize" width="120" />
+        <el-table-column label="步长" align="center" prop="stride" width="90" />
+        <el-table-column label="重叠率" align="center" prop="overlapRate" width="100">
           <template #default="scope">
             {{ scope.row.overlapRate }}%
           </template>
         </el-table-column>
-        <el-table-column label="鍘诲櫔鏂规硶" align="center" prop="denoiseMethod" width="170" />
-        <el-table-column label="褰掍竴鍖栨柟娉? align="center" prop="normalizeMethod" width="170" />
-        <el-table-column label="鏍锋湰缁村害" align="center" prop="sampleShape" width="120" />
-        <el-table-column label="澶勭悊鐘舵€? align="center" prop="status" width="110">
+        <el-table-column label="去噪方法" align="center" prop="denoiseMethod" width="170" />
+        <el-table-column label="归一化方法" align="center" prop="normalizeMethod" width="170" />
+        <el-table-column label="样本维度" align="center" prop="sampleShape" width="120" />
+        <el-table-column label="处理状态" align="center" prop="status" width="110">
           <template #default="scope">
             <el-tag type="success" effect="plain">{{ scope.row.status }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="鐢熸垚鏃堕棿" align="center" prop="createTime" width="170" />
+        <el-table-column label="生成时间" align="center" prop="createTime" width="170" />
       </el-table>
     </section>
 
-    <!-- 鏂板 / 淇敼寮圭獥 -->
+    <!-- 新增 / 修改弹窗 -->
     <el-dialog :title="title" v-model="open" width="760px" append-to-body>
       <el-form ref="fileofdaRef" :model="form" :rules="rules" label-width="120px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="鏁版嵁闆咺D" prop="datasetId">
+            <el-form-item label="数据集ID" prop="datasetId">
               <el-input-number
                   v-model="form.datasetId"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ユ暟鎹泦ID"
+                  placeholder="请输入数据集ID"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏂囦欢缂栧彿" prop="fileCode">
-              <el-input v-model="form.fileCode" placeholder="璇疯緭鍏ユ枃浠剁紪鍙? />
+            <el-form-item label="文件编号" prop="fileCode">
+              <el-input v-model="form.fileCode" placeholder="请输入文件编号" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鍘熷鏂囦欢鍚? prop="originalFileName">
-              <el-input v-model="form.originalFileName" placeholder="璇疯緭鍏ュ師濮嬫枃浠跺悕" />
+            <el-form-item label="原始文件名" prop="originalFileName">
+              <el-input v-model="form.originalFileName" placeholder="请输入原始文件名" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏂囦欢鍚庣紑" prop="fileSuffix">
-              <el-input v-model="form.fileSuffix" placeholder="璇疯緭鍏ユ枃浠跺悗缂€" />
+            <el-form-item label="文件后缀" prop="fileSuffix">
+              <el-input v-model="form.fileSuffix" placeholder="请输入文件后缀" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏂囦欢绫诲瀷" prop="fileType">
-              <el-input v-model="form.fileType" placeholder="渚嬪 mat / csv / txt" />
+            <el-form-item label="文件类型" prop="fileType">
+              <el-input v-model="form.fileType" placeholder="例如 mat / csv / txt" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏂囦欢澶у皬" prop="fileSize">
+            <el-form-item label="文件大小" prop="fileSize">
               <el-input-number
                   v-model="form.fileSize"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ユ枃浠跺ぇ灏忥紝鍗曚綅瀛楄妭"
+                  placeholder="请输入文件大小，单位字节"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏁版嵁鏉ユ簮" prop="sourceType">
-              <el-select v-model="form.sourceType" placeholder="璇烽€夋嫨鏁版嵁鏉ユ簮" style="width: 100%">
+            <el-form-item label="数据来源" prop="sourceType">
+              <el-select v-model="form.sourceType" placeholder="请选择数据来源" style="width: 100%">
                 <el-option label="CWRU" value="CWRU" />
-                <el-option label="鏂囦欢涓婁紶" value="鏂囦欢涓婁紶" />
-                <el-option label="浼犳劅鍣ㄤ笂浼? value="浼犳劅鍣ㄤ笂浼? />
-                <el-option label="缁翠慨璁板綍" value="缁翠慨璁板綍" />
-                <el-option label="椋炶鏃ュ織" value="椋炶鏃ュ織" />
-                <el-option label="鎵嬪伐褰曞叆" value="鎵嬪伐褰曞叆" />
+                <el-option label="文件上传" value="文件上传" />
+                <el-option label="传感器上传" value="传感器上传" />
+                <el-option label="维修记录" value="维修记录" />
+                <el-option label="飞行日志" value="飞行日志" />
+                <el-option label="手工录入" value="手工录入" />
               </el-select>
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏍锋湰鏁伴噺" prop="sampleCount">
+            <el-form-item label="样本数量" prop="sampleCount">
               <el-input-number
                   v-model="form.sampleCount"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ユ牱鏈暟閲?
+                  placeholder="请输入样本数量"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="瀵煎叆鐘舵€? prop="importStatus">
-              <el-select v-model="form.importStatus" placeholder="璇烽€夋嫨瀵煎叆鐘舵€? style="width: 100%">
-                <el-option label="鎴愬姛" value="鎴愬姛" />
-                <el-option label="澶辫触" value="澶辫触" />
-                <el-option label="鏈鍏? value="鏈鍏? />
+            <el-form-item label="导入状态" prop="importStatus">
+              <el-select v-model="form.importStatus" placeholder="请选择导入状态" style="width: 100%">
+                <el-option label="成功" value="成功" />
+                <el-option label="失败" value="失败" />
+                <el-option label="未导入" value="未导入" />
               </el-select>
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="瑙ｆ瀽鐘舵€? prop="parseStatus">
-              <el-select v-model="form.parseStatus" placeholder="璇烽€夋嫨瑙ｆ瀽鐘舵€? style="width: 100%">
-                <el-option label="鎴愬姛" value="鎴愬姛" />
-                <el-option label="澶辫触" value="澶辫触" />
-                <el-option label="鏈В鏋? value="鏈В鏋? />
+            <el-form-item label="解析状态" prop="parseStatus">
+              <el-select v-model="form.parseStatus" placeholder="请选择解析状态" style="width: 100%">
+                <el-option label="成功" value="成功" />
+                <el-option label="失败" value="失败" />
+                <el-option label="未解析" value="未解析" />
               </el-select>
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="鏂囦欢瀛樺偍璺緞" prop="storagePath">
-              <el-input v-model="form.storagePath" placeholder="璇疯緭鍏ユ枃浠跺瓨鍌ㄨ矾寰? />
+            <el-form-item label="文件存储路径" prop="storagePath">
+              <el-input v-model="form.storagePath" placeholder="请输入文件存储路径" />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="鏂囦欢MD5" prop="fileMd5">
-              <el-input v-model="form.fileMd5" placeholder="璇疯緭鍏ユ枃浠禡D5" />
+            <el-form-item label="文件MD5" prop="fileMd5">
+              <el-input v-model="form.fileMd5" placeholder="请输入文件MD5" />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="閿欒淇℃伅" prop="errorMsg">
-              <el-input v-model="form.errorMsg" type="textarea" placeholder="璇疯緭鍏ラ敊璇俊鎭? />
+            <el-form-item label="错误信息" prop="errorMsg">
+              <el-input v-model="form.errorMsg" type="textarea" placeholder="请输入错误信息" />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="澶囨敞" prop="remark">
-              <el-input v-model="form.remark" type="textarea" placeholder="璇疯緭鍏ュ娉? />
+            <el-form-item label="备注" prop="remark">
+              <el-input v-model="form.remark" type="textarea" placeholder="请输入备注" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -691,8 +691,8 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">纭?瀹?/el-button>
-          <el-button @click="cancel">鍙?娑?/el-button>
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -705,7 +705,7 @@ import { FolderOpened } from "@element-plus/icons-vue"
 import {
   createTopic4Pipeline,
   updateTopic4Pipeline
-} from "@/utils/project4/topic4Pipeline"
+} from "@/utils/topic4Pipeline"
 import {
   listFileofda,
   getFileofda,
@@ -733,7 +733,7 @@ const datasetUploadMode = ref("")
 const datasetUploadName = ref("")
 const datasetFolderInputRef = ref(null)
 const datasetSingleFileInputRef = ref(null)
-const preprocessStatus = ref("寰呭鐞?)
+const preprocessStatus = ref("待处理")
 const processedSampleList = ref([])
 const currentPipelineId = ref(null)
 const canGoAugment = ref(false)
@@ -741,15 +741,15 @@ const canGoAugment = ref(false)
 const datasetOptions = ref([
   {
     datasetId: 1,
-    datasetName: "CWRU 杞存壙鏁呴殰鏁版嵁闆?,
-    datasetType: "杞存壙鎸姩淇″彿",
+    datasetName: "CWRU 轴承故障数据集",
+    datasetType: "轴承振动信号",
     fileCount: 6,
     sampleCount: 12
   },
   {
     datasetId: 2,
-    datasetName: "鑸┖瑁呭杞存壙璇曢獙鏁版嵁闆?,
-    datasetType: "澶氫紶鎰熷櫒鏃跺簭鏁版嵁",
+    datasetName: "航空装备轴承试验数据集",
+    datasetType: "多传感器时序数据",
     fileCount: 8,
     sampleCount: 16
   }
@@ -757,8 +757,8 @@ const datasetOptions = ref([
 
 const datasetForm = reactive({
   datasetId: 1,
-  datasetName: "CWRU 杞存壙鏁呴殰鏁版嵁闆?,
-  datasetType: "杞存壙鎸姩淇″彿",
+  datasetName: "CWRU 轴承故障数据集",
+  datasetType: "轴承振动信号",
   fileCount: 6,
   sampleCount: 12
 })
@@ -804,13 +804,13 @@ const data = reactive({
   },
   rules: {
     datasetId: [
-      { required: true, message: "鏁版嵁闆咺D涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "数据集ID不能为空", trigger: "blur" }
     ],
     fileCode: [
-      { required: true, message: "鏂囦欢缂栧彿涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "文件编号不能为空", trigger: "blur" }
     ],
     originalFileName: [
-      { required: true, message: "鍘熷鏂囦欢鍚嶄笉鑳戒负绌?, trigger: "blur" }
+      { required: true, message: "原始文件名不能为空", trigger: "blur" }
     ]
   }
 })
@@ -818,11 +818,11 @@ const data = reactive({
 const { queryParams, form, rules } = toRefs(data)
 
 const parseSuccessCount = computed(() => {
-  return fileofdaList.value.filter(item => item.parseStatus === "鎴愬姛").length
+  return fileofdaList.value.filter(item => item.parseStatus === "成功").length
 })
 
 const importSuccessCount = computed(() => {
-  return fileofdaList.value.filter(item => item.importStatus === "鎴愬姛").length
+  return fileofdaList.value.filter(item => item.importStatus === "成功").length
 })
 
 const sampleTotal = computed(() => {
@@ -838,7 +838,7 @@ function getList() {
     total.value = response.total || 0
     loading.value = false
   }).catch(error => {
-    console.error("鏁版嵁鏂囦欢鏌ヨ澶辫触锛?, error)
+    console.error("数据文件查询失败：", error)
     fileofdaList.value = []
     total.value = 0
     loading.value = false
@@ -862,8 +862,8 @@ function reset() {
     storagePath: null,
     fileMd5: null,
     sourceType: "CWRU",
-    importStatus: "鎴愬姛",
-    parseStatus: "鎴愬姛",
+    importStatus: "成功",
+    parseStatus: "成功",
     sampleCount: 0,
     errorMsg: null,
     delFlag: "0",
@@ -919,7 +919,7 @@ function getFolderNameFromFiles(files) {
     return firstPath.split("/")[0]
   }
 
-  return firstPath.replace(datasetFilePattern, "") || "瀵煎叆鏁版嵁闆?
+  return firstPath.replace(datasetFilePattern, "") || "导入数据集"
 }
 
 function filterSupportedDatasetFiles(files) {
@@ -936,7 +936,7 @@ function handleDatasetFolderChange(event) {
     datasetUploadFiles.value = []
     datasetUploadMode.value = ""
     datasetUploadName.value = ""
-    proxy.$modal.msgWarning("鎵€閫夋枃浠跺す涓湭璇嗗埆鍒?MAT銆丆SV銆乀XT銆乆LSX 鏁版嵁鏂囦欢")
+    proxy.$modal.msgWarning("所选文件夹中未识别到 MAT、CSV、TXT、XLSX 数据文件")
     return
   }
 
@@ -948,7 +948,7 @@ function handleDatasetFolderChange(event) {
     datasetSingleFileInputRef.value.value = ""
   }
 
-  proxy.$modal.msgSuccess(`宸查€夋嫨鏂囦欢澶癸細${datasetUploadName.value}锛岃瘑鍒埌 ${files.length} 涓湁鏁堟暟鎹枃浠禶)
+  proxy.$modal.msgSuccess(`已选择文件夹：${datasetUploadName.value}，识别到 ${files.length} 个有效数据文件`)
 }
 
 function handleDatasetSingleFileChange(event) {
@@ -958,7 +958,7 @@ function handleDatasetSingleFileChange(event) {
     datasetUploadFiles.value = []
     datasetUploadMode.value = ""
     datasetUploadName.value = ""
-    proxy.$modal.msgWarning("浠呮敮鎸?MAT銆丆SV銆乀XT銆乆LSX 鏁版嵁鏂囦欢")
+    proxy.$modal.msgWarning("仅支持 MAT、CSV、TXT、XLSX 数据文件")
     return
   }
 
@@ -974,7 +974,7 @@ function handleDatasetSingleFileChange(event) {
 
 function handleImportDataset() {
   if (!datasetUploadFiles.value.length) {
-    proxy.$modal.msgWarning("璇峰厛閫夋嫨闇€瑕佸鍏ョ殑鏁版嵁闆嗘枃浠跺す鎴栧崟涓暟鎹枃浠?)
+    proxy.$modal.msgWarning("请先选择需要导入的数据集文件夹或单个数据文件")
     return
   }
 
@@ -986,7 +986,7 @@ function handleImportDataset() {
   const newDataset = {
     datasetId,
     datasetName,
-    datasetType: datasetUploadMode.value === "folder" ? "鏂囦欢澶规暟鎹泦" : "鍗曟枃浠舵暟鎹泦",
+    datasetType: datasetUploadMode.value === "folder" ? "文件夹数据集" : "单文件数据集",
     fileCount: datasetUploadFiles.value.length,
     sampleCount: datasetUploadFiles.value.length * 2
   }
@@ -995,12 +995,12 @@ function handleImportDataset() {
   Object.assign(datasetForm, newDataset)
   appendImportedRawFiles(datasetUploadFiles.value, datasetId)
 
-  preprocessStatus.value = "寰呭鐞?
+  preprocessStatus.value = "待处理"
   processedSampleList.value = []
   currentPipelineId.value = null
   canGoAugment.value = false
 
-  proxy.$modal.msgSuccess("鏁版嵁闆嗗鍏ユ垚鍔燂紝鍘熷鏁版嵁鏂囦欢宸插姞鍏ュ垪琛紝璇风户缁厤缃暟鎹澶勭悊鍙傛暟")
+  proxy.$modal.msgSuccess("数据集导入成功，原始数据文件已加入列表，请继续配置数据预处理参数")
 }
 
 function appendImportedRawFiles(files, datasetId) {
@@ -1021,13 +1021,13 @@ function appendImportedRawFiles(files, datasetId) {
       fileSize: file.size || 0,
       storagePath: relativePath ? `/data/import/${relativePath}` : `/data/import/${fileName}`,
       fileMd5: "-",
-      sourceType: datasetUploadMode.value === "folder" ? "鏂囦欢澶瑰鍏? : "鏂囦欢涓婁紶",
-      importStatus: "鎴愬姛",
-      parseStatus: "鎴愬姛",
+      sourceType: datasetUploadMode.value === "folder" ? "文件夹导入" : "文件上传",
+      importStatus: "成功",
+      parseStatus: "成功",
       sampleCount: 2,
       errorMsg: null,
       delFlag: "0",
-      remark: datasetUploadMode.value === "folder" ? `鏉ヨ嚜鏂囦欢澶癸細${datasetUploadName.value}` : "鍗曟枃浠跺鍏?
+      remark: datasetUploadMode.value === "folder" ? `来自文件夹：${datasetUploadName.value}` : "单文件导入"
     }
   })
 
@@ -1057,7 +1057,7 @@ function handleDatasetChange(datasetId) {
   }
 
   Object.assign(datasetForm, dataset)
-  preprocessStatus.value = "寰呭鐞?
+  preprocessStatus.value = "待处理"
   processedSampleList.value = []
   currentPipelineId.value = null
   canGoAugment.value = false
@@ -1074,16 +1074,16 @@ function buildPreprocessFlowText() {
     flow.push(getNormalizeMethodName(preprocessForm.normalizeMethod))
   }
 
-  flow.push("鏁版嵁鍒嗗抚")
+  flow.push("数据分帧")
 
-  return flow.join(" 鈫?")
+  return flow.join(" → ")
 }
 
 function getDenoiseMethodName(value) {
   const map = {
-    wavelet: "灏忔尝鍘诲櫔",
-    butterworth: "宸寸壒娌冩柉甯﹂€氭护娉?,
-    hht: "甯屽皵浼壒榛勫彉鎹?
+    wavelet: "小波去噪",
+    butterworth: "巴特沃斯带通滤波",
+    hht: "希尔伯特黄变换"
   }
 
   return map[value] || "-"
@@ -1091,8 +1091,8 @@ function getDenoiseMethodName(value) {
 
 function getNormalizeMethodName(value) {
   const map = {
-    zscore: "Z-score 鏍囧噯鍖?,
-    minmax: "Min-Max 褰掍竴鍖?
+    zscore: "Z-score 标准化",
+    minmax: "Min-Max 归一化"
   }
 
   return map[value] || "-"
@@ -1100,7 +1100,7 @@ function getNormalizeMethodName(value) {
 
 async function handleRunPreprocess() {
   if (!currentDataset.value) {
-    proxy.$modal.msgWarning("璇峰厛閫夋嫨鏁版嵁闆?)
+    proxy.$modal.msgWarning("请先选择数据集")
     return
   }
 
@@ -1113,11 +1113,11 @@ async function handleRunPreprocess() {
       : fileofdaList.value.map(item => item.fileId).filter(Boolean)
 
   if (!selectedFileIds.length) {
-    proxy.$modal.msgWarning("璇峰厛鍕鹃€夐渶瑕侀澶勭悊鐨勬暟鎹枃浠?)
+    proxy.$modal.msgWarning("请先勾选需要预处理的数据文件")
     return
   }
 
-  preprocessStatus.value = "澶勭悊涓?.."
+  preprocessStatus.value = "处理中..."
 
   const pipeline = createTopic4Pipeline({
     datasetId: datasetForm.datasetId,
@@ -1144,13 +1144,13 @@ async function handleRunPreprocess() {
     const res = await executePreprocess(data)
 
     if (res.code !== 200) {
-      preprocessStatus.value = "澶辫触"
-      proxy.$modal.msgError(res.msg || "鏁版嵁棰勫鐞嗗け璐?)
+      preprocessStatus.value = "失败"
+      proxy.$modal.msgError(res.msg || "数据预处理失败")
       return
     }
 
     const samples = await loadProcessedSamples()
-    preprocessStatus.value = "宸插畬鎴?
+    preprocessStatus.value = "已完成"
 
     updateTopic4Pipeline(pipeline.pipelineId, {
       currentStage: "PREPROCESSED",
@@ -1161,11 +1161,11 @@ async function handleRunPreprocess() {
     canGoAugment.value = true
 
     await getList()
-    proxy.$modal.msgSuccess("鏁版嵁棰勫鐞嗗畬鎴愶紝鍙偣鍑昏繘鍏ユ牱鏈寮虹户缁笅涓€姝?)
+    proxy.$modal.msgSuccess("数据预处理完成，可点击进入样本增强继续下一步")
   } catch (error) {
-    console.error("鏁版嵁棰勫鐞嗘帴鍙ｈ皟鐢ㄥけ璐ワ細", error)
-    preprocessStatus.value = "澶辫触"
-    proxy.$modal.msgError("鏁版嵁棰勫鐞嗘帴鍙ｈ皟鐢ㄥけ璐ワ紝璇锋鏌ュ悗绔?/system/fileofda/preprocess 鏄惁鍙敤")
+    console.error("数据预处理接口调用失败：", error)
+    preprocessStatus.value = "失败"
+    proxy.$modal.msgError("数据预处理接口调用失败，请检查后端 /system/fileofda/preprocess 是否可用")
   }
 }
 
@@ -1180,10 +1180,10 @@ async function loadProcessedSamples() {
       windowSize: item.windowSize || preprocessForm.windowSize,
       stride: item.stride || preprocessForm.stride,
       overlapRate: item.overlapRate || `${preprocessForm.overlapRate}%`,
-      denoiseMethod: preprocessForm.steps.includes("denoise") ? getDenoiseMethodName(preprocessForm.denoiseMethod) : "鏈惎鐢?,
-      normalizeMethod: preprocessForm.steps.includes("normalize") ? getNormalizeMethodName(preprocessForm.normalizeMethod) : "鏈惎鐢?,
-      sampleShape: item.sampleShape || `${item.windowSize || preprocessForm.windowSize}脳1`,
-      processStatus: item.preprocessStatus || item.sampleStatus || "宸茬敓鎴?,
+      denoiseMethod: preprocessForm.steps.includes("denoise") ? getDenoiseMethodName(preprocessForm.denoiseMethod) : "未启用",
+      normalizeMethod: preprocessForm.steps.includes("normalize") ? getNormalizeMethodName(preprocessForm.normalizeMethod) : "未启用",
+      sampleShape: item.sampleShape || `${item.windowSize || preprocessForm.windowSize}×1`,
+      processStatus: item.preprocessStatus || item.sampleStatus || "已生成",
       createTime: item.createTime || formatDateTime(new Date()),
       sampleFilePath: item.sampleFilePath || item.samplePath || item.remark || ""
     }))
@@ -1191,7 +1191,7 @@ async function loadProcessedSamples() {
     processedSampleList.value = samples
     return samples
   } catch (error) {
-    console.error("棰勫鐞嗘牱鏈煡璇㈠け璐ワ細", error)
+    console.error("预处理样本查询失败：", error)
     processedSampleList.value = []
     return []
   }
@@ -1199,11 +1199,11 @@ async function loadProcessedSamples() {
 
 function handleGoAugment() {
   if (!currentPipelineId.value) {
-    proxy.$modal.msgWarning("璇峰厛鎵ц鏁版嵁棰勫鐞?)
+    proxy.$modal.msgWarning("请先执行数据预处理")
     return
   }
 
-  goTopic4PageByTitle("鏍锋湰澧炲己", {
+  goTopic4PageByTitle("样本增强", {
     pipelineId: currentPipelineId.value
   })
 }
@@ -1216,7 +1216,7 @@ function goTopic4PageByTitle(title, query = {}) {
   })
 
   if (!targetRoute) {
-    proxy.$modal.msgError(`娌℃湁鎵惧埌鑿滃崟璺敱锛?{title}锛岃妫€鏌ュ乏渚ц彍鍗曞悕绉版槸鍚︿竴鑷碻)
+    proxy.$modal.msgError(`没有找到菜单路由：${title}，请检查左侧菜单名称是否一致`)
     console.table(
         routes
             .filter(route => route.meta && route.meta.title)
@@ -1238,11 +1238,11 @@ function goTopic4PageByTitle(title, query = {}) {
 function buildProcessedSampleRows() {
   const denoiseName = preprocessForm.steps.includes("denoise")
       ? getDenoiseMethodName(preprocessForm.denoiseMethod)
-      : "鏈惎鐢?
+      : "未启用"
 
   const normalizeName = preprocessForm.steps.includes("normalize")
       ? getNormalizeMethodName(preprocessForm.normalizeMethod)
-      : "鏈惎鐢?
+      : "未启用"
 
   const sourceFiles = getPreprocessSourceFiles()
 
@@ -1264,8 +1264,8 @@ function buildProcessedSampleRows() {
         overlapRate: preprocessForm.overlapRate,
         denoiseMethod: denoiseName,
         normalizeMethod: normalizeName,
-        sampleShape: `${preprocessForm.windowSize}脳1`,
-        status: "宸茬敓鎴?,
+        sampleShape: `${preprocessForm.windowSize}×1`,
+        status: "已生成",
         createTime: formatDateTime(new Date())
       }
     })
@@ -1298,38 +1298,38 @@ function getPreprocessSourceFiles() {
   return [
     {
       sourceFileName: "normal_0hp.mat",
-      faultType: "姝ｅ父",
-      faultLocation: "鏃?,
+      faultType: "正常",
+      faultLocation: "无",
       sampleCount: 2
     },
     {
       sourceFileName: "inner_race_0hp_007.mat",
-      faultType: "鍐呭湀鏁呴殰",
-      faultLocation: "杞存壙鍐呭湀",
+      faultType: "内圈故障",
+      faultLocation: "轴承内圈",
       sampleCount: 2
     },
     {
       sourceFileName: "ball_0hp_007.mat",
-      faultType: "婊氬姩浣撴晠闅?,
-      faultLocation: "杞存壙婊氬姩浣?,
+      faultType: "滚动体故障",
+      faultLocation: "轴承滚动体",
       sampleCount: 2
     },
     {
       sourceFileName: "outer_race_0hp_007.mat",
-      faultType: "澶栧湀鏁呴殰",
-      faultLocation: "杞存壙澶栧湀",
+      faultType: "外圈故障",
+      faultLocation: "轴承外圈",
       sampleCount: 2
     },
     {
       sourceFileName: "inner_race_1hp_014.mat",
-      faultType: "鍐呭湀鏁呴殰",
-      faultLocation: "杞存壙鍐呭湀",
+      faultType: "内圈故障",
+      faultLocation: "轴承内圈",
       sampleCount: 2
     },
     {
       sourceFileName: "outer_race_2hp_021.mat",
-      faultType: "澶栧湀鏁呴殰",
-      faultLocation: "杞存壙澶栧湀",
+      faultType: "外圈故障",
+      faultLocation: "轴承外圈",
       sampleCount: 2
     }
   ]
@@ -1340,45 +1340,45 @@ function inferFaultInfo(fileName) {
 
   if (name.includes("normal")) {
     return {
-      faultType: "姝ｅ父",
-      faultLocation: "鏃?
+      faultType: "正常",
+      faultLocation: "无"
     }
   }
 
   if (name.includes("inner")) {
     return {
-      faultType: "鍐呭湀鏁呴殰",
-      faultLocation: "杞存壙鍐呭湀"
+      faultType: "内圈故障",
+      faultLocation: "轴承内圈"
     }
   }
 
   if (name.includes("outer")) {
     return {
-      faultType: "澶栧湀鏁呴殰",
-      faultLocation: "杞存壙澶栧湀"
+      faultType: "外圈故障",
+      faultLocation: "轴承外圈"
     }
   }
 
   if (name.includes("ball")) {
     return {
-      faultType: "婊氬姩浣撴晠闅?,
-      faultLocation: "杞存壙婊氬姩浣?
+      faultType: "滚动体故障",
+      faultLocation: "轴承滚动体"
     }
   }
 
   return {
-    faultType: "鏈煡",
-    faultLocation: "鏈煡"
+    faultType: "未知",
+    faultLocation: "未知"
   }
 }
 
 function handleExportProcessedSamples() {
   if (!processedSampleList.value.length) {
-    proxy.$modal.msgWarning("鏆傛棤鍙鍑虹殑棰勫鐞嗘牱鏈?)
+    proxy.$modal.msgWarning("暂无可导出的预处理样本")
     return
   }
 
-  proxy.$modal.msgSuccess("棰勫鐞嗘牱鏈垪琛ㄥ凡瀵煎嚭")
+  proxy.$modal.msgSuccess("预处理样本列表已导出")
 }
 
 function formatDateTime(date) {
@@ -1408,11 +1408,11 @@ function handleAdd() {
   form.value.fileType = "mat"
   form.value.fileSize = 0
   form.value.sourceType = "CWRU"
-  form.value.importStatus = "鎴愬姛"
-  form.value.parseStatus = "鎴愬姛"
+  form.value.importStatus = "成功"
+  form.value.parseStatus = "成功"
   form.value.sampleCount = 2
   open.value = true
-  title.value = "娣诲姞鏁版嵁鏂囦欢"
+  title.value = "添加数据文件"
 }
 
 function handleUpdate(row) {
@@ -1421,7 +1421,7 @@ function handleUpdate(row) {
   getFileofda(fileId).then(response => {
     form.value = response.data
     open.value = true
-    title.value = "淇敼鏁版嵁鏂囦欢"
+    title.value = "修改数据文件"
   })
 }
 
@@ -1433,13 +1433,13 @@ function submitForm() {
 
     if (form.value.fileId != null) {
       updateFileofda(form.value).then(() => {
-        proxy.$modal.msgSuccess("淇敼鎴愬姛")
+        proxy.$modal.msgSuccess("修改成功")
         open.value = false
         getList()
       })
     } else {
       addFileofda(form.value).then(() => {
-        proxy.$modal.msgSuccess("鏂板鎴愬姛")
+        proxy.$modal.msgSuccess("新增成功")
         open.value = false
         getList()
       })
@@ -1449,11 +1449,11 @@ function submitForm() {
 
 function handleDelete(row) {
   const fileIds = row.fileId || ids.value
-  proxy.$modal.confirm('鏄惁纭鍒犻櫎鏁版嵁鏂囦欢缂栧彿涓?"' + fileIds + '" 鐨勬暟鎹」锛?).then(() => {
+  proxy.$modal.confirm('是否确认删除数据文件编号为 "' + fileIds + '" 的数据项？').then(() => {
     return delFileofda(fileIds)
   }).then(() => {
     getList()
-    proxy.$modal.msgSuccess("鍒犻櫎鎴愬姛")
+    proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})
 }
 
@@ -1464,15 +1464,15 @@ function handleExport() {
 }
 
 function statusTagType(value) {
-  if (value === "鎴愬姛") {
+  if (value === "成功") {
     return "success"
   }
 
-  if (value === "澶辫触") {
+  if (value === "失败") {
     return "danger"
   }
 
-  if (value === "鏈В鏋? || value === "鏈鍏?) {
+  if (value === "未解析" || value === "未导入") {
     return "warning"
   }
 

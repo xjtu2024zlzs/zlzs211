@@ -1,62 +1,62 @@
 ﻿<template>
   <div class="project4-page">
-    <!-- 椤甸潰鏍囬鍗＄墖 -->
+    <!-- 页面标题卡片 -->
     <section class="module-hero">
       <div>
-        <div class="module-eyebrow">璇鹃鍥?路 鑸┖瑁呭璐ㄩ噺杩芥函</div>
-        <h2>璇婃柇缁撴灉</h2>
+        <div class="module-eyebrow">课题四 · 航空装备质量追溯</div>
+        <h2>诊断结果</h2>
         <p>
-          褰撳墠椤甸潰浠呰緭鍑烘晠闅滀綅缃€佹晠闅滅被鍨嬨€佽瘖鏂粨鏋滅疆淇″害銆佸仴搴疯瘎鍒嗗洓绫绘牳蹇冭瘖鏂粨鏋滐紝
-          骞堕€氳繃娣锋穯鐭╅樀涓?t-SNE 鑱氱被鍥惧睍绀鸿瘖鏂ā鍨嬫晥鏋滐紝鍥捐〃涓庝笅鏂硅〃鏍兼牱鏈繚鎸佷竴涓€瀵瑰簲銆?
+          当前页面仅输出故障位置、故障类型、诊断结果置信度、健康评分四类核心诊断结果，
+          并通过混淆矩阵与 t-SNE 聚类图展示诊断模型效果，图表与下方表格样本保持一一对应。
         </p>
       </div>
 
       <div class="module-status">
-        <span>璇婃柇缁撴灉宸叉帴鍏?/span>
-        <span>鍥捐〃鑱斿姩灞曠ず</span>
+        <span>诊断结果已接入</span>
+        <span>图表联动展示</span>
       </div>
     </section>
 
-    <!-- 鎸囨爣鍗＄墖 -->
+    <!-- 指标卡片 -->
     <section class="metric-strip">
       <div class="metric-mini">
-        <span>璇婃柇璁板綍鎬绘暟</span>
+        <span>诊断记录总数</span>
         <strong>{{ total }}</strong>
-        <em>褰撳墠琛ㄦ牸鏍锋湰鏁?/em>
+        <em>当前表格样本数</em>
       </div>
 
       <div class="metric-mini">
-        <span>鏁呴殰鏍锋湰鏁?/span>
+        <span>故障样本数</span>
         <strong>{{ faultCount }}</strong>
-        <em>faultType != 姝ｅ父</em>
+        <em>faultType != 正常</em>
       </div>
 
       <div class="metric-mini">
-        <span>骞冲潎璇婃柇缃俊搴?/span>
+        <span>平均诊断置信度</span>
         <strong>{{ averageConfidence }}</strong>
         <em>confidence</em>
       </div>
 
       <div class="metric-mini">
-        <span>骞冲潎鍋ュ悍璇勫垎</span>
+        <span>平均健康评分</span>
         <strong>{{ averageHealthScore }}</strong>
         <em>healthScore</em>
       </div>
     </section>
 
-    <!-- 铻嶅悎鐗瑰緛杈撳叆涓庤瘖鏂墽琛?-->
+    <!-- 融合特征输入与诊断执行 -->
     <section class="diagnosis-input-card">
       <div class="card-header diagnosis-input-header">
         <div>
-          <div class="module-eyebrow">璇婃柇杈撳叆</div>
-          <h3>铻嶅悎鐗瑰緛鏍锋湰閫夋嫨涓庢晠闅滆瘖鏂墽琛?/h3>
+          <div class="module-eyebrow">诊断输入</div>
+          <h3>融合特征样本选择与故障诊断执行</h3>
           <p class="section-desc">
-            浠庣壒寰佽瀺鍚堟ā鍧楁帴鍏ュ凡铻嶅悎鐨勬牱鏈壒寰侊紝鍕鹃€夐渶瑕佽瘖鏂殑鏍锋湰鍚庢墽琛屾晠闅滆瘖鏂紝璇婃柇缁撴灉浼氬悓姝ヨ緭鍑哄埌涓嬫柟缁撴灉璁板綍鍜屽彲瑙嗗寲鍥捐〃銆?
+            从特征融合模块接入已融合的样本特征，勾选需要诊断的样本后执行故障诊断，诊断结果会同步输出到下方结果记录和可视化图表。
           </p>
         </div>
 
         <el-tag type="primary" effect="plain">
-          宸查€夋嫨 {{ selectedFusionRows.length }} / {{ upstreamFusionResults.length }} 鏉?
+          已选择 {{ selectedFusionRows.length }} / {{ upstreamFusionResults.length }} 条
         </el-tag>
       </div>
 
@@ -64,12 +64,12 @@
         <div class="diagnosis-source-panel">
           <div class="panel-title-row">
             <div>
-              <h4>鐗瑰緛铻嶅悎杈撳叆鏍锋湰鍒楄〃</h4>
-              <p>鏁版嵁鏉ユ簮锛氱壒寰佽瀺鍚堟ā鍧楄緭鍑虹殑铻嶅悎鐗瑰緛鍚戦噺</p>
+              <h4>特征融合输入样本列表</h4>
+              <p>数据来源：特征融合模块输出的融合特征向量</p>
             </div>
 
             <el-button link type="primary" icon="Refresh" @click="loadPipelineInput">
-              鍒锋柊杈撳叆
+              刷新输入
             </el-button>
           </div>
 
@@ -78,47 +78,47 @@
               border
               stripe
               height="260"
-              empty-text="鏆傛棤鐗瑰緛铻嶅悎杈撳叆锛岃鍏堝畬鎴愮壒寰佽瀺鍚?
+              empty-text="暂无特征融合输入，请先完成特征融合"
               @selection-change="handleFusionSelectionChange"
           >
             <el-table-column type="selection" width="55" align="center" />
-            <el-table-column label="铻嶅悎ID" align="center" prop="fusionId" width="90" />
-            <el-table-column label="铻嶅悎缂栧彿" align="center" prop="fusionCode" width="140" show-overflow-tooltip />
-            <el-table-column label="鏍锋湰ID" align="center" prop="sampleId" width="90" />
-            <el-table-column label="鏍锋湰缂栧彿" align="center" prop="sampleCode" width="160" show-overflow-tooltip />
-            <el-table-column label="铻嶅悎鏂规硶" align="center" prop="fusionMethod" width="140" show-overflow-tooltip />
-            <el-table-column label="杈撳嚭缁村害" align="center" prop="outputDimension" width="110" />
-            <el-table-column label="鍚戦噺鏂囦欢璺緞" align="center" prop="vectorPath" min-width="220" show-overflow-tooltip />
+            <el-table-column label="融合ID" align="center" prop="fusionId" width="90" />
+            <el-table-column label="融合编号" align="center" prop="fusionCode" width="140" show-overflow-tooltip />
+            <el-table-column label="样本ID" align="center" prop="sampleId" width="90" />
+            <el-table-column label="样本编号" align="center" prop="sampleCode" width="160" show-overflow-tooltip />
+            <el-table-column label="融合方法" align="center" prop="fusionMethod" width="140" show-overflow-tooltip />
+            <el-table-column label="输出维度" align="center" prop="outputDimension" width="110" />
+            <el-table-column label="向量文件路径" align="center" prop="vectorPath" min-width="220" show-overflow-tooltip />
           </el-table>
         </div>
 
         <div class="diagnosis-config-panel">
           <div class="panel-title-row">
             <div>
-              <h4>璇婃柇鎵ц閰嶇疆</h4>
-              <p>鍩轰簬铻嶅悎鐗瑰緛鍚戦噺杈撳嚭鏁呴殰浣嶇疆銆佹晠闅滅被鍨嬨€佺疆淇″害鍜屽仴搴疯瘎鍒?/p>
+              <h4>诊断执行配置</h4>
+              <p>基于融合特征向量输出故障位置、故障类型、置信度和健康评分</p>
             </div>
           </div>
 
           <div class="diagnosis-config-list">
             <div class="config-item">
-              <span>褰撳墠娴佺▼ID</span>
+              <span>当前流程ID</span>
               <strong>{{ pipelineId || "-" }}</strong>
             </div>
 
             <div class="config-item">
-              <span>杈撳叆鏍锋湰鏁?/span>
+              <span>输入样本数</span>
               <strong>{{ upstreamFusionResults.length }}</strong>
             </div>
 
             <div class="config-item">
-              <span>宸插嬀閫夋牱鏈暟</span>
+              <span>已勾选样本数</span>
               <strong>{{ selectedFusionRows.length }}</strong>
             </div>
 
             <div class="config-item">
-              <span>璇婃柇杈撳嚭瀛楁</span>
-              <strong>鏁呴殰浣嶇疆 / 鏁呴殰绫诲瀷 / 缃俊搴?/ 鍋ュ悍璇勫垎</strong>
+              <span>诊断输出字段</span>
+              <strong>故障位置 / 故障类型 / 置信度 / 健康评分</strong>
             </div>
           </div>
 
@@ -130,24 +130,24 @@
               :disabled="!selectedFusionRows.length || executeLoading"
               @click="handleRunDiagnosis"
           >
-            鎵ц鏁呴殰璇婃柇
+            执行故障诊断
           </el-button>
         </div>
       </div>
     </section>
 
-    <!-- 鍥惧舰鍒嗘瀽 -->
+    <!-- 图形分析 -->
     <section v-if="canGoRootCause" class="visual-card">
       <div class="chart-toolbar">
         <div>
-          <div class="module-eyebrow">鍥惧舰鍒嗘瀽</div>
-          <h3>璇婃柇缁撴灉鍙鍖?/h3>
+          <div class="module-eyebrow">图形分析</div>
+          <h3>诊断结果可视化</h3>
         </div>
 
         <div class="sample-chart-actions">
           <el-select
               v-model="selectedSampleId"
-              placeholder="璇烽€夋嫨鏍锋湰"
+              placeholder="请选择样本"
               clearable
               style="width: 190px"
               @change="handleSampleChange"
@@ -161,7 +161,7 @@
           </el-select>
 
           <el-button link type="primary" icon="Refresh" @click="refreshCharts">
-            鍒锋柊
+            刷新
           </el-button>
         </div>
       </div>
@@ -170,11 +170,11 @@
         <div class="chart-panel">
           <div class="chart-title-row">
             <div>
-              <h4>娣锋穯鐭╅樀</h4>
-              <p>琛岃〃绀虹湡瀹炵被鍒紝鍒楄〃绀洪娴嬬被鍒紱鏁板€兼爣绛句笌涓诲瑙掔嚎绐佸嚭鏄剧ず銆?/p>
+              <h4>混淆矩阵</h4>
+              <p>行表示真实类别，列表示预测类别；数值标签与主对角线突出显示。</p>
             </div>
             <el-tag type="primary" effect="plain">
-              鏍锋湰ID锛歿{ selectedRow?.sampleId || "-" }}
+              样本ID：{{ selectedRow?.sampleId || "-" }}
             </el-tag>
           </div>
 
@@ -184,8 +184,8 @@
         <div class="chart-panel">
           <div class="chart-title-row">
             <div>
-              <h4>t-SNE 鑱氱被鍥?/h4>
-              <p>灞曠ず涓嶅悓璇婃柇绫诲埆鍦ㄤ綆缁寸┖闂翠腑鐨勫垎甯冿紝褰撳墠鏍锋湰楂樹寒鏄剧ず銆?/p>
+              <h4>t-SNE 聚类图</h4>
+              <p>展示不同诊断类别在低维空间中的分布，当前样本高亮显示。</p>
             </div>
             <el-tag :type="faultTagType(selectedRow?.faultType)" effect="plain">
               {{ selectedRow?.faultType || "-" }}
@@ -197,17 +197,17 @@
       </div>
 
       <div class="chart-note">
-        <span>娣锋穯鐭╅樀銆乼-SNE 鑱氱被鍥惧拰琛ㄦ牸浣跨敤鍚屼竴鎵硅瘖鏂褰?/span>
-        <span>鐐瑰嚮琛ㄦ牸琛屾垨閫夋嫨鏍锋湰ID锛屽彲鍚屾鍒囨崲涓や釜鍥捐〃鐨勯珮浜牱鏈?/span>
+        <span>混淆矩阵、t-SNE 聚类图和表格使用同一批诊断记录</span>
+        <span>点击表格行或选择样本ID，可同步切换两个图表的高亮样本</span>
       </div>
     </section>
 
-    <!-- 鏁版嵁琛ㄦ牸 -->
+    <!-- 数据表格 -->
     <section v-if="canGoRootCause" class="table-card">
       <div class="card-header table-card-header">
         <div>
-          <div class="module-eyebrow">鏁版嵁鍒楄〃</div>
-          <h3>鏁呴殰璇婃柇缁撴灉璁板綍</h3>
+          <div class="module-eyebrow">数据列表</div>
+          <h3>故障诊断结果记录</h3>
         </div>
 
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" />
@@ -216,8 +216,8 @@
       <div v-show="showSearch" class="record-filter-panel">
         <div class="filter-title-row">
           <div>
-            <strong>璇婃柇缁撴灉绛涢€?/strong>
-            <span>鎸夋牱鏈紪鍙枫€佹晠闅滀綅缃拰鏁呴殰绫诲瀷蹇€熷畾浣嶈瘖鏂褰?/span>
+            <strong>诊断结果筛选</strong>
+            <span>按样本编号、故障位置和故障类型快速定位诊断记录</span>
           </div>
         </div>
 
@@ -227,20 +227,20 @@
             :inline="true"
             label-width="100px"
         >
-          <el-form-item label="鏍锋湰缂栧彿" prop="sampleCode">
+          <el-form-item label="样本编号" prop="sampleCode">
             <el-input
                 v-model="queryParams.sampleCode"
-                placeholder="璇疯緭鍏ユ牱鏈紪鍙?
+                placeholder="请输入样本编号"
                 clearable
                 style="width: 190px"
                 @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="鏁呴殰浣嶇疆" prop="faultLocation">
+          <el-form-item label="故障位置" prop="faultLocation">
             <el-select
                 v-model="queryParams.faultLocation"
-                placeholder="璇烽€夋嫨鏁呴殰浣嶇疆"
+                placeholder="请选择故障位置"
                 clearable
                 style="width: 190px"
             >
@@ -253,10 +253,10 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="鏁呴殰绫诲瀷" prop="faultType">
+          <el-form-item label="故障类型" prop="faultType">
             <el-select
                 v-model="queryParams.faultType"
-                placeholder="璇烽€夋嫨鏁呴殰绫诲瀷"
+                placeholder="请选择故障类型"
                 clearable
                 style="width: 190px"
             >
@@ -270,8 +270,8 @@
           </el-form-item>
 
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">鎼滅储</el-button>
-            <el-button icon="Refresh" @click="resetQuery">閲嶇疆</el-button>
+            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -285,7 +285,7 @@
               @click="handleAdd"
               v-hasPermi="['system:resultofgr:add']"
           >
-            鏂板
+            新增
           </el-button>
         </el-col>
 
@@ -298,7 +298,7 @@
               @click="handleUpdate"
               v-hasPermi="['system:resultofgr:edit']"
           >
-            淇敼
+            修改
           </el-button>
         </el-col>
 
@@ -311,7 +311,7 @@
               @click="handleDelete"
               v-hasPermi="['system:resultofgr:remove']"
           >
-            鍒犻櫎
+            删除
           </el-button>
         </el-col>
 
@@ -323,7 +323,7 @@
               @click="handleExport"
               v-hasPermi="['system:resultofgr:export']"
           >
-            瀵煎嚭
+            导出
           </el-button>
         </el-col>
 
@@ -335,7 +335,7 @@
               :disabled="!canGoRootCause"
               @click="handleGoRootCause"
           >
-            杩涘叆鏍瑰洜鍒嗘瀽
+            进入根因分析
           </el-button>
         </el-col>
       </el-row>
@@ -351,9 +351,9 @@
       >
         <el-table-column type="selection" width="55" align="center" />
 
-        <el-table-column label="鏍锋湰缂栧彿" align="center" prop="sampleCode" min-width="150" show-overflow-tooltip />
+        <el-table-column label="样本编号" align="center" prop="sampleCode" min-width="150" show-overflow-tooltip />
 
-        <el-table-column label="鏁呴殰浣嶇疆" align="center" prop="faultLocation" width="150">
+        <el-table-column label="故障位置" align="center" prop="faultLocation" width="150">
           <template #default="scope">
             <el-tag :type="faultLocationTagType(scope.row.faultLocation)" effect="plain">
               {{ scope.row.faultLocation || "-" }}
@@ -361,7 +361,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="鏁呴殰绫诲瀷" align="center" prop="faultType" width="160">
+        <el-table-column label="故障类型" align="center" prop="faultType" width="160">
           <template #default="scope">
             <el-tag :type="faultTagType(scope.row.faultType)" effect="plain">
               {{ scope.row.faultType || "-" }}
@@ -369,7 +369,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="璇婃柇缁撴灉缃俊搴? align="center" prop="confidence" width="170">
+        <el-table-column label="诊断结果置信度" align="center" prop="confidence" width="170">
           <template #default="scope">
             <span class="confidence-text">
               {{ formatPercent(scope.row.confidence) }}
@@ -377,7 +377,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="鍋ュ悍璇勫垎" align="center" prop="healthScore" width="130">
+        <el-table-column label="健康评分" align="center" prop="healthScore" width="130">
           <template #default="scope">
             <span :class="healthScoreClass(scope.row.healthScore)">
               {{ formatScore(scope.row.healthScore) }}
@@ -385,7 +385,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="鎿嶄綔" align="center" min-width="220" fixed="right">
+        <el-table-column label="操作" align="center" min-width="220" fixed="right">
           <template #default="scope">
             <el-button
                 link
@@ -393,7 +393,7 @@
                 icon="View"
                 @click.stop="handleDetail(scope.row)"
             >
-              璇︽儏
+              详情
             </el-button>
 
             <el-button
@@ -403,7 +403,7 @@
                 @click.stop="handleUpdate(scope.row)"
                 v-hasPermi="['system:resultofgr:edit']"
             >
-              淇敼
+              修改
             </el-button>
 
             <el-button
@@ -413,7 +413,7 @@
                 @click.stop="handleDelete(scope.row)"
                 v-hasPermi="['system:resultofgr:remove']"
             >
-              鍒犻櫎
+              删除
             </el-button>
           </template>
         </el-table-column>
@@ -428,31 +428,31 @@
       />
     </section>
 
-    <!-- 鏂板 / 淇敼寮圭獥 -->
+    <!-- 新增 / 修改弹窗 -->
     <el-dialog :title="title" v-model="open" width="760px" append-to-body>
       <el-form ref="resultofgrRef" :model="form" :rules="rules" label-width="140px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="鏍锋湰ID" prop="sampleId">
+            <el-form-item label="样本ID" prop="sampleId">
               <el-input-number
                   v-model="form.sampleId"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ユ牱鏈琁D"
+                  placeholder="请输入样本ID"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏍锋湰缂栧彿" prop="sampleCode">
-              <el-input v-model="form.sampleCode" placeholder="璇疯緭鍏ユ牱鏈紪鍙? />
+            <el-form-item label="样本编号" prop="sampleCode">
+              <el-input v-model="form.sampleCode" placeholder="请输入样本编号" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏁呴殰浣嶇疆" prop="faultLocation">
-              <el-select v-model="form.faultLocation" placeholder="璇烽€夋嫨鏁呴殰浣嶇疆" style="width: 100%">
+            <el-form-item label="故障位置" prop="faultLocation">
+              <el-select v-model="form.faultLocation" placeholder="请选择故障位置" style="width: 100%">
                 <el-option
                     v-for="item in faultLocationOptions"
                     :key="item"
@@ -464,8 +464,8 @@
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏁呴殰绫诲瀷" prop="faultType">
-              <el-select v-model="form.faultType" placeholder="璇烽€夋嫨鏁呴殰绫诲瀷" style="width: 100%">
+            <el-form-item label="故障类型" prop="faultType">
+              <el-select v-model="form.faultType" placeholder="请选择故障类型" style="width: 100%">
                 <el-option
                     v-for="item in faultTypeOptions"
                     :key="item"
@@ -477,28 +477,28 @@
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="璇婃柇缁撴灉缃俊搴? prop="confidence">
+            <el-form-item label="诊断结果置信度" prop="confidence">
               <el-input-number
                   v-model="form.confidence"
                   :controls="false"
                   :min="0"
                   :max="1"
                   :step="0.01"
-                  placeholder="璇疯緭鍏?-1涔嬮棿鐨勭疆淇″害"
+                  placeholder="请输入0-1之间的置信度"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鍋ュ悍璇勫垎" prop="healthScore">
+            <el-form-item label="健康评分" prop="healthScore">
               <el-input-number
                   v-model="form.healthScore"
                   :controls="false"
                   :min="0"
                   :max="100"
                   :step="0.1"
-                  placeholder="璇疯緭鍏ュ仴搴疯瘎鍒?
+                  placeholder="请输入健康评分"
                   style="width: 100%"
               />
             </el-form-item>
@@ -508,45 +508,45 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">纭?瀹?/el-button>
-          <el-button @click="cancel">鍙?娑?/el-button>
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
     </el-dialog>
 
-    <!-- 璇︽儏寮圭獥 -->
-    <el-dialog title="璇婃柇缁撴灉璇︽儏" v-model="detailOpen" width="760px" append-to-body>
+    <!-- 详情弹窗 -->
+    <el-dialog title="诊断结果详情" v-model="detailOpen" width="760px" append-to-body>
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="鏍锋湰ID">
+        <el-descriptions-item label="样本ID">
           {{ detail.sampleId }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="鏍锋湰缂栧彿">
+        <el-descriptions-item label="样本编号">
           {{ detail.sampleCode }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="鏁呴殰浣嶇疆">
+        <el-descriptions-item label="故障位置">
           {{ detail.faultLocation }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="鏁呴殰绫诲瀷">
+        <el-descriptions-item label="故障类型">
           {{ detail.faultType }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="璇婃柇缁撴灉缃俊搴?>
+        <el-descriptions-item label="诊断结果置信度">
           {{ formatPercent(detail.confidence) }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="鍋ュ悍璇勫垎">
+        <el-descriptions-item label="健康评分">
           {{ formatScore(detail.healthScore) }}
         </el-descriptions-item>
       </el-descriptions>
 
-      <el-divider content-position="left">鍥捐〃鑱斿姩淇℃伅</el-divider>
+      <el-divider content-position="left">图表联动信息</el-divider>
       <el-input v-model="detail.visualSummary" type="textarea" :rows="5" readonly />
 
       <template #footer>
-        <el-button type="primary" @click="detailOpen = false">鍏抽棴</el-button>
+        <el-button type="primary" @click="detailOpen = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -568,7 +568,7 @@ import {
   getTopic4Pipeline,
   updateTopic4Pipeline,
   formatDateTime
-} from "@/utils/project4/topic4Pipeline"
+} from "@/utils/topic4Pipeline"
 const { proxy } = getCurrentInstance()
 const route = useRoute()
 const pipelineId = ref(String(route.query.pipelineId || getCurrentTopic4PipelineId() || "").trim())
@@ -598,19 +598,19 @@ let confusionMatrixInstance = null
 let tsneChartInstance = null
 
 const faultTypeOptions = [
-  "姝ｅ父",
-  "鍐呭湀鏁呴殰",
-  "澶栧湀鏁呴殰",
-  "婊氬姩浣撴晠闅?,
-  "澶嶅悎鏁呴殰"
+  "正常",
+  "内圈故障",
+  "外圈故障",
+  "滚动体故障",
+  "复合故障"
 ]
 
 const faultLocationOptions = [
-  "鏃?,
-  "杞存壙鍐呭湀",
-  "杞存壙澶栧湀",
-  "杞存壙婊氬姩浣?,
-  "杞存壙绯荤粺"
+  "无",
+  "轴承内圈",
+  "轴承外圈",
+  "轴承滚动体",
+  "轴承系统"
 ]
 
 const DEMO_DIAGNOSIS_ROWS = [
@@ -619,9 +619,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-001",
     sampleId: 1,
     sampleCode: "FILE-CWRU-001",
-    faultLocation: "鏃?,
-    faultType: "姝ｅ父",
-    trueFaultType: "姝ｅ父",
+    faultLocation: "无",
+    faultType: "正常",
+    trueFaultType: "正常",
     confidence: 0.96,
     healthScore: 96.2,
     tsneX: -34,
@@ -632,9 +632,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-002",
     sampleId: 2,
     sampleCode: "FILE-CWRU-002",
-    faultLocation: "杞存壙鍐呭湀",
-    faultType: "鍐呭湀鏁呴殰",
-    trueFaultType: "鍐呭湀鏁呴殰",
+    faultLocation: "轴承内圈",
+    faultType: "内圈故障",
+    trueFaultType: "内圈故障",
     confidence: 0.91,
     healthScore: 72.4,
     tsneX: 15,
@@ -645,9 +645,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-003",
     sampleId: 3,
     sampleCode: "FILE-CWRU-003",
-    faultLocation: "杞存壙婊氬姩浣?,
-    faultType: "婊氬姩浣撴晠闅?,
-    trueFaultType: "婊氬姩浣撴晠闅?,
+    faultLocation: "轴承滚动体",
+    faultType: "滚动体故障",
+    trueFaultType: "滚动体故障",
     confidence: 0.88,
     healthScore: 66.1,
     tsneX: 43,
@@ -658,9 +658,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-004",
     sampleId: 4,
     sampleCode: "FILE-CWRU-004",
-    faultLocation: "杞存壙澶栧湀",
-    faultType: "澶栧湀鏁呴殰",
-    trueFaultType: "澶栧湀鏁呴殰",
+    faultLocation: "轴承外圈",
+    faultType: "外圈故障",
+    trueFaultType: "外圈故障",
     confidence: 0.86,
     healthScore: 68.8,
     tsneX: -9,
@@ -671,9 +671,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-005",
     sampleId: 5,
     sampleCode: "FILE-CWRU-005",
-    faultLocation: "杞存壙鍐呭湀",
-    faultType: "鍐呭湀鏁呴殰",
-    trueFaultType: "鍐呭湀鏁呴殰",
+    faultLocation: "轴承内圈",
+    faultType: "内圈故障",
+    trueFaultType: "内圈故障",
     confidence: 0.83,
     healthScore: 70.5,
     tsneX: 21,
@@ -684,9 +684,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-006",
     sampleId: 6,
     sampleCode: "FILE-CWRU-006",
-    faultLocation: "杞存壙绯荤粺",
-    faultType: "澶嶅悎鏁呴殰",
-    trueFaultType: "澶嶅悎鏁呴殰",
+    faultLocation: "轴承系统",
+    faultType: "复合故障",
+    trueFaultType: "复合故障",
     confidence: 0.79,
     healthScore: 58.6,
     tsneX: -39,
@@ -697,9 +697,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-007",
     sampleId: 7,
     sampleCode: "FILE-CWRU-007",
-    faultLocation: "杞存壙婊氬姩浣?,
-    faultType: "婊氬姩浣撴晠闅?,
-    trueFaultType: "婊氬姩浣撴晠闅?,
+    faultLocation: "轴承滚动体",
+    faultType: "滚动体故障",
+    trueFaultType: "滚动体故障",
     confidence: 0.82,
     healthScore: 64.7,
     tsneX: 49,
@@ -710,9 +710,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-008",
     sampleId: 8,
     sampleCode: "FILE-CWRU-008",
-    faultLocation: "杞存壙澶栧湀",
-    faultType: "澶栧湀鏁呴殰",
-    trueFaultType: "澶栧湀鏁呴殰",
+    faultLocation: "轴承外圈",
+    faultType: "外圈故障",
+    trueFaultType: "外圈故障",
     confidence: 0.84,
     healthScore: 67.9,
     tsneX: -3,
@@ -723,9 +723,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-009",
     sampleId: 9,
     sampleCode: "FILE-CWRU-009",
-    faultLocation: "鏃?,
-    faultType: "姝ｅ父",
-    trueFaultType: "姝ｅ父",
+    faultLocation: "无",
+    faultType: "正常",
+    trueFaultType: "正常",
     confidence: 0.94,
     healthScore: 94.8,
     tsneX: -38,
@@ -736,9 +736,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-010",
     sampleId: 10,
     sampleCode: "FILE-CWRU-010",
-    faultLocation: "杞存壙鍐呭湀",
-    faultType: "鍐呭湀鏁呴殰",
-    trueFaultType: "澶栧湀鏁呴殰",
+    faultLocation: "轴承内圈",
+    faultType: "内圈故障",
+    trueFaultType: "外圈故障",
     confidence: 0.73,
     healthScore: 61.2,
     tsneX: 8,
@@ -749,9 +749,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-011",
     sampleId: 11,
     sampleCode: "FILE-CWRU-011",
-    faultLocation: "杞存壙澶栧湀",
-    faultType: "澶栧湀鏁呴殰",
-    trueFaultType: "澶栧湀鏁呴殰",
+    faultLocation: "轴承外圈",
+    faultType: "外圈故障",
+    trueFaultType: "外圈故障",
     confidence: 0.81,
     healthScore: 69.4,
     tsneX: -14,
@@ -762,9 +762,9 @@ const DEMO_DIAGNOSIS_ROWS = [
     diagnosisCode: "DG-CWRU-012",
     sampleId: 12,
     sampleCode: "FILE-CWRU-012",
-    faultLocation: "杞存壙绯荤粺",
-    faultType: "澶嶅悎鏁呴殰",
-    trueFaultType: "婊氬姩浣撴晠闅?,
+    faultLocation: "轴承系统",
+    faultType: "复合故障",
+    trueFaultType: "滚动体故障",
     confidence: 0.71,
     healthScore: 57.8,
     tsneX: -32,
@@ -784,22 +784,22 @@ const data = reactive({
   },
   rules: {
     sampleId: [
-      { required: true, message: "鏍锋湰ID涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "样本ID不能为空", trigger: "blur" }
     ],
     sampleCode: [
-      { required: true, message: "鏍锋湰缂栧彿涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "样本编号不能为空", trigger: "blur" }
     ],
     faultLocation: [
-      { required: true, message: "鏁呴殰浣嶇疆涓嶈兘涓虹┖", trigger: "change" }
+      { required: true, message: "故障位置不能为空", trigger: "change" }
     ],
     faultType: [
-      { required: true, message: "鏁呴殰绫诲瀷涓嶈兘涓虹┖", trigger: "change" }
+      { required: true, message: "故障类型不能为空", trigger: "change" }
     ],
     confidence: [
-      { required: true, message: "璇婃柇缁撴灉缃俊搴︿笉鑳戒负绌?, trigger: "blur" }
+      { required: true, message: "诊断结果置信度不能为空", trigger: "blur" }
     ],
     healthScore: [
-      { required: true, message: "鍋ュ悍璇勫垎涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "健康评分不能为空", trigger: "blur" }
     ]
   }
 })
@@ -811,7 +811,7 @@ const selectedRow = computed(() => {
 })
 
 const faultCount = computed(() => {
-  return resultofgrList.value.filter(item => item.faultType && item.faultType !== "姝ｅ父").length
+  return resultofgrList.value.filter(item => item.faultType && item.faultType !== "正常").length
 })
 
 const averageConfidence = computed(() => {
@@ -872,7 +872,7 @@ function getList() {
 
     loading.value = false
   }).catch(error => {
-    console.error("璇婃柇缁撴灉鏌ヨ澶辫触锛屼娇鐢ㄥ墠绔紨绀烘暟鎹細", error)
+    console.error("诊断结果查询失败，使用前端演示数据：", error)
     resultofgrList.value = buildPresentationRows([])
     total.value = resultofgrList.value.length
 
@@ -894,7 +894,7 @@ function goTopic4PageByTitle(title, query = {}) {
   })
 
   if (!targetRoute) {
-    proxy.$modal.msgError(`娌℃湁鎵惧埌鑿滃崟璺敱锛?{title}锛岃妫€鏌ュ乏渚ц彍鍗曞悕绉版槸鍚︿竴鑷碻)
+    proxy.$modal.msgError(`没有找到菜单路由：${title}，请检查左侧菜单名称是否一致`)
     console.table(
         routes
             .filter(route => route.meta && route.meta.title)
@@ -927,14 +927,14 @@ function loadPipelineInput() {
   canGoRootCause.value = !!(pipeline.diagnosisResults && pipeline.diagnosisResults.length > 0)
 
   if (upstreamFusionResults.value.length > 0) {
-    proxy.$modal.msgSuccess(`宸叉帴鍏ヤ笂涓€姝ヨ瀺鍚堢壒寰?${upstreamFusionResults.value.length} 鏉)
+    proxy.$modal.msgSuccess(`已接入上一步融合特征 ${upstreamFusionResults.value.length} 条`)
   }
 }
 
 /**
- * 灏嗗悗绔暟鎹暣鐞嗕负褰撳墠椤甸潰闇€瑕佺殑鍥涚被璇婃柇杈撳嚭锛?
- * 鏁呴殰浣嶇疆銆佹晠闅滅被鍨嬨€佽瘖鏂粨鏋滅疆淇″害銆佸仴搴疯瘎鍒嗐€?
- * 鑻ュ悗绔煇浜涘瓧娈典负绌猴紝鍒欎娇鐢ㄥ悓鏍锋湰ID鐨勬紨绀烘暟鎹ˉ榻愶紝淇濊瘉鍥捐〃鍜岃〃鏍间竴涓€瀵瑰簲銆?
+ * 将后端数据整理为当前页面需要的四类诊断输出：
+ * 故障位置、故障类型、诊断结果置信度、健康评分。
+ * 若后端某些字段为空，则使用同样本ID的演示数据补齐，保证图表和表格一一对应。
  */
 function buildPresentationRows(rows) {
   const sourceRows = rows && rows.length ? rows : DEMO_DIAGNOSIS_ROWS
@@ -1013,7 +1013,7 @@ function filterRows(rows) {
 
 function buildSampleOptions() {
   sampleOptions.value = resultofgrList.value.map(row => ({
-    label: `鏍锋湰ID锛?{row.sampleId}`,
+    label: `样本ID：${row.sampleId}`,
     value: String(row.sampleId)
   }))
 
@@ -1073,10 +1073,10 @@ function initConfusionMatrix() {
         const predName = classes[params.value[0]]
         const trueName = classes[params.value[1]]
         return [
-          `褰撳墠鏍锋湰锛?{selected ? selected.sampleCode || selected.sampleId : "鍏ㄩ儴鏍锋湰"}`,
-          `鐪熷疄绫诲埆锛?{trueName}`,
-          `棰勬祴绫诲埆锛?{predName}`,
-          `鏍锋湰鏁伴噺锛?{params.value[2]}`
+          `当前样本：${selected ? selected.sampleCode || selected.sampleId : "全部样本"}`,
+          `真实类别：${trueName}`,
+          `预测类别：${predName}`,
+          `样本数量：${params.value[2]}`
         ].join("<br/>")
       }
     },
@@ -1089,7 +1089,7 @@ function initConfusionMatrix() {
     xAxis: {
       type: "category",
       data: classes,
-      name: "棰勬祴绫诲埆",
+      name: "预测类别",
       nameLocation: "middle",
       nameGap: 48,
       axisLabel: {
@@ -1106,7 +1106,7 @@ function initConfusionMatrix() {
     yAxis: {
       type: "category",
       data: classes,
-      name: "鐪熷疄绫诲埆",
+      name: "真实类别",
       nameLocation: "middle",
       nameGap: 70,
       axisLabel: {
@@ -1128,7 +1128,7 @@ function initConfusionMatrix() {
     },
     series: [
       {
-        name: "娣锋穯鐭╅樀",
+        name: "混淆矩阵",
         type: "heatmap",
         data: matrixData,
         label: {
@@ -1148,10 +1148,10 @@ function initConfusionMatrix() {
 }
 
 /**
- * 鎸夊綋鍓嶆牱鏈敓鎴愬眬閮ㄦ贩娣嗙煩闃点€?
- * 鍘熸潵鐭╅樀鍙粺璁℃暣寮犺〃鐨勬暟鎹紝鎵€浠ュ垏鎹㈡牱鏈椂鏁板€煎熀鏈笉鍙橈紱
- * 杩欓噷鏍规嵁 sampleId銆佺湡瀹炵被鍒€侀娴嬬被鍒敓鎴愪笉鍚岀殑灞€閮ㄨ瘎浼板垎甯冿紝
- * 淇濊瘉姣忎釜鏍锋湰鐨勭儹鍔涘浘閮戒笉涓€鏍凤紝鍚屾椂浠嶅拰褰撳墠閫変腑鏍锋湰淇濇寔瀵瑰簲銆?
+ * 按当前样本生成局部混淆矩阵。
+ * 原来矩阵只统计整张表的数据，所以切换样本时数值基本不变；
+ * 这里根据 sampleId、真实类别、预测类别生成不同的局部评估分布，
+ * 保证每个样本的热力图都不一样，同时仍和当前选中样本保持对应。
  */
 function buildSampleSpecificConfusionMatrix(classes, selected) {
   if (!classes.length) {
@@ -1288,7 +1288,7 @@ function initTsneChart() {
   const selectedSeries = selected
       ? [
         {
-          name: "褰撳墠鏍锋湰",
+          name: "当前样本",
           type: "scatter",
           symbolSize: 24,
           data: [
@@ -1299,7 +1299,7 @@ function initTsneChart() {
           ],
           label: {
             show: true,
-            formatter: `鏍锋湰${selected.sampleId}`,
+            formatter: `样本${selected.sampleId}`,
             position: "top",
             color: "#0c2b52",
             fontWeight: 700
@@ -1327,19 +1327,19 @@ function initTsneChart() {
         }
 
         return [
-          `鏍锋湰ID锛?{row.sampleId}`,
-          `鏍锋湰缂栧彿锛?{row.sampleCode}`,
-          `鏁呴殰浣嶇疆锛?{row.faultLocation}`,
-          `鏁呴殰绫诲瀷锛?{row.faultType}`,
-          `璇婃柇缁撴灉缃俊搴︼細${formatPercent(row.confidence)}`,
-          `鍋ュ悍璇勫垎锛?{formatScore(row.healthScore)}`
+          `样本ID：${row.sampleId}`,
+          `样本编号：${row.sampleCode}`,
+          `故障位置：${row.faultLocation}`,
+          `故障类型：${row.faultType}`,
+          `诊断结果置信度：${formatPercent(row.confidence)}`,
+          `健康评分：${formatScore(row.healthScore)}`
         ].join("<br/>")
       }
     },
     legend: {
       bottom: 0,
       type: "scroll",
-      data: selected ? [...classes, "褰撳墠鏍锋湰"] : classes,
+      data: selected ? [...classes, "当前样本"] : classes,
       textStyle: {
         color: "#5d728c"
       }
@@ -1380,11 +1380,11 @@ function initTsneChart() {
 
 function buildClassColorMap(classes) {
   const preset = {
-    "姝ｅ父": "#4caf50",
-    "鍐呭湀鏁呴殰": "#5470c6",
-    "澶栧湀鏁呴殰": "#fac858",
-    "婊氬姩浣撴晠闅?: "#ee6666",
-    "澶嶅悎鏁呴殰": "#73c0de"
+    "正常": "#4caf50",
+    "内圈故障": "#5470c6",
+    "外圈故障": "#fac858",
+    "滚动体故障": "#ee6666",
+    "复合故障": "#73c0de"
   }
 
   return classes.reduce((map, item, index) => {
@@ -1435,8 +1435,8 @@ function reset() {
     diagnosisCode: null,
     sampleId: null,
     sampleCode: null,
-    faultLocation: "鏃?,
-    faultType: "姝ｅ父",
+    faultLocation: "无",
+    faultType: "正常",
     confidence: 0.92,
     healthScore: 91.6,
     delFlag: "0",
@@ -1495,7 +1495,7 @@ function handleAdd() {
   }
 
   open.value = true
-  title.value = "娣诲姞璇婃柇缁撴灉"
+  title.value = "添加诊断结果"
 }
 
 function handleUpdate(row) {
@@ -1506,7 +1506,7 @@ function handleUpdate(row) {
       : resultofgrList.value.find(item => ids.value.includes(item.diagnosisId))
 
   if (!targetRow) {
-    proxy.$modal.msgWarning("璇烽€夋嫨涓€鏉￠渶瑕佷慨鏀圭殑鏁版嵁")
+    proxy.$modal.msgWarning("请选择一条需要修改的数据")
     return
   }
 
@@ -1515,7 +1515,7 @@ function handleUpdate(row) {
   }
 
   open.value = true
-  title.value = "淇敼璇婃柇缁撴灉"
+  title.value = "修改诊断结果"
 }
 
 function submitForm() {
@@ -1526,13 +1526,13 @@ function submitForm() {
 
     const payload = buildSubmitPayload(form.value)
 
-    if (title.value === "淇敼璇婃柇缁撴灉" && payload.diagnosisId != null) {
+    if (title.value === "修改诊断结果" && payload.diagnosisId != null) {
       updateResultofgr(payload).then(() => {
-        proxy.$modal.msgSuccess("淇敼鎴愬姛")
+        proxy.$modal.msgSuccess("修改成功")
         open.value = false
         getList()
       }).catch(() => {
-        proxy.$modal.msgSuccess("婕旂ず鏁版嵁淇敼瀹屾垚")
+        proxy.$modal.msgSuccess("演示数据修改完成")
         open.value = false
         getList()
       })
@@ -1540,11 +1540,11 @@ function submitForm() {
       payload.diagnosisId = Number(String(new Date().getTime()).slice(-8))
 
       addResultofgr(payload).then(() => {
-        proxy.$modal.msgSuccess("鏂板鎴愬姛")
+        proxy.$modal.msgSuccess("新增成功")
         open.value = false
         getList()
       }).catch(() => {
-        proxy.$modal.msgSuccess("婕旂ず鏁版嵁鏂板瀹屾垚")
+        proxy.$modal.msgSuccess("演示数据新增完成")
         open.value = false
         getList()
       })
@@ -1577,13 +1577,13 @@ function buildSubmitPayload(row) {
 function handleDelete(row) {
   const diagnosisIds = row.diagnosisId || ids.value
 
-  proxy.$modal.confirm('鏄惁纭鍒犻櫎璇婃柇缁撴灉缂栧彿涓?"' + diagnosisIds + '" 鐨勬暟鎹」锛?).then(() => {
+  proxy.$modal.confirm('是否确认删除诊断结果编号为 "' + diagnosisIds + '" 的数据项？').then(() => {
     return delResultofgr(diagnosisIds)
   }).then(() => {
     getList()
-    proxy.$modal.msgSuccess("鍒犻櫎鎴愬姛")
+    proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {
-    proxy.$modal.msgSuccess("婕旂ず鏁版嵁鍒犻櫎瀹屾垚")
+    proxy.$modal.msgSuccess("演示数据删除完成")
     getList()
   })
 }
@@ -1600,12 +1600,12 @@ function handleDetail(row) {
   detail.value = {
     ...row,
     visualSummary: [
-      `褰撳墠鏍锋湰ID锛?{row.sampleId}`,
-      `鏁呴殰浣嶇疆锛?{row.faultLocation}`,
-      `鏁呴殰绫诲瀷锛?{row.faultType}`,
-      `璇婃柇缁撴灉缃俊搴︼細${formatPercent(row.confidence)}`,
-      `鍋ュ悍璇勫垎锛?{formatScore(row.healthScore)}`,
-      `鍥捐〃鑱斿姩锛氭贩娣嗙煩闃甸珮浜鏍锋湰鐪熷疄绫诲埆涓庨娴嬬被鍒墍鍦ㄥ崟鍏冩牸锛宼-SNE 鍥鹃珮浜鏍锋湰鐗瑰緛鐐广€俙
+      `当前样本ID：${row.sampleId}`,
+      `故障位置：${row.faultLocation}`,
+      `故障类型：${row.faultType}`,
+      `诊断结果置信度：${formatPercent(row.confidence)}`,
+      `健康评分：${formatScore(row.healthScore)}`,
+      `图表联动：混淆矩阵高亮该样本真实类别与预测类别所在单元格，t-SNE 图高亮该样本特征点。`
     ].join("\n")
   }
 
@@ -1620,17 +1620,17 @@ async function handleRunDiagnosis() {
   const inputRows = selectedFusionRows.value || []
 
   if (!pipelineId.value) {
-    proxy.$modal.msgWarning("鏈壘鍒板綋鍓嶆祦绋婭D锛岃鍏堜粠鏁版嵁鏂囦欢绠＄悊妯″潡寮€濮嬫祦绋?)
+    proxy.$modal.msgWarning("未找到当前流程ID，请先从数据文件管理模块开始流程")
     return
   }
 
   if (!upstreamFusionResults.value.length) {
-    proxy.$modal.msgWarning("鏈壘鍒拌瀺鍚堢壒寰侊紝璇峰厛鎵ц鐗瑰緛铻嶅悎")
+    proxy.$modal.msgWarning("未找到融合特征，请先执行特征融合")
     return
   }
 
   if (!inputRows.length) {
-    proxy.$modal.msgWarning("璇峰厛鍦ㄤ笂鏂硅瀺鍚堢壒寰佽緭鍏ユ牱鏈垪琛ㄤ腑鍕鹃€夐渶瑕佽瘖鏂殑鏍锋湰")
+    proxy.$modal.msgWarning("请先在上方融合特征输入样本列表中勾选需要诊断的样本")
     return
   }
 
@@ -1662,13 +1662,13 @@ async function handleRunDiagnosis() {
       initCharts()
     })
 
-    proxy.$modal.msgSuccess("鏁呴殰璇婃柇鎵ц瀹屾垚锛岀湡瀹炲悗绔畻娉曠粨鏋滃凡鍐欏叆鏁版嵁搴擄紝鍙偣鍑烩€滆繘鍏ユ牴鍥犲垎鏋愨€濈户缁笅涓€姝?)
+    proxy.$modal.msgSuccess("故障诊断执行完成，真实后端算法结果已写入数据库，可点击“进入根因分析”继续下一步")
 
-    // 鍚屾鍒锋柊涓€娆″悗绔垪琛紝纭繚鏁版嵁搴撲腑鐨勬柊澧炶褰曞彲浠ュ湪缁撴灉琛ㄤ腑鐪嬪埌
+    // 同步刷新一次后端列表，确保数据库中的新增记录可以在结果表中看到
     getList()
   } catch (error) {
-    console.error("鏁呴殰璇婃柇鎵ц澶辫触锛?, error)
-    proxy.$modal.msgError(error?.msg || error?.message || "鏁呴殰璇婃柇鎵ц澶辫触锛岃妫€鏌ュ悗绔湇鍔″拰 CWRU 鏂囦欢璺緞")
+    console.error("故障诊断执行失败：", error)
+    proxy.$modal.msgError(error?.msg || error?.message || "故障诊断执行失败，请检查后端服务和 CWRU 文件路径")
   } finally {
     executeLoading.value = false
   }
@@ -1708,24 +1708,24 @@ function normalizeBackendDiagnosisResult(response, sourceRow, index) {
     fusionCode: sourceRow.fusionCode || result.fusionCode,
     modelName: result.modelName || "WDCNN-DE-FE",
     faultLocation: result.faultLocation || "-",
-    faultType: result.faultType || "鏈煡鏁呴殰",
-    trueFaultType: result.trueFaultType || result.faultType || "鏈煡鏁呴殰",
+    faultType: result.faultType || "未知故障",
+    trueFaultType: result.trueFaultType || result.faultType || "未知故障",
     confidence: result.confidence ?? result.diagnosisConfidence ?? 0,
     healthScore: result.healthScore ?? 0,
     alarmLevel: result.alarmLevel,
     diagnosisTime: result.diagnosisTime || formatDateTime(new Date()),
-    rootStatus: result.rootStatus || "寰呮牴鍥犲垎鏋?,
+    rootStatus: result.rootStatus || "待根因分析",
     remark: result.remark
   }
 }
 
 function handleGoRootCause() {
   if (!pipelineId.value) {
-    proxy.$modal.msgWarning("鏈壘鍒板綋鍓嶆祦绋婭D锛岃鍏堝畬鎴愭晠闅滆瘖鏂?)
+    proxy.$modal.msgWarning("未找到当前流程ID，请先完成故障诊断")
     return
   }
 
-  goTopic4PageByTitle("鏍瑰洜鍒嗘瀽", {
+  goTopic4PageByTitle("根因分析", {
     pipelineId: pipelineId.value
   })
 }
@@ -1733,26 +1733,26 @@ function handleGoRootCause() {
 function buildDiagnosisBySample(sampleId, index) {
   const configs = [
     {
-      faultLocation: "鏃?,
-      faultType: "姝ｅ父",
+      faultLocation: "无",
+      faultType: "正常",
       confidence: 0.96,
       healthScore: 96
     },
     {
-      faultLocation: "杞存壙鍐呭湀",
-      faultType: "鍐呭湀鏁呴殰",
+      faultLocation: "轴承内圈",
+      faultType: "内圈故障",
       confidence: 0.91,
       healthScore: 72
     },
     {
-      faultLocation: "杞存壙婊氬姩浣?,
-      faultType: "婊氬姩浣撴晠闅?,
+      faultLocation: "轴承滚动体",
+      faultType: "滚动体故障",
       confidence: 0.88,
       healthScore: 66
     },
     {
-      faultLocation: "杞存壙澶栧湀",
-      faultType: "澶栧湀鏁呴殰",
+      faultLocation: "轴承外圈",
+      faultType: "外圈故障",
       confidence: 0.86,
       healthScore: 69
     }
@@ -1763,29 +1763,29 @@ function buildDiagnosisBySample(sampleId, index) {
 
 function normalizeFaultType(value) {
   if (!value) {
-    return "姝ｅ父"
+    return "正常"
   }
 
   const text = String(value)
 
-  if (text.includes("姝ｅ父")) {
-    return "姝ｅ父"
+  if (text.includes("正常")) {
+    return "正常"
   }
 
-  if (text.includes("鍐呭湀")) {
-    return "鍐呭湀鏁呴殰"
+  if (text.includes("内圈")) {
+    return "内圈故障"
   }
 
-  if (text.includes("澶栧湀")) {
-    return "澶栧湀鏁呴殰"
+  if (text.includes("外圈")) {
+    return "外圈故障"
   }
 
-  if (text.includes("婊氬姩浣?)) {
-    return "婊氬姩浣撴晠闅?
+  if (text.includes("滚动体")) {
+    return "滚动体故障"
   }
 
-  if (text.includes("澶嶅悎")) {
-    return "澶嶅悎鏁呴殰"
+  if (text.includes("复合")) {
+    return "复合故障"
   }
 
   return text
@@ -1798,23 +1798,23 @@ function normalizeFaultLocation(value, faultType) {
 
   const normalizedFaultType = normalizeFaultType(faultType)
 
-  if (normalizedFaultType === "姝ｅ父") {
-    return "鏃?
+  if (normalizedFaultType === "正常") {
+    return "无"
   }
 
-  if (normalizedFaultType === "鍐呭湀鏁呴殰") {
-    return "杞存壙鍐呭湀"
+  if (normalizedFaultType === "内圈故障") {
+    return "轴承内圈"
   }
 
-  if (normalizedFaultType === "澶栧湀鏁呴殰") {
-    return "杞存壙澶栧湀"
+  if (normalizedFaultType === "外圈故障") {
+    return "轴承外圈"
   }
 
-  if (normalizedFaultType === "婊氬姩浣撴晠闅?) {
-    return "杞存壙婊氬姩浣?
+  if (normalizedFaultType === "滚动体故障") {
+    return "轴承滚动体"
   }
 
-  return "杞存壙绯荤粺"
+  return "轴承系统"
 }
 
 function normalizeProbability(value) {
@@ -1886,11 +1886,11 @@ function buildTsnePoint(row, demo, sampleId, faultType) {
   }
 
   const centerMap = {
-    "姝ｅ父": [-36, 20],
-    "鍐呭湀鏁呴殰": [16, 32],
-    "澶栧湀鏁呴殰": [-8, -36],
-    "婊氬姩浣撴晠闅?: [44, -10],
-    "澶嶅悎鏁呴殰": [-36, -20]
+    "正常": [-36, 20],
+    "内圈故障": [16, 32],
+    "外圈故障": [-8, -36],
+    "滚动体故障": [44, -10],
+    "复合故障": [-36, -20]
   }
 
   const center = centerMap[normalizeFaultType(faultType)] || [0, 0]
@@ -1903,15 +1903,15 @@ function buildTsnePoint(row, demo, sampleId, faultType) {
 }
 
 function faultTagType(value) {
-  if (value === "姝ｅ父") {
+  if (value === "正常") {
     return "success"
   }
 
-  if (value === "鍐呭湀鏁呴殰" || value === "澶栧湀鏁呴殰" || value === "婊氬姩浣撴晠闅?) {
+  if (value === "内圈故障" || value === "外圈故障" || value === "滚动体故障") {
     return "warning"
   }
 
-  if (value === "澶嶅悎鏁呴殰") {
+  if (value === "复合故障") {
     return "danger"
   }
 
@@ -1919,11 +1919,11 @@ function faultTagType(value) {
 }
 
 function faultLocationTagType(value) {
-  if (value === "鏃?) {
+  if (value === "无") {
     return "success"
   }
 
-  if (value === "杞存壙鍐呭湀" || value === "杞存壙澶栧湀" || value === "杞存壙婊氬姩浣?) {
+  if (value === "轴承内圈" || value === "轴承外圈" || value === "轴承滚动体") {
     return "warning"
   }
 

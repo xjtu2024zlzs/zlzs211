@@ -1,62 +1,62 @@
 ﻿<template>
   <div class="project4-page">
-    <!-- 椤甸潰鏍囬鍗＄墖 -->
+    <!-- 页面标题卡片 -->
     <section class="module-hero">
       <div>
-        <div class="module-eyebrow">璇鹃鍥?路 鑸┖瑁呭璐ㄩ噺杩芥函</div>
-        <h2>鏍锋湰澧炲己缁撴灉</h2>
+        <div class="module-eyebrow">课题四 · 航空装备质量追溯</div>
+        <h2>样本增强结果</h2>
         <p>
-          灞曠ず鍩轰簬鍚庣 Python 澧炲己绠楁硶鐢熸垚鐨勬牱鏈寮鸿褰曪紝鐢ㄤ簬鏀拺灏忔牱鏈晠闅滆瘖鏂€佺被鍒潎琛″鐞嗕笌鍚庣画鐗瑰緛铻嶅悎銆?
-          涓婃柟鏇茬嚎鍥句笌涓嬫柟琛ㄦ牸涓€涓€瀵瑰簲锛屽睍绀哄綋鍓嶅寮烘牱鏈笌鍘熷鏍锋湰鐨勯璋卞姣旀儏鍐点€?
+          展示基于后端 Python 增强算法生成的样本增强记录，用于支撑小样本故障诊断、类别均衡处理与后续特征融合。
+          上方曲线图与下方表格一一对应，展示当前增强样本与原始样本的频谱对比情况。
         </p>
       </div>
 
       <div class="module-status">
-        <span>澧炲己缁撴灉宸叉帴鍏?/span>
-        <span>Java 鈫?Python 鈫?鏁版嵁搴?/span>
+        <span>增强结果已接入</span>
+        <span>Java → Python → 数据库</span>
       </div>
     </section>
 
-    <!-- 鎸囨爣鍗＄墖 -->
+    <!-- 指标卡片 -->
     <section class="metric-strip">
       <div class="metric-mini">
-        <span>澧炲己璁板綍鎬绘暟</span>
+        <span>增强记录总数</span>
         <strong>{{ total }}</strong>
         <em>fd_augment_result</em>
       </div>
 
       <div class="metric-mini">
-        <span>褰撳墠椤垫湁鏁堣褰?/span>
+        <span>当前页有效记录</span>
         <strong>{{ validCount }}</strong>
-        <em>validity = 鏈夋晥</em>
+        <em>validity = 有效</em>
       </div>
 
       <div class="metric-mini">
-        <span>褰撳墠椤电敓鎴愭牱鏈?/span>
+        <span>当前页生成样本</span>
         <strong>{{ generatedTotal }}</strong>
-        <em>generatedCount 姹囨€?/em>
+        <em>generatedCount 汇总</em>
       </div>
 
       <div class="metric-mini">
-        <span>澧炲己绠楁硶鏁伴噺</span>
+        <span>增强算法数量</span>
         <strong>{{ algorithmCount }}</strong>
         <em>random / noise / scale / flip / shift / mask</em>
       </div>
     </section>
 
-    <!-- 澧炲己杈撳叆閰嶇疆 -->
+    <!-- 增强输入配置 -->
     <section class="augment-input-card">
       <div class="card-header augment-input-header">
         <div>
-          <div class="module-eyebrow">澧炲己杈撳叆</div>
-          <h3>棰勫鐞嗘牱鏈€夋嫨涓庡寮哄弬鏁伴厤缃?/h3>
+          <div class="module-eyebrow">增强输入</div>
+          <h3>预处理样本选择与增强参数配置</h3>
           <p class="section-desc">
-            浠庢暟鎹枃浠剁鐞嗘ā鍧楁帴鍏ラ澶勭悊鍚庣殑鏍锋湰绐楀彛锛屽嬀閫夐渶瑕佸寮虹殑鏍锋湰锛岄€夋嫨澧炲己绠楁硶鍜屽寮哄€嶆暟鍚庢墽琛屾牱鏈寮恒€?
+            从数据文件管理模块接入预处理后的样本窗口，勾选需要增强的样本，选择增强算法和增强倍数后执行样本增强。
           </p>
         </div>
 
         <el-tag type="primary" effect="plain">
-          褰撳墠娴佺▼锛歿{ pipelineId || "鏈帴鍏? }}
+          当前流程：{{ pipelineId || "未接入" }}
         </el-tag>
       </div>
 
@@ -64,10 +64,10 @@
         <div class="augment-sample-panel">
           <div class="panel-title-row">
             <div>
-              <div class="panel-title">鏉ヨ嚜鏁版嵁鏂囦欢绠＄悊鐨勯澶勭悊鏍锋湰</div>
-              <p class="panel-desc">鍕鹃€夊悗浣滀负鏍锋湰澧炲己杈撳叆锛屽寮虹粨鏋滀細杩涘叆涓嬫柟缁撴灉璁板綍鍜岄璋辨洸绾垮浘銆?/p>
+              <div class="panel-title">来自数据文件管理的预处理样本</div>
+              <p class="panel-desc">勾选后作为样本增强输入，增强结果会进入下方结果记录和频谱曲线图。</p>
             </div>
-            <el-tag type="success" effect="plain">宸查€?{{ selectedInputSamples.length }} 鏉?/el-tag>
+            <el-tag type="success" effect="plain">已选 {{ selectedInputSamples.length }} 条</el-tag>
           </div>
 
           <el-table
@@ -76,41 +76,41 @@
               border
               stripe
               max-height="300"
-              empty-text="璇峰厛鍦ㄦ暟鎹枃浠剁鐞嗘ā鍧楁墽琛屾暟鎹澶勭悊"
+              empty-text="请先在数据文件管理模块执行数据预处理"
               @selection-change="handleInputSampleSelection"
           >
             <el-table-column type="selection" width="50" align="center" />
-            <el-table-column label="鏍锋湰ID" prop="sampleId" align="center" width="90" />
-            <el-table-column label="鏍锋湰缂栧彿" prop="sampleCode" align="center" width="150" show-overflow-tooltip />
-            <el-table-column label="鏉ユ簮鏂囦欢" prop="sourceFileName" align="center" min-width="190" show-overflow-tooltip />
-            <el-table-column label="鏃堕棿绐? prop="windowSize" align="center" width="90" />
-            <el-table-column label="姝ラ暱" prop="stride" align="center" width="80" />
-            <el-table-column label="閲嶅彔鐜? prop="overlapRate" align="center" width="90">
+            <el-table-column label="样本ID" prop="sampleId" align="center" width="90" />
+            <el-table-column label="样本编号" prop="sampleCode" align="center" width="150" show-overflow-tooltip />
+            <el-table-column label="来源文件" prop="sourceFileName" align="center" min-width="190" show-overflow-tooltip />
+            <el-table-column label="时间窗" prop="windowSize" align="center" width="90" />
+            <el-table-column label="步长" prop="stride" align="center" width="80" />
+            <el-table-column label="重叠率" prop="overlapRate" align="center" width="90">
               <template #default="scope">{{ scope.row.overlapRate }}%</template>
             </el-table-column>
           </el-table>
         </div>
 
         <div class="augment-setting-panel">
-          <div class="panel-title">澧炲己鍙傛暟璁剧疆</div>
+          <div class="panel-title">增强参数设置</div>
 
           <el-form :model="augmentConfig" label-width="100px">
-            <el-form-item label="澧炲己绠楁硶">
+            <el-form-item label="增强算法">
               <el-select
                   v-model="augmentConfig.algorithmName"
-                  placeholder="璇烽€夋嫨澧炲己绠楁硶"
+                  placeholder="请选择增强算法"
                   style="width: 100%"
               >
-                <el-option label="闅忔満缁勫悎澧炲己" value="random" />
-                <el-option label="鍣０澧炲己" value="noise" />
-                <el-option label="骞呭€肩缉鏀? value="scale" />
-                <el-option label="鏃跺煙缈昏浆" value="flip" />
-                <el-option label="寰幆骞崇Щ" value="shift" />
-                <el-option label="闅忔満鎺╄啘" value="mask" />
+                <el-option label="随机组合增强" value="random" />
+                <el-option label="噪声增强" value="noise" />
+                <el-option label="幅值缩放" value="scale" />
+                <el-option label="时域翻转" value="flip" />
+                <el-option label="循环平移" value="shift" />
+                <el-option label="随机掩膜" value="mask" />
               </el-select>
             </el-form-item>
 
-            <el-form-item label="澧炲己鍊嶆暟">
+            <el-form-item label="增强倍数">
               <el-input-number
                   v-model="augmentConfig.multiplier"
                   :min="1"
@@ -122,16 +122,16 @@
 
             <div class="augment-summary-box">
               <div class="summary-line">
-                <span>杈撳叆鏍锋湰</span>
-                <strong>{{ selectedInputSamples.length }} 鏉?/strong>
+                <span>输入样本</span>
+                <strong>{{ selectedInputSamples.length }} 条</strong>
               </div>
               <div class="summary-line">
-                <span>棰勮鐢熸垚鏍锋湰</span>
-                <strong>{{ estimatedGeneratedSamples }} 鏉?/strong>
+                <span>预计生成样本</span>
+                <strong>{{ estimatedGeneratedSamples }} 条</strong>
               </div>
               <div class="summary-line">
-                <span>璐ㄩ噺绛栫暐</span>
-                <strong>绫诲埆鍧囪　涓庤川閲忎竴鑷存€ф鏌?/strong>
+                <span>质量策略</span>
+                <strong>类别均衡与质量一致性检查</strong>
               </div>
             </div>
 
@@ -142,34 +142,34 @@
                 :loading="executeLoading"
                 @click="handleRunAugment"
             >
-              鎵ц鏍锋湰澧炲己
+              执行样本增强
             </el-button>
           </el-form>
         </div>
       </div>
     </section>
 
-    <!-- 鐐瑰嚮鎵ц鍚庢墠鏄剧ず缁撴灉涓庡彲瑙嗗寲 -->
+    <!-- 点击执行后才显示结果与可视化 -->
     <section v-if="!showAugmentOutputs" class="result-placeholder-card">
-      <div class="placeholder-icon">鈻?/div>
+      <div class="placeholder-icon">▶</div>
       <div>
-        <h3>澧炲己缁撴灉涓庡彲瑙嗗寲寰呯敓鎴?/h3>
-        <p>璇峰厛鍦ㄤ笂鏂归€夋嫨棰勫鐞嗘牱鏈苟鐐瑰嚮鈥滄墽琛屾牱鏈寮衡€濓紝鎵ц瀹屾垚鍚庣郴缁熸墠浼氭樉绀洪璋卞姣旀洸绾垮拰鏍锋湰澧炲己缁撴灉璁板綍銆?/p>
+        <h3>增强结果与可视化待生成</h3>
+        <p>请先在上方选择预处理样本并点击“执行样本增强”，执行完成后系统才会显示频谱对比曲线和样本增强结果记录。</p>
       </div>
     </section>
 
-    <!-- 鏇茬嚎鍥?-->
+    <!-- 曲线图 -->
     <section v-if="showAugmentOutputs" class="chart-card">
       <div class="chart-header">
         <div>
-          <div class="module-eyebrow">鍥惧舰鍒嗘瀽</div>
-          <h3>澧炲己鏍锋湰棰戣氨瀵规瘮鏇茬嚎</h3>
+          <div class="module-eyebrow">图形分析</div>
+          <h3>增强样本频谱对比曲线</h3>
         </div>
 
         <div class="chart-actions">
           <el-select
               v-model="selectedAugmentId"
-              placeholder="璇烽€夋嫨澧炲己鏍锋湰"
+              placeholder="请选择增强样本"
               clearable
               style="width: 240px"
               @change="handleChartSampleChange"
@@ -183,7 +183,7 @@
           </el-select>
 
           <el-button link type="primary" icon="Refresh" @click="refreshChartData">
-            鍒锋柊
+            刷新
           </el-button>
         </div>
       </div>
@@ -191,20 +191,20 @@
       <div ref="spectrumChartRef" class="spectrum-chart"></div>
 
       <div class="chart-note">
-        <span>鏇茬嚎鍥惧睍绀哄綋鍓嶅寮烘牱鏈笌鍘熷鏍锋湰鐨勯璋卞姣斿叧绯?/span>
-        <span><i class="chart-dot real"></i>钃濈嚎涓哄師濮嬫牱鏈紙Real锛?/span>
-        <span><i class="chart-dot generated"></i>姗欑嚎涓哄寮烘牱鏈紙Generated锛?/span>
-        <span>鐐瑰嚮涓嬫柟琛ㄦ牸浠讳竴琛屽彲鍚屾鍒囨崲鍒板搴斿寮烘牱鏈?/span>
+        <span>曲线图展示当前增强样本与原始样本的频谱对比关系</span>
+        <span><i class="chart-dot real"></i>蓝线为原始样本（Real）</span>
+        <span><i class="chart-dot generated"></i>橙线为增强样本（Generated）</span>
+        <span>点击下方表格任一行可同步切换到对应增强样本</span>
       </div>
     </section>
 
-    <!-- 鏁版嵁琛ㄦ牸 -->
+    <!-- 数据表格 -->
     <section v-if="showAugmentOutputs" class="table-card">
       <div class="card-header table-card-header">
         <div>
-          <div class="module-eyebrow">鏁版嵁鍒楄〃</div>
-          <h3>鏍锋湰澧炲己缁撴灉璁板綍</h3>
-          <p class="section-desc">绛涢€夋潯浠跺凡鍚堝苟鍒扮粨鏋滆褰曟ā鍧楀唴锛屽弬鏁?JSON 涓庤緭鍑鸿矾寰勭粺涓€鏀惧叆璇︽儏鏌ョ湅锛岄伩鍏嶅崰鐢ㄨ〃鏍间富鍖哄煙銆?/p>
+          <div class="module-eyebrow">数据列表</div>
+          <h3>样本增强结果记录</h3>
+          <p class="section-desc">筛选条件已合并到结果记录模块内，参数 JSON 与输出路径统一放入详情查看，避免占用表格主区域。</p>
         </div>
 
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" />
@@ -217,30 +217,30 @@
             :inline="true"
             label-width="92px"
         >
-          <el-form-item label="澧炲己缂栧彿" prop="augmentCode">
+          <el-form-item label="增强编号" prop="augmentCode">
             <el-input
                 v-model="queryParams.augmentCode"
-                placeholder="璇疯緭鍏ュ寮虹紪鍙?
+                placeholder="请输入增强编号"
                 clearable
                 style="width: 180px"
                 @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="鍘熷鏍锋湰" prop="rawSampleCode">
+          <el-form-item label="原始样本" prop="rawSampleCode">
             <el-input
                 v-model="queryParams.rawSampleCode"
-                placeholder="璇疯緭鍏ュ師濮嬫牱鏈紪鍙?
+                placeholder="请输入原始样本编号"
                 clearable
                 style="width: 190px"
                 @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="澧炲己绠楁硶" prop="algorithmName">
+          <el-form-item label="增强算法" prop="algorithmName">
             <el-select
                 v-model="queryParams.algorithmName"
-                placeholder="璇烽€夋嫨澧炲己绠楁硶"
+                placeholder="请选择增强算法"
                 clearable
                 style="width: 170px"
             >
@@ -249,36 +249,36 @@
               <el-option label="GAN" value="GAN" />
               <el-option label="VAE" value="VAE" />
               <el-option label="Diffusion" value="Diffusion" />
-              <el-option label="鏃跺煙鎻掑€? value="鏃跺煙鎻掑€? />
+              <el-option label="时域插值" value="时域插值" />
             </el-select>
           </el-form-item>
 
-          <el-form-item label="鏈夋晥鎬? prop="validity">
+          <el-form-item label="有效性" prop="validity">
             <el-select
                 v-model="queryParams.validity"
-                placeholder="璇烽€夋嫨鏈夋晥鎬?
+                placeholder="请选择有效性"
                 clearable
                 style="width: 150px"
             >
-              <el-option label="鏈夋晥" value="鏈夋晥" />
-              <el-option label="鏃犳晥" value="鏃犳晥" />
-              <el-option label="寰呴獙璇? value="寰呴獙璇? />
+              <el-option label="有效" value="有效" />
+              <el-option label="无效" value="无效" />
+              <el-option label="待验证" value="待验证" />
             </el-select>
           </el-form-item>
 
-          <el-form-item label="鐢熸垚鏃堕棿" prop="generateTime">
+          <el-form-item label="生成时间" prop="generateTime">
             <el-date-picker
                 v-model="queryParams.generateTime"
                 type="date"
                 value-format="YYYY-MM-DD"
-                placeholder="璇烽€夋嫨鐢熸垚鏃堕棿"
+                placeholder="请选择生成时间"
                 style="width: 180px"
             />
           </el-form-item>
 
           <el-form-item class="filter-actions">
-            <el-button type="primary" icon="Search" @click="handleQuery">鎼滅储</el-button>
-            <el-button icon="Refresh" @click="resetQuery">閲嶇疆</el-button>
+            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -292,7 +292,7 @@
               @click="handleAdd"
               v-hasPermi="['system:resultofen:add']"
           >
-            鏂板
+            新增
           </el-button>
         </el-col>
 
@@ -305,7 +305,7 @@
               @click="handleUpdate"
               v-hasPermi="['system:resultofen:edit']"
           >
-            淇敼
+            修改
           </el-button>
         </el-col>
 
@@ -318,7 +318,7 @@
               @click="handleDelete"
               v-hasPermi="['system:resultofen:remove']"
           >
-            鍒犻櫎
+            删除
           </el-button>
         </el-col>
 
@@ -330,7 +330,7 @@
               @click="handleExport"
               v-hasPermi="['system:resultofen:export']"
           >
-            瀵煎嚭
+            导出
           </el-button>
         </el-col>
 
@@ -342,7 +342,7 @@
               :disabled="!canGoFusion"
               @click="handleGoFusion"
           >
-            杩涘叆鐗瑰緛铻嶅悎
+            进入特征融合
           </el-button>
         </el-col>
       </el-row>
@@ -359,10 +359,10 @@
       >
         <el-table-column type="selection" width="55" align="center" />
 
-        <el-table-column label="澧炲己缂栧彿" align="center" prop="augmentCode" width="150" show-overflow-tooltip />
-        <el-table-column label="鍘熷鏍锋湰缂栧彿" align="center" prop="rawSampleCode" min-width="170" show-overflow-tooltip />
+        <el-table-column label="增强编号" align="center" prop="augmentCode" width="150" show-overflow-tooltip />
+        <el-table-column label="原始样本编号" align="center" prop="rawSampleCode" min-width="170" show-overflow-tooltip />
 
-        <el-table-column label="澧炲己绠楁硶" align="center" prop="algorithmName" width="130">
+        <el-table-column label="增强算法" align="center" prop="algorithmName" width="130">
           <template #default="scope">
             <el-tag type="primary" effect="plain">
               {{ scope.row.algorithmName || "-" }}
@@ -370,11 +370,11 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="澧炲己鍊嶆暟" align="center" prop="multiplier" width="100" />
-        <el-table-column label="鐢熸垚鏁伴噺" align="center" prop="generatedCount" width="110" />
-        <el-table-column label="璐ㄩ噺绛栫暐" align="center" prop="qualityPolicy" min-width="210" show-overflow-tooltip />
+        <el-table-column label="增强倍数" align="center" prop="multiplier" width="100" />
+        <el-table-column label="生成数量" align="center" prop="generatedCount" width="110" />
+        <el-table-column label="质量策略" align="center" prop="qualityPolicy" min-width="210" show-overflow-tooltip />
 
-        <el-table-column label="鏈夋晥鎬? align="center" prop="validity" width="100">
+        <el-table-column label="有效性" align="center" prop="validity" width="100">
           <template #default="scope">
             <el-tag :type="validityTagType(scope.row.validity)" effect="plain">
               {{ scope.row.validity || "-" }}
@@ -382,9 +382,9 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="鐢熸垚鏃堕棿" align="center" prop="generateTime" width="170" />
+        <el-table-column label="生成时间" align="center" prop="generateTime" width="170" />
 
-        <el-table-column label="鎿嶄綔" align="center" width="150" fixed="right">
+        <el-table-column label="操作" align="center" width="150" fixed="right">
           <template #default="scope">
             <el-button
                 link
@@ -392,7 +392,7 @@
                 icon="View"
                 @click.stop="handleDetail(scope.row)"
             >
-              璇︽儏
+              详情
             </el-button>
 
             <el-dropdown
@@ -400,20 +400,20 @@
                 @click.stop
                 @command="command => handleRowCommand(command, scope.row)"
             >
-              <el-button link type="primary" @click.stop>鏇村</el-button>
+              <el-button link type="primary" @click.stop>更多</el-button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item
                       command="update"
                       v-hasPermi="['system:resultofen:edit']"
                   >
-                    淇敼
+                    修改
                   </el-dropdown-item>
                   <el-dropdown-item
                       command="delete"
                       v-hasPermi="['system:resultofen:remove']"
                   >
-                    鍒犻櫎
+                    删除
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -432,123 +432,123 @@
       />
     </section>
 
-    <!-- 鏂板 / 淇敼寮圭獥 -->
+    <!-- 新增 / 修改弹窗 -->
     <el-dialog :title="title" v-model="open" width="820px" append-to-body>
       <el-form ref="resultofenRef" :model="form" :rules="rules" label-width="130px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="澧炲己缂栧彿" prop="augmentCode">
-              <el-input v-model="form.augmentCode" placeholder="璇疯緭鍏ュ寮虹紪鍙? />
+            <el-form-item label="增强编号" prop="augmentCode">
+              <el-input v-model="form.augmentCode" placeholder="请输入增强编号" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鍘熷鏍锋湰ID" prop="rawSampleId">
+            <el-form-item label="原始样本ID" prop="rawSampleId">
               <el-input-number
                   v-model="form.rawSampleId"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ュ師濮嬫牱鏈琁D"
+                  placeholder="请输入原始样本ID"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鍘熷鏍锋湰缂栧彿" prop="rawSampleCode">
-              <el-input v-model="form.rawSampleCode" placeholder="璇疯緭鍏ュ師濮嬫牱鏈紪鍙? />
+            <el-form-item label="原始样本编号" prop="rawSampleCode">
+              <el-input v-model="form.rawSampleCode" placeholder="请输入原始样本编号" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="澧炲己绠楁硶" prop="algorithmName">
-              <el-select v-model="form.algorithmName" placeholder="璇烽€夋嫨澧炲己绠楁硶" style="width: 100%">
-                <el-option label="闅忔満缁勫悎澧炲己" value="random" />
-                <el-option label="鍣０澧炲己" value="noise" />
-                <el-option label="骞呭€肩缉鏀? value="scale" />
-                <el-option label="鏃跺煙缈昏浆" value="flip" />
-                <el-option label="寰幆骞崇Щ" value="shift" />
-                <el-option label="闅忔満鎺╄啘" value="mask" />
+            <el-form-item label="增强算法" prop="algorithmName">
+              <el-select v-model="form.algorithmName" placeholder="请选择增强算法" style="width: 100%">
+                <el-option label="随机组合增强" value="random" />
+                <el-option label="噪声增强" value="noise" />
+                <el-option label="幅值缩放" value="scale" />
+                <el-option label="时域翻转" value="flip" />
+                <el-option label="循环平移" value="shift" />
+                <el-option label="随机掩膜" value="mask" />
               </el-select>
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="澧炲己鍊嶆暟" prop="multiplier">
+            <el-form-item label="增强倍数" prop="multiplier">
               <el-input-number
                   v-model="form.multiplier"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ュ寮哄€嶆暟"
+                  placeholder="请输入增强倍数"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鐢熸垚鏍锋湰鏁伴噺" prop="generatedCount">
+            <el-form-item label="生成样本数量" prop="generatedCount">
               <el-input-number
                   v-model="form.generatedCount"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ョ敓鎴愭牱鏈暟閲?
+                  placeholder="请输入生成样本数量"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="璐ㄩ噺妫€楠岀瓥鐣? prop="qualityPolicy">
-              <el-input v-model="form.qualityPolicy" placeholder="璇疯緭鍏ヨ川閲忔楠岀瓥鐣? />
+            <el-form-item label="质量检验策略" prop="qualityPolicy">
+              <el-input v-model="form.qualityPolicy" placeholder="请输入质量检验策略" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏈夋晥鎬? prop="validity">
-              <el-select v-model="form.validity" placeholder="璇烽€夋嫨鏈夋晥鎬? style="width: 100%">
-                <el-option label="鏈夋晥" value="鏈夋晥" />
-                <el-option label="鏃犳晥" value="鏃犳晥" />
-                <el-option label="寰呴獙璇? value="寰呴獙璇? />
+            <el-form-item label="有效性" prop="validity">
+              <el-select v-model="form.validity" placeholder="请选择有效性" style="width: 100%">
+                <el-option label="有效" value="有效" />
+                <el-option label="无效" value="无效" />
+                <el-option label="待验证" value="待验证" />
               </el-select>
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鐢熸垚鏃堕棿" prop="generateTime">
+            <el-form-item label="生成时间" prop="generateTime">
               <el-date-picker
                   v-model="form.generateTime"
                   type="datetime"
                   value-format="YYYY-MM-DD HH:mm:ss"
-                  placeholder="璇烽€夋嫨鐢熸垚鏃堕棿"
+                  placeholder="请选择生成时间"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="杈撳嚭璺緞" prop="outputPath">
-              <el-input v-model="form.outputPath" placeholder="璇疯緭鍏ュ寮烘牱鏈瓨鍌ㄨ矾寰? />
+            <el-form-item label="输出路径" prop="outputPath">
+              <el-input v-model="form.outputPath" placeholder="请输入增强样本存储路径" />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="绠楁硶鍙傛暟JSON" prop="paramJson">
+            <el-form-item label="算法参数JSON" prop="paramJson">
               <el-input
                   v-model="form.paramJson"
                   type="textarea"
                   :rows="4"
-                  placeholder="璇疯緭鍏ョ畻娉曞弬鏁癑SON"
+                  placeholder="请输入算法参数JSON"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="缁撴灉鎽樿JSON" prop="resultSummary">
+            <el-form-item label="结果摘要JSON" prop="resultSummary">
               <el-input
                   v-model="form.resultSummary"
                   type="textarea"
                   :rows="4"
-                  placeholder="璇疯緭鍏ョ粨鏋滄憳瑕丣SON"
+                  placeholder="请输入结果摘要JSON"
               />
             </el-form-item>
           </el-col>
@@ -557,38 +557,38 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">纭?瀹?/el-button>
-          <el-button @click="cancel">鍙?娑?/el-button>
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
     </el-dialog>
 
-    <!-- 璇︽儏寮圭獥 -->
-    <el-dialog title="鏍锋湰澧炲己璇︽儏" v-model="detailOpen" width="860px" append-to-body>
+    <!-- 详情弹窗 -->
+    <el-dialog title="样本增强详情" v-model="detailOpen" width="860px" append-to-body>
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="澧炲己ID">{{ detail.augmentId }}</el-descriptions-item>
-        <el-descriptions-item label="澧炲己缂栧彿">{{ detail.augmentCode }}</el-descriptions-item>
-        <el-descriptions-item label="鍘熷鏍锋湰ID">{{ detail.rawSampleId }}</el-descriptions-item>
-        <el-descriptions-item label="鍘熷鏍锋湰缂栧彿">{{ detail.rawSampleCode }}</el-descriptions-item>
-        <el-descriptions-item label="澧炲己绠楁硶">{{ detail.algorithmName }}</el-descriptions-item>
-        <el-descriptions-item label="澧炲己鍊嶆暟">{{ detail.multiplier }}</el-descriptions-item>
-        <el-descriptions-item label="鐢熸垚鏍锋湰鏁伴噺">{{ detail.generatedCount }}</el-descriptions-item>
-        <el-descriptions-item label="鏈夋晥鎬?>{{ detail.validity }}</el-descriptions-item>
-        <el-descriptions-item label="鐢熸垚鏃堕棿">{{ detail.generateTime }}</el-descriptions-item>
-        <el-descriptions-item label="杈撳嚭璺緞">{{ detail.outputPath }}</el-descriptions-item>
+        <el-descriptions-item label="增强ID">{{ detail.augmentId }}</el-descriptions-item>
+        <el-descriptions-item label="增强编号">{{ detail.augmentCode }}</el-descriptions-item>
+        <el-descriptions-item label="原始样本ID">{{ detail.rawSampleId }}</el-descriptions-item>
+        <el-descriptions-item label="原始样本编号">{{ detail.rawSampleCode }}</el-descriptions-item>
+        <el-descriptions-item label="增强算法">{{ detail.algorithmName }}</el-descriptions-item>
+        <el-descriptions-item label="增强倍数">{{ detail.multiplier }}</el-descriptions-item>
+        <el-descriptions-item label="生成样本数量">{{ detail.generatedCount }}</el-descriptions-item>
+        <el-descriptions-item label="有效性">{{ detail.validity }}</el-descriptions-item>
+        <el-descriptions-item label="生成时间">{{ detail.generateTime }}</el-descriptions-item>
+        <el-descriptions-item label="输出路径">{{ detail.outputPath }}</el-descriptions-item>
       </el-descriptions>
 
-      <el-divider content-position="left">璐ㄩ噺妫€楠岀瓥鐣?/el-divider>
+      <el-divider content-position="left">质量检验策略</el-divider>
       <el-input v-model="detail.qualityPolicy" type="textarea" :rows="3" readonly />
 
-      <el-divider content-position="left">绠楁硶鍙傛暟 JSON</el-divider>
+      <el-divider content-position="left">算法参数 JSON</el-divider>
       <el-input v-model="detail.paramJson" type="textarea" :rows="5" readonly />
 
-      <el-divider content-position="left">缁撴灉鎽樿 JSON</el-divider>
+      <el-divider content-position="left">结果摘要 JSON</el-divider>
       <el-input v-model="detail.resultSummary" type="textarea" :rows="5" readonly />
 
       <template #footer>
-        <el-button type="primary" @click="detailOpen = false">鍏抽棴</el-button>
+        <el-button type="primary" @click="detailOpen = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -611,7 +611,7 @@ import {
   getCurrentTopic4PipelineId,
   getTopic4Pipeline,
   updateTopic4Pipeline,
-} from "@/utils/project4/topic4Pipeline"
+} from "@/utils/topic4Pipeline"
 const { proxy } = getCurrentInstance()
 
 const resultofenList = ref([])
@@ -645,19 +645,19 @@ const spectrumChartRef = ref(null)
 let spectrumChartInstance = null
 const spectrumCache = new Map()
 
-// 鏇茬嚎棰滆壊涓庡浘渚嬨€佷笅鏂硅鏄庝繚鎸佷竴鑷达細Real = 钃濊壊锛孏enerated = 姗欒壊
+// 曲线颜色与图例、下方说明保持一致：Real = 蓝色，Generated = 橙色
 const SPECTRUM_COLORS = {
   real: "#2f6fd6",
   generated: "#f59a23"
 }
 
-// 褰撳墠宸插湪鍚庣楠岃瘉閫氳繃鐨?CWRU 娴嬭瘯鏂囦欢璺緞銆?
-// 鍚庣画浠庢暟鎹枃浠剁鐞嗘ā鍧椾紶鍏ョ湡瀹?filePath 鍚庯紝浼氫紭鍏堜娇鐢ㄧ湡瀹炶矾寰勩€?
+// 当前已在后端验证通过的 CWRU 测试文件路径。
+// 后续从数据文件管理模块传入真实 filePath 后，会优先使用真实路径。
 const DEFAULT_CWRU_FILE_PATH = ""
 
 
-// 涓嶅悓鏍锋湰浣跨敤涓嶅悓棰戣氨褰㈢姸锛岄伩鍏嶆瘡涓寮烘牱鏈洸绾跨湅璧锋潵瀹屽叏涓€鏍?
-// low/mid/high/side = [涓績棰戠巼, 骞呭€? 甯﹀]锛沞xtra 鐢ㄤ簬澧炲姞鏍锋湰涓撳睘宄帮紱notch 鐢ㄤ簬鍒堕€犲眬閮ㄥ嚬闄?
+// 不同样本使用不同频谱形状，避免每个增强样本曲线看起来完全一样
+// low/mid/high/side = [中心频率, 幅值, 带宽]；extra 用于增加样本专属峰；notch 用于制造局部凹陷
 const SPECTRUM_SAMPLE_PROFILES = [
   {
     name: "normal-soft",
@@ -785,22 +785,22 @@ const data = reactive({
   },
   rules: {
     augmentCode: [
-      { required: true, message: "澧炲己缂栧彿涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "增强编号不能为空", trigger: "blur" }
     ],
     rawSampleId: [
-      { required: true, message: "鍘熷鏍锋湰ID涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "原始样本ID不能为空", trigger: "blur" }
     ],
     rawSampleCode: [
-      { required: true, message: "鍘熷鏍锋湰缂栧彿涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "原始样本编号不能为空", trigger: "blur" }
     ],
     algorithmName: [
-      { required: true, message: "澧炲己绠楁硶涓嶈兘涓虹┖", trigger: "change" }
+      { required: true, message: "增强算法不能为空", trigger: "change" }
     ],
     multiplier: [
-      { required: true, message: "澧炲己鍊嶆暟涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "增强倍数不能为空", trigger: "blur" }
     ],
     generatedCount: [
-      { required: true, message: "鐢熸垚鏍锋湰鏁伴噺涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "生成样本数量不能为空", trigger: "blur" }
     ]
   }
 })
@@ -808,7 +808,7 @@ const data = reactive({
 const { queryParams, form, rules } = toRefs(data)
 
 const validCount = computed(() => {
-  return resultofenList.value.filter(item => item.validity === "鏈夋晥").length
+  return resultofenList.value.filter(item => item.validity === "有效").length
 })
 
 const generatedTotal = computed(() => {
@@ -871,12 +871,12 @@ const upstreamProcessedSamplesForView = computed(() => {
       sampleFilePath,
       keyNum: Number(item.keyNum || params.keyNum || rawDescInfo.keyNum || inferKeyNumFromPath(filePath) || 108),
       label: Number(labelValue) || 1,
-      faultType: item.faultType || item.labelName || params.faultType || "鏈煡",
+      faultType: item.faultType || item.labelName || params.faultType || "未知",
       windowSize,
       length: windowSize,
       stride,
       overlapRate,
-      denoiseMethod: item.denoiseMethod || "鏈惎鐢?,
+      denoiseMethod: item.denoiseMethod || "未启用",
       normalizeMethod: item.normalizeMethod || item.normalizeType || "z-score",
       datasetId: Number(item.datasetId) || 1,
       pipelineDbId: Number(item.pipelineDbId || item.pipelineId) || 1
@@ -907,7 +907,7 @@ async function getList() {
     await nextTick()
     initSpectrumChart()
   } catch (error) {
-    console.error("鏍锋湰澧炲己缁撴灉鏌ヨ澶辫触锛?, error)
+    console.error("样本增强结果查询失败：", error)
     resultofenList.value = []
     total.value = 0
     chartSampleOptions.value = []
@@ -929,20 +929,20 @@ async function loadPipelineInput() {
 
     if (rows && rows.length > 0) {
       upstreamProcessedSamples.value = rows
-      proxy.$modal.msgSuccess(`宸茶鍙栧悗绔湡瀹為澶勭悊鏍锋湰 ${rows.length} 鏉)
+      proxy.$modal.msgSuccess(`已读取后端真实预处理样本 ${rows.length} 条`)
       return
     }
   } catch (error) {
-    console.error("鐪熷疄棰勫鐞嗘牱鏈鍙栧け璐ワ紝灏濊瘯浣跨敤娴佺▼缂撳瓨鏁版嵁锛?, error)
+    console.error("真实预处理样本读取失败，尝试使用流程缓存数据：", error)
   }
 
   const pipeline = getTopic4Pipeline(pipelineId.value)
   upstreamProcessedSamples.value = pipeline && pipeline.processedSamples ? pipeline.processedSamples : []
 
   if (upstreamProcessedSamples.value.length > 0) {
-    proxy.$modal.msgWarning(`鍚庣鐪熷疄鏍锋湰鎺ュ彛鏈繑鍥炴暟鎹紝宸蹭复鏃朵娇鐢ㄦ祦绋嬬紦瀛樻牱鏈?${upstreamProcessedSamples.value.length} 鏉)
+    proxy.$modal.msgWarning(`后端真实样本接口未返回数据，已临时使用流程缓存样本 ${upstreamProcessedSamples.value.length} 条`)
   } else {
-    proxy.$modal.msgWarning("鏈鍙栧埌棰勫鐞嗘牱鏈紝璇峰厛鍦ㄦ暟鎹枃浠剁鐞嗘ā鍧楁墽琛岀湡瀹炴暟鎹澶勭悊")
+    proxy.$modal.msgWarning("未读取到预处理样本，请先在数据文件管理模块执行真实数据预处理")
   }
 }
 
@@ -976,8 +976,8 @@ function normalizeAugmentRow(row) {
     algorithmName,
     multiplier,
     generatedCount: row.generatedCount || Number(multiplier || 1) * 2,
-    qualityPolicy: row.qualityPolicy || "绫诲埆鍧囪　涓庤川閲忎竴鑷存€ф鏌?,
-    validity: row.validity || row.status || "鏈夋晥",
+    qualityPolicy: row.qualityPolicy || "类别均衡与质量一致性检查",
+    validity: row.validity || row.status || "有效",
     paramJson: row.paramJson || row.qualityMetricJson || formatJsonText({
       method: algorithmName,
       ratio: multiplier,
@@ -985,8 +985,8 @@ function normalizeAugmentRow(row) {
     }),
     resultSummary: row.resultSummary || formatJsonText({
       generatedCount: row.generatedCount || Number(multiplier || 1) * 2,
-      validity: "鏈夋晥",
-      description: `鍩轰簬${rawSampleCode || "鍘熷鏍锋湰"}瀹屾垚${algorithmName}鏍锋湰澧炲己`
+      validity: "有效",
+      description: `基于${rawSampleCode || "原始样本"}完成${algorithmName}样本增强`
     }),
     outputPath: row.outputPath || `/data/augment/${augmentCode}.csv`,
     generateTime: row.generateTime || row.createTime || formatDateTime(new Date())
@@ -995,7 +995,7 @@ function normalizeAugmentRow(row) {
 
 function buildChartSampleOptions() {
   chartSampleOptions.value = resultofenList.value.map(item => ({
-    label: `澧炲己鏍锋湰锛?{item.augmentCode}`,
+    label: `增强样本：${item.augmentCode}`,
     value: item.augmentId
   }))
 
@@ -1036,7 +1036,7 @@ function buildSpectrumData(row) {
     GAN: { amp: 1.22, shift: 72, ripple: 0.42, spike: 1.05, widen: 0.88 },
     Diffusion: { amp: 1.16, shift: 46, ripple: 0.34, spike: 0.88, widen: 1.08 },
     VAE: { amp: 0.96, shift: -28, ripple: 0.18, spike: 0.38, widen: 1.16 },
-    "鏃跺煙鎻掑€?: { amp: 0.98, shift: 12, ripple: 0.12, spike: 0.28, widen: 1.04 }
+    "时域插值": { amp: 0.98, shift: 12, ripple: 0.12, spike: 0.28, widen: 1.04 }
   }
   const algorithmProfile = algorithmFactorMap[row.algorithmName] || algorithmFactorMap.SMOTE
 
@@ -1206,7 +1206,7 @@ function initSpectrumChart() {
   if (!selectedRow.value) {
     spectrumChartInstance.setOption({
       title: {
-        text: "鏆傛棤澧炲己鏍锋湰鏁版嵁",
+        text: "暂无增强样本数据",
         left: "center",
         top: "center",
         textStyle: {
@@ -1356,8 +1356,8 @@ function reset() {
     algorithmName: "random",
     multiplier: 3,
     generatedCount: 6,
-    qualityPolicy: "绫诲埆鍧囪　涓庤川閲忎竴鑷存€ф鏌?,
-    validity: "鏈夋晥",
+    qualityPolicy: "类别均衡与质量一致性检查",
+    validity: "有效",
     paramJson: null,
     resultSummary: null,
     outputPath: null,
@@ -1409,8 +1409,8 @@ function handleAdd() {
   form.value.algorithmName = "random"
   form.value.multiplier = 3
   form.value.generatedCount = 6
-  form.value.qualityPolicy = "绫诲埆鍧囪　涓庤川閲忎竴鑷存€ф鏌?
-  form.value.validity = "鏈夋晥"
+  form.value.qualityPolicy = "类别均衡与质量一致性检查"
+  form.value.validity = "有效"
   form.value.paramJson = formatJsonText({
     method: "random",
     ratio: 3,
@@ -1418,13 +1418,13 @@ function handleAdd() {
   })
   form.value.resultSummary = formatJsonText({
     generatedCount: 6,
-    validity: "鏈夋晥",
-    description: "鍩轰簬鍘熷鏍锋湰瀹屾垚鏍锋湰澧炲己"
+    validity: "有效",
+    description: "基于原始样本完成样本增强"
   })
   form.value.outputPath = "/data/augment/AUG-CWRU-" + codeSuffix + ".csv"
 
   open.value = true
-  title.value = "娣诲姞鏍锋湰澧炲己缁撴灉"
+  title.value = "添加样本增强结果"
 }
 
 function handleUpdate(row) {
@@ -1433,12 +1433,12 @@ function handleUpdate(row) {
   getResultofen(augmentId).then(response => {
     form.value = response.data
     open.value = true
-    title.value = "淇敼鏍锋湰澧炲己缁撴灉"
+    title.value = "修改样本增强结果"
   }).catch(() => {
     if (row && row.augmentId) {
       form.value = { ...row }
       open.value = true
-      title.value = "淇敼鏍锋湰澧炲己缁撴灉"
+      title.value = "修改样本增强结果"
     }
   })
 }
@@ -1451,13 +1451,13 @@ function submitForm() {
 
     if (form.value.augmentId != null) {
       updateResultofen(form.value).then(() => {
-        proxy.$modal.msgSuccess("淇敼鎴愬姛")
+        proxy.$modal.msgSuccess("修改成功")
         open.value = false
         getList()
       })
     } else {
       addResultofen(form.value).then(() => {
-        proxy.$modal.msgSuccess("鏂板鎴愬姛")
+        proxy.$modal.msgSuccess("新增成功")
         open.value = false
         getList()
       })
@@ -1467,11 +1467,11 @@ function submitForm() {
 
 function handleDelete(row) {
   const augmentIds = row.augmentId || ids.value
-  proxy.$modal.confirm('鏄惁纭鍒犻櫎鏍锋湰澧炲己缁撴灉缂栧彿涓?"' + augmentIds + '" 鐨勬暟鎹」锛?).then(() => {
+  proxy.$modal.confirm('是否确认删除样本增强结果编号为 "' + augmentIds + '" 的数据项？').then(() => {
     return delResultofen(augmentIds)
   }).then(() => {
     getList()
-    proxy.$modal.msgSuccess("鍒犻櫎鎴愬姛")
+    proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})
 }
 
@@ -1494,7 +1494,7 @@ async function handleRunAugment() {
   const inputSamples = selectedInputSamples.value || []
 
   if (!inputSamples.length) {
-    proxy.$modal.msgWarning("璇峰厛鍦ㄩ澶勭悊鏍锋湰鍒楄〃涓嬀閫夐渶瑕佸寮虹殑鏍锋湰")
+    proxy.$modal.msgWarning("请先在预处理样本列表中勾选需要增强的样本")
     return
   }
 
@@ -1505,13 +1505,13 @@ async function handleRunAugment() {
       .filter(item => Number.isFinite(item))
 
   if (!sampleIds.length) {
-    proxy.$modal.msgWarning("褰撳墠閫変腑鏍锋湰娌℃湁 sampleId锛岃妫€鏌ラ澶勭悊鏍锋湰鎺ュ彛杩斿洖瀛楁")
+    proxy.$modal.msgWarning("当前选中样本没有 sampleId，请检查预处理样本接口返回字段")
     return
   }
 
   if (sampleIds.length > 30) {
     try {
-      await proxy.$modal.confirm(`褰撳墠閫夋嫨浜?${sampleIds.length} 鏉℃牱鏈紝鎵ц鐪熷疄 Python 澧炲己浼氭瘮杈冩參锛屾槸鍚︾户缁紵`)
+      await proxy.$modal.confirm(`当前选择了 ${sampleIds.length} 条样本，执行真实 Python 增强会比较慢，是否继续？`)
     } catch (e) {
       return
     }
@@ -1524,7 +1524,7 @@ async function handleRunAugment() {
     augAlgorithm: augmentConfig.algorithmName,
     augMultiple: Number(augmentConfig.multiplier || 3),
 
-    // 鍏煎鏃у瓧娈碉紝鍚庣鍙敤鍏朵腑涓€缁勪篃娌″叧绯?
+    // 兼容旧字段，后端只用其中一组也没关系
     algorithmName: augmentConfig.algorithmName,
     augmentRatio: Number(augmentConfig.multiplier || 3),
     length: 1024
@@ -1536,7 +1536,7 @@ async function handleRunAugment() {
     const response = await runAugment(payload)
     const data = response && response.data ? response.data : {}
 
-    proxy.$modal.msgSuccess(response.msg || `鏍锋湰澧炲己瀹屾垚锛氭垚鍔?${data.successCount || sampleIds.length} 鏉)
+    proxy.$modal.msgSuccess(response.msg || `样本增强完成：成功 ${data.successCount || sampleIds.length} 条`)
 
     showAugmentOutputs.value = true
     canGoFusion.value = true
@@ -1549,12 +1549,12 @@ async function handleRunAugment() {
       augmentRunTime: formatDateTime(new Date())
     })
 
-    // 鐪熷疄澧炲己缁撴灉宸茬粡鐢?Java 鍚庣鍐欏叆 fd_augment_result锛岃繖閲岄噸鏂版煡璇㈠綋鍓嶆祦绋嬬殑澧炲己缁撴灉
+    // 真实增强结果已经由 Java 后端写入 fd_augment_result，这里重新查询当前流程的增强结果
     const refreshResponse = await listResultofen({
       pageNum: 1,
       pageSize: 1000,
       pipelineId: pipelineId.value,
-      validity: "鏈夋晥"
+      validity: "有效"
     })
 
     const augmentRows = (refreshResponse.rows || refreshResponse.data || []).map(normalizeAugmentRow)
@@ -1580,10 +1580,10 @@ async function handleRunAugment() {
     await nextTick()
     initSpectrumChart()
 
-    console.log("鏍锋湰澧炲己鎺ュ彛杩斿洖锛?, data)
+    console.log("样本增强接口返回：", data)
   } catch (error) {
-    console.error("鏍锋湰澧炲己鎺ュ彛璋冪敤澶辫触锛?, error)
-    proxy.$modal.msgError(error?.msg || error?.message || "鏍锋湰澧炲己鎺ュ彛璋冪敤澶辫触锛岃妫€鏌?/system/resultofen/augment 鏄惁鍙敤")
+    console.error("样本增强接口调用失败：", error)
+    proxy.$modal.msgError(error?.msg || error?.message || "样本增强接口调用失败，请检查 /system/resultofen/augment 是否可用")
   } finally {
     executeLoading.value = false
   }
@@ -1591,11 +1591,11 @@ async function handleRunAugment() {
 
 function handleGoFusion() {
   if (!pipelineId.value) {
-    proxy.$modal.msgWarning("鏈壘鍒板綋鍓嶆祦绋婭D锛岃鍏堝畬鎴愭牱鏈寮?)
+    proxy.$modal.msgWarning("未找到当前流程ID，请先完成样本增强")
     return
   }
 
-  goTopic4PageByTitle("鐗瑰緛铻嶅悎", {
+  goTopic4PageByTitle("特征融合", {
     pipelineId: pipelineId.value
   })
 }
@@ -1608,7 +1608,7 @@ function goTopic4PageByTitle(title, query = {}) {
   })
 
   if (!targetRoute) {
-    proxy.$modal.msgError(`娌℃湁鎵惧埌鑿滃崟璺敱锛?{title}锛岃妫€鏌ュ乏渚ц彍鍗曞悕绉版槸鍚︿竴鑷碻)
+    proxy.$modal.msgError(`没有找到菜单路由：${title}，请检查左侧菜单名称是否一致`)
     console.table(
         routes
             .filter(route => route.meta && route.meta.title)
@@ -1628,15 +1628,15 @@ function goTopic4PageByTitle(title, query = {}) {
 }
 
 function validityTagType(value) {
-  if (value === "鏈夋晥") {
+  if (value === "有效") {
     return "success"
   }
 
-  if (value === "鏃犳晥") {
+  if (value === "无效") {
     return "danger"
   }
 
-  if (value === "寰呴獙璇?) {
+  if (value === "待验证") {
     return "warning"
   }
 
@@ -1700,7 +1700,7 @@ function formatJsonText(value) {
 
 function formatJsonForView(value) {
   if (!value) {
-    return "鏆傛棤鏁版嵁"
+    return "暂无数据"
   }
 
   try {

@@ -1,80 +1,80 @@
 ﻿import request from '@/utils/request'
 
-// 鏌ヨ鏍瑰洜鍒嗘瀽缁撴灉鍒楄〃
+// 查询根因分析结果列表
 export function listResultofrc(query) {
-  console.log('褰撳墠璋冪敤鐨勬槸鏂扮増 resultofrc.js锛?system/resultofrc/list')
+  console.log('当前调用的是新版 resultofrc.js：/resultofrc/list')
   return request({
-    url: '/project4/resultofrc/list',
+    url: '/resultofrc/list',
     method: 'get',
     params: query
   })
 }
 
-// 鏌ヨ鏍瑰洜鍒嗘瀽缁撴灉璇︾粏
+// 查询根因分析结果详细
 export function getResultofrc(analysisId) {
   return request({
-    url: '/project4/resultofrc/' + analysisId,
+    url: '/resultofrc/' + analysisId,
     method: 'get'
   })
 }
 
-// 鏂板鏍瑰洜鍒嗘瀽缁撴灉
+// 新增根因分析结果
 export function addResultofrc(data) {
   return request({
-    url: '/project4/resultofrc',
+    url: '/resultofrc',
     method: 'post',
     data: data
   })
 }
 
-// 淇敼鏍瑰洜鍒嗘瀽缁撴灉
+// 修改根因分析结果
 export function updateResultofrc(data) {
   return request({
-    url: '/project4/resultofrc',
+    url: '/resultofrc',
     method: 'put',
     data: data
   })
 }
 
-// 鍒犻櫎鏍瑰洜鍒嗘瀽缁撴灉
+// 删除根因分析结果
 export function delResultofrc(analysisId) {
   return request({
-    url: '/project4/resultofrc/' + analysisId,
+    url: '/resultofrc/' + analysisId,
     method: 'delete'
   })
 }
 
-// 鏌ヨ鏍瑰洜鍒嗘瀽缃俊搴︾粺璁★細鍘熸潵鐨勬€讳綋缁熻楗煎浘
+// 查询根因分析置信度统计：原来的总体统计饼图
 export function confidenceStats(query) {
   return request({
-    url: '/project4/resultofrc/confidenceStats',
+    url: '/resultofrc/confidenceStats',
     method: 'get',
     params: query
   })
 }
 
-// 鏌ヨ姣忎釜鏍锋湰鐨勫悇涓牴鍥犵疆淇″害楗煎浘鏁版嵁
+// 查询每个样本的各个根因置信度饼图数据
 export function sampleConfidencePie(query) {
   return request({
-    url: '/project4/resultofrc/sampleConfidencePie',
+    url: '/resultofrc/sampleConfidencePie',
     method: 'get',
     params: query
   })
 }
 
-// 鏌ヨ璇鹃鍥涘悜璇鹃浜旇緭鍑虹殑鏍瑰洜鍒嗘瀽缁撴灉鍒楄〃
+// 查询课题四向课题五输出的根因分析结果列表
 export function outputListResultofrc(query) {
   return request({
-    url: '/project4/resultofrc/output/list',
+    url: '/resultofrc/output/list',
     method: 'get',
     params: query
   })
 }
 
-// 鏌ヨ璇鹃鍥涘悜璇鹃浜旇緭鍑虹殑鍗曟潯鏍瑰洜鍒嗘瀽缁撴灉
+// 查询课题四向课题五输出的单条根因分析结果
 export function outputInfoResultofrc(analysisId) {
   return request({
-    url: '/project4/resultofrc/output/' + analysisId,
+    url: '/resultofrc/output/' + analysisId,
     method: 'get'
   })
 }

@@ -1,86 +1,86 @@
 ﻿import request from '@/utils/request'
 
-// 鏌ヨ鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢鍒楄〃
+// 查询故障诊断-原始数据文件列表
 export function listFileofda(query) {
   return request({
-    url: '/project4/fileofda/list',
+    url: '/fileofda/list',
     method: 'get',
     params: query
   })
 }
 
-// 鍏煎鍙︿竴绉嶅懡鍚嶏細listFdDataFile
+// 兼容另一种命名：listFdDataFile
 export function listFdDataFile(query) {
   return listFileofda(query)
 }
 
-// 鏌ヨ鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢璇︾粏
+// 查询故障诊断-原始数据文件详细
 export function getFileofda(fileId) {
   return request({
-    url: '/project4/fileofda/' + fileId,
+    url: '/fileofda/' + fileId,
     method: 'get'
   })
 }
 
-// 鍏煎鍙︿竴绉嶅懡鍚嶏細getFdDataFile
+// 兼容另一种命名：getFdDataFile
 export function getFdDataFile(fileId) {
   return getFileofda(fileId)
 }
 
-// 鏂板鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
+// 新增故障诊断-原始数据文件
 export function addFileofda(data) {
   return request({
-    url: '/project4/fileofda',
+    url: '/fileofda',
     method: 'post',
     data: data
   })
 }
 
-// 鍏煎鍙︿竴绉嶅懡鍚嶏細addFdDataFile
+// 兼容另一种命名：addFdDataFile
 export function addFdDataFile(data) {
   return addFileofda(data)
 }
 
-// 淇敼鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
+// 修改故障诊断-原始数据文件
 export function updateFileofda(data) {
   return request({
-    url: '/project4/fileofda',
+    url: '/fileofda',
     method: 'put',
     data: data
   })
 }
 
-// 鍏煎鍙︿竴绉嶅懡鍚嶏細updateFdDataFile
+// 兼容另一种命名：updateFdDataFile
 export function updateFdDataFile(data) {
   return updateFileofda(data)
 }
 
-// 鍒犻櫎鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
+// 删除故障诊断-原始数据文件
 export function delFileofda(fileId) {
   return request({
-    url: '/project4/fileofda/' + fileId,
+    url: '/fileofda/' + fileId,
     method: 'delete'
   })
 }
 
-// 鍏煎鍙︿竴绉嶅懡鍚嶏細delFdDataFile
+// 兼容另一种命名：delFdDataFile
 export function delFdDataFile(fileId) {
   return delFileofda(fileId)
 }
 
-// 鎵ц鏁版嵁棰勫鐞?
+// 执行数据预处理
 export function executePreprocess(data) {
   return request({
-    url: '/project4/fileofda/preprocess',
+    url: '/fileofda/preprocess',
     method: 'post',
     data: data
   })
 }
 
-// 鏌ヨ棰勫鐞嗗悗鏍锋湰 / 鍘熷鏍锋湰鍒楄〃
+// 查询预处理后样本 / 原始样本列表
 export function listRawSamples(query) {
   return request({
-    url: '/project4/fileofda/rawSamples',
+    url: '/fileofda/rawSamples',
     method: 'get',
     params: query
   })

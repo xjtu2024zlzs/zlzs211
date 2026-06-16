@@ -1,4 +1,4 @@
-package com.ruoyi.project4.service;
+﻿package com.ruoyi.project4.service;
 
 import com.ruoyi.project4.domain.FdDiagnosisResult;
 
@@ -6,7 +6,7 @@ import java.util.List;
 import com.ruoyi.common.core.web.domain.AjaxResult;
 import com.ruoyi.project4.domain.dto.DiagnosisRunDto;
 /**
- * 鏁呴殰璇婃柇-璇婃柇缁撴灉Service鎺ュ彛
+ * 故障诊断-诊断结果Service接口
  *
  * @author ruoyi
  * @date 2026-05-29
@@ -15,50 +15,50 @@ public interface IFdDiagnosisResultService
 {
     AjaxResult runDiagnosis(DiagnosisRunDto dto);
     /**
-     * 鏌ヨ鏁呴殰璇婃柇-璇婃柇缁撴灉
+     * 查询故障诊断-诊断结果
      *
-     * @param diagnosisId 璇婃柇ID
-     * @return 鏁呴殰璇婃柇-璇婃柇缁撴灉
+     * @param diagnosisId 诊断ID
+     * @return 故障诊断-诊断结果
      */
     FdDiagnosisResult selectFdDiagnosisResultByDiagnosisId(Long diagnosisId);
 
     /**
-     * 鏌ヨ鏁呴殰璇婃柇-璇婃柇缁撴灉鍒楄〃
+     * 查询故障诊断-诊断结果列表
      *
-     * @param fdDiagnosisResult 鏁呴殰璇婃柇-璇婃柇缁撴灉
-     * @return 鏁呴殰璇婃柇-璇婃柇缁撴灉闆嗗悎
+     * @param fdDiagnosisResult 故障诊断-诊断结果
+     * @return 故障诊断-诊断结果集合
      */
     List<FdDiagnosisResult> selectFdDiagnosisResultList(FdDiagnosisResult fdDiagnosisResult);
 
     /**
-     * 鏂板鏁呴殰璇婃柇-璇婃柇缁撴灉
+     * 新增故障诊断-诊断结果
      *
-     * @param fdDiagnosisResult 鏁呴殰璇婃柇-璇婃柇缁撴灉
-     * @return 缁撴灉
+     * @param fdDiagnosisResult 故障诊断-诊断结果
+     * @return 结果
      */
     int insertFdDiagnosisResult(FdDiagnosisResult fdDiagnosisResult);
 
     /**
-     * 淇敼鏁呴殰璇婃柇-璇婃柇缁撴灉
+     * 修改故障诊断-诊断结果
      *
-     * @param fdDiagnosisResult 鏁呴殰璇婃柇-璇婃柇缁撴灉
-     * @return 缁撴灉
+     * @param fdDiagnosisResult 故障诊断-诊断结果
+     * @return 结果
      */
     int updateFdDiagnosisResult(FdDiagnosisResult fdDiagnosisResult);
 
     /**
-     * 鎵归噺鍒犻櫎鏁呴殰璇婃柇-璇婃柇缁撴灉
+     * 批量删除故障诊断-诊断结果
      *
-     * @param diagnosisIds 闇€瑕佸垹闄ょ殑璇婃柇ID
-     * @return 缁撴灉
+     * @param diagnosisIds 需要删除的诊断ID
+     * @return 结果
      */
     int deleteFdDiagnosisResultByDiagnosisIds(Long[] diagnosisIds);
 
     /**
-     * 鍒犻櫎鏁呴殰璇婃柇-璇婃柇缁撴灉淇℃伅
+     * 删除故障诊断-诊断结果信息
      *
-     * @param diagnosisId 璇婃柇ID
-     * @return 缁撴灉
+     * @param diagnosisId 诊断ID
+     * @return 结果
      */
     int deleteFdDiagnosisResultByDiagnosisId(Long diagnosisId);
 }

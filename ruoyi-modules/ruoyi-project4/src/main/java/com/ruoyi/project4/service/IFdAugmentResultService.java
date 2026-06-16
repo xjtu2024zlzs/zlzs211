@@ -1,4 +1,4 @@
-package com.ruoyi.project4.service;
+﻿package com.ruoyi.project4.service;
 
 import com.ruoyi.common.core.web.domain.AjaxResult;
 import com.ruoyi.project4.domain.FdAugmentResult;
@@ -8,7 +8,7 @@ import com.ruoyi.project4.domain.dto.AugmentRunDto;
 import java.util.List;
 
 /**
- * 鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉Service鎺ュ彛
+ * 故障诊断-样本增强结果Service接口
  *
  * @author ruoyi
  * @date 2026-05-29
@@ -16,58 +16,58 @@ import java.util.List;
 public interface IFdAugmentResultService
 {
     /**
-     * 鏌ヨ鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉
+     * 查询故障诊断-样本增强结果
      *
-     * @param augmentId 鏍锋湰澧炲己缁撴灉涓婚敭
-     * @return 鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉
+     * @param augmentId 样本增强结果主键
+     * @return 故障诊断-样本增强结果
      */
     FdAugmentResult selectFdAugmentResultByAugmentId(Long augmentId);
 
     /**
-     * 鏌ヨ鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉鍒楄〃
+     * 查询故障诊断-样本增强结果列表
      *
-     * @param fdAugmentResult 鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉
-     * @return 鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉闆嗗悎
+     * @param fdAugmentResult 故障诊断-样本增强结果
+     * @return 故障诊断-样本增强结果集合
      */
     List<FdAugmentResult> selectFdAugmentResultList(FdAugmentResult fdAugmentResult);
 
     /**
-     * 鏂板鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉
+     * 新增故障诊断-样本增强结果
      *
-     * @param fdAugmentResult 鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉
-     * @return 缁撴灉
+     * @param fdAugmentResult 故障诊断-样本增强结果
+     * @return 结果
      */
     int insertFdAugmentResult(FdAugmentResult fdAugmentResult);
 
     /**
-     * 淇敼鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉
+     * 修改故障诊断-样本增强结果
      *
-     * @param fdAugmentResult 鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉
-     * @return 缁撴灉
+     * @param fdAugmentResult 故障诊断-样本增强结果
+     * @return 结果
      */
     int updateFdAugmentResult(FdAugmentResult fdAugmentResult);
 
     /**
-     * 鎵归噺鍒犻櫎鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉
+     * 批量删除故障诊断-样本增强结果
      *
-     * @param augmentIds 闇€瑕佸垹闄ょ殑鏍锋湰澧炲己缁撴灉涓婚敭闆嗗悎
-     * @return 缁撴灉
+     * @param augmentIds 需要删除的样本增强结果主键集合
+     * @return 结果
      */
     int deleteFdAugmentResultByAugmentIds(Long[] augmentIds);
 
     /**
-     * 鍒犻櫎鏁呴殰璇婃柇-鏍锋湰澧炲己缁撴灉淇℃伅
+     * 删除故障诊断-样本增强结果信息
      *
-     * @param augmentId 鏍锋湰澧炲己缁撴灉涓婚敭
-     * @return 缁撴灉
+     * @param augmentId 样本增强结果主键
+     * @return 结果
      */
     int deleteFdAugmentResultByAugmentId(Long augmentId);
 
     /**
-     * 鎵ц鏍锋湰澧炲己绠楁硶
+     * 执行样本增强算法
      *
-     * @param dto 鏍锋湰澧炲己杩愯鍙傛暟
-     * @return 鏍锋湰澧炲己鎵ц缁撴灉
+     * @param dto 样本增强运行参数
+     * @return 样本增强执行结果
      */
     AjaxResult runAugment(AugmentRunDto dto);
 

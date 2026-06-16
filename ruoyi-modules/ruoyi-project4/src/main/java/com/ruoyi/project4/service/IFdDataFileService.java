@@ -1,4 +1,4 @@
-package com.ruoyi.project4.service;
+﻿package com.ruoyi.project4.service;
 
 import com.ruoyi.project4.domain.FdDataFile;
 
@@ -6,7 +6,7 @@ import java.util.List;
 import com.ruoyi.common.core.web.domain.AjaxResult;
 import com.ruoyi.project4.domain.dto.PreprocessRunDto;
 /**
- * 鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢Service鎺ュ彛
+ * 故障诊断-原始数据文件Service接口
  * 
  * @author ruoyi
  * @date 2026-05-29
@@ -14,50 +14,50 @@ import com.ruoyi.project4.domain.dto.PreprocessRunDto;
 public interface IFdDataFileService 
 {
     /**
-     * 鏌ヨ鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
+     * 查询故障诊断-原始数据文件
      * 
-     * @param fileId 鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢涓婚敭
-     * @return 鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
+     * @param fileId 故障诊断-原始数据文件主键
+     * @return 故障诊断-原始数据文件
      */
     public FdDataFile selectFdDataFileByFileId(Long fileId);
 
     /**
-     * 鏌ヨ鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢鍒楄〃
+     * 查询故障诊断-原始数据文件列表
      * 
-     * @param fdDataFile 鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
-     * @return 鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢闆嗗悎
+     * @param fdDataFile 故障诊断-原始数据文件
+     * @return 故障诊断-原始数据文件集合
      */
     public List<FdDataFile> selectFdDataFileList(FdDataFile fdDataFile);
 
     /**
-     * 鏂板鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
+     * 新增故障诊断-原始数据文件
      * 
-     * @param fdDataFile 鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
-     * @return 缁撴灉
+     * @param fdDataFile 故障诊断-原始数据文件
+     * @return 结果
      */
     public int insertFdDataFile(FdDataFile fdDataFile);
 
     /**
-     * 淇敼鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
+     * 修改故障诊断-原始数据文件
      * 
-     * @param fdDataFile 鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
-     * @return 缁撴灉
+     * @param fdDataFile 故障诊断-原始数据文件
+     * @return 结果
      */
     public int updateFdDataFile(FdDataFile fdDataFile);
 
     /**
-     * 鎵归噺鍒犻櫎鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢
+     * 批量删除故障诊断-原始数据文件
      * 
-     * @param fileIds 闇€瑕佸垹闄ょ殑鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢涓婚敭闆嗗悎
-     * @return 缁撴灉
+     * @param fileIds 需要删除的故障诊断-原始数据文件主键集合
+     * @return 结果
      */
     public int deleteFdDataFileByFileIds(Long[] fileIds);
 
     /**
-     * 鍒犻櫎鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢淇℃伅
+     * 删除故障诊断-原始数据文件信息
      * 
-     * @param fileId 鏁呴殰璇婃柇-鍘熷鏁版嵁鏂囦欢涓婚敭
-     * @return 缁撴灉
+     * @param fileId 故障诊断-原始数据文件主键
+     * @return 结果
      */
     public int deleteFdDataFileByFileId(Long fileId);
 

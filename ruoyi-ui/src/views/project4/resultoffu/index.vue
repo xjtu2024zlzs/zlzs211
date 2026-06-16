@@ -1,63 +1,63 @@
 ﻿<template>
   <div class="project4-page">
-    <!-- 椤甸潰鏍囬鍗＄墖 -->
+    <!-- 页面标题卡片 -->
     <section class="module-hero">
       <div>
-        <div class="module-eyebrow">璇鹃鍥?路 鑸┖瑁呭璐ㄩ噺杩芥函</div>
-        <h2>鐗瑰緛铻嶅悎缁撴灉</h2>
+        <div class="module-eyebrow">课题四 · 航空装备质量追溯</div>
+        <h2>特征融合结果</h2>
         <p>
-          灞曠ず澶氭簮鐗瑰緛铻嶅悎鍚庣殑鍚戦噺缁撴灉銆佽瀺鍚堟柟娉曘€佽緭鍑虹淮搴︿笌缃俊鏉冮噸锛屽苟閫氳繃 PCA 瀵规瘮銆佷紶鎰熷櫒鐑姏鍥惧拰鐗瑰緛璐＄尞搴﹀睍绀鸿瀺鍚堟晥鏋溿€?
+          展示多源特征融合后的向量结果、融合方法、输出维度与置信权重，并通过 PCA 对比、传感器热力图和特征贡献度展示融合效果。
         </p>
       </div>
 
       <div class="module-status">
-        <span>铻嶅悎缁撴灉宸叉帴鍏?/span>
-        <span>婕旂ず妯″紡</span>
+        <span>融合结果已接入</span>
+        <span>演示模式</span>
       </div>
     </section>
 
-    <!-- 鎸囨爣鍗＄墖 -->
+    <!-- 指标卡片 -->
     <section class="metric-strip">
       <div class="metric-mini">
-        <span>铻嶅悎璁板綍鎬绘暟</span>
+        <span>融合记录总数</span>
         <strong>{{ total }}</strong>
         <em>fd_fusion_result</em>
       </div>
 
       <div class="metric-mini">
-        <span>褰撳墠椤靛钩鍧囨潈閲?/span>
+        <span>当前页平均权重</span>
         <strong>{{ averageWeight }}</strong>
         <em>confidenceWeight</em>
       </div>
 
       <div class="metric-mini">
-        <span>褰撳墠椤佃緭鍑虹淮搴?/span>
+        <span>当前页输出维度</span>
         <strong>{{ dimensionTotal }}</strong>
-        <em>outputDimension 姹囨€?/em>
+        <em>outputDimension 汇总</em>
       </div>
 
       <div class="metric-mini">
-        <span>铻嶅悎绠楁硶鏁伴噺</span>
+        <span>融合算法数量</span>
         <strong>{{ methodCount }}</strong>
-        <em>PCA / Attention / 鐗瑰緛鎷兼帴</em>
+        <em>PCA / Attention / 特征拼接</em>
       </div>
     </section>
 
 
-    <!-- 澧炲己鏍锋湰杈撳叆涓庤瀺鍚堝弬鏁伴厤缃?-->
+    <!-- 增强样本输入与融合参数配置 -->
     <section class="fusion-input-card">
       <div class="card-header">
         <div>
-          <div class="module-eyebrow">铻嶅悎杈撳叆</div>
-          <h3>澧炲己鏍锋湰閫夋嫨涓庤瀺鍚堝弬鏁伴厤缃?/h3>
+          <div class="module-eyebrow">融合输入</div>
+          <h3>增强样本选择与融合参数配置</h3>
           <p class="section-desc">
-            浠庢牱鏈寮烘ā鍧楄緭鍑虹殑澧炲己鏍锋湰涓嬀閫夊緟铻嶅悎鏍锋湰锛岄€夋嫨铻嶅悎绠楁硶鍜岃緭鍑哄弬鏁板悗鎵ц鐗瑰緛铻嶅悎锛?
-            铻嶅悎缁撴灉灏嗗湪涓嬫柟鈥滅壒寰佽瀺鍚堢粨鏋滆褰曗€濆拰鍥惧舰鍒嗘瀽鍖哄煙涓悓姝ュ睍绀恒€?
+            从样本增强模块输出的增强样本中勾选待融合样本，选择融合算法和输出参数后执行特征融合；
+            融合结果将在下方“特征融合结果记录”和图形分析区域中同步展示。
           </p>
         </div>
 
         <el-tag type="primary" effect="plain">
-          宸查€夋嫨 {{ selectedAugmentRows.length }} / {{ upstreamAugmentResults.length }} 鏉?
+          已选择 {{ selectedAugmentRows.length }} / {{ upstreamAugmentResults.length }} 条
         </el-tag>
       </div>
 
@@ -65,8 +65,8 @@
         <div class="fusion-input-table-panel">
           <div class="panel-title-row">
             <div>
-              <h4>鏉ヨ嚜鏍锋湰澧炲己妯″潡鐨勫寮烘牱鏈垪琛?/h4>
-              <span>鍕鹃€夐渶瑕佽繘鍏ョ壒寰佽瀺鍚堢殑澧炲己鏍锋湰</span>
+              <h4>来自样本增强模块的增强样本列表</h4>
+              <span>勾选需要进入特征融合的增强样本</span>
             </div>
           </div>
 
@@ -75,28 +75,28 @@
               border
               stripe
               max-height="300"
-              empty-text="鏆傛棤澧炲己鏍锋湰锛岃鍏堝湪鏍锋湰澧炲己妯″潡鎵ц鏍锋湰澧炲己"
+              empty-text="暂无增强样本，请先在样本增强模块执行样本增强"
               @selection-change="handleAugmentInputSelectionChange"
           >
             <el-table-column type="selection" width="55" align="center" />
-            <el-table-column label="澧炲己ID" align="center" prop="augmentId" width="90" />
-            <el-table-column label="澧炲己缂栧彿" align="center" prop="augmentCode" width="130" show-overflow-tooltip />
-            <el-table-column label="鍘熷鏍锋湰ID" align="center" prop="sampleId" width="110" />
-            <el-table-column label="鍘熷鏍锋湰缂栧彿" align="center" prop="sampleCode" width="160" show-overflow-tooltip />
-            <el-table-column label="澧炲己绠楁硶" align="center" prop="augmentMethod" width="120">
+            <el-table-column label="增强ID" align="center" prop="augmentId" width="90" />
+            <el-table-column label="增强编号" align="center" prop="augmentCode" width="130" show-overflow-tooltip />
+            <el-table-column label="原始样本ID" align="center" prop="sampleId" width="110" />
+            <el-table-column label="原始样本编号" align="center" prop="sampleCode" width="160" show-overflow-tooltip />
+            <el-table-column label="增强算法" align="center" prop="augmentMethod" width="120">
               <template #default="scope">
                 <el-tag type="primary" effect="plain">
                   {{ scope.row.augmentMethod || "-" }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="澧炲己鍊嶆暟" align="center" prop="augmentRatio" width="100" />
-            <el-table-column label="鐢熸垚鏁伴噺" align="center" prop="generatedCount" width="100" />
-            <el-table-column label="杈撳嚭璺緞" align="center" prop="outputPath" min-width="220" show-overflow-tooltip />
-            <el-table-column label="鐘舵€? align="center" prop="status" width="100">
+            <el-table-column label="增强倍数" align="center" prop="augmentRatio" width="100" />
+            <el-table-column label="生成数量" align="center" prop="generatedCount" width="100" />
+            <el-table-column label="输出路径" align="center" prop="outputPath" min-width="220" show-overflow-tooltip />
+            <el-table-column label="状态" align="center" prop="status" width="100">
               <template #default="scope">
                 <el-tag type="success" effect="plain">
-                  {{ scope.row.status || "宸插寮? }}
+                  {{ scope.row.status || "已增强" }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -106,23 +106,23 @@
         <div class="fusion-config-panel">
           <div class="panel-title-row">
             <div>
-              <h4>铻嶅悎鍙傛暟</h4>
-              <span>閫夋嫨铻嶅悎绠楁硶骞剁敓鎴愯瀺鍚堢壒寰佸悜閲?/span>
+              <h4>融合参数</h4>
+              <span>选择融合算法并生成融合特征向量</span>
             </div>
           </div>
 
           <el-form :model="fusionRunForm" label-width="110px">
-            <el-form-item label="铻嶅悎绠楁硶">
-              <el-select v-model="fusionRunForm.fusionMethod" placeholder="璇烽€夋嫨铻嶅悎绠楁硶" style="width: 100%">
+            <el-form-item label="融合算法">
+              <el-select v-model="fusionRunForm.fusionMethod" placeholder="请选择融合算法" style="width: 100%">
                 <el-option label="PCA+Attention" value="PCA+Attention" />
-                <el-option label="澶氫紶鎰熷櫒娉ㄦ剰鍔涜瀺鍚? value="澶氫紶鎰熷櫒娉ㄦ剰鍔涜瀺鍚? />
-                <el-option label="鐗瑰緛鎷兼帴" value="鐗瑰緛鎷兼帴" />
-                <el-option label="鍔犳潈铻嶅悎" value="鍔犳潈铻嶅悎" />
-                <el-option label="璋辨槧灏勮瀺鍚? value="璋辨槧灏勮瀺鍚? />
+                <el-option label="多传感器注意力融合" value="多传感器注意力融合" />
+                <el-option label="特征拼接" value="特征拼接" />
+                <el-option label="加权融合" value="加权融合" />
+                <el-option label="谱映射融合" value="谱映射融合" />
               </el-select>
             </el-form-item>
 
-            <el-form-item label="缃俊鏉冮噸">
+            <el-form-item label="置信权重">
               <el-input-number
                   v-model="fusionRunForm.confidenceWeight"
                   :min="0"
@@ -133,7 +133,7 @@
               />
             </el-form-item>
 
-            <el-form-item label="杈撳嚭缁村害">
+            <el-form-item label="输出维度">
               <el-input-number
                   v-model="fusionRunForm.outputDimension"
                   :min="16"
@@ -142,7 +142,7 @@
               />
             </el-form-item>
 
-            <el-form-item label="铻嶅悎鐗瑰緛">
+            <el-form-item label="融合特征">
               <div class="feature-component-list">
                 <el-tag
                     v-for="item in FEATURE_FUSION_COMPONENTS"
@@ -163,7 +163,7 @@
                 :disabled="fusionExecuteLoading || !selectedAugmentRows.length"
                 @click="handleRunFusion"
             >
-              鎵ц鐗瑰緛铻嶅悎
+              执行特征融合
             </el-button>
           </el-form>
         </div>
@@ -171,22 +171,22 @@
     </section>
 
 
-    <!-- 鐗瑰緛铻嶅悎鍙鍖栧垎鏋愶細PCA + 鐑姏鍥?+ 璐＄尞搴﹀悎骞跺睍绀?-->
+    <!-- 特征融合可视化分析：PCA + 热力图 + 贡献度合并展示 -->
     <section v-if="canGoDiagnosis" class="visual-card fusion-visual-card">
       <div class="chart-toolbar">
         <div>
-          <div class="module-eyebrow">鍥惧舰鍒嗘瀽</div>
-          <h3>鐗瑰緛铻嶅悎鍙鍖栧垎鏋?/h3>
+          <div class="module-eyebrow">图形分析</div>
+          <h3>特征融合可视化分析</h3>
           <p>
-            涓婃柟灞曠ず铻嶅悎鍓嶅悗 PCA 鍒嗗竷瀵规瘮锛屼笅鏂瑰苟鎺掑睍绀哄浼犳劅鍣ㄧ浉鍏虫€х儹鍔涘浘涓庡綋鍓嶆牱鏈壒寰佽础鐚害锛?
-            鐐瑰嚮涓嬫柟琛ㄦ牸琛屾垨鍒囨崲鏍锋湰鍚庯紝涓夌被鍥惧舰鍚屾鍒锋柊銆?
+            上方展示融合前后 PCA 分布对比，下方并排展示多传感器相关性热力图与当前样本特征贡献度；
+            点击下方表格行或切换样本后，三类图形同步刷新。
           </p>
         </div>
 
         <div class="sample-chart-actions">
           <el-select
               v-model="selectedFusionSampleId"
-              placeholder="璇烽€夋嫨鏍锋湰"
+              placeholder="请选择样本"
               clearable
               style="width: 190px"
               @change="handlePcaSampleChange"
@@ -200,14 +200,14 @@
           </el-select>
 
           <el-button link type="primary" icon="Refresh" @click="refreshPcaChart">
-            鍒锋柊
+            刷新
           </el-button>
         </div>
       </div>
 
       <div class="visual-subsection-title">
-        <span>鐗瑰緛铻嶅悎鍓嶅悗 PCA 瀵规瘮</span>
-        <em>铻嶅悎鍓嶅垎鏁?路 铻嶅悎鍚庢敹鏁?/em>
+        <span>特征融合前后 PCA 对比</span>
+        <em>融合前分散 · 融合后收敛</em>
       </div>
       <div ref="pcaChartRef" class="pca-chart"></div>
 
@@ -223,42 +223,42 @@
       </div>
 
       <div class="chart-note">
-        <span>铻嶅悎鍓嶏細鍥涚被杈撳叆鐗瑰緛鍦?PCA 绌洪棿涓垎鏁ｅ垎甯?/span>
-        <span>铻嶅悎鍚庯細鍥涚被鐗瑰緛鍚戠粺涓€铻嶅悎鍚戦噺鏀舵暃</span>
-        <span>鍥句腑杈圭晫绾跨敤浜庡己璋?PCA 鍧愭爣鍒嗘瀽鍖哄煙</span>
+        <span>融合前：四类输入特征在 PCA 空间中分散分布</span>
+        <span>融合后：四类特征向统一融合向量收敛</span>
+        <span>图中边界线用于强调 PCA 坐标分析区域</span>
       </div>
 
       <div class="fusion-explain-grid merged-explain-grid">
         <div class="chart-panel">
           <div class="chart-panel-title">
-            <h4>澶氫紶鎰熷櫒鐩稿叧鎬х儹鍔涘浘</h4>
-            <span>鏍锋湰ID锛歿{ selectedFusionSampleId || "-" }}</span>
+            <h4>多传感器相关性热力图</h4>
+            <span>样本ID：{{ selectedFusionSampleId || "-" }}</span>
           </div>
           <div ref="heatmapChartRef" class="explain-chart heatmap-chart"></div>
         </div>
 
         <div class="chart-panel">
           <div class="chart-panel-title">
-            <h4>褰撳墠鏍锋湰鐗瑰緛璐＄尞搴?/h4>
-            <span>鍥涚被铻嶅悎鐗瑰緛璐＄尞</span>
+            <h4>当前样本特征贡献度</h4>
+            <span>四类融合特征贡献</span>
           </div>
           <div ref="contributionChartRef" class="explain-chart contribution-chart"></div>
         </div>
       </div>
 
       <div class="chart-note">
-        <span>铻嶅悎鐗瑰緛缁勬垚锛氬浼犳劅鍣ㄦ椂搴忕獥鍙ｇ壒寰併€佷紶鎰熷櫒绌洪棿鍏崇郴鐗瑰緛銆佹椂闂存紨鍖栫壒寰併€佹晠闅滅被鍒潯浠剁壒寰?/span>
-        <span>鍥捐〃搴曡壊缁熶竴涓虹櫧鑹诧紝鐑姏鍥鹃噰鐢ㄦ殩鑹叉笎鍙樺睍绀虹浉鍏虫€у己寮?/span>
+        <span>融合特征组成：多传感器时序窗口特征、传感器空间关系特征、时间演化特征、故障类别条件特征</span>
+        <span>图表底色统一为白色，热力图采用暖色渐变展示相关性强弱</span>
       </div>
     </section>
 
 
-    <!-- 鏁版嵁琛ㄦ牸 -->
+    <!-- 数据表格 -->
     <section v-if="canGoDiagnosis" class="table-card">
       <div class="card-header table-card-header">
         <div>
-          <div class="module-eyebrow">鏁版嵁鍒楄〃</div>
-          <h3>鐗瑰緛铻嶅悎缁撴灉璁板綍</h3>
+          <div class="module-eyebrow">数据列表</div>
+          <h3>特征融合结果记录</h3>
         </div>
 
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" />
@@ -266,8 +266,8 @@
 
       <div v-show="showSearch" class="table-query-panel">
         <div class="table-query-title">
-          <span>铻嶅悎鐗瑰緛绛涢€?/span>
-          <em>绛涢€夋潯浠跺苟鍏ョ粨鏋滆褰曪紝鎼滅储鍚庝笅鏂硅〃鏍间笌鍙鍖栧悓姝ュ埛鏂?/em>
+          <span>融合特征筛选</span>
+          <em>筛选条件并入结果记录，搜索后下方表格与可视化同步刷新</em>
         </div>
 
         <el-form
@@ -276,76 +276,76 @@
             :inline="true"
             label-width="110px"
         >
-          <el-form-item label="铻嶅悎缂栧彿" prop="fusionCode">
+          <el-form-item label="融合编号" prop="fusionCode">
             <el-input
                 v-model="queryParams.fusionCode"
-                placeholder="璇疯緭鍏ヨ瀺鍚堢紪鍙?
+                placeholder="请输入融合编号"
                 clearable
                 @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="鏍锋湰ID" prop="sampleId">
+          <el-form-item label="样本ID" prop="sampleId">
             <el-input-number
                 v-model="queryParams.sampleId"
                 :controls="false"
                 :min="0"
-                placeholder="璇疯緭鍏ユ牱鏈琁D"
+                placeholder="请输入样本ID"
                 style="width: 190px"
                 @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="鏍锋湰缂栧彿" prop="sampleCode">
+          <el-form-item label="样本编号" prop="sampleCode">
             <el-input
                 v-model="queryParams.sampleCode"
-                placeholder="璇疯緭鍏ユ牱鏈紪鍙?
+                placeholder="请输入样本编号"
                 clearable
                 @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="铻嶅悎鏂规硶" prop="fusionMethod">
+          <el-form-item label="融合方法" prop="fusionMethod">
             <el-select
                 v-model="queryParams.fusionMethod"
-                placeholder="璇烽€夋嫨铻嶅悎鏂规硶"
+                placeholder="请选择融合方法"
                 clearable
                 style="width: 190px"
             >
               <el-option label="PCA+Attention" value="PCA+Attention" />
-              <el-option label="鐗瑰緛鎷兼帴" value="鐗瑰緛鎷兼帴" />
-              <el-option label="鍔犳潈铻嶅悎" value="鍔犳潈铻嶅悎" />
-              <el-option label="璋辨槧灏勮瀺鍚? value="璋辨槧灏勮瀺鍚? />
+              <el-option label="特征拼接" value="特征拼接" />
+              <el-option label="加权融合" value="加权融合" />
+              <el-option label="谱映射融合" value="谱映射融合" />
             </el-select>
           </el-form-item>
 
-          <el-form-item label="缃俊鏉冮噸" prop="confidenceWeight">
+          <el-form-item label="置信权重" prop="confidenceWeight">
             <el-input-number
                 v-model="queryParams.confidenceWeight"
                 :controls="false"
                 :min="0"
                 :max="1"
                 :step="0.01"
-                placeholder="璇疯緭鍏ョ疆淇℃潈閲?
+                placeholder="请输入置信权重"
                 style="width: 190px"
                 @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="杈撳嚭缁村害" prop="outputDimension">
+          <el-form-item label="输出维度" prop="outputDimension">
             <el-input-number
                 v-model="queryParams.outputDimension"
                 :controls="false"
                 :min="0"
-                placeholder="璇疯緭鍏ヨ緭鍑虹淮搴?
+                placeholder="请输入输出维度"
                 style="width: 190px"
                 @keyup.enter="handleQuery"
             />
           </el-form-item>
 
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">鎼滅储</el-button>
-            <el-button icon="Refresh" @click="resetQuery">閲嶇疆</el-button>
+            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -359,7 +359,7 @@
               @click="handleAdd"
               v-hasPermi="['system:resultoffu:add']"
           >
-            鏂板
+            新增
           </el-button>
         </el-col>
 
@@ -372,7 +372,7 @@
               @click="handleUpdate"
               v-hasPermi="['system:resultoffu:edit']"
           >
-            淇敼
+            修改
           </el-button>
         </el-col>
 
@@ -385,7 +385,7 @@
               @click="handleDelete"
               v-hasPermi="['system:resultoffu:remove']"
           >
-            鍒犻櫎
+            删除
           </el-button>
         </el-col>
 
@@ -397,7 +397,7 @@
               @click="handleExport"
               v-hasPermi="['system:resultoffu:export']"
           >
-            瀵煎嚭
+            导出
           </el-button>
         </el-col>
 
@@ -409,7 +409,7 @@
               :disabled="!canGoDiagnosis"
               @click="handleGoDiagnosis"
           >
-            杩涘叆鏁呴殰璇婃柇
+            进入故障诊断
           </el-button>
         </el-col>
       </el-row>
@@ -424,14 +424,14 @@
       >
         <el-table-column type="selection" width="55" align="center" />
 
-        <el-table-column label="铻嶅悎ID" align="center" prop="fusionId" width="90" />
-        <el-table-column label="铻嶅悎缂栧彿" align="center" prop="fusionCode" width="150" show-overflow-tooltip />
-        <el-table-column label="鏍锋湰ID" align="center" prop="sampleId" width="90" />
-        <el-table-column label="鏍锋湰缂栧彿" align="center" prop="sampleCode" width="150" show-overflow-tooltip />
+        <el-table-column label="融合ID" align="center" prop="fusionId" width="90" />
+        <el-table-column label="融合编号" align="center" prop="fusionCode" width="150" show-overflow-tooltip />
+        <el-table-column label="样本ID" align="center" prop="sampleId" width="90" />
+        <el-table-column label="样本编号" align="center" prop="sampleCode" width="150" show-overflow-tooltip />
 
-        <el-table-column label="铻嶅悎鐗瑰緛缁勬垚" align="center" prop="featureIds" width="300" show-overflow-tooltip />
+        <el-table-column label="融合特征组成" align="center" prop="featureIds" width="300" show-overflow-tooltip />
 
-        <el-table-column label="铻嶅悎鏂规硶" align="center" prop="fusionMethod" width="140">
+        <el-table-column label="融合方法" align="center" prop="fusionMethod" width="140">
           <template #default="scope">
             <el-tag type="primary" effect="plain">
               {{ scope.row.fusionMethod || "-" }}
@@ -439,19 +439,19 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="缃俊鏉冮噸" align="center" prop="confidenceWeight" width="110">
+        <el-table-column label="置信权重" align="center" prop="confidenceWeight" width="110">
           <template #default="scope">
             {{ formatWeight(scope.row.confidenceWeight) }}
           </template>
         </el-table-column>
 
-        <el-table-column label="杈撳嚭缁村害" align="center" prop="outputDimension" width="110" />
-        <el-table-column label="鍚戦噺闀垮害" align="center" prop="vectorLength" width="110" />
+        <el-table-column label="输出维度" align="center" prop="outputDimension" width="110" />
+        <el-table-column label="向量长度" align="center" prop="vectorLength" width="110" />
 
-        <el-table-column label="铻嶅悎鍚戦噺JSON" align="center" prop="vectorJson" width="220" show-overflow-tooltip />
-        <el-table-column label="鍚戦噺鏂囦欢璺緞" align="center" prop="vectorPath" width="220" show-overflow-tooltip />
+        <el-table-column label="融合向量JSON" align="center" prop="vectorJson" width="220" show-overflow-tooltip />
+        <el-table-column label="向量文件路径" align="center" prop="vectorPath" width="220" show-overflow-tooltip />
 
-        <el-table-column label="鎿嶄綔" align="center" width="220" fixed="right">
+        <el-table-column label="操作" align="center" width="220" fixed="right">
           <template #default="scope">
             <el-button
                 link
@@ -459,7 +459,7 @@
                 icon="View"
                 @click="handleDetail(scope.row)"
             >
-              璇︽儏
+              详情
             </el-button>
 
             <el-button
@@ -469,7 +469,7 @@
                 @click="handleUpdate(scope.row)"
                 v-hasPermi="['system:resultoffu:edit']"
             >
-              淇敼
+              修改
             </el-button>
 
             <el-button
@@ -479,7 +479,7 @@
                 @click="handleDelete(scope.row)"
                 v-hasPermi="['system:resultoffu:remove']"
             >
-              鍒犻櫎
+              删除
             </el-button>
           </template>
         </el-table-column>
@@ -494,84 +494,84 @@
       />
     </section>
 
-    <!-- 鏂板 / 淇敼寮圭獥 -->
+    <!-- 新增 / 修改弹窗 -->
     <el-dialog :title="title" v-model="open" width="820px" append-to-body>
       <el-form ref="resultoffuRef" :model="form" :rules="rules" label-width="130px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="铻嶅悎缂栧彿" prop="fusionCode">
-              <el-input v-model="form.fusionCode" placeholder="璇疯緭鍏ヨ瀺鍚堢紪鍙? />
+            <el-form-item label="融合编号" prop="fusionCode">
+              <el-input v-model="form.fusionCode" placeholder="请输入融合编号" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏍锋湰ID" prop="sampleId">
+            <el-form-item label="样本ID" prop="sampleId">
               <el-input-number
                   v-model="form.sampleId"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ユ牱鏈琁D"
+                  placeholder="请输入样本ID"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏍锋湰缂栧彿" prop="sampleCode">
-              <el-input v-model="form.sampleCode" placeholder="璇疯緭鍏ユ牱鏈紪鍙? />
+            <el-form-item label="样本编号" prop="sampleCode">
+              <el-input v-model="form.sampleCode" placeholder="请输入样本编号" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="铻嶅悎鐗瑰緛缁勬垚" prop="featureIds">
-              <el-input v-model="form.featureIds" placeholder="澶氫紶鎰熷櫒鏃跺簭绐楀彛鐗瑰緛銆佷紶鎰熷櫒绌洪棿鍏崇郴鐗瑰緛銆佹椂闂存紨鍖栫壒寰併€佹晠闅滅被鍒潯浠剁壒寰? />
+            <el-form-item label="融合特征组成" prop="featureIds">
+              <el-input v-model="form.featureIds" placeholder="多传感器时序窗口特征、传感器空间关系特征、时间演化特征、故障类别条件特征" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="铻嶅悎鏂规硶" prop="fusionMethod">
-              <el-select v-model="form.fusionMethod" placeholder="璇烽€夋嫨铻嶅悎鏂规硶" style="width: 100%">
+            <el-form-item label="融合方法" prop="fusionMethod">
+              <el-select v-model="form.fusionMethod" placeholder="请选择融合方法" style="width: 100%">
                 <el-option label="PCA+Attention" value="PCA+Attention" />
-                <el-option label="鐗瑰緛鎷兼帴" value="鐗瑰緛鎷兼帴" />
-                <el-option label="鍔犳潈铻嶅悎" value="鍔犳潈铻嶅悎" />
-                <el-option label="璋辨槧灏勮瀺鍚? value="璋辨槧灏勮瀺鍚? />
+                <el-option label="特征拼接" value="特征拼接" />
+                <el-option label="加权融合" value="加权融合" />
+                <el-option label="谱映射融合" value="谱映射融合" />
               </el-select>
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="缃俊鏉冮噸" prop="confidenceWeight">
+            <el-form-item label="置信权重" prop="confidenceWeight">
               <el-input-number
                   v-model="form.confidenceWeight"
                   :controls="false"
                   :min="0"
                   :max="1"
                   :step="0.01"
-                  placeholder="璇疯緭鍏ョ疆淇℃潈閲?
+                  placeholder="请输入置信权重"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="杈撳嚭缁村害" prop="outputDimension">
+            <el-form-item label="输出维度" prop="outputDimension">
               <el-input-number
                   v-model="form.outputDimension"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ヨ緭鍑虹淮搴?
+                  placeholder="请输入输出维度"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鍚戦噺闀垮害" prop="vectorLength">
+            <el-form-item label="向量长度" prop="vectorLength">
               <el-input-number
                   v-model="form.vectorLength"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ュ悜閲忛暱搴?
+                  placeholder="请输入向量长度"
                   style="width: 100%"
               />
             </el-form-item>
@@ -579,18 +579,18 @@
 
 
           <el-col :span="12">
-            <el-form-item label="鍚戦噺鏂囦欢璺緞" prop="vectorPath">
-              <el-input v-model="form.vectorPath" placeholder="璇疯緭鍏ュ悜閲忔枃浠惰矾寰? />
+            <el-form-item label="向量文件路径" prop="vectorPath">
+              <el-input v-model="form.vectorPath" placeholder="请输入向量文件路径" />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="铻嶅悎鍚戦噺JSON" prop="vectorJson">
+            <el-form-item label="融合向量JSON" prop="vectorJson">
               <el-input
                   v-model="form.vectorJson"
                   type="textarea"
                   :rows="5"
-                  placeholder="璇疯緭鍏ヨ瀺鍚堝悜閲廕SON"
+                  placeholder="请输入融合向量JSON"
               />
             </el-form-item>
           </el-col>
@@ -600,63 +600,63 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">纭?瀹?/el-button>
-          <el-button @click="cancel">鍙?娑?/el-button>
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
     </el-dialog>
 
-    <!-- 璇︽儏寮圭獥 -->
-    <el-dialog title="鐗瑰緛铻嶅悎璇︽儏" v-model="detailOpen" width="820px" append-to-body>
+    <!-- 详情弹窗 -->
+    <el-dialog title="特征融合详情" v-model="detailOpen" width="820px" append-to-body>
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="铻嶅悎ID">
+        <el-descriptions-item label="融合ID">
           {{ detail.fusionId }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="铻嶅悎缂栧彿">
+        <el-descriptions-item label="融合编号">
           {{ detail.fusionCode }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="鏍锋湰ID">
+        <el-descriptions-item label="样本ID">
           {{ detail.sampleId }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="鏍锋湰缂栧彿">
+        <el-descriptions-item label="样本编号">
           {{ detail.sampleCode }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="铻嶅悎鐗瑰緛缁勬垚" :span="2">
+        <el-descriptions-item label="融合特征组成" :span="2">
           {{ detail.featureIds }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="铻嶅悎鏂规硶">
+        <el-descriptions-item label="融合方法">
           {{ detail.fusionMethod }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="缃俊鏉冮噸">
+        <el-descriptions-item label="置信权重">
           {{ detail.confidenceWeight }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="杈撳嚭缁村害">
+        <el-descriptions-item label="输出维度">
           {{ detail.outputDimension }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="鍚戦噺闀垮害">
+        <el-descriptions-item label="向量长度">
           {{ detail.vectorLength }}
         </el-descriptions-item>
 
 
-        <el-descriptions-item label="鍚戦噺璺緞" :span="2">
+        <el-descriptions-item label="向量路径" :span="2">
           {{ detail.vectorPath }}
         </el-descriptions-item>
       </el-descriptions>
 
-      <el-divider content-position="left">铻嶅悎鍚戦噺 JSON</el-divider>
+      <el-divider content-position="left">融合向量 JSON</el-divider>
       <el-input v-model="detail.vectorJson" type="textarea" :rows="8" readonly />
 
 
       <template #footer>
-        <el-button type="primary" @click="detailOpen = false">鍏抽棴</el-button>
+        <el-button type="primary" @click="detailOpen = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -680,7 +680,7 @@ import {
   getTopic4Pipeline,
   updateTopic4Pipeline,
   formatDateTime
-} from "@/utils/project4/topic4Pipeline"
+} from "@/utils/topic4Pipeline"
 
 const route = useRoute()
 const pipelineId = ref(String(route.query.pipelineId || getCurrentTopic4PipelineId() || "").trim())
@@ -720,28 +720,28 @@ const fusionSampleOptions = ref([])
 const FEATURE_FUSION_COMPONENTS = [
   {
     key: "timeWindow",
-    name: "澶氫紶鎰熷櫒鏃跺簭绐楀彛鐗瑰緛",
+    name: "多传感器时序窗口特征",
     color: "#5470c6"
   },
   {
     key: "spatialRelation",
-    name: "浼犳劅鍣ㄧ┖闂村叧绯荤壒寰?,
+    name: "传感器空间关系特征",
     color: "#91cc75"
   },
   {
     key: "temporalEvolution",
-    name: "鏃堕棿婕斿寲鐗瑰緛",
+    name: "时间演化特征",
     color: "#fac858"
   },
   {
     key: "classCondition",
-    name: "鏁呴殰绫诲埆鏉′欢鐗瑰緛",
+    name: "故障类别条件特征",
     color: "#ee6666"
   }
 ]
 
 function buildFeatureCompositionText() {
-  return FEATURE_FUSION_COMPONENTS.map(item => item.name).join("銆?)
+  return FEATURE_FUSION_COMPONENTS.map(item => item.name).join("、")
 }
 
 
@@ -759,28 +759,28 @@ const data = reactive({
   },
   rules: {
     fusionCode: [
-      { required: true, message: "铻嶅悎缂栧彿涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "融合编号不能为空", trigger: "blur" }
     ],
     sampleId: [
-      { required: true, message: "鏍锋湰ID涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "样本ID不能为空", trigger: "blur" }
     ],
     sampleCode: [
-      { required: true, message: "鏍锋湰缂栧彿涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "样本编号不能为空", trigger: "blur" }
     ],
     featureIds: [
-      { required: true, message: "铻嶅悎鐗瑰緛缁勬垚涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "融合特征组成不能为空", trigger: "blur" }
     ],
     fusionMethod: [
-      { required: true, message: "铻嶅悎鏂规硶涓嶈兘涓虹┖", trigger: "change" }
+      { required: true, message: "融合方法不能为空", trigger: "change" }
     ],
     confidenceWeight: [
-      { required: true, message: "缃俊鏉冮噸涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "置信权重不能为空", trigger: "blur" }
     ],
     outputDimension: [
-      { required: true, message: "杈撳嚭缁村害涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "输出维度不能为空", trigger: "blur" }
     ],
     vectorLength: [
-      { required: true, message: "鍚戦噺闀垮害涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "向量长度不能为空", trigger: "blur" }
     ]
   }
 })
@@ -851,7 +851,7 @@ function getList() {
 
     loading.value = false
   }).catch(error => {
-    console.error("鐗瑰緛铻嶅悎缁撴灉鏌ヨ澶辫触锛?, error)
+    console.error("特征融合结果查询失败：", error)
     resultoffuList.value = buildPresentationRows([])
     total.value = resultoffuList.value.length
 
@@ -906,7 +906,7 @@ async function loadPipelineInput() {
   selectedAugmentRows.value = []
 
   if (!pipelineId.value) {
-    proxy.$modal.msgWarning("鏈壘鍒板綋鍓嶆祦绋婭D锛岃鍏堜粠鏍锋湰澧炲己椤甸潰杩涘叆鐗瑰緛铻嶅悎")
+    proxy.$modal.msgWarning("未找到当前流程ID，请先从样本增强页面进入特征融合")
     return
   }
 
@@ -915,7 +915,7 @@ async function loadPipelineInput() {
       pageNum: 1,
       pageSize: 1000,
       pipelineId: pipelineId.value,
-      validity: "鏈夋晥"
+      validity: "有效"
     })
 
     const rows = (response.rows || response.data || []).map(row => ({
@@ -931,7 +931,7 @@ async function loadPipelineInput() {
       multiplier: row.multiplier || row.augmentRatio,
       generatedCount: row.generatedCount,
       outputPath: row.outputPath || row.resultPath || row.vectorPath,
-      validity: row.validity || "鏈夋晥"
+      validity: row.validity || "有效"
     }))
 
     upstreamAugmentResults.value = rows
@@ -942,22 +942,22 @@ async function loadPipelineInput() {
     })
 
     if (rows.length > 0) {
-      proxy.$modal.msgSuccess(`宸茶鍙栧綋鍓嶆祦绋嬪寮烘牱鏈?${rows.length} 鏉)
+      proxy.$modal.msgSuccess(`已读取当前流程增强样本 ${rows.length} 条`)
     } else {
-      proxy.$modal.msgWarning(`褰撳墠娴佺▼ ${pipelineId.value} 涓嬫病鏈夊寮烘牱鏈紝璇峰洖鍒版牱鏈寮洪〉闈㈤噸鏂版墽琛宍)
+      proxy.$modal.msgWarning(`当前流程 ${pipelineId.value} 下没有增强样本，请回到样本增强页面重新执行`)
     }
   } catch (error) {
-    console.error("璇诲彇澧炲己鏍锋湰澶辫触锛?, error)
+    console.error("读取增强样本失败：", error)
 
     const pipeline = getTopic4Pipeline(pipelineId.value)
     upstreamAugmentResults.value = pipeline && pipeline.augmentResults ? pipeline.augmentResults : []
 
     if (!upstreamAugmentResults.value.length) {
-      proxy.$modal.msgWarning("鏈鍙栧埌澧炲己鏍锋湰锛岃鍏堟墽琛屾牱鏈寮?)
+      proxy.$modal.msgWarning("未读取到增强样本，请先执行样本增强")
     }
   }
 }
-/** 鏋勯€犻〉闈㈠睍绀烘暟鎹細鍚庣鏈夋暟鎹椂淇濇寔鍚庣瀛楁锛岀己灏戞暟鎹椂琛ュ厖婕旂ず鏍锋湰 */
+/** 构造页面展示数据：后端有数据时保持后端字段，缺少数据时补充演示样本 */
 function buildPresentationRows(rows) {
   const sourceRows = rows && rows.length ? rows : buildDemoFusionRows()
 
@@ -1002,7 +1002,7 @@ function buildPresentationRows(rows) {
   })
 }
 
-/** 鍚庣鏃犳暟鎹椂鐨勬紨绀烘牱鏈?*/
+/** 后端无数据时的演示样本 */
 function buildDemoFusionRows() {
   return [1, 2, 3, 4, 5, 6].map(sampleId => ({
     fusionId: sampleId,
@@ -1018,10 +1018,10 @@ function buildDemoFusionRows() {
   }))
 }
 
-/** 鏋勫缓鏍锋湰涓嬫媺妗嗭紝鍙樉绀烘牱鏈紪鍙?*/
+/** 构建样本下拉框，只显示样本编号 */
 function buildFusionSampleOptions() {
   fusionSampleOptions.value = resultoffuList.value.map(row => ({
-    label: `鏍锋湰ID锛?{row.sampleId}`,
+    label: `样本ID：${row.sampleId}`,
     value: String(row.sampleId)
   }))
 
@@ -1032,7 +1032,7 @@ function buildFusionSampleOptions() {
   }
 }
 
-/** 鑾峰彇褰撳墠閫変腑鏍锋湰璁板綍 */
+/** 获取当前选中样本记录 */
 function getSelectedFusionRow() {
   if (!selectedFusionSampleId.value) {
     return null
@@ -1041,14 +1041,14 @@ function getSelectedFusionRow() {
   return resultoffuList.value.find(row => String(row.sampleId) === String(selectedFusionSampleId.value)) || null
 }
 
-/** 鍒囨崲 PCA 鍥惧綋鍓嶆牱鏈?*/
+/** 切换 PCA 图当前样本 */
 function handlePcaSampleChange() {
   nextTick(() => {
     initAllFusionCharts()
   })
 }
 
-/** 鐐瑰嚮琛ㄦ牸琛岋紝鍚屾鍒囨崲 PCA 鍥?*/
+/** 点击表格行，同步切换 PCA 图 */
 function handleTableRowClick(row) {
   selectedFusionSampleId.value = String(row.sampleId)
 
@@ -1057,7 +1057,7 @@ function handleTableRowClick(row) {
   })
 }
 
-/** 楂樹寒褰撳墠鍥捐〃瀵瑰簲鐨勮〃鏍艰 */
+/** 高亮当前图表对应的表格行 */
 function tableRowClassName({ row }) {
   if (String(row.sampleId) === String(selectedFusionSampleId.value)) {
     return "chart-current-row"
@@ -1066,15 +1066,15 @@ function tableRowClassName({ row }) {
   return ""
 }
 
-/** 鍒锋柊 PCA 鍥?*/
+/** 刷新 PCA 图 */
 function refreshPcaChart() {
   initAllFusionCharts()
 }
 
 /**
- * 鏋勯€犲綋鍓嶆牱鏈殑 PCA 瀵规瘮鏁版嵁銆?
- * 姣忎釜鏍锋湰浣跨敤 sampleId 浣滀负绉嶅瓙锛屽洜姝や笉鍚屾牱鏈殑鐗瑰緛鐐逛綅缃笉鍚岋紱
- * 铻嶅悎鍚庣偣浣嶅悜铻嶅悎涓績鏀舵暃锛岀敤浜庝綋鐜?PCA+Attention 鍚庣壒寰佽〃杈炬洿绱у噾銆?
+ * 构造当前样本的 PCA 对比数据。
+ * 每个样本使用 sampleId 作为种子，因此不同样本的特征点位置不同；
+ * 融合后点位向融合中心收敛，用于体现 PCA+Attention 后特征表达更紧凑。
  */
 function buildPcaComparisonData(row, index = 0) {
   const sampleId = Number(row?.sampleId || index + 1)
@@ -1116,7 +1116,7 @@ function buildPcaComparisonData(row, index = 0) {
   })
 
   const fusedPoint = {
-    name: "铻嶅悎鐗瑰緛鍚戦噺",
+    name: "融合特征向量",
     value: [
       Number((after.reduce((sum, item) => sum + item.value[0], 0) / after.length).toFixed(2)),
       Number((after.reduce((sum, item) => sum + item.value[1], 0) / after.length).toFixed(2))
@@ -1135,7 +1135,7 @@ function buildPcaComparisonData(row, index = 0) {
 }
 
 
-/** 鍒濆鍖?PCA 铻嶅悎鍓嶅悗瀵规瘮鍥?*/
+/** 初始化 PCA 融合前后对比图 */
 function initPcaComparisonChart() {
   if (!pcaChartRef.value) {
     return
@@ -1152,7 +1152,7 @@ function initPcaComparisonChart() {
   if (!selectedRow) {
     pcaChartInstance.setOption({
       title: {
-        text: "鏆傛棤 PCA 瀵规瘮鏁版嵁",
+        text: "暂无 PCA 对比数据",
         left: "center",
         top: "center",
         textStyle: {
@@ -1166,7 +1166,7 @@ function initPcaComparisonChart() {
   }
 
   const pcaData = buildPcaComparisonData(selectedRow)
-  const sampleLabel = `鏍锋湰ID ${selectedRow.sampleId}`
+  const sampleLabel = `样本ID ${selectedRow.sampleId}`
 
   const axisCommon = {
     type: "value",
@@ -1220,8 +1220,8 @@ function initPcaComparisonChart() {
     backgroundColor: "#ffffff",
     title: [
       {
-        text: "铻嶅悎鍓?PCA 鍒嗗竷",
-        subtext: "鍥涚被鍘熷鐗瑰緛鐩稿鍒嗘暎",
+        text: "融合前 PCA 分布",
+        subtext: "四类原始特征相对分散",
         left: "24%",
         top: 8,
         textAlign: "center",
@@ -1236,8 +1236,8 @@ function initPcaComparisonChart() {
         }
       },
       {
-        text: "铻嶅悎鍚?PCA 鍒嗗竷",
-        subtext: "铻嶅悎鐗瑰緛鍚戠粺涓€琛ㄨ揪鏀舵暃",
+        text: "融合后 PCA 分布",
+        subtext: "融合特征向统一表达收敛",
         left: "74%",
         top: 8,
         textAlign: "center",
@@ -1278,11 +1278,11 @@ function initPcaComparisonChart() {
 
         return [
           `${prefix}`,
-          `鐗瑰緛锛?{params.name}`,
-          `PC1锛?{value[0]}`,
-          `PC2锛?{value[1]}`,
-          `鏍锋湰ID锛?{selectedRow.sampleId}`,
-          `铻嶅悎鏂规硶锛?{selectedRow.fusionMethod || "-"}`
+          `特征：${params.name}`,
+          `PC1：${value[0]}`,
+          `PC2：${value[1]}`,
+          `样本ID：${selectedRow.sampleId}`,
+          `融合方法：${selectedRow.fusionMethod || "-"}`
         ].join("<br/>")
       }
     },
@@ -1322,7 +1322,7 @@ function initPcaComparisonChart() {
     ],
     series: [
       {
-        name: "铻嶅悎鍓?,
+        name: "融合前",
         type: "scatter",
         xAxisIndex: 0,
         yAxisIndex: 0,
@@ -1348,7 +1348,7 @@ function initPcaComparisonChart() {
         markLine: boundaryMarkLine
       },
       {
-        name: "铻嶅悎鍚?,
+        name: "融合后",
         type: "scatter",
         xAxisIndex: 1,
         yAxisIndex: 1,
@@ -1375,7 +1375,7 @@ function initPcaComparisonChart() {
         markLine: boundaryMarkLine
       },
       {
-        name: "铻嶅悎缁撴灉",
+        name: "融合结果",
         type: "scatter",
         xAxisIndex: 1,
         yAxisIndex: 1,
@@ -1391,7 +1391,7 @@ function initPcaComparisonChart() {
         },
         label: {
           show: true,
-          formatter: "铻嶅悎鍚戦噺",
+          formatter: "融合向量",
           position: "bottom",
           color: "#0c2b52",
           fontSize: 12,
@@ -1407,7 +1407,7 @@ function initPcaComparisonChart() {
   pcaChartInstance.setOption(option)
 }
 
-/** 鍒濆鍖栧叏閮ㄥ浘琛?*/
+/** 初始化全部图表 */
 function initAllFusionCharts() {
   initPcaComparisonChart()
   initSensorCorrelationHeatmap()
@@ -1420,7 +1420,7 @@ function initAllFusionCharts() {
   })
 }
 
-/** 鏋勯€犲綋鍓嶆牱鏈殑澶氫紶鎰熷櫒鐩稿叧鎬х儹鍔涘浘鏁版嵁 */
+/** 构造当前样本的多传感器相关性热力图数据 */
 function buildSensorCorrelationData(row) {
   const sampleId = Number(row?.sampleId || 1)
   const sensors = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"]
@@ -1448,7 +1448,7 @@ function buildSensorCorrelationData(row) {
 }
 
 
-/** 鍒濆鍖栧浼犳劅鍣ㄧ浉鍏虫€х儹鍔涘浘 */
+/** 初始化多传感器相关性热力图 */
 function initSensorCorrelationHeatmap() {
   if (!heatmapChartRef.value) {
     return
@@ -1464,7 +1464,7 @@ function initSensorCorrelationHeatmap() {
   if (!selectedRow) {
     heatmapChartInstance.setOption({
       title: {
-        text: "鏆傛棤浼犳劅鍣ㄧ浉鍏虫€ф暟鎹?,
+        text: "暂无传感器相关性数据",
         left: "center",
         top: "center",
         textStyle: { color: "#7b8da3", fontSize: 15 }
@@ -1489,9 +1489,9 @@ function initSensorCorrelationHeatmap() {
       },
       formatter: params => {
         return [
-          `鏍锋湰ID锛?{selectedRow.sampleId}`,
-          `浼犳劅鍣ㄧ粍鍚堬細${sensors[params.value[1]]} - ${sensors[params.value[0]]}`,
-          `鐩稿叧绯绘暟锛?{params.value[2]}`
+          `样本ID：${selectedRow.sampleId}`,
+          `传感器组合：${sensors[params.value[1]]} - ${sensors[params.value[0]]}`,
+          `相关系数：${params.value[2]}`
         ].join("<br/>")
       }
     },
@@ -1536,7 +1536,7 @@ function initSensorCorrelationHeatmap() {
     },
     series: [
       {
-        name: "浼犳劅鍣ㄧ浉鍏虫€?,
+        name: "传感器相关性",
         type: "heatmap",
         data: heatmapData,
         label: {
@@ -1567,7 +1567,7 @@ function initSensorCorrelationHeatmap() {
   })
 }
 
-/** 鏋勯€犲綋鍓嶆牱鏈洓绫昏瀺鍚堢壒寰佽础鐚害 */
+/** 构造当前样本四类融合特征贡献度 */
 function buildFeatureContributionData(row) {
   const sampleId = Number(row?.sampleId || 1)
   const base = [0.31, 0.27, 0.24, 0.18]
@@ -1587,7 +1587,7 @@ function buildFeatureContributionData(row) {
 }
 
 
-/** 鍒濆鍖栧綋鍓嶆牱鏈壒寰佽础鐚害鏌辩姸鍥?*/
+/** 初始化当前样本特征贡献度柱状图 */
 function initFeatureContributionChart() {
   if (!contributionChartRef.value) {
     return
@@ -1603,7 +1603,7 @@ function initFeatureContributionChart() {
   if (!selectedRow) {
     contributionChartInstance.setOption({
       title: {
-        text: "鏆傛棤鐗瑰緛璐＄尞搴︽暟鎹?,
+        text: "暂无特征贡献度数据",
         left: "center",
         top: "center",
         textStyle: { color: "#7b8da3", fontSize: 15 }
@@ -1636,9 +1636,9 @@ function initFeatureContributionChart() {
         const item = params[0]
         const fullName = contributionData[item.dataIndex]?.name || item.name
         return [
-          `鏍锋湰ID锛?{selectedRow.sampleId}`,
-          `鐗瑰緛锛?{fullName}`,
-          `璐＄尞搴︼細${item.value}%`
+          `样本ID：${selectedRow.sampleId}`,
+          `特征：${fullName}`,
+          `贡献度：${item.value}%`
         ].join("<br/>")
       }
     },
@@ -1667,7 +1667,7 @@ function initFeatureContributionChart() {
     },
     yAxis: {
       type: "value",
-      name: "璐＄尞搴?%)",
+      name: "贡献度(%)",
       max: 45,
       nameTextStyle: {
         color: "#7b8da3",
@@ -1689,7 +1689,7 @@ function initFeatureContributionChart() {
     },
     series: [
       {
-        name: "璐＄尞搴?,
+        name: "贡献度",
         type: "bar",
         barWidth: 34,
         data: contributionData,
@@ -1712,19 +1712,19 @@ function initFeatureContributionChart() {
   })
 }
 
-/** 鐗瑰緛鍚嶇缉鍐欙紝閬垮厤鍥句腑鏍囩杩囬暱 */
+/** 特征名缩写，避免图中标签过长 */
 function shortFeatureName(name) {
   const map = {
-    "澶氫紶鎰熷櫒鏃跺簭绐楀彛鐗瑰緛": "鏃跺簭绐楀彛",
-    "浼犳劅鍣ㄧ┖闂村叧绯荤壒寰?: "绌洪棿鍏崇郴",
-    "鏃堕棿婕斿寲鐗瑰緛": "鏃堕棿婕斿寲",
-    "鏁呴殰绫诲埆鏉′欢鐗瑰緛": "绫诲埆鏉′欢"
+    "多传感器时序窗口特征": "时序窗口",
+    "传感器空间关系特征": "空间关系",
+    "时间演化特征": "时间演化",
+    "故障类别条件特征": "类别条件"
   }
 
   return map[name] || name
 }
 
-/** 鍥捐〃灏哄閫傞厤 */
+/** 图表尺寸适配 */
 function handleChartResize() {
   if (pcaChartInstance) {
     pcaChartInstance.resize()
@@ -1805,7 +1805,7 @@ function handleAdd() {
   form.value.vectorPath = "/data/fusion/FUS-CWRU-" + codeSuffix + "_fusion_vector.json"
 
   open.value = true
-  title.value = "娣诲姞鐗瑰緛铻嶅悎缁撴灉"
+  title.value = "添加特征融合结果"
 }
 
 function handleUpdate(row) {
@@ -1814,7 +1814,7 @@ function handleUpdate(row) {
   getResultoffu(fusionId).then(response => {
     form.value = response.data
     open.value = true
-    title.value = "淇敼鐗瑰緛铻嶅悎缁撴灉"
+    title.value = "修改特征融合结果"
   })
 }
 
@@ -1826,7 +1826,7 @@ function submitForm() {
 
     if (form.value.fusionId != null) {
       updateResultoffu(form.value).then(() => {
-        proxy.$modal.msgSuccess("淇敼鎴愬姛")
+        proxy.$modal.msgSuccess("修改成功")
         open.value = false
         getList()
       })
@@ -1834,7 +1834,7 @@ function submitForm() {
       form.value.fusionId = Number(String(new Date().getTime()).slice(-8))
 
       addResultoffu(form.value).then(() => {
-        proxy.$modal.msgSuccess("鏂板鎴愬姛")
+        proxy.$modal.msgSuccess("新增成功")
         open.value = false
         getList()
       })
@@ -1844,11 +1844,11 @@ function submitForm() {
 
 function handleDelete(row) {
   const fusionIds = row.fusionId || ids.value
-  proxy.$modal.confirm('鏄惁纭鍒犻櫎鐗瑰緛铻嶅悎缁撴灉缂栧彿涓?"' + fusionIds + '" 鐨勬暟鎹」锛?).then(() => {
+  proxy.$modal.confirm('是否确认删除特征融合结果编号为 "' + fusionIds + '" 的数据项？').then(() => {
     return delResultoffu(fusionIds)
   }).then(() => {
     getList()
-    proxy.$modal.msgSuccess("鍒犻櫎鎴愬姛")
+    proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})
 }
 
@@ -1874,17 +1874,17 @@ async function handleRunFusion() {
   const inputRows = selectedAugmentRows.value || []
 
   if (!pipelineId.value) {
-    proxy.$modal.msgWarning("鏈壘鍒板綋鍓嶆祦绋婭D锛岃鍏堜粠鏁版嵁鏂囦欢绠＄悊妯″潡寮€濮嬫祦绋?)
+    proxy.$modal.msgWarning("未找到当前流程ID，请先从数据文件管理模块开始流程")
     return
   }
 
   if (!upstreamAugmentResults.value.length) {
-    proxy.$modal.msgWarning("鏈壘鍒板寮烘牱鏈紝璇峰厛鎵ц鏍锋湰澧炲己")
+    proxy.$modal.msgWarning("未找到增强样本，请先执行样本增强")
     return
   }
 
   if (!inputRows.length) {
-    proxy.$modal.msgWarning("璇峰厛鍦ㄥ寮烘牱鏈垪琛ㄤ腑鍕鹃€夐渶瑕佽瀺鍚堢殑鏍锋湰")
+    proxy.$modal.msgWarning("请先在增强样本列表中勾选需要融合的样本")
     return
   }
 
@@ -1903,12 +1903,12 @@ async function handleRunFusion() {
       const augmentOutputPath = row.outputPath || row.augmentOutputPath || row.vectorPath || row.resultPath
 
       if (!augmentOutputPath) {
-        proxy.$modal.msgWarning(`澧炲己鏍锋湰 ${sampleCode} 缂哄皯 outputPath锛屾棤娉曟墽琛岀壒寰佽瀺鍚坄)
+        proxy.$modal.msgWarning(`增强样本 ${sampleCode} 缺少 outputPath，无法执行特征融合`)
         return
       }
 
       const response = await runFusion({
-        // 鍚庣 fd_fusion_result.pipeline_id 鏄暟瀛楀瀷瀛楁锛岄〉闈㈡祦绋嬪彿 P-xxxx 鍙綔涓?pipelineCode 浼犻€掋€?
+        // 后端 fd_fusion_result.pipeline_id 是数字型字段，页面流程号 P-xxxx 只作为 pipelineCode 传递。
         pipelineId: pipelineId.value,
         pipelineCode: pipelineId.value,
         datasetId: Number(row.datasetId) || 1,
@@ -1973,7 +1973,7 @@ async function handleRunFusion() {
         }),
         vectorPath: backendVectorPath || `/data/fusion/${sampleCode}_${fusionMethod}_vector.json`,
         createTime: backendRow.createTime || formatDateTime(new Date()),
-        status: "宸茶瀺鍚?
+        status: "已融合"
       })
     }
 
@@ -1995,10 +1995,10 @@ async function handleRunFusion() {
       initAllFusionCharts()
     })
 
-    proxy.$modal.msgSuccess("鐗瑰緛铻嶅悎鎵ц瀹屾垚锛岀湡瀹炲悗绔粨鏋滃凡鍐欏叆鏁版嵁搴擄紝鍙偣鍑烩€滆繘鍏ユ晠闅滆瘖鏂€濈户缁笅涓€姝?)
+    proxy.$modal.msgSuccess("特征融合执行完成，真实后端结果已写入数据库，可点击“进入故障诊断”继续下一步")
   } catch (error) {
-    console.error("鐗瑰緛铻嶅悎鎵ц澶辫触锛?, error)
-    proxy.$modal.msgError(error?.msg || error?.message || "鐗瑰緛铻嶅悎鎵ц澶辫触锛岃妫€鏌ュ悗绔湇鍔″拰 fusion.py")
+    console.error("特征融合执行失败：", error)
+    proxy.$modal.msgError(error?.msg || error?.message || "特征融合执行失败，请检查后端服务和 fusion.py")
   } finally {
     fusionExecuteLoading.value = false
   }
@@ -2006,11 +2006,11 @@ async function handleRunFusion() {
 
 function handleGoDiagnosis() {
   if (!pipelineId.value) {
-    proxy.$modal.msgWarning("鏈壘鍒板綋鍓嶆祦绋婭D锛岃鍏堝畬鎴愮壒寰佽瀺鍚?)
+    proxy.$modal.msgWarning("未找到当前流程ID，请先完成特征融合")
     return
   }
 
-  goTopic4PageByTitle("璇婃柇缁撴灉", {
+  goTopic4PageByTitle("诊断结果", {
     pipelineId: pipelineId.value
   })
 }
@@ -2023,7 +2023,7 @@ function goTopic4PageByTitle(title, query = {}) {
   })
 
   if (!targetRoute) {
-    proxy.$modal.msgError(`娌℃湁鎵惧埌鑿滃崟璺敱锛?{title}锛岃妫€鏌ヨ彍鍗曞悕绉版槸鍚︿竴鑷碻)
+    proxy.$modal.msgError(`没有找到菜单路由：${title}，请检查菜单名称是否一致`)
     console.table(
         routes
             .filter(route => route.meta && route.meta.title)
@@ -2056,7 +2056,7 @@ function formatJsonText(value) {
 
 function formatJsonForView(value) {
   if (!value) {
-    return "鏆傛棤鏁版嵁"
+    return "暂无数据"
   }
 
   try {

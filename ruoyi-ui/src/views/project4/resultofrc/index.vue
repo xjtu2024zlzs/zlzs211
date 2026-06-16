@@ -1,54 +1,54 @@
 ﻿<template>
   <div class="project4-page">
-    <!-- 椤甸潰澶撮儴 -->
+    <!-- 页面头部 -->
     <section class="module-hero">
       <div>
-        <div class="module-eyebrow">璇鹃鍥?路 鏍瑰洜鍒嗘瀽缁撴灉杈撳嚭鎺ュ彛</div>
-        <h2>鏍瑰洜鍒嗘瀽缁撴灉</h2>
+        <div class="module-eyebrow">课题四 · 根因分析结果输出接口</div>
+        <h2>根因分析结果</h2>
         <p>
-          鏈ā鍧楁寜鐓ф帴鍙ｈ〃鏍艰姹傦紝闈㈠悜璇鹃浜旇緭鍑烘牴鍥犲垽鏂€佽瘉鎹摼銆佹牴鍥犲垎鏋愮疆淇″害绛夌粨鏋滐紝
-          鐢ㄤ簬鏀拺鐢熷懡鍛ㄦ湡璐ㄩ噺杩芥函銆侀棶棰橀棴鐜€佹暣鏀瑰彫鍥炲拰璐ㄩ噺鍙嶉銆?
+          本模块按照接口表格要求，面向课题五输出根因判断、证据链、根因分析置信度等结果，
+          用于支撑生命周期质量追溯、问题闭环、整改召回和质量反馈。
         </p>
       </div>
 
       <div class="module-status">
-        <span>璇鹃鍥?鈫?璇鹃浜?/span>
-        <span>鏍瑰洜鍒嗘瀽杈撳嚭</span>
+        <span>课题四 → 课题五</span>
+        <span>根因分析输出</span>
       </div>
     </section>
 
-    <!-- 缁熻姒傝 -->
+    <!-- 统计概览 -->
     <section class="confidence-overview stats-only-overview">
       <div class="confidence-left">
         <div class="section-title-row">
           <div>
-            <div class="module-eyebrow">缁熻姒傝</div>
-            <h3>鏍瑰洜鍒嗘瀽缃俊搴︽瑙?/h3>
+            <div class="module-eyebrow">统计概览</div>
+            <h3>根因分析置信度概览</h3>
           </div>
-          <el-tag effect="plain" type="primary">鎸夋渶澶ф牴鍥犵疆淇″害缁熻</el-tag>
+          <el-tag effect="plain" type="primary">按最大根因置信度统计</el-tag>
         </div>
 
         <div class="metric-grid">
           <div class="metric-mini">
-            <span>鏍锋湰鎬绘暟</span>
+            <span>样本总数</span>
             <strong>{{ confidenceStatsData.total }}</strong>
-            <em>姣忎釜鏍锋湰灞曠ず鏈€澶х疆淇″害鏍瑰洜</em>
+            <em>每个样本展示最大置信度根因</em>
           </div>
 
           <div class="metric-mini">
-            <span>宸插垎鏋愭牱鏈?/span>
+            <span>已分析样本</span>
             <strong>{{ confidenceStatsData.analyzedCount }}</strong>
-            <em>analysisStatus = 宸插垎鏋?/em>
+            <em>analysisStatus = 已分析</em>
           </div>
 
           <div class="metric-mini">
-            <span>寰呭鏍告牱鏈?/span>
+            <span>待复核样本</span>
             <strong>{{ confidenceStatsData.pendingCount }}</strong>
-            <em>analysisStatus = 寰呭鏍?/em>
+            <em>analysisStatus = 待复核</em>
           </div>
 
           <div class="metric-mini">
-            <span>骞冲潎鏈€楂樻牴鍥犵疆淇″害</span>
+            <span>平均最高根因置信度</span>
             <strong>{{ formatProbability(confidenceStatsData.avgConfidence) }}</strong>
             <em>avg(max(rootCauseConfidence))</em>
           </div>
@@ -56,19 +56,19 @@
       </div>
     </section>
 
-    <!-- 璇婃柇缁撴灉杈撳叆涓庢牴鍥犲垎鏋愭墽琛?-->
+    <!-- 诊断结果输入与根因分析执行 -->
     <section class="rootcause-input-card">
       <div class="card-header rootcause-input-header">
         <div>
-          <div class="module-eyebrow">璇婃柇缁撴灉杈撳叆</div>
-          <h3>閫夋嫨璇婃柇鏍锋湰骞舵墽琛屾牴鍥犲垎鏋?/h3>
+          <div class="module-eyebrow">诊断结果输入</div>
+          <h3>选择诊断样本并执行根因分析</h3>
           <p class="section-desc">
-            浠庢晠闅滆瘖鏂ā鍧楁帴鍏ュ凡璇婃柇鏍锋湰锛屽嬀閫夐渶瑕佽拷婧殑寮傚父鏍锋湰鍚庢墽琛屾牴鍥犲垎鏋愶紝缁撴灉灏嗚緭鍑哄埌涓嬫柟鏍瑰洜鍒嗘瀽缁撴灉璁板綍骞跺悓姝ュ埛鏂伴ゼ鍥俱€?
+            从故障诊断模块接入已诊断样本，勾选需要追溯的异常样本后执行根因分析，结果将输出到下方根因分析结果记录并同步刷新饼图。
           </p>
         </div>
 
         <el-tag type="primary" effect="plain">
-          宸叉帴鍏ヨ瘖鏂粨鏋滐細{{ diagnosisInputList.length }} 鏉?
+          已接入诊断结果：{{ diagnosisInputList.length }} 条
         </el-tag>
       </div>
 
@@ -76,10 +76,10 @@
         <div class="input-table-panel">
           <div class="panel-title-row">
             <div>
-              <h4>璇婃柇缁撴灉鏍锋湰鍒楄〃</h4>
-              <p>鍕鹃€夐渶瑕佽繘琛屾牴鍥犲垎鏋愮殑璇婃柇鏍锋湰锛屾甯告牱鏈皢鑷姩璺宠繃銆?/p>
+              <h4>诊断结果样本列表</h4>
+              <p>勾选需要进行根因分析的诊断样本，正常样本将自动跳过。</p>
             </div>
-            <el-tag type="success" effect="plain">宸查€?{{ selectedDiagnosisRows.length }} 鏉?/el-tag>
+            <el-tag type="success" effect="plain">已选 {{ selectedDiagnosisRows.length }} 条</el-tag>
           </div>
 
           <el-table
@@ -87,56 +87,56 @@
               border
               stripe
               height="300"
-              empty-text="璇峰厛浠庢晠闅滆瘖鏂ā鍧楄繘鍏ワ紝鎴栧厛鎵ц鏁呴殰璇婃柇"
+              empty-text="请先从故障诊断模块进入，或先执行故障诊断"
               @selection-change="handleDiagnosisInputSelection"
               @row-click="handleDiagnosisInputRowClick"
           >
             <el-table-column type="selection" width="55" align="center" />
-            <el-table-column label="璇婃柇ID" prop="diagnosisId" align="center" width="90" />
-            <el-table-column label="鏍锋湰ID" prop="sampleId" align="center" width="90" />
-            <el-table-column label="鏍锋湰缂栧彿" prop="sampleCode" align="center" width="150" show-overflow-tooltip />
-            <el-table-column label="鏁呴殰浣嶇疆" prop="faultLocation" align="center" width="130" />
-            <el-table-column label="鏁呴殰绫诲瀷" prop="faultType" align="center" width="140">
+            <el-table-column label="诊断ID" prop="diagnosisId" align="center" width="90" />
+            <el-table-column label="样本ID" prop="sampleId" align="center" width="90" />
+            <el-table-column label="样本编号" prop="sampleCode" align="center" width="150" show-overflow-tooltip />
+            <el-table-column label="故障位置" prop="faultLocation" align="center" width="130" />
+            <el-table-column label="故障类型" prop="faultType" align="center" width="140">
               <template #default="scope">
                 <el-tag :type="diagnosisFaultTag(scope.row.faultType)" effect="plain">
                   {{ scope.row.faultType || '-' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="璇婃柇缃俊搴? align="center" width="130">
+            <el-table-column label="诊断置信度" align="center" width="130">
               <template #default="scope">
                 <span class="confidence-text">{{ formatProbability(scope.row.confidence) }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="鍋ュ悍璇勫垎" prop="healthScore" align="center" width="110" />
-            <el-table-column label="璇婃柇鏃堕棿" prop="diagnosisTime" align="center" width="170" show-overflow-tooltip />
+            <el-table-column label="健康评分" prop="healthScore" align="center" width="110" />
+            <el-table-column label="诊断时间" prop="diagnosisTime" align="center" width="170" show-overflow-tooltip />
           </el-table>
         </div>
 
         <div class="input-action-panel">
           <div class="panel-title-row compact">
             <div>
-              <h4>鏍瑰洜鍒嗘瀽鎵ц</h4>
-              <p>鍩轰簬璇婃柇缁撴灉銆佽瀺鍚堢壒寰佸拰鏍锋湰閾捐矾鐢熸垚鏍瑰洜璇佹嵁閾俱€?/p>
+              <h4>根因分析执行</h4>
+              <p>基于诊断结果、融合特征和样本链路生成根因证据链。</p>
             </div>
           </div>
 
           <div class="input-summary-list">
             <div class="summary-box">
-              <span>褰撳墠娴佺▼ID</span>
+              <span>当前流程ID</span>
               <strong>{{ pipelineId || '-' }}</strong>
             </div>
             <div class="summary-box">
-              <span>宸查€夋嫨鏍锋湰</span>
+              <span>已选择样本</span>
               <strong>{{ selectedDiagnosisRows.length }}</strong>
             </div>
             <div class="summary-box">
-              <span>鍙垎鏋愬紓甯告牱鏈?/span>
+              <span>可分析异常样本</span>
               <strong>{{ selectedAbnormalDiagnosisCount }}</strong>
             </div>
             <div class="summary-box">
-              <span>杈撳嚭缁撴灉</span>
-              <strong>鍏蜂綋鏍瑰洜 + 缃俊搴?+ 璇佹嵁閾?+ 鏁存敼寤鸿</strong>
+              <span>输出结果</span>
+              <strong>具体根因 + 置信度 + 证据链 + 整改建议</strong>
             </div>
           </div>
 
@@ -147,7 +147,7 @@
               :disabled="selectedAbnormalDiagnosisCount === 0"
               @click="handleRunRootCause"
           >
-            鎵ц鏍瑰洜鍒嗘瀽
+            执行根因分析
           </el-button>
         </div>
       </div>
@@ -155,14 +155,14 @@
       <div v-if="hasRootCauseResults" class="rootcause-chart-panel">
         <div class="chart-header">
           <div>
-            <div class="module-eyebrow">鍥惧舰鍒嗘瀽</div>
-            <h3>褰撳墠鏍锋湰鍚勬牴鍥犵疆淇″害楗煎浘</h3>
+            <div class="module-eyebrow">图形分析</div>
+            <h3>当前样本各根因置信度饼图</h3>
           </div>
 
           <div class="sample-chart-actions">
             <el-select
                 v-model="selectedChartSampleId"
-                placeholder="璇烽€夋嫨鏍锋湰"
+                placeholder="请选择样本"
                 clearable
                 style="width: 190px"
                 @change="handleChartRecordChange"
@@ -176,7 +176,7 @@
             </el-select>
 
             <el-button link type="primary" icon="Refresh" @click="refreshChartData">
-              鍒锋柊
+              刷新
             </el-button>
           </div>
         </div>
@@ -184,19 +184,19 @@
         <div ref="confidenceChartRef" class="confidence-chart rootcause-inline-chart"></div>
 
         <div class="chart-legend-note">
-          <span>鏁版嵁鏉ユ簮锛氬綋鍓嶅嬀閫夎瘖鏂牱鏈敓鎴愮殑鏍瑰洜鍒嗗竷</span>
-          <span>楗煎浘灞曠ず鍏ㄩ儴鏍瑰洜锛涜〃鏍煎彧灞曠ず璇ユ牱鏈疆淇″害鏈€澶х殑鏍瑰洜</span>
-          <span>鐐瑰嚮璇婃柇杈撳叆琛屾垨缁撴灉琛ㄦ牸琛屽彲鍚屾鍒囨崲鏍锋湰</span>
+          <span>数据来源：当前勾选诊断样本生成的根因分布</span>
+          <span>饼图展示全部根因；表格只展示该样本置信度最大的根因</span>
+          <span>点击诊断输入行或结果表格行可同步切换样本</span>
         </div>
 
         <div class="evidence-chain-panel">
           <div class="evidence-chain-header">
             <div>
-              <div class="module-eyebrow">璇佹嵁閾惧彲瑙嗗寲</div>
-              <h4>褰撳墠鏍锋湰鏍瑰洜鎺ㄧ悊璇佹嵁閾?/h4>
-              <p>灏嗚瘖鏂緭鍏ャ€佸紓甯哥壒寰併€佸€欓€夋牴鍥犮€佹渶澶ф牴鍥犲拰鏁存敼寤鸿涓茶仈灞曠ず锛屼綋鐜版牴鍥犲垽鏂殑鎺ㄧ悊渚濇嵁銆?/p>
+              <div class="module-eyebrow">证据链可视化</div>
+              <h4>当前样本根因推理证据链</h4>
+              <p>将诊断输入、异常特征、候选根因、最大根因和整改建议串联展示，体现根因判断的推理依据。</p>
             </div>
-            <el-tag type="primary" effect="plain">鏍锋湰锛歿{ currentEvidenceView.sampleCode }}</el-tag>
+            <el-tag type="primary" effect="plain">样本：{{ currentEvidenceView.sampleCode }}</el-tag>
           </div>
 
           <div class="evidence-flow-grid">
@@ -209,16 +209,16 @@
                   <p>{{ step.desc }}</p>
                 </div>
               </div>
-              <div v-if="index < currentEvidenceView.steps.length - 1" class="evidence-arrow">鈫?/div>
+              <div v-if="index < currentEvidenceView.steps.length - 1" class="evidence-arrow">→</div>
             </template>
           </div>
 
           <div class="fault-formation-chain">
-            <div class="formation-title">鏁呴殰褰㈡垚鏈虹悊閾捐矾</div>
+            <div class="formation-title">故障形成机理链路</div>
             <div class="formation-steps">
               <template v-for="(item, index) in currentEvidenceView.formation" :key="index">
                 <span class="formation-pill">{{ item.title }}</span>
-                <span v-if="index < currentEvidenceView.formation.length - 1" class="formation-arrow">鈫?/span>
+                <span v-if="index < currentEvidenceView.formation.length - 1" class="formation-arrow">→</span>
               </template>
             </div>
           </div>
@@ -226,19 +226,19 @@
       </div>
     </section>
 
-    <!-- 琛ㄦ牸鍖哄煙 -->
+    <!-- 表格区域 -->
     <section v-if="hasRootCauseResults" class="table-card">
       <div class="card-header table-card-header">
         <div>
-          <div class="module-eyebrow">鏁版嵁鍒楄〃</div>
-          <h3>鏍瑰洜鍒嗘瀽缁撴灉璁板綍</h3>
+          <div class="module-eyebrow">数据列表</div>
+          <h3>根因分析结果记录</h3>
         </div>
 
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" />
       </div>
 
       <div v-show="showSearch" class="table-filter-panel">
-        <div class="table-filter-title">鏍瑰洜鍒嗘瀽缁撴灉鏌ヨ</div>
+        <div class="table-filter-title">根因分析结果查询</div>
         <el-form
             :model="queryParams"
             ref="queryRef"
@@ -246,39 +246,39 @@
             label-width="96px"
             class="table-filter-form"
         >
-          <el-form-item label="鏍瑰洜缂栧彿" prop="analysisCode">
+          <el-form-item label="根因编号" prop="analysisCode">
             <el-input
                 v-model="queryParams.analysisCode"
-                placeholder="璇疯緭鍏ユ牴鍥犵紪鍙?
+                placeholder="请输入根因编号"
                 clearable
                 @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="鏍锋湰ID" prop="sampleId">
+          <el-form-item label="样本ID" prop="sampleId">
             <el-input-number
                 v-model="queryParams.sampleId"
                 :controls="false"
                 :min="0"
-                placeholder="璇疯緭鍏ユ牱鏈琁D"
+                placeholder="请输入样本ID"
                 style="width: 170px"
             />
           </el-form-item>
 
-          <el-form-item label="璇婃柇ID" prop="diagnosisId">
+          <el-form-item label="诊断ID" prop="diagnosisId">
             <el-input-number
                 v-model="queryParams.diagnosisId"
                 :controls="false"
                 :min="0"
-                placeholder="璇疯緭鍏ヨ瘖鏂璉D"
+                placeholder="请输入诊断ID"
                 style="width: 170px"
             />
           </el-form-item>
 
-          <el-form-item label="鍏蜂綋鏍瑰洜" prop="rootCauseType">
+          <el-form-item label="具体根因" prop="rootCauseType">
             <el-select
                 v-model="queryParams.rootCauseType"
-                placeholder="璇烽€夋嫨鍏蜂綋鏍瑰洜"
+                placeholder="请选择具体根因"
                 clearable
                 style="width: 210px"
             >
@@ -291,41 +291,41 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="鍒嗘瀽鐘舵€? prop="analysisStatus">
+          <el-form-item label="分析状态" prop="analysisStatus">
             <el-select
                 v-model="queryParams.analysisStatus"
-                placeholder="璇烽€夋嫨鐘舵€?
+                placeholder="请选择状态"
                 clearable
                 style="width: 170px"
             >
-              <el-option label="宸插垎鏋? value="宸插垎鏋? />
-              <el-option label="寰呭鏍? value="寰呭鏍? />
-              <el-option label="寰呭垎鏋? value="寰呭垎鏋? />
+              <el-option label="已分析" value="已分析" />
+              <el-option label="待复核" value="待复核" />
+              <el-option label="待分析" value="待分析" />
             </el-select>
           </el-form-item>
 
-          <el-form-item label="鍒嗘瀽浜? prop="analyst">
+          <el-form-item label="分析人" prop="analyst">
             <el-input
                 v-model="queryParams.analyst"
-                placeholder="璇疯緭鍏ュ垎鏋愪汉"
+                placeholder="请输入分析人"
                 clearable
                 @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="鍒嗘瀽鏃堕棿" prop="analysisTime">
+          <el-form-item label="分析时间" prop="analysisTime">
             <el-date-picker
                 v-model="queryParams.analysisTime"
                 type="date"
                 value-format="YYYY-MM-DD"
-                placeholder="璇烽€夋嫨鍒嗘瀽鏃堕棿"
+                placeholder="请选择分析时间"
                 style="width: 170px"
             />
           </el-form-item>
 
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">鎼滅储</el-button>
-            <el-button icon="Refresh" @click="resetQuery">閲嶇疆</el-button>
+            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -339,7 +339,7 @@
               @click="handleAdd"
               v-hasPermi="['system:resultofrc:add']"
           >
-            鏂板
+            新增
           </el-button>
         </el-col>
 
@@ -352,7 +352,7 @@
               @click="handleUpdate"
               v-hasPermi="['system:resultofrc:edit']"
           >
-            淇敼
+            修改
           </el-button>
         </el-col>
 
@@ -365,7 +365,7 @@
               @click="handleDelete"
               v-hasPermi="['system:resultofrc:remove']"
           >
-            鍒犻櫎
+            删除
           </el-button>
         </el-col>
 
@@ -377,7 +377,7 @@
               @click="handleExport"
               v-hasPermi="['system:resultofrc:export']"
           >
-            瀵煎嚭
+            导出
           </el-button>
         </el-col>
 
@@ -394,12 +394,12 @@
       >
         <el-table-column type="selection" width="55" align="center" />
 
-        <el-table-column label="鏍瑰洜ID" align="center" prop="analysisId" width="90" />
-        <el-table-column label="鏍瑰洜缂栧彿" align="center" prop="analysisCode" width="150" show-overflow-tooltip />
-        <el-table-column label="璇婃柇ID" align="center" prop="diagnosisId" width="90" />
-        <el-table-column label="鏍锋湰ID" align="center" prop="sampleId" width="90" />
+        <el-table-column label="根因ID" align="center" prop="analysisId" width="90" />
+        <el-table-column label="根因编号" align="center" prop="analysisCode" width="150" show-overflow-tooltip />
+        <el-table-column label="诊断ID" align="center" prop="diagnosisId" width="90" />
+        <el-table-column label="样本ID" align="center" prop="sampleId" width="90" />
 
-        <el-table-column label="鏈€澶х疆淇″害鏍瑰洜" align="left" width="390" show-overflow-tooltip>
+        <el-table-column label="最大置信度根因" align="left" width="390" show-overflow-tooltip>
           <template #default="scope">
             <div class="judgment-cell">
               <el-tag :type="rootCauseTypeTag(scope.row.rootCauseType)" effect="plain">
@@ -412,7 +412,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="璇佹嵁閾炬憳瑕? align="left" width="390" show-overflow-tooltip>
+        <el-table-column label="证据链摘要" align="left" width="390" show-overflow-tooltip>
           <template #default="scope">
             <div class="evidence-summary">
               {{ buildEvidenceSummary(scope.row.evidenceJson) }}
@@ -420,7 +420,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="鏈€澶ф牴鍥犵疆淇″害" align="center" prop="probability" width="150">
+        <el-table-column label="最大根因置信度" align="center" prop="probability" width="150">
           <template #default="scope">
             <span class="confidence-text">
               {{ formatProbability(scope.row.probability) }}
@@ -428,10 +428,10 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="鏁存敼寤鸿" align="left" prop="maintenanceSuggestion" width="320" show-overflow-tooltip />
-        <el-table-column label="鍒嗘瀽鏂规硶" align="center" prop="analysisMethod" width="220" show-overflow-tooltip />
+        <el-table-column label="整改建议" align="left" prop="maintenanceSuggestion" width="320" show-overflow-tooltip />
+        <el-table-column label="分析方法" align="center" prop="analysisMethod" width="220" show-overflow-tooltip />
 
-        <el-table-column label="鍒嗘瀽鐘舵€? align="center" prop="analysisStatus" width="110">
+        <el-table-column label="分析状态" align="center" prop="analysisStatus" width="110">
           <template #default="scope">
             <el-tag :type="analysisStatusTag(scope.row.analysisStatus)" effect="plain">
               {{ scope.row.analysisStatus || "-" }}
@@ -439,14 +439,14 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="鍒嗘瀽浜? align="center" prop="analyst" width="150" show-overflow-tooltip />
-        <el-table-column label="鍒嗘瀽鏃堕棿" align="center" prop="analysisTime" width="170" />
-        <el-table-column label="澶囨敞" align="center" prop="remark" width="260" show-overflow-tooltip />
+        <el-table-column label="分析人" align="center" prop="analyst" width="150" show-overflow-tooltip />
+        <el-table-column label="分析时间" align="center" prop="analysisTime" width="170" />
+        <el-table-column label="备注" align="center" prop="remark" width="260" show-overflow-tooltip />
 
-        <el-table-column label="鎿嶄綔" align="center" width="230" fixed="right">
+        <el-table-column label="操作" align="center" width="230" fixed="right">
           <template #default="scope">
             <el-button link type="primary" icon="View" @click.stop="handleDetail(scope.row)">
-              璇︽儏
+              详情
             </el-button>
 
             <el-button
@@ -456,7 +456,7 @@
                 @click.stop="handleUpdate(scope.row)"
                 v-hasPermi="['system:resultofrc:edit']"
             >
-              淇敼
+              修改
             </el-button>
 
             <el-button
@@ -466,7 +466,7 @@
                 @click.stop="handleDelete(scope.row)"
                 v-hasPermi="['system:resultofrc:remove']"
             >
-              鍒犻櫎
+              删除
             </el-button>
           </template>
         </el-table-column>
@@ -481,69 +481,69 @@
       />
     </section>
 
-    <!-- 鎺ュ彛瀛楁璇存槑锛氶粯璁ゆ姌鍙狅紝閬垮厤鍗犵敤灞曠ず绌洪棿 -->
+    <!-- 接口字段说明：默认折叠，避免占用展示空间 -->
     <section v-if="hasRootCauseResults" class="interface-card interface-collapse-card">
       <el-collapse>
-        <el-collapse-item title="鎺ュ彛瀛楁璇存槑" name="interfaceFields">
+        <el-collapse-item title="接口字段说明" name="interfaceFields">
           <div class="interface-grid">
             <div class="interface-item">
-              <span>杈撳嚭鏂瑰悜</span>
-              <strong>璇鹃鍥?鈫?璇鹃浜?/strong>
+              <span>输出方向</span>
+              <strong>课题四 → 课题五</strong>
             </div>
             <div class="interface-item">
-              <span>楗煎浘灞曠ず</span>
-              <strong>鏍锋湰涓嬪叏閮ㄥ叿浣撴牴鍥犵疆淇″害</strong>
+              <span>饼图展示</span>
+              <strong>样本下全部具体根因置信度</strong>
             </div>
             <div class="interface-item">
-              <span>琛ㄦ牸灞曠ず</span>
-              <strong>姣忎釜鏍锋湰鏈€澶х疆淇″害鏍瑰洜</strong>
+              <span>表格展示</span>
+              <strong>每个样本最大置信度根因</strong>
             </div>
             <div class="interface-item">
-              <span>涓€鑷存€ц鍒?/span>
-              <strong>琛ㄦ牸鏍瑰洜 = 楗煎浘鏈€澶у崰姣旀牴鍥?/strong>
+              <span>一致性规则</span>
+              <strong>表格根因 = 饼图最大占比根因</strong>
             </div>
           </div>
         </el-collapse-item>
       </el-collapse>
     </section>
 
-    <!-- 鏂板 / 淇敼寮圭獥 -->
+    <!-- 新增 / 修改弹窗 -->
     <el-dialog :title="title" v-model="open" width="920px" append-to-body>
       <el-form ref="resultofrcRef" :model="form" :rules="rules" label-width="140px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="鏍瑰洜缂栧彿" prop="analysisCode">
-              <el-input v-model="form.analysisCode" placeholder="璇疯緭鍏ユ牴鍥犵紪鍙? />
+            <el-form-item label="根因编号" prop="analysisCode">
+              <el-input v-model="form.analysisCode" placeholder="请输入根因编号" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="璇婃柇ID" prop="diagnosisId">
+            <el-form-item label="诊断ID" prop="diagnosisId">
               <el-input-number
                   v-model="form.diagnosisId"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ヨ瘖鏂璉D"
+                  placeholder="请输入诊断ID"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏍锋湰ID" prop="sampleId">
+            <el-form-item label="样本ID" prop="sampleId">
               <el-input-number
                   v-model="form.sampleId"
                   :controls="false"
                   :min="0"
-                  placeholder="璇疯緭鍏ユ牱鏈琁D"
+                  placeholder="请输入样本ID"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鍏蜂綋鏍瑰洜" prop="rootCauseType">
-              <el-select v-model="form.rootCauseType" placeholder="璇烽€夋嫨鍏蜂綋鏍瑰洜" style="width: 100%">
+            <el-form-item label="具体根因" prop="rootCauseType">
+              <el-select v-model="form.rootCauseType" placeholder="请选择具体根因" style="width: 100%">
                 <el-option
                     v-for="item in rootCauseTypeOptions"
                     :key="item.value"
@@ -555,93 +555,93 @@
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鏍瑰洜缃俊搴? prop="probability">
+            <el-form-item label="根因置信度" prop="probability">
               <el-input-number
                   v-model="form.probability"
                   :controls="false"
                   :min="0"
                   :max="1"
                   :step="0.01"
-                  placeholder="璇疯緭鍏?-1涔嬮棿鐨勭疆淇″害"
+                  placeholder="请输入0-1之间的置信度"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鍒嗘瀽鐘舵€? prop="analysisStatus">
-              <el-select v-model="form.analysisStatus" placeholder="璇烽€夋嫨鍒嗘瀽鐘舵€? style="width: 100%">
-                <el-option label="宸插垎鏋? value="宸插垎鏋? />
-                <el-option label="寰呭鏍? value="寰呭鏍? />
-                <el-option label="寰呭垎鏋? value="寰呭垎鏋? />
+            <el-form-item label="分析状态" prop="analysisStatus">
+              <el-select v-model="form.analysisStatus" placeholder="请选择分析状态" style="width: 100%">
+                <el-option label="已分析" value="已分析" />
+                <el-option label="待复核" value="待复核" />
+                <el-option label="待分析" value="待分析" />
               </el-select>
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鍒嗘瀽鏂规硶" prop="analysisMethod">
-              <el-input v-model="form.analysisMethod" placeholder="璇疯緭鍏ュ垎鏋愭柟娉? />
+            <el-form-item label="分析方法" prop="analysisMethod">
+              <el-input v-model="form.analysisMethod" placeholder="请输入分析方法" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鍒嗘瀽浜? prop="analyst">
-              <el-input v-model="form.analyst" placeholder="璇疯緭鍏ュ垎鏋愪汉" />
+            <el-form-item label="分析人" prop="analyst">
+              <el-input v-model="form.analyst" placeholder="请输入分析人" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="鍒嗘瀽鏃堕棿" prop="analysisTime">
+            <el-form-item label="分析时间" prop="analysisTime">
               <el-date-picker
                   v-model="form.analysisTime"
                   type="datetime"
                   value-format="YYYY-MM-DD HH:mm:ss"
-                  placeholder="璇烽€夋嫨鍒嗘瀽鏃堕棿"
+                  placeholder="请选择分析时间"
                   style="width: 100%"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="鏍瑰洜鍒ゆ柇鎻忚堪" prop="rootCauseDesc">
+            <el-form-item label="根因判断描述" prop="rootCauseDesc">
               <el-input
                   v-model="form.rootCauseDesc"
                   type="textarea"
                   :rows="4"
-                  placeholder="璇疯緭鍏ユ牴鍥犲垽鏂弿杩?
+                  placeholder="请输入根因判断描述"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="璇佹嵁閾綣SON" prop="evidenceJson">
+            <el-form-item label="证据链JSON" prop="evidenceJson">
               <el-input
                   v-model="form.evidenceJson"
                   type="textarea"
                   :rows="8"
-                  placeholder="璇疯緭鍏ヨ瘉鎹摼JSON"
+                  placeholder="请输入证据链JSON"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="鏁存敼寤鸿" prop="maintenanceSuggestion">
+            <el-form-item label="整改建议" prop="maintenanceSuggestion">
               <el-input
                   v-model="form.maintenanceSuggestion"
                   type="textarea"
                   :rows="4"
-                  placeholder="璇疯緭鍏ユ暣鏀瑰缓璁?
+                  placeholder="请输入整改建议"
               />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="澶囨敞" prop="remark">
+            <el-form-item label="备注" prop="remark">
               <el-input
                   v-model="form.remark"
                   type="textarea"
                   :rows="3"
-                  placeholder="璇疯緭鍏ュ娉?
+                  placeholder="请输入备注"
               />
             </el-form-item>
           </el-col>
@@ -650,52 +650,52 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">纭?瀹?/el-button>
-          <el-button @click="cancel">鍙?娑?/el-button>
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
     </el-dialog>
 
-    <!-- 璇︽儏寮圭獥 -->
-    <el-dialog title="鏍瑰洜鍒嗘瀽缁撴灉璇︽儏" v-model="detailOpen" width="980px" append-to-body>
+    <!-- 详情弹窗 -->
+    <el-dialog title="根因分析结果详情" v-model="detailOpen" width="980px" append-to-body>
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="杈撳嚭鏂瑰悜">璇鹃鍥?鈫?璇鹃浜?/el-descriptions-item>
-        <el-descriptions-item label="鎺ュ彛绫诲瀷">鏍瑰洜鍒嗘瀽缁撴灉杈撳嚭鎺ュ彛</el-descriptions-item>
-        <el-descriptions-item label="鏍瑰洜ID">{{ detail.analysisId }}</el-descriptions-item>
-        <el-descriptions-item label="鏍瑰洜缂栧彿">{{ detail.analysisCode }}</el-descriptions-item>
-        <el-descriptions-item label="璇婃柇ID">{{ detail.diagnosisId }}</el-descriptions-item>
-        <el-descriptions-item label="鏍锋湰ID">{{ detail.sampleId }}</el-descriptions-item>
-        <el-descriptions-item label="鏈€澶ф牴鍥犵疆淇″害">{{ formatProbability(detail.probability) }}</el-descriptions-item>
-        <el-descriptions-item label="鍒嗘瀽鐘舵€?>{{ detail.analysisStatus }}</el-descriptions-item>
-        <el-descriptions-item label="鍒嗘瀽鏂规硶">{{ detail.analysisMethod }}</el-descriptions-item>
-        <el-descriptions-item label="鍒嗘瀽鏃堕棿">{{ detail.analysisTime }}</el-descriptions-item>
+        <el-descriptions-item label="输出方向">课题四 → 课题五</el-descriptions-item>
+        <el-descriptions-item label="接口类型">根因分析结果输出接口</el-descriptions-item>
+        <el-descriptions-item label="根因ID">{{ detail.analysisId }}</el-descriptions-item>
+        <el-descriptions-item label="根因编号">{{ detail.analysisCode }}</el-descriptions-item>
+        <el-descriptions-item label="诊断ID">{{ detail.diagnosisId }}</el-descriptions-item>
+        <el-descriptions-item label="样本ID">{{ detail.sampleId }}</el-descriptions-item>
+        <el-descriptions-item label="最大根因置信度">{{ formatProbability(detail.probability) }}</el-descriptions-item>
+        <el-descriptions-item label="分析状态">{{ detail.analysisStatus }}</el-descriptions-item>
+        <el-descriptions-item label="分析方法">{{ detail.analysisMethod }}</el-descriptions-item>
+        <el-descriptions-item label="分析时间">{{ detail.analysisTime }}</el-descriptions-item>
       </el-descriptions>
 
-      <el-divider content-position="left">褰撳墠鏍锋湰鍏ㄩ儴鏍瑰洜缃俊搴?/el-divider>
+      <el-divider content-position="left">当前样本全部根因置信度</el-divider>
       <el-table :data="detail.distribution || []" border size="small">
-        <el-table-column label="鍏蜂綋鏍瑰洜" prop="rootCauseType" />
-        <el-table-column label="鏍瑰洜绫诲埆" prop="rootCauseCategory" width="130" />
-        <el-table-column label="缃俊搴? width="120">
+        <el-table-column label="具体根因" prop="rootCauseType" />
+        <el-table-column label="根因类别" prop="rootCauseCategory" width="130" />
+        <el-table-column label="置信度" width="120">
           <template #default="scope">
             {{ Number(scope.row.confidence || 0).toFixed(1) }}%
           </template>
         </el-table-column>
       </el-table>
 
-      <el-divider content-position="left">鏈€澶х疆淇″害鏍瑰洜鍒ゆ柇</el-divider>
+      <el-divider content-position="left">最大置信度根因判断</el-divider>
       <el-input v-model="detail.rootCauseJudgment" type="textarea" :rows="4" readonly />
 
-      <el-divider content-position="left">璇佹嵁閾?/el-divider>
+      <el-divider content-position="left">证据链</el-divider>
       <el-input v-model="detail.evidenceJson" type="textarea" :rows="14" readonly />
 
-      <el-divider content-position="left">鏁存敼寤鸿</el-divider>
+      <el-divider content-position="left">整改建议</el-divider>
       <el-input v-model="detail.maintenanceSuggestion" type="textarea" :rows="4" readonly />
 
-      <el-divider content-position="left">澶囨敞</el-divider>
+      <el-divider content-position="left">备注</el-divider>
       <el-input v-model="detail.remark" type="textarea" :rows="3" readonly />
 
       <template #footer>
-        <el-button type="primary" @click="detailOpen = false">鍏抽棴</el-button>
+        <el-button type="primary" @click="detailOpen = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -715,7 +715,7 @@ import {
   getCurrentTopic4PipelineId,
   getTopic4Pipeline,
   updateTopic4Pipeline,
-} from "@/utils/project4/topic4Pipeline"
+} from "@/utils/topic4Pipeline"
 
 const { proxy } = getCurrentInstance()
 const route = useRoute()
@@ -743,7 +743,7 @@ const chartRecordOptions = ref([])
 const selectedChartSampleId = ref(null)
 
 const selectedAbnormalDiagnosisCount = computed(() => {
-  return selectedDiagnosisRows.value.filter(row => row.faultType !== "姝ｅ父").length
+  return selectedDiagnosisRows.value.filter(row => row.faultType !== "正常").length
 })
 
 const currentEvidenceRow = computed(() => {
@@ -758,138 +758,138 @@ const currentEvidenceRow = computed(() => {
 const currentEvidenceView = computed(() => buildEvidenceView(currentEvidenceRow.value))
 
 /**
- * 鍏釜鍥哄畾鍏蜂綋鏍瑰洜
- * 楗煎浘姘歌繙灞曠ず杩欏叚涓牴鍥狅紱
- * 琛ㄦ牸鍙睍绀烘瘡涓牱鏈腑缃俊搴︽渶澶х殑涓€涓牴鍥犮€?
+ * 六个固定具体根因
+ * 饼图永远展示这六个根因；
+ * 表格只展示每个样本中置信度最大的一个根因。
  */
 const ROOT_CAUSE_LIBRARY = [
   {
     key: "preloadHigh",
-    rootCauseType: "杞存壙棰勭揣鍔涜缃亸澶?,
-    rootCauseCategory: "瑁呴厤鍙傛暟",
-    rootCauseDesc: "鍏蜂綋鏍瑰洜锛氳酱鎵块绱у姏璁剧疆鍋忓ぇ锛屽鑷磋繍琛屾俯鍗囧崌楂樸€佹帴瑙﹀簲鍔涘澶э紝骞惰鍙戝紓甯告尟鍔ㄣ€?,
-    maintenanceSuggestion: "寤鸿澶嶆牳杞存壙棰勭揣鍙傛暟銆佸畨瑁呭伐鑹鸿褰曞拰杩愯娓╁崌鏁版嵁锛屽棰勭揣鍔涘亸澶х殑瑁呴厤浠惰繘琛岄噸鏂拌皟鏁淬€?
+    rootCauseType: "轴承预紧力设置偏大",
+    rootCauseCategory: "装配参数",
+    rootCauseDesc: "具体根因：轴承预紧力设置偏大，导致运行温升升高、接触应力增大，并诱发异常振动。",
+    maintenanceSuggestion: "建议复核轴承预紧参数、安装工艺记录和运行温升数据，对预紧力偏大的装配件进行重新调整。"
   },
   {
     key: "racewayMicroDamage",
-    rootCauseType: "婊氶亾寰皬鎹熶激",
-    rootCauseCategory: "琛ㄩ潰鎹熶激",
-    rootCauseDesc: "鍏蜂綋鏍瑰洜锛氳酱鎵挎粴閬撳瓨鍦ㄥ井灏忓墺钀姐€佸垝浼ゆ垨鐐硅殌锛岃繍琛屼腑褰㈡垚鍛ㄦ湡鎬у啿鍑荤壒寰併€?,
-    maintenanceSuggestion: "寤鸿瀵硅酱鎵挎粴閬撹〃闈㈣繘琛屾樉寰鏌ワ紝閲嶇偣鎺掓煡寰皬瑁傜汗銆佺偣铓€銆佸垝浼ゅ拰灞€閮ㄥ墺钀姐€?
+    rootCauseType: "滚道微小损伤",
+    rootCauseCategory: "表面损伤",
+    rootCauseDesc: "具体根因：轴承滚道存在微小剥落、划伤或点蚀，运行中形成周期性冲击特征。",
+    maintenanceSuggestion: "建议对轴承滚道表面进行显微检查，重点排查微小裂纹、点蚀、划伤和局部剥落。"
   },
   {
     key: "hardnessFluctuation",
-    rootCauseType: "鎵规鏉愭枡纭害娉㈠姩",
-    rootCauseCategory: "鏉愭枡涓€鑷存€?,
-    rootCauseDesc: "鍏蜂綋鏍瑰洜锛氬悓鎵规鏉愭枡纭害瀛樺湪娉㈠姩锛屽鑷村眬閮ㄦ帴瑙︾柌鍔冲鍛介檷浣庯紝骞舵彁鍓嶅嚭鐜板紓甯告尟鍔ㄧ壒寰併€?,
-    maintenanceSuggestion: "寤鸿澶嶆牳鍚屾壒娆℃潗鏂欑‖搴︺€佺儹澶勭悊璁板綍鍜屽叆鍘傛楠屾暟鎹紝瀵瑰紓甯告壒娆¤繘琛岄噸鐐硅拷婧€?
+    rootCauseType: "批次材料硬度波动",
+    rootCauseCategory: "材料一致性",
+    rootCauseDesc: "具体根因：同批次材料硬度存在波动，导致局部接触疲劳寿命降低，并提前出现异常振动特征。",
+    maintenanceSuggestion: "建议复核同批次材料硬度、热处理记录和入厂检验数据，对异常批次进行重点追溯。"
   },
   {
     key: "greaseInsufficient",
-    rootCauseType: "娑︽粦鑴傚～鍏呬笉瓒?,
-    rootCauseCategory: "娑︽粦缁存姢",
-    rootCauseDesc: "鍏蜂綋鏍瑰洜锛氭鼎婊戣剛濉厖閲忎笉瓒虫垨娑︽粦淇濇寔鑳藉姏涓嬮檷锛屽鑷存粴鍔ㄦ帴瑙﹀尯鍩熸懇鎿﹀崌楂樺苟璇卞彂寮傚父鎸姩銆?,
-    maintenanceSuggestion: "寤鸿妫€鏌ユ鼎婊戣剛鍨嬪彿銆佸～鍏呴噺鍜岃ˉ鑴傚懆鏈燂紝蹇呰鏃跺鍚屽伐鍐佃澶囨墽琛岃ˉ鑴傚拰娑︽粦鐘舵€佸鏍搞€?
+    rootCauseType: "润滑脂填充不足",
+    rootCauseCategory: "润滑维护",
+    rootCauseDesc: "具体根因：润滑脂填充量不足或润滑保持能力下降，导致滚动接触区域摩擦升高并诱发异常振动。",
+    maintenanceSuggestion: "建议检查润滑脂型号、填充量和补脂周期，必要时对同工况设备执行补脂和润滑状态复核。"
   },
   {
     key: "coaxialityDeviation",
-    rootCauseType: "瑁呴厤鍚岃酱搴﹀亸宸?,
-    rootCauseCategory: "瑁呴厤宸ヨ壓",
-    rootCauseDesc: "鍏蜂綋鏍瑰洜锛氳酱鎵胯閰嶈繃绋嬩腑鍚岃酱搴︽帶鍒朵笉瓒筹紝瀵艰嚧杩愯浆鏃朵骇鐢熷懆鏈熸€у啿鍑诲拰鍋忚浇鎸姩銆?,
-    maintenanceSuggestion: "寤鸿澶嶆牳杞存壙搴с€佽浆杞村拰绔洊瑁呴厤鍚岃酱搴︼紝瀵硅秴宸閰嶄欢杩涜閲嶆柊瀹氫綅鍜屾牎鍑嗐€?
+    rootCauseType: "装配同轴度偏差",
+    rootCauseCategory: "装配工艺",
+    rootCauseDesc: "具体根因：轴承装配过程中同轴度控制不足，导致运转时产生周期性冲击和偏载振动。",
+    maintenanceSuggestion: "建议复核轴承座、转轴和端盖装配同轴度，对超差装配件进行重新定位和校准。"
   },
   {
     key: "sealFailurePollution",
-    rootCauseType: "瀵嗗皝澶辨晥瀵艰嚧姹℃煋鐗╄繘鍏?,
-    rootCauseCategory: "鐜姹℃煋",
-    rootCauseDesc: "鍏蜂綋鏍瑰洜锛氬瘑灏佺粨鏋勫け鏁堝悗姹℃煋鐗╄繘鍏ヨ酱鎵垮唴閮紝閫犳垚娑︽粦鍔ｅ寲鍜屾帴瑙﹂潰寮傚父纾ㄦ崯銆?,
-    maintenanceSuggestion: "寤鸿妫€鏌ュ瘑灏佷欢瀹屾暣鎬с€佹薄鏌撶墿鏉ユ簮鍜屾鼎婊戞薄鏌撶▼搴︼紝瀵瑰瘑灏佸け鏁堟壒娆″紑灞曡拷婧€?
+    rootCauseType: "密封失效导致污染物进入",
+    rootCauseCategory: "环境污染",
+    rootCauseDesc: "具体根因：密封结构失效后污染物进入轴承内部，造成润滑劣化和接触面异常磨损。",
+    maintenanceSuggestion: "建议检查密封件完整性、污染物来源和润滑污染程度，对密封失效批次开展追溯。"
   }
 ]
 
-/** 鍏被鏍瑰洜鍒拌酱鎵挎晠闅滃舰鎴愮殑鏈虹悊鎺ㄥ閾?*/
+/** 六类根因到轴承故障形成的机理推导链 */
 function buildFaultFormationProcess(rootCauseInfo, sampleId) {
   const rootCauseType = rootCauseInfo?.rootCauseType || ""
 
   const processMap = {
-    "杞存壙棰勭揣鍔涜缃亸澶?: [
-      "杞存壙棰勭揣鍔涜缃亸澶?,
-      "婊氬姩浣撲笌婊氶亾鎺ヨЕ杞借嵎鍗囬珮",
-      "灞€閮ㄦ帴瑙﹀簲鍔涗笌鎽╂摝鐑鍔?,
-      "娑︽粦鑶滃彉钖勫苟鍑虹幇杈圭晫娑︽粦",
-      "婊氶亾琛ㄩ潰纾ㄦ崯銆佺偣铓€閫愭鎵╁睍",
-      "鍐插嚮鎸姩鍜屾俯鍗囨寔缁寮?,
-      "杞存壙鏁呴殰褰㈡垚"
+    "轴承预紧力设置偏大": [
+      "轴承预紧力设置偏大",
+      "滚动体与滚道接触载荷升高",
+      "局部接触应力与摩擦热增加",
+      "润滑膜变薄并出现边界润滑",
+      "滚道表面磨损、点蚀逐步扩展",
+      "冲击振动和温升持续增强",
+      "轴承故障形成"
     ],
 
-    "婊氶亾寰皬鎹熶激": [
-      "婊氶亾瀛樺湪寰皬鍒掍激銆佺偣铓€鎴栧墺钀?,
-      "婊氬姩浣撶粡杩囨崯浼ゅ尯鍩熸椂浜х敓鍛ㄦ湡鎬у啿鍑?,
-      "鍐插嚮杞借嵎浣挎崯浼よ竟缂樼户缁墿灞?,
-      "灞€閮ㄥ墺钀介潰绉澶у苟寮曡捣鎸姩骞呭€煎崌楂?,
-      "寮傚父鍐插嚮鐗瑰緛琚瘖鏂ā鍨嬫崟鑾?,
-      "杞存壙婊氶亾鏁呴殰褰㈡垚"
+    "滚道微小损伤": [
+      "滚道存在微小划伤、点蚀或剥落",
+      "滚动体经过损伤区域时产生周期性冲击",
+      "冲击载荷使损伤边缘继续扩展",
+      "局部剥落面积增大并引起振动幅值升高",
+      "异常冲击特征被诊断模型捕获",
+      "轴承滚道故障形成"
     ],
 
-    "鎵规鏉愭枡纭害娉㈠姩": [
-      "鍚屾壒娆℃潗鏂欑‖搴﹀瓨鍦ㄦ尝鍔?,
-      "灞€閮ㄥ尯鍩熸姉鐤插姵鑳藉姏涓嬮檷",
-      "寰幆杞借嵎浣滅敤涓嬬巼鍏堜骇鐢熷井瑁傜汗",
-      "寰绾瑰悜婊氶亾琛ㄩ潰鎵╁睍骞跺舰鎴愮偣铓€",
-      "鐐硅殌璇卞彂鍐插嚮鎸姩鍜屽櫔澹板崌楂?,
-      "鏉愭枡鐤插姵鍨嬭酱鎵挎晠闅滃舰鎴?
+    "批次材料硬度波动": [
+      "同批次材料硬度存在波动",
+      "局部区域抗疲劳能力下降",
+      "循环载荷作用下率先产生微裂纹",
+      "微裂纹向滚道表面扩展并形成点蚀",
+      "点蚀诱发冲击振动和噪声升高",
+      "材料疲劳型轴承故障形成"
     ],
 
-    "娑︽粦鑴傚～鍏呬笉瓒?: [
-      "娑︽粦鑴傚～鍏呬笉瓒虫垨淇濇寔鑳藉姏涓嬮檷",
-      "婊氬姩鎺ヨЕ鍖哄煙娌硅啘鍘氬害涓嶈冻",
-      "鎽╂摝绯绘暟鍗囬珮骞跺鑷村眬閮ㄦ俯鍗?,
-      "婊氶亾涓庢粴鍔ㄤ綋琛ㄩ潰鍑虹幇纾ㄦ崯鍜屾摝浼?,
-      "纾ㄦ崯棰楃矑杩涗竴姝ュ姞鍓ф鼎婊戝姡鍖?,
-      "娑︽粦澶辨晥鍨嬭酱鎵挎晠闅滃舰鎴?
+    "润滑脂填充不足": [
+      "润滑脂填充不足或保持能力下降",
+      "滚动接触区域油膜厚度不足",
+      "摩擦系数升高并导致局部温升",
+      "滚道与滚动体表面出现磨损和擦伤",
+      "磨损颗粒进一步加剧润滑劣化",
+      "润滑失效型轴承故障形成"
     ],
 
-    "瑁呴厤鍚岃酱搴﹀亸宸?: [
-      "杞存壙瑁呴厤鍚岃酱搴﹀亸宸?,
-      "杞酱涓庤酱鎵垮骇鍙楀姏涓績涓嶄竴鑷?,
-      "杞存壙闀挎湡鎵垮彈鍋忚浇鍜岄檮鍔犺浇鑽?,
-      "婊氶亾灞€閮ㄦ帴瑙﹀簲鍔涢泦涓?,
-      "杩愯涓嚭鐜板懆鏈熸€ф尟鍔ㄥ拰灞€閮ㄧ柌鍔虫崯浼?,
-      "瑁呴厤鍋忓樊璇卞彂杞存壙鏁呴殰褰㈡垚"
+    "装配同轴度偏差": [
+      "轴承装配同轴度偏差",
+      "转轴与轴承座受力中心不一致",
+      "轴承长期承受偏载和附加载荷",
+      "滚道局部接触应力集中",
+      "运行中出现周期性振动和局部疲劳损伤",
+      "装配偏差诱发轴承故障形成"
     ],
 
-    "瀵嗗皝澶辨晥瀵艰嚧姹℃煋鐗╄繘鍏?: [
-      "瀵嗗皝缁撴瀯澶辨晥瀵艰嚧姹℃煋鐗╄繘鍏ヨ酱鎵垮唴閮?,
-      "姹℃煋棰楃矑鐮村潖娑︽粦鑴傛竻娲佸害",
-      "婊氬姩鎺ヨЕ闈骇鐢熺（绮掔（鎹?,
-      "娑︽粦鎬ц兘涓嬮檷骞惰鍙戝眬閮ㄦ摝浼?,
-      "纾ㄦ崯棰楃矑涓庢薄鏌撶墿褰㈡垚鎭舵€у惊鐜?,
-      "姹℃煋纾ㄦ崯鍨嬭酱鎵挎晠闅滃舰鎴?
+    "密封失效导致污染物进入": [
+      "密封结构失效导致污染物进入轴承内部",
+      "污染颗粒破坏润滑脂清洁度",
+      "滚动接触面产生磨粒磨损",
+      "润滑性能下降并诱发局部擦伤",
+      "磨损颗粒与污染物形成恶性循环",
+      "污染磨损型轴承故障形成"
     ]
   }
 
   const steps = processMap[rootCauseType] || [
-    rootCauseType || "鏈煡鏍瑰洜",
-    "鏍瑰洜瀵艰嚧灞€閮ㄨ繍琛岀姸鎬佸紓甯?,
-    "寮傚父鐘舵€佹寔缁綔鐢ㄤ簬杞存壙鍏抽敭鎺ヨЕ鍖哄煙",
-    "灞€閮ㄦ崯浼ら€愭绱Н骞舵斁澶ф尟鍔ㄥ搷搴?,
-    "璇婃柇妯″瀷璇嗗埆鍒板紓甯哥壒寰?,
-    "杞存壙鏁呴殰褰㈡垚"
+    rootCauseType || "未知根因",
+    "根因导致局部运行状态异常",
+    "异常状态持续作用于轴承关键接触区域",
+    "局部损伤逐步累积并放大振动响应",
+    "诊断模型识别到异常特征",
+    "轴承故障形成"
   ]
 
   return steps.map((text, index) => ({
     step: index + 1,
     title: text,
-    description: `鏍锋湰${sampleId}锛?{text}`
+    description: `样本${sampleId}：${text}`
   }))
 }
 
 /**
- * 姣忎釜鏍锋湰鐨勫叚绫诲叿浣撴牴鍥犵疆淇″害鍒嗗竷锛屽崟浣嶄负鐧惧垎姣斻€?
- * 杩欑粍鏁版嵁鐢ㄤ簬浠婂ぉ灞曠ず锛?
- * - 楗煎浘灞曠ず褰撳墠鏍锋湰鐨勫叏閮ㄥ叚涓牴鍥狅紱
- * - 琛ㄦ牸鍙睍绀哄綋鍓嶆牱鏈渶澶х疆淇″害鏍瑰洜锛?
- * - 琛ㄦ牸涓殑鏈€澶ф牴鍥犲繀椤荤瓑浜庨ゼ鍥句腑鏈€澶ф墖鍖恒€?
+ * 每个样本的六类具体根因置信度分布，单位为百分比。
+ * 这组数据用于今天展示：
+ * - 饼图展示当前样本的全部六个根因；
+ * - 表格只展示当前样本最大置信度根因；
+ * - 表格中的最大根因必须等于饼图中最大扇区。
  */
 const SAMPLE_ROOT_CAUSE_DISTRIBUTIONS = {
   1: {
@@ -966,32 +966,32 @@ const data = reactive({
   },
   rules: {
     analysisCode: [
-      { required: true, message: "鏍瑰洜缂栧彿涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "根因编号不能为空", trigger: "blur" }
     ],
     diagnosisId: [
-      { required: true, message: "璇婃柇ID涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "诊断ID不能为空", trigger: "blur" }
     ],
     sampleId: [
-      { required: true, message: "鏍锋湰ID涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "样本ID不能为空", trigger: "blur" }
     ],
     rootCauseType: [
-      { required: true, message: "鍏蜂綋鏍瑰洜涓嶈兘涓虹┖", trigger: "change" }
+      { required: true, message: "具体根因不能为空", trigger: "change" }
     ],
     rootCauseDesc: [
-      { required: true, message: "鏍瑰洜鍒ゆ柇鎻忚堪涓嶈兘涓虹┖", trigger: "blur" }
+      { required: true, message: "根因判断描述不能为空", trigger: "blur" }
     ],
     probability: [
-      { required: true, message: "鏍瑰洜缃俊搴︿笉鑳戒负绌?, trigger: "blur" }
+      { required: true, message: "根因置信度不能为空", trigger: "blur" }
     ],
     analysisStatus: [
-      { required: true, message: "鍒嗘瀽鐘舵€佷笉鑳戒负绌?, trigger: "change" }
+      { required: true, message: "分析状态不能为空", trigger: "change" }
     ]
   }
 })
 
 const { queryParams, form, rules } = toRefs(data)
 
-/** 鏌ヨ鍒楄〃 */
+/** 查询列表 */
 function getList() {
   loading.value = true
 
@@ -1018,10 +1018,10 @@ function getList() {
     const sourceRows = response.rows || []
 
     /**
-     * 浠婂ぉ灞曠ず閫昏緫锛?
-     * 涓嶅啀鐩存帴鎶婂悗绔瘡鏉℃牴鍥犻兘閾哄湪琛ㄦ牸閲屻€?
-     * 鑰屾槸鎸夋牱鏈仛鍚堬紝姣忎釜鏍锋湰鍙繚鐣欐渶澶х疆淇″害鏍瑰洜锛?
-     * 楗煎浘缁х画灞曠ず璇ユ牱鏈叏閮ㄥ叚涓牴鍥犵疆淇″害銆?
+     * 今天展示逻辑：
+     * 不再直接把后端每条根因都铺在表格里。
+     * 而是按样本聚合，每个样本只保留最大置信度根因；
+     * 饼图继续展示该样本全部六个根因置信度。
      */
     const summaryRows = buildSampleSummaryRows(sourceRows)
     resultofrcList.value = filterSummaryRows(summaryRows)
@@ -1036,7 +1036,7 @@ function getList() {
 
     loading.value = false
   }).catch(error => {
-    console.error("鏍瑰洜鍒嗘瀽缁撴灉鏌ヨ澶辫触锛屼娇鐢ㄥ墠绔紨绀烘暟鎹細", error)
+    console.error("根因分析结果查询失败，使用前端演示数据：", error)
 
     const summaryRows = buildSampleSummaryRows([])
     resultofrcList.value = filterSummaryRows(summaryRows)
@@ -1073,8 +1073,8 @@ function loadPipelineInput() {
     sampleId: row.sampleId || index + 1,
     sampleCode: row.sampleCode || `SAMPLE-${String(index + 1).padStart(3, "0")}`,
     fusionId: row.fusionId,
-    faultLocation: row.faultLocation || "杞存壙缁勪欢",
-    faultType: row.faultType || "杞存壙鏁呴殰",
+    faultLocation: row.faultLocation || "轴承组件",
+    faultType: row.faultType || "轴承故障",
     confidence: row.confidence ?? row.probability ?? 0.85,
     healthScore: row.healthScore ?? 70,
     diagnosisTime: row.diagnosisTime || row.createTime || "-"
@@ -1083,7 +1083,7 @@ function loadPipelineInput() {
   selectedDiagnosisRows.value = []
 
   if (diagnosisInputList.value.length > 0) {
-    proxy.$modal.msgSuccess(`宸叉帴鍏ヤ笂涓€姝ヨ瘖鏂粨鏋?${diagnosisInputList.value.length} 鏉)
+    proxy.$modal.msgSuccess(`已接入上一步诊断结果 ${diagnosisInputList.value.length} 条`)
   }
 }
 
@@ -1100,26 +1100,26 @@ function handleDiagnosisInputRowClick(row) {
 }
 
 function diagnosisFaultTag(value) {
-  if (value === "姝ｅ父") {
+  if (value === "正常") {
     return "success"
   }
 
-  if (String(value || "").includes("鍐呭湀")) {
+  if (String(value || "").includes("内圈")) {
     return "warning"
   }
 
-  if (String(value || "").includes("澶栧湀")) {
+  if (String(value || "").includes("外圈")) {
     return "danger"
   }
 
-  if (String(value || "").includes("婊氬姩浣?)) {
+  if (String(value || "").includes("滚动体")) {
     return "primary"
   }
 
   return "info"
 }
 
-/** 鏋勯€犳瘡涓牱鏈竴鏉¤〃鏍艰褰曪細鍙睍绀鸿鏍锋湰鏈€澶х疆淇″害鏍瑰洜 */
+/** 构造每个样本一条表格记录：只展示该样本最大置信度根因 */
 function buildSampleSummaryRows(sourceRows) {
   const sampleIds = Object.keys(SAMPLE_ROOT_CAUSE_DISTRIBUTIONS).map(item => Number(item))
 
@@ -1140,17 +1140,17 @@ function buildSampleSummaryRows(sourceRows) {
       probability: maxItem.confidence / 100,
       evidenceJson: formatJsonText(buildEvidenceChain(codeSuffix, maxItem.confidence / 100, maxItem, distribution, sampleId)),
       maintenanceSuggestion: maxItem.maintenanceSuggestion,
-      analysisMethod: sourceRow.analysisMethod || "璇婃柇缁撴灉鍏宠仈 + 鏁板瓧鍗峰畻璇佹嵁閾?+ 鐩戠鏁版嵁鎺ㄧ悊",
-      analysisStatus: maxItem.confidence >= 50 ? "宸插垎鏋? : "寰呭鏍?,
+      analysisMethod: sourceRow.analysisMethod || "诊断结果关联 + 数字卷宗证据链 + 监管数据推理",
+      analysisStatus: maxItem.confidence >= 50 ? "已分析" : "待复核",
       analyst: sourceRow.analyst || "Topic4-RCA-Engine",
       analysisTime: sourceRow.analysisTime || formatDateTime(new Date()),
       delFlag: "0",
-      remark: `琛ㄦ牸灞曠ず璇ユ牱鏈渶澶х疆淇″害鏍瑰洜锛涘畬鏁村叚绫绘牴鍥犲垎甯冭鏌ョ湅涓婃柟楗煎浘`
+      remark: `表格展示该样本最大置信度根因；完整六类根因分布请查看上方饼图`
     }
   })
 }
 
-/** 鏍规嵁鏌ヨ鏉′欢杩囨护鍓嶇姹囨€昏 */
+/** 根据查询条件过滤前端汇总行 */
 function filterSummaryRows(rows) {
   return rows.filter(row => {
     if (queryParams.value.analysisCode && !String(row.analysisCode || "").includes(queryParams.value.analysisCode)) {
@@ -1189,12 +1189,12 @@ function filterSummaryRows(rows) {
   })
 }
 
-/** 鏌ヨ缃俊搴︾粺璁?*/
+/** 查询置信度统计 */
 function getConfidenceStats() {
   buildStatsFromCurrentList()
 }
 
-/** 鐢ㄥ綋鍓嶈〃鏍兼暟鎹粺璁?*/
+/** 用当前表格数据统计 */
 function buildStatsFromCurrentList() {
   const list = resultofrcList.value || []
 
@@ -1209,11 +1209,11 @@ function buildStatsFromCurrentList() {
   list.forEach(item => {
     const probability = normalizeProbability(item.probability)
 
-    if (item.analysisStatus === "宸插垎鏋?) {
+    if (item.analysisStatus === "已分析") {
       analyzedCount++
     }
 
-    if (item.analysisStatus === "寰呭鏍?) {
+    if (item.analysisStatus === "待复核") {
       pendingCount++
     }
 
@@ -1238,7 +1238,7 @@ function buildStatsFromCurrentList() {
   confidenceStatsData.lowCount = lowCount
 }
 
-/** 褰掍竴鍖栫疆淇″害锛氬吋瀹?0.85 鍜?85 涓ょ鍐欐硶 */
+/** 归一化置信度：兼容 0.85 和 85 两种写法 */
 function normalizeProbability(value) {
   let probability = Number(value || 0)
 
@@ -1257,7 +1257,7 @@ function normalizeProbability(value) {
   return probability
 }
 
-/** 鑾峰彇鏌愪釜鏍锋湰鐨勫叚绫绘牴鍥犲垎甯?*/
+/** 获取某个样本的六类根因分布 */
 function getSampleDistribution(sampleId) {
   const sampleNumber = Number(sampleId) || 1
   const distributionKeys = Object.keys(SAMPLE_ROOT_CAUSE_DISTRIBUTIONS).map(item => Number(item))
@@ -1292,14 +1292,14 @@ function buildRootCauseDistributionByConclusion(sampleId, rootCauseType, probabi
   })
 }
 
-/** 鑾峰彇鏍锋湰鏈€澶х疆淇″害鏍瑰洜 */
+/** 获取样本最大置信度根因 */
 function getMaxRootCauseBySampleId(sampleId) {
   const distribution = getSampleDistribution(sampleId)
 
   return [...distribution].sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0))[0]
 }
 
-/** 鍥句緥杩囬暱鏃舵埅鏂?*/
+/** 图例过长时截断 */
 function shortChartLabel(value, maxLength = 12) {
   const text = String(value || "")
 
@@ -1310,7 +1310,7 @@ function shortChartLabel(value, maxLength = 12) {
   return text.slice(0, maxLength) + "..."
 }
 
-/** 楗煎浘涓績鏍瑰洜鍚嶇О鎹㈣锛岄伩鍏嶉暱鏂囧瓧琚幆褰㈠浘閬尅 */
+/** 饼图中心根因名称换行，避免长文字被环形图遮挡 */
 function centerRootCauseLabel(value) {
   const text = String(value || "-")
 
@@ -1325,10 +1325,10 @@ function centerRootCauseLabel(value) {
   return `${text.slice(0, 5)}\n${text.slice(5, 10)}...`
 }
 
-/** 鏋勫缓鍥捐〃涓嬫媺妗嗭細鍙樉绀烘牱鏈紪鍙?*/
+/** 构建图表下拉框：只显示样本编号 */
 function buildChartRecordOptions() {
   chartRecordOptions.value = resultofrcList.value.map(row => ({
-    label: `鏍锋湰ID锛?{row.sampleId}`,
+    label: `样本ID：${row.sampleId}`,
     value: String(row.sampleId)
   }))
 
@@ -1339,14 +1339,14 @@ function buildChartRecordOptions() {
   }
 }
 
-/** 鍥捐〃璁板綍鍒囨崲 */
+/** 图表记录切换 */
 function handleChartRecordChange() {
   nextTick(() => {
     initConfidenceChart()
   })
 }
 
-/** 鐐瑰嚮琛ㄦ牸琛屾椂锛屽悓姝ュ垏鎹㈤ゼ鍥惧埌璇ユ牱鏈?*/
+/** 点击表格行时，同步切换饼图到该样本 */
 function handleTableRowClick(row) {
   selectedChartSampleId.value = String(row.sampleId)
 
@@ -1355,7 +1355,7 @@ function handleTableRowClick(row) {
   })
 }
 
-/** 楂樹寒褰撳墠楗煎浘瀵瑰簲鏍锋湰 */
+/** 高亮当前饼图对应样本 */
 function tableRowClassName({ row }) {
   if (String(row.sampleId) === String(selectedChartSampleId.value)) {
     return "chart-current-row"
@@ -1364,7 +1364,7 @@ function tableRowClassName({ row }) {
   return ""
 }
 
-/** 鍒濆鍖栧綋鍓嶆牱鏈悇鏍瑰洜缃俊搴﹂ゼ鍥?*/
+/** 初始化当前样本各根因置信度饼图 */
 function initConfidenceChart() {
   if (!confidenceChartRef.value) {
     return
@@ -1379,7 +1379,7 @@ function initConfidenceChart() {
   if (!selectedChartSampleId.value) {
     confidenceChartInstance.setOption({
       title: {
-        text: "鏆傛棤鏍锋湰鏍瑰洜鏁版嵁",
+        text: "暂无样本根因数据",
         left: "center",
         top: "center",
         textStyle: {
@@ -1419,9 +1419,9 @@ function initConfidenceChart() {
 
         return [
           `${params.name}`,
-          `缃俊搴︼細${Number(params.value || 0).toFixed(1)}%`,
-          `鏍瑰洜绫诲埆锛?{row.rootCauseCategory}`,
-          `鏍锋湰ID锛?{sampleId}`
+          `置信度：${Number(params.value || 0).toFixed(1)}%`,
+          `根因类别：${row.rootCauseCategory}`,
+          `样本ID：${sampleId}`
         ].join("<br/>")
       }
     },
@@ -1441,7 +1441,7 @@ function initConfidenceChart() {
     },
     series: [
       {
-        name: "褰撳墠鏍锋湰鍚勬牴鍥犵疆淇″害",
+        name: "当前样本各根因置信度",
         type: "pie",
         radius: ["58%", "76%"],
         center: ["50%", "50%"],
@@ -1470,7 +1470,7 @@ function initConfidenceChart() {
         z: 20,
         style: {
           width: 150,
-          text: `{label|鏈€澶ф牴鍥爙\n{name|${centerRootCauseLabel(maxItem.rootCauseType || "-")}}\n{value|${Number(maxItem.confidence || 0).toFixed(1)}%}`,
+          text: `{label|最大根因}\n{name|${centerRootCauseLabel(maxItem.rootCauseType || "-")}}\n{value|${Number(maxItem.confidence || 0).toFixed(1)}%}`,
           textAlign: "center",
           textVerticalAlign: "middle",
           rich: {
@@ -1501,25 +1501,25 @@ function initConfidenceChart() {
   confidenceChartInstance.setOption(option)
 }
 
-/** 鍒锋柊鍥捐〃 */
+/** 刷新图表 */
 function refreshChartData() {
   getList()
 }
 
-/** 鍥捐〃灏哄閫傞厤 */
+/** 图表尺寸适配 */
 function handleChartResize() {
   if (confidenceChartInstance) {
     confidenceChartInstance.resize()
   }
 }
 
-/** 鍙栨秷 */
+/** 取消 */
 function cancel() {
   open.value = false
   reset()
 }
 
-/** 琛ㄥ崟閲嶇疆 */
+/** 表单重置 */
 function reset() {
   const firstRootCause = ROOT_CAUSE_LIBRARY[0]
 
@@ -1533,8 +1533,8 @@ function reset() {
     probability: 0.8,
     evidenceJson: null,
     maintenanceSuggestion: firstRootCause.maintenanceSuggestion,
-    analysisMethod: "璇婃柇缁撴灉鍏宠仈 + 鏁板瓧鍗峰畻璇佹嵁閾?+ 鐩戠鏁版嵁鎺ㄧ悊",
-    analysisStatus: "宸插垎鏋?,
+    analysisMethod: "诊断结果关联 + 数字卷宗证据链 + 监管数据推理",
+    analysisStatus: "已分析",
     analyst: "Topic4-RCA-Engine",
     analysisTime: formatDateTime(new Date()),
     delFlag: "0",
@@ -1550,13 +1550,13 @@ function reset() {
   }
 }
 
-/** 鎼滅储 */
+/** 搜索 */
 function handleQuery() {
   queryParams.value.pageNum = 1
   getList()
 }
 
-/** 閲嶇疆鎼滅储 */
+/** 重置搜索 */
 function resetQuery() {
   if (proxy.$refs["queryRef"]) {
     proxy.resetForm("queryRef")
@@ -1564,14 +1564,14 @@ function resetQuery() {
   handleQuery()
 }
 
-/** 澶氶€?*/
+/** 多选 */
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.analysisId)
   single.value = selection.length !== 1
   multiple.value = !selection.length
 }
 
-/** 鏂板 */
+/** 新增 */
 function handleAdd() {
   reset()
 
@@ -1588,24 +1588,24 @@ function handleAdd() {
   form.value.probability = maxItem.confidence / 100
   form.value.evidenceJson = formatJsonText(buildEvidenceChain(codeSuffix, maxItem.confidence / 100, maxItem, distribution, sampleId))
   form.value.maintenanceSuggestion = maxItem.maintenanceSuggestion
-  form.value.analysisMethod = "璇婃柇缁撴灉鍏宠仈 + 鏁板瓧鍗峰畻璇佹嵁閾?+ 鐩戠鏁版嵁鎺ㄧ悊"
-  form.value.analysisStatus = "宸插垎鏋?
+  form.value.analysisMethod = "诊断结果关联 + 数字卷宗证据链 + 监管数据推理"
+  form.value.analysisStatus = "已分析"
   form.value.analyst = "Topic4-RCA-Engine"
   form.value.analysisTime = formatDateTime(new Date())
-  form.value.remark = "婕旂ず鏁版嵁锛氳〃鏍间粎灞曠ず鏍锋湰鏈€澶х疆淇″害鏍瑰洜"
+  form.value.remark = "演示数据：表格仅展示样本最大置信度根因"
 
   open.value = true
-  title.value = "娣诲姞鏍瑰洜鍒嗘瀽缁撴灉"
+  title.value = "添加根因分析结果"
 }
 
-/** 淇敼 */
+/** 修改 */
 function handleUpdate(row) {
   reset()
 
   const targetRow = row && row.analysisId ? row : resultofrcList.value.find(item => ids.value.includes(item.analysisId))
 
   if (!targetRow) {
-    proxy.$modal.msgWarning("璇烽€夋嫨涓€鏉￠渶瑕佷慨鏀圭殑鏁版嵁")
+    proxy.$modal.msgWarning("请选择一条需要修改的数据")
     return
   }
 
@@ -1615,10 +1615,10 @@ function handleUpdate(row) {
   }
 
   open.value = true
-  title.value = "淇敼鏍瑰洜鍒嗘瀽缁撴灉"
+  title.value = "修改根因分析结果"
 }
 
-/** 鎻愪氦 */
+/** 提交 */
 function submitForm() {
   proxy.$refs["resultofrcRef"].validate(valid => {
     if (!valid) {
@@ -1627,21 +1627,21 @@ function submitForm() {
 
     if (form.value.analysisId != null) {
       updateResultofrc(form.value).then(() => {
-        proxy.$modal.msgSuccess("淇敼鎴愬姛")
+        proxy.$modal.msgSuccess("修改成功")
         open.value = false
         getList()
       }).catch(() => {
-        proxy.$modal.msgSuccess("婕旂ず鏁版嵁淇敼瀹屾垚")
+        proxy.$modal.msgSuccess("演示数据修改完成")
         open.value = false
         getList()
       })
     } else {
       addResultofrc(form.value).then(() => {
-        proxy.$modal.msgSuccess("鏂板鎴愬姛")
+        proxy.$modal.msgSuccess("新增成功")
         open.value = false
         getList()
       }).catch(() => {
-        proxy.$modal.msgSuccess("婕旂ず鏁版嵁鏂板瀹屾垚")
+        proxy.$modal.msgSuccess("演示数据新增完成")
         open.value = false
         getList()
       })
@@ -1649,29 +1649,29 @@ function submitForm() {
   })
 }
 
-/** 鍒犻櫎 */
+/** 删除 */
 function handleDelete(row) {
   const analysisIds = row.analysisId || ids.value
 
-  proxy.$modal.confirm('鏄惁纭鍒犻櫎鏍瑰洜鍒嗘瀽缁撴灉缂栧彿涓?"' + analysisIds + '" 鐨勬暟鎹」锛?).then(() => {
+  proxy.$modal.confirm('是否确认删除根因分析结果编号为 "' + analysisIds + '" 的数据项？').then(() => {
     return delResultofrc(analysisIds)
   }).then(() => {
     getList()
-    proxy.$modal.msgSuccess("鍒犻櫎鎴愬姛")
+    proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {
-    proxy.$modal.msgSuccess("婕旂ず鏁版嵁鍒犻櫎瀹屾垚")
+    proxy.$modal.msgSuccess("演示数据删除完成")
     getList()
   })
 }
 
-/** 瀵煎嚭 */
+/** 导出 */
 function handleExport() {
   proxy.download("system/resultofrc/export", {
     ...queryParams.value
   }, `resultofrc_${new Date().getTime()}.xlsx`)
 }
 
-/** 璇︽儏 */
+/** 详情 */
 function handleDetail(row) {
   const distribution = getSampleDistribution(row.sampleId)
 
@@ -1685,29 +1685,29 @@ function handleDetail(row) {
   detailOpen.value = true
 }
 
-/** 鎵ц鏍瑰洜鍒嗘瀽 */
+/** 执行根因分析 */
 function handleRunRootCause() {
   const selectedRows = selectedDiagnosisRows.value || []
 
   if (!pipelineId.value) {
-    proxy.$modal.msgWarning("鏈壘鍒板綋鍓嶆祦绋婭D锛岃鍏堜粠鏁版嵁鏂囦欢绠＄悊妯″潡寮€濮嬫祦绋?)
+    proxy.$modal.msgWarning("未找到当前流程ID，请先从数据文件管理模块开始流程")
     return
   }
 
   if (!diagnosisInputList.value.length) {
-    proxy.$modal.msgWarning("鏈壘鍒拌瘖鏂粨鏋滐紝璇峰厛鎵ц鏁呴殰璇婃柇")
+    proxy.$modal.msgWarning("未找到诊断结果，请先执行故障诊断")
     return
   }
 
   if (!selectedRows.length) {
-    proxy.$modal.msgWarning("璇峰厛鍕鹃€夐渶瑕佽繘琛屾牴鍥犲垎鏋愮殑璇婃柇鏍锋湰")
+    proxy.$modal.msgWarning("请先勾选需要进行根因分析的诊断样本")
     return
   }
 
-  const analyzableRows = selectedRows.filter(row => row.faultType !== "姝ｅ父")
+  const analyzableRows = selectedRows.filter(row => row.faultType !== "正常")
 
   if (!analyzableRows.length) {
-    proxy.$modal.msgWarning("鎵€閫夋牱鏈潎涓烘甯哥姸鎬侊紝鏃犻渶鐢熸垚鏍瑰洜鍒嗘瀽缁撴灉")
+    proxy.$modal.msgWarning("所选样本均为正常状态，无需生成根因分析结果")
     return
   }
 
@@ -1715,7 +1715,7 @@ function handleRunRootCause() {
     const rootCause = buildRootCauseByDiagnosis(row, index)
     const rootCauseInfo = ROOT_CAUSE_LIBRARY.find(item => item.rootCauseType === rootCause.rootCauseType) || {
       rootCauseType: rootCause.rootCauseType,
-      rootCauseCategory: "缁煎悎鎺ㄧ悊",
+      rootCauseCategory: "综合推理",
       rootCauseDesc: rootCause.rootCauseDesc,
       maintenanceSuggestion: rootCause.maintenanceSuggestion
     }
@@ -1736,18 +1736,18 @@ function handleRunRootCause() {
       probability: rootCause.probability,
       evidenceJson: JSON.stringify(buildRootCauseEvidence(row, rootCause, distribution), null, 2),
       maintenanceSuggestion: rootCause.maintenanceSuggestion,
-      analysisMethod: "璇婃柇缁撴灉鍏宠仈 + 铻嶅悎鐗瑰緛璇佹嵁閾?+ 鏍瑰洜鏈虹悊鎺ㄧ悊",
-      analysisStatus: "宸插垎鏋?,
+      analysisMethod: "诊断结果关联 + 融合特征证据链 + 根因机理推理",
+      analysisStatus: "已分析",
       analyst: "Topic4-RCA-Engine",
       analysisTime: formatDateTime(new Date()),
       distribution,
-      remark: "鐢辫瘖鏂粨鏋滆緭鍏ョ獥鍙ｅ嬀閫夋牱鏈悗鑷姩鐢熸垚"
+      remark: "由诊断结果输入窗口勾选样本后自动生成"
     }
   })
 
   updateTopic4Pipeline(pipelineId.value, {
     currentStage: "ROOT_CAUSE_DONE",
-    status: "宸插畬鎴?,
+    status: "已完成",
     rootCauseResults
   })
 
@@ -1761,67 +1761,67 @@ function handleRunRootCause() {
     initConfidenceChart()
   })
 
-  proxy.$modal.msgSuccess("鏍瑰洜鍒嗘瀽瀹屾垚锛屽凡鍦ㄤ笅鏂圭粨鏋滆褰曞拰楗煎浘涓悓姝ュ睍绀?)
+  proxy.$modal.msgSuccess("根因分析完成，已在下方结果记录和饼图中同步展示")
 }
 
 function buildRootCauseByDiagnosis(row, index) {
   const map = {
-    "鍐呭湀鏁呴殰": {
-      rootCauseType: "杞存壙棰勭揣鍔涜缃亸澶?,
-      rootCauseDesc: "杞存壙棰勭揣鍔涜缃亸澶э紝瀵艰嚧杩愯娓╁崌鍗囬珮銆佹帴瑙﹀簲鍔涘澶э紝骞惰鍙戝唴鍦堝尯鍩熷紓甯告尟鍔ㄣ€?,
+    "内圈故障": {
+      rootCauseType: "轴承预紧力设置偏大",
+      rootCauseDesc: "轴承预紧力设置偏大，导致运行温升升高、接触应力增大，并诱发内圈区域异常振动。",
       probability: 0.8,
-      maintenanceSuggestion: "寤鸿澶嶆牳杞存壙棰勭揣鍙傛暟鍜岃閰嶅伐鑹鸿褰曪紝瀵归绱у姏鍋忓ぇ鐨勮閰嶄欢杩涜閲嶆柊璋冩暣銆?
+      maintenanceSuggestion: "建议复核轴承预紧参数和装配工艺记录，对预紧力偏大的装配件进行重新调整。"
     },
-    "杞存壙鍐呭湀鏁呴殰": {
-      rootCauseType: "杞存壙棰勭揣鍔涜缃亸澶?,
-      rootCauseDesc: "杞存壙棰勭揣鍔涜缃亸澶э紝瀵艰嚧杩愯娓╁崌鍗囬珮銆佹帴瑙﹀簲鍔涘澶э紝骞惰鍙戝唴鍦堝尯鍩熷紓甯告尟鍔ㄣ€?,
+    "轴承内圈故障": {
+      rootCauseType: "轴承预紧力设置偏大",
+      rootCauseDesc: "轴承预紧力设置偏大，导致运行温升升高、接触应力增大，并诱发内圈区域异常振动。",
       probability: 0.8,
-      maintenanceSuggestion: "寤鸿澶嶆牳杞存壙棰勭揣鍙傛暟鍜岃閰嶅伐鑹鸿褰曪紝瀵归绱у姏鍋忓ぇ鐨勮閰嶄欢杩涜閲嶆柊璋冩暣銆?
+      maintenanceSuggestion: "建议复核轴承预紧参数和装配工艺记录，对预紧力偏大的装配件进行重新调整。"
     },
-    "澶栧湀鏁呴殰": {
-      rootCauseType: "瑁呴厤鍚岃酱搴﹀亸宸?,
-      rootCauseDesc: "瑁呴厤鍚岃酱搴﹀亸宸鑷磋酱鎵块暱鏈熸壙鍙楀亸杞斤紝澶栧湀鎺ヨЕ鍖哄煙鍑虹幇灞€閮ㄧ柌鍔虫崯浼ゃ€?,
+    "外圈故障": {
+      rootCauseType: "装配同轴度偏差",
+      rootCauseDesc: "装配同轴度偏差导致轴承长期承受偏载，外圈接触区域出现局部疲劳损伤。",
       probability: 0.76,
-      maintenanceSuggestion: "寤鸿澶嶆牳杞存壙搴с€佽浆杞村拰绔洊瑁呴厤鍚岃酱搴︼紝瀵硅秴宸儴浠堕噸鏂板畾浣嶆牎鍑嗐€?
+      maintenanceSuggestion: "建议复核轴承座、转轴和端盖装配同轴度，对超差部件重新定位校准。"
     },
-    "杞存壙澶栧湀鏁呴殰": {
-      rootCauseType: "瑁呴厤鍚岃酱搴﹀亸宸?,
-      rootCauseDesc: "瑁呴厤鍚岃酱搴﹀亸宸鑷磋酱鎵块暱鏈熸壙鍙楀亸杞斤紝澶栧湀鎺ヨЕ鍖哄煙鍑虹幇灞€閮ㄧ柌鍔虫崯浼ゃ€?,
+    "轴承外圈故障": {
+      rootCauseType: "装配同轴度偏差",
+      rootCauseDesc: "装配同轴度偏差导致轴承长期承受偏载，外圈接触区域出现局部疲劳损伤。",
       probability: 0.76,
-      maintenanceSuggestion: "寤鸿澶嶆牳杞存壙搴с€佽浆杞村拰绔洊瑁呴厤鍚岃酱搴︼紝瀵硅秴宸儴浠堕噸鏂板畾浣嶆牎鍑嗐€?
+      maintenanceSuggestion: "建议复核轴承座、转轴和端盖装配同轴度，对超差部件重新定位校准。"
     },
-    "婊氬姩浣撴晠闅?: {
-      rootCauseType: "婊氶亾寰皬鎹熶激",
-      rootCauseDesc: "婊氶亾寰皬鎹熶激瀵艰嚧婊氬姩浣撶粡杩囩己闄峰尯鍩熸椂浜х敓鍛ㄦ湡鎬у啿鍑伙紝閫愭褰㈡垚婊氬姩浣撳紓甯哥壒寰併€?,
+    "滚动体故障": {
+      rootCauseType: "滚道微小损伤",
+      rootCauseDesc: "滚道微小损伤导致滚动体经过缺陷区域时产生周期性冲击，逐步形成滚动体异常特征。",
       probability: 0.72,
-      maintenanceSuggestion: "寤鸿瀵规粴閬撳拰婊氬姩浣撹〃闈㈣繘琛屾樉寰鏌ワ紝閲嶇偣鎺掓煡鍒掍激銆佺偣铓€鍜屽墺钀姐€?
+      maintenanceSuggestion: "建议对滚道和滚动体表面进行显微检查，重点排查划伤、点蚀和剥落。"
     },
-    "杞存壙婊氬姩浣撴晠闅?: {
-      rootCauseType: "婊氶亾寰皬鎹熶激",
-      rootCauseDesc: "婊氶亾寰皬鎹熶激瀵艰嚧婊氬姩浣撶粡杩囩己闄峰尯鍩熸椂浜х敓鍛ㄦ湡鎬у啿鍑伙紝閫愭褰㈡垚婊氬姩浣撳紓甯哥壒寰併€?,
+    "轴承滚动体故障": {
+      rootCauseType: "滚道微小损伤",
+      rootCauseDesc: "滚道微小损伤导致滚动体经过缺陷区域时产生周期性冲击，逐步形成滚动体异常特征。",
       probability: 0.72,
-      maintenanceSuggestion: "寤鸿瀵规粴閬撳拰婊氬姩浣撹〃闈㈣繘琛屾樉寰鏌ワ紝閲嶇偣鎺掓煡鍒掍激銆佺偣铓€鍜屽墺钀姐€?
+      maintenanceSuggestion: "建议对滚道和滚动体表面进行显微检查，重点排查划伤、点蚀和剥落。"
     },
-    "淇濇寔鏋舵晠闅?: {
-      rootCauseType: "瀵嗗皝澶辨晥瀵艰嚧姹℃煋鐗╄繘鍏?,
-      rootCauseDesc: "姹℃煋鐗╄繘鍏ュ悗閫犳垚娑︽粦鍔ｅ寲涓庡紓甯哥（鎹燂紝淇濇寔鏋跺尯鍩熷嚭鐜板啿鍑诲拰纾ㄦ崯鐗瑰緛銆?,
+    "保持架故障": {
+      rootCauseType: "密封失效导致污染物进入",
+      rootCauseDesc: "污染物进入后造成润滑劣化与异常磨损，保持架区域出现冲击和磨损特征。",
       probability: 0.7,
-      maintenanceSuggestion: "寤鸿妫€鏌ュ瘑灏佸畬鏁存€с€佹鼎婊戞薄鏌撶▼搴﹀拰淇濇寔鏋剁（鎹熺姸鎬併€?
+      maintenanceSuggestion: "建议检查密封完整性、润滑污染程度和保持架磨损状态。"
     }
   }
 
   return map[row.faultType] || {
-    rootCauseType: "娑︽粦鑴傚～鍏呬笉瓒?,
-    rootCauseDesc: "娑︽粦涓嶈冻瀵艰嚧鎽╂摝鍗囬珮鍜屽眬閮ㄧ（鎹燂紝杩涜€岃鍙戣酱鎵垮紓甯搞€?,
+    rootCauseType: "润滑脂填充不足",
+    rootCauseDesc: "润滑不足导致摩擦升高和局部磨损，进而诱发轴承异常。",
     probability: 0.68,
-    maintenanceSuggestion: "寤鸿妫€鏌ユ鼎婊戣剛鍨嬪彿銆佸～鍏呴噺鍜岃ˉ鑴傚懆鏈熴€?
+    maintenanceSuggestion: "建议检查润滑脂型号、填充量和补脂周期。"
   }
 }
 
 function buildRootCauseEvidence(diagnosis, rootCause, distribution = []) {
   const rootCauseInfo = ROOT_CAUSE_LIBRARY.find(item => item.rootCauseType === rootCause.rootCauseType) || {
     rootCauseType: rootCause.rootCauseType,
-    rootCauseCategory: "缁煎悎鎺ㄧ悊",
+    rootCauseCategory: "综合推理",
     rootCauseDesc: rootCause.rootCauseDesc,
     maintenanceSuggestion: rootCause.maintenanceSuggestion
   }
@@ -1861,62 +1861,62 @@ function buildRootCauseEvidence(diagnosis, rootCause, distribution = []) {
       rectificationSuggestion: rootCause.maintenanceSuggestion
     },
     reasoningChain: [
-      "棰勫鐞嗘牱鏈舰鎴愭爣鍑嗗寲鏃堕棿绐?,
-      "鏍锋湰澧炲己鎵╁厖鏁呴殰鏍锋湰骞舵敼鍠勭被鍒笉骞宠　",
-      "鐗瑰緛铻嶅悎鎻愬彇澶氫紶鎰熷櫒鏃剁┖鐗瑰緛",
-      `鏁呴殰璇婃柇璇嗗埆涓?{diagnosis.faultType}`,
-      `鏍瑰洜鍒嗘瀽鎺ㄧ悊寰楀埌${rootCause.rootCauseType}`
+      "预处理样本形成标准化时间窗",
+      "样本增强扩充故障样本并改善类别不平衡",
+      "特征融合提取多传感器时空特征",
+      `故障诊断识别为${diagnosis.faultType}`,
+      `根因分析推理得到${rootCause.rootCauseType}`
     ]
   }
 }
 
 
-/** 鏋勯€犺瘉鎹摼 */
-/** 鏋勯€犺瘉鎹摼锛氫粠鏍瑰洜涓€姝ヤ竴姝ユ帹瀵煎埌鏁呴殰褰㈡垚 */
+/** 构造证据链 */
+/** 构造证据链：从根因一步一步推导到故障形成 */
 function buildEvidenceChain(codeSuffix, probability, rootCauseInfo, distribution = [], sampleId = "-") {
   const faultFormationProcess = buildFaultFormationProcess(rootCauseInfo, sampleId)
 
   return {
     chainId: "EC-RCA-" + codeSuffix,
-    sourceSubject: "璇鹃鍥?,
-    targetSubject: "璇鹃浜?,
-    interfaceType: "鏍瑰洜鍒嗘瀽缁撴灉杈撳嚭鎺ュ彛",
+    sourceSubject: "课题四",
+    targetSubject: "课题五",
+    interfaceType: "根因分析结果输出接口",
 
     diagnosisEvidence: {
-      sourceSubject: "璇鹃鍥?,
+      sourceSubject: "课题四",
       diagnosisCode: "DG-" + codeSuffix,
       sampleCode: "SAMPLE-" + codeSuffix,
-      faultType: "杞存壙鏁呴殰",
-      faultLocation: "杞存壙缁勪欢",
+      faultType: "轴承故障",
+      faultLocation: "轴承组件",
       diagnosisConfidence: 0.91,
       healthScore: 72.4,
-      evidenceMeaning: "璇婃柇妯″瀷璇嗗埆鍒版牱鏈尟鍔ㄧ壒寰佷笌杞存壙寮傚父妯″紡楂樺害鐩稿叧銆?
+      evidenceMeaning: "诊断模型识别到样本振动特征与轴承异常模式高度相关。"
     },
 
     digitalArchiveEvidence: {
-      sourceSubject: "璇鹃涓€",
-      productObject: "鑸┖瑁呭杞存壙閮ㄤ欢",
+      sourceSubject: "课题一",
+      productObject: "航空装备轴承部件",
       batchNo: "BATCH-RCA-" + codeSuffix,
-      bomNode: "浼犲姩绯荤粺/杞存壙缁勪欢",
+      bomNode: "传动系统/轴承组件",
       qualityFeatures: [
-        "杞存壙棰勭揣鍔?,
-        "婊氶亾琛ㄩ潰鐘舵€?,
-        "鏉愭枡纭害涓€鑷存€?,
-        "娑︽粦鑴傚～鍏呯姸鎬?,
-        "瑁呴厤鍚岃酱搴?,
-        "瀵嗗皝鐘舵€?
+        "轴承预紧力",
+        "滚道表面状态",
+        "材料硬度一致性",
+        "润滑脂填充状态",
+        "装配同轴度",
+        "密封状态"
       ],
       fileReference: "bearing_sample_" + codeSuffix + ".mat",
-      evidenceMeaning: "鏁板瓧鍗峰畻鎻愪緵璇ユ牱鏈殑鎵规銆侀儴浠躲€佽川閲忕壒寰佸拰鍘熷鏁版嵁鏉ユ簮銆?
+      evidenceMeaning: "数字卷宗提供该样本的批次、部件、质量特征和原始数据来源。"
     },
 
     supervisionEvidence: {
-      sourceSubject: "璇鹃涓?,
-      abnormalWarning: "鎸姩骞呭€煎紓甯?,
-      equipmentStatus: "杩愯鐘舵€佸紓甯?,
-      maintenanceRecord: "瀛樺湪杞存壙鍖哄煙鎸姩鍗囬珮璁板綍",
-      processContext: "鐩稿悓宸ュ喌涓嬫尟鍔ㄧ壒寰佹寔缁寮?,
-      evidenceMeaning: "鐩戠鏁版嵁琛ㄦ槑璇ユ牱鏈搴旇澶囧瓨鍦ㄤ笌杞存壙寮傚父涓€鑷寸殑杩愯娉㈠姩銆?
+      sourceSubject: "课题三",
+      abnormalWarning: "振动幅值异常",
+      equipmentStatus: "运行状态异常",
+      maintenanceRecord: "存在轴承区域振动升高记录",
+      processContext: "相同工况下振动特征持续增强",
+      evidenceMeaning: "监管数据表明该样本对应设备存在与轴承异常一致的运行波动。"
     },
 
     rootCauseDistribution: distribution.map(item => ({
@@ -1926,8 +1926,8 @@ function buildEvidenceChain(codeSuffix, probability, rootCauseInfo, distribution
     })),
 
     /**
-     * 鏂板锛氭晠闅滃舰鎴愯繃绋?
-     * 琛ㄦ牸涓殑鈥滆瘉鎹摼鎽樿鈥濆氨浠庤繖閲屽彇鍊笺€?
+     * 新增：故障形成过程
+     * 表格中的“证据链摘要”就从这里取值。
      */
     faultFormationProcess,
 
@@ -1943,7 +1943,7 @@ function buildEvidenceChain(codeSuffix, probability, rootCauseInfo, distribution
       rootCauseType: rootCauseInfo.rootCauseType,
       rootCauseDesc: rootCauseInfo.rootCauseDesc,
       rootCauseConfidence: probability,
-      impactScope: "鍚屾壒娆¤酱鎵跨粍浠跺強鐩歌繎宸ュ喌杩愯璁惧",
+      impactScope: "同批次轴承组件及相近工况运行设备",
       responsibleStage: rootCauseInfo.rootCauseCategory,
       rectificationSuggestion: rootCauseInfo.maintenanceSuggestion
     }
@@ -1971,11 +1971,11 @@ function buildEvidenceView(row) {
     return {
       sampleCode: "-",
       steps: [
-        { title: "璇婃柇杈撳叆", primary: "鏆傛棤鏍锋湰", desc: "璇峰厛鎵ц鏍瑰洜鍒嗘瀽骞堕€夋嫨鏍锋湰銆?, type: "input" },
-        { title: "寮傚父鐗瑰緛", primary: "寰呯敓鎴?, desc: "鎵ц鍚庡睍绀洪璋便€佽瀺鍚堢壒寰佸拰鐩戠璇佹嵁銆?, type: "feature" },
-        { title: "鍊欓€夋牴鍥?, primary: "寰呯敓鎴?, desc: "鏍规嵁鏍瑰洜鍒嗗竷鐢熸垚鍊欓€夋牴鍥犳帓搴忋€?, type: "candidate" },
-        { title: "鏈€澶ф牴鍥?, primary: "寰呯敓鎴?, desc: "灞曠ず缃俊搴︽渶楂樼殑鍏蜂綋鏍瑰洜銆?, type: "cause" },
-        { title: "鏁存敼寤鸿", primary: "寰呯敓鎴?, desc: "杈撳嚭缁翠慨涓庡鏍稿缓璁€?, type: "action" }
+        { title: "诊断输入", primary: "暂无样本", desc: "请先执行根因分析并选择样本。", type: "input" },
+        { title: "异常特征", primary: "待生成", desc: "执行后展示频谱、融合特征和监管证据。", type: "feature" },
+        { title: "候选根因", primary: "待生成", desc: "根据根因分布生成候选根因排序。", type: "candidate" },
+        { title: "最大根因", primary: "待生成", desc: "展示置信度最高的具体根因。", type: "cause" },
+        { title: "整改建议", primary: "待生成", desc: "输出维修与复核建议。", type: "action" }
       ],
       formation: []
     }
@@ -1996,42 +1996,42 @@ function buildEvidenceView(row) {
       .join(" / ")
 
   const featureEvidence = [
-    diagnosis.evidenceMeaning || `${row.faultLocation || "杞存壙缁勪欢"}璇嗗埆涓?{row.rootCauseType || "寮傚父鏍瑰洜"}鐩稿叧鏁呴殰`,
-    supervision.abnormalWarning ? `鐩戠寮傚父锛?{supervision.abnormalWarning}` : "鐩戠寮傚父锛氭尟鍔ㄥ箙鍊煎紓甯?,
-    archive.fileReference ? `鏍锋湰鏂囦欢锛?{archive.fileReference}` : `鏍锋湰缂栧彿锛?{row.sampleCode || `SAMPLE-${row.sampleId}`}`
-  ].join("锛?)
+    diagnosis.evidenceMeaning || `${row.faultLocation || "轴承组件"}识别为${row.rootCauseType || "异常根因"}相关故障`,
+    supervision.abnormalWarning ? `监管异常：${supervision.abnormalWarning}` : "监管异常：振动幅值异常",
+    archive.fileReference ? `样本文件：${archive.fileReference}` : `样本编号：${row.sampleCode || `SAMPLE-${row.sampleId}`}`
+  ].join("；")
 
   return {
     sampleCode: row.sampleCode || `SAMPLE-${row.sampleId || "-"}`,
     steps: [
       {
-        title: "璇婃柇杈撳叆",
-        primary: `${diagnosis.faultLocation || row.faultLocation || "杞存壙缁勪欢"} / ${diagnosis.faultType || "杞存壙鏁呴殰"}`,
-        desc: `璇婃柇缃俊搴?${formatProbability(diagnosis.diagnosisConfidence ?? row.probability)}锛屽仴搴疯瘎鍒?${diagnosis.healthScore || row.healthScore || "72.4"}`,
+        title: "诊断输入",
+        primary: `${diagnosis.faultLocation || row.faultLocation || "轴承组件"} / ${diagnosis.faultType || "轴承故障"}`,
+        desc: `诊断置信度 ${formatProbability(diagnosis.diagnosisConfidence ?? row.probability)}，健康评分 ${diagnosis.healthScore || row.healthScore || "72.4"}`,
         type: "input"
       },
       {
-        title: "寮傚父鐗瑰緛",
-        primary: "鎸姩寮傚父 + 铻嶅悎鐗瑰緛鍋忕",
+        title: "异常特征",
+        primary: "振动异常 + 融合特征偏离",
         desc: featureEvidence,
         type: "feature"
       },
       {
-        title: "鍊欓€夋牴鍥?,
-        primary: candidates || "鍊欓€夋牴鍥犲垎甯冨緟鐢熸垚",
-        desc: "鏍规嵁璇婃柇缁撴灉銆佽瀺鍚堢壒寰佸拰鏁板瓧鍗峰畻璇佹嵁鐢熸垚鍏被鏍瑰洜缃俊搴︽帓搴忋€?,
+        title: "候选根因",
+        primary: candidates || "候选根因分布待生成",
+        desc: "根据诊断结果、融合特征和数字卷宗证据生成六类根因置信度排序。",
         type: "candidate"
       },
       {
-        title: "鏈€澶ф牴鍥?,
+        title: "最大根因",
         primary: conclusion.specificRootCause || row.rootCauseType || "-",
-        desc: `鏈€澶ф牴鍥犵疆淇″害 ${formatProbability(conclusion.rootCauseConfidence ?? row.probability)}锛岃矗浠婚樁娈碉細${conclusion.responsibleStage || "瑁呴厤 / 鏉愭枡 / 娑︽粦缁煎悎澶嶆牳"}`,
+        desc: `最大根因置信度 ${formatProbability(conclusion.rootCauseConfidence ?? row.probability)}，责任阶段：${conclusion.responsibleStage || "装配 / 材料 / 润滑综合复核"}`,
         type: "cause"
       },
       {
-        title: "鏁存敼寤鸿",
-        primary: "澶嶆牳骞堕棴鐜鐞?,
-        desc: conclusion.rectificationSuggestion || row.maintenanceSuggestion || "寤鸿缁撳悎瑁呴厤璁板綍銆佹鼎婊戠姸鎬佸拰鍚屾壒娆¤川閲忔暟鎹繘琛屽鏍搞€?,
+        title: "整改建议",
+        primary: "复核并闭环处理",
+        desc: conclusion.rectificationSuggestion || row.maintenanceSuggestion || "建议结合装配记录、润滑状态和同批次质量数据进行复核。",
         type: "action"
       }
     ],
@@ -2039,18 +2039,18 @@ function buildEvidenceView(row) {
   }
 }
 
-/** 鏋勫缓鏍瑰洜鍒ゆ柇鏂囨湰 */
+/** 构建根因判断文本 */
 function buildRootCauseJudgment(row) {
   const specificRootCause = row.rootCauseType || "-"
   const desc = row.rootCauseDesc || "-"
 
-  return `${specificRootCause}锛?{desc}`
+  return `${specificRootCause}：${desc}`
 }
 
-/** 琛ㄦ牸涓樉绀鸿瘉鎹摼鎽樿锛氭牴鍥?鈫?鏈虹悊婕斿寲 鈫?鏁呴殰褰㈡垚 */
+/** 表格中显示证据链摘要：根因 → 机理演化 → 故障形成 */
 function buildEvidenceSummary(value) {
   if (!value) {
-    return "鏆傛棤璇佹嵁閾?
+    return "暂无证据链"
   }
 
   try {
@@ -2058,24 +2058,24 @@ function buildEvidenceSummary(value) {
     const process = json.faultFormationProcess || []
 
     if (process.length > 0) {
-      return process.map(item => item.title).join(" 鈫?")
+      return process.map(item => item.title).join(" → ")
     }
 
     const reasoning = json.causalReasoning || []
 
     if (reasoning.length > 0) {
-      return reasoning.map(item => item.logic || item.description).join(" 鈫?")
+      return reasoning.map(item => item.logic || item.description).join(" → ")
     }
 
-    const specificRootCause = json.rootCauseConclusion?.specificRootCause || "鏈€澶х疆淇″害鏍瑰洜"
+    const specificRootCause = json.rootCauseConclusion?.specificRootCause || "最大置信度根因"
 
-    return `${specificRootCause} 鈫?灞€閮ㄥ紓甯哥疮绉?鈫?鎸姩鐗瑰緛澧炲己 鈫?杞存壙鏁呴殰褰㈡垚`
+    return `${specificRootCause} → 局部异常累积 → 振动特征增强 → 轴承故障形成`
   } catch (e) {
-    return "鏍瑰洜寮傚父 鈫?灞€閮ㄦ崯浼ょ疮绉?鈫?鎸姩鍝嶅簲澧炲己 鈫?杞存壙鏁呴殰褰㈡垚"
+    return "根因异常 → 局部损伤累积 → 振动响应增强 → 轴承故障形成"
   }
 }
 
-/** 鏍瑰洜绫诲瀷鏍囩 */
+/** 根因类型标签 */
 function rootCauseTypeTag(value) {
   const rootCause = ROOT_CAUSE_LIBRARY.find(item => item.rootCauseType === value)
 
@@ -2084,35 +2084,35 @@ function rootCauseTypeTag(value) {
   }
 
   const categoryMap = {
-    "瑁呴厤鍙傛暟": "warning",
-    "琛ㄩ潰鎹熶激": "danger",
-    "鏉愭枡涓€鑷存€?: "danger",
-    "娑︽粦缁存姢": "success",
-    "瑁呴厤宸ヨ壓": "warning",
-    "鐜姹℃煋": "info"
+    "装配参数": "warning",
+    "表面损伤": "danger",
+    "材料一致性": "danger",
+    "润滑维护": "success",
+    "装配工艺": "warning",
+    "环境污染": "info"
   }
 
   return categoryMap[rootCause.rootCauseCategory] || "info"
 }
 
-/** 鐘舵€佹爣绛?*/
+/** 状态标签 */
 function analysisStatusTag(value) {
-  if (value === "宸插垎鏋?) {
+  if (value === "已分析") {
     return "success"
   }
 
-  if (value === "寰呭鏍?) {
+  if (value === "待复核") {
     return "warning"
   }
 
-  if (value === "寰呭垎鏋?) {
+  if (value === "待分析") {
     return "info"
   }
 
   return "info"
 }
 
-/** 鏍煎紡鍖栫疆淇″害 */
+/** 格式化置信度 */
 function formatProbability(value) {
   if (value === null || value === undefined || value === "") {
     return "-"
@@ -2131,15 +2131,15 @@ function formatProbability(value) {
   return num.toFixed(1) + "%"
 }
 
-/** JSON鏍煎紡鍖?*/
+/** JSON格式化 */
 function formatJsonText(value) {
   return JSON.stringify(value, null, 2)
 }
 
-/** 璇︽儏涓牸寮忓寲JSON */
+/** 详情中格式化JSON */
 function formatJsonForView(value) {
   if (!value) {
-    return "鏆傛棤鏁版嵁"
+    return "暂无数据"
   }
 
   try {
@@ -2149,7 +2149,7 @@ function formatJsonForView(value) {
   }
 }
 
-/** 鏃ユ湡鏃堕棿鏍煎紡 */
+/** 日期时间格式 */
 function formatDateTime(date) {
   const pad = value => String(value).padStart(2, "0")
 
