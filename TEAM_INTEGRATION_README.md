@@ -1,43 +1,56 @@
-# 团队整合说明文档
+## Project2 database history migration
 
-本文档用于记录平台后续与其他团队整合时需要同步的内容。以后每次完成平台相关任务前，都需要检查本文件是否需要更新。
+For Project2 master integration, execute database scripts in this order:
 
-## 什么时候需要更新本文档
+1. Back up the target `ry-cloud` database.
+2. Execute `sql/t2_project2_master_migration.sql` for schema, menus, roles, and base initialization data.
+3. If existing local Project2 task history should be preserved, execute `sql/t2_project2_history_data.sql`.
 
-只要任务涉及下面任意内容，就需要同步更新本文档：
+`sql/t2_project2_history_data.sql` contains historical task records, selected objectives and constraints, design-variable selections, surrogate solve records, CAD records, ANSYS simulation records, approval records, archive records, and task-bound fault-pipe parameter snapshots.
 
-- 外部服务地址、端口、请求参数、返回字段发生变化。
-- 数据库表、字段、初始化脚本、升级脚本、权限数据发生变化。
-- 团队之间交换的文件格式发生变化，例如 STEP、Parasolid、STL、图片、Excel、模型文件、仿真结果包等。
-- 启动方式、环境变量、部署顺序、本地软件路径发生变化。
-- 任务流程状态、审批规则、菜单权限、用户角色发生变化。
-- SolidWorks、ANSYS、Python 代理模型或其他第三方工具的集成方式发生变化。
-- 错误提示、重试逻辑、日志文件、输出目录发生变化。
+Do not use the history script as a replacement for `sql/t2_project2_master_migration.sql`; it depends on the schema and base initialization created by the master migration script.
+## Project2 / Project5 鏈湴鑱旇皟鍓嶇浠ｇ悊
 
-如果一次任务不影响团队整合，则不需要修改本文档。
+`ruoyi-ui/vite.config.js` 鐨勫紑鍙戠幆澧?`/dev-api` 浠ｇ悊宸茶皟鏁翠负 `http://localhost:8080`锛岀敤浜庡尮閰嶅綋鍓嶆湰鍦?`ruoyi-gateway` 榛樿绔彛銆傝嫢閮ㄧ讲鐜鎴?Nacos 涓綉鍏崇鍙ｆ敼鍥?`8088`锛岄渶瑕佸悓姝ヨ皟鏁磋浠ｇ悊鍦板潃锛屾垨淇濊瘉缃戝叧瀹為檯鐩戝惉绔彛涓庡墠绔唬鐞嗕竴鑷淬€?
+# 鍥㈤槦鏁村悎璇存槑鏂囨。
 
-## 当前平台模块
+鏈枃妗ｇ敤浜庤褰曞钩鍙板悗缁笌鍏朵粬鍥㈤槦鏁村悎鏃堕渶瑕佸悓姝ョ殑鍐呭銆備互鍚庢瘡娆″畬鎴愬钩鍙扮浉鍏充换鍔″墠锛岄兘闇€瑕佹鏌ユ湰鏂囦欢鏄惁闇€瑕佹洿鏂般€?
+## 浠€涔堟椂鍊欓渶瑕佹洿鏂版湰鏂囨。
 
-| 模块 | 职责 | 主要目录 | 整合说明 |
+鍙浠诲姟娑夊強涓嬮潰浠绘剰鍐呭锛屽氨闇€瑕佸悓姝ユ洿鏂版湰鏂囨。锛?
+
+- 澶栭儴鏈嶅姟鍦板潃銆佺鍙ｃ€佽姹傚弬鏁般€佽繑鍥炲瓧娈靛彂鐢熷彉鍖栥€?
+- 鏁版嵁搴撹〃銆佸瓧娈点€佸垵濮嬪寲鑴氭湰銆佸崌绾ц剼鏈€佹潈闄愭暟鎹彂鐢熷彉鍖栥€?
+- 鍥㈤槦涔嬮棿浜ゆ崲鐨勬枃浠舵牸寮忓彂鐢熷彉鍖栵紝渚嬪 STEP銆丳arasolid銆丼TL銆佸浘鐗囥€丒xcel銆佹ā鍨嬫枃浠躲€佷豢鐪熺粨鏋滃寘绛夈€?
+- 鍚姩鏂瑰紡銆佺幆澧冨彉閲忋€侀儴缃查『搴忋€佹湰鍦拌蒋浠惰矾寰勫彂鐢熷彉鍖栥€?
+- 浠诲姟娴佺▼鐘舵€併€佸鎵硅鍒欍€佽彍鍗曟潈闄愩€佺敤鎴疯鑹插彂鐢熷彉鍖栥€?
+- SolidWorks銆丄NSYS銆丳ython 浠ｇ悊妯″瀷鎴栧叾浠栫涓夋柟宸ュ叿鐨勯泦鎴愭柟寮忓彂鐢熷彉鍖栥€?
+- 閿欒鎻愮ず銆侀噸璇曢€昏緫銆佹棩蹇楁枃浠躲€佽緭鍑虹洰褰曞彂鐢熷彉鍖栥€?
+
+濡傛灉涓€娆′换鍔′笉褰卞搷鍥㈤槦鏁村悎锛屽垯涓嶉渶瑕佷慨鏀规湰鏂囨。銆?
+
+## 褰撳墠骞冲彴妯″潡
+
+| 妯″潡 | 鑱岃矗 | 涓昏鐩綍 | 鏁村悎璇存槑 |
 | --- | --- | --- | --- |
-| RuoYi Java 后端 | 任务流程、数据保存、服务编排 | `ruoyi-modules/ruoyi-designtask1` | 负责调用 Python、SolidWorks、ANSYS 等外部服务。 |
-| RuoYi 前端 | 设计任务、求解、CAD、仿真、归档页面 | `ruoyi-ui/src/views/designtask` | 页面请求参数需要和后端接口保持一致。 |
-| Python 代理模型服务 | 代理模型优化求解 | `python/project2` | 默认端口 `9721`。 |
-| SolidWorks Worker | 根据设计变量生成管路 CAD 模型 | `solidworks_worker` | 默认端口 `18080`，输出 SLDPRT、STEP、Parasolid、STL、预览图。 |
-| ANSYS Worker | 将 CAD 几何导入 ANSYS Workbench，并尝试执行 Mechanical 结构求解 | `ansys_worker` | 默认端口 `18081`，需要配置 `ANSYS_WORKBENCH_CMD`。 |
-| SQL 脚本 | 表结构、初始化数据、升级脚本 | `sql` | 涉及表结构变化时，需要提供升级脚本。 |
+| RuoYi Java 鍚庣 | 浠诲姟娴佺▼銆佹暟鎹繚瀛樸€佹湇鍔＄紪鎺?| `ruoyi-modules/ruoyi-designtask1` | 璐熻矗璋冪敤 Python銆丼olidWorks銆丄NSYS 绛夊閮ㄦ湇鍔°€?|
+| RuoYi 鍓嶇 | 璁捐浠诲姟銆佹眰瑙ｃ€丆AD銆佷豢鐪熴€佸綊妗ｉ〉闈?| `ruoyi-ui/src/views/designtask` | 椤甸潰璇锋眰鍙傛暟闇€瑕佸拰鍚庣鎺ュ彛淇濇寔涓€鑷淬€?|
+| Python 浠ｇ悊妯″瀷鏈嶅姟 | 浠ｇ悊妯″瀷浼樺寲姹傝В | `python/project2` | 榛樿绔彛 `9721`銆?|
+| SolidWorks Worker | 鏍规嵁璁捐鍙橀噺鐢熸垚绠¤矾 CAD 妯″瀷 | `solidworks_worker` | 榛樿绔彛 `18080`锛岃緭鍑?SLDPRT銆丼TEP銆丳arasolid銆丼TL銆侀瑙堝浘銆?|
+| ANSYS Worker | 灏?CAD 鍑犱綍瀵煎叆 ANSYS Workbench锛屽苟灏濊瘯鎵ц Mechanical 缁撴瀯姹傝В | `ansys_worker` | 榛樿绔彛 `18081`锛岄渶瑕侀厤缃?`ANSYS_WORKBENCH_CMD`銆?|
+| SQL 鑴氭湰 | 琛ㄧ粨鏋勩€佸垵濮嬪寲鏁版嵁銆佸崌绾ц剼鏈?| `sql` | 娑夊強琛ㄧ粨鏋勫彉鍖栨椂锛岄渶瑕佹彁渚涘崌绾ц剼鏈€?|
 
-## 服务接口清单
+## 鏈嶅姟鎺ュ彛娓呭崟
 
-| 服务 | 接口 | 用途 |
+| 鏈嶅姟 | 鎺ュ彛 | 鐢ㄩ€?|
 | --- | --- | --- |
-| Python 代理模型服务 | `POST http://127.0.0.1:9721/api/surrogate/optimize` | 启动代理模型优化求解。 |
-| Python 健康检查 | `GET http://127.0.0.1:9721/health` | 检查代理模型服务是否可用。 |
-| SolidWorks Worker | `POST http://127.0.0.1:18080/api/pipe-model` | 根据设计变量生成 CAD 文件。 |
-| ANSYS Worker | `POST http://127.0.0.1:18081/api/ansys/import-geometry` | 将 CAD 几何导入 Workbench，并在 `transient_structural` 模式下调用 Mechanical 求解。 |
-| ANSYS Worker 健康检查 | `GET http://127.0.0.1:18081/api/ansys/health` | 检查 ANSYS Worker 是否启动、Workbench 路径是否配置、实际解析到的启动文件是否存在。 |
+| Python 浠ｇ悊妯″瀷鏈嶅姟 | `POST http://127.0.0.1:9721/api/surrogate/optimize` | 鍚姩浠ｇ悊妯″瀷浼樺寲姹傝В銆?|
+| Python 鍋ュ悍妫€鏌?| `GET http://127.0.0.1:9721/health` | 妫€鏌ヤ唬鐞嗘ā鍨嬫湇鍔℃槸鍚﹀彲鐢ㄣ€?|
+| SolidWorks Worker | `POST http://127.0.0.1:18080/api/pipe-model` | 鏍规嵁璁捐鍙橀噺鐢熸垚 CAD 鏂囦欢銆?|
+| ANSYS Worker | `POST http://127.0.0.1:18081/api/ansys/import-geometry` | 灏?CAD 鍑犱綍瀵煎叆 Workbench锛屽苟鍦?`transient_structural` 妯″紡涓嬭皟鐢?Mechanical 姹傝В銆?|
+| ANSYS Worker 鍋ュ悍妫€鏌?| `GET http://127.0.0.1:18081/api/ansys/health` | 妫€鏌?ANSYS Worker 鏄惁鍚姩銆乄orkbench 璺緞鏄惁閰嶇疆銆佸疄闄呰В鏋愬埌鐨勫惎鍔ㄦ枃浠舵槸鍚﹀瓨鍦ㄣ€?|
 
-后端默认配置项：
+鍚庣榛樿閰嶇疆椤癸細
 
 ```properties
 designtask.surrogate.url=http://127.0.0.1:9721/api/surrogate/optimize
@@ -45,14 +58,14 @@ designtask.solidworks.worker-url=http://127.0.0.1:18080/api/pipe-model
 designtask.ansys.worker-url=http://127.0.0.1:18081/api/ansys/import-geometry
 ```
 
-## 本地工具配置要求
+## 鏈湴宸ュ叿閰嶇疆瑕佹眰
 
 ### SolidWorks
 
-- Worker 所在机器需要安装 SolidWorks。
-- 需要支持 SolidWorks COM 自动化。
-- 通过 `solidworks_worker/start_pipe_worker.bat` 启动本地服务。
-- 正常情况下应生成以下文件：
+- Worker 鎵€鍦ㄦ満鍣ㄩ渶瑕佸畨瑁?SolidWorks銆?
+- 闇€瑕佹敮鎸?SolidWorks COM 鑷姩鍖栥€?
+- 閫氳繃 `solidworks_worker/start_pipe_worker.bat` 鍚姩鏈湴鏈嶅姟銆?
+- 姝ｅ父鎯呭喌涓嬪簲鐢熸垚浠ヤ笅鏂囦欢锛?
   - `pipe_native.SLDPRT`
   - `pipe_model.step`
   - `pipe_model.x_t`
@@ -61,77 +74,77 @@ designtask.ansys.worker-url=http://127.0.0.1:18081/api/ansys/import-geometry
 
 ### ANSYS Workbench
 
-启动 ANSYS Worker 前，需要将 `ANSYS_WORKBENCH_CMD` 配置为本机 Workbench 官方启动脚本 `runwb2.bat` 的完整路径。
+鍚姩 ANSYS Worker 鍓嶏紝闇€瑕佸皢 `ANSYS_WORKBENCH_CMD` 閰嶇疆涓烘湰鏈?Workbench 瀹樻柟鍚姩鑴氭湰 `runwb2.bat` 鐨勫畬鏁磋矾寰勩€?
 
-示例：
+绀轰緥锛?
 
 ```bat
 set "ANSYS_WORKBENCH_CMD=D:\Program Files\ANSYS Inc\v221\Framework\bin\Win64\runwb2.bat"
 ```
 
-必须配置真实文件路径，不能配置 Windows 开始菜单中的 `.lnk` 快捷方式。`runwb2.bat` 会先设置 ANSYS 运行环境再启动 Workbench；如果配置为同目录的 `RunWB2.exe`，ANSYS Worker 会自动切换到旁边的 `runwb2.bat`，避免 Workbench 批处理启动即退出。
+蹇呴』閰嶇疆鐪熷疄鏂囦欢璺緞锛屼笉鑳介厤缃?Windows 寮€濮嬭彍鍗曚腑鐨?`.lnk` 蹇嵎鏂瑰紡銆俙runwb2.bat` 浼氬厛璁剧疆 ANSYS 杩愯鐜鍐嶅惎鍔?Workbench锛涘鏋滈厤缃负鍚岀洰褰曠殑 `RunWB2.exe`锛孉NSYS Worker 浼氳嚜鍔ㄥ垏鎹㈠埌鏃佽竟鐨?`runwb2.bat`锛岄伩鍏?Workbench 鎵瑰鐞嗗惎鍔ㄥ嵆閫€鍑恒€?
 
-如果返回 `Ansys.Utilities.Registry.RegistryException`，表示 Workbench 在执行 Journal 前的框架初始化阶段失败，还没有开始导入几何或求解。此时应先关闭所有 ANSYS/Mechanical 进程，用 `runwb2.bat` 重新启动 Worker；如果仍失败，需要重启 Windows 或修复 ANSYS Workbench 用户配置/安装 registry。
+濡傛灉杩斿洖 `Ansys.Utilities.Registry.RegistryException`锛岃〃绀?Workbench 鍦ㄦ墽琛?Journal 鍓嶇殑妗嗘灦鍒濆鍖栭樁娈靛け璐ワ紝杩樻病鏈夊紑濮嬪鍏ュ嚑浣曟垨姹傝В銆傛鏃跺簲鍏堝叧闂墍鏈?ANSYS/Mechanical 杩涚▼锛岀敤 `runwb2.bat` 閲嶆柊鍚姩 Worker锛涘鏋滀粛澶辫触锛岄渶瑕侀噸鍚?Windows 鎴栦慨澶?ANSYS Workbench 鐢ㄦ埛閰嶇疆/瀹夎 registry銆?
 
-然后启动：
+鐒跺悗鍚姩锛?
 
 ```bat
 ansys_worker\start_ansys_worker.bat
 ```
 
-## 数据和文件约定
+## 鏁版嵁鍜屾枃浠剁害瀹?
 
-### CAD 输出约定
+### CAD 杈撳嚭绾﹀畾
 
-SolidWorks Worker 返回的关键字段：
+SolidWorks Worker 杩斿洖鐨勫叧閿瓧娈碉細
 
-| 字段 | 含义 |
+| 瀛楁 | 鍚箟 |
 | --- | --- |
-| `sldprtPath` | SolidWorks 原生零件文件路径。ANSYS 导入时第二优先使用。 |
-| `stepPath` | STEP 文件路径，用于外部 CAD/CAE 软件导入。ANSYS 导入时第一优先使用。 |
-| `parasolidPath` | Parasolid 文件路径。当前环境中该格式导入 SpaceClaim 不稳定，作为第三优先级兜底。 |
-| `stlPath` | STL 文件路径，用于预览或几何调试。 |
-| `centerlineCsvPath` | 管道中心线 CSV 路径。ANSYS Worker 用它结合内径识别内壁压力面。 |
-| `previewPngPath` | CAD 预览图路径。 |
+| `sldprtPath` | SolidWorks 鍘熺敓闆朵欢鏂囦欢璺緞銆侫NSYS 瀵煎叆鏃剁浜屼紭鍏堜娇鐢ㄣ€?|
+| `stepPath` | STEP 鏂囦欢璺緞锛岀敤浜庡閮?CAD/CAE 杞欢瀵煎叆銆侫NSYS 瀵煎叆鏃剁涓€浼樺厛浣跨敤銆?|
+| `parasolidPath` | Parasolid 鏂囦欢璺緞銆傚綋鍓嶇幆澧冧腑璇ユ牸寮忓鍏?SpaceClaim 涓嶇ǔ瀹氾紝浣滀负绗笁浼樺厛绾у厹搴曘€?|
+| `stlPath` | STL 鏂囦欢璺緞锛岀敤浜庨瑙堟垨鍑犱綍璋冭瘯銆?|
+| `centerlineCsvPath` | 绠￠亾涓績绾?CSV 璺緞銆侫NSYS Worker 鐢ㄥ畠缁撳悎鍐呭緞璇嗗埆鍐呭鍘嬪姏闈€?|
+| `previewPngPath` | CAD 棰勮鍥捐矾寰勩€?|
 
-CAD Worker 现在要求管道截面同时包含外径和内径：
+CAD Worker 鐜板湪瑕佹眰绠￠亾鎴潰鍚屾椂鍖呭惈澶栧緞鍜屽唴寰勶細
 
 ```text
-pipeDiameter / pipe_outer_diameter_mm      管道外径，单位 mm
-pipeInnerDiameter / pipe_inner_diameter_mm 管道内径，单位 mm
+pipeDiameter / pipe_outer_diameter_mm      绠￠亾澶栧緞锛屽崟浣?mm
+pipeInnerDiameter / pipe_inner_diameter_mm 绠￠亾鍐呭緞锛屽崟浣?mm
 ```
 
-SolidWorks 生成的 `pipe_native.SLDPRT`、`pipe_model.step` 和 `pipe_model.x_t` 必须是真实空心管。Worker 会先扫掠外径，再抽壳或切除内孔；如果内孔无法生成，任务应失败，不能把实心模型交给 ANSYS。
+SolidWorks 鐢熸垚鐨?`pipe_native.SLDPRT`銆乣pipe_model.step` 鍜?`pipe_model.x_t` 蹇呴』鏄湡瀹炵┖蹇冪銆俉orker 浼氬厛鎵帬澶栧緞锛屽啀鎶藉３鎴栧垏闄ゅ唴瀛旓紱濡傛灉鍐呭瓟鏃犳硶鐢熸垚锛屼换鍔″簲澶辫触锛屼笉鑳芥妸瀹炲績妯″瀷浜ょ粰 ANSYS銆?
 
-### ANSYS 几何导入约定
+### ANSYS 鍑犱綍瀵煎叆绾﹀畾
 
-后端选择几何文件的顺序为：
+鍚庣閫夋嫨鍑犱綍鏂囦欢鐨勯『搴忎负锛?
 
 1. `stepPath`
 2. `sldprtPath`
 3. `parasolidPath`
 4. `stlPath`
 
-其中 STEP 是当前平台优先使用的中性几何格式；`SLDPRT` 是已在 SolidWorks 中验证可打开的原生兜底格式；Parasolid 在当前环境中可能出现 SpaceClaim 无法编辑的问题，因此不再作为第一优先级。
+鍏朵腑 STEP 鏄綋鍓嶅钩鍙颁紭鍏堜娇鐢ㄧ殑涓€у嚑浣曟牸寮忥紱`SLDPRT` 鏄凡鍦?SolidWorks 涓獙璇佸彲鎵撳紑鐨勫師鐢熷厹搴曟牸寮忥紱Parasolid 鍦ㄥ綋鍓嶇幆澧冧腑鍙兘鍑虹幇 SpaceClaim 鏃犳硶缂栬緫鐨勯棶棰橈紝鍥犳涓嶅啀浣滀负绗竴浼樺厛绾с€?
 
-当前平台正式支持 `DEMO_SIMULATION_MODEL` 和 `BIDIRECTIONAL_FSI_MODEL` 两个 `simulationMode`。其中 `DEMO_SIMULATION_MODEL` 会执行 Mechanical 等效静力结构求解，在入口峰值压力下生成应力云图；旧值 `static_structural` 会兼容映射到该演示模型。静力模式优先尝试 `Static Structural`、`静态结构` 模板，并优先使用 `Solver=ANSYS` 查找，以兼容英文/中文 Workbench。脚本使用默认材料和自动网格，以几何 X 方向两端端面作为固定约束，并结合 `pipe_centerline.csv`、管道外径和管道内径识别空心管内壁面施加入口内压。入口载荷优先读取平台传入的故障管段参数：`INLET_PRESSURE_INITIAL`、`INLET_PRESSURE_PEAK`、`INLET_PRESSURE_RISE_TIME`、`INLET_PRESSURE_EXPRESSION`；演示模型使用 `INLET_PRESSURE_PEAK`。默认网格尺寸为 `3 mm`，可通过 `ANSYS_MESH_SIZE_MM` 覆盖。如果内壁面无法识别，ANSYS Worker 会失败退出，不再退回端面载荷，避免得到不符合工程实际的结果。
+褰撳墠骞冲彴姝ｅ紡鏀寔 `DEMO_SIMULATION_MODEL` 鍜?`BIDIRECTIONAL_FSI_MODEL` 涓や釜 `simulationMode`銆傚叾涓?`DEMO_SIMULATION_MODEL` 浼氭墽琛?Mechanical 绛夋晥闈欏姏缁撴瀯姹傝В锛屽湪鍏ュ彛宄板€煎帇鍔涗笅鐢熸垚搴斿姏浜戝浘锛涙棫鍊?`static_structural` 浼氬吋瀹规槧灏勫埌璇ユ紨绀烘ā鍨嬨€傞潤鍔涙ā寮忎紭鍏堝皾璇?`Static Structural`銆乣闈欐€佺粨鏋刞 妯℃澘锛屽苟浼樺厛浣跨敤 `Solver=ANSYS` 鏌ユ壘锛屼互鍏煎鑻辨枃/涓枃 Workbench銆傝剼鏈娇鐢ㄩ粯璁ゆ潗鏂欏拰鑷姩缃戞牸锛屼互鍑犱綍 X 鏂瑰悜涓ょ绔潰浣滀负鍥哄畾绾︽潫锛屽苟缁撳悎 `pipe_centerline.csv`銆佺閬撳寰勫拰绠￠亾鍐呭緞璇嗗埆绌哄績绠″唴澹侀潰鏂藉姞鍏ュ彛鍐呭帇銆傚叆鍙ｈ浇鑽蜂紭鍏堣鍙栧钩鍙颁紶鍏ョ殑鏁呴殰绠℃鍙傛暟锛歚INLET_PRESSURE_INITIAL`銆乣INLET_PRESSURE_PEAK`銆乣INLET_PRESSURE_RISE_TIME`銆乣INLET_PRESSURE_EXPRESSION`锛涙紨绀烘ā鍨嬩娇鐢?`INLET_PRESSURE_PEAK`銆傞粯璁ょ綉鏍煎昂瀵镐负 `3 mm`锛屽彲閫氳繃 `ANSYS_MESH_SIZE_MM` 瑕嗙洊銆傚鏋滃唴澹侀潰鏃犳硶璇嗗埆锛孉NSYS Worker 浼氬け璐ラ€€鍑猴紝涓嶅啀閫€鍥炵闈㈣浇鑽凤紝閬垮厤寰楀埌涓嶇鍚堝伐绋嬪疄闄呯殑缁撴灉銆?
 
-ANSYS 2022 R1 中部分 Workbench 容器对象不支持 `.Update()` 方法，Worker 已采用安全更新逻辑：支持则调用，不支持则跳过，并通过 `workbench_steps.txt` 记录执行进度。
+ANSYS 2022 R1 涓儴鍒?Workbench 瀹瑰櫒瀵硅薄涓嶆敮鎸?`.Update()` 鏂规硶锛學orker 宸查噰鐢ㄥ畨鍏ㄦ洿鏂伴€昏緫锛氭敮鎸佸垯璋冪敤锛屼笉鏀寔鍒欒烦杩囷紝骞堕€氳繃 `workbench_steps.txt` 璁板綍鎵ц杩涘害銆?
 
-Workbench 向 Mechanical 发送正式脚本前，会先发送最小握手命令；生成 `mechanical_command_ready.txt` 表示 Workbench 到 Mechanical 的命令通道已打通。握手成功后再通过 `execfile(...)` 执行 `mechanical_setup.py`，并等待 `mechanical_started.txt` 确认正式脚本已经开始执行。脚本运行中会写入 `mechanical_trace.txt`，用于定位当前处于 `MESHING`、`SOLVING`、`SOLVED` 等阶段；最终结果写入 `mechanical_result.json`。
+Workbench 鍚?Mechanical 鍙戦€佹寮忚剼鏈墠锛屼細鍏堝彂閫佹渶灏忔彙鎵嬪懡浠わ紱鐢熸垚 `mechanical_command_ready.txt` 琛ㄧず Workbench 鍒?Mechanical 鐨勫懡浠ら€氶亾宸叉墦閫氥€傛彙鎵嬫垚鍔熷悗鍐嶉€氳繃 `execfile(...)` 鎵ц `mechanical_setup.py`锛屽苟绛夊緟 `mechanical_started.txt` 纭姝ｅ紡鑴氭湰宸茬粡寮€濮嬫墽琛屻€傝剼鏈繍琛屼腑浼氬啓鍏?`mechanical_trace.txt`锛岀敤浜庡畾浣嶅綋鍓嶅浜?`MESHING`銆乣SOLVING`銆乣SOLVED` 绛夐樁娈碉紱鏈€缁堢粨鏋滃啓鍏?`mechanical_result.json`銆?
 
-当前默认使用交互方式打开 Mechanical（`ANSYS_MECHANICAL_INTERACTIVE=1`），便于确认 Mechanical 是否真正启动。若需要后台模式，可将该变量设为 `0`，但不同 ANSYS 版本对后台 `SendCommand` 的支持可能不一致。可通过 `ANSYS_MECHANICAL_HANDSHAKE_RETRIES` 和 `ANSYS_MECHANICAL_HANDSHAKE_WAIT` 调整命令通道握手重试次数和单次等待时间。
+褰撳墠榛樿浣跨敤浜や簰鏂瑰紡鎵撳紑 Mechanical锛坄ANSYS_MECHANICAL_INTERACTIVE=1`锛夛紝渚夸簬纭 Mechanical 鏄惁鐪熸鍚姩銆傝嫢闇€瑕佸悗鍙版ā寮忥紝鍙皢璇ュ彉閲忚涓?`0`锛屼絾涓嶅悓 ANSYS 鐗堟湰瀵瑰悗鍙?`SendCommand` 鐨勬敮鎸佸彲鑳戒笉涓€鑷淬€傚彲閫氳繃 `ANSYS_MECHANICAL_HANDSHAKE_RETRIES` 鍜?`ANSYS_MECHANICAL_HANDSHAKE_WAIT` 璋冩暣鍛戒护閫氶亾鎻℃墜閲嶈瘯娆℃暟鍜屽崟娆＄瓑寰呮椂闂淬€?
 
-ANSYS Worker 会将云图导出为任务目录下的 `equivalent_stress.png`。Java 后端不直接把本机磁盘路径交给浏览器展示，而是通过 `GET /designtask/task/{taskId}/ansys-simulation/image` 返回图片文件；前端使用带登录凭证的接口请求图片并生成临时预览地址。
+ANSYS Worker 浼氬皢浜戝浘瀵煎嚭涓轰换鍔＄洰褰曚笅鐨?`equivalent_stress.png`銆侸ava 鍚庣涓嶇洿鎺ユ妸鏈満纾佺洏璺緞浜ょ粰娴忚鍣ㄥ睍绀猴紝鑰屾槸閫氳繃 `GET /designtask/task/{taskId}/ansys-simulation/image` 杩斿洖鍥剧墖鏂囦欢锛涘墠绔娇鐢ㄥ甫鐧诲綍鍑瘉鐨勬帴鍙ｈ姹傚浘鐗囧苟鐢熸垚涓存椂棰勮鍦板潃銆?
 
-云图导出默认使用高分辨率 `1920 x 1080`，可通过 `ANSYS_IMAGE_EXPORT_WIDTH` 和 `ANSYS_IMAGE_EXPORT_HEIGHT` 调整。前端页面提供原图预览，避免缩放后图例和最大/最小值标注过小。
+浜戝浘瀵煎嚭榛樿浣跨敤楂樺垎杈ㄧ巼 `1920 x 1080`锛屽彲閫氳繃 `ANSYS_IMAGE_EXPORT_WIDTH` 鍜?`ANSYS_IMAGE_EXPORT_HEIGHT` 璋冩暣銆傚墠绔〉闈㈡彁渚涘師鍥鹃瑙堬紝閬垮厤缂╂斁鍚庡浘渚嬪拰鏈€澶?鏈€灏忓€兼爣娉ㄨ繃灏忋€?
 
-由于 ANSYS 2022 R1 对中文最大/最小值 callout 的图形导出字体支持不稳定，ANSYS Worker 会在 PNG 导出后使用 Windows 中文字体重新绘制“最大应力点 / 最小应力点”标注，避免平台端展示乱码或缺字。
+鐢变簬 ANSYS 2022 R1 瀵逛腑鏂囨渶澶?鏈€灏忓€?callout 鐨勫浘褰㈠鍑哄瓧浣撴敮鎸佷笉绋冲畾锛孉NSYS Worker 浼氬湪 PNG 瀵煎嚭鍚庝娇鐢?Windows 涓枃瀛椾綋閲嶆柊缁樺埗鈥滄渶澶у簲鍔涚偣 / 鏈€灏忓簲鍔涚偣鈥濇爣娉紝閬垮厤骞冲彴绔睍绀轰贡鐮佹垨缂哄瓧銆?
 
-Mechanical 求解阶段使用 `analysis.Solve(True)` 触发分析系统求解，并在结果 JSON 中记录 `solutionStatus`、`stressStatus`、`deformationStatus`、`warnings`、`maxEquivalentStressValue` 和 `maxTotalDeformationValue`。如果入口压力非 0 但等效应力和总变形仍同时为 0，Worker 会将该次结果标记为失败，防止平台把无效结果显示为成功。
-Worker 还会基于内压薄壁管公式计算名义环向应力、名义轴向应力和名义 Von-Mises 应力，并结合材料屈服强度、拉伸极限强度和中心线长度写入 `engineeringStatus`、`engineeringWarnings`、`engineeringEstimates`。若最大应力超过名义应力 10 倍、超过材料拉伸极限强度，或最大变形超过管中心线长度 20%，本次结果会标记为失败，需要复核载荷面、边界条件、网格或改用非线性模型。
+Mechanical 姹傝В闃舵浣跨敤 `analysis.Solve(True)` 瑙﹀彂鍒嗘瀽绯荤粺姹傝В锛屽苟鍦ㄧ粨鏋?JSON 涓褰?`solutionStatus`銆乣stressStatus`銆乣deformationStatus`銆乣warnings`銆乣maxEquivalentStressValue` 鍜?`maxTotalDeformationValue`銆傚鏋滃叆鍙ｅ帇鍔涢潪 0 浣嗙瓑鏁堝簲鍔涘拰鎬诲彉褰粛鍚屾椂涓?0锛學orker 浼氬皢璇ユ缁撴灉鏍囪涓哄け璐ワ紝闃叉骞冲彴鎶婃棤鏁堢粨鏋滄樉绀轰负鎴愬姛銆?
+Worker 杩樹細鍩轰簬鍐呭帇钖勫绠″叕寮忚绠楀悕涔夌幆鍚戝簲鍔涖€佸悕涔夎酱鍚戝簲鍔涘拰鍚嶄箟 Von-Mises 搴斿姏锛屽苟缁撳悎鏉愭枡灞堟湇寮哄害銆佹媺浼告瀬闄愬己搴﹀拰涓績绾块暱搴﹀啓鍏?`engineeringStatus`銆乣engineeringWarnings`銆乣engineeringEstimates`銆傝嫢鏈€澶у簲鍔涜秴杩囧悕涔夊簲鍔?10 鍊嶃€佽秴杩囨潗鏂欐媺浼告瀬闄愬己搴︼紝鎴栨渶澶у彉褰㈣秴杩囩涓績绾块暱搴?20%锛屾湰娆＄粨鏋滀細鏍囪涓哄け璐ワ紝闇€瑕佸鏍歌浇鑽烽潰銆佽竟鐣屾潯浠躲€佺綉鏍兼垨鏀圭敤闈炵嚎鎬фā鍨嬨€?
 
-请求示例：
+璇锋眰绀轰緥锛?
 
 ```json
 {
@@ -143,96 +156,96 @@ Worker 还会基于内压薄壁管公式计算名义环向应力、名义轴向�
 }
 ```
 
-成功返回时需要关注的字段：
+鎴愬姛杩斿洖鏃堕渶瑕佸叧娉ㄧ殑瀛楁锛?
 
-| 字段 | 含义 |
+| 瀛楁 | 鍚箟 |
 | --- | --- |
-| `status` | `SUCCESS` 表示导入完成。 |
-| `projectPath` | 生成的 Workbench 项目文件路径。 |
-| `resultFilePath` | 主要结果文件路径。 |
-| `workDir` | Worker 输出目录。 |
-| `metrics` | 导入状态和基础文件信息。 |
+| `status` | `SUCCESS` 琛ㄧず瀵煎叆瀹屾垚銆?|
+| `projectPath` | 鐢熸垚鐨?Workbench 椤圭洰鏂囦欢璺緞銆?|
+| `resultFilePath` | 涓昏缁撴灉鏂囦欢璺緞銆?|
+| `workDir` | Worker 杈撳嚭鐩綍銆?|
+| `metrics` | 瀵煎叆鐘舵€佸拰鍩虹鏂囦欢淇℃伅銆?|
 
-## 数据库整合检查项
+## 鏁版嵁搴撴暣鍚堟鏌ラ」
 
-与其他团队整合时，需要确认是否需要新增或调整以下内容：
+涓庡叾浠栧洟闃熸暣鍚堟椂锛岄渶瑕佺‘璁ゆ槸鍚﹂渶瑕佹柊澧炴垨璋冩暣浠ヤ笅鍐呭锛?
 
-- 外部系统任务 ID、追踪 ID。
-- 来源系统名称和版本。
-- 输入文件路径、文件类型、校验值、上传用户。
-- 输出文件路径、结果状态、错误信息。
-- 仿真指标、单位、结果图片。
-- 审批状态和最终归档快照。
+- 澶栭儴绯荤粺浠诲姟 ID銆佽拷韪?ID銆?
+- 鏉ユ簮绯荤粺鍚嶇О鍜岀増鏈€?
+- 杈撳叆鏂囦欢璺緞銆佹枃浠剁被鍨嬨€佹牎楠屽€笺€佷笂浼犵敤鎴枫€?
+- 杈撳嚭鏂囦欢璺緞銆佺粨鏋滅姸鎬併€侀敊璇俊鎭€?
+- 浠跨湡鎸囨爣銆佸崟浣嶃€佺粨鏋滃浘鐗囥€?
+- 瀹℃壒鐘舵€佸拰鏈€缁堝綊妗ｅ揩鐓с€?
 
-当前 CAD/ANSYS 相关升级脚本：
+褰撳墠 CAD/ANSYS 鐩稿叧鍗囩骇鑴氭湰锛?
 
 ```text
 sql/t2_cad_ansys_geometry_columns.sql
 ```
 
-## 权限和菜单检查项
+## 鏉冮檺鍜岃彍鍗曟鏌ラ」
 
-新增或移除模块时，需要检查：
+鏂板鎴栫Щ闄ゆā鍧楁椂锛岄渶瑕佹鏌ワ細
 
-- 前端路由和侧边栏菜单。
-- 后端权限标识和控制器接口。
-- 菜单、角色、按钮权限的 SQL 初始化数据。
-- 老菜单是隐藏、删除，还是为了兼容继续保留。
+- 鍓嶇璺敱鍜屼晶杈规爮鑿滃崟銆?
+- 鍚庣鏉冮檺鏍囪瘑鍜屾帶鍒跺櫒鎺ュ彛銆?
+- 鑿滃崟銆佽鑹层€佹寜閽潈闄愮殑 SQL 鍒濆鍖栨暟鎹€?
+- 鑰佽彍鍗曟槸闅愯棌銆佸垹闄わ紝杩樻槸涓轰簡鍏煎缁х画淇濈暀銆?
 
-当前设计流程中已经移除了“标准资源管理”菜单。如果其他团队仍依赖该入口，需要先定义替代入口，再考虑恢复。
+褰撳墠璁捐娴佺▼涓凡缁忕Щ闄や簡鈥滄爣鍑嗚祫婧愮鐞嗏€濊彍鍗曘€傚鏋滃叾浠栧洟闃熶粛渚濊禆璇ュ叆鍙ｏ紝闇€瑕佸厛瀹氫箟鏇夸唬鍏ュ彛锛屽啀鑰冭檻鎭㈠銆?
 
-## 对外移交检查清单
+## 瀵瑰绉讳氦妫€鏌ユ竻鍗?
 
-平台交给其他团队前，需要准备：
+骞冲彴浜ょ粰鍏朵粬鍥㈤槦鍓嶏紝闇€瑕佸噯澶囷細
 
-- 服务启动顺序。
-- 端口和防火墙要求。
-- 环境变量和本地软件安装路径。
-- 数据库初始化脚本和升级脚本。
-- API 请求与响应示例。
-- 文件交换目录约定。
-- 任务状态流转说明。
-- 已知限制和常见失败提示。
-- 测试数据和一条完整演示任务。
+- 鏈嶅姟鍚姩椤哄簭銆?
+- 绔彛鍜岄槻鐏瑕佹眰銆?
+- 鐜鍙橀噺鍜屾湰鍦拌蒋浠跺畨瑁呰矾寰勩€?
+- 鏁版嵁搴撳垵濮嬪寲鑴氭湰鍜屽崌绾ц剼鏈€?
+- API 璇锋眰涓庡搷搴旂ず渚嬨€?
+- 鏂囦欢浜ゆ崲鐩綍绾﹀畾銆?
+- 浠诲姟鐘舵€佹祦杞鏄庛€?
+- 宸茬煡闄愬埗鍜屽父瑙佸け璐ユ彁绀恒€?
+- 娴嬭瘯鏁版嵁鍜屼竴鏉″畬鏁存紨绀轰换鍔°€?
 
-## 每次任务结束前检查
+## 姣忔浠诲姟缁撴潫鍓嶆鏌?
 
-以后每次任务收尾前，需要检查：
+浠ュ悗姣忔浠诲姟鏀跺熬鍓嶏紝闇€瑕佹鏌ワ細
 
-1. 是否修改了接口、字段名或返回结构？
-2. 是否新增或修改了数据库表、字段或脚本？
-3. 是否修改了外部文件格式或生成路径？
-4. 是否修改了启动步骤、端口或环境变量？
-5. 是否影响了角色、菜单或权限？
-6. 是否新增了对其他团队系统的依赖？
-7. 是否修改了排查问题的方法或已知限制？
+1. 鏄惁淇敼浜嗘帴鍙ｃ€佸瓧娈靛悕鎴栬繑鍥炵粨鏋勶紵
+2. 鏄惁鏂板鎴栦慨鏀逛簡鏁版嵁搴撹〃銆佸瓧娈垫垨鑴氭湰锛?
+3. 鏄惁淇敼浜嗗閮ㄦ枃浠舵牸寮忔垨鐢熸垚璺緞锛?
+4. 鏄惁淇敼浜嗗惎鍔ㄦ楠ゃ€佺鍙ｆ垨鐜鍙橀噺锛?
+5. 鏄惁褰卞搷浜嗚鑹层€佽彍鍗曟垨鏉冮檺锛?
+6. 鏄惁鏂板浜嗗鍏朵粬鍥㈤槦绯荤粺鐨勪緷璧栵紵
+7. 鏄惁淇敼浜嗘帓鏌ラ棶棰樼殑鏂规硶鎴栧凡鐭ラ檺鍒讹紵
 
-如果以上任意一项为“是”，就需要更新本文档。
+濡傛灉浠ヤ笂浠绘剰涓€椤逛负鈥滄槸鈥濓紝灏遍渶瑕佹洿鏂版湰鏂囨。銆?
 
-## Project22 框梁裂纹扩展与寿命预测
+## Project22 妗嗘瑁傜汗鎵╁睍涓庡鍛介娴?
 
-本次新增框梁裂纹扩展与寿命预测能力，需与现有液压弯管抗冲击优化任务保持隔离。详细文件清单见根目录 `project22readme.md`。
+鏈鏂板妗嗘瑁傜汗鎵╁睍涓庡鍛介娴嬭兘鍔涳紝闇€涓庣幇鏈夋恫鍘嬪集绠℃姉鍐插嚮浼樺寲浠诲姟淇濇寔闅旂銆傝缁嗘枃浠舵竻鍗曡鏍圭洰褰?`project22readme.md`銆?
 
-新增任务类型：
+鏂板浠诲姟绫诲瀷锛?
 
 ```text
 FRAME_BEAM_CRACK_LIFE_PREDICTION
 ```
 
-新增 Python 代理模型服务：
+鏂板 Python 浠ｇ悊妯″瀷鏈嶅姟锛?
 
 ```text
 GET  http://127.0.0.1:9822/health
 POST http://127.0.0.1:9822/api/frame-beam-crack/growth-predict
 ```
 
-后端配置项：
+鍚庣閰嶇疆椤癸細
 
 ```properties
 designtask.frame-beam.surrogate-base-url=http://127.0.0.1:9822
 ```
 
-新增 Java 后端接口：
+鏂板 Java 鍚庣鎺ュ彛锛?
 
 ```text
 GET  /designtask/task/{taskId}/frame-beam-crack
@@ -243,80 +256,80 @@ POST /designtask/task/{taskId}/frame-beam-life-prediction
 POST /designtask/task/{taskId}/frame-beam-maintenance-advice/confirm
 ```
 
-新增数据库脚本：
+鏂板鏁版嵁搴撹剼鏈細
 
 ```text
 sql/t2_frame_beam_crack_life_schema.sql
 sql/t2_frame_beam_crack_life_menu.sql
 ```
 
-新增前端目录：
+鏂板鍓嶇鐩綍锛?
 
 ```text
 ruoyi-ui/src/views/designtask/frameBeam/
 ```
 
-载荷谱约定：
+杞借嵎璋辩害瀹氾細
 
-- 支持 CSV、Excel、JSON 文件记录。
-- 核心字段包括 `maxStress`、`minStress`、`cycles`、`currentFlightHours`。
-- 应力单位默认 MPa，裂纹长度默认 mm。
-# 近期更新：SolidWorks 空心管与 ANSYS 内壁识别
+- 鏀寔 CSV銆丒xcel銆丣SON 鏂囦欢璁板綍銆?
+- 鏍稿績瀛楁鍖呮嫭 `maxStress`銆乣minStress`銆乣cycles`銆乣currentFlightHours`銆?
+- 搴斿姏鍗曚綅榛樿 MPa锛岃绾归暱搴﹂粯璁?mm銆?
+# 杩戞湡鏇存柊锛歋olidWorks 绌哄績绠′笌 ANSYS 鍐呭璇嗗埆
 
-本次修复影响 CAD/ANSYS 文件交换与排错方式：
+鏈淇褰卞搷 CAD/ANSYS 鏂囦欢浜ゆ崲涓庢帓閿欐柟寮忥細
 
-- SolidWorks Worker 生成管道时，`pipe_native.SLDPRT`、`pipe_model.step`、`pipe_model.x_t` 必须是真正贯通的空心管，不能只生成外实体或一端封闭的模型。
-- 内孔切除路径会使用 `wallCutExtension / wall_cut_extension_mm` 向两端延长，实际延长量至少为 `max(配置值, 外径 * 3, 20mm)`，用于避免端部残留封盖。
-- 如果 SolidWorks 无法完成抽壳或内孔切除，Worker 必须返回失败，不允许把实心管模型继续传给 ANSYS。
-- ANSYS Worker 识别内壁压力面时会同时尝试米和毫米两种尺度，避免 Workbench/Mechanical 返回几何坐标单位与 `pipe_centerline.csv` 不一致导致误判。
-- 排查 ANSYS 内壁识别时，优先查看任务目录下的 `mechanical_trace.txt`，其中会输出 `INNER_WALL_UNIT`、`INNER_WALL_TARGET_RADIUS`、`INNER_WALL_TOLERANCE`、`INNER_WALL_FACES` 和 `FACE_INFO`。
+- SolidWorks Worker 鐢熸垚绠￠亾鏃讹紝`pipe_native.SLDPRT`銆乣pipe_model.step`銆乣pipe_model.x_t` 蹇呴』鏄湡姝ｈ疮閫氱殑绌哄績绠★紝涓嶈兘鍙敓鎴愬瀹炰綋鎴栦竴绔皝闂殑妯″瀷銆?
+- 鍐呭瓟鍒囬櫎璺緞浼氫娇鐢?`wallCutExtension / wall_cut_extension_mm` 鍚戜袱绔欢闀匡紝瀹為檯寤堕暱閲忚嚦灏戜负 `max(閰嶇疆鍊? 澶栧緞 * 3, 20mm)`锛岀敤浜庨伩鍏嶇閮ㄦ畫鐣欏皝鐩栥€?
+- 濡傛灉 SolidWorks 鏃犳硶瀹屾垚鎶藉３鎴栧唴瀛斿垏闄わ紝Worker 蹇呴』杩斿洖澶辫触锛屼笉鍏佽鎶婂疄蹇冪妯″瀷缁х画浼犵粰 ANSYS銆?
+- ANSYS Worker 璇嗗埆鍐呭鍘嬪姏闈㈡椂浼氬悓鏃跺皾璇曠背鍜屾绫充袱绉嶅昂搴︼紝閬垮厤 Workbench/Mechanical 杩斿洖鍑犱綍鍧愭爣鍗曚綅涓?`pipe_centerline.csv` 涓嶄竴鑷村鑷磋鍒ゃ€?
+- 鎺掓煡 ANSYS 鍐呭璇嗗埆鏃讹紝浼樺厛鏌ョ湅浠诲姟鐩綍涓嬬殑 `mechanical_trace.txt`锛屽叾涓細杈撳嚭 `INNER_WALL_UNIT`銆乣INNER_WALL_TARGET_RADIUS`銆乣INNER_WALL_TOLERANCE`銆乣INNER_WALL_FACES` 鍜?`FACE_INFO`銆?
 
-补充：如果 SolidWorks 对整条弯曲中心线的圆形扫掠切除在端部留下封盖，Worker 会额外生成 `InnerBoreStartOpen3D` 和 `InnerBoreEndOpen3D` 两条短直线开口切除路径，用同一内径在两端各自打通，确保导出的 STEP/SLDPRT 是双端贯通空心管。
+琛ュ厖锛氬鏋?SolidWorks 瀵规暣鏉″集鏇蹭腑蹇冪嚎鐨勫渾褰㈡壂鎺犲垏闄ゅ湪绔儴鐣欎笅灏佺洊锛學orker 浼氶澶栫敓鎴?`InnerBoreStartOpen3D` 鍜?`InnerBoreEndOpen3D` 涓ゆ潯鐭洿绾垮紑鍙ｅ垏闄よ矾寰勶紝鐢ㄥ悓涓€鍐呭緞鍦ㄤ袱绔悇鑷墦閫氾紝纭繚瀵煎嚭鐨?STEP/SLDPRT 鏄弻绔疮閫氱┖蹇冪銆?
 
-补充：ANSYS 内壁压力面识别时必须排除两端端面。端部环形面虽然属于空心管壁厚实体，但不是内壁圆柱面，不能施加入口内压；`mechanical_trace.txt` 中 `FACE_INFO` 会标记 `endFace=True/False`，只有非端面且中心线距离匹配内半径的面才会作为 `INNER_WALL_FACES`。
+琛ュ厖锛欰NSYS 鍐呭鍘嬪姏闈㈣瘑鍒椂蹇呴』鎺掗櫎涓ょ绔潰銆傜閮ㄧ幆褰㈤潰铏界劧灞炰簬绌哄績绠″鍘氬疄浣擄紝浣嗕笉鏄唴澹佸渾鏌遍潰锛屼笉鑳芥柦鍔犲叆鍙ｅ唴鍘嬶紱`mechanical_trace.txt` 涓?`FACE_INFO` 浼氭爣璁?`endFace=True/False`锛屽彧鏈夐潪绔潰涓斾腑蹇冪嚎璺濈鍖归厤鍐呭崐寰勭殑闈㈡墠浼氫綔涓?`INNER_WALL_FACES`銆?
 
-补充：ANSYS Worker 的 `mechanical_result.json.status` 只表示 Mechanical 是否完成有效求解。应力超过材料强度、FE 峰值远高于薄壁管名义应力、变形超过管长 5% 等属于工程复核预警，应通过 `engineeringStatus=REVIEW_REQUIRED`、`engineeringWarnings` 和 `engineeringEstimates` 返回给平台展示，不应再触发 HTTP 500 或显示为 `ANSYS Worker unavailable`。
+琛ュ厖锛欰NSYS Worker 鐨?`mechanical_result.json.status` 鍙〃绀?Mechanical 鏄惁瀹屾垚鏈夋晥姹傝В銆傚簲鍔涜秴杩囨潗鏂欏己搴︺€丗E 宄板€艰繙楂樹簬钖勫绠″悕涔夊簲鍔涖€佸彉褰㈣秴杩囩闀?5% 绛夊睘浜庡伐绋嬪鏍搁璀︼紝搴旈€氳繃 `engineeringStatus=REVIEW_REQUIRED`銆乣engineeringWarnings` 鍜?`engineeringEstimates` 杩斿洖缁欏钩鍙板睍绀猴紝涓嶅簲鍐嶈Е鍙?HTTP 500 鎴栨樉绀轰负 `ANSYS Worker unavailable`銆?
 
-补充：当前 Mechanical 自动求解默认采用两端固定支撑，即几何 X 方向最小端面和最大端面同时作为 `Fixed Support`；`mechanical_trace.txt` 会写入 `FIXED_SUPPORT_MODE=both_ends`、`FIXED_SUPPORT_MIN_X`、`FIXED_SUPPORT_MAX_X` 和 `FIXED_SUPPORT_FACES`。ANSYS Worker 默认设置 `ANSYS_KEEP_MECHANICAL_OPEN=1`，求解完成后保留 Mechanical 窗口，便于人工检查模型树、网格、载荷和结果；如需批处理自动关闭，可设置为 `0`。
+琛ュ厖锛氬綋鍓?Mechanical 鑷姩姹傝В榛樿閲囩敤涓ょ鍥哄畾鏀拺锛屽嵆鍑犱綍 X 鏂瑰悜鏈€灏忕闈㈠拰鏈€澶х闈㈠悓鏃朵綔涓?`Fixed Support`锛沗mechanical_trace.txt` 浼氬啓鍏?`FIXED_SUPPORT_MODE=both_ends`銆乣FIXED_SUPPORT_MIN_X`銆乣FIXED_SUPPORT_MAX_X` 鍜?`FIXED_SUPPORT_FACES`銆侫NSYS Worker 榛樿璁剧疆 `ANSYS_KEEP_MECHANICAL_OPEN=1`锛屾眰瑙ｅ畬鎴愬悗淇濈暀 Mechanical 绐楀彛锛屼究浜庝汉宸ユ鏌ユā鍨嬫爲銆佺綉鏍笺€佽浇鑽峰拰缁撴灉锛涘闇€鎵瑰鐞嗚嚜鍔ㄥ叧闂紝鍙缃负 `0`銆?
 
-# 近期更新：ANSYS 双模型仿真选择
+# 杩戞湡鏇存柊锛欰NSYS 鍙屾ā鍨嬩豢鐪熼€夋嫨
 
-平台仿真确认页现在支持在开始 ANSYS 仿真前选择仿真模型。前端、Java 后端和 ANSYS Worker 统一使用 `simulationMode` 区分结果，避免两个模型互相覆盖。
+骞冲彴浠跨湡纭椤电幇鍦ㄦ敮鎸佸湪寮€濮?ANSYS 浠跨湡鍓嶉€夋嫨浠跨湡妯″瀷銆傚墠绔€丣ava 鍚庣鍜?ANSYS Worker 缁熶竴浣跨敤 `simulationMode` 鍖哄垎缁撴灉锛岄伩鍏嶄袱涓ā鍨嬩簰鐩歌鐩栥€?
 
-| 展示名称 | simulationMode | 用途 |
+| 灞曠ず鍚嶇О | simulationMode | 鐢ㄩ€?|
 | --- | --- | --- |
-| 演示仿真模型 | `DEMO_SIMULATION_MODEL` | 保留当前 Mechanical 静力结构流程，用于平台展示、快速校核和应力云图输出。 |
-| 双向流固耦合仿真模型 | `BIDIRECTIONAL_FSI_MODEL` | 按参考模型参数创建 Fluent + Transient Structural + System Coupling 双向耦合工程文件。 |
+| 婕旂ず浠跨湡妯″瀷 | `DEMO_SIMULATION_MODEL` | 淇濈暀褰撳墠 Mechanical 闈欏姏缁撴瀯娴佺▼锛岀敤浜庡钩鍙板睍绀恒€佸揩閫熸牎鏍稿拰搴斿姏浜戝浘杈撳嚭銆?|
+| 鍙屽悜娴佸浐鑰﹀悎浠跨湡妯″瀷 | `BIDIRECTIONAL_FSI_MODEL` | 鎸夊弬鑰冩ā鍨嬪弬鏁板垱寤?Fluent + Transient Structural + System Coupling 鍙屽悜鑰﹀悎宸ョ▼鏂囦欢銆?|
 
-新增/调整的接口约定：
+鏂板/璋冩暣鐨勬帴鍙ｇ害瀹氾細
 
-- `POST /designtask/task/{taskId}/ansys-simulation` 请求体可传入 `simulationMode`。
-- `GET /designtask/task/{taskId}/ansys-simulation` 支持 `simulationMode` 查询参数。
-- `GET /designtask/task/{taskId}/ansys-simulation/image` 支持 `simulationMode` 查询参数，并通过后端读取本机图片文件返回给浏览器。
+- `POST /designtask/task/{taskId}/ansys-simulation` 璇锋眰浣撳彲浼犲叆 `simulationMode`銆?
+- `GET /designtask/task/{taskId}/ansys-simulation` 鏀寔 `simulationMode` 鏌ヨ鍙傛暟銆?
+- `GET /designtask/task/{taskId}/ansys-simulation/image` 鏀寔 `simulationMode` 鏌ヨ鍙傛暟锛屽苟閫氳繃鍚庣璇诲彇鏈満鍥剧墖鏂囦欢杩斿洖缁欐祻瑙堝櫒銆?
 
-数据表 `t2_design_ansys_simulation_task` 新增 `simulation_mode` 字段，并以 `(task_id, simulation_mode)` 作为主键；升级脚本 `sql/t2_ansys_simulation_placeholder.sql` 已同步。历史未区分模式的数据会按 `DEMO_SIMULATION_MODEL` 兼容。
+鏁版嵁琛?`t2_design_ansys_simulation_task` 鏂板 `simulation_mode` 瀛楁锛屽苟浠?`(task_id, simulation_mode)` 浣滀负涓婚敭锛涘崌绾ц剼鏈?`sql/t2_ansys_simulation_placeholder.sql` 宸插悓姝ャ€傚巻鍙叉湭鍖哄垎妯″紡鐨勬暟鎹細鎸?`DEMO_SIMULATION_MODEL` 鍏煎銆?
 
-ANSYS Worker 输出目录按模型拆分：
+ANSYS Worker 杈撳嚭鐩綍鎸夋ā鍨嬫媶鍒嗭細
 
 ```text
 ansys_worker/output/task_{taskId}/demo_simulation_model/
 ansys_worker/output/task_{taskId}/bidirectional_fsi_model/
 ```
 
-当前 `BIDIRECTIONAL_FSI_MODEL` 分支会生成双向流固耦合参考工程、配置 JSON 和 Fluent 设置说明文件，用于与参考 `1.wbpz` 的参数保持一致。若要做到全自动真实双向耦合求解，还需要后续补齐流体域几何、入口/出口/壁面命名边界、Fluent 网格与 System Coupling 数据传递的可执行自动化脚本。
+褰撳墠 `BIDIRECTIONAL_FSI_MODEL` 鍒嗘敮浼氱敓鎴愬弻鍚戞祦鍥鸿€﹀悎鍙傝€冨伐绋嬨€侀厤缃?JSON 鍜?Fluent 璁剧疆璇存槑鏂囦欢锛岀敤浜庝笌鍙傝€?`1.wbpz` 鐨勫弬鏁颁繚鎸佷竴鑷淬€傝嫢瑕佸仛鍒板叏鑷姩鐪熷疄鍙屽悜鑰﹀悎姹傝В锛岃繕闇€瑕佸悗缁ˉ榻愭祦浣撳煙鍑犱綍銆佸叆鍙?鍑哄彛/澹侀潰鍛藉悕杈圭晫銆丗luent 缃戞牸涓?System Coupling 鏁版嵁浼犻€掔殑鍙墽琛岃嚜鍔ㄥ寲鑴氭湰銆?
 
-# 近期更新：课题二数据库整合迁移脚本
+# 杩戞湡鏇存柊锛氳棰樹簩鏁版嵁搴撴暣鍚堣縼绉昏剼鏈?
 
-为便于合并到 `project2-dev` 并交付其他团队部署，已整理课题二业务库完整迁移脚本：
+涓轰究浜庡悎骞跺埌 `project2-dev` 骞朵氦浠樺叾浠栧洟闃熼儴缃诧紝宸叉暣鐞嗚棰樹簩涓氬姟搴撳畬鏁磋縼绉昏剼鏈細
 
 ```text
 sql/t2_project2_full_migration.sql
 ```
 
-该脚本面向已有 RuoYi-Cloud 基础库执行，包含课题二表结构、兼容升级字段、初始化数据、优化任务预置数据、故障管段参数、梁裂纹寿命菜单与“标准资源管理”菜单移除。脚本中已包含历史表名兼容重命名逻辑，目标库如存在旧表 `design_*` 或 `p2_*`，会先迁移为 `t2_*` 命名。
+璇ヨ剼鏈潰鍚戝凡鏈?RuoYi-Cloud 鍩虹搴撴墽琛岋紝鍖呭惈璇鹃浜岃〃缁撴瀯銆佸吋瀹瑰崌绾у瓧娈点€佸垵濮嬪寲鏁版嵁銆佷紭鍖栦换鍔￠缃暟鎹€佹晠闅滅娈靛弬鏁般€佹瑁傜汗瀵垮懡鑿滃崟涓庘€滄爣鍑嗚祫婧愮鐞嗏€濊彍鍗曠Щ闄ゃ€傝剼鏈腑宸插寘鍚巻鍙茶〃鍚嶅吋瀹归噸鍛藉悕閫昏緫锛岀洰鏍囧簱濡傚瓨鍦ㄦ棫琛?`design_*` 鎴?`p2_*`锛屼細鍏堣縼绉讳负 `t2_*` 鍛藉悕銆?
 
-注意事项：
+娉ㄦ剰浜嬮」锛?
 
-- 执行前请先备份目标库。
-- 该脚本不包含 `flowable相关表.sql`，因为其中包含 Flowable 引擎表重建和 `DROP TABLE`，只应在干净 Flowable 库或明确需要重建流程引擎表时单独执行。
-- `flowable网关路由.sql`、`nacos配置.sql` 属于网关/Nacos 配置库脚本，不建议混入课题二业务库迁移脚本，应按部署环境单独确认后执行。
+- 鎵ц鍓嶈鍏堝浠界洰鏍囧簱銆?
+- 璇ヨ剼鏈笉鍖呭惈 `flowable鐩稿叧琛?sql`锛屽洜涓哄叾涓寘鍚?Flowable 寮曟搸琛ㄩ噸寤哄拰 `DROP TABLE`锛屽彧搴斿湪骞插噣 Flowable 搴撴垨鏄庣‘闇€瑕侀噸寤烘祦绋嬪紩鎿庤〃鏃跺崟鐙墽琛屻€?
+- `flowable缃戝叧璺敱.sql`銆乣nacos閰嶇疆.sql` 灞炰簬缃戝叧/Nacos 閰嶇疆搴撹剼鏈紝涓嶅缓璁贩鍏ヨ棰樹簩涓氬姟搴撹縼绉昏剼鏈紝搴旀寜閮ㄧ讲鐜鍗曠嫭纭鍚庢墽琛屻€?
