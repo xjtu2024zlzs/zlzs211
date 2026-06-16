@@ -36,7 +36,8 @@ $env:PROJECTP_MYSQL_HOST = "127.0.0.1"
 $env:PROJECTP_MYSQL_PORT = "3306"
 $env:PROJECTP_MYSQL_DATABASE = "ry-cloud"
 $env:PROJECTP_MYSQL_USER = "root"
-$env:PROJECTP_MYSQL_PASSWORD = "password"
+$env:PROJECTP_MYSQL_PASSWORD = "XJTU2024211"
+$env:PROJECTP_CONDA_ENV = "project1"
 ```
 
 ## 启动
@@ -44,7 +45,7 @@ $env:PROJECTP_MYSQL_PASSWORD = "password"
 Windows 下不要手动并发执行多个 `conda run ... uvicorn`，否则可能抢占 Conda 临时文件，导致只有部分端口成功监听。推荐先激活环境，启动脚本会解析一次该环境的 `python.exe`，再分别后台启动五个适配器：
 
 ```powershell
-conda activate py310-magneto
+conda activate project1
 ```
 
 本机开发：

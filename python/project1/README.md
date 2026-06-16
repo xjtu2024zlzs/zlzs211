@@ -52,16 +52,24 @@ RUOYI_DOSSIER_TABLE_PREFIX=p1p_dossier_
 在项目根目录执行：
 
 ```powershell
-cd E:\Desktop\zlzs211\python\project1
+cd D:\2.11\RuoYi-Cloud-master\python\project1
+
+netstat -ano | findstr ":9701"
+taskkill /PID 查到的PID /F
+
+$env:PROJECT1_ALGORITHM_CONDA_ENV = "project1"
+$env:RUOYI_MYSQL_HOST = "127.0.0.1"
+$env:RUOYI_MYSQL_PORT = "3306"
+$env:RUOYI_MYSQL_DATABASE = "ry-cloud"
+$env:RUOYI_MYSQL_USER = "root"
+$env:RUOYI_MYSQL_PASSWORD = "XJTU2024211"
+
 .\start_project1_algorithm.ps1
 ```
-
-如需指定环境或端口：
-
+然后验证：
 ```powershell
-.\start_project1_algorithm.ps1 -CondaEnv py310-magneto -Port 9701
+Invoke-RestMethod http://127.0.0.1:9701/api/health
 ```
-
 停止服务：
 
 ```powershell

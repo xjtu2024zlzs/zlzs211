@@ -5,7 +5,7 @@
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
-          <span>课题五追溯流程</span>
+          <span>质量追溯流程</span>
           <span class="header-tip">当前选择任务：{{ currentTrace.traceNo || '未选择' }}</span>
         </div>
       </template>
@@ -14,9 +14,9 @@
         <el-step title="任务开始" />
         <el-step title="问题填报" />
         <el-step title="数据处理" />
-        <el-step title="第一部分算法运行" />
+        <el-step title="根因诊断算法运行" />
         <el-step title="知识图谱导入" />
-        <el-step title="第二部分算法运行" />
+        <el-step title="知识图谱算法运行" />
         <el-step title="进行溯源" />
         <el-step title="任务完成" />
       </el-steps>
@@ -163,11 +163,13 @@
         </el-table-column>
       </el-table>
 
-      <pagination
+      <Pagination
         v-show="total > 0"
         :total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
+        :page="queryParams.pageNum"
+        :limit="queryParams.pageSize"
+        @update:page="queryParams.pageNum = $event"
+        @update:limit="queryParams.pageSize = $event"
         @pagination="getList"
       />
     </el-card>
@@ -275,20 +277,20 @@
     <el-card class="box-card mt15">
       <template #header>
         <div class="card-header">
-          <span>第一部分算法运行区</span>
+          <span>根因诊断算法运行区</span>
         </div>
       </template>
 
-      <el-alert
+      <!-- <el-alert
         title="当前为第一部分算法运行区域。后续可接入 Python FastAPI 算法服务，读取已保存的附件路径并完成第一阶段追溯分析。"
         type="info"
         show-icon
         :closable="false"
-      />
+      /> -->
 
       <div class="mt15">
         <el-button type="warning" icon="Cpu" @click="handleRunAlgorithm">
-          运行第一部分算法
+          进行根因诊断
         </el-button>
       </div>
 
@@ -369,13 +371,13 @@
 
           <el-empty
             v-else
-            description="暂无第一部分算法结构化结果"
+            description="暂无根因诊断结果"
           />
         </el-form-item>
       </el-form>
     </el-card>
 
-    <!-- 后续流程提示区 -->
+    <!-- 后续流程提示区
     <el-card class="box-card mt15">
       <template #header>
         <span>后续页面关联</span>
@@ -387,7 +389,7 @@
         show-icon
         :closable="false"
       />
-    </el-card>
+    </el-card> -->
 
     <!-- 设置附件保存位置弹窗 -->
     <el-dialog
@@ -755,7 +757,6 @@ const selectedRows = ref([])
 const selectedIds = ref([])
 const detail = ref({})
 const total = ref(0)
-
 const currentFirstAlgorithmResult = computed(() => {
   return parseFirstAlgorithmResult(currentTrace.value.algorithmResult)
 })

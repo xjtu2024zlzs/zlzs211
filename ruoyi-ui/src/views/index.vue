@@ -237,11 +237,14 @@
           <div class="table-footer">
             <div class="table-footer__hint">点击任意行查看质量问题详情</div>
             <el-pagination
-              v-model:current-page="currentPage"
-              v-model:page-size="pageSize"
+              :current-page="currentPage"
+              :page-size="pageSize"
               :page-sizes="[5, 10, 15]"
               layout="total, sizes, prev, pager, next"
               :total="recentRecords.length"
+              @update:current-page="currentPage = $event"
+              @update:page-size="pageSize = $event"
+              @current-change="handleCurrentPageChange"
               @size-change="handlePageSizeChange"
             />
           </div>

@@ -36,7 +36,7 @@ foreach ($pidValue in $pids) {
         Write-Host "Stopped PID $pidValue"
     }
     catch {
-        Write-Host "Failed to stop PID $pidValue: $($_.Exception.Message)"
+        Write-Host "Failed to stop PID ${pidValue}: $($_.Exception.Message)"
     }
 }
 
