@@ -12,6 +12,8 @@ public class FaultIdenSampleFile
     private String sourceFile;
     private Long fileSize;
     private String dataUsage;
+    private String taskName;
+    private String uploadBatchId;
     private String aircraftId;
     private String subsystemId;
     private String equipmentId;
@@ -81,6 +83,22 @@ public class FaultIdenSampleFile
     public void setDataUsage(String dataUsage)
     {
         this.dataUsage = dataUsage;
+    }
+    public String getTaskName()
+    {
+        return taskName;
+    }
+    public void setTaskName(String taskName)
+    {
+        this.taskName = taskName;
+    }
+    public String getUploadBatchId()
+    {
+        return uploadBatchId;
+    }
+    public void setUploadBatchId(String uploadBatchId)
+    {
+        this.uploadBatchId = uploadBatchId;
     }
     public String getAircraftId()
     {

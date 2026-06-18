@@ -47,3 +47,10 @@ nbdist/
 
 ruoyi-ui/.edge-project3-task8-profile/unpacked/
 uploadPath/
+# runtime generated datasets
+python/project3/runtime/storage/datasets/
+*.npy
+__pycache__/
+*.pyc
+python/project3/runtime/storage/datasets/
+*.npy

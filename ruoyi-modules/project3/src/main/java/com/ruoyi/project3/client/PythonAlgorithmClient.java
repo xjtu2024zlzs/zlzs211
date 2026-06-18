@@ -286,6 +286,48 @@ public class PythonAlgorithmClient
         return res;
     }
 
+    public Map<String, Object> getTimeDomainWindow(Map<String, Object> request)
+    {
+        String url = time_domain_window_url();
+        Map<String, Object> response = parse_json(
+                sendPost(url, JSON.toJSONString(request), MediaType.APPLICATION_JSON_VALUE),
+                url
+        );
+        if (!"SUCCESS".equalsIgnoreCase(get_string(response.get("status"))))
+        {
+            throw new ServiceException(feature_err(response));
+        }
+        return response;
+    }
+
+    public Map<String, Object> getTimeDomainOverview(Map<String, Object> request)
+    {
+        String url = time_domain_overview_url();
+        Map<String, Object> response = parse_json(
+                sendPost(url, JSON.toJSONString(request), MediaType.APPLICATION_JSON_VALUE),
+                url
+        );
+        if (!"SUCCESS".equalsIgnoreCase(get_string(response.get("status"))))
+        {
+            throw new ServiceException(feature_err(response));
+        }
+        return response;
+    }
+
+    public Map<String, Object> getTimeDomainGlobalRawPreview(Map<String, Object> request)
+    {
+        String url = time_domain_global_raw_preview_url();
+        Map<String, Object> response = parse_json(
+                sendPost(url, JSON.toJSONString(request), MediaType.APPLICATION_JSON_VALUE),
+                url
+        );
+        if (!"SUCCESS".equalsIgnoreCase(get_string(response.get("status"))))
+        {
+            throw new ServiceException(feature_err(response));
+        }
+        return response;
+    }
+
     public Map<String, Object> submitPythonTask(String algorithmType, Object payload)
     {
         Map<String, Object> request = new LinkedHashMap<>();
@@ -383,6 +425,51 @@ public class PythonAlgorithmClient
             throw new ServiceException("缺少配置：python.algorithm.warningUrl 或 python.algorithm.baseUrl");
         }
         return url;
+    }
+
+    private String time_domain_window_url()
+    {
+        String baseUrl = pythonAlgorithmProperties.getBaseUrl();
+        if (StringUtils.isEmpty(baseUrl))
+        {
+            throw new ServiceException("缺少配置：python.algorithm.baseUrl");
+        }
+        String path = pythonAlgorithmProperties.getTimeDomainWindowPath();
+        if (StringUtils.isEmpty(path))
+        {
+            throw new ServiceException("缺少配置：python.algorithm.timeDomainWindowPath");
+        }
+        return StringUtils.endsWith(baseUrl, "/") ? baseUrl + path.substring(1) : baseUrl + path;
+    }
+
+    private String time_domain_overview_url()
+    {
+        String baseUrl = pythonAlgorithmProperties.getBaseUrl();
+        if (StringUtils.isEmpty(baseUrl))
+        {
+            throw new ServiceException("缺少配置：python.algorithm.baseUrl");
+        }
+        String path = pythonAlgorithmProperties.getTimeDomainOverviewPath();
+        if (StringUtils.isEmpty(path))
+        {
+            throw new ServiceException("缺少配置：python.algorithm.timeDomainOverviewPath");
+        }
+        return StringUtils.endsWith(baseUrl, "/") ? baseUrl + path.substring(1) : baseUrl + path;
+    }
+
+    private String time_domain_global_raw_preview_url()
+    {
+        String baseUrl = pythonAlgorithmProperties.getBaseUrl();
+        if (StringUtils.isEmpty(baseUrl))
+        {
+            throw new ServiceException("缺少配置：python.algorithm.baseUrl");
+        }
+        String path = pythonAlgorithmProperties.getTimeDomainGlobalRawPreviewPath();
+        if (StringUtils.isEmpty(path))
+        {
+            throw new ServiceException("缺少配置：python.algorithm.timeDomainGlobalRawPreviewPath");
+        }
+        return StringUtils.endsWith(baseUrl, "/") ? baseUrl + path.substring(1) : baseUrl + path;
     }
 
     private String kqc_mining_url()

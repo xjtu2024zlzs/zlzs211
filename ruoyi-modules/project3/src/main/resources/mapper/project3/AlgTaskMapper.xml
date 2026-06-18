@@ -11,6 +11,10 @@
         <result property="taskType" column="task_type"/>
         <result property="taskName" column="task_name"/>
         <result property="status" column="status"/>
+        <result property="statusVersion" column="status_version"/>
+        <result property="lastSyncAt" column="last_sync_at"/>
+        <result property="lastSyncError" column="last_sync_error"/>
+        <result property="syncRetryCount" column="sync_retry_count"/>
         <result property="requestId" column="request_id"/>
         <result property="algVersion" column="algorithm_version"/>
         <result property="aircraftId" column="aircraft_id"/>
@@ -35,7 +39,8 @@
     </resultMap>
 
     <sql id="BaseColumnList">
-        id, task_id, task_type, task_name, status, request_id, algorithm_version,
+        id, task_id, task_type, task_name, status, status_version,
+        last_sync_at, last_sync_error, sync_retry_count, request_id, algorithm_version,
         aircraft_id, subsystem_id, equipment_id, component_id,
         business_object_id, business_object_level, business_object_name,
         feature_analysis_task_id, summary_result, result_value, result_unit,
@@ -54,7 +59,7 @@
         select <include refid="BaseColumnList"/>
         from t3_algorithm_task_results
         where request_id = #{requestId}
-          and task_type = #{taskType}
+        and task_type = #{taskType}
         order by created_at desc, id desc
         limit 1
     </select>
@@ -63,8 +68,8 @@
         select <include refid="BaseColumnList"/>
         from t3_algorithm_task_results
         where task_type = #{taskType}
-          and remark = #{remark}
-          and status in ('PENDING', 'RUNNING')
+        and remark = #{remark}
+        and status in ('PENDING', 'RUNNING')
         order by created_at desc, id desc
         limit 1
     </select>
@@ -73,7 +78,7 @@
         select <include refid="BaseColumnList"/>
         from t3_algorithm_task_results
         where task_id = #{flowTaskId}
-           or feature_analysis_task_id = #{flowTaskId}
+        or feature_analysis_task_id = #{flowTaskId}
         order by created_at asc, id asc
     </select>
 
@@ -81,10 +86,37 @@
         select <include refid="BaseColumnList"/>
         from t3_algorithm_task_results
         where task_type = #{taskType}
-          and status in ('PENDING', 'RUNNING')
+        and status in ('PENDING', 'RUNNING')
         order by updated_at asc, id asc
         limit #{limit}
     </select>
+
+    <select id="getActiveTasksByTypeForSync" resultMap="AlgTaskResultMap">
+        select <include refid="BaseColumnList"/>
+        from t3_algorithm_task_results
+        where task_type = #{taskType}
+        and status in ('PENDING', 'RUNNING')
+        and sync_retry_count &lt; #{maxRetryCount}
+        and (
+        last_sync_at is null
+        or last_sync_at &lt; date_sub(now(), interval #{activeTimeoutMinutes} minute)
+        )
+        order by coalesce(last_sync_at, created_at) asc, id asc
+        limit #{limit}
+    </select>
+
+    <update id="failActiveTasksExceededSyncRetries">
+        update t3_algorithm_task_results
+        set status = 'FAILED',
+            status_version = status_version + 1,
+            error_message = #{error},
+            summary_result = #{error},
+            finished_at = now(),
+            updated_at = now()
+        where task_type = #{taskType}
+          and status in ('PENDING', 'RUNNING')
+          and sync_retry_count &gt;= #{maxRetryCount}
+    </update>
 
     <delete id="deleteByFlowTaskId">
         delete from t3_algorithm_task_results
@@ -96,8 +128,8 @@
         select <include refid="BaseColumnList"/>
         from t3_algorithm_task_results
         where feature_analysis_task_id = #{flowTaskId}
-          and task_type = 'FEATURE_PROCESSING'
-          and status = 'SUCCESS'
+        and task_type = 'FEATURE_PROCESSING'
+        and status = 'SUCCESS'
         order by created_at desc, id desc
         limit 1
     </select>
@@ -105,7 +137,8 @@
     <insert id="insertTask" parameterType="com.ruoyi.project3.domain.algorithm.AlgTaskResult" useGeneratedKeys="true" keyProperty="id">
         insert into t3_algorithm_task_results
         (
-            task_id, task_type, task_name, status, request_id, algorithm_version,
+            task_id, task_type, task_name, status, status_version,
+            last_sync_at, last_sync_error, sync_retry_count, request_id, algorithm_version,
             aircraft_id, subsystem_id, equipment_id, component_id,
             business_object_id, business_object_level, business_object_name,
             feature_analysis_task_id, summary_result, result_value, result_unit,
@@ -113,14 +146,15 @@
             created_at, updated_at, remark
         )
         values
-        (
-            #{taskId}, #{taskType}, #{taskName}, #{status}, #{requestId}, #{algVersion},
-            #{aircraftId}, #{subsystemId}, #{equipmentId}, #{componentId},
-            #{bizId}, #{bizLevel}, #{bizName},
-            #{featTaskId}, #{summary}, #{resultVal}, #{resultUnit},
-            #{reqJson}, #{resJson}, #{errMsg}, #{startAt}, #{endAt},
-            now(), now(), #{remark}
-        )
+            (
+                #{taskId}, #{taskType}, #{taskName}, #{status}, 0,
+                null, null, 0, #{requestId}, #{algVersion},
+                #{aircraftId}, #{subsystemId}, #{equipmentId}, #{componentId},
+                #{bizId}, #{bizLevel}, #{bizName},
+                #{featTaskId}, #{summary}, #{resultVal}, #{resultUnit},
+                #{reqJson}, #{resJson}, #{errMsg}, #{startAt}, #{endAt},
+                now(), now(), #{remark}
+            )
     </insert>
 
     <update id="updateTask" parameterType="com.ruoyi.project3.domain.algorithm.AlgTaskResult">
@@ -128,7 +162,13 @@
         <set>
             <if test="taskType != null">task_type = #{taskType},</if>
             <if test="taskName != null">task_name = #{taskName},</if>
-            <if test="status != null">status = #{status},</if>
+            <if test="status != null">
+                status = #{status},
+                status_version = status_version + 1,
+                last_sync_at = now(),
+                last_sync_error = null,
+                sync_retry_count = 0,
+            </if>
             <if test="requestId != null">request_id = #{requestId},</if>
             <if test="algVersion != null">algorithm_version = #{algVersion},</if>
             <if test="aircraftId != null">aircraft_id = #{aircraftId},</if>
@@ -152,22 +192,44 @@
         </set>
         where task_id = #{taskId}
         <if test="status != null">
-            and (status not in ('SUCCESS', 'FAILED', 'CANCELED') or status = #{status})
+            and (
+            status = #{status}
+            or (status = 'PENDING' and #{status} in ('RUNNING', 'SUCCESS', 'FAILED', 'CANCELED'))
+            or (status = 'RUNNING' and #{status} in ('SUCCESS', 'FAILED', 'CANCELED'))
+            )
         </if>
+    </update>
+
+    <update id="recordSyncSuccess">
+        update t3_algorithm_task_results
+        set last_sync_at = now(),
+            last_sync_error = null,
+            sync_retry_count = 0,
+            updated_at = now()
+        where task_id = #{taskId}
+    </update>
+
+    <update id="recordSyncFailure">
+        update t3_algorithm_task_results
+        set last_sync_at = now(),
+            last_sync_error = #{error},
+            sync_retry_count = sync_retry_count + 1,
+            updated_at = now()
+        where task_id = #{taskId}
     </update>
 
     <select id="getLatestFeatureDataTask" resultMap="AlgTaskResultMap">
         select <include refid="BaseColumnList"/>
         from t3_algorithm_task_results
         where task_type = 'FEATURE_ANALYSIS'
-          and status = 'SUCCESS'
-          and result_json is not null
-          and result_json like '%combinedDataPath%'
+        and status = 'SUCCESS'
+        and result_json is not null
+        and result_json like '%combinedDataPath%'
         <if test="bizId != null and bizId != ''">
-          and business_object_id = #{bizId}
+            and business_object_id = #{bizId}
         </if>
         <if test="bizLevel != null and bizLevel != ''">
-          and business_object_level = #{bizLevel}
+            and business_object_level = #{bizLevel}
         </if>
         order by finished_at desc, updated_at desc, id desc
         limit 1
@@ -213,13 +275,13 @@
         </if>
         <if test="keyword != null and keyword != ''">
             and (
-                task_id like concat('%', #{keyword}, '%')
-                or task_name like concat('%', #{keyword}, '%')
-                or business_object_id like concat('%', #{keyword}, '%')
-                or business_object_name like concat('%', #{keyword}, '%')
-                or summary_result like concat('%', #{keyword}, '%')
-                or result_value like concat('%', #{keyword}, '%')
-                or error_message like concat('%', #{keyword}, '%')
+            task_id like concat('%', #{keyword}, '%')
+            or task_name like concat('%', #{keyword}, '%')
+            or business_object_id like concat('%', #{keyword}, '%')
+            or business_object_name like concat('%', #{keyword}, '%')
+            or summary_result like concat('%', #{keyword}, '%')
+            or result_value like concat('%', #{keyword}, '%')
+            or error_message like concat('%', #{keyword}, '%')
             )
         </if>
     </sql>
@@ -248,13 +310,13 @@
         </if>
         <if test="keyword != null and keyword != ''">
             and (
-                t.task_id like concat('%', #{keyword}, '%')
-                or coalesce(t.feature_analysis_task_id, t.task_id) like concat('%', #{keyword}, '%')
-                or t.task_name like concat('%', #{keyword}, '%')
-                or t.business_object_name like concat('%', #{keyword}, '%')
-                or t.summary_result like concat('%', #{keyword}, '%')
-                or t.result_value like concat('%', #{keyword}, '%')
-                or t.error_message like concat('%', #{keyword}, '%')
+            t.task_id like concat('%', #{keyword}, '%')
+            or coalesce(t.feature_analysis_task_id, t.task_id) like concat('%', #{keyword}, '%')
+            or t.task_name like concat('%', #{keyword}, '%')
+            or t.business_object_name like concat('%', #{keyword}, '%')
+            or t.summary_result like concat('%', #{keyword}, '%')
+            or t.result_value like concat('%', #{keyword}, '%')
+            or t.error_message like concat('%', #{keyword}, '%')
             )
         </if>
     </sql>
@@ -262,23 +324,23 @@
     <select id="getIdentifyResult" resultMap="AlgTaskResultMap">
         select <include refid="BaseColumnList"/>
         from (
-            select
-                t.*,
-                row_number() over (
-                    partition by coalesce(t.feature_analysis_task_id, t.task_id)
-                    order by
-                        case t.task_type
-                            when 'FAULT_PREDICT' then 4
-                            when 'EARLY_DEGRADATION_POINT_DETECT' then 3
-                            when 'FEATURE_PROCESSING' then 2
-                            when 'FEATURE_ANALYSIS' then 1
-                            else 0
-                        end desc,
-                        t.created_at desc,
-                        t.id desc
-                ) as rn
-            from t3_algorithm_task_results t
-            <include refid="IdentifyWhere"/>
+        select
+        t.*,
+        row_number() over (
+        partition by coalesce(t.feature_analysis_task_id, t.task_id)
+        order by
+        case t.task_type
+        when 'FAULT_PREDICT' then 4
+        when 'EARLY_DEGRADATION_POINT_DETECT' then 3
+        when 'FEATURE_PROCESSING' then 2
+        when 'FEATURE_ANALYSIS' then 1
+        else 0
+        end desc,
+        t.created_at desc,
+        t.id desc
+        ) as rn
+        from t3_algorithm_task_results t
+        <include refid="IdentifyWhere"/>
         ) x
         where x.rn = 1
         order by x.created_at desc, x.id desc
@@ -288,10 +350,10 @@
     <select id="countIdentifyResult" resultType="java.lang.Long">
         select count(1)
         from (
-            select coalesce(t.feature_analysis_task_id, t.task_id) as flow_task_id
-            from t3_algorithm_task_results t
-            <include refid="IdentifyWhere"/>
-            group by coalesce(t.feature_analysis_task_id, t.task_id)
+        select coalesce(t.feature_analysis_task_id, t.task_id) as flow_task_id
+        from t3_algorithm_task_results t
+        <include refid="IdentifyWhere"/>
+        group by coalesce(t.feature_analysis_task_id, t.task_id)
         ) x
     </select>
 
@@ -308,10 +370,10 @@
         </if>
         <if test="keyword != null and keyword != ''">
             and (
-                task_id like concat('%', #{keyword}, '%')
-                or business_object_name like concat('%', #{keyword}, '%')
-                or summary_result like concat('%', #{keyword}, '%')
-                or result_value like concat('%', #{keyword}, '%')
+            task_id like concat('%', #{keyword}, '%')
+            or business_object_name like concat('%', #{keyword}, '%')
+            or summary_result like concat('%', #{keyword}, '%')
+            or result_value like concat('%', #{keyword}, '%')
             )
         </if>
     </sql>
@@ -340,12 +402,12 @@
         </if>
         <if test="keyword != null and keyword != ''">
             and (
-                task_id like concat('%', #{keyword}, '%')
-                or business_object_name like concat('%', #{keyword}, '%')
-                or summary_result like concat('%', #{keyword}, '%')
-                or result_value like concat('%', #{keyword}, '%')
-                or result_json like concat('%', #{keyword}, '%')
-                or error_message like concat('%', #{keyword}, '%')
+            task_id like concat('%', #{keyword}, '%')
+            or business_object_name like concat('%', #{keyword}, '%')
+            or summary_result like concat('%', #{keyword}, '%')
+            or result_value like concat('%', #{keyword}, '%')
+            or result_json like concat('%', #{keyword}, '%')
+            or error_message like concat('%', #{keyword}, '%')
             )
         </if>
     </sql>
@@ -362,6 +424,37 @@
         select count(1)
         from t3_algorithm_task_results
         <include refid="FrameBeamCrackWhere"/>
+    </select>
+
+    <sql id="PreventiveMaintenanceWhere">
+        where task_type = #{taskType}
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+            task_id like concat('%', #{keyword}, '%')
+            or request_id like concat('%', #{keyword}, '%')
+            or equipment_id like concat('%', #{keyword}, '%')
+            or component_id like concat('%', #{keyword}, '%')
+            or business_object_id like concat('%', #{keyword}, '%')
+            or request_json like concat('%', #{keyword}, '%')
+            )
+        </if>
+    </sql>
+
+    <select id="getPreventiveMaintenanceResult" resultMap="AlgTaskResultMap">
+        select <include refid="BaseColumnList"/>
+        from t3_algorithm_task_results
+        <include refid="PreventiveMaintenanceWhere"/>
+        order by created_at desc, id desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="countPreventiveMaintenanceResult" resultType="java.lang.Long">
+        select count(1)
+        from t3_algorithm_task_results
+        <include refid="PreventiveMaintenanceWhere"/>
     </select>
 
     <delete id="deleteByTaskIdAndType">

@@ -128,29 +128,294 @@ def read_and_combine_csv_files(
     return np.concatenate(vertical_data_list), file_reports
 
 
-def build_time_domain_response(
+def build_time_domain_window(
     data: np.ndarray,
     sampling_frequency: int,
-    max_points: int = 50000,
+    start_index: int = 0,
+    limit: int = 5000,
 ) -> Dict:
-    """返回前端绘图用的时域降采样数据。"""
+    """Return one continuous display window from the complete time-domain data."""
+    data = np.asarray(data, dtype=float).reshape(-1)
     total_samples = int(data.size)
-    if total_samples == 0:
-        return {"times": [], "values": [], "downsampled": False, "pointCount": 0}
+    if not np.isfinite(sampling_frequency) or sampling_frequency <= 0:
+        raise ValueError("samplingFrequency must be greater than 0")
+    start_index = max(0, int(start_index or 0))
+    limit = int(limit or 5000)
+    if limit <= 0:
+        limit = 5000
+    end_index = min(start_index + limit, total_samples)
 
-    step = max(1, total_samples // max_points)
-    indexes = np.arange(0, total_samples, step)
-    times = indexes / sampling_frequency
+    if start_index >= total_samples:
+        indexes = np.asarray([], dtype=np.int64)
+        values = np.asarray([], dtype=float)
+    else:
+        indexes = np.arange(start_index, end_index, dtype=np.int64)
+        values = data[start_index:end_index]
+
+    finite_mask = np.isfinite(values)
+    indexes = indexes[finite_mask]
+    values = values[finite_mask]
+    times = indexes.astype(float) / float(sampling_frequency)
+    duration = float(total_samples / float(sampling_frequency))
+    if values.size:
+        min_value = float(np.min(values))
+        max_value = float(np.max(values))
+        mean_value = float(np.mean(values))
+        rms_value = float(np.sqrt(np.mean(np.square(values))))
+        p2p_value = float(max_value - min_value)
+        crest_factor = float(np.max(np.abs(values)) / rms_value) if rms_value > 0 else 0.0
+        stats = {
+            "min": min_value,
+            "max": max_value,
+            "mean": mean_value,
+            "rms": rms_value,
+            "p2p": p2p_value,
+            "crestFactor": crest_factor,
+        }
+    else:
+        stats = {
+            "min": None,
+            "max": None,
+            "mean": None,
+            "rms": None,
+            "p2p": None,
+            "crestFactor": None,
+        }
 
     return {
         "times": times.astype(float).tolist(),
-        "values": data[indexes].astype(float).tolist(),
-        "downsampled": step > 1,
+        "values": values.astype(float).tolist(),
+        "startIndex": int(start_index),
+        "endIndex": int(end_index),
+        "limit": int(limit),
+        "totalCount": total_samples,
+        "samplingFrequency": int(sampling_frequency),
+        "duration": duration,
+        "windowed": total_samples > limit,
+        "downsampled": False,
         "pointCount": int(indexes.size),
         "time": times.astype(float).tolist(),
-        "amplitude": data[indexes].astype(float).tolist(),
-        "downsampleStep": int(step),
+        "amplitude": values.astype(float).tolist(),
+        "downsampleStep": 0,
+        "displayMaxPoints": int(limit),
+        "downsampleMethod": "window",
+        "stats": stats,
     }
+
+
+def build_time_domain_overview(
+    data: np.ndarray,
+    sampling_frequency: int,
+    max_buckets: int = 2000,
+) -> Dict:
+    """Compress the complete signal into statistical buckets for overview plotting."""
+    data = np.asarray(data, dtype=float).reshape(-1)
+    total_count = int(data.size)
+    if not np.isfinite(sampling_frequency) or sampling_frequency <= 0:
+        sampling_frequency = DEFAULT_SAMPLING_FREQUENCY
+    max_buckets = max(1, int(max_buckets or 2000))
+
+    empty = {
+        "times": [],
+        "minValues": [],
+        "maxValues": [],
+        "rmsValues": [],
+        "p2pValues": [],
+        "meanValues": [],
+        "bucketSize": 0,
+        "bucketCount": 0,
+        "totalCount": total_count,
+        "samplingFrequency": int(sampling_frequency),
+        "duration": float(total_count / float(sampling_frequency)),
+        "overview": True,
+        "overviewMethod": "min_max_rms_p2p",
+    }
+    if total_count == 0:
+        return empty
+
+    bucket_size = max(1, int(np.ceil(total_count / max_buckets)))
+    times: List[float] = []
+    min_values: List[float] = []
+    max_values: List[float] = []
+    rms_values: List[float] = []
+    p2p_values: List[float] = []
+    mean_values: List[float] = []
+
+    for start in range(0, total_count, bucket_size):
+        end = min(start + bucket_size, total_count)
+        bucket = data[start:end]
+        bucket = bucket[np.isfinite(bucket)]
+        if bucket.size == 0:
+            continue
+
+        center_index = (start + end - 1) / 2.0
+        min_value = float(np.min(bucket))
+        max_value = float(np.max(bucket))
+        mean_value = float(np.mean(bucket))
+        rms_value = float(np.sqrt(np.mean(np.square(bucket))))
+
+        times.append(float(center_index / float(sampling_frequency)))
+        min_values.append(min_value)
+        max_values.append(max_value)
+        mean_values.append(mean_value)
+        rms_values.append(rms_value)
+        p2p_values.append(float(max_value - min_value))
+
+    return {
+        **empty,
+        "times": times,
+        "minValues": min_values,
+        "maxValues": max_values,
+        "rmsValues": rms_values,
+        "p2pValues": p2p_values,
+        "meanValues": mean_values,
+        "bucketSize": int(bucket_size),
+        "bucketCount": len(times),
+    }
+
+
+def build_global_raw_waveform_preview(
+    data: np.ndarray,
+    sampling_frequency: int,
+    max_points: int = 8000,
+) -> Dict:
+    """Build a shape-preserving global preview using per-bucket min/max points."""
+    data = np.asarray(data, dtype=float).reshape(-1)
+    total_count = int(data.size)
+    try:
+        sampling_frequency = float(sampling_frequency)
+    except (TypeError, ValueError, OverflowError):
+        sampling_frequency = DEFAULT_SAMPLING_FREQUENCY
+    if not np.isfinite(sampling_frequency) or sampling_frequency <= 0:
+        sampling_frequency = DEFAULT_SAMPLING_FREQUENCY
+
+    try:
+        max_points = int(max_points or 8000)
+    except (TypeError, ValueError, OverflowError):
+        max_points = 8000
+    max_points = max(1000, min(max_points, 20000))
+
+    empty = {
+        "times": [],
+        "values": [],
+        "totalCount": total_count,
+        "displayPointCount": 0,
+        "samplingFrequency": int(sampling_frequency),
+        "duration": float(total_count / float(sampling_frequency)),
+        "compressed": True,
+        "method": "raw_waveform_preview_minmax",
+    }
+    if total_count == 0:
+        return empty
+
+    if total_count <= max_points:
+        indexes = np.arange(total_count, dtype=np.int64)
+        finite_mask = np.isfinite(data)
+        indexes = indexes[finite_mask]
+        values = data[finite_mask]
+        return {
+            **empty,
+            "times": (indexes.astype(float) / float(sampling_frequency)).tolist(),
+            "values": values.astype(float).tolist(),
+            "displayPointCount": int(values.size),
+            "compressed": False,
+            "method": "raw",
+        }
+
+    bucket_count = max(1, max_points // 2)
+    bucket_size = max(1, int(np.ceil(total_count / bucket_count)))
+    indexes: List[int] = []
+    values: List[float] = []
+
+    for start in range(0, total_count, bucket_size):
+        end = min(start + bucket_size, total_count)
+        bucket = data[start:end]
+        finite_indexes = np.flatnonzero(np.isfinite(bucket))
+        if finite_indexes.size == 0:
+            continue
+
+        finite_values = bucket[finite_indexes]
+        min_index = int(finite_indexes[int(np.argmin(finite_values))])
+        max_index = int(finite_indexes[int(np.argmax(finite_values))])
+        for local_index in sorted([min_index, max_index]):
+            global_index = start + local_index
+            indexes.append(global_index)
+            values.append(float(data[global_index]))
+
+    return {
+        **empty,
+        "times": [float(index / float(sampling_frequency)) for index in indexes],
+        "values": values,
+        "displayPointCount": len(values),
+        "compressed": True,
+    }
+
+
+def build_time_domain_response(
+    data: np.ndarray,
+    sampling_frequency: int,
+    max_points: int = 5000,
+) -> Dict:
+    """Backward-compatible first-window response used by data analysis."""
+    return build_time_domain_window(
+        data,
+        sampling_frequency=sampling_frequency,
+        start_index=0,
+        limit=max_points,
+    )
+
+
+def load_time_domain_window(
+    npy_path: str | Path,
+    sampling_frequency: int,
+    start_index: int = 0,
+    limit: int = 5000,
+) -> Dict:
+    """Memory-map a saved complete dataset and return one display window."""
+    path = Path(npy_path)
+    if not path.is_file():
+        raise ValueError(f"combined data file not found: {path}")
+    data = np.load(path, mmap_mode="r")
+    return build_time_domain_window(
+        data,
+        sampling_frequency=sampling_frequency,
+        start_index=start_index,
+        limit=limit,
+    )
+
+
+def load_time_domain_overview(
+    npy_path: str | Path,
+    sampling_frequency: int,
+    max_buckets: int = 2000,
+) -> Dict:
+    """Memory-map a complete dataset and build its compressed overview."""
+    path = Path(npy_path)
+    if not path.is_file():
+        raise ValueError(f"combined data file not found: {path}")
+    data = np.load(path, mmap_mode="r")
+    return build_time_domain_overview(
+        data,
+        sampling_frequency=sampling_frequency,
+        max_buckets=max_buckets,
+    )
+
+
+def load_global_raw_waveform_preview(
+    npy_path: str | Path,
+    sampling_frequency: int,
+    max_points: int = 8000,
+) -> Dict:
+    """Memory-map a complete dataset and build its global raw waveform preview."""
+    path = Path(npy_path)
+    if not path.is_file():
+        raise ValueError(f"combined data file not found: {path}")
+    data = np.load(path, mmap_mode="r")
+    return build_global_raw_waveform_preview(
+        data,
+        sampling_frequency=sampling_frequency,
+        max_points=max_points,
+    )
 
 
 def build_time_frequency_response(
@@ -314,6 +579,12 @@ def process_uploaded_dataset(
         "totalTime": total_time,
         "fileReports": file_reports,
         "timeDomain": time_domain,
+        "timeDomainMeta": {
+            "totalCount": total_samples,
+            "samplingFrequency": int(sampling_frequency),
+            "duration": total_time,
+            "windowSize": 5000,
+        },
         "timeFrequency": time_frequency,
     }
     metadata = {

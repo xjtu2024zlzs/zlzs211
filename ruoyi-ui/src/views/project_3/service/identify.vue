@@ -5,7 +5,7 @@
       <template #header>
         <span class="quality-title">服役性能周期故障预防</span>
       </template>
-      <div class="quality-desc">进行故障识别、故障预防</div>
+      <div>对设备进行故障识别、故障预防</div>
     </el-card>
 
     <el-card shadow="never" class="section-card">
@@ -13,29 +13,120 @@
         <span class="section-title">故障识别</span>
       </template>
 
-      <div class="input-row">
-        <el-button type="success" class="upload-btn" @click="openPrepareDlg">选择分析对象和数据文件</el-button>
-        <el-progress class="input-progress" :percentage="upload_progress" :show-text="false" />
-        <span class="progress-text">{{ upload_status_text }}</span>
+      <div class="identify-control-grid">
+        <div class="identify-control-panel data-control-panel">
+          <div class="control-panel-heading">
+            <span class="control-step">01</span>
+            <div>
+              <div class="control-panel-title">分析数据</div>
+              <div class="control-panel-desc">选择分析对象及对应的数据文件</div>
+            </div>
+          </div>
+          <div class="input-row">
+            <el-button type="success" class="upload-btn" @click="openPrepareDlg">选择分析对象和数据文件</el-button>
+            <div class="upload-progress-wrap">
+              <el-progress class="input-progress" :percentage="upload_progress" :show-text="false" />
+              <span class="progress-text">{{ upload_status_text }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="identify-control-panel">
+          <div class="control-panel-heading">
+            <span class="control-step">02</span>
+            <div>
+              <div class="control-panel-title">分析参数</div>
+              <div class="control-panel-desc">设置特征提取的窗口及重叠率</div>
+            </div>
+          </div>
+          <div class="param-row compact-param-row">
+            <label class="param-field">
+              <span class="param-label">窗口大小（秒）</span>
+              <el-select v-model="feature_params.windowSize" class="param-select">
+                <el-option label="1.0" value="1.0" />
+              </el-select>
+            </label>
+            <label class="param-field">
+              <span class="param-label">重叠率（%）</span>
+              <el-select v-model="feature_params.overlapRate" class="param-select">
+                <el-option label="50" value="50" />
+              </el-select>
+            </label>
+          </div>
+        </div>
       </div>
 
-      <div class="param-row">
-        <span class="param-label">窗口大小（秒）：</span>
-        <el-select v-model="feature_params.windowSize" class="param-select">
-          <el-option label="1.0" value="1.0" />
-        </el-select>
-
-        <span class="param-label">重叠率（%）：</span>
-        <el-select v-model="feature_params.overlapRate" class="param-select">
-          <el-option label="50" value="50" />
-        </el-select>
-      </div>
-
-      <el-row :gutter="20">
+      <div class="content-subheading">原始信号分析</div>
+      <el-row :gutter="20" class="signal-chart-row">
         <el-col :span="12">
           <div class="signal-panel">
-            <div class="chart-title align-left">时域分析图</div>
-            <div ref="time_domain_chart_ref" class="signal-box"></div>
+            <div class="time-domain-view-switch">
+              <el-radio-group v-model="timeDomainViewMode" @change="handleTimeDomainViewModeChange">
+                <el-radio-button label="globalRaw">全局原始波形图</el-radio-button>
+                <el-radio-button label="overview">全局时域概览图</el-radio-button>
+                <el-radio-button label="localRaw">局部原始波形图</el-radio-button>
+              </el-radio-group>
+            </div>
+            <div v-show="timeDomainViewMode !== 'localRaw'">
+              <div class="chart-title align-left">
+                {{ timeDomainViewMode === 'globalRaw' ? '全局原始波形图' : '全局时域概览图' }}
+              </div>
+              <div ref="time_domain_overview_chart_ref" class="signal-box time-domain-overview-box"></div>
+              <div v-if="timeDomainViewMode === 'overview'" class="time-domain-overview-tip">
+                点击概览曲线可跳转到对应时间附近的原始波形
+              </div>
+            </div>
+            <div v-show="timeDomainViewMode === 'localRaw'">
+              <div class="chart-title align-left">局部原始波形图</div>
+              <div ref="time_domain_chart_ref" class="signal-box"></div>
+              <div class="time-domain-window-controls">
+                <div class="time-domain-window-actions">
+                  <el-button
+                    :disabled="time_domain_window_loading || currentTimeDomainStartIndex <= 0"
+                    @click="prevTimeDomainWindow"
+                  >
+                    上一段
+                  </el-button>
+                  <el-button
+                    :disabled="time_domain_window_loading || !hasNextTimeDomainWindow"
+                    @click="nextTimeDomainWindow"
+                  >
+                    下一段
+                  </el-button>
+                  <span class="time-domain-window-range">
+                    当前显示：{{ currentTimeDomainStartIndex }} ~ {{ currentTimeDomainEndIndex }}
+                    / {{ timeDomainMeta.totalCount }}
+                  </span>
+                  <el-select
+                    v-model="timeDomainWindowSize"
+                    class="time-domain-window-size"
+                    @change="handleTimeDomainWindowSizeChange"
+                  >
+                    <el-option label="5000 点" :value="5000" />
+                    <el-option label="10000 点" :value="10000" />
+                    <el-option label="25600 点（约1秒）" :value="25600" />
+                  </el-select>
+                </div>
+                <div class="time-domain-window-time">
+                  当前时间：{{ currentWindowStartTime.toFixed(4) }}s ~
+                  {{ currentWindowEndTime.toFixed(4) }}s /
+                  总时长 {{ Number(timeDomainMeta.duration || 0).toFixed(4) }}s
+                </div>
+                <el-slider
+                  v-model="time_domain_slider_index"
+                  :min="0"
+                  :max="timeDomainSliderMax"
+                  :step="timeDomainWindowSize"
+                  :disabled="time_domain_window_loading || timeDomainMeta.totalCount <= timeDomainWindowSize"
+                  @change="handleTimeDomainWindowSliderChange"
+                />
+              </div>
+              <div class="time-domain-stats">
+                <span v-for="item in timeDomainWindowStatItems" :key="item.label">
+                  {{ item.label }}：<strong>{{ item.value }}</strong>
+                </span>
+              </div>
+            </div>
           </div>
         </el-col>
 
@@ -65,10 +156,19 @@
         </div>
       </template>
 
-      <div class="feature-task-status-row">
-        <span>分析对象：{{ selected_feature_object?.name || '--' }}</span>
-        <span>任务ID：{{ analysis_task_id || '--' }}</span>
-        <span>任务状态：{{ feat_status || '--' }}</span>
+      <div class="task-info-grid">
+        <div class="task-info-item">
+          <span class="task-info-label">分析对象</span>
+          <strong :title="selected_feature_object_path">{{ selected_feature_object_path }}</strong>
+        </div>
+        <div class="task-info-item">
+          <span class="task-info-label">任务 ID</span>
+          <strong>{{ analysis_task_id || '--' }}</strong>
+        </div>
+        <div class="task-info-item">
+          <span class="task-info-label">任务状态</span>
+          <strong>{{ feat_status || '--' }}</strong>
+        </div>
       </div>
       <div v-if="feat_err" class="feature-task-error-row">
         失败原因：{{ feat_err }}
@@ -83,7 +183,8 @@
         </div>
       </div>
 
-      <el-row :gutter="20">
+      <div class="content-subheading feature-chart-heading">特征趋势图</div>
+      <el-row :gutter="20" class="feature-chart-row">
         <el-col :span="12">
           <div class="chart-panel">
             <div class="chart-title">均值趋势</div>
@@ -148,46 +249,61 @@
         </div>
       </template>
 
-      <div class="param-row">
-        <span class="param-label">窗口大小（秒）：</span>
-        <el-select v-model="degradation_params.window_size" class="param-select">
-          <el-option label="1.0" value="1.0" />
-        </el-select>
+      <div class="degradation-config-grid">
+        <div class="config-panel">
+          <div class="config-panel-title">识别参数</div>
+          <div class="param-row degradation-param-row">
+            <label class="param-field">
+              <span class="param-label">窗口大小（秒）</span>
+              <el-select v-model="degradation_params.window_size" class="param-select">
+                <el-option label="1.0" value="1.0" />
+              </el-select>
+            </label>
+            <label class="param-field">
+              <span class="param-label">重叠率（%）</span>
+              <el-select v-model="degradation_params.overlap_rate" class="param-select">
+                <el-option label="50" value="50" />
+              </el-select>
+            </label>
+            <label class="param-field">
+              <span class="param-label">基准窗口数</span>
+              <el-select v-model="degradation_params.baseline_window_count" class="param-select">
+                <el-option label="500" value="500" />
+              </el-select>
+            </label>
+            <label class="param-field">
+              <span class="param-label">RMS 灵敏度</span>
+              <el-input-number
+                v-model="degradation_params.rms_sensitivity"
+                class="param-number"
+                :min="0.1"
+                :max="1.0"
+                :step="0.1"
+                :precision="1"
+                controls-position="right"
+              />
+            </label>
+          </div>
+        </div>
 
-        <span class="param-label">重叠率（%）：</span>
-        <el-select v-model="degradation_params.overlap_rate" class="param-select">
-          <el-option label="50" value="50" />
-        </el-select>
-
-        <span class="param-label">基准窗口数：</span>
-        <el-select v-model="degradation_params.baseline_window_count" class="param-select">
-          <el-option label="500" value="500" />
-        </el-select>
-
-        <span class="param-label">RMS灵敏度：</span>
-        <el-input-number
-          v-model="degradation_params.rms_sensitivity"
-          class="param-number"
-          :min="0.1"
-          :max="1.0"
-          :step="0.1"
-          :precision="1"
-          controls-position="right"
-        />
+        <div class="detect-method-panel config-panel">
+          <div class="config-panel-title">检测方法</div>
+          <el-checkbox-group v-model="degradation_params.detection_methods" class="detect-method-list">
+            <el-checkbox value="kurtosis">峰度+3σ准则（对脉冲故障敏感）</el-checkbox>
+            <el-checkbox value="rms">RMS趋势（反映整体能量变化）</el-checkbox>
+          </el-checkbox-group>
+        </div>
       </div>
 
-      <div class="detect-method-panel">
-        <div class="detect-method-title">检测方法</div>
-        <el-checkbox-group v-model="degradation_params.detection_methods" class="detect-method-list">
-          <el-checkbox value="kurtosis">峰度+3σ准则（对脉冲故障敏感）</el-checkbox>
-          <el-checkbox value="rms">RMS趋势（反映整体能量变化）</el-checkbox>
-        </el-checkbox-group>
-      </div>
-
-      <div class="degradation-result">检测到退化点：{{ degradation_point_text }}</div>
-      <div class="degradation-task-status-row">
-        <span>任务ID：{{ analysis_task_id || '--' }}</span>
-        <span>任务状态：{{ degrade_status || '--' }}</span>
+      <div class="degradation-status-layout">
+        <div class="degradation-result">
+          <span class="status-block-label">检测到退化点</span>
+          <strong>{{ degradation_point_text }}</strong>
+        </div>
+        <div class="degradation-task-status-row">
+          <span>任务 ID：<strong>{{ analysis_task_id || '--' }}</strong></span>
+          <span>任务状态：<strong>{{ degrade_status || '--' }}</strong></span>
+        </div>
       </div>
       <div v-if="degrade_status === 'RUNNING'" class="degradation-running-row">
         退化点检测执行中
@@ -310,34 +426,45 @@
       </template>
 
       <div class="history-query-row">
-        <el-input
-          v-model="history_query.keyword"
-          placeholder="请输入任务ID、对象或结果关键字"
-          clearable
-          class="history-keyword"
-          @keyup.enter="handleHistorySearch"
-          @clear="handleHistorySearch"
-        />
-        <el-select v-model="history_query.task_type" placeholder="任务类型" clearable class="history-select">
-          <el-option label="全部类型" value="" />
-          <el-option label="早期故障识别" value="EARLY_DEGRADATION_POINT_DETECT" />
-          <el-option label="故障预防" value="FAULT_PREDICT" />
-        </el-select>
-        <el-select v-model="history_query.status" placeholder="任务状态" clearable class="history-select">
-          <el-option label="全部状态" value="" />
-          <el-option label="成功" value="SUCCESS" />
-          <el-option label="运行中" value="RUNNING" />
-          <el-option label="失败" value="FAILED" />
-          <el-option label="等待中" value="PENDING" />
-        </el-select>
-        <el-button type="primary" @click="handleHistorySearch">查询</el-button>
-        <el-button @click="resetHistorySearch">重置</el-button>
+        <div class="history-filter-fields">
+          <el-input
+            v-model="history_query.keyword"
+            placeholder="请输入任务ID、对象或结果关键字"
+            clearable
+            class="history-keyword"
+            @keyup.enter="handleHistorySearch"
+            @clear="handleHistorySearch"
+          />
+          <el-select v-model="history_query.task_type" placeholder="任务类型" clearable class="history-select">
+            <el-option label="全部类型" value="" />
+            <el-option label="数据分析" value="FEATURE_ANALYSIS" />
+            <el-option label="特征处理" value="FEATURE_PROCESSING" />
+            <el-option label="早期故障识别" value="EARLY_DEGRADATION_POINT_DETECT" />
+            <el-option label="故障预防" value="FAULT_PREDICT" />
+          </el-select>
+          <el-select v-model="history_query.status" placeholder="任务状态" clearable class="history-select">
+            <el-option label="全部状态" value="" />
+            <el-option label="成功" value="SUCCESS" />
+            <el-option label="运行中" value="RUNNING" />
+            <el-option label="失败" value="FAILED" />
+            <el-option label="等待中" value="PENDING" />
+          </el-select>
+        </div>
+        <div class="history-filter-actions">
+          <el-button type="primary" @click="handleHistorySearch">查询</el-button>
+          <el-button @click="resetHistorySearch">重置</el-button>
+        </div>
       </div>
 
       <el-table v-loading="history_loading" :data="history_rows" border height="320" empty-text="暂无历史识别记录">
         <el-table-column prop="taskId" label="任务ID" width="190" show-overflow-tooltip />
+        <el-table-column prop="importTaskName" label="数据任务名称" min-width="160" show-overflow-tooltip>
+          <template #default="{ row }">{{ row.importTaskName || row.import_task_name || '--' }}</template>
+        </el-table-column>
         <el-table-column prop="taskName" label="识别类型" width="150" show-overflow-tooltip />
-        <el-table-column prop="targetName" label="识别对象" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="targetName" label="识别对象" min-width="220" show-overflow-tooltip>
+          <template #default="{ row }">{{ historyTargetPath(row) }}</template>
+        </el-table-column>
         <el-table-column prop="summary" label="识别结果摘要" min-width="220" show-overflow-tooltip />
         <el-table-column prop="resultValue" label="结果值" width="140" show-overflow-tooltip />
         <el-table-column prop="status" label="状态" width="100" />
@@ -428,10 +555,10 @@
               </el-form-item>
             </el-col>
             <el-col :span="6">
-              <el-form-item label="组件">
+              <el-form-item label="设备">
                 <el-select
                   v-model="feat_sel.component_id"
-                  placeholder="请选择组件"
+                  placeholder="请选择设备"
                   style="width: 100%"
                   :disabled="!feat_sel.device_id"
                   :loading="feature_hierarchy_loading"
@@ -450,24 +577,49 @@
         </el-form>
 
         <div class="fault-iden-picker">
-        <div class="fault-iden-toolbar">
-          <span class="fault-iden-object">当前对象：{{ pending_feature_object_path }}</span>
-
-          <el-input
-            v-model="faultIden.keyword"
-            placeholder="搜索文件名"
-            clearable
-            style="width: 180px"
-            @keyup.enter="loadSamples"
-            @clear="loadSamples"
-          />
-          <el-button @click="loadSamples">查询</el-button>
-          <el-button :loading="faultIden.selectingAll" @click="selectAllSamples">选择全部文件</el-button>
-          <el-button @click="clearSamples">清空选择</el-button>
-          <span class="fault-iden-selected">已选择 {{ selectedSampleIds.length }} 个文件</span>
-        </div>
+          <div class="fault-iden-current">
+            <span class="fault-iden-current-label">当前分析对象</span>
+            <strong class="fault-iden-object">{{ pending_feature_object_path }}</strong>
+          </div>
+          <div class="fault-iden-toolbar">
+            <div class="fault-iden-search">
+              <el-input
+                v-model="faultIden.keyword"
+                placeholder="搜索任务名称"
+                clearable
+                @keyup.enter="loadTaskNames"
+                @clear="loadTaskNames"
+              />
+              <el-button @click="loadTaskNames">查询</el-button>
+              <el-button v-if="faultIden.selectedTaskName" @click="backToTaskNames">返回任务列表</el-button>
+            </div>
+            <div v-if="faultIden.selectedTaskName" class="fault-iden-selection-actions">
+              <span class="fault-iden-selected">已选择 {{ selectedSampleIds.length }} 个文件</span>
+              <el-button :loading="faultIden.selectingAll" @click="selectAllSamples">选择全部文件</el-button>
+              <el-button @click="clearSamples">清空选择</el-button>
+            </div>
+          </div>
 
         <el-table
+          v-if="!faultIden.selectedTaskName"
+          v-loading="faultIden.loadingTasks"
+          :data="faultIden.tasks"
+          height="420"
+          highlight-current-row
+          empty-text="暂无已导入任务"
+          @row-click="selectImportTask"
+        >
+          <el-table-column prop="taskName" label="任务名称" min-width="260">
+            <template #default="{ row }">
+              <el-button type="primary" link @click.stop="selectImportTask(row)">{{ row.taskName }}</el-button>
+            </template>
+          </el-table-column>
+          <el-table-column prop="fileCount" label="文件数量" width="120" />
+          <el-table-column prop="createTime" label="导入时间" width="180" />
+        </el-table>
+
+        <el-table
+          v-else
           ref="sample_table_ref"
           v-loading="faultIden.loadingSamples"
           :data="faultIden.samples"
@@ -512,10 +664,14 @@ import * as echarts from 'echarts'
 import 'echarts-gl'
 import {
   getFeatureTask,
+  getTimeDomainGlobalRawPreview,
+  getTimeDomainOverview,
+  getTimeDomainWindow,
   deleteFaultIdentifyResult,
   listFaultIdentifyResults,
   listFaultIdenBearings,
   listFaultIdenConditions,
+  listFaultIdenSampleTasks,
   listFaultIdenSamples,
   startDegradationTask,
   startDataAnalysisTask,
@@ -550,6 +706,8 @@ const faultIden = reactive({
   conditions: [],
   bearings: [],
   samples: [],
+  tasks: [],
+  selectedTaskName: '',
   conditionLabel: '',
   bearingCode: '',
   keyword: '',
@@ -559,6 +717,7 @@ const faultIden = reactive({
   loadingConditions: false,
   loadingBearings: false,
   loadingSamples: false,
+  loadingTasks: false,
   selectingAll: false
 })
 const degradation_point_text = ref('--')
@@ -575,7 +734,62 @@ const prevention_task_id = ref('')
 const feat_loading = ref(false)
 const analysis_task_id = ref('')
 const data_analysis_task_id = ref('')
+const data_analysis_status = ref('')
 const data_analysis_result = ref(null)
+const DEFAULT_TIME_DOMAIN_WINDOW_SIZE = 5000
+const TIME_DOMAIN_OVERVIEW_BUCKETS = 2000
+const GLOBAL_RAW_WAVEFORM_MAX_POINTS = 8000
+const timeDomainViewMode = ref('globalRaw')
+const timeDomainWindowSize = ref(DEFAULT_TIME_DOMAIN_WINDOW_SIZE)
+const timeDomainMeta = ref({
+  analysisId: null,
+  totalCount: 0,
+  samplingFrequency: 25600,
+  duration: 0,
+  windowSize: DEFAULT_TIME_DOMAIN_WINDOW_SIZE
+})
+let globalRawWaveformCache = null
+let timeDomainOverviewCache = null
+let timeDomainWindowCache = null
+const timeDomainWindowStats = ref({
+  min: null,
+  max: null,
+  mean: null,
+  rms: null,
+  p2p: null,
+  crestFactor: null
+})
+const currentTimeDomainStartIndex = ref(0)
+const time_domain_slider_index = ref(0)
+const time_domain_window_loading = ref(false)
+const currentTimeDomainEndIndex = computed(() => Math.min(
+  currentTimeDomainStartIndex.value + timeDomainWindowSize.value,
+  timeDomainMeta.value.totalCount
+))
+const timeDomainSliderMax = computed(() => {
+  const total = timeDomainMeta.value.totalCount
+  if (total <= timeDomainWindowSize.value) return 0
+  return Math.floor((total - 1) / timeDomainWindowSize.value) * timeDomainWindowSize.value
+})
+const hasNextTimeDomainWindow = computed(() => {
+  return currentTimeDomainStartIndex.value + timeDomainWindowSize.value < timeDomainMeta.value.totalCount
+})
+const currentWindowStartTime = computed(() => {
+  const samplingFrequency = Number(timeDomainMeta.value.samplingFrequency) || 25600
+  return currentTimeDomainStartIndex.value / samplingFrequency
+})
+const currentWindowEndTime = computed(() => {
+  const samplingFrequency = Number(timeDomainMeta.value.samplingFrequency) || 25600
+  return currentTimeDomainEndIndex.value / samplingFrequency
+})
+const timeDomainWindowStatItems = computed(() => [
+  { label: '最大值', value: formatTimeDomainStat(timeDomainWindowStats.value.max) },
+  { label: '最小值', value: formatTimeDomainStat(timeDomainWindowStats.value.min) },
+  { label: '均值', value: formatTimeDomainStat(timeDomainWindowStats.value.mean) },
+  { label: 'RMS', value: formatTimeDomainStat(timeDomainWindowStats.value.rms) },
+  { label: '峰峰值', value: formatTimeDomainStat(timeDomainWindowStats.value.p2p) },
+  { label: '峰值因子', value: formatTimeDomainStat(timeDomainWindowStats.value.crestFactor) }
+])
 const feat_task_id = ref('')
 const feat_status = ref('--')
 
@@ -602,6 +816,7 @@ const rms_chart_ref = ref(null)
 const kurtosis_chart_ref = ref(null)
 const max_chart_ref = ref(null)
 const time_domain_chart_ref = ref(null)
+const time_domain_overview_chart_ref = ref(null)
 const spectrum_chart_ref = ref(null)
 const degradation_signal_chart_ref = ref(null)
 const degradation_compare_chart_ref = ref(null)
@@ -653,7 +868,7 @@ const history_query = reactive({
   page_num: 1,
   page_size: 20
 })
-const IDENTIFY_HISTORY_TASK_TYPES = ['EARLY_DEGRADATION_POINT_DETECT', 'FAULT_PREDICT']
+const IDENTIFY_HISTORY_TASK_TYPES = ['FEATURE_ANALYSIS', 'FEATURE_PROCESSING', 'EARLY_DEGRADATION_POINT_DETECT', 'FAULT_PREDICT']
 
 const summary_items = computed(() => {
   const summary = feat_data.value?.summary || {}
@@ -683,7 +898,7 @@ async function openPrepareDlg() {
   faultIden.pageNum = 1
   file_dlg.value = true
   if (validateFeatureObject(currentFeatureObject(), false)) {
-    await loadSamples()
+    await loadTaskNames()
   }
 }
 
@@ -722,6 +937,10 @@ function onBearingChange() {
 async function loadSamples() {
   const selected_object = currentFeatureObject()
   if (!validateFeatureObject(selected_object)) return
+  if (!faultIden.selectedTaskName) {
+    ElMessage.warning('请先点击任务名称')
+    return
+  }
   faultIden.loadingSamples = true
   try {
     const res = await listFaultIdenSamples(sampleQueryParams(selected_object))
@@ -734,14 +953,54 @@ async function loadSamples() {
   }
 }
 
+async function loadTaskNames() {
+  const selected_object = currentFeatureObject()
+  if (!validateFeatureObject(selected_object)) return
+  faultIden.loadingTasks = true
+  faultIden.selectedTaskName = ''
+  faultIden.samples = []
+  faultIden.total = 0
+  clearSamples()
+  try {
+    const res = await listFaultIdenSampleTasks({
+      aircraftId: selected_object.aircraftId || '',
+      subsystemId: selected_object.subsystemId || '',
+      equipmentId: selected_object.equipmentId || '',
+      componentId: selected_object.componentId || '',
+      dataUsage: 'FAULT_IDENTIFY',
+      keyword: faultIden.keyword
+    })
+    faultIden.tasks = Array.isArray(res?.data) ? res.data : []
+  } finally {
+    faultIden.loadingTasks = false
+  }
+}
+
+async function selectImportTask(row) {
+  const taskName = String(row?.taskName || '').trim()
+  if (!taskName) return
+  faultIden.selectedTaskName = taskName
+  faultIden.pageNum = 1
+  clearSamples()
+  await loadSamples()
+}
+
+function backToTaskNames() {
+  faultIden.selectedTaskName = ''
+  faultIden.samples = []
+  faultIden.total = 0
+  clearSamples()
+}
+
 function sampleQueryParams(selected_object, pageNum = faultIden.pageNum, pageSize = faultIden.pageSize) {
   return {
     aircraftId: selected_object.aircraftId || '',
     subsystemId: selected_object.subsystemId || '',
     equipmentId: selected_object.equipmentId || '',
     componentId: selected_object.componentId || '',
-    dataUsage: 'ALL',
-    keyword: faultIden.keyword,
+    dataUsage: 'FAULT_IDENTIFY',
+    taskName: faultIden.selectedTaskName,
+    keyword: '',
     pageNum,
     pageSize
   }
@@ -769,6 +1028,10 @@ function syncCurrentPageSelection() {
 async function selectAllSamples() {
   const selected_object = currentFeatureObject()
   if (!validateFeatureObject(selected_object)) return
+  if (!faultIden.selectedTaskName) {
+    ElMessage.warning('请先点击任务名称')
+    return
+  }
   if (!faultIden.total) {
     await loadSamples()
   }
@@ -883,6 +1146,118 @@ function startPolling(taskId) {
   }, FEAT_POLL_MS)
 }
 
+function applyDataAnalysisTaskLegacy(taskData) {
+  return taskData
+  const st = taskData?.status || 'RUNNING'
+  const taskId = resolveTaskId(taskData)
+  const flowTaskId = taskData?.flowTaskId || taskData?.flow_task_id || taskId
+  const err = taskData?.errorMessage || taskData?.error_message || ''
+  const result = pickFeat(taskData)
+
+  if (flowTaskId) analysis_task_id.value = flowTaskId
+  if (taskId) data_analysis_task_id.value = taskId
+
+  if (st === 'SUCCESS') {
+    if (!is_empty_result(result)) {
+      data_analysis_result.value = result
+      syncTimeDomainMeta(result, taskId || flowTaskId)
+      renderCharts(result, { feature: false, signal: true })
+    }
+    upload_progress.value = 45
+    upload_status_text.value = '数据分析任务已提交，正在等待算法结果'
+    ElMessage.success('数据分析任务已提交')
+    startDataAnalysisPolling(data_analysis_task_id.value || flowTaskId)
+    return
+    upload_status_text.value = '数据分析任务已提交，正在等待算法结果'
+    ElMessage.success('数据分析任务已提交')
+    startDataAnalysisPolling(data_analysis_task_id.value || flowTaskId)
+    return
+    upload_status_text.value = '数据清洗与时域时频分析已完成'
+    feat_loading.value = false
+    clearFeat()
+    loadIdentifyHistory()
+    return
+  }
+
+  if (st === 'FAILED') {
+    upload_status_text.value = err || '数据清洗与时域时频分析失败'
+    feat_loading.value = false
+    clearFeat()
+    ElMessage.error(err || '数据清洗与时域时频分析失败')
+    loadIdentifyHistory()
+    return
+  }
+
+  upload_progress.value = Math.max(upload_progress.value, 45)
+  upload_status_text.value = '数据清洗与时域时频分析执行中'
+}
+
+function applyDataAnalysisTask(taskData) {
+  const dataTask = taskData?.dataAnalysisTask || taskData?.data_analysis_task || taskData
+  const st = dataTask?.status || taskData?.status || 'RUNNING'
+  const taskId = resolveTaskId(dataTask) || resolveTaskId(taskData)
+  const flowTaskId = taskData?.flowTaskId || taskData?.flow_task_id || taskId
+  const err = dataTask?.errorMessage || dataTask?.error_message || taskData?.errorMessage || taskData?.error_message || ''
+  const result = pickFeat(dataTask)
+
+  if (flowTaskId) analysis_task_id.value = flowTaskId
+  if (taskId) data_analysis_task_id.value = taskId
+  data_analysis_status.value = st
+
+  if (st === 'SUCCESS') {
+    if (!is_empty_result(result)) {
+      data_analysis_result.value = result
+      syncTimeDomainMeta(result, taskId || flowTaskId)
+      renderCharts(result, { feature: false, signal: true })
+    }
+    upload_progress.value = 100
+    upload_status_text.value = '数据清洗与时域时频分析已完成'
+    feat_loading.value = false
+    clearFeat()
+    loadIdentifyHistory()
+    return
+  }
+
+  if (st === 'FAILED') {
+    upload_status_text.value = err || '数据清洗与时域时频分析失败'
+    feat_loading.value = false
+    clearFeat()
+    ElMessage.error(err || '数据清洗与时域时频分析失败')
+    loadIdentifyHistory()
+    return
+  }
+
+  upload_progress.value = Math.max(upload_progress.value, 45)
+  upload_status_text.value = '数据清洗与时域时频分析执行中'
+}
+
+async function queryDataAnalysisTask(taskId, { silent = false } = {}) {
+  if (!taskId) return
+
+  try {
+    const response = await getFeatureTask(taskId)
+    applyDataAnalysisTask(getApiPayload(response))
+  } catch (error) {
+    if (silent) return
+    feat_loading.value = false
+    ElMessage.error(getErrorMessage(error, '数据分析任务状态查询失败'))
+  }
+}
+
+function startDataAnalysisPolling(taskId) {
+  clearFeat()
+  if (!taskId) return
+
+  queryDataAnalysisTask(taskId)
+  feat_timer = setInterval(() => {
+    if (FEAT_DONE.includes(data_analysis_status.value)) {
+      clearFeat()
+      return
+    }
+    queryDataAnalysisTask(taskId, { silent: true })
+  }, FEAT_POLL_MS)
+}
+
 function acceptFeatTask(taskData, { closeDialog = false } = {}) {
   feat_result.value = pickFeat(taskData)
   feat_task_id.value = resolveTaskId(taskData)
@@ -993,6 +1368,8 @@ function handleFeatureObjectChange() {
   faultIden.pageNum = 1
   faultIden.total = 0
   faultIden.samples = []
+  faultIden.tasks = []
+  faultIden.selectedTaskName = ''
   clearSamples()
 }
 async function loadFeatTree() {
@@ -1105,7 +1482,12 @@ async function startDataAnalysis() {
     return
   }
 
+  timeDomainViewMode.value = 'globalRaw'
+  globalRawWaveformCache = null
+  timeDomainOverviewCache = null
+  timeDomainWindowCache = null
   feat_loading.value = true
+  data_analysis_status.value = 'RUNNING'
   upload_progress.value = 35
   upload_status_text.value = '数据清洗与时域时频分析中'
   try {
@@ -1116,19 +1498,31 @@ async function startDataAnalysis() {
     const payload = getApiPayload(response)
     const flowTaskId = payload?.flowTaskId || payload?.flow_task_id || resolveTaskId(payload)
     analysis_task_id.value = flowTaskId
-    data_analysis_task_id.value = flowTaskId
+    data_analysis_task_id.value = resolveTaskId(payload) || flowTaskId
+    data_analysis_status.value = payload?.status || data_analysis_status.value
     const result = pickFeat(payload)
     if (!is_empty_result(result)) {
       data_analysis_result.value = result
+      syncTimeDomainMeta(result, flowTaskId)
       renderCharts(result, { feature: false, signal: true })
+      upload_progress.value = 100
+      upload_status_text.value = '数据清洗与时域时频分析已完成'
+      ElMessage.success('数据清洗与时域时频分析已完成')
+      feat_loading.value = false
+      await loadIdentifyHistory()
+      return
     }
-    upload_progress.value = 100
+    upload_progress.value = 45
+    upload_status_text.value = '数据分析任务已提交，正在等待算法结果'
+    ElMessage.success('数据分析任务已提交')
+    startDataAnalysisPolling(data_analysis_task_id.value || flowTaskId)
+    return
     upload_status_text.value = '数据清洗与时域时频分析完成'
     ElMessage.success('数据清洗与时域时频分析完成')
   } catch (error) {
     ElMessage.error(getErrorMessage(error, '数据清洗与时域时频分析失败'))
   } finally {
-    feat_loading.value = false
+    if (!feat_timer) feat_loading.value = false
   }
 }
 
@@ -1293,25 +1687,21 @@ function renderCharts(rawResult = feat_result.value, options = {}) {
 
     if (renderFeature) {
       chartMap.forEach(item => {
-        renderLineChart(getChart(item.ref, item.key), series.time || [], series[item.field] || [], item.title)
+        renderLineChart(
+          getChart(item.ref, item.key),
+          series.time || [],
+          series[item.field] || [],
+          item.title,
+          { xName: '时间（秒）' }
+        )
       })
     }
 
 
     if (!renderSignal) return
-    const signal = normalizeTimeDomain(data)
-    renderLineChart(
-      getChart(time_domain_chart_ref, 'timeDomain'),
-      signal.time || [],
-      signal.value || signal.amplitude || [],
-      signal.title || '时域振动信号',
-      {
-        title: '时域振动信号',
-        emptyText: '暂无时域数据',
-        xName: '时间（秒）',
-        yName: '振动加速度'
-      }
-    )
+    syncTimeDomainMeta(data)
+    timeDomainViewMode.value = 'globalRaw'
+    loadGlobalRawWaveformPreview()
     renderSpectrumChart(getChart(spectrum_chart_ref, 'spectrum'), normalizeTimeFrequency(data))
   })
 
@@ -1327,8 +1717,443 @@ function normalizeTimeDomain(data) {
     ...direct,
     time: direct.times || plot.time || direct.time || legacy.time || [],
     value: direct.values || plot.value || direct.value || direct.amplitude || legacy.value || legacy.amplitude || [],
-    title: direct.title || legacy.title || '时域振动信号'
+    title: direct.title || legacy.title || '时域振动信号',
+    startIndex: direct.startIndex ?? direct.start_index ?? legacy.startIndex ?? legacy.start_index ?? 0,
+    endIndex: direct.endIndex ?? direct.end_index ?? legacy.endIndex ?? legacy.end_index ?? 0,
+    totalCount: direct.totalCount ?? direct.total_count ?? legacy.totalCount ?? legacy.total_count,
+    samplingFrequency: direct.samplingFrequency ?? direct.sampling_frequency ?? legacy.samplingFrequency ?? legacy.sampling_frequency,
+    duration: direct.duration ?? legacy.duration,
+    limit: direct.limit ?? legacy.limit,
+    stats: direct.stats || legacy.stats || null
   }
+}
+
+function syncTimeDomainMeta(data, analysisId = null) {
+  const normalized = normalizeTimeDomain(data)
+  const pythonResult = unwrapPythonResult(data)
+  const meta = pythonResult?.timeDomainMeta || pythonResult?.time_domain_meta || data?.timeDomainMeta || data?.time_domain_meta || {}
+  const totalCountCandidates = [
+    meta.totalCount,
+    meta.total_count,
+    normalized.totalCount,
+    pythonResult?.totalSamples,
+    pythonResult?.total_samples,
+    data?.totalSamples,
+    data?.total_samples,
+    normalized.value?.length
+  ]
+  const totalCount = totalCountCandidates
+    .map(value => Number(value))
+    .find(value => Number.isFinite(value) && value > 0) || 0
+  const samplingFrequency = Number(meta.samplingFrequency ?? meta.sampling_frequency ?? normalized.samplingFrequency ?? 25600)
+  const duration = Number(meta.duration ?? normalized.duration ?? (
+    samplingFrequency > 0 ? totalCount / samplingFrequency : 0
+  ))
+  const startIndex = Number(normalized.startIndex || 0)
+
+  const resolvedAnalysisId = analysisId || timeDomainMeta.value.analysisId || data_analysis_task_id.value || analysis_task_id.value || null
+  if (resolvedAnalysisId && resolvedAnalysisId !== timeDomainMeta.value.analysisId) {
+    globalRawWaveformCache = null
+    timeDomainOverviewCache = null
+    timeDomainWindowCache = null
+  }
+  const resolvedWindowSize = Number(meta.windowSize ?? meta.window_size ?? normalized.limit ?? timeDomainWindowSize.value)
+  if (Number.isFinite(resolvedWindowSize) && resolvedWindowSize > 0) {
+    timeDomainWindowSize.value = resolvedWindowSize
+  }
+
+  timeDomainMeta.value = {
+    analysisId: resolvedAnalysisId,
+    totalCount: Number.isFinite(totalCount) ? totalCount : 0,
+    samplingFrequency: Number.isFinite(samplingFrequency) ? samplingFrequency : 25600,
+    duration: Number.isFinite(duration) ? duration : 0,
+    windowSize: timeDomainWindowSize.value
+  }
+  currentTimeDomainStartIndex.value = Number.isFinite(startIndex) ? startIndex : 0
+  time_domain_slider_index.value = currentTimeDomainStartIndex.value
+}
+
+function renderTimeDomainWindow(data) {
+  const signal = normalizeTimeDomain({ timeDomain: data })
+  renderLineChart(
+    getChart(time_domain_chart_ref, 'timeDomain'),
+    signal.time || [],
+    signal.value || signal.amplitude || [],
+    signal.title || '时域振动信号',
+    {
+      title: '时域振动信号',
+      emptyText: '暂无时域数据',
+      xName: '时间（秒）',
+      yName: '振动加速度',
+      valueAxis: true,
+      lightweightTooltip: true
+    }
+  )
+}
+
+function formatTimeDomainStat(value) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number.toFixed(4) : '--'
+}
+
+function calculateTimeDomainWindowStats(values) {
+  const finiteValues = (Array.isArray(values) ? values : [])
+    .map(value => Number(value))
+    .filter(value => Number.isFinite(value))
+  if (!finiteValues.length) return {}
+
+  const min = Math.min(...finiteValues)
+  const max = Math.max(...finiteValues)
+  const mean = finiteValues.reduce((sum, value) => sum + value, 0) / finiteValues.length
+  const rms = Math.sqrt(finiteValues.reduce((sum, value) => sum + value * value, 0) / finiteValues.length)
+  return {
+    min,
+    max,
+    mean,
+    rms,
+    p2p: max - min,
+    crestFactor: rms > 0 ? Math.max(Math.abs(min), Math.abs(max)) / rms : 0
+  }
+}
+
+function syncTimeDomainWindowStats(stats, values = []) {
+  const source = stats && typeof stats === 'object' && Object.keys(stats).length
+    ? stats
+    : calculateTimeDomainWindowStats(values)
+  timeDomainWindowStats.value = {
+    min: source.min ?? null,
+    max: source.max ?? null,
+    mean: source.mean ?? null,
+    rms: source.rms ?? null,
+    p2p: source.p2p ?? null,
+    crestFactor: source.crestFactor ?? source.crest_factor ?? null
+  }
+}
+
+async function loadTimeDomainOverview() {
+  const analysisId = timeDomainMeta.value.analysisId || data_analysis_task_id.value || analysis_task_id.value
+  if (!analysisId) return
+  if (timeDomainOverviewCache?.analysisId === analysisId) {
+    if (timeDomainViewMode.value === 'overview') {
+      renderTimeDomainOverviewChart(
+        getChart(time_domain_overview_chart_ref, 'timeDomainOverview'),
+        timeDomainOverviewCache
+      )
+    }
+    return
+  }
+
+  try {
+    const response = await getTimeDomainOverview({
+      analysisId,
+      maxBuckets: TIME_DOMAIN_OVERVIEW_BUCKETS
+    })
+    const data = getApiPayload(response) || {}
+    if (analysisId !== timeDomainMeta.value.analysisId) return
+    timeDomainOverviewCache = { ...data, analysisId }
+    if (timeDomainViewMode.value === 'overview') {
+      renderTimeDomainOverviewChart(
+        getChart(time_domain_overview_chart_ref, 'timeDomainOverview'),
+        timeDomainOverviewCache
+      )
+    }
+  } catch (error) {
+    const chart = getChart(time_domain_overview_chart_ref, 'timeDomainOverview')
+    chart?.setOption(emptyChartOption('加载全局时域概览失败'), true)
+  }
+}
+
+async function loadGlobalRawWaveformPreview() {
+  const analysisId = timeDomainMeta.value.analysisId || data_analysis_task_id.value || analysis_task_id.value
+  if (!analysisId) return
+  const chart = getChart(time_domain_overview_chart_ref, 'timeDomainOverview')
+  if (globalRawWaveformCache?.analysisId === analysisId) {
+    if (timeDomainViewMode.value === 'globalRaw') {
+      renderGlobalRawWaveformChart(chart, globalRawWaveformCache)
+    }
+    return
+  }
+
+  try {
+    const response = await getTimeDomainGlobalRawPreview({
+      analysisId,
+      maxPoints: GLOBAL_RAW_WAVEFORM_MAX_POINTS
+    })
+    const data = getApiPayload(response) || {}
+    if (analysisId !== timeDomainMeta.value.analysisId) return
+    globalRawWaveformCache = { ...data, analysisId }
+    if (timeDomainViewMode.value === 'globalRaw') {
+      renderGlobalRawWaveformChart(chart, globalRawWaveformCache)
+    }
+  } catch (error) {
+    chart?.setOption(emptyChartOption('加载全局原始波形失败'), true)
+  }
+}
+
+function renderGlobalRawWaveformChart(chart, waveform) {
+  if (!chart || !waveform) return
+  const chartData = overviewSeriesData(waveform.times, waveform.values)
+  chart.off('click')
+  if (!chartData.length) {
+    chart.setOption(emptyChartOption('暂无全局原始波形数据'), true)
+    return
+  }
+
+  chart.setOption({
+    animation: false,
+    tooltip: { show: false },
+    axisPointer: { show: false },
+    legend: { show: false },
+    grid: { left: 58, right: 28, top: 30, bottom: 68, containLabel: true },
+    xAxis: {
+      type: 'value',
+      name: '时间（秒）',
+      nameLocation: 'middle',
+      nameGap: 34,
+      scale: true,
+      axisPointer: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      name: '振动加速度',
+      scale: true,
+      axisPointer: { show: false }
+    },
+    dataZoom: [
+      { type: 'inside', xAxisIndex: 0, filterMode: 'none' },
+      { type: 'slider', xAxisIndex: 0, filterMode: 'none' }
+    ],
+    series: [{
+      name: '全局原始波形',
+      type: 'line',
+      data: chartData,
+      showSymbol: false,
+      smooth: false,
+      animation: false,
+      silent: true,
+      sampling: 'lttb',
+      progressive: 1000,
+      progressiveThreshold: 3000,
+      lineStyle: { width: 1 },
+      emphasis: { disabled: true }
+    }]
+  }, true)
+}
+
+async function handleTimeDomainViewModeChange(mode) {
+  await nextTick()
+  const chart = mode === 'localRaw'
+    ? getChart(time_domain_chart_ref, 'timeDomain')
+    : getChart(time_domain_overview_chart_ref, 'timeDomainOverview')
+  chart?.resize()
+
+  if (mode === 'globalRaw') {
+    if (globalRawWaveformCache) {
+      renderGlobalRawWaveformChart(chart, globalRawWaveformCache)
+    } else {
+      await loadGlobalRawWaveformPreview()
+    }
+    return
+  }
+
+  if (mode === 'overview') {
+    if (timeDomainOverviewCache) {
+      renderTimeDomainOverviewChart(chart, timeDomainOverviewCache)
+    } else {
+      await loadTimeDomainOverview()
+    }
+    return
+  }
+
+  if (mode === 'localRaw') {
+    await loadTimeDomainWindow(currentTimeDomainStartIndex.value || 0)
+  }
+}
+
+function overviewSeriesData(times, values) {
+  if (!Array.isArray(times) || !Array.isArray(values)) return []
+  return times
+    .map((time, index) => [Number(time), Number(values[index])])
+    .filter(([time, value]) => Number.isFinite(time) && Number.isFinite(value))
+}
+
+function renderTimeDomainOverviewChart(chart, overview) {
+  if (!chart) return
+  chart.off('click')
+  const times = overview?.times || []
+  const maxData = overviewSeriesData(times, overview?.maxValues)
+  const minData = overviewSeriesData(times, overview?.minValues)
+  const rmsData = overviewSeriesData(times, overview?.rmsValues)
+  const p2pData = overviewSeriesData(times, overview?.p2pValues)
+  if (!maxData.length && !minData.length && !rmsData.length && !p2pData.length) {
+    chart.setOption(emptyChartOption('暂无全局时域概览数据'), true)
+    return
+  }
+
+  chart.setOption({
+    animation: false,
+    tooltip: {
+      trigger: 'axis',
+      transitionDuration: 0,
+      confine: true,
+      axisPointer: { type: 'line', animation: false, label: { show: false } },
+      formatter(params) {
+        if (!params?.length) return ''
+        const time = Number(params[0]?.value?.[0])
+        if (!Number.isFinite(time)) return ''
+        const lines = [`时间：${time.toFixed(4)} s`]
+        params.forEach(item => {
+          const value = Number(item?.value?.[1])
+          if (Number.isFinite(value)) lines.push(`${item.seriesName}：${value.toFixed(4)}`)
+        })
+        return lines.join('<br/>')
+      }
+    },
+    legend: { top: 0 },
+    grid: { left: 58, right: 28, top: 42, bottom: 68, containLabel: true },
+    xAxis: {
+      type: 'value',
+      name: '时间（秒）',
+      nameLocation: 'middle',
+      nameGap: 34,
+      scale: true
+    },
+    yAxis: { type: 'value', name: '幅值 / 特征值', scale: true },
+    dataZoom: [
+      { type: 'inside', xAxisIndex: 0, filterMode: 'none' },
+      { type: 'slider', xAxisIndex: 0, filterMode: 'none' }
+    ],
+    series: [
+      overviewLineSeries('最大包络', maxData, '#f56c6c'),
+      overviewLineSeries('最小包络', minData, '#409eff'),
+      overviewLineSeries('RMS趋势', rmsData, '#e6a23c'),
+      overviewLineSeries('峰峰值趋势', p2pData, '#67c23a')
+    ]
+  }, true)
+  bindOverviewChartClick(chart)
+}
+
+function overviewLineSeries(name, data, color) {
+  return {
+    name,
+    type: 'line',
+    data,
+    showSymbol: false,
+    smooth: false,
+    animation: false,
+    lineStyle: { width: 1, color },
+    emphasis: { disabled: true }
+  }
+}
+
+function bindOverviewChartClick(chart) {
+  if (!chart) return
+  chart.off('click')
+  chart.on('click', handleOverviewChartClick)
+}
+
+async function handleOverviewChartClick(params) {
+  if (!params?.value) return
+
+  const time = Number(params.value[0])
+  const samplingFrequency = Number(timeDomainMeta.value.samplingFrequency) || 25600
+  if (!Number.isFinite(time) || samplingFrequency <= 0) return
+
+  const windowSize = Number(timeDomainWindowSize.value) || DEFAULT_TIME_DOMAIN_WINDOW_SIZE
+  const centerIndex = Math.floor(time * samplingFrequency)
+  const maxStart = Math.max(0, timeDomainMeta.value.totalCount - windowSize)
+  const startIndex = Math.min(
+    maxStart,
+    Math.max(0, centerIndex - Math.floor(windowSize / 2))
+  )
+
+  timeDomainViewMode.value = 'localRaw'
+  await nextTick()
+  ensureLocalTimeDomainChartReady()
+  await loadTimeDomainWindow(startIndex)
+}
+
+function ensureLocalTimeDomainChartReady() {
+  const chart = getChart(time_domain_chart_ref, 'timeDomain')
+  chart?.resize()
+  return chart
+}
+
+async function loadTimeDomainWindow(startIndex = 0) {
+  const analysisId = timeDomainMeta.value.analysisId || data_analysis_task_id.value || analysis_task_id.value
+  if (!analysisId) return
+
+  const normalizedStart = Math.max(0, Number(startIndex) || 0)
+  const cacheKey = getTimeDomainWindowCacheKey(normalizedStart, timeDomainWindowSize.value)
+  const cachedWindow = timeDomainWindowCache?.[cacheKey]
+  if (cachedWindow?.analysisId === analysisId) {
+    applyTimeDomainWindowData(cachedWindow, analysisId)
+    return
+  }
+  if (time_domain_window_loading.value) return
+
+  time_domain_window_loading.value = true
+  try {
+    const response = await getTimeDomainWindow({
+      analysisId,
+      startIndex: normalizedStart,
+      limit: timeDomainWindowSize.value
+    })
+    const data = getApiPayload(response) || {}
+    if (analysisId !== timeDomainMeta.value.analysisId) return
+    const cachedData = { ...data, analysisId }
+    const resolvedStart = Number(data.startIndex ?? data.start_index ?? normalizedStart)
+    const resolvedKey = getTimeDomainWindowCacheKey(resolvedStart, timeDomainWindowSize.value)
+    if (!timeDomainWindowCache) timeDomainWindowCache = Object.create(null)
+    timeDomainWindowCache[cacheKey] = cachedData
+    timeDomainWindowCache[resolvedKey] = cachedData
+    applyTimeDomainWindowData(cachedData, analysisId)
+  } catch (error) {
+    ElMessage.error(getErrorMessage(error, '加载时域数据窗口失败'))
+    time_domain_slider_index.value = currentTimeDomainStartIndex.value
+  } finally {
+    time_domain_window_loading.value = false
+  }
+}
+
+function getTimeDomainWindowCacheKey(startIndex, windowSize) {
+  return `${Math.max(0, Number(startIndex) || 0)}_${Number(windowSize) || DEFAULT_TIME_DOMAIN_WINDOW_SIZE}`
+}
+
+function applyTimeDomainWindowData(data, analysisId) {
+  const resolvedStart = Number(data.startIndex ?? data.start_index ?? 0)
+  currentTimeDomainStartIndex.value = Number.isFinite(resolvedStart) ? resolvedStart : 0
+  time_domain_slider_index.value = currentTimeDomainStartIndex.value
+  timeDomainMeta.value = {
+    ...timeDomainMeta.value,
+    analysisId: data.analysisId || analysisId,
+    totalCount: Number(data.totalCount ?? data.total_count ?? timeDomainMeta.value.totalCount) || 0,
+    samplingFrequency: Number(data.samplingFrequency ?? data.sampling_frequency ?? timeDomainMeta.value.samplingFrequency) || 25600,
+    duration: Number(data.duration ?? timeDomainMeta.value.duration) || 0,
+    windowSize: timeDomainWindowSize.value
+  }
+  syncTimeDomainWindowStats(data.stats, data.values || data.amplitude)
+  renderTimeDomainWindow(data)
+}
+
+function prevTimeDomainWindow() {
+  loadTimeDomainWindow(Math.max(0, currentTimeDomainStartIndex.value - timeDomainWindowSize.value))
+}
+
+function nextTimeDomainWindow() {
+  const nextStart = currentTimeDomainStartIndex.value + timeDomainWindowSize.value
+  if (nextStart < timeDomainMeta.value.totalCount) {
+    loadTimeDomainWindow(nextStart)
+  }
+}
+
+function handleTimeDomainWindowSliderChange(value) {
+  loadTimeDomainWindow(value)
+}
+
+function handleTimeDomainWindowSizeChange() {
+  const maxStart = Math.max(0, timeDomainMeta.value.totalCount - timeDomainWindowSize.value)
+  loadTimeDomainWindow(Math.min(currentTimeDomainStartIndex.value, maxStart))
 }
 
 function normalizeTimeFrequency(data) {
@@ -1355,21 +2180,88 @@ function renderLineChart(chart, xData, yData, name, options = {}) {
     return
   }
 
+  const valueAxis = options.valueAxis === true
+  const chartData = valueAxis
+    ? xData
+      .map((item, index) => [Number(item), Number(yData[index])])
+      .filter(([time, value]) => Number.isFinite(time) && Number.isFinite(value))
+    : yData
+
+  if (chartData.length === 0) {
+    chart.setOption(emptyChartOption(options.emptyText || '暂无特征分析数据'), true)
+    return
+  }
+
+  const tooltip = options.lightweightTooltip
+    ? {
+        trigger: 'axis',
+        transitionDuration: 0,
+        confine: true,
+        axisPointer: {
+          type: 'line',
+          animation: false,
+          label: { show: false }
+        },
+        formatter(params) {
+          const point = params && params[0]
+          if (!point || !Array.isArray(point.value)) return ''
+          const time = Number(point.value[0])
+          const value = Number(point.value[1])
+          if (!Number.isFinite(time) || !Number.isFinite(value)) return ''
+          return `时间：${time.toFixed(4)} s<br/>振幅：${value.toFixed(4)}`
+        }
+      }
+    : { trigger: 'axis' }
+
   chart.setOption({
+    animation: valueAxis ? false : undefined,
     title: options.title ? { text: options.title, left: 'center', top: 0, textStyle: { fontSize: 14 } } : undefined,
-    grid: { top: options.title ? 42 : 24, right: 18, bottom: 40, left: 58 },
-    tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: xData, name: options.xName || 's' },
+    grid: {
+      top: options.title ? 42 : 24,
+      right: 28,
+      bottom: options.dataZoom ? 78 : 58,
+      left: 58,
+      containLabel: true
+    },
+    tooltip,
+    xAxis: {
+      type: valueAxis ? 'value' : 'category',
+      data: valueAxis ? undefined : xData,
+      name: options.xName || 's',
+      nameLocation: 'middle',
+      nameGap: 34,
+      scale: valueAxis,
+      axisLabel: { hideOverlap: true }
+    },
     yAxis: { type: 'value', scale: true, name: options.yName || '' },
+    dataZoom: options.dataZoom
+      ? [
+          {
+            type: 'inside',
+            xAxisIndex: 0,
+            filterMode: 'none'
+          },
+          {
+            type: 'slider',
+            xAxisIndex: 0,
+            filterMode: 'none'
+          }
+        ]
+      : undefined,
     series: [{
 
       name,
       type: 'line',
-      smooth: true,
+      smooth: valueAxis ? false : true,
       showSymbol: false,
-      data: yData,
-      lineStyle: { width: 2, color: '#1677ff' },
-      areaStyle: { color: 'rgba(22, 119, 255, 0.12)' }
+      animation: valueAxis ? false : undefined,
+      data: chartData,
+      sampling: valueAxis ? 'lttb' : undefined,
+      progressive: valueAxis ? 2000 : undefined,
+      progressiveThreshold: valueAxis ? 5000 : undefined,
+      lineStyle: { width: valueAxis ? 1 : 2, color: '#1677ff' },
+      areaStyle: valueAxis ? undefined : { color: 'rgba(22, 119, 255, 0.12)' },
+      emphasis: valueAxis ? { disabled: true } : undefined
     }]
   }, true)
 }
@@ -1423,7 +2315,8 @@ function renderSpectrumChart(chart, spectrum) {
     },
     xAxis3D: {
       type: 'value',
-      name: '时间（秒）'
+      name: '时间（秒）',
+      nameGap: 24
     },
     yAxis3D: {
       type: 'value',
@@ -1568,8 +2461,24 @@ function restoreFeatureSelectionFromTask(task) {
   const params = request.params || request.feature_params || request.featureParams || {}
   const ctx = request.hierarchyContext || request.hierarchy_context || params.hierarchyContext || {}
   const selected = params.selected_object || params.selectedObject || result.selected_object || result.selectedObject || {}
-  const targetType = request.targetType || request.target_type || params.targetType || selected.level
-  const targetIdRaw = request.targetId || request.target_id || params.targetId || selected.id
+  const targetType = task.targetType
+    || task.target_type
+    || request.targetType
+    || request.target_type
+    || params.targetType
+    || selected.level
+  const targetIdRaw = task.targetId
+    || task.target_id
+    || request.targetId
+    || request.target_id
+    || params.targetId
+    || selected.id
+  const targetName = task.targetName
+    || task.target_name
+    || request.targetName
+    || request.target_name
+    || params.targetName
+    || selected.name
 
   let targetNode = selected.id ? findNodeById(feat_tree.value, selected.id) : null
   if (!targetNode && targetIdRaw) {
@@ -1594,8 +2503,8 @@ function restoreFeatureSelectionFromTask(task) {
   const selectedObject = current.id ? current : {
     level: targetType === 'device' ? 'device' : targetType || selected.level || null,
     objectLevel: targetType === 'device' ? 'equipment' : targetType || selected.objectLevel || null,
-    id: targetNode?.id || selected.id || null,
-    name: targetNode?.name || selected.name || request.targetName || request.target_name || null,
+    id: targetNode?.id || selected.id || targetIdRaw || null,
+    name: targetNode?.name || targetName || null,
     path: targetNode?.id ? findNodePathById(feat_tree.value, targetNode.id).join(' / ') : selected.path || '',
     aircraftId: ctx.aircraftId || selected.aircraftId || '',
     subsystemId: ctx.subsystemId || selected.subsystemId || '',
@@ -1627,15 +2536,21 @@ function applyHistoryTask(row) {
   const resultValue = task_result_payload(row)
 
   if (taskType === 'FEATURE_ANALYSIS') {
+    restoreFeatureSelectionFromTask(row)
     analysis_task_id.value = flowTaskId || taskIdValue || analysis_task_id.value
     data_analysis_task_id.value = taskIdValue || data_analysis_task_id.value
+    data_analysis_status.value = statusValue
     feat_status.value = statusValue
     data_analysis_result.value = resultValue
-    if (statusValue === 'SUCCESS') renderCharts(resultValue, { feature: false, signal: true })
+    if (statusValue === 'SUCCESS') {
+      syncTimeDomainMeta(resultValue, taskIdValue)
+      renderCharts(resultValue, { feature: false, signal: true })
+    }
     return true
   }
 
   if (taskType === 'FEATURE_PROCESSING') {
+    restoreFeatureSelectionFromTask(row)
     analysis_task_id.value = flowTaskId || analysis_task_id.value
     feat_task_id.value = taskIdValue || feat_task_id.value
     feat_status.value = statusValue
@@ -1698,6 +2613,9 @@ function applyFlowSnapshot(snapshot) {
 }
 
 async function restoreHistoryRow(row, options = {}) {
+  if (!feat_tree.value.length) {
+    await loadFeatTree()
+  }
   const flowTaskId = row?.flowTaskId || row?.flow_task_id || row?.taskId || row?.task_id
   const snapshot = await fetchTaskSnapshot(flowTaskId)
   const restored = applyFlowSnapshot(snapshot) || applyHistoryTask(row)
@@ -1873,8 +2791,14 @@ function renderDegradationCharts(value = degrade_result.value) {
     chart.setOption({
       tooltip: { trigger: 'axis' },
       legend: { top: 4 },
-      grid: { left: 52, right: 28, top: 42, bottom: 42 },
-      xAxis: { type: 'value', name: '时间（秒）' },
+      grid: { left: 52, right: 28, top: 42, bottom: 58, containLabel: true },
+      xAxis: {
+        type: 'value',
+        name: '时间（秒）',
+        nameLocation: 'middle',
+        nameGap: 34,
+        axisLabel: { hideOverlap: true }
+      },
       yAxis: { type: 'value', name: '特征值' },
       series
     }, true)
@@ -2013,24 +2937,26 @@ function renderPredictionLineChart(chart, config) {
   const predictedTimes = Array.isArray(config.predicted?.times) ? config.predicted.times : []
   const predictedValues = Array.isArray(config.predicted?.values) ? config.predicted.values : []
   const series = []
+  const actualData = overviewSeriesData(actualTimes, actualValues)
+  const predictedData = overviewSeriesData(predictedTimes, predictedValues)
 
-  if (actualTimes.length && actualValues.length) {
+  if (actualData.length) {
     series.push({
       name: config.actualName,
       type: 'line',
       smooth: true,
       showSymbol: false,
-      data: actualTimes.map((t, i) => [Number(t), Number(actualValues[i])]),
+      data: actualData,
       lineStyle: { width: 2, color: '#409eff' }
     })
   }
-  if (predictedTimes.length && predictedValues.length) {
+  if (predictedData.length) {
     series.push({
       name: config.predictedName,
       type: 'line',
       smooth: true,
       showSymbol: false,
-      data: predictedTimes.map((t, i) => [Number(t), Number(predictedValues[i])]),
+      data: predictedData,
       lineStyle: { width: 2, color: '#f39c12', type: 'dashed' }
     })
   }
@@ -2067,8 +2993,14 @@ function renderPredictionLineChart(chart, config) {
   chart.setOption({
     tooltip: { trigger: 'axis' },
     legend: { top: 4 },
-    grid: { left: 58, right: 32, top: 42, bottom: 42 },
-    xAxis: { type: 'value', name: '时间（秒）' },
+    grid: { left: 58, right: 32, top: 42, bottom: 58, containLabel: true },
+    xAxis: {
+      type: 'value',
+      name: '时间（秒）',
+      nameLocation: 'middle',
+      nameGap: 34,
+      axisLabel: { hideOverlap: true }
+    },
     yAxis: { type: 'value', scale: true, name: config.yName || '' },
     series
   }, true)
@@ -2080,6 +3012,31 @@ function identifyHistoryTaskType(row) {
 
 function isIdentifyHistoryRow(row) {
   return IDENTIFY_HISTORY_TASK_TYPES.includes(identifyHistoryTaskType(row))
+}
+
+function historyTargetPath(row) {
+  if (!row || typeof row !== 'object') return '--'
+  const targetId = row.targetId || row.target_id
+  const targetType = row.targetType || row.target_type
+  const targetName = row.targetName || row.target_name
+  if (!targetId || !feat_tree.value.length) return targetName || '--'
+
+  let targetNode = findNodeById(feat_tree.value, targetId)
+  if (!targetNode) {
+    const typeMap = {
+      device: 'equipment',
+      equipment: 'equipment',
+      component: 'component',
+      subsystem: 'subsystem',
+      aircraft: 'aircraft'
+    }
+    const nodeType = typeMap[targetType]
+    targetNode = findNodeByRawId(feat_tree.value, targetId, nodeType ? [nodeType] : [])
+  }
+
+  if (!targetNode?.id) return targetName || '--'
+  const path = findNodePathById(feat_tree.value, targetNode.id)
+  return path.length ? path.join(' / ') : targetName || targetNode.name || '--'
 }
 
 function sortIdentifyHistoryRows(rows) {
@@ -2284,10 +3241,11 @@ onBeforeRouteLeave(() => {
   clearFeat()
 })
 
-onMounted(() => {
+onMounted(async () => {
   renderCharts({})
   renderPreventionCharts({})
-  loadIdentifyHistory({ restoreLatest: true })
+  await loadFeatTree()
+  await loadIdentifyHistory({ restoreLatest: true })
   window.addEventListener('resize', resizeCharts)
 })
 
@@ -2504,6 +3462,69 @@ onBeforeUnmount(() => {
   font-size: 20px;
 }
 
+.time-domain-window-controls {
+  margin-top: 12px;
+}
+
+.time-domain-view-switch {
+  margin-bottom: 14px;
+}
+
+.time-domain-window-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.time-domain-window-range {
+  color: #607081;
+  font-size: 13px;
+}
+
+.time-domain-overview-box {
+  height: 250px;
+}
+
+.time-domain-overview-tip,
+.time-domain-window-time {
+  margin-top: 7px;
+  color: #8492a6;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.time-domain-local-title {
+  margin-top: 18px;
+}
+
+.time-domain-window-actions {
+  flex-wrap: wrap;
+}
+
+.time-domain-window-size {
+  width: 150px;
+  margin-left: auto;
+}
+
+.time-domain-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 14px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #607081;
+  font-size: 13px;
+}
+
+.time-domain-stats strong {
+  margin-left: 3px;
+  color: #1f3b57;
+}
+
 .fault-iden-prepare-dialog {
   display: flex;
   flex-direction: column;
@@ -2685,7 +3706,7 @@ onBeforeUnmount(() => {
 .method-legend {
   position: absolute;
   top: 12px;
-  left: 12px;
+  right: 12px;
   z-index: 1;
   display: flex;
   flex-direction: column;
@@ -2909,5 +3930,668 @@ onBeforeUnmount(() => {
 
 .legend-dash.orange {
   color: #f39c12;
+}
+
+/* Page layout */
+.fault-identify-page {
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 20px 24px 32px;
+}
+
+.fault-identify-page :deep(.quality-hero) {
+  margin-bottom: 20px;
+  overflow: hidden;
+  border: 1px solid #e1e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(28, 62, 96, 0.06);
+}
+
+.fault-identify-page :deep(.quality-hero .el-card__header) {
+  padding: 17px 22px;
+  border-bottom: 1px solid #e8eef5;
+  background: #f8fbff;
+}
+
+.fault-identify-page :deep(.quality-hero .el-card__body) {
+  padding: 18px 22px;
+}
+
+.quality-title {
+  color: #001f3f;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.quality-desc {
+  display: inline-flex;
+  align-items: center;
+  color: #607081;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.quality-desc::before {
+  width: 20px;
+  height: 3px;
+  margin-right: 10px;
+  border-radius: 2px;
+  background: #409eff;
+  content: '';
+}
+
+.section-card {
+  margin-bottom: 22px;
+  overflow: hidden;
+  border: 1px solid #e1e8f0;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(28, 62, 96, 0.06);
+}
+
+.section-card :deep(.el-card__header) {
+  padding: 17px 22px;
+  border-bottom-color: #e8eef5;
+  background: linear-gradient(90deg, #f8fbff 0%, #fff 70%);
+}
+
+.section-card :deep(.el-card__body) {
+  padding: 22px;
+}
+
+.section-title,
+.degrade-title {
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.card-header-row {
+  gap: 16px;
+}
+
+/* Controls and status */
+.identify-control-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.75fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.identify-control-panel,
+.config-panel {
+  padding: 18px;
+  border: 1px solid #dfe8f2;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.control-panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.control-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 10px;
+  background: #e6f2ff;
+  color: #1677c8;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.control-panel-title,
+.config-panel-title {
+  color: #102a43;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.control-panel-desc {
+  margin-top: 3px;
+  color: #7a8da1;
+  font-size: 13px;
+}
+
+.input-row {
+  padding: 16px;
+  border: 1px solid #dfe8f2;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.data-control-panel .input-row {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.upload-progress-wrap {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.input-progress {
+  min-width: 160px;
+}
+
+.progress-text {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.param-row {
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.compact-param-row,
+.degradation-param-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.param-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.param-field .param-select,
+.param-field .param-number {
+  width: 100%;
+}
+
+.param-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.content-subheading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  color: #243b53;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.content-subheading::before {
+  width: 4px;
+  height: 17px;
+  border-radius: 2px;
+  background: #409eff;
+  content: '';
+}
+
+.feature-chart-heading {
+  margin-top: 22px;
+}
+
+.task-info-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 0.8fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.task-info-item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+  padding: 13px 15px;
+  border: 1px solid #e1e8f0;
+  border-radius: 9px;
+  background: #f7faff;
+}
+
+.task-info-label {
+  color: #718096;
+  font-size: 12px;
+}
+
+.task-info-item strong {
+  overflow: hidden;
+  color: #1f3b57;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feature-task-status-row,
+.degradation-task-status-row {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f3f7fb;
+}
+
+.feature-task-error-row,
+.degradation-error-row {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fff2f0;
+}
+
+.degradation-running-row {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #ecf7ff;
+}
+
+.degradation-result {
+  padding: 14px 16px;
+  border-left: 4px solid #409eff;
+  border-radius: 8px;
+  background: #f0f7ff;
+}
+
+.degradation-config-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.5fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.config-panel-title {
+  margin-bottom: 14px;
+}
+
+.degradation-status-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.3fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.degradation-status-layout .degradation-result,
+.degradation-status-layout .degradation-task-status-row {
+  margin: 0;
+}
+
+.degradation-status-layout .degradation-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.degradation-status-layout .degradation-result strong {
+  color: #1677c8;
+  font-size: 20px;
+}
+
+.status-block-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.degradation-status-layout .degradation-task-status-row {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.detect-method-list {
+  padding: 14px 16px;
+  border-color: #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+/* Charts */
+.signal-panel,
+.chart-panel {
+  border-color: #e1e8f0;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(30, 64, 98, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.signal-panel:hover,
+.chart-panel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(30, 64, 98, 0.09);
+}
+
+.chart-title {
+  font-size: 16px;
+}
+
+.chart-box,
+.signal-box {
+  width: 100%;
+  border-color: #e2e8f0;
+  border-radius: 8px;
+}
+
+.chart-box {
+  height: 250px;
+}
+
+.signal-box {
+  height: 340px;
+}
+
+.time-domain-overview-box {
+  height: 250px;
+}
+
+.feature-summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.feature-summary-item {
+  padding: 13px 15px;
+  border-color: #e1e8f0;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #fff 0%, #f7faff 100%);
+}
+
+.degradation-chart-panel {
+  padding: 8px 0 4px;
+}
+
+.degradation-chart-stack {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.degradation-plot-box {
+  height: 300px;
+  border-color: #d7e1ec;
+  border-radius: 10px;
+}
+
+.degradation-echart {
+  height: 270px;
+}
+
+.prevention-panel {
+  margin-top: 22px;
+  padding: 20px;
+  border: 1px solid #e1e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.predict-chart-area {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.predict-chart-frame {
+  height: 280px;
+  padding: 10px 14px 16px;
+  border: 1px solid #e1e8f0;
+  border-radius: 10px;
+}
+
+/* History and dialog */
+.history-query-row {
+  justify-content: space-between;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.history-filter-fields,
+.history-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.history-filter-fields {
+  min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.history-filter-actions {
+  flex: 0 0 auto;
+}
+
+.history-keyword {
+  flex: 1 1 280px;
+  max-width: 420px;
+}
+
+.fault-iden-prepare-dialog {
+  gap: 16px;
+}
+
+.fault-iden-object-form,
+.fault-iden-picker {
+  padding: 14px;
+  border: 1px solid #e1e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.fault-iden-toolbar {
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fault-iden-current {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-left: 4px solid #409eff;
+  border-radius: 8px;
+  background: #eef6ff;
+}
+
+.fault-iden-current-label {
+  flex: 0 0 auto;
+  color: #718096;
+  font-size: 13px;
+}
+
+.fault-iden-current .fault-iden-object {
+  min-width: 0;
+  line-height: 1.5;
+}
+
+.fault-iden-search,
+.fault-iden-selection-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.fault-iden-search :deep(.el-input) {
+  width: 220px;
+}
+
+.fault-iden-selection-actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 1200px) {
+  .fault-identify-page {
+    padding: 16px;
+  }
+
+  .fault-identify-page :deep(.el-col-12) {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .degradation-chart-stack,
+  .predict-chart-area {
+    grid-template-columns: 1fr;
+  }
+
+  .identify-control-grid,
+  .degradation-config-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-text {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .fault-identify-page {
+    padding: 10px;
+  }
+
+  .section-card :deep(.el-card__header),
+  .section-card :deep(.el-card__body) {
+    padding: 14px;
+  }
+
+  .card-header-row,
+  .input-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .compact-param-row,
+  .degradation-param-row,
+  .task-info-grid,
+  .degradation-status-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .degradation-status-layout .degradation-task-status-row {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .upload-btn,
+  .orange-btn {
+    width: 100%;
+  }
+
+  .input-progress {
+    width: 100%;
+  }
+
+  .progress-text {
+    white-space: normal;
+  }
+
+  .param-row {
+    align-items: stretch;
+  }
+
+  .param-label {
+    width: 100%;
+  }
+
+  .param-select,
+  .param-number,
+  .history-keyword,
+  .history-select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .history-query-row,
+  .history-filter-fields,
+  .history-filter-actions,
+  .fault-iden-toolbar,
+  .fault-iden-search,
+  .fault-iden-selection-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .history-filter-actions :deep(.el-button),
+  .fault-iden-search :deep(.el-input),
+  .fault-iden-search :deep(.el-button),
+  .fault-iden-selection-actions :deep(.el-button) {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .fault-iden-current {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .feature-summary-grid,
+  .prevention-result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-box {
+    height: 230px;
+  }
+
+  .signal-box {
+    height: 280px;
+  }
+
+  .time-domain-overview-box {
+    height: 230px;
+  }
+
+  .time-domain-window-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .time-domain-window-size {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .time-domain-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .degradation-plot-box,
+  .predict-chart-frame {
+    height: 260px;
+  }
+
+  .degradation-echart {
+    height: 230px;
+  }
+
+  .method-legend {
+    position: relative;
+    top: auto;
+    left: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 38px 10px -36px;
+  }
+
+  .fault-iden-object {
+    flex-basis: 100%;
+    min-width: 0;
+  }
 }
 </style>

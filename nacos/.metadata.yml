@@ -5,7 +5,17 @@ metadata:
   group: DEFAULT_GROUP
   type: yaml
 - appName: ''
+  dataId: ruoyi-auth-dev.yml
+  desc: 认证中心
+  group: DEFAULT_GROUP
+  type: yaml
+- appName: ''
+  dataId: ruoyi-system-dev.yml
+  desc: 系统模块
+  group: DEFAULT_GROUP
+  type: yaml
+- appName: ''
   dataId: project3-dev.yml
   desc: ''
   group: DEFAULT_GROUP
-  type: yaml
+  type: text

@@ -509,6 +509,7 @@ public class MonitorServiceImpl implements MonitorService {
             new PartActualManufacturingProcessTemplateGenerator().write(
                     outputStream,
                     monitorMapper.sel_all_part_template_ids(),
+                    monitorMapper.sel_all_part_instances(),
                     monitorMapper.sel_all_process_route_ids(),
                     monitorMapper.sel_all_process_def_ids()
             );
@@ -529,15 +530,46 @@ public class MonitorServiceImpl implements MonitorService {
         ActualProcessImportData data = parse_actual_process_workbook(file);
         validate_actual_process_data(data);
 
-        int partInstanceCount = upsert_rows(data.partInstanceRows, monitorMapper::upsert_part_instance);
+        int manufacturingQualityCount = ensure_manufacturing_quality_rows(data.workOrderRows);
+        int manufacturingDeviceCount = ensure_manufacturing_device_rows(data.processExecutionRows);
         int workOrderCount = upsert_rows(data.workOrderRows, monitorMapper::upsert_work_order);
         int processExecutionCount = upsert_rows(data.processExecutionRows, monitorMapper::upsert_process_execution);
 
         Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("part_instance_count", partInstanceCount);
+        payload.put("part_instance_count", 0);
+        payload.put("manufacturing_quality_count", manufacturingQualityCount);
+        payload.put("manufacturing_device_count", manufacturingDeviceCount);
         payload.put("work_order_count", workOrderCount);
         payload.put("process_execution_count", processExecutionCount);
         return payload;
+    }
+
+    private int ensure_manufacturing_quality_rows(List<Map<String, Object>> workOrderRows) {
+        int count = 0;
+        if (workOrderRows == null) return count;
+        for (Map<String, Object> row : workOrderRows) {
+            String manufacturingQualityId = get_str(row, "manufacturing_quality_id");
+            if (manufacturingQualityId == null) continue;
+            if (monitorMapper.count_manufacturing_quality_by_id(manufacturingQualityId) > 0) {
+                continue;
+            }
+            count += monitorMapper.insert_manufacturing_quality_if_absent(row);
+        }
+        return count;
+    }
+
+    private int ensure_manufacturing_device_rows(List<Map<String, Object>> processExecutionRows) {
+        int count = 0;
+        if (processExecutionRows == null) return count;
+        for (Map<String, Object> row : processExecutionRows) {
+            String deviceId = get_str(row, "device_id");
+            if (deviceId == null) continue;
+            if (monitorMapper.count_manufacturing_device_by_id(deviceId) > 0) {
+                continue;
+            }
+            count += monitorMapper.insert_manufacturing_device_if_absent(row);
+        }
+        return count;
     }
 
     private ActualProcessImportData parse_actual_process_workbook(MultipartFile file) {
@@ -700,11 +732,10 @@ public class MonitorServiceImpl implements MonitorService {
     }
 
     private void validate_actual_process_data(ActualProcessImportData data) {
-        if (data.partInstanceRows.isEmpty() && data.workOrderRows.isEmpty() && data.processExecutionRows.isEmpty()) {
+        if (data.workOrderRows.isEmpty() && data.processExecutionRows.isEmpty()) {
             throw new ServiceException("Excel 中没有可导入的零件实际制作过程数据");
         }
 
-        Map<String, String> excelPartTemplates = new LinkedHashMap<>();
         Map<String, String> excelWorkOrderRoutes = new LinkedHashMap<>();
         Set<String> partInstanceIds = new LinkedHashSet<>();
         Set<String> workOrderIds = new LinkedHashSet<>();
@@ -721,7 +752,6 @@ public class MonitorServiceImpl implements MonitorService {
             if (monitorMapper.count_part_tpl_by_id(partTemplateId) == 0) {
                 throw new ServiceException("Sheet 零件实例 第" + rowNum + "行字段 零件模板ID 不存在于 part_templates");
             }
-            excelPartTemplates.put(partInstanceId, partTemplateId);
         }
 
         for (int i = 0; i < data.workOrderRows.size(); i++) {
@@ -734,17 +764,11 @@ public class MonitorServiceImpl implements MonitorService {
             if (!workOrderIds.add(workOrderId)) {
                 throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 生产工单ID 重复");
             }
-            if (manufacturingQualityId != null && monitorMapper.count_manufacturing_quality_by_id(manufacturingQualityId) == 0) {
-                throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 制造质量记录ID 不存在于 manufacturing_quality");
+            Map<String, Object> dbPart = monitorMapper.sel_part_instance_ref(partInstanceId);
+            if (dbPart == null || dbPart.isEmpty()) {
+                throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 零件实例ID 不存在于数据库 part_instances");
             }
-            String partTemplateId = excelPartTemplates.get(partInstanceId);
-            if (partTemplateId == null) {
-                Map<String, Object> dbPart = monitorMapper.sel_part_instance_ref(partInstanceId);
-                if (dbPart == null || dbPart.isEmpty()) {
-                    throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 零件实例ID 不存在于本次Excel或数据库 part_instances");
-                }
-                partTemplateId = get_str(dbPart, "part_template_id");
-            }
+            String partTemplateId = get_str(dbPart, "part_template_id");
             Map<String, Object> route = monitorMapper.sel_process_route_ref(routeId);
             if (route == null || route.isEmpty()) {
                 throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 工艺路线ID 不存在于 process_routes");
@@ -761,12 +785,8 @@ public class MonitorServiceImpl implements MonitorService {
             String processExecId = get_str(row, "process_exec_id");
             String workOrderId = get_str(row, "work_order_id");
             String processDefId = get_str(row, "process_def_id");
-            String deviceId = get_str(row, "device_id");
             if (!processExecIds.add(processExecId)) {
                 throw new ServiceException("Sheet 工序执行记录 第" + rowNum + "行字段 工序执行记录ID 重复");
-            }
-            if (deviceId != null && monitorMapper.count_manufacturing_device_by_id(deviceId) == 0) {
-                throw new ServiceException("Sheet 工序执行记录 第" + rowNum + "行字段 制造设备ID 不存在于 manufacturing_devices");
             }
             String routeId = excelWorkOrderRoutes.get(workOrderId);
             if (routeId == null) {
@@ -1033,7 +1053,7 @@ public class MonitorServiceImpl implements MonitorService {
             values.put("route_name", routeName);
             values.put("version", process_cell(row, formatter, header, "版本"));
             values.put("effective_date", process_cell(row, formatter, header, "生效日期"));
-            values.put("is_active", process_default(process_cell(row, formatter, header, "是否启用"), "1"));
+            values.put("is_active", parse_process_flag(process_cell(row, formatter, header, "是否启用"), "工序路线", rowNum, "是否启用", 1));
             rows.add(values);
         }
         return rows;
@@ -1072,8 +1092,8 @@ public class MonitorServiceImpl implements MonitorService {
             values.put("process_name", processName);
             values.put("equipment_type", equipmentType);
             values.put("standard_duration", process_cell(row, formatter, header, "标准工时"));
-            values.put("is_key_process", process_cell(row, formatter, header, "是否关键工序"));
-            values.put("is_high_risk", process_cell(row, formatter, header, "是否高风险"));
+            values.put("is_key_process", parse_process_flag(process_cell(row, formatter, header, "是否关键工序"), "详细工序", rowNum, "是否关键工序", 0));
+            values.put("is_high_risk", parse_process_flag(process_cell(row, formatter, header, "是否高风险"), "详细工序", rowNum, "是否高风险", 0));
             rows.add(values);
         }
         return rows;
@@ -1114,16 +1134,24 @@ public class MonitorServiceImpl implements MonitorService {
         }
     }
 
-    private Object process_default(String value, String defaultValue) {
-        return value == null ? defaultValue : value;
-    }
-
     private Integer parse_process_int(String value, String sheetName, int rowNum, String column) {
         try {
             return new BigDecimal(value.trim()).intValueExact();
         } catch (Exception e) {
             throw new ServiceException("Sheet " + sheetName + " 第" + rowNum + "行 " + column + " 错误：" + column + "必须是整数");
         }
+    }
+
+    private Integer parse_process_flag(String value, String sheetName, int rowNum, String column, Integer defaultValue) {
+        if (value == null) return defaultValue;
+        String text = value.trim();
+        if ("1".equals(text) || "是".equals(text) || "启用".equals(text) || "true".equalsIgnoreCase(text)) {
+            return 1;
+        }
+        if ("0".equals(text) || "否".equals(text) || "停用".equals(text) || "false".equalsIgnoreCase(text)) {
+            return 0;
+        }
+        throw new ServiceException("Sheet " + sheetName + " 第" + rowNum + "行 " + column + " 错误：" + column + "需要规范填写，应该为：1/0、是/否、启用/停用、true/false");
     }
 
     private List<ImportedPart> parse_process_workbook(MultipartFile file) {

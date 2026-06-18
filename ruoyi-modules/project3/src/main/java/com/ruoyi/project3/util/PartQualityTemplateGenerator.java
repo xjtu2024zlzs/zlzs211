@@ -12,15 +12,25 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class PartQualityTemplateGenerator
 {
     public void write(OutputStream outputStream) throws IOException
     {
+        write(outputStream, Collections.emptyList());
+    }
+
+    public void write(OutputStream outputStream, List<Map<String, Object>> manufacturingRows) throws IOException
+    {
         try (Workbook workbook = new XSSFWorkbook()) {
             CellStyle headerStyle = headerStyle(workbook);
+            CellStyle lockedStyle = lockedStyle(workbook);
+            CellStyle unlockedStyle = unlockedStyle(workbook);
             designSheet(workbook, headerStyle);
-            manufacturingSheet(workbook, headerStyle);
+            manufacturingSheet(workbook, headerStyle, lockedStyle, unlockedStyle, manufacturingRows);
             serviceSheet(workbook, headerStyle);
             workbook.write(outputStream);
         }
@@ -35,12 +45,26 @@ public class PartQualityTemplateGenerator
         autoSize(sheet, headers.length);
     }
 
-    private void manufacturingSheet(Workbook workbook, CellStyle headerStyle)
+    private void manufacturingSheet(Workbook workbook, CellStyle headerStyle, CellStyle lockedStyle,
+                                    CellStyle unlockedStyle, List<Map<String, Object>> rows)
     {
         Sheet sheet = workbook.createSheet("制造质量信息");
         String[] headers = {"制造质量ID", "零件实例ID", "生产工单ID", "车间ID", "产线ID", "开始时间", "结束时间", "工艺状态", "终检结果", "缺陷数", "返工数"};
         writeHeader(sheet, headers, headerStyle);
-        writeRow(sheet, 1, "MQ001", "PI1", "WO001", "WS01", "PL01", "2026-05-20 08:00:00", "2026-05-20 12:00:00", "已完成", "合格", "0", "0");
+        sheet.setDefaultColumnStyle(0, lockedStyle);
+        for (int i = 1; i < headers.length; i++) {
+            sheet.setDefaultColumnStyle(i, unlockedStyle);
+        }
+        if (rows == null || rows.isEmpty()) {
+            writeRow(sheet, 1, new CellStyle[]{lockedStyle, unlockedStyle, unlockedStyle, unlockedStyle, unlockedStyle, unlockedStyle, unlockedStyle, unlockedStyle, unlockedStyle, unlockedStyle, unlockedStyle},
+                    "MQ001", "PI1", "WO001", "WS01", "PL01", "2026-05-20 08:00:00", "2026-05-20 12:00:00", "已完成", "合格", "0", "0");
+        } else {
+            String[] fields = {"manufacturing_quality_id", "part_instance_id", "production_order_id", "workshop_id", "production_line_id", "start_time", "end_time", "process_status", "final_inspection_result", "defect_count", "rework_count"};
+            for (int i = 0; i < rows.size(); i++) {
+                writeRow(sheet, i + 1, rowValues(rows.get(i), fields), lockedStyle, unlockedStyle);
+            }
+        }
+        sheet.protectSheet("project3");
         autoSize(sheet, headers.length);
     }
 
@@ -72,6 +96,28 @@ public class PartQualityTemplateGenerator
         }
     }
 
+    private void writeRow(Sheet sheet, int rowIndex, String[] values, CellStyle idStyle, CellStyle valueStyle)
+    {
+        Row row = sheet.createRow(rowIndex);
+        for (int i = 0; i < values.length; i++) {
+            Cell cell = row.createCell(i);
+            cell.setCellValue(values[i]);
+            cell.setCellStyle(i == 0 ? idStyle : valueStyle);
+        }
+    }
+
+    private void writeRow(Sheet sheet, int rowIndex, CellStyle[] styles, String... values)
+    {
+        Row row = sheet.createRow(rowIndex);
+        for (int i = 0; i < values.length; i++) {
+            Cell cell = row.createCell(i);
+            cell.setCellValue(values[i]);
+            if (styles != null && i < styles.length && styles[i] != null) {
+                cell.setCellStyle(styles[i]);
+            }
+        }
+    }
+
     private void autoSize(Sheet sheet, int columns)
     {
         for (int i = 0; i < columns; i++) {
@@ -90,5 +136,29 @@ public class PartQualityTemplateGenerator
         font.setBold(true);
         style.setFont(font);
         return style;
+    }
+
+    private CellStyle lockedStyle(Workbook workbook)
+    {
+        CellStyle style = workbook.createCellStyle();
+        style.setLocked(true);
+        return style;
+    }
+
+    private CellStyle unlockedStyle(Workbook workbook)
+    {
+        CellStyle style = workbook.createCellStyle();
+        style.setLocked(false);
+        return style;
+    }
+
+    private String[] rowValues(Map<String, Object> row, String[] fields)
+    {
+        String[] values = new String[fields.length];
+        for (int i = 0; i < fields.length; i++) {
+            Object value = row == null ? null : row.get(fields[i]);
+            values[i] = value == null ? "" : String.valueOf(value);
+        }
+        return values;
     }
 }

@@ -304,7 +304,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="dataFileDialog.visible" title="全部数据文件" width="1100px" :close-on-click-modal="false">
+    <el-dialog v-model="dataFileDialog.visible" :title="dataFileDialog.currentTask ? '任务数据文件' : '全部数据文件'" width="1100px" :close-on-click-modal="false">
       <div class="data-file-toolbar">
         <el-select v-model="dataFileQuery.dataUsage" placeholder="全部用途" clearable style="width: 160px" @change="searchDataFiles">
           <el-option label="全部用途" value="ALL" />
@@ -315,16 +315,47 @@
           <el-option label="关键工序识别" value="KEY_PROCESS" />
           <el-option label="通用" value="COMMON" />
         </el-select>
-        <el-input v-model="dataFileQuery.keyword" placeholder="搜索文件名/路径/对象" clearable style="width: 260px" @keyup.enter="searchDataFiles" @clear="searchDataFiles" />
+        <el-input v-model="dataFileQuery.keyword" placeholder="按文件名筛选" clearable style="width: 260px" @keyup.enter="searchDataFiles" @clear="searchDataFiles" />
         <el-input v-model="dataFileQuery.uploadBatchId" placeholder="上传批次" clearable style="width: 180px" @keyup.enter="searchDataFiles" @clear="searchDataFiles" />
         <el-button type="primary" @click="searchDataFiles">查询</el-button>
+        <el-button v-if="dataFileDialog.currentTask" @click="backToDataFileTasks">返回任务文件</el-button>
         <el-button :loading="dataFileDialog.selectingAll" :disabled="!dataFileDialog.total || dataFileDialog.loading || dataFileDialog.selectingAll" @click="selectAllDataFiles">全选</el-button>
         <el-button :disabled="!dataFileSelectedCount" @click="clearSelectedDataFiles">清空选择</el-button>
         <el-button type="danger" :loading="dataFileDialog.deleting" :disabled="!dataFileSelectedCount || dataFileDialog.deleting" @click="removeSelectedDataFiles">
           删除选中 {{ dataFileSelectedCount ? `(${dataFileSelectedCount})` : '' }}
         </el-button>
       </div>
-      <el-table ref="dataFileTableRef" v-loading="dataFileDialog.loading" :data="dataFileDialog.rows" height="460" border row-key="id" @selection-change="handleDataFileSelectionChange">
+      <div v-if="dataFileDialog.currentTask" class="data-file-task-bar">
+        <span>当前任务：{{ dataFileDialog.currentTask.taskName }}</span>
+        <span>文件数：{{ dataFileDialog.currentTask.fileCount }}</span>
+        <span>总大小：{{ fileSizeText(dataFileDialog.currentTask.totalSize) }}</span>
+      </div>
+      <el-table
+        v-if="!dataFileDialog.currentTask"
+        ref="dataTaskTableRef"
+        v-loading="dataFileDialog.loading"
+        :data="dataFileDialog.taskRows"
+        height="460"
+        border
+        row-key="taskKey"
+        @selection-change="handleDataTaskSelectionChange"
+      >
+        <el-table-column type="selection" width="48" />
+        <el-table-column prop="taskName" label="任务文件" min-width="220" show-overflow-tooltip />
+        <el-table-column prop="uploadBatchId" label="上传批次" min-width="170" show-overflow-tooltip />
+        <el-table-column label="数据用途" width="150"><template #default="{ row }">{{ dataUsageText(row.dataUsage) }}</template></el-table-column>
+        <el-table-column prop="fileCount" label="文件数" width="90" />
+        <el-table-column label="总大小" width="120"><template #default="{ row }">{{ fileSizeText(row.totalSize) }}</template></el-table-column>
+        <el-table-column prop="latestCreateTime" label="最近导入时间" width="170" />
+        <el-table-column prop="sampleFileName" label="示例文件" min-width="180" show-overflow-tooltip />
+        <el-table-column label="操作" width="150" fixed="right">
+          <template #default="{ row }">
+            <el-button type="primary" link @click="openDataFileTask(row)">查看</el-button>
+            <el-button type="danger" link @click="removeDataFileTask(row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-table v-else ref="dataFileTableRef" v-loading="dataFileDialog.loading" :data="dataFileDialog.rows" height="420" border row-key="id" @selection-change="handleDataFileSelectionChange">
         <el-table-column type="selection" width="48" reserve-selection />
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="fileName" label="文件名" min-width="180" show-overflow-tooltip />
@@ -348,7 +379,7 @@
         <el-table-column prop="sourceFile" label="存储路径" min-width="260" show-overflow-tooltip />
         <el-table-column label="操作" width="90" fixed="right"><template #default="{ row }"><el-button type="danger" link @click="removeDataFile(row)">删除</el-button></template></el-table-column>
       </el-table>
-      <pagination v-show="dataFileDialog.total > 0" :total="dataFileDialog.total" v-model:page="dataFileQuery.pageNum" v-model:limit="dataFileQuery.pageSize" @pagination="loadDataFiles" />
+      <pagination v-show="dataFileDialog.currentTask && dataFileDialog.total > 0" :total="dataFileDialog.total" v-model:page="dataFileQuery.pageNum" v-model:limit="dataFileQuery.pageSize" @pagination="loadDataFiles" />
     </el-dialog>
 
     <el-row :gutter="16">
@@ -1002,322 +1033,65 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick, watch } 
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Select, Warning } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
-import request from '@/utils/request'
 import { saveAs } from 'file-saver'
 import '@/views/project_3/common.css'
-
-
+import {
+  buildAnomalyChartOption,
+  buildKqcRankingChartOption
+} from '@/utils/project3MonitorCharts'
+import {
+  createMonitorModule as createModule,
+  createMonitorPart as createPartInstance,
+  createMonitorPartTemplate as createPartTemplate,
+  deleteMonitorModule as deleteModule,
+  deleteMonitorPart as deletePartInstance,
+  downloadHierarchyTemplate as downloadHierarchyTemplateApi,
+  downloadPartProcessTemplate as downloadPartProcessTemplateApi,
+  getLifecycleRows as fetchLifecycleRowsApi,
+  getMonitorPartTemplate as fetchPartTemplateDetail,
+  getMonitorNodeView as fetchNodeView,
+  getMonitorTree as fetchMonitorTree,
+  getPartQualityTables as fetchPartQualityTables,
+  importHierarchyData as uploadHierarchyData,
+  importProcessTextApiData as uploadProcessTextApiData,
+  importProcessTextData as uploadProcessTextData,
+  listMonitorParts as fetchPartInstances,
+  updateMonitorModuleName as updateModuleName,
+  updateMonitorPart as updatePartInstance,
+  updateMonitorPartTemplate as updatePartTemplateDetail
+} from '@/api/project_3/monitor'
+import {
+  downloadPartQualityTemplate as downloadPartQualityTemplateApi,
+  importPartQuality as uploadPartQualityData,
+  importPartQualityApi as uploadPartQualityApiData
+} from '@/api/project_3/partQuality'
+import {
+  cancelKqcMiningTask,
+  cancelWarningDetectTask,
+  deleteKqcMiningResult,
+  getKqcMiningTask,
+  getWarningDetectTask,
+  listKqcMiningResults,
+  startKqcMiningTask,
+  startWarningDetectTask,
+  uploadWarningDetectFile
+} from '@/api/project_3/feedback'
+import {
+  cancelKeyProcessTask,
+  deleteFaultIdenSample as deleteDataFile,
+  getKeyProcessTask,
+  listFaultIdenSamples as listAllDataFiles,
+  mergeNumericChunks,
+  startKeyProcessTask,
+  updateFaultIdenSampleDataUsage as updateDataFileUsage,
+  uploadNumericApi,
+  uploadNumericChunk,
+  uploadNumericFile,
+  validateNumericTaskName
+} from '@/api/project_3/service'
 defineOptions({
   name: 'QualityMonitor'
 })
-
-function fetchMonitorTree() {
-  return request({
-    url: '/monitor/tree',
-    method: 'get'
-  })
-}
-function fetchPartInstances(query) {
-  return request({
-    url: '/monitor/parts',
-    method: 'get',
-    params: query
-  })
-}
-
-
-
-function fetchPartQualityTables(part_instance_id) {
-  return request({
-    url: `/monitor/parts/${part_instance_id}/quality`,
-    method: 'get'
-  })
-}
-
-function createModule(data) {
-  return request({
-    url: '/monitor/module',
-    method: 'post',
-    data
-  })
-}
-
-function deleteModule(node_id) {
-  return request({
-    url: `/monitor/module/${encodeURIComponent(node_id)}`,
-    method: 'delete'
-  })
-}
-
-function updateModuleName(node_id, data) {
-  return request({
-    url: `/monitor/module/${encodeURIComponent(node_id)}/name`,
-    method: 'put',
-    data
-  })
-}
-function createPartInstance(data) {
-  return request({
-    url: '/monitor/parts',
-    method: 'post',
-    data
-  })
-}
-
-function updatePartInstance(part_instance_id, data) {
-  return request({
-    url: `/monitor/parts/${encodeURIComponent(part_instance_id)}`,
-    method: 'put',
-    data
-  })
-}
-
-function createPartTemplate(data) {
-  return request({
-    url: '/monitor/part-template',
-    method: 'post',
-    data
-  })
-}
-
-function fetchPartTemplateDetail(part_template_id) {
-  return request({
-    url: `/monitor/part-template/${encodeURIComponent(part_template_id)}`,
-    method: 'get'
-  })
-}
-
-function updatePartTemplateDetail(part_template_id, data) {
-  return request({
-    url: `/monitor/part-template/${encodeURIComponent(part_template_id)}`,
-    method: 'put',
-    data
-  })
-}
-
-
-function deletePartInstance(part_instance_id) {
-  return request({
-    url: `/monitor/parts/${encodeURIComponent(part_instance_id)}`,
-    method: 'delete'
-  })
-}
-
-function uploadNumericFile(data, onUploadProgress) {
-  return request({
-    url: '/quality/fault-iden/catalog/upload-numeric-file',
-    method: 'post',
-    data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      repeatSubmit: false
-    },
-    timeout: 300000,
-    onUploadProgress
-  })
-}
-
-function uploadNumericChunk(data, onUploadProgress) {
-  return request({
-    url: '/quality/fault-iden/catalog/upload-numeric-chunk',
-    method: 'post',
-    data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      repeatSubmit: false
-    },
-    timeout: 300000,
-    onUploadProgress
-  })
-}
-
-function uploadNumericApi(data) {
-  return request({
-    url: '/quality/fault-iden/catalog/upload-numeric-api',
-    method: 'post',
-    data,
-    timeout: 300000
-  })
-}
-
-function mergeNumericChunks(data) {
-  return request({
-    url: '/quality/fault-iden/catalog/merge-numeric-chunks',
-    method: 'post',
-    data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      repeatSubmit: false
-    },
-    timeout: 300000
-  })
-}
-
-function uploadProcessTextData(data) {
-  return request({
-    url: '/monitor/text/process/import',
-    method: 'post',
-    data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      repeatSubmit: false
-    },
-    timeout: 300000
-  })
-}
-
-function uploadProcessTextApiData(data) {
-  return request({
-    url: '/monitor/text/api/import',
-    method: 'post',
-    data,
-    timeout: 300000
-  })
-}
-
-function uploadPartQualityData(data) {
-  return request({
-    url: '/quality/part-quality/import',
-    method: 'post',
-    data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      repeatSubmit: false
-    },
-    timeout: 300000
-  })
-}
-
-function uploadPartQualityApiData(data) {
-  return request({
-    url: '/quality/part-quality/api/import',
-    method: 'post',
-    data,
-    timeout: 300000
-  })
-}
-
-function downloadPartQualityTemplateApi() {
-  return request({
-    url: '/quality/part-quality/template',
-    method: 'get',
-    responseType: 'blob',
-    timeout: 300000
-  })
-}
-
-function downloadPartProcessTemplateApi(params) {
-  return request({
-    url: '/monitor/text/process/template',
-    method: 'get',
-    params,
-    responseType: 'blob',
-    timeout: 300000
-  })
-}
-
-function downloadHierarchyTemplateApi() {
-  return request({
-    url: '/monitor/text/hierarchy/template',
-    method: 'get',
-    responseType: 'blob',
-    timeout: 300000
-  })
-}
-
-function uploadHierarchyData(data) {
-  return request({
-    url: '/monitor/text/hierarchy/import',
-    method: 'post',
-    data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      repeatSubmit: false
-    },
-    timeout: 300000
-  })
-}
-
-function listAllDataFiles(query) {
-  return request({
-    url: '/quality/fault-iden/samples',
-    method: 'get',
-    params: query
-  })
-}
-
-function deleteDataFile(id) {
-  return request({
-    url: `/quality/fault-iden/samples/${id}`,
-    method: 'delete'
-  })
-}
-
-function updateDataFileUsage(id, dataUsage) {
-  return request({
-    url: `/quality/fault-iden/samples/${id}/data-usage`,
-    method: 'put',
-    data: { dataUsage }
-  })
-}
-
-function uploadWarningDetectFile(data, onUploadProgress) {
-  return request({
-    url: '/quality/fault-iden/catalog/upload-numeric-file',
-    method: 'post',
-    data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      repeatSubmit: false
-    },
-    timeout: 300000,
-    onUploadProgress
-  })
-}
-
-function startWarningDetectTask(data) {
-  return request({
-    url: '/feedback/warning/detect/tasks',
-    method: 'post',
-    data
-  })
-}
-
-function getWarningDetectTask(taskId) {
-  return request({
-    url: `/feedback/warning/detect/tasks/${encodeURIComponent(taskId)}/status`,
-    method: 'get'
-  })
-}
-
-function cancelWarningDetectTask(taskId) {
-  return request({
-    url: `/feedback/warning/detect/tasks/${encodeURIComponent(taskId)}/cancel`,
-    method: 'post'
-  })
-}
-
-function startKeyProcessTask(data) {
-  return request({
-    url: '/service/identify/key_process_tasks',
-    method: 'post',
-    data
-  })
-}
-
-function getKeyProcessTask(taskId) {
-  return request({
-    url: `/service/identify/key_process_tasks/${encodeURIComponent(taskId)}/status`,
-    method: 'get'
-  })
-}
-
-function cancelKeyProcessTask(taskId) {
-  return request({
-    url: `/service/identify/key_process_tasks/${encodeURIComponent(taskId)}/cancel`,
-    method: 'post'
-  })
-}
 
 const tree_loading = ref(false)
 const node_loading = ref(false)
@@ -1358,6 +1132,7 @@ const NUM_UPLOAD_CHUNK_UPLOADING = 'CHUNK_UPLOADING'
 const NUM_UPLOAD_MERGING = 'MERGING'
 const numUploadRows = ref([])
 let numUploadBatchId = ''
+let numTaskName = ''
 const numPurposeOpts = [
   { label: '服役周期', value: 'faultIdentify', desc: '支持选择分系统、设备、组件' },
   { label: '制造周期', value: 'processAnomaly', desc: '支持选择任意层级对象' },
@@ -1373,9 +1148,9 @@ const textTaskOpts = [
   {
     label: '零件实际制作过程',
     value: 'PART_ACTUAL_MANUFACTURING_PROCESS',
-    desc: '导入零件实例、生产工单和工序执行记录',
+    desc: '导入生产工单和工序执行记录，零件实例来自数据库',
     objectLevelText: '无需选择',
-    rule: 'Excel需包含零件实例、生产工单、工序执行记录三个Sheet。'
+    rule: 'Excel需包含零件实例、生产工单、工序执行记录三个Sheet；零件实例Sheet为数据库参考数据，导入时不会写入零件实例表。'
   },
   {
     label: '零件质量信息',
@@ -1435,11 +1210,15 @@ const dataFileDialog = reactive({
   deleting: false,
   selectingAll: false,
   rows: [],
+  taskRows: [],
   total: 0,
-  selectedRows: []
+  selectedRows: [],
+  selectedTaskRows: [],
+  currentTask: null
 })
 const dataFileTableRef = ref(null)
-const dataFileSelectedCount = computed(() => dataFileDialog.selectedRows.length)
+const dataTaskTableRef = ref(null)
+const dataFileSelectedCount = computed(() => dataFileDialog.currentTask ? dataFileDialog.selectedRows.length : dataFileDialog.selectedTaskRows.length)
 const dataFileQuery = reactive({
   dataUsage: 'ALL',
   keyword: '',
@@ -1881,16 +1660,6 @@ function formatChildCountText(item) {
   if (level === 5) return ''
   return `子级：${countText}`
 }
-
-
-
-function fetchNodeView(nodeId) {
-  return request({
-    url: `/monitor/node/${nodeId}/view`,
-    method: 'get'
-  })
-}
-
 
 function applyRootView(tree) {
   currentTreeNodeId.value = ''
@@ -2460,24 +2229,19 @@ async function submitKqcMining() {
   try {
     const node = kqcDialog.node
     const hierarchyIds = sampleObjectQuery(node) || {}
-    const json = await request({
-      url: '/feedback/warning/kqc-mining',
-      method: 'post',
-      data: {
-        dataSelectionMode: 'SELECTED_FILES',
-        dataUsage: 'KQC_MINING',
-        sampleIds: kqcSelectedSampleIds.value,
-        targetType: numNodeType(node),
-        targetId: rawNodeId(node.id),
-        targetName: node.name || rawNodeId(node.id),
-        ...hierarchyIds,
-        maxRows: kqcDialog.form.maxRows,
-        maxFeatures: kqcDialog.form.maxFeatures,
-        perStation: kqcDialog.form.perStation,
-        selectionMode: 'response_assoc',
-        ssRuns: kqcDialog.form.ssRuns
-      },
-      timeout: 30000
+    const json = await startKqcMiningTask({
+      dataSelectionMode: 'SELECTED_FILES',
+      dataUsage: 'KQC_MINING',
+      sampleIds: kqcSelectedSampleIds.value,
+      targetType: numNodeType(node),
+      targetId: rawNodeId(node.id),
+      targetName: node.name || rawNodeId(node.id),
+      ...hierarchyIds,
+      maxRows: kqcDialog.form.maxRows,
+      maxFeatures: kqcDialog.form.maxFeatures,
+      perStation: kqcDialog.form.perStation,
+      selectionMode: 'response_assoc',
+      ssRuns: kqcDialog.form.ssRuns
     })
     const payload = getKqcPayload(json)
     if (payload?.status === 'FAILED' || json?.success === false || json?.code === 500) {
@@ -2926,6 +2690,9 @@ function renderAnomalyChart() {
   }
   const rows = detectCurveRows.value
   const threshold = detectCurveThreshold.value
+  anomalyChart.setOption(buildAnomalyChartOption(rows, threshold), true)
+  anomalyChart.resize()
+  return
   anomalyChart.setOption({
     tooltip: { trigger: 'axis' },
     grid: { left: 48, right: 24, top: 28, bottom: 36 },
@@ -3277,38 +3044,74 @@ function buildTargetKeywords(target = {}) {
   return Array.from(new Set(expanded))
 }
 
-function rowSearchText(row) {
-  const pieces = [
-    rowTaskId(row),
+function normalizeLifecycleTargetType(value) {
+  const type = String(value || '').trim().toLowerCase()
+  return type === 'device' ? 'equipment' : type
+}
+
+function lifecycleTargetIdVariants(value) {
+  const text = String(value || '').trim().toLowerCase()
+  if (!text) return []
+  const separatorIndex = text.indexOf(':')
+  if (separatorIndex < 0) return [text]
+  const type = normalizeLifecycleTargetType(text.slice(0, separatorIndex))
+  const rawId = text.slice(separatorIndex + 1)
+  return Array.from(new Set([`${type}:${rawId}`, rawId]))
+}
+
+function lifecycleRowMatchesTarget(row, target = {}) {
+  const result = rowResult(row)
+  const requestData = row?.request && typeof row.request === 'object' ? row.request : {}
+  const targetType = normalizeLifecycleTargetType(target.type)
+  const rowType = normalizeLifecycleTargetType(
+    row?.targetType || row?.target_type || row?.bizLevel || row?.biz_level ||
+    result?.targetType || result?.target_type || requestData?.targetType || requestData?.target_type
+  )
+  if (targetType && rowType && targetType !== rowType) return false
+
+  const targetIds = new Set([
+    target.id,
+    target.rawId,
+    target.part_template_id,
+    target.part_instance_id
+  ].flatMap(lifecycleTargetIdVariants))
+  const rowIds = [
     row?.targetId,
     row?.target_id,
+    row?.bizId,
+    row?.biz_id,
+    result?.targetId,
+    result?.target_id,
+    requestData?.targetId,
+    requestData?.target_id
+  ].flatMap(lifecycleTargetIdVariants)
+  if (targetIds.size && rowIds.length) {
+    return rowIds.some(id => targetIds.has(id))
+  }
+
+  const targetNames = new Set([
+    target.name,
+    target.part_name,
+    target.part_number,
+    target.part_code,
+    target.serial_number
+  ].map(item => String(item || '').trim().toLowerCase()).filter(Boolean))
+  const rowNames = [
     row?.targetName,
     row?.target_name,
     row?.bizName,
     row?.biz_name,
-    row?.summary,
-    row?.resultValue,
-    row?.result_value,
-    row?.request,
-    row?.requestJson,
-    row?.request_json,
-    row?.result
-  ]
-  return pieces.map(item => {
-    if (item === undefined || item === null) return ''
-    return typeof item === 'object' ? JSON.stringify(item) : String(item)
-  }).join(' ').toLowerCase()
+    result?.targetName,
+    result?.target_name,
+    requestData?.targetName,
+    requestData?.target_name
+  ].map(item => String(item || '').trim().toLowerCase()).filter(Boolean)
+  return rowNames.some(name => targetNames.has(name))
 }
 
-function filterLifecycleRows(rows, keywords) {
+function filterLifecycleRows(rows, target) {
   const list = Array.isArray(rows) ? rows : []
-  const words = (Array.isArray(keywords) ? keywords : []).map(item => String(item).toLowerCase()).filter(Boolean)
-  if (!words.length) return list.slice(0, 3)
-  const matched = list.filter(row => {
-    const text = rowSearchText(row)
-    return words.some(word => text.includes(word))
-  })
-  return (matched.length ? matched : list).slice(0, 3)
+  return list.filter(row => lifecycleRowMatchesTarget(row, target)).slice(0, 3)
 }
 
 function kqcLifecycleRows(rows) {
@@ -3394,11 +3197,7 @@ function faultPredictionLifecycleRows(rows) {
 }
 
 async function fetchLifecycleRows(url, params = {}) {
-  const response = await request({
-    url,
-    method: 'get',
-    params
-  })
+  const response = await fetchLifecycleRowsApi(url, params)
   const data = getKqcPayload(response)
   return Array.isArray(data.rows) ? data.rows : (Array.isArray(data) ? data : [])
 }
@@ -3407,13 +3206,25 @@ async function loadLifecycleResults(state, target = {}) {
   resetLifecycleResultState(state)
   state.loading = true
   const keywords = buildTargetKeywords(target)
-  const keyword = keywords[0] || ''
-  const baseQuery = { keyword, page_num: 1, page_size: 20 }
+  const keyword = target.rawId || rawNodeId(target.id) || keywords[0] || ''
+  const baseQuery = { keyword, page_num: 1, page_size: 1000 }
+  const keyProcessQuery = {
+    target_type: target.type || '',
+    target_id: target.id || target.rawId || '',
+    page_num: 1,
+    page_size: 20
+  }
+  const processAnomalyQuery = {
+    target_type: target.type || '',
+    target_id: target.rawId || rawNodeId(target.id),
+    page_num: 1,
+    page_size: 20
+  }
   const serviceQuery = { page_num: 1, page_size: 1000 }
   const requests = [
     ['kqc', '/feedback/warning/kqc-mining/results', baseQuery, kqcLifecycleRows],
-    ['keyProcess', '/service/identify/key_process_results', baseQuery, keyProcessLifecycleRows],
-    ['processAnomaly', '/feedback/warning/detect/results', baseQuery, anomalyLifecycleRows],
+    ['keyProcess', '/service/identify/key_process_results', keyProcessQuery, keyProcessLifecycleRows],
+    ['processAnomaly', '/feedback/warning/detect/results', processAnomalyQuery, anomalyLifecycleRows],
     ['earlyFault', '/service/identify/results', { ...serviceQuery, task_type: 'EARLY_DEGRADATION_POINT_DETECT' }, earlyFaultLifecycleRows],
     ['faultPrediction', '/service/identify/results', { ...serviceQuery, task_type: 'FAULT_PREDICT' }, faultPredictionLifecycleRows]
   ]
@@ -3422,7 +3233,7 @@ async function loadLifecycleResults(state, target = {}) {
     settled.forEach((item, index) => {
       if (item.status !== 'fulfilled') return
       const [key, , , formatter] = requests[index]
-      setLifecycleSectionRows(state, key, formatter(filterLifecycleRows(item.value, keywords)))
+      setLifecycleSectionRows(state, key, formatter(filterLifecycleRows(item.value, target)))
     })
   } finally {
     state.loading = false
@@ -3455,6 +3266,9 @@ function renderKqcRankingChart() {
   if (!kqcRankingChart) {
     kqcRankingChart = echarts.init(kqcRankingChartRef.value)
   }
+  kqcRankingChart.setOption(buildKqcRankingChartOption(kqcRankedRows.value), true)
+  kqcRankingChart.resize()
+  return
   const rows = kqcRankedRows.value.slice(0, 15).reverse()
   if (!rows.length) {
     kqcRankingChart.setOption({
@@ -3592,10 +3406,7 @@ async function lookupKqcTaskResult() {
   kqcDialog.lookupTaskId = id
   kqcDialog.lookupLoading = true
   try {
-    const json = await request({
-      url: `/feedback/warning/kqc-mining/tasks/${encodeURIComponent(id)}/status`,
-      method: 'get'
-    })
+    const json = await getKqcMiningTask(id)
     acceptKqcTask(getKqcPayload(json))
   } catch (e) {
     ElMessage.error(e?.response?.data?.msg || e?.message || '查询挖掘结果失败')
@@ -3607,11 +3418,7 @@ async function lookupKqcTaskResult() {
 async function loadKqcHistory() {
   kqcHistory.loading = true
   try {
-    const json = await request({
-      url: '/feedback/warning/kqc-mining/results',
-      method: 'get',
-      params: kqcHistory.query
-    })
+    const json = await listKqcMiningResults(kqcHistory.query)
     const data = getKqcPayload(json)
     kqcHistory.rows = Array.isArray(data.rows) ? data.rows : []
     kqcHistory.total = Number(data.total || 0)
@@ -3663,10 +3470,7 @@ async function deleteKqcHistory(row) {
     return
   }
   try {
-    await request({
-      url: `/feedback/warning/results/${encodeURIComponent(id)}`,
-      method: 'delete'
-    })
+    await deleteKqcMiningResult(id)
     ElMessage.success('删除成功')
     await loadKqcHistory()
   } catch (e) {
@@ -3702,10 +3506,7 @@ function startKqcPolling(taskId) {
 async function queryKqcStatus(taskId, token = kqcPollToken) {
   if (token !== kqcPollToken || kqcDialog.taskId !== taskId) return
   try {
-    const json = await request({
-      url: `/feedback/warning/kqc-mining/tasks/${taskId}/status`,
-      method: 'get'
-    })
+    const json = await getKqcMiningTask(taskId)
     if (token !== kqcPollToken || kqcDialog.taskId !== taskId) return
     const data = getKqcPayload(json)
     kqcDialog.status = data.status || kqcDialog.status
@@ -3739,10 +3540,7 @@ async function cancelKqcMining() {
   if (!kqcDialog.taskId || kqcDialog.canceling) return
   kqcDialog.canceling = true
   try {
-    const json = await request({
-      url: `/feedback/warning/kqc-mining/tasks/${kqcDialog.taskId}/cancel`,
-      method: 'post'
-    })
+    const json = await cancelKqcMiningTask(kqcDialog.taskId)
     const data = getKqcPayload(json)
     if (data.success === false) {
       throw new Error(data.message || data.errorMessage || '取消任务失败')
@@ -4205,6 +4003,7 @@ function resetNumObjForm() {
   numObjDlg.form.apiHeaders = ''
   numObjDlg.form.apiBody = ''
   numObjDlg.form.apiFileName = ''
+  numTaskName = ''
 }
 
 function selectNumPurpose(value) {
@@ -4280,7 +4079,7 @@ async function failNumProg(text = '导入失败') {
   numProg.percentage = 0
 }
 
-function conNumObj() {
+async function conNumObj() {
   if (!numObjDlg.form.purpose) {
     ElMessage.warning('请选择数据用途')
     return
@@ -4289,8 +4088,45 @@ function conNumObj() {
     ElMessage.warning(numObjReqText.value)
     return
   }
+  if (numObjDlg.form.purpose === 'faultIdentify') {
+    try {
+      const result = await ElMessageBox.prompt('请填写此次任务名字', '填写此次任务名字', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputValue: numTaskName,
+        inputPlaceholder: '请输入任务名称',
+        inputValidator: value => {
+          const name = String(value || '').trim()
+          if (!name) return '任务名称不能为空'
+          if (name.length > 128) return '任务名称不能超过128个字符'
+          return true
+        }
+      })
+      numTaskName = String(result.value || '').trim()
+    } catch {
+      return
+    }
+    numUploadBatchId = createNumUploadBatchId()
+    try {
+      await validateNumericTaskName({
+        aircraftId: numObjDlg.form.aircraftId || '',
+        subsystemId: numObjDlg.form.subsystemId || '',
+        equipmentId: numObjDlg.form.equipmentId || '',
+        componentId: numObjDlg.form.componentId || '',
+        taskName: numTaskName,
+        uploadBatchId: numUploadBatchId
+      })
+    } catch (error) {
+      const message = error?.response?.data?.msg || error?.message || '任务名称校验失败'
+      ElMessage.error(message)
+      return
+    }
+  } else {
+    numTaskName = ''
+    numUploadBatchId = createNumUploadBatchId()
+  }
   if (numObjDlg.form.importMode === 'api') {
-    submitNumApiData()
+    await submitNumApiData()
     return
   }
   numObjDlg.visible = false
@@ -4359,7 +4195,7 @@ async function submitNumData(files) {
   }
 
   numImporting.value = true
-  numUploadBatchId = createNumUploadBatchId()
+  if (!numUploadBatchId) numUploadBatchId = createNumUploadBatchId()
   numUploadRows.value = files.map((file, index) => ({
     id: `${numUploadBatchId}_${index}`,
     file,
@@ -4376,7 +4212,14 @@ async function submitNumData(files) {
     const success = numUploadRows.value.filter(item => item.status === NUM_UPLOAD_SUCCESS).length
     const failed = numUploadRows.value.filter(item => item.status === NUM_UPLOAD_FAILED).length
     await finishNumProg(`导入完成：成功 ${success} 个，失败 ${failed} 个`)
-    ElMessage.success(`导入完成：成功 ${success} 个，失败 ${failed} 个`)
+    if (!success && failed) {
+      const message = numUploadRows.value.find(item => item.status === NUM_UPLOAD_FAILED)?.message
+      ElMessage.error(message || `导入失败：${failed} 个文件未能上传`)
+    } else if (failed) {
+      ElMessage.warning(`导入完成：成功 ${success} 个，失败 ${failed} 个`)
+    } else {
+      ElMessage.success(`导入完成：成功 ${success} 个`)
+    }
     dataFileQuery.uploadBatchId = numUploadBatchId
     if (dataFileDialog.visible) {
       dataFileQuery.pageNum = 1
@@ -4417,7 +4260,7 @@ async function submitNumApiData() {
 
   numObjDlg.visible = false
   numImporting.value = true
-  numUploadBatchId = createNumUploadBatchId()
+  if (!numUploadBatchId) numUploadBatchId = createNumUploadBatchId()
   numUploadRows.value = [{
     id: `${numUploadBatchId}_api`,
     name: (numObjDlg.form.apiFileName || '').trim() || 'api_numeric_data.csv',
@@ -4437,6 +4280,7 @@ async function submitNumApiData() {
       equipmentId: numObjDlg.form.equipmentId || '',
       componentId: numObjDlg.form.componentId || '',
       partId: numObjDlg.form.partId || '',
+      taskName: numTaskName,
       uploadBatchId: numUploadBatchId,
       apiUrl,
       method: numObjDlg.form.apiMethod || 'GET',
@@ -4482,6 +4326,7 @@ function numUploadForm(row) {
   payload.append('equipmentId', numObjDlg.form.equipmentId || '')
   payload.append('componentId', numObjDlg.form.componentId || '')
   payload.append('partId', numObjDlg.form.partId || '')
+  payload.append('taskName', numTaskName)
   payload.append('uploadBatchId', numUploadBatchId)
   payload.append('fileIndex', String(row.index + 1))
   payload.append('totalFiles', String(numUploadRows.value.length))
@@ -4636,7 +4481,7 @@ async function submitTextData(file) {
     const res = await uploadProcessTextData(payload)
     const data = res?.data || {}
     if (isTextActualProcess.value) {
-      ElMessage.success('导入完成：零件实例 ' + (data.part_instance_count || 0) + ' 条，生产工单 ' + (data.work_order_count || 0) + ' 条，工序执行记录 ' + (data.process_execution_count || 0) + ' 条')
+      ElMessage.success('导入完成：新增制造质量记录 ' + (data.manufacturing_quality_count || 0) + ' 条，新增制造设备 ' + (data.manufacturing_device_count || 0) + ' 条，生产工单 ' + (data.work_order_count || 0) + ' 条，工序执行记录 ' + (data.process_execution_count || 0) + ' 条')
     } else {
       ElMessage.success('导入完成：零件 ' + (data.part_count || 0) + ' 个，新增实例 ' + (data.instance_count || 0) + ' 个，工序 ' + (data.process_count || 0) + ' 条')
     }
@@ -4753,7 +4598,7 @@ async function submitTextApiData() {
       ElMessage.success('API导入完成：层级对象 ' + (data.total_count || 0) + ' 条')
       await reloadTreeView(current_node.value?.id || '')
     } else if (isTextActualProcess.value) {
-      ElMessage.success('API导入完成：零件实例 ' + (data.part_instance_count || 0) + ' 条，生产工单 ' + (data.work_order_count || 0) + ' 条，工序执行记录 ' + (data.process_execution_count || 0) + ' 条')
+      ElMessage.success('API导入完成：新增制造质量记录 ' + (data.manufacturing_quality_count || 0) + ' 条，新增制造设备 ' + (data.manufacturing_device_count || 0) + ' 条，生产工单 ' + (data.work_order_count || 0) + ' 条，工序执行记录 ' + (data.process_execution_count || 0) + ' 条')
       await reloadTreeView(current_node.value?.id || '')
     } else {
       ElMessage.success('API导入完成：零件 ' + (data.part_count || 0) + ' 个，新增实例 ' + (data.instance_count || 0) + ' 个，工序 ' + (data.process_count || 0) + ' 条')
@@ -4870,6 +4715,7 @@ async function changeDataFileUsage(row, dataUsage) {
 
 async function openDataFileDialog() {
   dataFileDialog.visible = true
+  dataFileDialog.currentTask = null
   dataFileQuery.pageNum = 1
   clearSelectedDataFiles()
   await loadDataFiles()
@@ -4884,23 +4730,144 @@ async function searchDataFiles() {
 async function loadDataFiles() {
   dataFileDialog.loading = true
   try {
-    const res = await listAllDataFiles({
-      dataUsage: dataFileQuery.dataUsage || 'ALL',
-      keyword: dataFileQuery.keyword,
-      uploadBatchId: dataFileQuery.uploadBatchId,
-      pageNum: dataFileQuery.pageNum,
-      pageSize: dataFileQuery.pageSize
-    })
-    dataFileDialog.rows = Array.isArray(res.rows) ? res.rows : []
-    dataFileDialog.total = Number(res.total || 0)
-    syncDataFilePageSelection()
+    if (!dataFileDialog.currentTask) {
+      const rows = await fetchAllDataFileRows()
+      dataFileDialog.rows = []
+      dataFileDialog.taskRows = buildDataFileTasks(rows)
+      dataFileDialog.total = dataFileDialog.taskRows.length
+      syncDataTaskSelection()
+    } else {
+      const rows = await fetchDataFileRowsForTask(dataFileDialog.currentTask)
+      const start = (dataFileQuery.pageNum - 1) * dataFileQuery.pageSize
+      dataFileDialog.rows = rows.slice(start, start + dataFileQuery.pageSize)
+      dataFileDialog.total = rows.length
+      syncDataFilePageSelection()
+    }
   } catch (error) {
     dataFileDialog.rows = []
+    dataFileDialog.taskRows = []
     dataFileDialog.total = 0
     ElMessage.error(error?.response?.data?.msg || error?.message || '获取数据文件失败')
   } finally {
     dataFileDialog.loading = false
   }
+}
+
+function dataFileBaseQuery() {
+  return {
+    dataUsage: dataFileQuery.dataUsage || 'ALL',
+    keyword: dataFileQuery.keyword,
+    uploadBatchId: dataFileQuery.uploadBatchId
+  }
+}
+
+function dataFileTaskQuery(task) {
+  const query = {}
+  if (task?.rawTaskName) query.taskName = task.rawTaskName
+  if (task?.uploadBatchId) query.uploadBatchId = task.uploadBatchId
+  return query
+}
+
+async function fetchDataFileRowsForTask(task) {
+  const rows = await fetchAllDataFileRows(dataFileTaskQuery(task))
+  return rows.filter(row => dataFileTaskKeyFromRow(row) === task?.taskKey)
+}
+
+async function fetchAllDataFileRows(extraQuery = {}) {
+  const pageSize = 500
+  const first = await listAllDataFiles({
+    ...dataFileBaseQuery(),
+    ...extraQuery,
+    pageNum: 1,
+    pageSize
+  })
+  const rows = Array.isArray(first.rows) ? [...first.rows] : []
+  const total = Number(first.total || rows.length || 0)
+  const pageCount = Math.ceil(total / pageSize)
+  for (let pageNum = 2; pageNum <= pageCount; pageNum++) {
+    const res = await listAllDataFiles({
+      ...dataFileBaseQuery(),
+      ...extraQuery,
+      pageNum,
+      pageSize
+    })
+    if (Array.isArray(res.rows)) rows.push(...res.rows)
+  }
+  return rows
+}
+
+function buildDataFileTasks(rows) {
+  const taskMap = new Map()
+  ;(Array.isArray(rows) ? rows : []).forEach(row => {
+    const rawTaskName = String(row.taskName || '').trim()
+    const uploadBatchId = String(row.uploadBatchId || '').trim()
+    const taskName = rawTaskName || uploadBatchId || '未命名任务'
+    const taskKey = dataFileTaskKeyFromRow(row)
+    if (!taskMap.has(taskKey)) {
+      taskMap.set(taskKey, {
+        taskKey,
+        rawTaskName,
+        taskName,
+        uploadBatchId,
+        dataUsage: row.dataUsage,
+        fileCount: 0,
+        totalSize: 0,
+        latestCreateTime: row.createTime || '',
+        sampleFileName: row.fileName || '',
+        fileIds: []
+      })
+    }
+    const task = taskMap.get(taskKey)
+    task.fileCount += 1
+    task.totalSize += Number(row.fileSize || 0)
+    if (row.id !== undefined && row.id !== null) task.fileIds.push(row.id)
+    if (!task.latestCreateTime || (row.createTime && String(row.createTime) > String(task.latestCreateTime))) {
+      task.latestCreateTime = row.createTime
+    }
+  })
+  return Array.from(taskMap.values()).sort((a, b) => String(b.latestCreateTime || '').localeCompare(String(a.latestCreateTime || '')))
+}
+
+function dataFileTaskKeyFromRow(row) {
+  return [
+    String(row?.taskName || '').trim(),
+    String(row?.uploadBatchId || '').trim(),
+    row?.dataUsage || '',
+    row?.conditionLabel || '',
+    row?.bearingCode || ''
+  ].join('::')
+}
+
+function handleDataTaskSelectionChange(selection) {
+  dataFileDialog.selectedTaskRows = Array.isArray(selection) ? selection : []
+}
+
+function syncDataTaskSelection() {
+  const selectedKeys = new Set(dataFileDialog.selectedTaskRows.map(row => row.taskKey))
+  nextTick(() => {
+    const table = dataTaskTableRef.value
+    if (!table || !dataFileDialog.taskRows.length) return
+    table.clearSelection?.()
+    dataFileDialog.taskRows.forEach(row => {
+      if (selectedKeys.has(row.taskKey)) {
+        table.toggleRowSelection?.(row, true)
+      }
+    })
+  })
+}
+
+async function openDataFileTask(task) {
+  dataFileDialog.currentTask = task
+  dataFileQuery.pageNum = 1
+  clearSelectedDataFiles()
+  await loadDataFiles()
+}
+
+async function backToDataFileTasks() {
+  dataFileDialog.currentTask = null
+  dataFileQuery.pageNum = 1
+  clearSelectedDataFiles()
+  await loadDataFiles()
 }
 
 function handleDataFileSelectionChange(selection) {
@@ -4931,32 +4898,15 @@ function syncDataFilePageSelection() {
 
 async function selectAllDataFiles() {
   if (!dataFileDialog.total) return
+  if (!dataFileDialog.currentTask) {
+    dataFileDialog.selectedTaskRows = [...dataFileDialog.taskRows]
+    syncDataTaskSelection()
+    ElMessage.success(`已全选 ${dataFileDialog.selectedTaskRows.length} 个任务文件`)
+    return
+  }
   dataFileDialog.selectingAll = true
   try {
-    const pageSize = 500
-    const first = await listAllDataFiles({
-      dataUsage: dataFileQuery.dataUsage || 'ALL',
-      keyword: dataFileQuery.keyword,
-      uploadBatchId: dataFileQuery.uploadBatchId,
-      pageNum: 1,
-      pageSize
-    })
-    const total = Number(first.total || 0)
-    const allRows = Array.isArray(first.rows) ? [...first.rows] : []
-    const effectivePageSize = allRows.length || pageSize
-    const pageCount = Math.ceil(total / effectivePageSize)
-    for (let pageNum = 2; pageNum <= pageCount; pageNum++) {
-      const res = await listAllDataFiles({
-        dataUsage: dataFileQuery.dataUsage || 'ALL',
-        keyword: dataFileQuery.keyword,
-        uploadBatchId: dataFileQuery.uploadBatchId,
-        pageNum,
-        pageSize
-      })
-      if (Array.isArray(res.rows)) {
-        allRows.push(...res.rows)
-      }
-    }
+    const allRows = await fetchDataFileRowsForTask(dataFileDialog.currentTask)
     const unique = new Map()
     allRows.forEach(row => {
       if (row && row.id !== undefined && row.id !== null) {
@@ -4975,7 +4925,9 @@ async function selectAllDataFiles() {
 
 function clearSelectedDataFiles() {
   dataFileDialog.selectedRows = []
+  dataFileDialog.selectedTaskRows = []
   dataFileTableRef.value?.clearSelection?.()
+  dataTaskTableRef.value?.clearSelection?.()
 }
 
 async function removeDataFile(row) {
@@ -4994,41 +4946,90 @@ async function removeDataFile(row) {
   }
 }
 
-async function removeSelectedDataFiles() {
-  const rows = dataFileDialog.selectedRows.filter(row => row && row.id !== undefined && row.id !== null)
-  if (!rows.length) {
-    ElMessage.warning('请先选择要删除的数据文件')
-    return
-  }
+async function removeDataFileTask(task) {
+  if (!task) return
   try {
-    await ElMessageBox.confirm(`确认删除选中的 ${rows.length} 个数据文件吗？`, '批量删除确认', {
+    await ElMessageBox.confirm(`确认删除任务文件【${task.taskName}】及其 ${task.fileCount || 0} 个数据文件吗？`, '删除任务确认', {
       type: 'warning',
       confirmButtonText: '删除',
       cancelButtonText: '取消'
     })
     dataFileDialog.deleting = true
-    let success = 0
-    let failed = 0
-    for (const row of rows) {
-      try {
-        await deleteDataFile(row.id)
-        success++
-      } catch {
-        failed++
-      }
-    }
+    const rows = await fetchDataFileRowsForTask(task)
+    const result = await deleteDataFileRows(rows)
     clearSelectedDataFiles()
     await loadDataFiles()
-    if (failed) {
-      ElMessage.warning(`批量删除完成：成功 ${success} 个，失败 ${failed} 个`)
-    } else {
-      ElMessage.success(`批量删除成功：${success} 个`)
-    }
+    showDeleteResult(result, '任务文件已删除')
   } catch (error) {
     if (error === 'cancel' || error === 'close') return
-    ElMessage.error(error?.response?.data?.msg || error?.message || '批量删除数据文件失败')
+    ElMessage.error(error?.response?.data?.msg || error?.message || '删除任务文件失败')
   } finally {
     dataFileDialog.deleting = false
+  }
+}
+
+async function removeSelectedDataFiles() {
+  const taskMode = !dataFileDialog.currentTask
+  const rows = taskMode
+    ? dataFileDialog.selectedTaskRows.filter(row => row && row.taskKey)
+    : dataFileDialog.selectedRows.filter(row => row && row.id !== undefined && row.id !== null)
+  if (!rows.length) {
+    ElMessage.warning(taskMode ? '请先选择要删除的任务文件' : '请先选择要删除的数据文件')
+    return
+  }
+  try {
+    await ElMessageBox.confirm(taskMode
+      ? `确认删除选中的 ${rows.length} 个任务文件及其数据文件吗？`
+      : `确认删除选中的 ${rows.length} 个数据文件吗？`, '批量删除确认', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    })
+    dataFileDialog.deleting = true
+    const result = taskMode ? await deleteDataFileTasks(rows) : await deleteDataFileRows(rows)
+    clearSelectedDataFiles()
+    await loadDataFiles()
+    showDeleteResult(result, taskMode ? '任务文件已删除' : '数据文件已删除')
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+    ElMessage.error(error?.response?.data?.msg || error?.message || (taskMode ? '批量删除任务文件失败' : '批量删除数据文件失败'))
+  } finally {
+    dataFileDialog.deleting = false
+  }
+}
+
+async function deleteDataFileTasks(tasks) {
+  let success = 0
+  let failed = 0
+  for (const task of tasks) {
+    const rows = await fetchDataFileRowsForTask(task)
+    const ret = await deleteDataFileRows(rows)
+    success += ret.success
+    failed += ret.failed
+  }
+  return { success, failed }
+}
+
+async function deleteDataFileRows(rows) {
+  let success = 0
+  let failed = 0
+  for (const row of rows) {
+    if (!row || row.id === undefined || row.id === null) continue
+    try {
+      await deleteDataFile(row.id)
+      success++
+    } catch {
+      failed++
+    }
+  }
+  return { success, failed }
+}
+
+function showDeleteResult(result, successText) {
+  if (result.failed) {
+    ElMessage.warning(`删除完成：成功 ${result.success} 个，失败 ${result.failed} 个`)
+  } else {
+    ElMessage.success(`${successText}：${result.success} 个`)
   }
 }
 
@@ -5764,6 +5765,19 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 12px;
+}
+
+.data-file-task-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid #d8e5f2;
+  border-radius: 6px;
+  background: #f7fbff;
+  color: #17324d;
 }
 
 .module-card-grid {

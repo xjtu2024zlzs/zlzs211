@@ -1010,6 +1010,22 @@
         order by part_template_id
     </select>
 
+    <select id="sel_all_part_instances" resultType="java.util.HashMap">
+        select
+            part_instance_id,
+            part_template_id,
+            serial_number,
+            batch_number,
+            manufacturer,
+            date_format(production_date, '%Y-%m-%d') as production_date,
+            current_status,
+            quality_level,
+            key_degree,
+            image_url
+        from t3_part_instances
+        order by part_instance_id
+    </select>
+
     <select id="sel_all_process_route_ids" resultType="java.util.HashMap">
         select route_id
         from t3_process_routes
@@ -1195,6 +1211,32 @@
     <select id="count_manufacturing_device_by_id" resultType="int">
         select count(1) from t3_manufacturing_devices where device_id = #{device_id}
     </select>
+
+    <insert id="insert_manufacturing_quality_if_absent" parameterType="java.util.Map">
+        insert into t3_manufacturing_quality (
+            manufacturing_quality_id, part_instance_id, production_order_id, create_time
+        )
+        select
+            #{manufacturing_quality_id}, #{part_instance_id}, #{work_order_id}, now()
+        where not exists (
+            select 1
+            from t3_manufacturing_quality
+            where manufacturing_quality_id = #{manufacturing_quality_id}
+        )
+    </insert>
+
+    <insert id="insert_manufacturing_device_if_absent" parameterType="java.util.Map">
+        insert into t3_manufacturing_devices (
+            device_id, device_name, device_status, update_time
+        )
+        select
+            #{device_id}, #{device_id}, '未知', now()
+        where not exists (
+            select 1
+            from t3_manufacturing_devices
+            where device_id = #{device_id}
+        )
+    </insert>
 
     <select id="sel_part_instance_ref" resultType="java.util.HashMap">
         select part_instance_id, part_template_id

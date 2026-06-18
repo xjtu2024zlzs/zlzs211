@@ -14,21 +14,27 @@ public interface FaultIdenCatalogService
                                           MultipartFile[] files);
     Map<String, Object> uploadNumericFile(String purpose, String executionObject, String conditionLabel, Integer bearingNo,
                                           String airId, String subId, String eqpId, String cmpId,
-                                          String ptId, String uploadBatchId, Integer fileIndex, Integer totalFiles,
+                                          String ptId, String taskName, String uploadBatchId, Integer fileIndex, Integer totalFiles,
                                           MultipartFile file, String relativePath);
     Map<String, Object> uploadNumericApi(Map<String, Object> req);
     Map<String, Object> uploadNumericChunk(String uploadId, Integer chunkIndex, Integer chunkCount, String fileName, MultipartFile chunk);
+    Map<String, Object> uploadNumericChunk(String uploadId, Integer chunkIndex, Integer chunkCount,
+                                           String fileName, String fileHash, MultipartFile chunk);
     Map<String, Object> mergeNumericChunks(String purpose, String executionObject, String conditionLabel, Integer bearingNo,
                                            String airId, String subId, String eqpId, String cmpId,
-                                           String ptId, String uploadBatchId, String uploadId, String fileName,
+                                           String ptId, String taskName, String uploadBatchId, String uploadId, String fileName,
                                            Integer totalFiles, String relativePath);
+    Map<String, Object> validateTaskName(String airId, String subId, String eqpId, String cmpId,
+                                         String taskName, String uploadBatchId);
     Map<String, Object> numericChunkStatus(String uploadId);
     Map<String, Object> conditions();
     Map<String, Object> bearings(String conditionLabel);
     Map<String, Object> samples(String conditionLabel, String bearingCode, String keyword,
                                 String airId, String subId, String eqpId, String cmpId,
                                 String partId,
-                                String dataUsage, String uploadBatchId, Integer pageNum, Integer pageSize);
+                                String dataUsage, String taskName, String uploadBatchId, Integer pageNum, Integer pageSize);
+    Map<String, Object> taskNames(String airId, String subId, String eqpId, String cmpId,
+                                  String partId, String dataUsage, String keyword);
     Map<String, Object> deleteSample(Long sampleId);
     Map<String, Object> updateSampleDataUsage(Long sampleId, String dataUsage);
 }

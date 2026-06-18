@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -198,6 +199,12 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
             setStatus(task, TASK_STATUS_RUNNING);
             cacheTask(task, null, null);
             runFeat(task, json(py));
+            if (shouldRunFeatureAnalysisAsync())
+            {
+                CompletableFuture.runAsync(() -> executeFeatureAnalysis(new LinkedHashMap<>(task), py));
+                log.info("Feature analysis task submitted, taskId={}, status={}", taskId, TASK_STATUS_RUNNING);
+                return startResp(task, null);
+            }
             log.info("调用Python特征分析服务，任务ID={}", taskId);
 
             Map<String, Object> res = pythonAlgorithmClient.runFeature(py);
@@ -241,6 +248,55 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
         }
     }
 
+    private void executeFeatureAnalysis(Map<String, Object> task, FeatureReq py)
+    {
+        String taskId = str(task, "task_id");
+        log.info("Calling Python feature analysis service, taskId={}", taskId);
+        try
+        {
+            Map<String, Object> res = pythonAlgorithmClient.runFeature(py);
+            log.info(
+                    "Received Python feature analysis response, taskId={}, status={}",
+                    taskId,
+                    statusText(res)
+            );
+            Map<String, Object> ret = normFeat(res, taskId);
+            setStatus(task, str(ret, "status") == null ? TASK_STATUS_SUCCESS : str(ret, "status"));
+            cacheTask(task, ret, null);
+            okAlg(
+                    taskId,
+                    json(res),
+                    featSum(ret),
+                    featVal(ret),
+                    null
+            );
+            log.info("Feature analysis task completed, taskId={}, status={}", taskId, task.get("status"));
+        }
+        catch (ServiceException e)
+        {
+            setStatus(task, TASK_STATUS_FAILED);
+            String err = e.getMessage() == null
+                    ? "data analysis failed"
+                    : e.getMessage();
+            cacheTask(task, null, err);
+            failAlg(taskId, err);
+            log.warn("Feature analysis task failed, taskId={}, status={}, error={}", taskId, TASK_STATUS_FAILED, err);
+        }
+        catch (Exception e)
+        {
+            setStatus(task, TASK_STATUS_FAILED);
+            String err = "feature analysis task execution failed";
+            cacheTask(task, null, err);
+            failAlg(taskId, err);
+            log.error("Feature analysis task failed, taskId={}, status={}, error={}", taskId, TASK_STATUS_FAILED, e.getMessage(), e);
+        }
+    }
+
+    private boolean shouldRunFeatureAnalysisAsync()
+    {
+        return true;
+    }
+
     @Override
     public Map<String, Object> get_task(String task_id)
     {
@@ -267,6 +323,124 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
             throw new ServiceException("任务不存在");
         }
         return new LinkedHashMap<>(taskStatusSnapshot);
+    }
+
+    @Override
+    public Map<String, Object> get_time_domain_window(String analysisId, Integer startIndex, Integer limit)
+    {
+        String taskId = to_text(analysisId);
+        if (taskId == null)
+        {
+            throw new ServiceException("分析任务ID不能为空");
+        }
+        AlgTaskResult task = algTaskMapper.getByTaskId(taskId);
+        if (task == null || !ALG_FEATURE.equals(task.getTaskType()) || !TASK_STATUS_SUCCESS.equals(task.getStatus()))
+        {
+            throw new ServiceException("未找到成功的数据分析任务");
+        }
+
+        Map<String, Object> result = parseJsonObject(task.getResJson());
+        String datasetId = to_text(findVal(result, 0, "datasetId", "dataset_id"));
+        String combinedDataPath = to_text(findVal(result, 0, "combinedDataPath", "combined_data_path"));
+        Object samplingValue = findVal(result, 0, "samplingFrequency", "samplingRate", "sampling_frequency", "sampling_rate");
+        if (datasetId == null && combinedDataPath == null)
+        {
+            throw new ServiceException("数据分析结果缺少数据集路径");
+        }
+
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("datasetId", datasetId);
+        request.put("combinedDataPath", combinedDataPath);
+        request.put("samplingFrequency", samplingValue == null ? 25600 : samplingValue);
+        request.put("startIndex", startIndex == null ? 0 : Math.max(0, startIndex));
+        request.put("limit", limit == null || limit <= 0 ? 5000 : Math.min(limit, 25600));
+
+        Map<String, Object> response = pythonAlgorithmClient.getTimeDomainWindow(request);
+        Map<String, Object> data = asMap(response.get("data"));
+        if (data.isEmpty())
+        {
+            throw new ServiceException("Python时域窗口接口未返回有效数据");
+        }
+        data.put("analysisId", taskId);
+        return data;
+    }
+
+    @Override
+    public Map<String, Object> get_time_domain_overview(String analysisId, Integer maxBuckets)
+    {
+        String taskId = to_text(analysisId);
+        if (taskId == null)
+        {
+            throw new ServiceException("分析任务ID不能为空");
+        }
+        AlgTaskResult task = algTaskMapper.getByTaskId(taskId);
+        if (task == null || !ALG_FEATURE.equals(task.getTaskType()) || !TASK_STATUS_SUCCESS.equals(task.getStatus()))
+        {
+            throw new ServiceException("未找到成功的数据分析任务");
+        }
+
+        Map<String, Object> result = parseJsonObject(task.getResJson());
+        String datasetId = to_text(findVal(result, 0, "datasetId", "dataset_id"));
+        String combinedDataPath = to_text(findVal(result, 0, "combinedDataPath", "combined_data_path"));
+        Object samplingValue = findVal(result, 0, "samplingFrequency", "samplingRate", "sampling_frequency", "sampling_rate");
+        if (datasetId == null && combinedDataPath == null)
+        {
+            throw new ServiceException("数据分析结果缺少数据集路径");
+        }
+
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("datasetId", datasetId);
+        request.put("combinedDataPath", combinedDataPath);
+        request.put("samplingFrequency", samplingValue == null ? 25600 : samplingValue);
+        request.put("maxBuckets", maxBuckets == null || maxBuckets <= 0 ? 2000 : Math.min(maxBuckets, 5000));
+
+        Map<String, Object> response = pythonAlgorithmClient.getTimeDomainOverview(request);
+        Map<String, Object> data = asMap(response.get("data"));
+        if (data.isEmpty())
+        {
+            throw new ServiceException("Python时域概览接口未返回有效数据");
+        }
+        data.put("analysisId", taskId);
+        return data;
+    }
+
+    @Override
+    public Map<String, Object> get_time_domain_global_raw_preview(String analysisId, Integer maxPoints)
+    {
+        String taskId = to_text(analysisId);
+        if (taskId == null)
+        {
+            throw new ServiceException("分析任务ID不能为空");
+        }
+        AlgTaskResult task = algTaskMapper.getByTaskId(taskId);
+        if (task == null || !ALG_FEATURE.equals(task.getTaskType()) || !TASK_STATUS_SUCCESS.equals(task.getStatus()))
+        {
+            throw new ServiceException("未找到成功的数据分析任务");
+        }
+
+        Map<String, Object> result = parseJsonObject(task.getResJson());
+        String datasetId = to_text(findVal(result, 0, "datasetId", "dataset_id"));
+        String combinedDataPath = to_text(findVal(result, 0, "combinedDataPath", "combined_data_path"));
+        Object samplingValue = findVal(result, 0, "samplingFrequency", "samplingRate", "sampling_frequency", "sampling_rate");
+        if (datasetId == null && combinedDataPath == null)
+        {
+            throw new ServiceException("数据分析结果缺少数据集路径");
+        }
+
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("datasetId", datasetId);
+        request.put("combinedDataPath", combinedDataPath);
+        request.put("samplingFrequency", samplingValue == null ? 25600 : samplingValue);
+        request.put("maxPoints", maxPoints == null ? 8000 : Math.max(1000, Math.min(maxPoints, 20000)));
+
+        Map<String, Object> response = pythonAlgorithmClient.getTimeDomainGlobalRawPreview(request);
+        Map<String, Object> data = asMap(response.get("data"));
+        if (data.isEmpty())
+        {
+            throw new ServiceException("Python全局原始波形预览接口未返回有效数据");
+        }
+        data.put("analysisId", taskId);
+        return data;
     }
 
     @Override
@@ -1225,6 +1399,7 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
         out.put("timeDomainSignal", result.get("timeDomainSignal"));
         out.put("timeFrequencySpectrum", result.get("timeFrequencySpectrum"));
         out.put("timeDomain", result.get("timeDomain"));
+        out.put("timeDomainMeta", result.get("timeDomainMeta"));
         out.put("timeFrequency", result.get("timeFrequency"));
         out.put("summary", result.get("summary"));
         out.put("datasetId", result.get("datasetId"));
@@ -2000,6 +2175,7 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
     {
         Map<String, Object> result = parseJsonObject(record.getResJson());
         String flowTaskId = flowTaskId(record);
+        String importTaskName = importTaskName(flowTaskId);
 
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("taskId", flowTaskId);
@@ -2014,6 +2190,8 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
         row.put("task_type", record.getTaskType());
         row.put("taskName", record.getTaskName());
         row.put("task_name", record.getTaskName());
+        row.put("importTaskName", importTaskName);
+        row.put("import_task_name", importTaskName);
         row.put("status", record.getStatus());
         row.put("targetType", record.getBizLevel());
         row.put("target_type", record.getBizLevel());
@@ -2038,6 +2216,36 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
         row.put("updateTime", record.getUpdateTime());
         row.put("result", result);
         return row;
+    }
+
+    private String importTaskName(String flowTaskId)
+    {
+        if (flowTaskId == null)
+        {
+            return null;
+        }
+        List<AlgTaskResult> tasks = algTaskMapper.getTasksByFlowTaskId(flowTaskId);
+        List<String> taskIds = stageTaskIds(tasks);
+        List<FaultIdenFilePackage> packages = taskIds.isEmpty()
+                ? Collections.emptyList()
+                : faultIdenFilePackageMapper.selectByTaskIds(taskIds);
+        Set<Long> sampleIds = sampleIdsFromTasksAndPackages(tasks, packages);
+        if (sampleIds.isEmpty())
+        {
+            return null;
+        }
+
+        Set<String> names = new LinkedHashSet<>();
+        List<FaultIdenSampleFile> samples = faultIdenSampleMapper.selectSamplesByIds(new ArrayList<>(sampleIds), null);
+        for (FaultIdenSampleFile sample : samples)
+        {
+            String name = to_text(sample.getTaskName());
+            if (name != null)
+            {
+                names.add(name);
+            }
+        }
+        return names.isEmpty() ? null : String.join("、", names);
     }
 
     private String flowTaskId(AlgTaskResult record)

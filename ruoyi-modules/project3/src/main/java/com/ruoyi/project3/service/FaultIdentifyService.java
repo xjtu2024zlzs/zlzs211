@@ -23,6 +23,12 @@ public interface FaultIdentifyService {
 
     Map<String, Object> get_task(String task_id);
 
+    Map<String, Object> get_time_domain_window(String analysisId, Integer startIndex, Integer limit);
+
+    Map<String, Object> get_time_domain_overview(String analysisId, Integer maxBuckets);
+
+    Map<String, Object> get_time_domain_global_raw_preview(String analysisId, Integer maxPoints);
+
     Map<String, Object> delete_identify_result(String flowTaskId, Map<String, Object> options);
 
     Map<String, Object> submit_feature(String request_body);

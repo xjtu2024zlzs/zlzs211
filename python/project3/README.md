@@ -42,16 +42,16 @@ Content-Type: application/json
   "fileMode": "MULTI_FILE",
   "sampleIds": [9, 11, 13],
   "filePaths": [
-    "F:/TotalData/FaultIdentifyData/ObjectNumericData/component/C1/NUM_xxx/1.csv",
-    "F:/TotalData/FaultIdentifyData/ObjectNumericData/component/C1/NUM_xxx/2.csv",
-    "F:/TotalData/FaultIdentifyData/ObjectNumericData/component/C1/NUM_xxx/3.csv"
+    "/data/project3/FaultIdentifyData/ObjectNumericData/component/C1/NUM_xxx/1.csv",
+    "/data/project3/FaultIdentifyData/ObjectNumericData/component/C1/NUM_xxx/2.csv",
+    "/data/project3/FaultIdentifyData/ObjectNumericData/component/C1/NUM_xxx/3.csv"
   ],
   "fileUrls": [
     "/quality/fault-iden/files/source/9",
     "/quality/fault-iden/files/source/11",
     "/quality/fault-iden/files/source/13"
   ],
-  "batchPath": "F:/TotalData/FaultIdentifyData/ObjectNumericData/component/C1/NUM_xxx",
+  "batchPath": "/data/project3/FaultIdentifyData/ObjectNumericData/component/C1/NUM_xxx",
   "samplingFrequency": 25600,
   "columnIndex": 0,
   "windowSize": 1.0,
@@ -167,6 +167,6 @@ Content-Type: application/json
 
 ## 注意事项
 
-- 如果 Spring Boot 和 Python 不在同一台机器，`F:/...` 这种路径在 Python 机器上可能不可访问。此时应改用共享盘、对象存储，或调用 `/algorithm/data/upload-multipart` 直接上传文件流。
+- 如果 Spring Boot 和 Python 不在同一台机器，本地文件路径在 Python 机器上可能不可访问。此时应改用共享盘、对象存储，或调用 `/algorithm/data/upload-multipart` 直接上传文件流。
 - `data_combined` 保存为 `.npy` 文件，不直接写入数据库。
 - Spring Boot 建议把 `datasetId -> combinedDataPath` 写入数据库，后续接口只查路径再传给 Python。

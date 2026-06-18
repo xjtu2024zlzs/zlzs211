@@ -60,13 +60,13 @@ export const constantRoutes = [
   {
     path: '',
     component: Layout,
-    redirect: '/index',
+    hidden: true,
+    redirect: '/project_3',
     children: [
       {
         path: '/index',
-        component: () => import('@/views/index'),
-        name: 'Index',
-        meta: { title: '首页', icon: 'dashboard', affix: true }
+        redirect: '/project_3',
+        hidden: true
       }
     ]
   },
@@ -110,9 +110,9 @@ export const constantRoutes = [
         meta: { title: '课题三首页', icon: 'dashboard' }
       },
       {
-        path: 'monitor',
+        path: 'lifecycle-monitor',
         component: () => import('@/views/project_3/monitor/index.vue'),
-        name: 'Project3Monitor',
+        name: 'Project3LifecycleMonitor',
         meta: { title: '生命周期质量统一监测', icon: 'monitor' }
       },
       {

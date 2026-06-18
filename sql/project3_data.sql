@@ -498,7 +498,11 @@ CREATE TABLE IF NOT EXISTS `t3_algorithm_task_results` (
   `task_id` varchar(64) NOT NULL COMMENT '算法任务ID',
   `task_type` varchar(64) NOT NULL COMMENT '算法任务类型，如 FEATURE_ANALYSIS、DEGRADATION_DETECT、FAULT_PREDICT',
   `task_name` varchar(128) DEFAULT NULL COMMENT '算法任务名称',
-  `status` varchar(32) NOT NULL DEFAULT 'PENDING' COMMENT '任务状态：PENDING/RUNNING/SUCCESS/FAILED',
+  `status` varchar(32) NOT NULL DEFAULT 'PENDING' COMMENT '任务状态：PENDING/RUNNING/SUCCESS/FAILED/CANCELED',
+  `status_version` bigint NOT NULL DEFAULT 0 COMMENT '任务状态版本号，每次合法状态同步递增',
+  `last_sync_at` datetime DEFAULT NULL COMMENT '最近一次与算法服务同步时间',
+  `last_sync_error` varchar(1000) DEFAULT NULL COMMENT '最近一次状态同步错误',
+  `sync_retry_count` int NOT NULL DEFAULT 0 COMMENT '连续状态同步失败次数',
 
   `request_id` varchar(64) DEFAULT NULL COMMENT '请求流水号',
   `algorithm_version` varchar(32) DEFAULT NULL COMMENT '算法版本',
@@ -594,5 +598,70 @@ CREATE TABLE IF NOT EXISTS `t3_fault_iden_file_package` (
 -- ============================================================
 SET NAMES utf8mb4;
 
-ALTER TABLE `t3_part_instances`
-  ADD COLUMN `image_url` varchar(255) DEFAULT NULL COMMENT '零件图片地址' AFTER `key_degree`;
+SET @image_url_column_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 't3_part_instances'
+    AND COLUMN_NAME = 'image_url'
+);
+SET @image_url_ddl := IF(
+  @image_url_column_exists = 0,
+  'ALTER TABLE `t3_part_instances` ADD COLUMN `image_url` varchar(255) DEFAULT NULL COMMENT ''零件图片地址'' AFTER `key_degree`',
+  'SELECT 1'
+);
+PREPARE image_url_stmt FROM @image_url_ddl;
+EXECUTE image_url_stmt;
+DEALLOCATE PREPARE image_url_stmt;
+
+SET @status_version_exists := (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 't3_algorithm_task_results' AND COLUMN_NAME = 'status_version'
+);
+SET @status_version_ddl := IF(
+  @status_version_exists = 0,
+  'ALTER TABLE `t3_algorithm_task_results` ADD COLUMN `status_version` bigint NOT NULL DEFAULT 0 COMMENT ''任务状态版本号，每次合法状态同步递增'' AFTER `status`',
+  'SELECT 1'
+);
+PREPARE status_version_stmt FROM @status_version_ddl;
+EXECUTE status_version_stmt;
+DEALLOCATE PREPARE status_version_stmt;
+
+SET @last_sync_at_exists := (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 't3_algorithm_task_results' AND COLUMN_NAME = 'last_sync_at'
+);
+SET @last_sync_at_ddl := IF(
+  @last_sync_at_exists = 0,
+  'ALTER TABLE `t3_algorithm_task_results` ADD COLUMN `last_sync_at` datetime DEFAULT NULL COMMENT ''最近一次与算法服务同步时间'' AFTER `status_version`',
+  'SELECT 1'
+);
+PREPARE last_sync_at_stmt FROM @last_sync_at_ddl;
+EXECUTE last_sync_at_stmt;
+DEALLOCATE PREPARE last_sync_at_stmt;
+
+SET @last_sync_error_exists := (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 't3_algorithm_task_results' AND COLUMN_NAME = 'last_sync_error'
+);
+SET @last_sync_error_ddl := IF(
+  @last_sync_error_exists = 0,
+  'ALTER TABLE `t3_algorithm_task_results` ADD COLUMN `last_sync_error` varchar(1000) DEFAULT NULL COMMENT ''最近一次状态同步错误'' AFTER `last_sync_at`',
+  'SELECT 1'
+);
+PREPARE last_sync_error_stmt FROM @last_sync_error_ddl;
+EXECUTE last_sync_error_stmt;
+DEALLOCATE PREPARE last_sync_error_stmt;
+
+SET @sync_retry_count_exists := (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 't3_algorithm_task_results' AND COLUMN_NAME = 'sync_retry_count'
+);
+SET @sync_retry_count_ddl := IF(
+  @sync_retry_count_exists = 0,
+  'ALTER TABLE `t3_algorithm_task_results` ADD COLUMN `sync_retry_count` int NOT NULL DEFAULT 0 COMMENT ''连续状态同步失败次数'' AFTER `last_sync_error`',
+  'SELECT 1'
+);
+PREPARE sync_retry_count_stmt FROM @sync_retry_count_ddl;
+EXECUTE sync_retry_count_stmt;
+DEALLOCATE PREPARE sync_retry_count_stmt;

@@ -87,7 +87,7 @@ INSERT INTO sys_menu (
   create_by, create_time, update_by, update_time, remark
 )
 SELECT
-  '生命周期质量统一监测', @project3_parent_id, 2, 'monitor', 'project_3/monitor/index', '', 'Project3MenuMonitor',
+  '生命周期质量统一监测', @project3_parent_id, 2, 'lifecycle-monitor', 'project_3/monitor/index', '', 'Project3LifecycleMonitor',
   1, 0, 'C', '0', '0', 'project3:monitor:view', 'monitor',
   'admin', NOW(), '', NULL, '生命周期质量统一监测菜单'
 WHERE NOT EXISTS (
@@ -99,10 +99,10 @@ SET
   menu_name = '生命周期质量统一监测',
   parent_id = @project3_parent_id,
   order_num = 2,
-  path = 'monitor',
+  path = 'lifecycle-monitor',
   component = 'project_3/monitor/index',
   query = '',
-  route_name = 'Project3MenuMonitor',
+  route_name = 'Project3LifecycleMonitor',
   is_frame = 1,
   is_cache = 0,
   menu_type = 'C',
