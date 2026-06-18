@@ -590,7 +590,7 @@ const defaultModules = [
     moduleCode: 'PROJECT_4',
     moduleName: '智能故障诊断与根源性分析',
     moduleType: 'TOPIC',
-    route: '/project_4'
+    route: '/project4'
   },
   {
     moduleCode: 'PROJECT_5',

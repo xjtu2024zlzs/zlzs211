@@ -1,0 +1,12 @@
+server:
+  port: 9304
+
+spring:
+  application:
+    name: ruoyi-project4
+
+project4:
+  python:
+    base-url: http://127.0.0.1:9761
+  script-root: D:/topic4-script
+  output-root: D:/topic4-output

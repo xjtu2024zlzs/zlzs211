@@ -1,0 +1,34 @@
+# Tomcat
+server:
+  port: 9304
+
+# Spring
+spring:
+  application:
+    name: ruoyi-project4
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
+      discovery:
+        server-addr: 127.0.0.1:8848
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 127.0.0.1:8848
+        group: DEFAULT_GROUP
+        file-extension: yml
+        username: nacos
+        password: nacos
+  config:
+    import:
+      - nacos:application-dev.yml?group=DEFAULT_GROUP
+      - nacos:ruoyi-system-dev.yml?group=DEFAULT_GROUP
+project4:
+  python-command: python
+  script-root: D:/科研/课题项目/航空装备智能故障诊断软件系统/若依/RuoYi-Vue3/algorithm/project4
+  model-path: D:/科研/课题项目/航空装备智能故障诊断软件系统/若依/RuoYi-Vue3/algorithm/project4/model.pt
+  output-root: D:/topic4-output

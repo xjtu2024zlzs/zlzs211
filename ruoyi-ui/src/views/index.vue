@@ -341,7 +341,7 @@ const middleProjects = ref([
     chartValue: '91.2%',
     chartLabels: ['1月', '2月', '3月', '4月', '5月', '6月'],
     chartData: [62, 68, 74, 79, 84, 91],
-    route: '/project_2',
+    route: '/designtask/dashboard',
     meta: [
       { name: '接入工序', value: '18' },
       { name: '异常批次', value: '6' },
@@ -377,7 +377,7 @@ const middleProjects = ref([
     chartValue: '94.7%',
     chartLabels: ['A', 'B', 'C', 'D', 'E', 'F'],
     chartData: [86, 82, 90, 76, 94, 88],
-    route: '/project_4',
+    route: '/project4',
     meta: [
       { name: '检测项目', value: '26' },
       { name: '合格记录', value: '168' },

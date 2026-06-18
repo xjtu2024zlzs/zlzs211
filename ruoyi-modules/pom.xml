@@ -25,6 +25,7 @@
         <module>ruoyi-quality</module>
         <module>ruoyi-designtask1</module>
         <module>ruoyi-flowable</module>
+        <module>ruoyi-project4</module>
     </modules>
 
     <artifactId>ruoyi-modules</artifactId>

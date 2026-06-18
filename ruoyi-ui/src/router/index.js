@@ -161,14 +161,14 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/project_4',
+    path: '/project4',
     component: Layout,
     hidden: true,
     children: [
       {
         path: '',
-        component: () => import('@/views/project_4/index.vue'),
-        name: 'Project4',
+        component: () => import('@/views/project4/fileofda/index.vue'),
+        name: 'project4',
         meta: { title: '课题四', icon: 'dashboard' }
       }
     ]
@@ -182,7 +182,7 @@ export const constantRoutes = [
         path: '',
         component: () => import('@/views/topic5/trace/index.vue'),
         name: 'Project5',
-        meta: { title: '课题五', icon: 'dashboard' }
+        meta: { title: '追溯', icon: 'dashboard' }
       }
     ]
   },
