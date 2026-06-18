@@ -93,6 +93,24 @@ export const constantRoutes = [
         component: () => import('@/views/project_2/index.vue'),
         name: 'Project2',
         meta: { title: '课题二', icon: 'dashboard' }
+      },
+      {
+        path: 'designtask-create',
+        component: () => import('@/views/project_2/designtask-create2.vue'),
+        name: 'Project2DesignTaskCreate',
+        meta: { title: '流程发起', icon: 'form', activeMenu: '/project_2' }
+      },
+      {
+        path: 'designtask-create2',
+        component: () => import('@/views/project_2/designtask-create2.vue'),
+        name: 'Project2DesignTaskCreate2',
+        meta: { title: '流程发起（单页版）', icon: 'edit', activeMenu: '/project_2' }
+      },
+      {
+        path: 'designtask-manage',
+        component: () => import('@/views/project_2/designtask-manage.vue'),
+        name: 'Project2DesignTaskManage',
+        meta: { title: '任务管理', icon: 'list', activeMenu: '/project_2' }
       }
     ]
   },
@@ -165,6 +183,67 @@ export const constantRoutes = [
         component: () => import('@/views/topic5/trace/index.vue'),
         name: 'Project5',
         meta: { title: '课题五', icon: 'dashboard' }
+      }
+    ]
+  },
+  {
+    path: '/designtask',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'task/create',
+        component: () => import('@/views/designtask/task/create'),
+        name: 'TaskCreate',
+        meta: { title: '任务发起', icon: 'clipboard' }
+      },
+      {
+        path: 'dashboard',
+        component: () => import('@/views/designtask/dashboard/index'),
+        name: 'DesignTaskDashboard',
+        meta: { title: '首页（任务看板）', icon: 'dashboard' }
+      },
+      {
+        path: 'mechanism',
+        component: () => import('@/views/designtask/mechanism/index'),
+        name: 'DesignTaskMechanism',
+        meta: { title: '协同机制生成', icon: 'guide' }
+      },
+      {
+        path: 'objective',
+        component: () => import('@/views/designtask/objective/index'),
+        name: 'DesignTaskObjective',
+        meta: { title: '目标约束选择', icon: 'checkbox' }
+      },
+      {
+        path: 'solve',
+        component: () => import('@/views/designtask/solve/index'),
+        name: 'DesignTaskSolve',
+        meta: { title: '模型解耦求解', icon: 'component' }
+      },
+      {
+        path: 'life-prediction',
+        component: () => import('@/views/designtask/frameBeam/life-prediction'),
+        name: 'FrameBeamLifePrediction',
+        meta: { title: '寿命预测评估', icon: 'chart' }
+      },
+      {
+        path: 'simulation',
+        component: () => import('@/views/designtask/simulation/index'),
+        name: 'DesignTaskSimulation',
+        meta: { title: '仿真验证确认', icon: 'chart' }
+      },
+      {
+        path: 'decision-advice',
+        component: () => import('@/views/designtask/frameBeam/decision-advice'),
+        name: 'FrameBeamDecisionAdvice',
+        meta: { title: '决策建议确认', icon: 'checkbox' }
+      },
+      {
+        path: 'archive',
+        component: () => import('@/views/designtask/archive/index'),
+        name: 'DesignTaskArchive',
+        meta: { title: '任务归档文档', icon: 'documentation' }
       }
     ]
   },

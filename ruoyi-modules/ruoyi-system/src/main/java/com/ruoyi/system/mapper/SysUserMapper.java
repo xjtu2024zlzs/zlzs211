@@ -52,6 +52,22 @@ public interface SysUserMapper
     public SysUser selectUserById(Long userId);
 
     /**
+     * 根据角色ID集合查询用户
+     * 
+     * @param roleIds 角色ID集合
+     * @return 用户列表
+     */
+    public List<SysUser> selectUserListByRoleIds(List<Long> roleIds);
+
+    /**
+     * 根据部门ID集合查询用户
+     * 
+     * @param deptIds 部门ID集合
+     * @return 用户列表
+     */
+    public List<SysUser> selectUserListByDeptIds(List<Long> deptIds);
+
+    /**
      * 新增用户信息
      * 
      * @param user 用户信息
@@ -142,3 +158,4 @@ public interface SysUserMapper
      */
     public SysUser checkEmailUnique(String email);
 }
+

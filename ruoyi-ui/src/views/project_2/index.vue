@@ -1,100 +1,84 @@
 <template>
-  <div class="project-page">
-    <div class="project-page__header">
-      <div>
-        <p class="project-eyebrow">专题入口</p>
-        <h1 class="project-title">课题二</h1>
-        <p class="project-summary">课题二对应的独立页面，用于承接首页快捷入口跳转。</p>
-      </div>
-    </div>
-    <el-card class="project-card" shadow="hover">
-      <div class="project-content">
-        <div class="stat-box">
-          <span class="stat-label">当前状态</span>
-          <span class="stat-value">监督中</span>
+  <div class="app-container project-2-page">
+    <el-card shadow="never" class="header-card">
+      <div class="header-row">
+        <div>
+          <div class="title">课题二</div>
+          <div class="desc">设计任务模块</div>
         </div>
-        <div class="stat-box">
-          <span class="stat-label">重点数据</span>
-          <span class="stat-value">96 条</span>
-        </div>
+        <div class="header-tip">通过左侧菜单的子节点进入“任务管理”或“流程发起”</div>
       </div>
     </el-card>
+
+    <el-row :gutter="16">
+      <el-col :xs="24" :sm="12" :md="12">
+        <el-card shadow="hover" class="menu-card" @click="$router.push('/project_2/designtask-manage')">
+          <div class="menu-title">任务管理</div>
+          <div class="menu-desc">查看任务列表、状态、详情与基础操作</div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="12" :md="12">
+        <el-card shadow="hover" class="menu-card" @click="$router.push('/project_2/designtask-create')">
+          <div class="menu-title">流程发起</div>
+          <div class="menu-desc">按步骤创建任务并选择流程模板</div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup>
 </script>
 
-<style scoped lang="scss">
-.project-page {
-  min-height: calc(100vh - 24px);
-  padding: 16px;
-  box-sizing: border-box;
-  background: linear-gradient(180deg, #f3f9ff 0%, #e1edf8 100%);
+<style scoped>
+.project-2-page {
+  background: #f5f7fa;
+  min-height: calc(100vh - 84px);
 }
 
-.project-page__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.header-card {
   margin-bottom: 16px;
-  padding: 18px 20px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.78);
-  border: 1px solid rgba(88, 136, 188, 0.26);
 }
 
-.project-eyebrow {
-  margin: 0 0 6px;
-  color: #2b6cb3;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.project-title {
-  margin: 0;
-  color: #122f53;
-  font-size: 28px;
-}
-
-.project-summary {
-  margin: 8px 0 0;
-  color: #60728f;
-  line-height: 1.5;
-}
-
-.project-card {
-  border-radius: 20px;
-  border: 1px solid rgba(90, 140, 197, 0.26);
-  background: rgba(255,255,255,0.84);
-}
-
-.project-content {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.stat-box {
+.header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: #f6fbff;
-  border: 1px solid rgba(95, 138, 193, 0.24);
+  gap: 12px;
 }
 
-.stat-label {
-  color: #68809f;
-  font-size: 12px;
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
 }
 
-.stat-value {
-  color: #0f2948;
+.desc {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #909399;
+}
+
+.header-tip {
+  color: #606266;
+  font-size: 13px;
+}
+
+.menu-card {
+  cursor: pointer;
+  min-height: 140px;
+}
+
+.menu-title {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.menu-desc {
+  font-size: 13px;
+  color: #909399;
+  line-height: 1.6;
 }
 </style>

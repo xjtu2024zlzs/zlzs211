@@ -6,6 +6,12 @@
         <artifactId>ruoyi</artifactId>
         <version>3.6.8</version>
     </parent>
+    <dependencies>
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>ruoyi-common-security</artifactId>
+        </dependency>
+    </dependencies>
     <modelVersion>4.0.0</modelVersion>
 
     <modules>
@@ -17,6 +23,8 @@
         <module>project3</module>
         <module>ruoyi-project1</module>
         <module>ruoyi-quality</module>
+        <module>ruoyi-designtask1</module>
+        <module>ruoyi-flowable</module>
     </modules>
 
     <artifactId>ruoyi-modules</artifactId>

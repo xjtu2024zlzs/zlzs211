@@ -4,6 +4,7 @@ import java.util.Set;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.core.annotation.Excel;
@@ -15,6 +16,7 @@ import com.ruoyi.common.core.web.domain.BaseEntity;
  * 
  * @author ruoyi
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SysRole extends BaseEntity
 {
     private static final long serialVersionUID = 1L;

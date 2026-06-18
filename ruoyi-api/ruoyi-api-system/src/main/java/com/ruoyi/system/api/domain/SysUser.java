@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 import jakarta.validation.constraints.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.core.annotation.Excel;
@@ -19,6 +20,7 @@ import com.ruoyi.common.core.xss.Xss;
  * 
  * @author ruoyi
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SysUser extends BaseEntity
 {
     private static final long serialVersionUID = 1L;

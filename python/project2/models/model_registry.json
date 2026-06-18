@@ -1,0 +1,7 @@
+{
+  "activeModel": "aero_pipe_kriging.pkl",
+  "modelType": "Kriging / Gaussian Process",
+  "inputOrder": ["L1", "L2", "theta1", "theta2", "R"],
+  "outputName": "predictedStress",
+  "outputUnit": "MPa"
+}

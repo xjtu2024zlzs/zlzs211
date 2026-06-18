@@ -49,6 +49,23 @@ nbdist/
 python/**/run/
 python/**/logs/
 tmp_*
+.codex-tmp/
+.m2/
+maven-repo/
+maven-tmp/
+ruoyi-ui/npm-cache/
+
+######################################################################
+# Local runtime/generated files
+
+__pycache__/
+*.py[cod]
+uploads/
+photos/
+solidworks_worker/output/
+solidworks_pipe/pipe_centerline.csv
+solidworks_pipe/pipe_model.stl
+solidworks_pipe/*.SLDPRT
 
 !*/build/*.java
 !*/build/*.html
@@ -58,6 +75,7 @@ ruoyi-ui/.edge-project3-task8-profile/unpacked/
 uploadPath/
 
 # 项目特定忽略规则
+
 ruoyi-ui/.edge-project3-task8-profile/
 
 # Python 缓存文件
@@ -67,5 +85,6 @@ __pycache__/
 *.pyd
 
 docx/
+
 AGENTS.md
 algorithm-service/
