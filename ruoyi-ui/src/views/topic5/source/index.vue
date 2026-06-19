@@ -244,12 +244,7 @@
         </div>
       </template>
 
-      <el-alert
-        title="导出报告成功后，总流程进入“全链路追溯闭环”阶段。推送课题二和课题三当前可先使用模拟接口，后续再替换为真实课题接口。"
-        type="success"
-        show-icon
-        :closable="false"
-      />
+
 
       <el-row :gutter="12" align="middle" class="mt15">
         <el-col :span="4">
@@ -280,6 +275,17 @@
             @click="handlePushTopic3"
           >
             推送课题三
+          </el-button>
+        </el-col>
+
+        <el-col :span="4">
+          <el-button
+            type="warning"
+            icon="Back"
+            :loading="returningResult"
+            @click="handleReturnQmsResult"
+          >
+            返回结果
           </el-button>
         </el-col>
 
@@ -332,9 +338,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import * as echarts from 'echarts'
+
 import {
   listSourceTrace,
   getSourceTrace,
@@ -345,6 +352,10 @@ import {
   pushTopic2,
   pushTopic3
 } from '@/api/topic5/source'
+
+import { listTask, updateTask } from '@/api/quality/task'
+import { updateProblem } from '@/api/quality/problem'
+import { addLog } from '@/api/quality/log'
 
 const { proxy } = getCurrentInstance()
 const route = useRoute()
@@ -361,6 +372,11 @@ const sourceSummary = ref('')
 
 const sourceRunning = ref(false)
 const exporting = ref(false)
+const returningResult = ref(false)
+
+const MODULE_CODE = 'PROJECT_5'
+const QMS_FLOW_EVENT_NAME = 'qms-flow-change'
+const QMS_FLOW_EVENT_KEY = 'qms_flow_change'
 
 const algorithmForm = reactive({
   algorithmName: null
@@ -568,6 +584,176 @@ function handlePushTopic3() {
   })
 }
 
+function getNowTime() {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  const h = String(now.getHours()).padStart(2, '0')
+  const min = String(now.getMinutes()).padStart(2, '0')
+  const s = String(now.getSeconds()).padStart(2, '0')
+
+  return `${y}-${m}-${d} ${h}:${min}:${s}`
+}
+
+function notifyQmsFlowChanged(payload = {}) {
+  const eventData = {
+    moduleCode: MODULE_CODE,
+    problemId: payload.problemId || '',
+    problemCode: payload.problemCode || '',
+    taskId: payload.taskId || '',
+    action: payload.action || 'SUBMIT',
+    time: Date.now()
+  }
+
+  window.dispatchEvent(
+    new CustomEvent(QMS_FLOW_EVENT_NAME, {
+      detail: eventData
+    })
+  )
+
+  localStorage.setItem(QMS_FLOW_EVENT_KEY, JSON.stringify(eventData))
+}
+
+function buildTopic5ReturnResult() {
+  return JSON.stringify(
+    {
+      moduleCode: 'PROJECT_5',
+      moduleName: '质量自反馈追溯系统',
+      resultType: 'SOURCE_TRACE_RESULT',
+      traceId: selectedTraceId.value,
+      traceNo: currentTrace.value.traceNo || '',
+      algorithmName: currentTrace.value.sourceAlgorithmName || algorithmForm.algorithmName || '',
+      sourceAlgorithmStatus: currentTrace.value.sourceAlgorithmStatus,
+      conclusion: sourceSummary.value || currentTrace.value.sourceResultSummary || '课题五已完成全链路追溯闭环分析，并形成追溯结果。',
+      reasonList: reasonList.value || [],
+      reportUrl: currentTrace.value.traceReportUrl || '',
+      workflowStage: currentTrace.value.workflowStage,
+      suggestion: '建议质量问题管理中心结合课题五追溯结论、候选原因、关键证据和报告文件进行结果确认与闭环处理。',
+      generateTime: getNowTime()
+    },
+    null,
+    2
+  )
+}
+
+function buildTaskPayload(task, override = {}) {
+  const merged = {
+    ...task,
+    ...override
+  }
+
+  return {
+    taskId: merged.taskId,
+    problemId: merged.problemId,
+    problemCode: merged.problemCode,
+    moduleCode: merged.moduleCode,
+    moduleName: merged.moduleName,
+    taskStatus: merged.taskStatus,
+    dispatchOpinion: merged.dispatchOpinion || '',
+    processResult: merged.processResult || '',
+    processFile: merged.processFile || '',
+    dispatchUserId: merged.dispatchUserId,
+    dispatchUserName: merged.dispatchUserName,
+    dispatchTime: merged.dispatchTime,
+    submitUserId: merged.submitUserId,
+    submitUserName: merged.submitUserName,
+    submitTime: merged.submitTime,
+    confirmUserId: merged.confirmUserId,
+    confirmUserName: merged.confirmUserName,
+    confirmOpinion: merged.confirmOpinion,
+    confirmTime: merged.confirmTime,
+    createBy: merged.createBy,
+    createTime: merged.createTime,
+    updateBy: merged.updateBy,
+    updateTime: merged.updateTime,
+    delFlag: merged.delFlag || '0'
+  }
+}
+
+async function handleReturnQmsResult() {
+  if (!selectedTraceId.value) {
+    proxy.$modal.msgWarning('请先选择追溯任务')
+    return
+  }
+
+  if (!sourceSummary.value && reasonList.value.length === 0 && !currentTrace.value.traceReportUrl) {
+    proxy.$modal.msgWarning('当前暂无可返回的追溯结果，请先运行溯源算法或导出报告')
+    return
+  }
+
+  returningResult.value = true
+
+  try {
+    const taskRes = await listTask({
+      moduleCode: MODULE_CODE,
+      taskStatus: 'PROCESSING'
+    })
+
+    const rows = Array.isArray(taskRes?.rows) ? taskRes.rows : []
+
+    if (rows.length === 0) {
+      proxy.$modal.msgWarning('当前没有分派给课题五且正在处理的质量任务')
+      return
+    }
+
+    const task = rows[0]
+    const now = getNowTime()
+    const returnResult = buildTopic5ReturnResult()
+
+    await updateTask(
+      buildTaskPayload(task, {
+        taskStatus: 'SUBMITTED',
+        processResult: returnResult,
+        processFile: currentTrace.value.traceReportUrl || '',
+        submitTime: now
+      })
+    )
+
+    await updateProblem({
+      problemId: task.problemId,
+      problemCode: task.problemCode,
+      status: 'WAIT_CONFIRM',
+      currentModuleCode: '',
+      currentModuleName: ''
+    })
+
+    await addLog({
+      problemId: task.problemId,
+      problemCode: task.problemCode,
+      taskId: task.taskId,
+      actionType: 'SUBMIT',
+      actionName: '课题五返回追溯结果',
+      operatorName: '课题五',
+      fromStatus: 'PROCESSING',
+      toStatus: 'WAIT_CONFIRM',
+      actionContent: `课题五已返回全链路追溯闭环结果。处理结果：${returnResult}`,
+      createTime: now
+    })
+
+    notifyQmsFlowChanged({
+      problemId: task.problemId,
+      problemCode: task.problemCode,
+      taskId: task.taskId,
+      action: 'SUBMIT'
+    })
+
+    proxy.$modal.msgSuccess('课题五结果已返回质量问题管理中心')
+  } catch (error) {
+    console.error('课题五返回结果失败：', error)
+
+    const msg =
+      error?.response?.data?.msg ||
+      error?.response?.data?.message ||
+      error?.message ||
+      '课题五返回结果失败，请检查 quality/task、quality/problem、quality/log 接口'
+
+    proxy.$modal.msgError(msg)
+  } finally {
+    returningResult.value = false
+  }
+}
+
 function refreshCurrentTrace(needReloadSourceResult = true) {
   if (!selectedTraceId.value) return
 
@@ -646,12 +832,10 @@ function buildEchartsOption(graphInput) {
     return { series: [] }
   }
 
-  // 情况1：后端保存的是 Python 返回的完整 ECharts option，直接使用
   if (graphData.series && Array.isArray(graphData.series)) {
     return graphData
   }
 
-  // 情况2：后端返回的是 nodes / links 或 nodes / edges，前端兜底转换
   if (graphData.nodes || graphData.links || graphData.edges) {
     return convertNodesLinksToOption(graphData)
   }
@@ -940,6 +1124,12 @@ function pushStatusTagType(status) {
   return 'info'
 }
 
+const handleResize = () => {
+  if (sourceChart) {
+    sourceChart.resize()
+  }
+}
+
 onMounted(() => {
   getTraceList()
 
@@ -949,11 +1139,16 @@ onMounted(() => {
     handleTraceChange(Number(traceId))
   }
 
-  window.addEventListener('resize', () => {
-    if (sourceChart) {
-      sourceChart.resize()
-    }
-  })
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+
+  if (sourceChart) {
+    sourceChart.dispose()
+    sourceChart = null
+  }
 })
 </script>
 

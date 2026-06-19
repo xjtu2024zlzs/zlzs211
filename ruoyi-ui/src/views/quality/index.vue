@@ -487,27 +487,25 @@
               </template>
             </el-table-column>
             <el-table-column prop="createTime" label="创建时间" width="160" />
-            <el-table-column label="操作" width="250" fixed="right">
+            <el-table-column label="操作" width="160" fixed="right">
               <template #default="scope">
                 <el-button
-                  size="small"
-                  type="warning"
-                  plain
-                  :disabled="scope.row.taskStatus !== 'PROCESSING'"
-                  @click="simulateTaskSubmit(scope.row)"
-                >
-                  模块处理完成
-                </el-button>
-
-                <el-button
+                  v-if="scope.row.taskStatus === 'SUBMITTED'"
                   size="small"
                   type="success"
                   plain
-                  :disabled="scope.row.taskStatus !== 'SUBMITTED'"
                   @click="confirmTask(scope.row)"
                 >
-                结果确认
+                  结果确认
                 </el-button>
+
+                <span v-else-if="scope.row.taskStatus === 'PROCESSING'" class="wait-action">
+                  等待模块返回
+                </span>
+
+                <span v-else class="wait-action">
+                  -
+                </span>
               </template>
             </el-table-column>
           </el-table>
@@ -556,6 +554,29 @@ const problemForm = reactive({
   influenceScope: ''
 })
 
+const QMS_TASK_EVENT_NAME = 'qms-current-task-change'
+const QMS_TASK_EVENT_KEY = 'qms_current_task_change'
+
+const notifyCurrentTaskChanged = (moduleCode, payload = {}) => {
+  const eventData = {
+    moduleCode,
+    problemId: payload.problemId || '',
+    problemCode: payload.problemCode || '',
+    action: payload.action || 'DISPATCH',
+    time: Date.now()
+  }
+
+  // 1. 同一个浏览器窗口 / RuoYi 多标签页内通知
+  window.dispatchEvent(
+    new CustomEvent(QMS_TASK_EVENT_NAME, {
+      detail: eventData
+    })
+  )
+
+  // 2. 其他浏览器标签页也能收到 storage 变化
+  localStorage.setItem(QMS_TASK_EVENT_KEY, JSON.stringify(eventData))
+}
+
 const problemRules = {
   title: [{ required: true, message: '请输入问题标题', trigger: 'blur' }],
   occurTime: [{ required: true, message: '请选择发生时间', trigger: 'change' }],
@@ -576,25 +597,25 @@ const defaultModules = [
   },
   {
     moduleCode: 'PROJECT_2',
-    moduleName: '复杂产品设计制造协同优化平台',
+    moduleName: '设计制造协同优化平台',
     moduleType: 'TOPIC',
     route: '/project_2'
   },
   {
     moduleCode: 'PROJECT_3',
-    moduleName: '复杂产品质量监管与故障预防',
+    moduleName: '生命周期质量监管与故障预防系统',
     moduleType: 'TOPIC',
     route: '/project_3'
   },
   {
     moduleCode: 'PROJECT_4',
-    moduleName: '智能故障诊断与根源性分析',
+    moduleName: '智能故障诊断与根源性分析技术模块',
     moduleType: 'TOPIC',
     route: '/project4'
   },
   {
     moduleCode: 'PROJECT_5',
-    moduleName: '质量自反馈追溯系统',
+    moduleName: '全生命周期数字质量自反馈与追溯系统',
     moduleType: 'TOPIC',
     route: '/project_5'
   }
@@ -602,10 +623,10 @@ const defaultModules = [
 
 const moduleDisplayNames = {
   PROJECT_1: '全域异构信息集成系统',
-  PROJECT_2: '复杂产品设计制造协同优化平台',
-  PROJECT_3: '复杂产品质量监管与故障预防',
-  PROJECT_4: '智能故障诊断与根源性分析',
-  PROJECT_5: '质量自反馈追溯系统'
+  PROJECT_2: '设计制造协同优化平台',
+  PROJECT_3: '生命周期质量监管与故障预防系统',
+  PROJECT_4: '智能故障诊断与根源性分析技术模块',
+  PROJECT_5: '全生命周期数字质量自反馈与追溯系统'
 }
 
 const getModuleDisplayName = (module) => {
@@ -725,6 +746,32 @@ const normalizeTask = (item) => {
     confirmTime: item.confirmTime || '',
     processResult: item.processResult || '',
     dispatchOpinion: item.dispatchOpinion || ''
+  }
+}
+
+const buildProblemPayload = (problem) => {
+  return {
+    problemId: problem.problemId,
+    problemCode: problem.problemCode,
+    title: problem.title,
+    occurTime: problem.occurTime,
+    productModel: problem.productModel,
+    involvedSystem: problem.involvedSystem,
+    occurPart: problem.occurPart,
+    componentCode: problem.componentCode,
+    severity: problem.severity,
+    source: problem.source,
+    reporter: problem.reporter,
+    description: problem.description,
+    influenceScope: problem.influenceScope,
+    status: problem.status,
+    currentModuleCode: problem.currentModuleCode || '',
+    currentModuleName: problem.currentModuleName || '',
+    createBy: problem.createBy,
+    createTime: problem.createTime,
+    updateBy: problem.updateBy,
+    updateTime: problem.updateTime,
+    delFlag: problem.delFlag
   }
 }
 
@@ -1003,12 +1050,12 @@ const dispatchSelectedModule = async () => {
       createTime: now
     })
 
-    await updateProblem({
+    await updateProblem(buildProblemPayload({
       ...currentProblem.value,
       status: 'PROCESSING',
       currentModuleCode: module.moduleCode,
       currentModuleName: module.moduleName
-    })
+    }))
     currentProblem.value.status = 'PROCESSING'
     currentProblem.value.currentModuleCode = module.moduleCode
     currentProblem.value.currentModuleName = module.moduleName
@@ -1027,7 +1074,14 @@ const dispatchSelectedModule = async () => {
     dispatchOpinion.value = ''
     selectedModuleCode.value = keepSelectedModuleCode
 
-    ElMessage.success(`已分派到${module.moduleName}，可直接进入选中模块`)
+    // 关键：通知对应课题首页，当前有新的质量问题分派进来
+    notifyCurrentTaskChanged(module.moduleCode, {
+      problemId: currentProblem.value.problemId,
+      problemCode: currentProblem.value.problemCode,
+      action: 'DISPATCH'
+    })
+
+    ElMessage.success(`已分派到${module.moduleName}，对应课题首页将自动显示当前质量问题`)
 
     await loadProblemList({
       keepCurrent: true,
@@ -1062,56 +1116,6 @@ const goToSelectedModule = () => {
   router.push(selectedModule.value.route)
 }
 
-const simulateTaskSubmit = async (task) => {
-  try {
-    const { value } = await ElMessageBox.prompt('请输入模拟处理结果', '模块处理完成', {
-      confirmButtonText: '提交',
-      cancelButtonText: '取消',
-      inputType: 'textarea',
-      inputPlaceholder: '例如：已完成分析，初步判断该问题与装配偏差或传感器异常有关。'
-    })
-
-    const now = getNowTime()
-    const processResult = value || '已完成处理并提交结果。'
-
-    await updateTask({
-      ...task,
-      taskStatus: 'SUBMITTED',
-      processResult,
-      submitTime: now
-    })
-
-    await updateProblem({
-      ...currentProblem.value,
-      status: 'WAIT_CONFIRM'
-    })
-
-    await createFlowLog({
-      problemId: currentProblem.value.problemId,
-      problemCode: currentProblem.value.problemCode,
-      taskId: task.taskId,
-      actionType: 'SUBMIT',
-      actionName: '模块处理完成',
-      fromStatus: currentProblem.value.status,
-      toStatus: 'WAIT_CONFIRM',
-      actionContent: `${task.moduleName}已完成处理，等待确认。处理结果：${processResult}`,
-      createTime: now
-    })
-
-    ElMessage.success('模块处理结果已提交，等待确认')
-
-    await loadProblemList({
-      keepCurrent: true,
-      preserveSelected: true
-    })
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('提交处理结果失败：', error)
-      ElMessage.error('提交处理结果失败')
-    }
-  }
-}
-
 const confirmTask = async (task) => {
   if (!task || task.taskStatus !== 'SUBMITTED') {
     return
@@ -1131,12 +1135,12 @@ const confirmTask = async (task) => {
     // 只要问题没有点击“结束问题”，流程状态始终保持在“问题处理”阶段
     const nextStatus = 'PROCESSING'
 
-    await updateProblem({
+    await updateProblem(buildProblemPayload({
       ...currentProblem.value,
       status: nextStatus,
       currentModuleCode: currentProblem.value.currentModuleCode,
       currentModuleName: currentProblem.value.currentModuleName
-    })
+    }))
 
     await createFlowLog({
       problemId: currentProblem.value.problemId,
@@ -1190,12 +1194,12 @@ const finishProblem = async () => {
 
     await Promise.all(updateTaskPromises)
 
-    await updateProblem({
+    await updateProblem(buildProblemPayload({
       ...currentProblem.value,
       status: 'FINISHED',
       currentModuleCode: '',
       currentModuleName: ''
-    })
+    }))
 
     await createFlowLog({
       problemId: currentProblem.value.problemId,
