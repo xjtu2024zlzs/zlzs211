@@ -1165,7 +1165,7 @@ async function handleRunPreprocess() {
   } catch (error) {
     console.error("数据预处理接口调用失败：", error)
     preprocessStatus.value = "失败"
-    proxy.$modal.msgError("数据预处理接口调用失败，请检查后端 /system/fileofda/preprocess 是否可用")
+    proxy.$modal.msgError("数据预处理接口调用失败，请检查后端 /project4/fileofda/preprocess 是否可用")
   }
 }
 
@@ -1917,3 +1917,4 @@ getList()
   }
 }
 </style>
+
