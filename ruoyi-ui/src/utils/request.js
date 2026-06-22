@@ -22,6 +22,9 @@ const service = axios.create({
 
 // request拦截器
 service.interceptors.request.use(config => {
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
   // 是否需要设置 token
   const isToken = (config.headers || {}).isToken === false
   // 是否需要防止数据重复提交

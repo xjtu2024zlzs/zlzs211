@@ -12,13 +12,20 @@ spring:
     active: dev
   cloud:
     nacos:
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
       discovery:
-        # 服务注册地址
         server-addr: 127.0.0.1:8848
         ip: 127.0.0.1
+        username: nacos
+        password: nacos
       config:
-        # 配置中心地址
         server-addr: 127.0.0.1:8848
+        group: DEFAULT_GROUP
+        file-extension: yml
+        username: nacos
+        password: nacos
   config:
     # 配置文件格式
     file-extension: yml
