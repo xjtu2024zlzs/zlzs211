@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 故障诊断-诊断结果对象 fd_diagnosis_result
+ * 故障诊断-诊断结果对象 t4_diagnosis_result
  *
  * @author ruoyi
  * @date 2026-05-29

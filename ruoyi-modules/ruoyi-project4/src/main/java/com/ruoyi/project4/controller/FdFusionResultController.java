@@ -106,3 +106,4 @@ public class FdFusionResultController extends BaseController
         return fdFusionResultService.runFusion(dto);
     }
 }
+

@@ -60,3 +60,4 @@ public interface FdFusionResultMapper
      */
     public int deleteFdFusionResultByFusionIds(Long[] fusionIds);
 }
+

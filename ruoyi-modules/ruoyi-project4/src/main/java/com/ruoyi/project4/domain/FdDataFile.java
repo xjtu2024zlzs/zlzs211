@@ -6,7 +6,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
- * 故障诊断-原始数据文件对象 fd_data_file
+ * 故障诊断-原始数据文件对象 t4_data_file
  * 
  * @author ruoyi
  * @date 2026-05-29
@@ -251,3 +251,4 @@ public class FdDataFile extends BaseEntity
             .toString();
     }
 }
+

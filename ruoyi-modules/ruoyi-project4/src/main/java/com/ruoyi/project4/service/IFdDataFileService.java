@@ -1,4 +1,4 @@
-﻿package com.ruoyi.project4.service;
+package com.ruoyi.project4.service;
 
 import com.ruoyi.project4.domain.FdDataFile;
 
@@ -64,4 +64,5 @@ public interface IFdDataFileService
     AjaxResult runPreprocess(PreprocessRunDto dto);
     AjaxResult listRawSamples();
 }
+
 

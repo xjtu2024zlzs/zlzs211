@@ -144,12 +144,12 @@ public class FdAugmentResultServiceImpl implements IFdAugmentResultService
      * sampleIds、augAlgorithm、augMultiple、pipelineId
      *
      * 后端执行：
-     * 1. 根据 sampleIds 查询 fd_raw_sample
-     * 2. 联表 fd_data_file 获取真实 .mat 文件 storage_path
+     * 1. 根据 sampleIds 查询 t4_raw_sample
+     * 2. 联表 t4_data_file 获取真实 .mat 文件 storage_path
      * 3. 生成 augment_input.json
      * 4. 调用 Python augment.py
      * 5. 读取 augment_result.json
-     * 6. 写入 fd_augment_result
+     * 6. 写入 t4_augment_result
      *
      * @param dto 样本增强运行参数
      * @return AjaxResult
@@ -374,7 +374,7 @@ public class FdAugmentResultServiceImpl implements IFdAugmentResultService
     }
 
     /**
-     * 根据 fd_raw_sample.sample_id 查询样本，并联表 fd_data_file 读取真实 .mat 路径。
+     * 根据 t4_raw_sample.sample_id 查询样本，并联表 t4_data_file 读取真实 .mat 路径。
      */
     private Map<String, Object> queryRawSample(Long sampleId)
     {
@@ -388,8 +388,8 @@ public class FdAugmentResultServiceImpl implements IFdAugmentResultService
                         "  r.label_name, " +
                         "  f.original_file_name, " +
                         "  f.storage_path " +
-                        "FROM fd_raw_sample r " +
-                        "LEFT JOIN fd_data_file f ON r.file_id = f.file_id " +
+                        "FROM t4_raw_sample r " +
+                        "LEFT JOIN t4_data_file f ON r.file_id = f.file_id " +
                         "WHERE r.sample_id = ? " +
                         "LIMIT 1";
 
@@ -461,7 +461,7 @@ public class FdAugmentResultServiceImpl implements IFdAugmentResultService
     }
 
     /**
-     * 写入 fd_augment_result 表。
+     * 写入 t4_augment_result 表。
      *
      * 注意：
      * 这里使用 JdbcTemplate 直接插入，是为了避免 Domain 字段名和数据库字段不一致导致报错。
@@ -476,7 +476,7 @@ public class FdAugmentResultServiceImpl implements IFdAugmentResultService
     )
     {
         String sql =
-                "INSERT INTO fd_augment_result " +
+                "INSERT INTO t4_augment_result " +
                         "(augment_code, raw_sample_id, raw_sample_code, algorithm_name, generated_count, output_path, create_time) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?)";
 

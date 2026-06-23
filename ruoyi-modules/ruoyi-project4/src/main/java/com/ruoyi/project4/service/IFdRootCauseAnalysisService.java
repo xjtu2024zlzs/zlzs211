@@ -1,4 +1,4 @@
-﻿package com.ruoyi.project4.service;
+package com.ruoyi.project4.service;
 
 import java.util.List;
 import java.util.Map;
@@ -66,3 +66,4 @@ public interface IFdRootCauseAnalysisService
      */
     public int deleteFdRootCauseAnalysisByAnalysisId(Long analysisId);
 }
+

@@ -3,7 +3,7 @@
 // 查询故障诊断-样本增强结果列表
 export function listResultofen(query) {
   return request({
-    url: '/resultofen/list',
+    url: '/project4/resultofen/list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listResultofen(query) {
 // 查询故障诊断-样本增强结果详细
 export function getResultofen(augmentId) {
   return request({
-    url: '/resultofen/' + augmentId,
+    url: '/project4/resultofen/' + augmentId,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getResultofen(augmentId) {
 // 新增故障诊断-样本增强结果
 export function addResultofen(data) {
   return request({
-    url: '/resultofen',
+    url: '/project4/resultofen',
     method: 'post',
     data: data
   })
@@ -29,7 +29,7 @@ export function addResultofen(data) {
 // 修改故障诊断-样本增强结果
 export function updateResultofen(data) {
   return request({
-    url: '/resultofen',
+    url: '/project4/resultofen',
     method: 'put',
     data: data
   })
@@ -38,7 +38,7 @@ export function updateResultofen(data) {
 // 删除故障诊断-样本增强结果
 export function delResultofen(augmentId) {
   return request({
-    url: '/resultofen/' + augmentId,
+    url: '/project4/resultofen/' + augmentId,
     method: 'delete'
   })
 }
@@ -46,8 +46,9 @@ export function delResultofen(augmentId) {
 // 执行样本增强
 export function runAugment(data) {
   return request({
-    url: '/resultofen/augment',
+    url: '/project4/resultofen/augment',
     method: 'post',
-    data: data
+    data: data,
+    timeout: 300000
   })
 }

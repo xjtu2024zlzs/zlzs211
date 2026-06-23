@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -27,7 +27,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectFdAugmentResultVo">
-        select augment_id, augment_code, raw_sample_id, raw_sample_code, algorithm_name, multiplier, generated_count, quality_policy, validity, param_json, result_summary, output_path, generate_time, del_flag, create_by, create_time, update_by, update_time, remark from fd_augment_result
+        select augment_id, augment_code, raw_sample_id, raw_sample_code, algorithm_name, multiplier, generated_count, quality_policy, validity, param_json, result_summary, output_path, generate_time, del_flag, create_by, create_time, update_by, update_time, remark from t4_augment_result
     </sql>
 
     <select id="selectFdAugmentResultList" parameterType="FdAugmentResult" resultMap="FdAugmentResultResult">
@@ -54,7 +54,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <insert id="insertFdAugmentResult" parameterType="FdAugmentResult" useGeneratedKeys="true" keyProperty="augmentId">
-        insert into fd_augment_result
+        insert into t4_augment_result
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="augmentCode != null and augmentCode != ''">augment_code,</if>
             <if test="rawSampleId != null">raw_sample_id,</if>
@@ -98,7 +98,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </insert>
 
     <update id="updateFdAugmentResult" parameterType="FdAugmentResult">
-        update fd_augment_result
+        update t4_augment_result
         <trim prefix="SET" suffixOverrides=",">
             <if test="augmentCode != null and augmentCode != ''">augment_code = #{augmentCode},</if>
             <if test="rawSampleId != null">raw_sample_id = #{rawSampleId},</if>
@@ -123,11 +123,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteFdAugmentResultByAugmentId" parameterType="Long">
-        delete from fd_augment_result where augment_id = #{augmentId}
+        delete from t4_augment_result where augment_id = #{augmentId}
     </delete>
 
     <delete id="deleteFdAugmentResultByAugmentIds" parameterType="String">
-        delete from fd_augment_result where augment_id in 
+        delete from t4_augment_result where augment_id in 
         <foreach item="augmentId" collection="array" open="(" separator="," close=")">
             #{augmentId}
         </foreach>

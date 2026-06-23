@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -28,7 +28,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectFdDataFileVo">
-        select file_id, dataset_id, file_code, original_file_name, file_suffix, file_type, file_size, storage_path, file_md5, source_type, import_status, parse_status, sample_count, error_msg, del_flag, create_by, create_time, update_by, update_time, remark from fd_data_file
+        select file_id, dataset_id, file_code, original_file_name, file_suffix, file_type, file_size, storage_path, file_md5, source_type, import_status, parse_status, sample_count, error_msg, del_flag, create_by, create_time, update_by, update_time, remark from t4_data_file
     </sql>
 
     <select id="selectFdDataFileList" parameterType="FdDataFile" resultMap="FdDataFileResult">
@@ -56,7 +56,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <insert id="insertFdDataFile" parameterType="FdDataFile" useGeneratedKeys="true" keyProperty="fileId">
-        insert into fd_data_file
+        insert into t4_data_file
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="datasetId != null">dataset_id,</if>
             <if test="fileCode != null and fileCode != ''">file_code,</if>
@@ -102,7 +102,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </insert>
 
     <update id="updateFdDataFile" parameterType="FdDataFile">
-        update fd_data_file
+        update t4_data_file
         <trim prefix="SET" suffixOverrides=",">
             <if test="datasetId != null">dataset_id = #{datasetId},</if>
             <if test="fileCode != null and fileCode != ''">file_code = #{fileCode},</if>
@@ -128,11 +128,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteFdDataFileByFileId" parameterType="Long">
-        delete from fd_data_file where file_id = #{fileId}
+        delete from t4_data_file where file_id = #{fileId}
     </delete>
 
     <delete id="deleteFdDataFileByFileIds" parameterType="String">
-        delete from fd_data_file where file_id in 
+        delete from t4_data_file where file_id in 
         <foreach item="fileId" collection="array" open="(" separator="," close=")">
             #{fileId}
         </foreach>

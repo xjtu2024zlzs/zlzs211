@@ -126,7 +126,7 @@ public class FdDiagnosisResultServiceImpl implements IFdDiagnosisResultService
      * 前端传入 sampleId、sampleCode、filePath、keyNum、length；
      * Java 后端生成 diagnosis_input.json；
      * Python 调用 diagnosis.py 和 model.pt 完成诊断；
-     * Java 读取 diagnosis_result.json 并写入 fd_diagnosis_result 表。
+     * Java 读取 diagnosis_result.json 并写入 t4_diagnosis_result 表。
      *
      * @param dto 诊断运行参数
      * @return 诊断执行结果
@@ -370,3 +370,4 @@ public class FdDiagnosisResultServiceImpl implements IFdDiagnosisResultService
         return value;
     }
 }
+

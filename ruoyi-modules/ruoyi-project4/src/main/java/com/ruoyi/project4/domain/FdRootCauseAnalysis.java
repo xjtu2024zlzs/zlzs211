@@ -10,7 +10,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
- * 故障诊断-根因分析结果对象 fd_root_cause_analysis
+ * 故障诊断-根因分析结果对象 t4_root_cause_analysis
  *
  * 该实体面向“课题四 → 课题五”的根因分析结果输出接口，
  * 核心输出字段包括：根因判断、证据链、根因分析置信度。

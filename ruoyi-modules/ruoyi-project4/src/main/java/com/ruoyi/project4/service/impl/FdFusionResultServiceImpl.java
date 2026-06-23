@@ -127,7 +127,7 @@ public class FdFusionResultServiceImpl implements IFdFusionResultService
      * 前端传入增强样本输出路径 augmentOutputPath；
      * Java 生成 fusion_input.json；
      * Python 读取增强样本 .npy 并生成 fusion_result.json / fusion_vector.npy；
-     * Java 读取 fusion_result.json，并写入 fd_fusion_result 表。
+     * Java 读取 fusion_result.json，并写入 t4_fusion_result 表。
      *
      * @param dto 特征融合运行参数
      * @return 融合结果
@@ -202,7 +202,7 @@ public class FdFusionResultServiceImpl implements IFdFusionResultService
             String featureComponents = buildFeatureComponents(result);
             String resultJson = objectMapper.writeValueAsString(result);
 
-            // 与 fd_fusion_result 表字段对应。使用反射写入，避免实体类字段名略有差异时直接编译失败。
+            // 与 t4_fusion_result 表字段对应。使用反射写入，避免实体类字段名略有差异时直接编译失败。
             setEntityValue(fusion, "setFusionCode", taskId);
             setEntityValue(fusion, "setPipelineId", toLongOrDefault(dto.getPipelineId(), 1L));
             setEntityValue(fusion, "setDatasetId", 1L);
@@ -400,3 +400,4 @@ public class FdFusionResultServiceImpl implements IFdFusionResultService
         return value == null || value.trim().isEmpty();
     }
 }
+

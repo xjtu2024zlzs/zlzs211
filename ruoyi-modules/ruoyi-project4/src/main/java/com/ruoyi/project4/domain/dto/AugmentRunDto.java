@@ -10,7 +10,7 @@ import java.util.List;
  * 生成 augment_input.json；
  * 调用 augment.py；
  * 读取 augment_result.json；
- * 写入 fd_augment_result 表。
+ * 写入 t4_augment_result 表。
  */
 public class AugmentRunDto
 {
@@ -32,10 +32,10 @@ public class AugmentRunDto
     /** 数据集ID，测试阶段默认 1 */
     private Long datasetId = 1L;
 
-    /** 原始样本ID，对应 fd_augment_result.raw_sample_id */
+    /** 原始样本ID，对应 t4_augment_result.raw_sample_id */
     private Long rawSampleId;
 
-    /** 原始样本编号，对应 fd_augment_result.raw_sample_code */
+    /** 原始样本编号，对应 t4_augment_result.raw_sample_code */
     private String rawSampleCode;
 
     /** 样本ID，兼容前端旧字段；若 rawSampleId 为空，则使用 sampleId */

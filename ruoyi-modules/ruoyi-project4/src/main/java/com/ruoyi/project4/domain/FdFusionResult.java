@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 故障诊断-融合征结果对象 fd_fusion_result
+ * 故障诊断-融合征结果对象 t4_fusion_result
  * 
  * @author ruoyi
  * @date 2026-05-29
@@ -254,3 +254,4 @@ public class FdFusionResult extends BaseEntity
             .toString();
     }
 }
+

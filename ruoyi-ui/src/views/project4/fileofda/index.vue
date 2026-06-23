@@ -705,7 +705,7 @@ import { FolderOpened } from "@element-plus/icons-vue"
 import {
   createTopic4Pipeline,
   updateTopic4Pipeline
-} from "@/utils/topic4Pipeline"
+} from "@/utils/project4/topic4Pipeline"
 import {
   listFileofda,
   getFileofda,
@@ -1165,7 +1165,7 @@ async function handleRunPreprocess() {
   } catch (error) {
     console.error("数据预处理接口调用失败：", error)
     preprocessStatus.value = "失败"
-    proxy.$modal.msgError("数据预处理接口调用失败，请检查后端 /system/fileofda/preprocess 是否可用")
+    proxy.$modal.msgError("数据预处理接口调用失败，请检查后端 /project4/fileofda/preprocess 是否可用")
   }
 }
 
@@ -1458,7 +1458,7 @@ function handleDelete(row) {
 }
 
 function handleExport() {
-  proxy.download("system/fileofda/export", {
+  proxy.download("project4/fileofda/export", {
     ...queryParams.value
   }, `fileofda_${new Date().getTime()}.xlsx`)
 }
@@ -1917,3 +1917,4 @@ getList()
   }
 }
 </style>
+

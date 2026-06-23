@@ -1,4 +1,4 @@
-﻿package com.ruoyi.project4.service;
+package com.ruoyi.project4.service;
 
 import com.ruoyi.project4.domain.FdDiagnosisResult;
 
@@ -62,3 +62,4 @@ public interface IFdDiagnosisResultService
      */
     int deleteFdDiagnosisResultByDiagnosisId(Long diagnosisId);
 }
+

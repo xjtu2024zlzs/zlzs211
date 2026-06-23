@@ -44,3 +44,8 @@ nbdist/
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+# Project4 runtime outputs
+python/project4/runtime/
+
+# Project4 local test files
+python/project4/new_py/test(2).py

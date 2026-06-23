@@ -128,9 +128,9 @@ public class FdDataFileServiceImpl implements IFdDataFileService
      *
      * 说明：
      * 1. 如果前端传了 fileIds，则处理选中的文件；
-     * 2. 如果前端没传 fileIds，则默认处理 fd_data_file 中全部 CWRU mat 文件；
+     * 2. 如果前端没传 fileIds，则默认处理 t4_data_file 中全部 CWRU mat 文件；
      * 3. 每一个文件都会单独调用 preprocess.py；
-     * 4. 每一个文件生成的窗口样本都会写入 fd_raw_sample；
+     * 4. 每一个文件生成的窗口样本都会写入 t4_raw_sample；
      * 5. 这样样本增强页面就不会只看到 108.mat，而是能看到多个 CWRU 文件来源。
      *
      * @param dto 预处理参数
@@ -140,7 +140,7 @@ public class FdDataFileServiceImpl implements IFdDataFileService
     /**
      * 查询预处理后的原始样本列表
      *
-     * 用于样本增强页面读取 fd_raw_sample 中真实预处理样本，
+     * 用于样本增强页面读取 t4_raw_sample 中真实预处理样本，
      * 不再使用前端模拟样本。
      *
      * @return 样本列表
@@ -164,7 +164,7 @@ public class FdDataFileServiceImpl implements IFdDataFileService
                             "quality_score AS qualityScore, " +
                             "create_time AS createTime, " +
                             "remark AS samplePath " +
-                            "FROM fd_raw_sample " +
+                            "FROM t4_raw_sample " +
                             "ORDER BY sample_id DESC"
             );
 
@@ -310,7 +310,7 @@ public class FdDataFileServiceImpl implements IFdDataFileService
                     /*
                      * 重要：
                      * Python 输出中的 sampleCode 可能是 SAMPLE-001、SAMPLE-002 这类通用编号。
-                     * fd_raw_sample.sample_code 有唯一索引，如果直接使用 Python 的编号，
+                     * t4_raw_sample.sample_code 有唯一索引，如果直接使用 Python 的编号，
                      * 多个文件或多次执行预处理时会出现 Duplicate entry。
                      *
                      * 因此这里统一由 Java 生成全局唯一样本编号：
@@ -336,7 +336,7 @@ public class FdDataFileServiceImpl implements IFdDataFileService
                             + ", endIndex=" + endIndex;
 
                     jdbcTemplate.update(
-                            "INSERT INTO fd_raw_sample " +
+                            "INSERT INTO t4_raw_sample " +
                                     "(sample_code, dataset_id, file_id, equipment_id, sensor_id, equipment_type, fault_time, " +
                                     "data_source, raw_desc, sample_status, preprocess_status, quality_score, " +
                                     "label_code, label_name, create_by, create_time, remark) " +
@@ -366,7 +366,7 @@ public class FdDataFileServiceImpl implements IFdDataFileService
                 totalSampleCount += fileSampleCount;
 
                 jdbcTemplate.update(
-                        "UPDATE fd_data_file " +
+                        "UPDATE t4_data_file " +
                                 "SET parse_status = ?, sample_count = ?, error_msg = NULL, update_time = NOW() " +
                                 "WHERE file_id = ?",
                         "成功",
@@ -431,7 +431,7 @@ public class FdDataFileServiceImpl implements IFdDataFileService
             String placeholders = String.join(",", Arrays.stream(fileIds).map(id -> "?").toArray(String[]::new));
 
             String sql = "SELECT file_id, dataset_id, file_code, original_file_name, storage_path, source_type " +
-                    "FROM fd_data_file " +
+                    "FROM t4_data_file " +
                     "WHERE del_flag = '0' " +
                     "AND file_id IN (" + placeholders + ") " +
                     "ORDER BY file_id";
@@ -443,7 +443,7 @@ public class FdDataFileServiceImpl implements IFdDataFileService
 
         return jdbcTemplate.queryForList(
                 "SELECT file_id, dataset_id, file_code, original_file_name, storage_path, source_type " +
-                        "FROM fd_data_file " +
+                        "FROM t4_data_file " +
                         "WHERE del_flag = '0' " +
                         "AND source_type = 'CWRU' " +
                         "AND file_suffix = 'mat' " +
@@ -585,7 +585,7 @@ public class FdDataFileServiceImpl implements IFdDataFileService
         }
 
         jdbcTemplate.update(
-                "UPDATE fd_data_file " +
+                "UPDATE t4_data_file " +
                         "SET parse_status = ?, error_msg = ?, update_time = NOW() " +
                         "WHERE file_id = ?",
                 "失败",

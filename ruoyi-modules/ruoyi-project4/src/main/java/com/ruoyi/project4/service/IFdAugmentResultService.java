@@ -1,4 +1,4 @@
-﻿package com.ruoyi.project4.service;
+package com.ruoyi.project4.service;
 
 import com.ruoyi.common.core.web.domain.AjaxResult;
 import com.ruoyi.project4.domain.FdAugmentResult;
@@ -72,4 +72,5 @@ public interface IFdAugmentResultService
     AjaxResult runAugment(AugmentRunDto dto);
 
 }
+
 

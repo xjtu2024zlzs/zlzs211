@@ -1,12 +1,78 @@
+# Tomcat
 server:
   port: 9304
 
+# Spring配置
 spring:
   application:
     name: ruoyi-project4
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+
+  datasource:
+    druid:
+      stat-view-servlet:
+        enabled: true
+        loginUsername: ruoyi
+        loginPassword: 123456
+
+    dynamic:
+      # 主数据源名称，必须有，否则会报 dynamic-datasource can not find primary datasource
+      primary: master
+      strict: false
+
+      druid:
+        initial-size: 5
+        min-idle: 5
+        maxActive: 20
+        maxWait: 60000
+        connectTimeout: 30000
+        socketTimeout: 60000
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: SELECT 1 FROM DUAL
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxPoolPreparedStatementPerConnectionSize: 20
+        filters: stat,slf4j
+        connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
+
+      datasource:
+        # 主库数据源
+        master:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://localhost:3306/ry-cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: root
+          password: root@20260525
+
+# MyBatis配置
+mybatis:
+  # 这里只能写 project4 的实体包，不要写 com.ruoyi.system
+  typeAliasesPackage: com.ruoyi.project4.domain
+  # 只扫描 project4 自己的 mapper XML
+  mapperLocations: classpath*:mapper/project4/*.xml
+
+# 课题四 Python 算法配置
 project4:
-  python:
-    base-url: http://127.0.0.1:9761
-  script-root: D:/topic4-script
+  python-command: python
+  script-root: D:/科研/课题项目/航空装备智能故障诊断软件系统/若依/RuoYi-Vue3/zlzs211/python/project4
+  model-path: D:/科研/课题项目/航空装备智能故障诊断软件系统/若依/RuoYi-Vue3/zlzs211/python/project4/model.pt
   output-root: D:/topic4-output
+
+# springdoc配置
+springdoc:
+  gatewayUrl: http://localhost:8080/${spring.application.name}
+  api-docs:
+    enabled: true
+  info:
+    title: '课题四模块接口文档'
+    description: '航空装备智能故障诊断模块接口描述'
+    contact:
+      name: RuoYi
+      url: https://ruoyi.vip

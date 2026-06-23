@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -48,7 +48,7 @@
             update_by,
             update_time,
             remark
-        FROM fd_root_cause_analysis
+        FROM t4_root_cause_analysis
     </sql>
 
     <!-- 查询故障诊断-根因分析结果列表 -->
@@ -109,7 +109,7 @@
 
     <!-- 新增故障诊断-根因分析结果 -->
     <insert id="insertFdRootCauseAnalysis" parameterType="FdRootCauseAnalysis" useGeneratedKeys="true" keyProperty="analysisId">
-        INSERT INTO fd_root_cause_analysis
+        INSERT INTO t4_root_cause_analysis
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="analysisCode != null and analysisCode != ''">analysis_code,</if>
             <if test="diagnosisId != null">diagnosis_id,</if>
@@ -154,7 +154,7 @@
 
     <!-- 修改故障诊断-根因分析结果 -->
     <update id="updateFdRootCauseAnalysis" parameterType="FdRootCauseAnalysis">
-        UPDATE fd_root_cause_analysis
+        UPDATE t4_root_cause_analysis
         <trim prefix="SET" suffixOverrides=",">
             <if test="analysisCode != null and analysisCode != ''">analysis_code = #{analysisCode},</if>
             <if test="diagnosisId != null">diagnosis_id = #{diagnosisId},</if>
@@ -178,14 +178,14 @@
 
     <!-- 删除单条故障诊断-根因分析结果：逻辑删除 -->
     <update id="deleteFdRootCauseAnalysisByAnalysisId" parameterType="Long">
-        UPDATE fd_root_cause_analysis
+        UPDATE t4_root_cause_analysis
         SET del_flag = '2'
         WHERE analysis_id = #{analysisId}
     </update>
 
     <!-- 批量删除故障诊断-根因分析结果：逻辑删除 -->
     <update id="deleteFdRootCauseAnalysisByAnalysisIds" parameterType="Long">
-        UPDATE fd_root_cause_analysis
+        UPDATE t4_root_cause_analysis
         SET del_flag = '2'
         WHERE analysis_id IN
         <foreach item="analysisId" collection="array" open="(" separator="," close=")">
@@ -203,7 +203,7 @@
         IFNULL(SUM(CASE WHEN probability >= 0.8 THEN 1 ELSE 0 END), 0) AS highCount,
         IFNULL(SUM(CASE WHEN probability >= 0.6 AND probability &lt; 0.8 THEN 1 ELSE 0 END), 0) AS mediumCount,
         IFNULL(SUM(CASE WHEN probability &lt; 0.6 THEN 1 ELSE 0 END), 0) AS lowCount
-        FROM fd_root_cause_analysis
+        FROM t4_root_cause_analysis
         <where>
             (del_flag = '0' OR del_flag IS NULL)
 

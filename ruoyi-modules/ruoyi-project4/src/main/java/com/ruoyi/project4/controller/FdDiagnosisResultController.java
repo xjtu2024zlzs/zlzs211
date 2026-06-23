@@ -20,9 +20,9 @@ import java.util.List;
  * 故障诊断-诊断结果Controller
  *
  * 注意：
- * 微服务版中，前端请求路径是 /system/resultofgr/list。
+ * 微服务版中，前端请求路径是 /project4/resultofgr/list。
  * Gateway 会把 /system/** 转发到 ruoyi-system 服务。
- * 所以当前 Controller 只写 /resultofgr，不要写 /system/resultofgr。
+ * 所以当前 Controller 只写 /resultofgr，不要写 /project4/resultofgr。
  *
  * @author ruoyi
  * @date 2026-05-29
@@ -116,3 +116,4 @@ public class FdDiagnosisResultController extends BaseController
         return fdDiagnosisResultService.runDiagnosis(dto);
     }
 }
+

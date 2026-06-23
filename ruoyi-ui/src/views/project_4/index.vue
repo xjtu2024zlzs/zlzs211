@@ -131,7 +131,7 @@
           <div class="metric-mini">
             <span>根因记录总数</span>
             <strong>{{ confidenceStatsData.total }}</strong>
-            <em>fd_root_cause_analysis</em>
+            <em>t4_root_cause_analysis</em>
           </div>
 
           <div class="metric-mini">
@@ -577,7 +577,7 @@ import {
   addResultofrc,
   updateResultofrc,
   confidenceStats
-} from "@/api/system/resultofrc"
+} from "@/api/project4/resultofrc"
 
 const { proxy } = getCurrentInstance()
 
@@ -1109,7 +1109,7 @@ function handleDelete(row) {
 
 /** 导出 */
 function handleExport() {
-  proxy.download("system/resultofrc/export", {
+  proxy.download("project4/resultofrc/export", {
     ...queryParams.value
   }, `resultofrc_${new Date().getTime()}.xlsx`)
 }

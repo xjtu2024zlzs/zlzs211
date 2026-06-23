@@ -568,7 +568,7 @@ import {
   getTopic4Pipeline,
   updateTopic4Pipeline,
   formatDateTime
-} from "@/utils/topic4Pipeline"
+} from "@/utils/project4/topic4Pipeline"
 const { proxy } = getCurrentInstance()
 const route = useRoute()
 const pipelineId = ref(String(route.query.pipelineId || getCurrentTopic4PipelineId() || "").trim())
@@ -1589,7 +1589,7 @@ function handleDelete(row) {
 }
 
 function handleExport() {
-  proxy.download("system/resultofgr/export", {
+  proxy.download("project4/resultofgr/export", {
     ...queryParams.value
   }, `resultofgr_${new Date().getTime()}.xlsx`)
 }
@@ -2410,4 +2410,5 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
 

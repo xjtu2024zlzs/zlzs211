@@ -1,4 +1,4 @@
-﻿package com.ruoyi.project4.service;
+package com.ruoyi.project4.service;
 
 import com.ruoyi.project4.domain.FdFusionResult;
 
@@ -69,4 +69,5 @@ public interface IFdFusionResultService
      */
     AjaxResult runFusion(FusionRunDto dto);
 }
+
 

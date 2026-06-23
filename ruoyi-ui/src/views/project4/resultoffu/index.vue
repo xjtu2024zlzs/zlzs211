@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="project4-page">
     <!-- 页面标题卡片 -->
     <section class="module-hero">
@@ -21,7 +21,7 @@
       <div class="metric-mini">
         <span>融合记录总数</span>
         <strong>{{ total }}</strong>
-        <em>fd_fusion_result</em>
+        <em>t4_fusion_result</em>
       </div>
 
       <div class="metric-mini">
@@ -680,7 +680,7 @@ import {
   getTopic4Pipeline,
   updateTopic4Pipeline,
   formatDateTime
-} from "@/utils/topic4Pipeline"
+} from "@/utils/project4/topic4Pipeline"
 
 const route = useRoute()
 const pipelineId = ref(String(route.query.pipelineId || getCurrentTopic4PipelineId() || "").trim())
@@ -1853,7 +1853,7 @@ function handleDelete(row) {
 }
 
 function handleExport() {
-  proxy.download("system/resultoffu/export", {
+  proxy.download("project4/resultoffu/export", {
     ...queryParams.value
   }, `resultoffu_${new Date().getTime()}.xlsx`)
 }
@@ -1908,7 +1908,7 @@ async function handleRunFusion() {
       }
 
       const response = await runFusion({
-        // 后端 fd_fusion_result.pipeline_id 是数字型字段，页面流程号 P-xxxx 只作为 pipelineCode 传递。
+        // 后端 t4_fusion_result.pipeline_id 是数字型字段，页面流程号 P-xxxx 只作为 pipelineCode 传递。
         pipelineId: pipelineId.value,
         pipelineCode: pipelineId.value,
         datasetId: Number(row.datasetId) || 1,
@@ -2554,3 +2554,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+

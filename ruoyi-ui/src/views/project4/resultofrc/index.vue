@@ -715,7 +715,7 @@ import {
   getCurrentTopic4PipelineId,
   getTopic4Pipeline,
   updateTopic4Pipeline,
-} from "@/utils/topic4Pipeline"
+} from "@/utils/project4/topic4Pipeline"
 
 const { proxy } = getCurrentInstance()
 const route = useRoute()
@@ -1666,7 +1666,7 @@ function handleDelete(row) {
 
 /** 导出 */
 function handleExport() {
-  proxy.download("system/resultofrc/export", {
+  proxy.download("project4/resultofrc/export", {
     ...queryParams.value
   }, `resultofrc_${new Date().getTime()}.xlsx`)
 }
@@ -2808,3 +2808,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+

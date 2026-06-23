@@ -61,3 +61,4 @@ public interface FdAugmentResultMapper
      */
     public int deleteFdAugmentResultByAugmentIds(Long[] augmentIds);
 }
+

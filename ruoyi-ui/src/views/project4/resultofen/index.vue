@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="project4-page">
     <!-- 页面标题卡片 -->
     <section class="module-hero">
@@ -22,7 +22,7 @@
       <div class="metric-mini">
         <span>增强记录总数</span>
         <strong>{{ total }}</strong>
-        <em>fd_augment_result</em>
+        <em>t4_augment_result</em>
       </div>
 
       <div class="metric-mini">
@@ -611,7 +611,7 @@ import {
   getCurrentTopic4PipelineId,
   getTopic4Pipeline,
   updateTopic4Pipeline,
-} from "@/utils/topic4Pipeline"
+} from "@/utils/project4/topic4Pipeline"
 const { proxy } = getCurrentInstance()
 
 const resultofenList = ref([])
@@ -1476,7 +1476,7 @@ function handleDelete(row) {
 }
 
 function handleExport() {
-  proxy.download("system/resultofen/export", {
+  proxy.download("project4/resultofen/export", {
     ...queryParams.value
   }, `resultofen_${new Date().getTime()}.xlsx`)
 }
@@ -1549,7 +1549,7 @@ async function handleRunAugment() {
       augmentRunTime: formatDateTime(new Date())
     })
 
-    // 真实增强结果已经由 Java 后端写入 fd_augment_result，这里重新查询当前流程的增强结果
+    // 真实增强结果已经由 Java 后端写入 t4_augment_result，这里重新查询当前流程的增强结果
     const refreshResponse = await listResultofen({
       pageNum: 1,
       pageSize: 1000,
@@ -1583,7 +1583,7 @@ async function handleRunAugment() {
     console.log("样本增强接口返回：", data)
   } catch (error) {
     console.error("样本增强接口调用失败：", error)
-    proxy.$modal.msgError(error?.msg || error?.message || "样本增强接口调用失败，请检查 /system/resultofen/augment 是否可用")
+    proxy.$modal.msgError(error?.msg || error?.message || "样本增强接口调用失败，请检查 /project4/resultofen/augment 是否可用")
   } finally {
     executeLoading.value = false
   }
@@ -2131,4 +2131,5 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
 

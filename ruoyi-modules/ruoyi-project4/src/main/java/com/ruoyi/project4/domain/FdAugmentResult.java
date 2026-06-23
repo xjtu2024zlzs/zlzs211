@@ -9,7 +9,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import java.util.Date;
 
 /**
- * 故障诊断-样本增强结果对象 fd_augment_result
+ * 故障诊断-样本增强结果对象 t4_augment_result
  * 
  * @author ruoyi
  * @date 2026-05-29
@@ -238,3 +238,4 @@ public class FdAugmentResult extends BaseEntity
             .toString();
     }
 }
+
