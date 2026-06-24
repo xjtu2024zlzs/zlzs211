@@ -12,8 +12,8 @@
 
       <el-steps :active="activeStep" finish-status="success" align-center>
         <el-step title="任务开始" />
-        <el-step title="质量问题填报" />
-        <el-step title="多元特征提取" />
+        <el-step title="问题填报" />
+        <el-step title="原始数据获取" />
         <el-step title="故障根因分析" />
         <el-step title="卷宗实体映射" />
         <el-step title="溯源图谱构建" />
@@ -166,11 +166,11 @@
         </el-form-item>
       </el-form>
 
-      <div class="graph-title mt15">第二部分算法运行结果</div>
+      <div class="graph-title mt15">溯源图谱构建结果</div>
 
       <el-empty
         v-if="summaryRows.length === 0 && componentDiagnosisTop3.length === 0 && subtypeTop5.length === 0"
-        description="暂无第二部分算法结果，请先运行算法"
+        description="暂无算法结果，请先运行算法"
       />
 
       <div v-else>
@@ -388,7 +388,7 @@ function handleRunSecondAlgorithm() {
   runSecondAlgorithm(selectedTraceId.value, {
     algorithmName: algorithmForm.algorithmName
   }).then(res => {
-    proxy.$modal.msgSuccess('第二部分算法运行完成')
+    proxy.$modal.msgSuccess('知识图谱算法运行完成')
 
     const data = res.data || {}
 
@@ -402,13 +402,13 @@ function handleRunSecondAlgorithm() {
 
     refreshCurrentTrace()
   }).catch(err => {
-    console.error('第二部分算法运行失败：', err)
+    console.error('知识图谱算法运行失败：', err)
 
     const msg =
       err?.response?.data?.msg ||
       err?.response?.data?.message ||
       err?.message ||
-      '第二部分算法运行失败，请检查 Java 后端和 Python FastAPI 服务'
+      '知识图谱算法运行失败，请检查 Java 后端和 Python FastAPI 服务'
 
     proxy.$modal.msgError(msg)
   }).finally(() => {
@@ -440,7 +440,7 @@ function parseSecondResultObject(value) {
   try {
     obj = typeof value === 'string' ? JSON.parse(value) : value
   } catch (e) {
-    console.error('第二部分算法结果 JSON 解析失败：', e)
+    console.error('知识图谱算法结果 JSON 解析失败：', e)
     return {
       summaryRows: [],
       componentDiagnosisTop3: [],
@@ -865,8 +865,8 @@ function formatConfidence(value) {
 function workflowName(stage) {
   const value = Number(stage)
 
-  if (value === 1) return '质量问题填报'
-  if (value === 2) return '多元特征提取'
+  if (value === 1) return '问题填报'
+  if (value === 2) return '原始数据获取'
   if (value === 3) return '故障根因分析'
   if (value === 4) return '卷宗实体映射'
   if (value === 5) return '溯源图谱构建'

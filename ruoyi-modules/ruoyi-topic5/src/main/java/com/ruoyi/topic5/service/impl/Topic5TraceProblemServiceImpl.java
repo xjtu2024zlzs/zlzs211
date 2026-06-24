@@ -444,7 +444,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         if (problem == null)
         {
-            throw new ServiceException("追溯任务不存在，无法运行第一部分算法");
+            throw new ServiceException("追溯任务不存在，无法运行根因诊断算法");
         }
 
         // 第一部分算法前置条件已调整：
@@ -459,7 +459,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         if (problem.getWorkflowStage() == null || problem.getWorkflowStage() < 2L)
         {
-            throw new ServiceException("请先调用课题一数字卷宗并保存附件，再运行第一部分算法");
+            throw new ServiceException("请先调用数字卷宗并保存附件，再运行根因诊断算法");
         }
 
         // 先更新为运行中
@@ -526,7 +526,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
             // 新流程：故障根因分析完成，对应 workflow_stage = 3
             update.setWorkflowStage(3L);
-            update.setStatus("第一部分算法完成");
+            update.setStatus("故障根因分析完成");
             update.setUpdateTime(DateUtils.getNowDate());
 
             topic5TraceProblemMapper.updateTopic5TraceProblem(update);
@@ -536,7 +536,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                     3L,
                     "故障根因分析",
                     "成功",
-                    "已调用Python时空图神经网络定位算法并完成第一部分分析"
+                    "已调用Python时空图神经网络定位算法并完成根因诊断分析"
             );
 
             // 6. 返回给 Controller / 前端
@@ -556,7 +556,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             Topic5TraceProblem failUpdate = new Topic5TraceProblem();
             failUpdate.setId(id);
             failUpdate.setAlgorithmStatus(3L);
-            failUpdate.setAlgorithmResult("第一部分算法运行失败：" + e.getMessage());
+            failUpdate.setAlgorithmResult("根因诊断算法运行失败：" + e.getMessage());
             failUpdate.setStatus("处理中");
             failUpdate.setUpdateTime(DateUtils.getNowDate());
             topic5TraceProblemMapper.updateTopic5TraceProblem(failUpdate);
@@ -566,10 +566,10 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                     3L,
                     "故障根因分析",
                     "失败",
-                    "Python第一部分算法运行失败：" + e.getMessage()
+                    "Python算法运行失败：" + e.getMessage()
             );
 
-            throw new ServiceException("Python第一部分算法运行失败：" + e.getMessage());
+            throw new ServiceException("Python算法运行失败：" + e.getMessage());
         }
     }
 
@@ -600,7 +600,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         pressureFile.setSensorType("压力传感器");
         pressureFile.setFileSize("2.3MB");
         pressureFile.setSavedFlag(0L);
-        pressureFile.setRemark("模拟压力传感器数据文件");
+        pressureFile.setRemark("压力传感器数据文件");
         list.add(pressureFile);
 
         Topic5TraceAttachment temperatureFile = new Topic5TraceAttachment();
@@ -612,7 +612,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         temperatureFile.setSensorType("温度传感器");
         temperatureFile.setFileSize("1.8MB");
         temperatureFile.setSavedFlag(0L);
-        temperatureFile.setRemark("模拟温度传感器数据文件");
+        temperatureFile.setRemark("温度传感器数据文件");
         list.add(temperatureFile);
 
         Topic5TraceAttachment vibrationFile = new Topic5TraceAttachment();
@@ -624,7 +624,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         vibrationFile.setSensorType("振动传感器");
         vibrationFile.setFileSize("3.1MB");
         vibrationFile.setSavedFlag(0L);
-        vibrationFile.setRemark("模拟振动传感器数据文件");
+        vibrationFile.setRemark("振动传感器数据文件");
         list.add(vibrationFile);
 
         return list;
@@ -689,15 +689,15 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             case 1:
                 return "问题填报";
             case 2:
-                return "数据处理";
+                return "原始数据获取";
             case 3:
-                return "第一部分算法运行";
+                return "故障根因分析";
             case 4:
-                return "知识图谱导入";
+                return "卷宗实体映射";
             case 5:
-                return "第二部分算法运行";
+                return "溯源图谱构建";
             case 6:
-                return "进行溯源";
+                return "全链路追溯闭环";
             default:
                 return "未知流程";
         }
@@ -758,7 +758,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             updateAttachment.setFileUrl(targetPath);
             updateAttachment.setFileSource("课题五本地保存");
             updateAttachment.setSavedFlag(1L);
-            updateAttachment.setRemark("已从课题一源路径复制到课题五设置目录");
+            updateAttachment.setRemark("已从数字卷宗源路径复制到课题五设置目录");
 
             traceAttachmentMapper.updateTopic5TraceAttachment(updateAttachment);
         }
@@ -781,7 +781,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                 2L,
                 "数字卷宗附件保存",
                 "成功",
-                "已将课题一传感器文件复制到：" + basePath + "，当前流程已进入多元特征提取/数据处理阶段，可运行第一部分算法"
+                "已将传感器文件复制到：" + basePath + "，当前已进入原始数据获取阶段，可运行根因诊断算法"
         );
     }
     /**
@@ -841,7 +841,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         // 建议第二页面至少要求第一部分算法已完成
         if (problem.getWorkflowStage() == null || problem.getWorkflowStage() < 3L)
         {
-            throw new ServiceException("请先完成第一部分算法运行，再导入知识图谱");
+            throw new ServiceException("请先完成根因诊断算法运行，再导入知识图谱");
         }
 
         String graphJson = buildMockTopic1KgJson(problem);
@@ -865,7 +865,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                 4L,
                 "知识图谱导入",
                 "成功",
-                "已从课题一拉取并导入原始知识图谱"
+                "已从数字卷宗拉取并导入原始知识图谱"
         );
 
         Topic5TraceProblem newProblem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
@@ -886,27 +886,27 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         if (problem == null)
         {
-            throw new ServiceException("追溯任务不存在，无法运行第二部分算法");
+            throw new ServiceException("追溯任务不存在，无法运行知识图谱算法");
         }
 
         if (problem.getTopic1KgStatus() == null || !Long.valueOf(1L).equals(problem.getTopic1KgStatus()))
         {
-            throw new ServiceException("请先从课题一拉取知识图谱，再运行第二部分算法");
+            throw new ServiceException("请先从数字卷宗拉取知识图谱，再运行知识图谱算法");
         }
 
         if (problem.getAlgorithmStatus() == null || !Long.valueOf(2L).equals(problem.getAlgorithmStatus()))
         {
-            throw new ServiceException("请先完成第一部分算法运行，再运行第二部分算法");
+            throw new ServiceException("请先完成根因诊断算法运行，再运行知识图谱算法");
         }
 
         if (problem.getAlgorithmResult() == null || problem.getAlgorithmResult().trim().isEmpty())
         {
-            throw new ServiceException("第一部分算法结果为空，无法传入第二部分算法");
+            throw new ServiceException("根因诊断算法结果为空，无法传入知识图谱算法");
         }
 
         if (algorithmName == null || "".equals(algorithmName.trim()))
         {
-            throw new ServiceException("请选择第二部分算法");
+            throw new ServiceException("请选择知识图谱算法");
         }
 
         try
@@ -948,7 +948,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
             if (responseBody == null)
             {
-                throw new ServiceException("Python第二部分算法服务无返回结果");
+                throw new ServiceException("Python算法服务无返回结果");
             }
 
             Object codeObj = responseBody.get("code");
@@ -960,7 +960,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                     msgObj = responseBody.get("message");
                 }
 
-                throw new ServiceException("Python第二部分算法执行失败：" + (msgObj == null ? "未知错误" : msgObj.toString()));
+                throw new ServiceException("Python算法执行失败：" + (msgObj == null ? "未知错误" : msgObj.toString()));
             }
 
             String resultTableJson = buildSecondAlgorithmTableJsonFromPython(responseBody, problem, algorithmName);
@@ -977,7 +977,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
             // 流程进入第二部分算法完成阶段
             update.setWorkflowStage(5L);
-            update.setStatus("第二部分算法完成");
+            update.setStatus("溯源图谱构建完成");
             update.setUpdateTime(DateUtils.getNowDate());
 
             topic5TraceProblemMapper.updateTopic5TraceProblem(update);
@@ -985,9 +985,9 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             insertFlowLog(
                     id,
                     5L,
-                    "第二部分算法运行",
+                    "知识图谱算法运行",
                     "成功",
-                    "已调用Python FastAPI完成第二部分算法运行，系统自动保存算法结果：" + algorithmName
+                    "已调用Python FastAPI完成算法运行，系统自动保存算法结果：" + algorithmName
             );
 
             Topic5TraceProblem newProblem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
@@ -1017,12 +1017,12 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             insertFlowLog(
                     id,
                     5L,
-                    "第二部分算法运行",
+                    "知识图谱算法运行",
                     "失败",
-                    "Python第二部分算法运行失败：" + e.getMessage()
+                    "Python算法运行失败：" + e.getMessage()
             );
 
-            throw new ServiceException("Python第二部分算法运行失败：" + e.getMessage());
+            throw new ServiceException("Python算法运行失败：" + e.getMessage());
         }
     }
     @Override
@@ -1406,7 +1406,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
             // 最终溯源算法完成，对应全链路追溯闭环阶段
             update.setWorkflowStage(6L);
-            update.setStatus("最终溯源算法完成");
+            update.setStatus("全链路追溯完成");
             update.setUpdateTime(DateUtils.getNowDate());
 
             topic5TraceProblemMapper.updateTopic5TraceProblem(update);
@@ -1414,7 +1414,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             insertFlowLog(
                     id,
                     6L,
-                    "最终溯源算法运行",
+                    "溯源算法运行",
                     "成功",
                     "已调用Python FastAPI完成最终溯源算法运行：" + algorithmName
             );
@@ -1446,12 +1446,12 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             insertFlowLog(
                     id,
                     6L,
-                    "最终溯源算法运行",
+                    "溯源算法运行",
                     "失败",
-                    "Python最终溯源算法运行失败：" + e.getMessage()
+                    "Python溯源算法运行失败：" + e.getMessage()
             );
 
-            throw new ServiceException("Python最终溯源算法运行失败：" + e.getMessage());
+            throw new ServiceException("Python溯源算法运行失败：" + e.getMessage());
         }
     }
     private String extractSourceGraphJson(Map responseBody)

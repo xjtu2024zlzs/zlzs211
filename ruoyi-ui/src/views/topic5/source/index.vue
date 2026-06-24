@@ -12,8 +12,8 @@
 
       <el-steps :active="activeStep" finish-status="success" align-center>
         <el-step title="任务开始" />
-        <el-step title="质量问题填报" />
-        <el-step title="多元特征提取" />
+        <el-step title="问题填报" />
+        <el-step title="原始数据获取" />
         <el-step title="故障根因分析" />
         <el-step title="卷宗实体映射" />
         <el-step title="溯源图谱构建" />
@@ -1032,8 +1032,8 @@ function buildFileUrl(url) {
 function workflowName(stage) {
   const value = Number(stage)
 
-  if (value === 1) return '质量问题填报'
-  if (value === 2) return '多元特征提取'
+  if (value === 1) return '问题填报'
+  if (value === 2) return '原始数据获取'
   if (value === 3) return '故障根因分析'
   if (value === 4) return '卷宗实体映射'
   if (value === 5) return '溯源图谱构建'

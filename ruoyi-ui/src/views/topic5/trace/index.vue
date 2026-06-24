@@ -13,11 +13,11 @@
       <el-steps :active="activeStep" finish-status="success" align-center>
         <el-step title="任务开始" />
         <el-step title="问题填报" />
-        <el-step title="数据处理" />
-        <el-step title="根因诊断算法运行" />
-        <el-step title="知识图谱导入" />
-        <el-step title="知识图谱算法运行" />
-        <el-step title="进行溯源" />
+        <el-step title="原始数据获取" />
+        <el-step title="故障根因分析" />
+        <el-step title="卷宗实体映射" />
+        <el-step title="溯源图谱构建" />
+        <el-step title="全链路追溯闭环" />
         <el-step title="任务完成" />
       </el-steps>
     </el-card>
@@ -220,7 +220,7 @@
     <!-- 数据处理区：数字卷宗调用 -->
     <el-card class="box-card mt15">
       <template #header>
-        <span>数据处理：课题一数字卷宗传感器数据调用</span>
+        <span>原始数据获取：数字卷宗传感器数据调用</span>
       </template>
 
       <el-row :gutter="12" align="middle">
@@ -671,7 +671,7 @@
         </el-descriptions-item> -->
 
 
-        <el-descriptions-item label="第一部分算法结果" :span="2">
+        <el-descriptions-item label="根因诊断算法结果" :span="2">
           <div v-if="detailFirstAlgorithmResult" class="first-algorithm-detail-box">
             <el-descriptions :column="2" border>
               <el-descriptions-item label="故障部件编号">
@@ -706,7 +706,7 @@
 
           <el-empty
             v-else
-            description="暂无第一部分算法结构化结果"
+            description="暂无根因诊断结构化结果"
           />
         </el-descriptions-item>
       </el-descriptions>
@@ -1174,7 +1174,7 @@ function handleImportDossier() {
 
   importDossierFiles(selectedTraceId.value).then(res => {
     attachmentList.value = res.data || []
-    proxy.$modal.msgSuccess('已模拟从课题一数字卷宗调用传感器数据')
+    proxy.$modal.msgSuccess('已从数字卷宗调用传感器数据')
     refreshCurrentTrace()
   })
 }
@@ -1282,7 +1282,7 @@ function handleRunAlgorithm() {
   }
 
   runAlgorithm(selectedTraceId.value).then(() => {
-    proxy.$modal.msgSuccess('第一部分算法运行完成')
+    proxy.$modal.msgSuccess('根因诊断算法运行完成')
     refreshCurrentTrace()
   })
 }
@@ -1540,8 +1540,8 @@ function normalizePath(path) {
 function traceStatusTagType(status) {
   if (status === '未处理') return 'info'
   if (status === '处理中') return 'warning'
-  if (status === '第一部分算法完成') return 'success'
-  if (status === '第二部分算法完成') return 'success'
+  if (status === '根因诊断算法完成') return 'success'
+  if (status === '知识图谱算法完成') return 'success'
   if (status === '最终溯源算法完成') return 'success'
   if (status === '溯源完成') return 'success'
   if (status === '已完成') return 'success'
@@ -1799,11 +1799,11 @@ function formatEvolutionChain(chain) {
 function workflowName(stage) {
   const value = Number(stage)
   if (value === 1) return '问题填报'
-  if (value === 2) return '数据处理'
-  if (value === 3) return '第一部分算法运行'
-  if (value === 4) return '知识图谱导入'
-  if (value === 5) return '第二部分算法运行'
-  if (value === 6) return '进行溯源'
+  if (value === 2) return '原始数据获取'
+  if (value === 3) return '故障根因分析'
+  if (value === 4) return '卷宗实体映射'
+  if (value === 5) return '溯源图谱构建'
+  if (value === 6) return '全链路追溯闭环'
   return '未开始'
 }
 
