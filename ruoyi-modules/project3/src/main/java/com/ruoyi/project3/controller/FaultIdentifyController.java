@@ -138,6 +138,40 @@ public class FaultIdentifyController
         return AjaxResult.success(faultIdentifyService.get_task(resolvedTaskId));
     }
 
+    @GetMapping("/time_domain_window")
+    public AjaxResult time_domain_window(
+            @RequestParam(value = "analysisId", required = false) String analysisId,
+            @RequestParam(value = "taskId", required = false) String taskId,
+            @RequestParam(value = "startIndex", required = false, defaultValue = "0") Integer startIndex,
+            @RequestParam(value = "limit", required = false, defaultValue = "5000") Integer limit
+    )
+    {
+        String resolvedTaskId = analysisId != null && !analysisId.trim().isEmpty() ? analysisId : taskId;
+        return AjaxResult.success(faultIdentifyService.get_time_domain_window(resolvedTaskId, startIndex, limit));
+    }
+
+    @GetMapping("/time_domain_overview")
+    public AjaxResult time_domain_overview(
+            @RequestParam(value = "analysisId", required = false) String analysisId,
+            @RequestParam(value = "taskId", required = false) String taskId,
+            @RequestParam(value = "maxBuckets", required = false, defaultValue = "2000") Integer maxBuckets
+    )
+    {
+        String resolvedTaskId = analysisId != null && !analysisId.trim().isEmpty() ? analysisId : taskId;
+        return AjaxResult.success(faultIdentifyService.get_time_domain_overview(resolvedTaskId, maxBuckets));
+    }
+
+    @GetMapping("/time_domain_global_raw_preview")
+    public AjaxResult time_domain_global_raw_preview(
+            @RequestParam(value = "analysisId", required = false) String analysisId,
+            @RequestParam(value = "taskId", required = false) String taskId,
+            @RequestParam(value = "maxPoints", required = false, defaultValue = "8000") Integer maxPoints
+    )
+    {
+        String resolvedTaskId = analysisId != null && !analysisId.trim().isEmpty() ? analysisId : taskId;
+        return AjaxResult.success(faultIdentifyService.get_time_domain_global_raw_preview(resolvedTaskId, maxPoints));
+    }
+
     @PostMapping("/degradation_tasks")
     public AjaxResult submit_degradation_task(@RequestBody(required = false) DegradationTaskRequest request)
     {

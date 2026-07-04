@@ -4,8 +4,8 @@
       <template #header>
         <div class="hero-header">
           <div>
-            <div class="page-title">飞机框梁裂纹早期故障识别</div>
-            <div class="page-subtitle">面向框梁连接区振动信号的早期裂纹状态判别与指标展示</div>
+            <div class="page-title">铝合金产品裂纹早期故障识别</div>
+            <div class="page-subtitle">面向铝合金产品的早期裂纹状态判别与指标展示</div>
           </div>
           <div class="hero-actions">
             <el-button type="primary" :loading="running" @click="submitIdentifyTask">开始识别</el-button>
@@ -28,10 +28,10 @@
             <span class="section-title">飞机框梁对象信息</span>
           </template>
           <el-form label-position="top" class="info-form">
-            <el-form-item label="飞机型号">
+            <el-form-item label="飞机">
               <el-select
                 v-model="objectInfo.aircraftModel"
-                placeholder="请选择飞机型号"
+                placeholder="请选择飞机"
                 :loading="objectOptionsLoading"
                 @change="handleAircraftChange"
               >
@@ -43,10 +43,10 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item label="框梁区域">
+            <el-form-item label="设备">
               <el-select
                 v-model="objectInfo.fuselageArea"
-                placeholder="请选择框梁区域"
+                placeholder="请选择设备"
                 :disabled="!objectInfo.aircraftModel"
                 :loading="objectOptionsLoading"
               >
@@ -292,12 +292,14 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import * as echarts from 'echarts'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import request from '@/utils/request'
 import {
   deleteFrameBeamCrackHistory,
   getFrameBeamCrackHistory,
   getFrameBeamCrackTask,
   listFrameBeamCrackHistory,
+  mergeFrameBeamCrackChunks,
+  uploadFrameBeamCrackChunk,
+  uploadFrameBeamCrackFile,
   startFrameBeamCrackTask
 } from '@/api/project_3/frameBeamCrackIdentify'
 import { getMonitorTree } from '@/api/project_3/monitor'
@@ -357,7 +359,7 @@ const params = reactive({
   dataDir: '',
   segmentLength: 2048,
   overlapRate: 0.8,
-  sampleRate: 51200,
+  sampleRate: 200,
   batchSize: 32,
   epochs: 50
 })
@@ -501,46 +503,6 @@ async function loadObjectOptions() {
   } finally {
     objectOptionsLoading.value = false
   }
-}
-
-function uploadNumericFile(data, onUploadProgress) {
-  return request({
-    url: '/service/frame-beam-crack/uploads/file',
-    method: 'post',
-    data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      repeatSubmit: false
-    },
-    timeout: 300000,
-    onUploadProgress
-  })
-}
-
-function uploadNumericChunk(data) {
-  return request({
-    url: '/service/frame-beam-crack/uploads/chunk',
-    method: 'post',
-    data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      repeatSubmit: false
-    },
-    timeout: 300000
-  })
-}
-
-function mergeNumericChunks(data) {
-  return request({
-    url: '/service/frame-beam-crack/uploads/merge',
-    method: 'post',
-    data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      repeatSubmit: false
-    },
-    timeout: 300000
-  })
 }
 
 function triggerNumericUpload(command = 'file') {
@@ -689,7 +651,7 @@ async function uploadNumRow(row) {
       const payload = numUploadForm(row)
       payload.append('file', row.file)
       row.status = NUM_UPLOAD_UPLOADING
-      const res = await uploadNumericFile(payload, event => {
+      const res = await uploadFrameBeamCrackFile(payload, event => {
         if (event.total) row.progress = Math.min(99, Math.round((event.loaded / event.total) * 100))
       })
       row.responseData = res?.data || {}
@@ -718,7 +680,7 @@ async function uploadNumRowChunks(row) {
     payload.append('fileName', row.name)
     payload.append('relativePath', row.relativePath || row.name)
     payload.append('chunk', row.file.slice(start, end))
-    await uploadNumericChunk(payload)
+    await uploadFrameBeamCrackChunk(payload)
     row.progress = Math.min(95, Math.round(((i + 1) / chunkCount) * 95))
   }
 
@@ -728,7 +690,7 @@ async function uploadNumRowChunks(row) {
   mergePayload.append('uploadId', uploadId)
   mergePayload.append('fileName', row.name)
   mergePayload.append('relativePath', row.relativePath || row.name)
-  const res = await mergeNumericChunks(mergePayload)
+  const res = await mergeFrameBeamCrackChunks(mergePayload)
   row.responseData = res?.data || {}
   row.status = NUM_UPLOAD_SUCCESS
   row.progress = 100

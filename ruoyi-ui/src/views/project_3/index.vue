@@ -90,7 +90,7 @@
 
     <el-row :gutter="16">
       <el-col :span="8">
-        <el-card shadow="hover" class="module-card" @click="go('/project_3/monitor')">
+        <el-card shadow="hover" class="module-card" @click="go('/project_3/lifecycle-monitor')">
           <div class="module-title">生命周期质量统一监测</div>
           <div class="module-desc">
             进入模块级联管理、零件/组件信息管理、数据导入、数据预处理、关键质量特性挖掘页面。
@@ -111,9 +111,9 @@
 
       <el-col :span="8">
         <el-card shadow="hover" class="module-card" @click="go('/project_3/service/identify')">
-          <div class="module-title">服役性能周期故障预防</div>
+          <div class="module-title">智能设备健康状态在线识别与故障预测</div>
           <div class="module-desc">
-            进入故障识别、故障预防、健康基准建立和周期性巡检页面。
+            进入故障识别、故障预防页面。
           </div>
           <el-button type="primary" link>进入模块</el-button>
         </el-card>

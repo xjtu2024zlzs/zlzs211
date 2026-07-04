@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import json
 import threading
 import uuid
@@ -11,7 +12,12 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
 
-TASK_ROOT = Path(__file__).resolve().parent / "runtime" / "tasks"
+DEFAULT_ALGORITHM_DATA_ROOT = Path(
+    os.getenv("ALGORITHM_DATA_ROOT", r"F:\TotalData\FaultIdentifyData\AlgorithmData")
+).resolve()
+TASK_ROOT = Path(
+    os.getenv("ALGORITHM_TASK_ROOT", DEFAULT_ALGORITHM_DATA_ROOT / "tasks")
+).resolve()
 TASK_ROOT.mkdir(parents=True, exist_ok=True)
 
 EXECUTOR = ThreadPoolExecutor(max_workers=2)
@@ -23,6 +29,10 @@ SUCCESS = "SUCCESS"
 FAILED = "FAILED"
 CANCELED = "CANCELED"
 DONE = {SUCCESS, FAILED, CANCELED}
+
+
+class TaskCanceledError(RuntimeError):
+    """Raised by cooperative runners after observing a cancellation flag."""
 
 
 def is_terminal(status: Any) -> bool:
@@ -71,19 +81,25 @@ def logs_path(task_id: str) -> Path:
 
 
 def read_json(path: Path, default: Any) -> Any:
-    if not path.exists():
-        return default
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return default
+    for candidate in (path, path.with_suffix(path.suffix + ".tmp")):
+        if not candidate.exists():
+            continue
+        try:
+            return json.loads(candidate.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+    return default
 
 
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    tmp.replace(path)
+    try:
+        tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(path)
+    finally:
+        if tmp.exists():
+            tmp.unlink()
 
 
 def get_status(task_id: str) -> Optional[Dict[str, Any]]:
@@ -108,6 +124,14 @@ def append_log(task_id: str, level: str, message: str) -> None:
         write_json(logs_path(task_id), logs)
 
 
+def safe_append_log(task_id: str, level: str, message: str) -> None:
+    try:
+        append_log(task_id, level, message)
+    except Exception:
+        # Log persistence must not overwrite the task's terminal state.
+        return
+
+
 def update_status(task_id: str, **fields: Any) -> Dict[str, Any]:
     with LOCK:
         current = get_status(task_id) or {"taskId": task_id}
@@ -117,7 +141,12 @@ def update_status(task_id: str, **fields: Any) -> Dict[str, Any]:
             return current
         if is_terminal(current_status) and not next_status:
             return current
+        status_changed = bool(next_status and str(next_status).upper() != str(current_status or "").upper())
         current.update({k: v for k, v in fields.items() if v is not None})
+        if "version" not in current:
+            current["version"] = 0
+        if status_changed:
+            current["version"] = int(current.get("version") or 0) + 1
         write_json(status_path(task_id), current)
         return current
 
@@ -127,6 +156,35 @@ def is_canceled(task_id: str) -> bool:
     return bool(status and status.get("status") == CANCELED)
 
 
+def recover_incomplete_tasks(task_root: Optional[Path] = None) -> int:
+    root = task_root or TASK_ROOT
+    recovered = 0
+    if not root.exists():
+        return recovered
+    for status_file in root.glob("*/status.json"):
+        try:
+            task_id = status_file.parent.name
+            status = get_status(task_id)
+            if not isinstance(status, dict):
+                continue
+            current = str(status.get("status") or "").upper()
+            if current not in {PENDING, RUNNING}:
+                continue
+            update_status(
+                task_id,
+                status=FAILED,
+                progress=100,
+                message="Task failed because algorithm service restarted",
+                finishedAt=now_text(),
+                error="Algorithm service restarted before task reached a terminal state",
+            )
+            safe_append_log(task_id, "ERROR", "Task recovered as FAILED after service restart")
+            recovered += 1
+        except Exception:
+            continue
+    return recovered
+
+
 def create_task(algorithm_type: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     task_id = new_task_id()
     status = {
@@ -134,6 +192,7 @@ def create_task(algorithm_type: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         "taskId": task_id,
         "algorithmType": algorithm_type,
         "status": PENDING,
+        "version": 1,
         "progress": 0,
         "message": "任务已提交",
         "createdAt": now_text(),
@@ -144,7 +203,7 @@ def create_task(algorithm_type: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         "payload": payload,
     }
     write_json(status_path(task_id), status)
-    write_json(logs_path(task_id), [{"time": now_text(), "level": "INFO", "message": "任务已提交"}])
+    safe_append_log(task_id, "INFO", "任务已提交")
     return status
 
 
@@ -157,9 +216,9 @@ def submit_task(algorithm_type: str, payload: Dict[str, Any], runner: Callable[[
 def run_task(task_id: str, algorithm_type: str, payload: Dict[str, Any], runner: Callable[[str, str, Dict[str, Any]], Dict[str, Any]]) -> None:
     if is_canceled(task_id):
         return
-    update_status(task_id, status=RUNNING, progress=10, message="算法开始执行", startedAt=now_text())
-    append_log(task_id, "INFO", "算法开始执行")
     try:
+        update_status(task_id, status=RUNNING, progress=10, message="算法开始执行", startedAt=now_text())
+        safe_append_log(task_id, "INFO", "算法开始执行")
         if is_canceled(task_id):
             return
         update_status(task_id, progress=40, message="算法执行中")
@@ -174,7 +233,7 @@ def run_task(task_id: str, algorithm_type: str, payload: Dict[str, Any], runner:
             if isinstance(result, dict):
                 message = str(result.get("message") or result.get("error") or "任务执行失败")
             update_status(task_id, status=FAILED, progress=100, message="任务执行失败", finishedAt=now_text(), result=None, error=message)
-            append_log(task_id, "ERROR", message)
+            safe_append_log(task_id, "ERROR", message)
             return
         update_status(
             task_id,
@@ -185,13 +244,17 @@ def run_task(task_id: str, algorithm_type: str, payload: Dict[str, Any], runner:
             result=result,
             error="",
         )
-        append_log(task_id, "INFO", "任务完成")
+        safe_append_log(task_id, "INFO", "任务完成")
+    except TaskCanceledError as exc:
+        message = str(exc) or "任务已取消"
+        update_status(task_id, status=CANCELED, message=message, finishedAt=now_text())
+        safe_append_log(task_id, "INFO", message)
     except Exception as exc:
         if is_canceled(task_id):
             return
         message = str(exc) or "任务执行失败"
         update_status(task_id, status=FAILED, progress=100, message="任务执行失败", finishedAt=now_text(), error=message)
-        append_log(task_id, "ERROR", message)
+        safe_append_log(task_id, "ERROR", message)
 
 
 def cancel_task(task_id: str) -> Dict[str, Any]:
@@ -206,5 +269,43 @@ def cancel_task(task_id: str) -> Dict[str, Any]:
             return {"success": False, "taskId": task_id, "status": current, "message": "任务已结束，不能取消"}
         status.update({"status": CANCELED, "progress": status.get("progress", 0), "message": "任务已取消", "finishedAt": now_text()})
         write_json(status_path(task_id), status)
-        append_log(task_id, "INFO", "任务已取消")
+        safe_append_log(task_id, "INFO", "任务已取消")
         return {"success": True, "taskId": task_id, "status": CANCELED, "message": "任务已取消"}
+
+def cancel_task(task_id: str) -> Dict[str, Any]:
+    with LOCK:
+        status = get_status(task_id)
+        if not status:
+            return {"success": False, "message": "Task does not exist"}
+        current = str(status.get("status") or "").upper()
+        if current == CANCELED:
+            return {
+                "success": True,
+                "taskId": task_id,
+                "status": CANCELED,
+                "message": "Task canceled",
+                "version": status.get("version"),
+            }
+        if current in {SUCCESS, FAILED}:
+            return {
+                "success": False,
+                "taskId": task_id,
+                "status": current,
+                "message": "Task is already terminal and cannot be canceled",
+                "version": status.get("version"),
+            }
+        status = update_status(
+            task_id,
+            status=CANCELED,
+            progress=status.get("progress", 0),
+            message="Task canceled",
+            finishedAt=now_text(),
+        )
+        safe_append_log(task_id, "INFO", "Task canceled")
+        return {
+            "success": True,
+            "taskId": task_id,
+            "status": CANCELED,
+            "message": "Task canceled",
+            "version": status.get("version"),
+        }

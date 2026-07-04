@@ -164,6 +164,8 @@ public interface MonitorMapper {
 
     List<Map<String, Object>> sel_all_part_template_ids();
 
+    List<Map<String, Object>> sel_all_part_instances();
+
     List<Map<String, Object>> sel_all_process_route_ids();
 
     List<Map<String, Object>> sel_all_process_def_ids();
@@ -211,6 +213,10 @@ public interface MonitorMapper {
     int count_manufacturing_quality_by_id(@Param("manufacturing_quality_id") String manufacturing_quality_id);
 
     int count_manufacturing_device_by_id(@Param("device_id") String device_id);
+
+    int insert_manufacturing_quality_if_absent(Map<String, Object> row);
+
+    int insert_manufacturing_device_if_absent(Map<String, Object> row);
 
     Map<String, Object> sel_part_instance_ref(@Param("part_instance_id") String part_instance_id);
 

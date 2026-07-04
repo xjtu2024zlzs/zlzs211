@@ -33,7 +33,7 @@ public class FrameBeamCrackProperties
 
     public static class Algorithm
     {
-        private String baseUrl = "http://127.0.0.1:9741";
+        private String baseUrl = "";
         private String predictPath = "/frame-beam-crack/predict";
         private Integer connectTimeout = 5000;
         private Integer readTimeout = 600000;

@@ -6,7 +6,7 @@ import pickle
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -55,6 +55,12 @@ from algorithms.bosch_process_anomaly_memae import (
     ucl_quantile,
     ewma_stat,
 )
+from task_manager import TaskCanceledError
+
+
+def _check_canceled(cancel_check: Optional[Callable[[], bool]], location: str) -> None:
+    if cancel_check is not None and cancel_check():
+        raise TaskCanceledError(f"Task canceled during {location}")
 
 
 def _clean_path_text(value: Any) -> str:
@@ -81,11 +87,13 @@ def run_bosch_process_anomaly(
     ewma_lambda: float = 0.30,
     seed: int = 0,
     device: str = "auto",
+    cancel_check: Optional[Callable[[], bool]] = None,
 ) -> Dict[str, Any]:
     train_numeric_csv = _clean_path_text(train_numeric_csv)
     source = Path(train_numeric_csv)
     if not source.exists():
         raise FileNotFoundError(f"Bosch train_numeric.csv not found: {train_numeric_csv}")
+    _check_canceled(cancel_check, "process anomaly input validation")
 
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -112,6 +120,7 @@ def run_bosch_process_anomaly(
     )
 
     if not feature_col:
+        _check_canceled(cancel_check, "process anomaly feature selection")
         feature_col = auto_select_feature(
             str(source),
             station,
@@ -123,6 +132,7 @@ def run_bosch_process_anomaly(
     station_value = parse_station(feature_col)
 
     df = load_bosch_feature_table(str(source), feature_col, int(max_rows))
+    _check_canceled(cancel_check, "process anomaly data loading")
     x_all = df[feature_col].to_numpy(np.float32).reshape(-1, 1)
     y = df["Response"].to_numpy(np.int32)
     x_train = x_all[y == 0]
@@ -133,6 +143,7 @@ def run_bosch_process_anomaly(
     mean, std = fit_scaler(x_train)
     x_train_scaled = apply_scaler(x_train, mean, std)
     model = train_memae(x_train_scaled, args, resolved_device)
+    _check_canceled(cancel_check, "process anomaly training")
     comp_train = score_memae(model, x_train_scaled, args.batch_size, resolved_device)
     raw_train, _, _, params, t2_param = build_scores(comp_train, x_train_scaled, args)
     ecdf = ECDFTransform(raw_train)
@@ -182,6 +193,7 @@ def run_bosch_process_anomaly(
         "UCL_sample": float(ucl),
     }
     summary.update(confusion(y, alarm))
+    _check_canceled(cancel_check, "process anomaly result persistence")
     pd.DataFrame([summary]).to_csv(summary_path, index=False, encoding="utf-8-sig")
     with open(preprocess_path, "wb") as fh:
         pickle.dump(PreprocessState(feature_col, mean, std, params, t2_param, raw_train, ucl, vars(args)), fh)
@@ -226,12 +238,14 @@ def run_bosch_kqc_mining(
     it_b: int = 80,
     ss_runs: int = 20,
     ss_frac: float = 0.8,
+    cancel_check: Optional[Callable[[], bool]] = None,
 ) -> Dict[str, Any]:
     train_numeric_csv = _clean_path_text(train_numeric_csv)
     source = Path(train_numeric_csv)
     if not source.exists():
         raise FileNotFoundError(f"未找到 train_numeric.csv 文件：{train_numeric_csv}")
     columns = list(pd.read_csv(source, nrows=0).columns)
+    _check_canceled(cancel_check, "KQC input validation")
     if "Response" not in columns:
         raise ValueError(KQC_MISSING_RESPONSE_MESSAGE)
     if not any(FEATURE_RE.match(col) for col in columns):
@@ -247,7 +261,9 @@ def run_bosch_kqc_mining(
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     selected = select_bosch_features(str(source), int(max_rows), int(max_features), int(per_station), selection_mode)
+    _check_canceled(cancel_check, "KQC feature selection")
     df = load_bosch_matrix(str(source), selected, int(max_rows))
+    _check_canceled(cancel_check, "KQC matrix loading")
     names = selected + ["Response"]
     df_use = df[names].copy()
     obs_mask = ~df_use.isna().to_numpy(dtype=bool)
@@ -264,7 +280,9 @@ def run_bosch_kqc_mining(
             fh.write(f"  {col}, station={station_name(col)}, observed={int(df_use[col].notna().sum())}\n")
 
     W_A = solve_coke_forward(X, obs_mask.astype(float), hard_block, lambda1=float(lambda1_a), max_iter=int(it_a))
+    _check_canceled(cancel_check, "KQC first optimization")
     W_B = solve_coke_forward(X, obs_mask.astype(float), hard_block, lambda1=float(lambda1_b), max_iter=int(it_b), W_init=W_A)
+    _check_canceled(cancel_check, "KQC second optimization")
     raw_path = out_dir / "bosch_adj_matrix_raw.csv"
     pd.DataFrame(W_B, index=names, columns=names).to_csv(raw_path, encoding="utf-8-sig")
 
@@ -273,6 +291,7 @@ def run_bosch_kqc_mining(
         float(lambda1_a), float(lambda1_b), max(10, int(it_a) // 2), max(10, int(it_b) // 2),
         float(edge_indicator_eps),
     )
+    _check_canceled(cancel_check, "KQC stability selection")
     freq_path = out_dir / "bosch_edge_frequency.csv"
     pd.DataFrame(freq, index=names, columns=names).to_csv(freq_path, encoding="utf-8-sig")
 
@@ -358,6 +377,7 @@ def run_bosch_key_station(
     keep_freq: float = 0.6,
     weight_thresh: float = 1e-4,
     top_n: int = 10,
+    cancel_check: Optional[Callable[[], bool]] = None,
 ) -> Dict[str, Any]:
     adj_file = Path(adj_path)
     freq_file = Path(freq_path)
@@ -365,13 +385,16 @@ def run_bosch_key_station(
         raise FileNotFoundError(f"adjacency matrix not found: {adj_path}")
     if not freq_file.exists():
         raise FileNotFoundError(f"edge frequency matrix not found: {freq_path}")
+    _check_canceled(cancel_check, "key station input validation")
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     adj = pd.read_csv(adj_file, index_col=0, encoding="utf-8-sig").astype(float)
     freq = pd.read_csv(freq_file, index_col=0, encoding="utf-8-sig").astype(float)
+    _check_canceled(cancel_check, "key station matrix loading")
     E = edge_strength(adj, freq, float(keep_freq), float(weight_thresh))
     P = aggregate_station_network(E)
+    _check_canceled(cancel_check, "key station network aggregation")
     pr = pagerank(P)
     direct = direct_response_score(E)
     path = path_response_score(E)

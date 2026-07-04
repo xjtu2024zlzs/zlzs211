@@ -11,10 +11,14 @@ public class PythonAlgorithmProperties
 
 
     private String baseUrl;
+    private String taskRoot = System.getProperty("user.dir") + "/python/project3/runtime/tasks";
     private String keyProcessPath = "/api/v1/key-process/identify";
     private String keyProcessAuthCode = "ALGO_KEY_PROCESS_IDENTIFY_EXECUTE";
     private String keyProcessUrl;
     private String featureAnalysisPath = "/python/data-analysis";
+    private String timeDomainWindowPath = "/python/time-domain-window";
+    private String timeDomainOverviewPath = "/python/time-domain-overview";
+    private String timeDomainGlobalRawPreviewPath = "/python/time-domain-global-raw-preview";
     private String featureProcessingPath = "/python/feature-analysis";
     private String featureAnalysisAuthCode = "ALGO_FEATURE_ANALYSIS_EXECUTE";
     private String predictPath = "/algorithm/prevention/analyze";
@@ -38,6 +42,16 @@ public class PythonAlgorithmProperties
     public void setBaseUrl(String v)
     {
         this.baseUrl = v;
+    }
+
+    public String getTaskRoot()
+    {
+        return StringUtils.trim(taskRoot);
+    }
+
+    public void setTaskRoot(String taskRoot)
+    {
+        this.taskRoot = taskRoot;
     }
 
     public void setKeyProcessPath(String v)
@@ -68,6 +82,21 @@ public class PythonAlgorithmProperties
     public void setFeatureAnalysisAuthCode(String v)
     {
         this.featureAnalysisAuthCode = v;
+    }
+
+    public void setTimeDomainWindowPath(String v)
+    {
+        this.timeDomainWindowPath = v;
+    }
+
+    public void setTimeDomainOverviewPath(String v)
+    {
+        this.timeDomainOverviewPath = v;
+    }
+
+    public void setTimeDomainGlobalRawPreviewPath(String v)
+    {
+        this.timeDomainGlobalRawPreviewPath = v;
     }
 
     public void setPredictPath(String v)
@@ -176,6 +205,36 @@ public class PythonAlgorithmProperties
     {
         String authCode = StringUtils.trim(featureAnalysisAuthCode);
         return StringUtils.isEmpty(authCode) ? "ALGO_FEATURE_ANALYSIS_EXECUTE" : authCode;
+    }
+
+    public String getTimeDomainWindowPath()
+    {
+        String path = StringUtils.trim(timeDomainWindowPath);
+        if (StringUtils.isEmpty(path))
+        {
+            return path;
+        }
+        return StringUtils.startsWith(path, "/") ? path : "/" + path;
+    }
+
+    public String getTimeDomainOverviewPath()
+    {
+        String path = StringUtils.trim(timeDomainOverviewPath);
+        if (StringUtils.isEmpty(path))
+        {
+            return path;
+        }
+        return StringUtils.startsWith(path, "/") ? path : "/" + path;
+    }
+
+    public String getTimeDomainGlobalRawPreviewPath()
+    {
+        String path = StringUtils.trim(timeDomainGlobalRawPreviewPath);
+        if (StringUtils.isEmpty(path))
+        {
+            return path;
+        }
+        return StringUtils.startsWith(path, "/") ? path : "/" + path;
     }
 
     public String getFeatureProcessingPath()

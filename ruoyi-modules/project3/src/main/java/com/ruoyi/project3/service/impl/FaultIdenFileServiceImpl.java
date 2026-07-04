@@ -106,6 +106,40 @@ public class FaultIdenFileServiceImpl implements FaultIdenFileService
     }
 
     @Override
+    public List<Path> packageSourceFiles(String taskId)
+    {
+        FaultIdenFilePackage pack = packageMapper.seFaultIdenFilePackageByTaskId(taskId);
+        if (pack == null)
+        {
+            throw new ServiceException("file package not found");
+        }
+
+        List<Long> ids = idsFromJson(pack.getSelectedSampleIds());
+        if (ids.isEmpty())
+        {
+            throw new ServiceException("file package sample ids are empty");
+        }
+
+        String usage = usage(pack.getDataUsage());
+        List<FaultIdenSampleFile> samples = sampleMapper.selectSamplesByIds(ids, null);
+        if (samples.size() != ids.size())
+        {
+            throw new ServiceException("file package samples are incomplete");
+        }
+
+        List<Path> files = new ArrayList<>();
+        for (FaultIdenSampleFile sample : samples)
+        {
+            if (!matchesDataUsage(usage, sample.getDataUsage()))
+            {
+                throw new ServiceException("file package sample usage invalid");
+            }
+            files.add(checkSource(sample.getSourceFile()));
+        }
+        return files;
+    }
+
+    @Override
     public Path exportFile(String fileName)
     {
         if (fileName == null || fileName.contains("/") || fileName.contains("\\") || fileName.contains(".."))
@@ -143,7 +177,7 @@ public class FaultIdenFileServiceImpl implements FaultIdenFileService
         pack.setFileType("multi");
         pack.setFileName(samples.size() + "_selected_raw_files");
         pack.setFilePath(commonDir(samples));
-        pack.setFileUrl(prefix(props.getSourceFileUrlPrefix()) + "?ids=" + JSON.toJSONString(ids));
+        pack.setFileUrl(packageUrl(taskId));
         pack.setSelectedSampleIds(JSON.toJSONString(ids));
         pack.setDataUsage(usage);
         return pack;
@@ -248,6 +282,15 @@ public class FaultIdenFileServiceImpl implements FaultIdenFileService
         return new ArrayList<>(set);
     }
 
+    private List<Long> idsFromJson(String value)
+    {
+        if (value == null || value.trim().isEmpty())
+        {
+            return new ArrayList<>();
+        }
+        return ids(JSON.parseArray(value, Long.class));
+    }
+
     private Path checkSource(String file)
     {
         try
@@ -303,6 +346,11 @@ public class FaultIdenFileServiceImpl implements FaultIdenFileService
             throw new ServiceException("缺少数据文件URL前缀配置");
         }
         return prefix.endsWith("/") ? prefix.substring(0, prefix.length() - 1) : prefix;
+    }
+
+    private String packageUrl(String taskId)
+    {
+        return prefix(props.getSourceFileUrlPrefix()) + "/package/" + taskId;
     }
 
     private String fileType(String fileName)

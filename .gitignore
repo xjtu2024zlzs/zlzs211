@@ -40,32 +40,6 @@ nbdist/
 *.log
 *.xml.versionsBackup
 *.swp
-.env
-**/.env
-**/__pycache__/
-*.py[cod]
-*.egg-info/
-.pytest_cache/
-python/**/run/
-python/**/logs/
-tmp_*
-.codex-tmp/
-.m2/
-maven-repo/
-maven-tmp/
-ruoyi-ui/npm-cache/
-
-######################################################################
-# Local runtime/generated files
-
-__pycache__/
-*.py[cod]
-uploads/
-photos/
-solidworks_worker/output/
-solidworks_pipe/pipe_centerline.csv
-solidworks_pipe/pipe_model.stl
-solidworks_pipe/*.SLDPRT
 
 !*/build/*.java
 !*/build/*.html
@@ -73,18 +47,10 @@ solidworks_pipe/*.SLDPRT
 
 ruoyi-ui/.edge-project3-task8-profile/unpacked/
 uploadPath/
-
-# 项目特定忽略规则
-
-ruoyi-ui/.edge-project3-task8-profile/
-
-# Python 缓存文件
+# runtime generated datasets
+python/project3/runtime/storage/datasets/
+*.npy
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-docx/
-
-AGENTS.md
-algorithm-service/
+python/project3/runtime/storage/datasets/
+*.npy

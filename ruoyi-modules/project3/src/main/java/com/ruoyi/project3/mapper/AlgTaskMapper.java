@@ -26,6 +26,19 @@ public interface AlgTaskMapper
             @Param("limit") Integer limit
     );
 
+    List<AlgTaskResult> getActiveTasksByTypeForSync(
+            @Param("taskType") String taskType,
+            @Param("activeTimeoutMinutes") Integer activeTimeoutMinutes,
+            @Param("maxRetryCount") Integer maxRetryCount,
+            @Param("limit") Integer limit
+    );
+
+    int failActiveTasksExceededSyncRetries(
+            @Param("taskType") String taskType,
+            @Param("maxRetryCount") Integer maxRetryCount,
+            @Param("error") String error
+    );
+
     int deleteByFlowTaskId(@Param("flowTaskId") String flowTaskId);
 
     AlgTaskResult getLatestFeatureProcessingByFlowTaskId(@Param("flowTaskId") String flowTaskId);
@@ -33,6 +46,13 @@ public interface AlgTaskMapper
     int insertTask(AlgTaskResult record);
 
     int updateTask(AlgTaskResult record);
+
+    int recordSyncSuccess(@Param("taskId") String taskId);
+
+    int recordSyncFailure(
+            @Param("taskId") String taskId,
+            @Param("error") String error
+    );
 
     AlgTaskResult getLatestFeatureDataTask(
             @Param("bizId") String bizId,
@@ -113,6 +133,20 @@ public interface AlgTaskMapper
             @Param("keyword") String keyword,
             @Param("status") String status,
             @Param("result") String result
+    );
+
+    List<AlgTaskResult> getPreventiveMaintenanceResult(
+            @Param("taskType") String taskType,
+            @Param("keyword") String keyword,
+            @Param("status") String status,
+            @Param("offset") Integer offset,
+            @Param("limit") Integer limit
+    );
+
+    Long countPreventiveMaintenanceResult(
+            @Param("taskType") String taskType,
+            @Param("keyword") String keyword,
+            @Param("status") String status
     );
 
     int deleteByTaskIdAndType(
