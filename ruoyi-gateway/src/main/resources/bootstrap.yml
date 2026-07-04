@@ -16,12 +16,12 @@ spring:
         # 服务注册地址
         server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:}
+        password: ${NACOS_PASSWORD:nacos}
       config:
         # 配置中心地址
         server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:}
+        password: ${NACOS_PASSWORD:nacos}
     sentinel:
       # 取消控制台懒加载
       eager: true
