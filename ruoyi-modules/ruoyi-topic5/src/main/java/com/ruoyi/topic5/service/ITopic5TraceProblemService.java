@@ -2,12 +2,13 @@ package com.ruoyi.topic5.service;
 
 import java.util.List;
 import com.ruoyi.topic5.domain.Topic5TraceProblem;
-import java.util.List;
+
 import java.util.Map;
 import com.ruoyi.topic5.domain.Topic5TraceAttachment;
-import com.ruoyi.topic5.domain.Topic5TraceProblem;
+
 import com.ruoyi.topic5.domain.dto.Topic4CallbackDTO;
-import java.util.Map;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 追溯问题Service接口
@@ -159,6 +160,8 @@ public interface ITopic5TraceProblemService
      * 推送课题三
      */
     public void pushTopic3(Long id);
+
+    public void downloadReportByPath(String filePath, HttpServletResponse response) throws Exception;
 
 
 }

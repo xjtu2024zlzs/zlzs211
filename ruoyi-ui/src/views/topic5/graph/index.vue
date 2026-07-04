@@ -22,36 +22,7 @@
       </el-steps>
     </el-card>
 
-    <!-- 选择追溯任务 -->
-    <el-card class="box-card mt15">
-      <template #header>
-        <span>追溯任务选择</span>
-      </template>
-
-      <el-row :gutter="12" align="middle">
-        <el-col :span="10">
-          <el-select
-            v-model="selectedTraceId"
-            placeholder="请选择追溯任务"
-            style="width: 100%"
-            @change="handleTraceChange"
-          >
-            <el-option
-              v-for="item in traceList"
-              :key="item.id"
-              :label="item.traceNo + ' - ' + item.partName"
-              :value="item.id"
-            />
-          </el-select>
-        </el-col>
-
-        <el-col :span="4">
-          <el-button type="primary" @click="getTraceList">
-            刷新任务
-          </el-button>
-        </el-col>
-      </el-row>
-    </el-card>
+    
 
     <!-- 当前追溯任务信息 -->
     <el-card class="box-card mt15">
@@ -59,7 +30,7 @@
         <span>当前追溯任务信息</span>
       </template>
 
-      <el-empty v-if="!currentTrace.id" description="请先选择追溯任务" />
+      <el-empty v-if="!currentTrace.id" description="请在首页选择选择追溯任务" />
 
       <el-descriptions v-else :column="3" border>
         <el-descriptions-item label="追溯任务编号">
@@ -100,7 +71,7 @@
         </div>
       </template>
 
-      <el-button type="primary" icon="Connection" @click="handlePullTopic1Kg">
+      <el-button type="primary" icon="Connection"  :disabled="!selectedTraceId" @click="handlePullTopic1Kg">
         从数字卷宗拉取知识图谱
       </el-button>
 
@@ -120,53 +91,45 @@
     <el-card class="box-card mt15">
       <template #header>
         <div class="card-header">
-          <span>溯源图谱构建算法运行</span>
-          <span class="header-tip">结果由 Java 后端调用 Python FastAPI 后写入数据库</span>
+          <span>溯源图谱构建</span>
         </div>
       </template>
 
-      <el-row :gutter="12" align="middle">
-        <el-col :span="10">
-          <el-select
-            v-model="algorithmForm.algorithmName"
-            placeholder="请选择溯源模型"
-            style="width: 100%"
-          >
-            <el-option label="默认溯源模型（default）" value="default" />
-            <el-option label="评估模式溯源模型（eval）" value="eval" />
-          </el-select>
-        </el-col>
+        <el-row :gutter="12" align="middle" class="algorithm-action-row">
+          <!-- <el-col :span="10">
+            <el-select
+              v-model="algorithmForm.algorithmName"
+              placeholder="请选择溯源模型"
+              style="width: 100%"
+            >
+              <el-option label="默认溯源模型（default）" value="default" />
+              <el-option label="评估模式溯源模型（eval）" value="eval" />
+            </el-select>
+          </el-col> -->
 
-        <el-col :span="5">
-          <el-button
-            type="warning"
-            icon="Cpu"
-            :loading="secondAlgorithmRunning"
-            :disabled="secondAlgorithmRunning"
-            @click="handleRunSecondAlgorithm"
-          >
-            运行算法
-          </el-button>
-        </el-col>
-      </el-row>
+          <el-col :span="5">
+            <el-button
+              type="warning"
+              icon="Cpu"
+              :loading="secondAlgorithmRunning"
+              :disabled="secondAlgorithmRunning || !selectedTraceId"
+              @click="handleRunSecondAlgorithm"
+            >
+              运行算法
+            </el-button>
+          </el-col>
 
-      <el-form label-width="120px" class="mt15">
-        <el-form-item label="算法状态">
-          <el-tag :type="secondAlgorithmTagType(currentTrace.secondAlgorithmStatus)">
-            {{ secondAlgorithmStatusName(currentTrace.secondAlgorithmStatus) }}
-          </el-tag>
-        </el-form-item>
+          <el-col :span="8">
+            <div class="algorithm-status-inline">
+              <span class="algorithm-status-label">算法状态：</span>
+              <el-tag :type="secondAlgorithmTagType(currentTrace.secondAlgorithmStatus)">
+                {{ secondAlgorithmStatusName(currentTrace.secondAlgorithmStatus) }}
+              </el-tag>
+            </div>
+          </el-col>
+        </el-row>
 
-        <el-form-item label="已选模型">
-          <el-input
-            v-model="currentTrace.secondAlgorithmName"
-            readonly
-            placeholder="尚未运行算法"
-          />
-        </el-form-item>
-      </el-form>
-
-      <div class="graph-title mt15">溯源图谱构建结果</div>
+      <!-- <div class="graph-title mt15">溯源图谱构建结果</div> -->
 
       <el-empty
         v-if="summaryRows.length === 0 && componentDiagnosisTop3.length === 0 && subtypeTop5.length === 0"
@@ -238,7 +201,7 @@
           <el-table-column prop="description" label="说明" min-width="260" show-overflow-tooltip />
         </el-table>
 
-        <el-collapse class="mt15">
+        <!-- <el-collapse class="mt15">
           <el-collapse-item title="查看原始算法结果 JSON" name="raw">
             <el-input
               type="textarea"
@@ -247,28 +210,25 @@
               readonly
             />
           </el-collapse-item>
-        </el-collapse>
+        </el-collapse> -->
       </div>
     </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance , onActivated} from 'vue'
 import * as echarts from 'echarts'
 import {
-  listGraphTrace,
   getGraphTrace,
   pullTopic1Kg,
   runSecondAlgorithm,
   getTraceKg,
 } from '@/api/topic5/graph'
+import { getTopic5CurrentTraceId, getTopic5CurrentTrace } from '@/utils/topic5CurrentTrace'
 
 const { proxy } = getCurrentInstance()
-const route = useRoute()
 
-const traceList = ref([])
 const selectedTraceId = ref(null)
 const currentTrace = ref({})
 
@@ -277,8 +237,10 @@ let originChart = null
 
 const secondAlgorithmRunning = ref(false)
 
+const DEFAULT_SECOND_ALGORITHM_NAME = 'default'
+
 const algorithmForm = reactive({
-  algorithmName: null
+  algorithmName: DEFAULT_SECOND_ALGORITHM_NAME
 })
 
 
@@ -315,21 +277,48 @@ const activeStep = computed(() => {
   return 0
 })
 
-function getTraceList() {
-  listGraphTrace({}).then(res => {
-    traceList.value = res.data || res.rows || []
-  })
+
+function initCurrentTraceFromFirstPage() {
+  const traceId = getTopic5CurrentTraceId()
+  const trace = getTopic5CurrentTrace()
+
+  if (!traceId) {
+    proxy.$modal.msgWarning('请先在第一个页面选择追溯任务')
+    selectedTraceId.value = null
+    currentTrace.value = {}
+    clearSecondPageResult()
+    return
+  }
+
+  // 如果当前页面缓存的任务ID和第一个页面选择的不一致，必须先清空旧结果
+  if (Number(selectedTraceId.value) !== Number(traceId)) {
+    clearSecondPageResult()
+  }
+
+  selectedTraceId.value = Number(traceId)
+  currentTrace.value = trace || {}
+
+  loadCurrentTraceData()
 }
+function loadCurrentTraceData() {
+  if (!selectedTraceId.value) {
+    return
+  }
 
-function handleTraceChange(id) {
-  if (!id) return
+  getGraphTrace(selectedTraceId.value).then(res => {
+    const detail = res.data || {}
 
-  getGraphTrace(id).then(res => {
-    currentTrace.value = res.data || {}
+    currentTrace.value = {
+      ...detail
+    }
 
-    algorithmForm.algorithmName = currentTrace.value.secondAlgorithmName || null
+    algorithmForm.algorithmName =
+      currentTrace.value.secondAlgorithmName || DEFAULT_SECOND_ALGORITHM_NAME
 
-    loadTraceKg(id)
+    loadTraceKg(selectedTraceId.value)
+  }).catch(err => {
+    console.error('加载当前追溯任务失败：', err)
+    proxy.$modal.msgError('加载当前追溯任务失败，请返回第一个页面重新选择任务')
   })
 }
 
@@ -339,10 +328,9 @@ function loadTraceKg(id) {
     const traceProblem = data.traceProblem || currentTrace.value || {}
 
     currentTrace.value = {
-      ...currentTrace.value,
       ...traceProblem,
-      topic1KgJson: data.topic1KgJson || traceProblem.topic1KgJson,
-      secondAlgorithmResultJson: data.secondAlgorithmResultJson || traceProblem.secondAlgorithmResultJson
+      topic1KgJson: data.topic1KgJson || traceProblem.topic1KgJson || '',
+      secondAlgorithmResultJson: data.secondAlgorithmResultJson || traceProblem.secondAlgorithmResultJson || ''
     }
 
     if (data.topic1KgJson) {
@@ -378,15 +366,10 @@ function handleRunSecondAlgorithm() {
     return
   }
 
-  if (!algorithmForm.algorithmName) {
-    proxy.$modal.msgWarning('请选择溯源模型')
-    return
-  }
-
   secondAlgorithmRunning.value = true
 
   runSecondAlgorithm(selectedTraceId.value, {
-    algorithmName: algorithmForm.algorithmName
+    algorithmName: algorithmForm.algorithmName || DEFAULT_SECOND_ALGORITHM_NAME
   }).then(res => {
     proxy.$modal.msgSuccess('知识图谱算法运行完成')
 
@@ -421,8 +404,10 @@ function refreshCurrentTrace() {
 
   getGraphTrace(selectedTraceId.value).then(res => {
     currentTrace.value = res.data || {}
-      algorithmForm.algorithmName = currentTrace.value.secondAlgorithmName || algorithmForm.algorithmName
-    getTraceList()
+    algorithmForm.algorithmName =
+      currentTrace.value.secondAlgorithmName || algorithmForm.algorithmName
+
+    loadTraceKg(selectedTraceId.value)
   })
 }
 
@@ -739,6 +724,24 @@ function normalizeSubtypeRows(list) {
       }))
 }
 
+function clearSecondPageResult() {
+  currentTrace.value = {
+    id: currentTrace.value.id,
+    traceNo: currentTrace.value.traceNo,
+    eventTime: currentTrace.value.eventTime,
+    aircraftNo: currentTrace.value.aircraftNo,
+    partName: currentTrace.value.partName,
+    problemType: currentTrace.value.problemType,
+    problemDescription: currentTrace.value.problemDescription,
+    workflowStage: currentTrace.value.workflowStage,
+    status: currentTrace.value.status
+  }
+
+  if (originChart) {
+    originChart.clear()
+  }
+}
+
 function formatResultValue(value) {
   if (value === null || value === undefined || value === '') {
     return '-'
@@ -875,6 +878,24 @@ function workflowName(stage) {
   return '未开始'
 }
 
+function scrollToTop() {
+  nextTick(() => {
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+
+    const appMain = document.querySelector('.app-main')
+    if (appMain) {
+      appMain.scrollTop = 0
+    }
+
+    const scrollWrap = document.querySelector('.el-scrollbar__wrap')
+    if (scrollWrap) {
+      scrollWrap.scrollTop = 0
+    }
+  })
+}
+
 function secondAlgorithmStatusName(status) {
   const value = Number(status)
   if (value === 0) return '未运行'
@@ -894,17 +915,17 @@ function secondAlgorithmTagType(status) {
 }
 
 onMounted(() => {
-  getTraceList()
-
-  const traceId = route.query.traceId
-  if (traceId) {
-    selectedTraceId.value = Number(traceId)
-    handleTraceChange(Number(traceId))
-  }
+  scrollToTop()
+  initCurrentTraceFromFirstPage()
 
   window.addEventListener('resize', () => {
     if (originChart) originChart.resize()
   })
+})
+
+onActivated(() => {
+  scrollToTop()
+  initCurrentTraceFromFirstPage()
 })
 </script>
 
@@ -926,6 +947,22 @@ onMounted(() => {
 .header-tip {
   font-size: 13px;
   color: #909399;
+}
+
+.algorithm-action-row {
+  margin-bottom: 15px;
+}
+
+.algorithm-status-inline {
+  display: flex;
+  align-items: center;
+  height: 32px;
+}
+
+.algorithm-status-label {
+  margin-right: 8px;
+  font-size: 14px;
+  color: #606266;
 }
 
 .graph-title {

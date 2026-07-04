@@ -28,6 +28,8 @@ public class QualityProblemDto implements Serializable
 
     private Date occurTime;
 
+    private String reporter;
+
     private String moduleCode;
 
     private String moduleName;
@@ -76,7 +78,15 @@ public class QualityProblemDto implements Serializable
     {
         return productModel;
     }
+    public String getReporter()
+    {
+        return reporter;
+    }
 
+    public void setReporter(String reporter)
+    {
+        this.reporter = reporter;
+    }
     public void setProductModel(String productModel)
     {
         this.productModel = productModel;

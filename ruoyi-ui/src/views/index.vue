@@ -49,7 +49,7 @@
             </p>
           </div>
 
-          <el-button type="primary" size="large" plain @click="navigateTo('/project1')">
+          <el-button type="primary" size="large" plain @click="navigateTo('/dossier/manage/instance')">
             进入全域异构信息集成系统
           </el-button>
         </div>
@@ -128,7 +128,30 @@
               </div>
             </div>
 
-            <el-button type="primary" class="module-button" @click="navigateTo(project.route)">
+            <el-button
+              v-if="project.key === 'project-2'"
+              type="primary"
+              class="module-button"
+              @click="navigateTo('/designtask/dashboard')"
+            >
+              进入{{ project.label }}模块
+            </el-button>
+
+            <el-button
+              v-else-if="project.key === 'project-3'"
+              type="primary"
+              class="module-button"
+              @click="navigateTo('/project_3/index')"
+            >
+              进入{{ project.label }}模块
+            </el-button>
+
+            <el-button
+              v-else-if="project.key === 'project-4'"
+              type="primary"
+              class="module-button"
+              @click="navigateTo('/project4/fileofda')"
+            >
               进入{{ project.label }}模块
             </el-button>
           </article>
@@ -170,7 +193,7 @@
           </div>
 
           <div class="knowledge-actions">
-            <el-button type="primary" @click="navigateTo('/project_5')">
+            <el-button type="primary" @click="navigateTo('/topic_5/trace')">
               进入全生命周期数字质量自反馈与追溯
             </el-button>
 

@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Value;
 import com.ruoyi.common.core.exception.ServiceException;
+import jakarta.servlet.http.HttpServletResponse;
 /**
  * 课题五追溯问题Controller
  */
@@ -48,6 +49,12 @@ public class Topic5TraceProblemController extends BaseController
         startPage();
         List<Topic5TraceProblem> list = traceProblemService.selectTopic5TraceProblemList(topic5TraceProblem);
         return getDataTable(list);
+    }
+
+    @GetMapping("/report/downloadByPath")
+    public void downloadReportByPath(String filePath, HttpServletResponse response) throws Exception
+    {
+        traceProblemService.downloadReportByPath(filePath, response);
     }
 
     /**

@@ -4,7 +4,6 @@ import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.exception.ServiceException;
 import com.ruoyi.common.core.utils.DateUtils;
 import com.ruoyi.common.core.utils.StringUtils;
-import com.ruoyi.qms.api.RemoteQualityProblemService;
 import com.ruoyi.qms.api.domain.QualityProblemDto;
 import com.ruoyi.qms.api.RemoteQualityTaskService;
 import com.ruoyi.qms.api.domain.QualityTaskDto;
@@ -14,7 +13,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -26,15 +24,10 @@ import com.alibaba.fastjson2.JSON;
 import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.ruoyi.common.core.exception.ServiceException;
-import com.ruoyi.common.core.utils.DateUtils;
 import com.ruoyi.topic5.domain.Topic5TraceAttachment;
 import com.ruoyi.topic5.domain.Topic5TraceFlowLog;
 import com.ruoyi.topic5.domain.Topic5TraceProblem;
 import com.ruoyi.topic5.domain.dto.Topic4CallbackDTO;
-import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
 import com.ruoyi.topic5.mapper.Topic5TraceAttachmentMapper;
 import com.ruoyi.topic5.mapper.Topic5TraceFlowLogMapper;
 import com.ruoyi.topic5.mapper.Topic5TraceProblemMapper;
@@ -57,6 +50,10 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import jakarta.servlet.http.HttpServletResponse;
 
 
 /**
@@ -106,6 +103,52 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     public Topic5TraceProblem selectTopic5TraceProblemById(Long id)
     {
         return topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+    }
+
+    @Override
+    public void downloadReportByPath(String filePath, HttpServletResponse response) throws Exception
+    {
+        if (StringUtils.isEmpty(filePath))
+        {
+            throw new ServiceException("报告路径不能为空");
+        }
+
+        String normalizedPath = filePath.replace("\\", "/");
+
+        if (!normalizedPath.startsWith("/profile/topic5/report/"))
+        {
+            throw new ServiceException("非法报告路径：" + filePath);
+        }
+
+        String fileName = normalizedPath.substring(normalizedPath.lastIndexOf("/") + 1);
+
+        if (StringUtils.isEmpty(fileName))
+        {
+            throw new ServiceException("报告文件名不能为空");
+        }
+
+        String lowerName = fileName.toLowerCase();
+
+        if (!lowerName.endsWith(".doc") && !lowerName.endsWith(".docx"))
+        {
+            throw new ServiceException("当前文件不是Word报告：" + fileName);
+        }
+
+        Path reportPath = Paths.get(ruoyiProfile, "topic5", "report", fileName);
+
+        if (!Files.exists(reportPath))
+        {
+            throw new ServiceException("报告文件不存在：" + reportPath);
+        }
+
+        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString())
+                .replaceAll("\\+", "%20");
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + encodedFileName);
+        response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+        Files.copy(reportPath, response.getOutputStream());
     }
 
     /**
@@ -203,20 +246,13 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             return 0;
         }
 
+        // 只按照质量任务ID去重
         List<Long> existedTaskIds = topic5TraceProblemMapper.selectAllQualityTaskIdList();
         Set<Long> existedTaskIdSet = new HashSet<>();
 
         if (existedTaskIds != null)
         {
             existedTaskIdSet.addAll(existedTaskIds);
-        }
-
-        List<String> existedTraceNos = topic5TraceProblemMapper.selectAllTraceNoList();
-        Set<String> existedTraceNoSet = new HashSet<>();
-
-        if (existedTraceNos != null)
-        {
-            existedTraceNoSet.addAll(existedTraceNos);
         }
 
         int count = 0;
@@ -228,20 +264,13 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                 continue;
             }
 
+            // 核心：同一个 task_id 只同步一次
             if (existedTaskIdSet.contains(task.getTaskId()))
             {
                 continue;
             }
 
-            String problemCode = task.getProblemCode();
-
-            if (StringUtils.isEmpty(problemCode))
-            {
-                continue;
-            }
-
-            // 兼容之前按 problemCode 同步过的历史数据，避免重复生成追溯任务
-            if (existedTraceNoSet.contains(problemCode))
+            if (StringUtils.isEmpty(task.getProblemCode()))
             {
                 continue;
             }
@@ -254,7 +283,6 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             {
                 count++;
                 existedTaskIdSet.add(task.getTaskId());
-                existedTraceNoSet.add(problemCode);
             }
         }
 
@@ -341,6 +369,13 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         sb.append("质量问题标题：").append(emptyToDash(task.getProblemTitle())).append("\n");
         sb.append("质量问题编号：").append(emptyToDash(task.getProblemCode())).append("\n");
+
+        // 新增字段
+        sb.append("发生时间：").append(emptyToDash(task.getOccurTime().toString())).append("\n");
+        sb.append("发生部位：").append(emptyToDash(task.getModuleName())).append("\n");
+        sb.append("部件编号：").append(emptyToDash(task.getModuleCode())).append("\n");
+        sb.append("填报人员：").append(emptyToDash(task.getReporter())).append("\n");
+
         sb.append("产品型号：").append(emptyToDash(task.getProductModel())).append("\n");
         sb.append("涉及系统：").append(emptyToDash(task.getInvolvedSystem())).append("\n");
         sb.append("严重程度：").append(emptyToDash(task.getSeverity())).append("\n");
@@ -1654,7 +1689,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             String sourceGraphJson = extractSourceGraphJson(responseBody);
             String reasonTableJson = buildFinalTraceReasonTableJson(responseBody);
             String summary = buildFinalTraceSummary(responseBody);
-            String traceReportUrl = extractTraceReportUrl(responseBody);
+            //String traceReportUrl = extractTraceReportUrl(responseBody);
 
             // 4. 写回数据库
             Topic5TraceProblem update = new Topic5TraceProblem();
@@ -1665,11 +1700,11 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             update.setSourceReasonTableJson(reasonTableJson);
             update.setSourceResultSummary(summary);
 
-            if (traceReportUrl != null && !"".equals(traceReportUrl))
-            {
-                update.setTraceReportUrl(traceReportUrl);
-                update.setTraceReportStatus(1L);
-            }
+//            if (traceReportUrl != null && !"".equals(traceReportUrl))
+//            {
+//                update.setTraceReportUrl(traceReportUrl);
+//                update.setTraceReportStatus(1L);
+//            }
 
             // 最终溯源算法完成，对应全链路追溯闭环阶段
             update.setWorkflowStage(6L);
@@ -1693,7 +1728,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             result.put("sourceGraphJson", sourceGraphJson);
             result.put("reasonTableJson", reasonTableJson);
             result.put("summary", summary);
-            result.put("traceReportUrl", traceReportUrl);
+//            result.put("traceReportUrl", traceReportUrl);
             result.put("graphData", parseGraphJsonToMap(sourceGraphJson));
             result.put("reasonList", JSON.parseArray(reasonTableJson, Map.class));
             result.put("pythonResponse", responseBody);
@@ -2157,7 +2192,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             String traceNo = problem.getTraceNo() == null ? String.valueOf(id) : problem.getTraceNo();
             String timeStr = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
-            String fileName = "trace_report_" + traceNo + "_" + timeStr + ".docx";
+            String fileName =  traceNo + "_" + timeStr + ".docx";
 
             Path reportDir = Paths.get(ruoyiProfile, "topic5", "report");
             Files.createDirectories(reportDir);
@@ -2278,10 +2313,14 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("当前追溯任务不是由质量问题管理中心分派生成，无法回填");
         }
 
-        // 建议至少完成最终溯源算法后再允许回填
-        if (problem.getSourceAlgorithmStatus() == null || !Long.valueOf(2L).equals(problem.getSourceAlgorithmStatus()))
+        if (problem.getTraceReportStatus() == null || !Long.valueOf(1L).equals(problem.getTraceReportStatus()))
         {
-            throw new ServiceException("请先完成最终溯源算法，再回填质量问题管理中心");
+            throw new ServiceException("请先导出最终溯源Word报告，再回填质量问题管理中心");
+        }
+
+        if (StringUtils.isEmpty(problem.getTraceReportUrl()))
+        {
+            throw new ServiceException("最终溯源Word报告路径为空，无法回填质量问题管理中心");
         }
 
         submitResultToQualityCenter(problem, problem.getTraceReportUrl());
@@ -2291,7 +2330,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                 6L,
                 "回填质量问题管理中心",
                 "成功",
-                "已将课题五最终追溯结果回填至质量问题管理中心"
+                "已将课题五最终溯源Word报告回填至质量问题管理中心"
         );
     }
     /**
@@ -2304,36 +2343,14 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("质量自反馈与追溯模块已完成全生命周期追溯闭环分析。");
+        sb.append("已完成全生命周期追溯分析，并生成最终溯源Word报告。");
 
-        if (problem.getTraceNo() != null)
+        if (!StringUtils.isEmpty(problem.getTraceNo()))
         {
-            sb.append("\n追溯任务编号：").append(problem.getTraceNo());
-        }
-
-        if (problem.getPartName() != null)
-        {
-            sb.append("\n追溯对象：").append(problem.getPartName());
+            sb.append(" 任务编号：").append(problem.getTraceNo()).append("。");
         }
 
-        if (problem.getSeverityLevel() != null)
-        {
-            sb.append("\n严重程度：").append(problem.getSeverityLevel());
-        }
-
-        if (problem.getSourceAlgorithmName() != null)
-        {
-            sb.append("\n最终溯源算法：").append(problem.getSourceAlgorithmName());
-        }
-
-        if (problem.getSourceResultSummary() != null && !"".equals(problem.getSourceResultSummary().trim()))
-        {
-            sb.append("\n最终溯源结论：").append(problem.getSourceResultSummary());
-        }
-        else
-        {
-            sb.append("\n最终溯源结论：系统已完成数字卷宗数据调用、根因诊断、知识图谱推理与最终溯源报告生成。");
-        }
+        sb.append("详细结果请查看处理结果文件。");
 
         return sb.toString();
     }
@@ -2827,13 +2844,13 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                     {"发生时间", valueToText(problem.getEventTime())},
                     {"架次", valueToText(problem.getAircraftNo())},
                     {"发生部位", valueToText(problem.getPartName())},
-                    {"部件编号", valueToText(problem.getPartCode())},
-                    {"具体位置", valueToText(problem.getOccurrencePosition())},
+//                    {"部件编号", valueToText(problem.getPartCode())},
+//                    {"具体位置", valueToText(problem.getOccurrencePosition())},
                     {"问题类型", valueToText(problem.getProblemType())},
                     {"严重程度", valueToText(problem.getSeverityLevel())},
                     {"当前状态", valueToText(problem.getStatus())},
                     {"当前流程阶段", workflowNameForReport(problem.getWorkflowStage())},
-                    {"填报人", valueToText(problem.getReporter())},
+//                    {"填报人", valueToText(problem.getReporter())},
                     {"问题来源", valueToText(problem.getSource())},
                     {"问题描述", valueToText(problem.getProblemDescription())},
                     {"备注", valueToText(problem.getRemark())}

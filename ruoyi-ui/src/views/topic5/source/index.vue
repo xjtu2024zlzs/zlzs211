@@ -6,7 +6,7 @@
       <template #header>
         <div class="card-header">
           <span>航空装备全生命周期数字质量自反馈与追溯流程</span>
-          <span class="header-tip">当前选择任务：{{ currentTrace.traceNo || '未选择' }}</span>
+          <span class="header-tip">当前任务：{{ currentTrace.traceNo || '未选择' }}</span>
         </div>
       </template>
 
@@ -22,92 +22,75 @@
       </el-steps>
     </el-card>
 
-    <!-- 追溯任务选择 -->
-    <el-card class="box-card mt15">
-      <template #header>
-        <span>追溯任务选择</span>
-      </template>
-
-      <el-row :gutter="12" align="middle">
-        <el-col :span="10">
-          <el-select
-            v-model="selectedTraceId"
-            placeholder="请选择追溯任务"
-            style="width: 100%"
-            @change="handleTraceChange"
-          >
-            <el-option
-              v-for="item in traceList"
-              :key="item.id"
-              :label="item.traceNo + ' - ' + item.partName"
-              :value="item.id"
-            />
-          </el-select>
-        </el-col>
-
-        <el-col :span="4">
-          <el-button type="primary" @click="getTraceList">
-            刷新任务
-          </el-button>
-        </el-col>
-      </el-row>
-    </el-card>
-
     <!-- 当前追溯任务信息 -->
     <el-card class="box-card mt15">
       <template #header>
-        <span>当前追溯任务信息</span>
+        <div class="card-header">
+          <span>当前追溯任务信息</span>
+          <span class="header-tip">当前任务来自第一个页面的历史追溯问题选择</span>
+        </div>
       </template>
 
-      <el-empty v-if="!currentTrace.id" description="请先选择追溯任务" />
+      <el-empty v-if="!currentTrace.id" description="请先在第一个页面选择追溯任务" />
 
-      <el-descriptions v-else :column="3" border>
-        <el-descriptions-item label="追溯任务编号">
-          {{ currentTrace.traceNo }}
-        </el-descriptions-item>
+      <div v-else>
+        <el-descriptions :column="3" border>
+          <el-descriptions-item label="追溯任务编号">
+            {{ currentTrace.traceNo || '-' }}
+          </el-descriptions-item>
 
-        <el-descriptions-item label="发生时间">
-          {{ currentTrace.eventTime }}
-        </el-descriptions-item>
+          <el-descriptions-item label="发生时间">
+            {{ currentTrace.eventTime || '-' }}
+          </el-descriptions-item>
 
-        <el-descriptions-item label="架次">
-          {{ currentTrace.aircraftNo }}
-        </el-descriptions-item>
+          <el-descriptions-item label="产品型号">
+            {{ currentTrace.aircraftNo || '-' }}
+          </el-descriptions-item>
 
-        <el-descriptions-item label="发生部位">
-          {{ currentTrace.partName }}
-        </el-descriptions-item>
+          <el-descriptions-item label="发生部位">
+            {{ currentTrace.partName || '-' }}
+          </el-descriptions-item>
 
-        <el-descriptions-item label="问题类型">
-          {{ currentTrace.problemType }}
-        </el-descriptions-item>
+          <el-descriptions-item label="问题类型">
+            {{ currentTrace.problemType || '-' }}
+          </el-descriptions-item>
 
-        <el-descriptions-item label="当前流程">
-          {{ workflowName(currentTrace.workflowStage) }}
-        </el-descriptions-item>
+          <el-descriptions-item label="当前流程">
+            {{ workflowName(currentTrace.workflowStage) }}
+          </el-descriptions-item>
 
-        <el-descriptions-item label="第二部分算法状态">
-          <el-tag :type="secondAlgorithmTagType(currentTrace.secondAlgorithmStatus)">
-            {{ secondAlgorithmStatusName(currentTrace.secondAlgorithmStatus) }}
-          </el-tag>
-        </el-descriptions-item>
+          <el-descriptions-item label="溯源图谱状态">
+            <el-tag :type="secondAlgorithmTagType(currentTrace.secondAlgorithmStatus)">
+              {{ secondAlgorithmStatusName(currentTrace.secondAlgorithmStatus) }}
+            </el-tag>
+          </el-descriptions-item>
 
-        <el-descriptions-item label="人工确认状态">
-          <el-tag :type="confirmStatusTagType(currentTrace.secondAlgorithmConfirmStatus)">
-            {{ confirmStatusName(currentTrace.secondAlgorithmConfirmStatus) }}
-          </el-tag>
-        </el-descriptions-item>
+          <el-descriptions-item label="最终溯源算法状态">
+            <el-tag :type="sourceAlgorithmTagType(currentTrace.sourceAlgorithmStatus)">
+              {{ sourceAlgorithmStatusName(currentTrace.sourceAlgorithmStatus) }}
+            </el-tag>
+          </el-descriptions-item>
 
-        <el-descriptions-item label="报告状态">
-          <el-tag :type="reportStatusTagType(currentTrace.traceReportStatus)">
-            {{ reportStatusName(currentTrace.traceReportStatus) }}
-          </el-tag>
-        </el-descriptions-item>
+          <el-descriptions-item label="报告状态">
+            <el-tag :type="reportStatusTagType(currentTrace.traceReportStatus)">
+              {{ reportStatusName(currentTrace.traceReportStatus) }}
+            </el-tag>
+          </el-descriptions-item>
 
-        <el-descriptions-item label="问题描述" :span="3">
-          {{ currentTrace.problemDescription }}
-        </el-descriptions-item>
-      </el-descriptions>
+          <el-descriptions-item label="问题描述" :span="3">
+            {{ currentTrace.problemDescription || '-' }}
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
+
+      <el-alert
+        v-if="!selectedTraceId"
+        title="请先在第一个页面选择追溯任务，再进入当前页面执行最终溯源。"
+        type="warning"
+        show-icon
+        :closable="false"
+        class="mt15"
+      />
     </el-card>
 
     <!-- 最终溯源算法运行 -->
@@ -119,65 +102,40 @@
         </div>
       </template>
 
-      <el-alert
-        title="该算法将调用后端，由后端调用 Python FastAPI，并读取 API 返回的故障增强知识图谱。"
-        type="info"
-        show-icon
-        :closable="false"
-      />
-
-      <el-row :gutter="12" align="middle" class="mt15">
-        <el-col :span="10">
-          <el-select
-            v-model="algorithmForm.algorithmName"
-            placeholder="请选择全链路追溯闭环算法"
-            style="width: 100%"
-          >
-            <el-option label="最终溯源综合推理算法" value="SOURCE_REASONING" />
-            <el-option label="知识图谱路径溯源算法" value="KG_PATH_SOURCE" />
-            <el-option label="多证据融合溯源算法" value="MULTI_EVIDENCE_FUSION" />
-            <el-option label="TransH 溯源排序算法" value="TRANSH_SOURCE_RANKING" />
-          </el-select>
-        </el-col>
-
-        <el-col :span="5">
+      <div class="source-algorithm-block mt15">
+        <!-- 第一行：运行溯源算法 + 算法状态 -->
+        <div class="source-algorithm-row">
           <el-button
             type="warning"
             icon="Cpu"
             :loading="sourceRunning"
-            :disabled="sourceRunning"
+            :disabled="sourceRunning || !selectedTraceId"
             @click="handleRunSourceAlgorithm"
           >
             运行溯源算法
           </el-button>
-        </el-col>
-      </el-row>
 
-      <el-form label-width="130px" class="mt15">
-        <el-form-item label="算法状态">
-          <el-tag :type="sourceAlgorithmTagType(currentTrace.sourceAlgorithmStatus)">
-            {{ sourceAlgorithmStatusName(currentTrace.sourceAlgorithmStatus) }}
-          </el-tag>
-        </el-form-item>
+          <div class="source-status-inline">
+            <span class="source-status-label">算法状态：</span>
+            <el-tag :type="sourceAlgorithmTagType(currentTrace.sourceAlgorithmStatus)">
+              {{ sourceAlgorithmStatusName(currentTrace.sourceAlgorithmStatus) }}
+            </el-tag>
+          </div>
+        </div>
 
-        <el-form-item label="已选算法">
-          <el-input
-            v-model="currentTrace.sourceAlgorithmName"
-            readonly
-            placeholder="尚未运行全链路追溯闭环算法"
-          />
-        </el-form-item>
-
-        <el-form-item label="溯源结论摘要">
-          <el-input
-            v-model="sourceSummary"
-            type="textarea"
-            :rows="4"
-            readonly
-            placeholder="全链路追溯闭环算法运行后将在此显示结论摘要"
-          />
-        </el-form-item>
-      </el-form>
+        <!-- 第二行：溯源结论摘要 -->
+        <el-form label-width="130px" class="source-summary-form">
+          <el-form-item label="溯源结论摘要">
+            <el-input
+              v-model="sourceSummary"
+              type="textarea"
+              :rows="4"
+              readonly
+              placeholder="全链路追溯闭环算法运行后将在此显示结论摘要"
+            />
+          </el-form-item>
+        </el-form>
+      </div>
     </el-card>
 
     <!-- 溯源知识图谱 -->
@@ -240,11 +198,8 @@
       <template #header>
         <div class="card-header">
           <span>报告导出与结果推送</span>
-          <span class="header-tip">导出报告后，可推送至课题二或课题三</span>
         </div>
       </template>
-
-
 
       <el-row :gutter="12" align="middle" class="mt15">
         <el-col :span="4">
@@ -252,6 +207,7 @@
             type="primary"
             icon="Document"
             :loading="exporting"
+            :disabled="exporting || !selectedTraceId"
             @click="handleExportReport"
           >
             导出报告
@@ -262,35 +218,8 @@
           <el-button
             type="success"
             icon="Upload"
-            @click="handlePushTopic2"
-          >
-            推送课题二
-          </el-button>
-        </el-col>
-
-        <el-col :span="4">
-          <el-button
-            type="success"
-            icon="Upload"
-            @click="handlePushTopic3"
-          >
-            推送课题三
-          </el-button>
-        </el-col>
-
-        <el-col :span="4">
-          <!-- <el-button
-            type="warning"
-            icon="Back"
-            :loading="returningResult"
-            @click="handleReturnQmsResult"
-          >
-            返回结果
-          </el-button> -->
-          <el-button
-            type="success"
-            icon="Upload"
             :loading="submitQualityLoading"
+            :disabled="submitQualityLoading || !selectedTraceId"
             @click="handleSubmitQualityResult"
           >
             回填质量中心
@@ -319,26 +248,6 @@
         <el-descriptions-item label="报告路径" :span="2">
           {{ currentTrace.traceReportUrl || '未生成' }}
         </el-descriptions-item>
-
-        <el-descriptions-item label="课题二推送状态">
-          <el-tag :type="pushStatusTagType(currentTrace.topic2PushStatus)">
-            {{ pushStatusName(currentTrace.topic2PushStatus) }}
-          </el-tag>
-        </el-descriptions-item>
-
-        <el-descriptions-item label="课题二推送时间" :span="2">
-          {{ currentTrace.topic2PushTime || '-' }}
-        </el-descriptions-item>
-
-        <el-descriptions-item label="课题三推送状态">
-          <el-tag :type="pushStatusTagType(currentTrace.topic3PushStatus)">
-            {{ pushStatusName(currentTrace.topic3PushStatus) }}
-          </el-tag>
-        </el-descriptions-item>
-
-        <el-descriptions-item label="课题三推送时间" :span="2">
-          {{ currentTrace.topic3PushTime || '-' }}
-        </el-descriptions-item>
       </el-descriptions>
     </el-card>
 
@@ -346,29 +255,32 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance, onBeforeUnmount } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance, onBeforeUnmount, onActivated } from 'vue'
 import * as echarts from 'echarts'
 
 import {
-  listSourceTrace,
   getSourceTrace,
   getSourceResult,
   runSourceAlgorithm,
   exportSourceReport,
   downloadSourceReport,
   pushTopic2,
-  pushTopic3
+  pushTopic3,
+  submitQualityResult
 } from '@/api/topic5/source'
 
 import { listTask, updateTask } from '@/api/quality/task'
 import { updateProblem } from '@/api/quality/problem'
 import { addLog } from '@/api/quality/log'
 
-const { proxy } = getCurrentInstance()
-const route = useRoute()
+import {
+  getTopic5CurrentTraceId,
+  getTopic5CurrentTrace,
+  setTopic5CurrentTrace
+} from '@/utils/topic5CurrentTrace'
 
-const traceList = ref([])
+const { proxy } = getCurrentInstance()
+
 const selectedTraceId = ref(null)
 const currentTrace = ref({})
 
@@ -382,12 +294,14 @@ const sourceRunning = ref(false)
 const exporting = ref(false)
 const returningResult = ref(false)
 
+const submitQualityLoading = ref(false)
+
 const MODULE_CODE = 'PROJECT_5'
 const QMS_FLOW_EVENT_NAME = 'qms-flow-change'
 const QMS_FLOW_EVENT_KEY = 'qms_flow_change'
 
 const algorithmForm = reactive({
-  algorithmName: null
+  algorithmName: 'SOURCE_REASONING'
 })
 
 const hasSourceGraph = computed(() => {
@@ -408,23 +322,56 @@ const activeStep = computed(() => {
   return 0
 })
 
-function getTraceList() {
-  listSourceTrace({}).then(res => {
-    traceList.value = res.data || res.rows || []
-  })
+function initCurrentTraceFromFirstPage() {
+  const traceId = getTopic5CurrentTraceId()
+  const trace = getTopic5CurrentTrace()
+
+  if (!traceId) {
+    proxy.$modal.msgWarning('请先在第一个页面选择追溯任务')
+    selectedTraceId.value = null
+    currentTrace.value = {}
+    reasonList.value = []
+    sourceSummary.value = ''
+    clearSourceGraph()
+    return
+  }
+
+  selectedTraceId.value = Number(traceId)
+  currentTrace.value = trace || {}
+
+  loadCurrentTraceData()
 }
 
-function handleTraceChange(id) {
-  if (!id) return
+function loadCurrentTraceData() {
+  if (!selectedTraceId.value) {
+    return
+  }
 
-  getSourceTrace(id).then(res => {
-    currentTrace.value = res.data || {}
-    algorithmForm.algorithmName = currentTrace.value.sourceAlgorithmName || null
-    loadSourceResult(id)
+  getSourceTrace(selectedTraceId.value).then(res => {
+    const detail = res.data || {}
+
+    currentTrace.value = {
+      ...currentTrace.value,
+      ...detail
+    }
+
+    algorithmForm.algorithmName =
+      currentTrace.value.sourceAlgorithmName || algorithmForm.algorithmName || 'SOURCE_REASONING'
+
+    setTopic5CurrentTrace(currentTrace.value)
+
+    loadSourceResult(selectedTraceId.value)
+  }).catch(err => {
+    console.error('加载当前追溯任务失败：', err)
+    proxy.$modal.msgError('加载当前追溯任务失败，请返回第一个页面重新选择任务')
   })
 }
 
 function loadSourceResult(id) {
+  if (!id) {
+    return
+  }
+
   getSourceResult(id).then(res => {
     const data = res.data || {}
     const traceProblem = data.traceProblem || currentTrace.value || {}
@@ -436,6 +383,8 @@ function loadSourceResult(id) {
       sourceReasonTableJson: data.reasonTableJson || traceProblem.sourceReasonTableJson,
       sourceResultSummary: data.summary || traceProblem.sourceResultSummary
     }
+
+    setTopic5CurrentTrace(currentTrace.value)
 
     sourceSummary.value = data.summary || currentTrace.value.sourceResultSummary || ''
 
@@ -453,8 +402,21 @@ function loadSourceResult(id) {
         renderSourceGraph(graphJson)
       })
     } else if (data.graphData) {
+      currentTrace.value.sourceGraphJson = data.graphData
       nextTick(() => {
         renderSourceGraph(data.graphData)
+      })
+    } else {
+      clearSourceGraph()
+    }
+  }).catch(err => {
+    console.warn('当前任务暂未生成最终溯源结果：', err)
+    sourceSummary.value = currentTrace.value.sourceResultSummary || ''
+    reasonList.value = parseReasonJson(currentTrace.value.sourceReasonTableJson)
+
+    if (currentTrace.value.sourceGraphJson) {
+      nextTick(() => {
+        renderSourceGraph(currentTrace.value.sourceGraphJson)
       })
     } else {
       clearSourceGraph()
@@ -464,7 +426,7 @@ function loadSourceResult(id) {
 
 function handleRunSourceAlgorithm() {
   if (!selectedTraceId.value) {
-    proxy.$modal.msgWarning('请先选择追溯任务')
+    proxy.$modal.msgWarning('请先在第一个页面选择追溯任务')
     return
   }
 
@@ -491,6 +453,8 @@ function handleRunSourceAlgorithm() {
       sourceResultSummary: data.summary || traceProblem.sourceResultSummary
     }
 
+    setTopic5CurrentTrace(currentTrace.value)
+
     sourceSummary.value = data.summary || currentTrace.value.sourceResultSummary || ''
     reasonList.value = data.reasonList || parseReasonJson(data.reasonTableJson || currentTrace.value.sourceReasonTableJson)
 
@@ -502,6 +466,7 @@ function handleRunSourceAlgorithm() {
         renderSourceGraph(graphJson)
       })
     } else if (data.graphData) {
+      currentTrace.value.sourceGraphJson = data.graphData
       nextTick(() => {
         renderSourceGraph(data.graphData)
       })
@@ -527,7 +492,7 @@ function handleRunSourceAlgorithm() {
 
 function handleExportReport() {
   if (!selectedTraceId.value) {
-    proxy.$modal.msgWarning('请先选择追溯任务')
+    proxy.$modal.msgWarning('请先在第一个页面选择追溯任务')
     return
   }
 
@@ -549,6 +514,8 @@ function handleExportReport() {
       currentTrace.value.status = '溯源完成'
     }
 
+    setTopic5CurrentTrace(currentTrace.value)
+
     refreshCurrentTrace(false)
   }).catch(err => {
     console.error('导出报告失败：', err)
@@ -558,9 +525,69 @@ function handleExportReport() {
   })
 }
 
+function scrollToTop() {
+  nextTick(() => {
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+
+    const appMain = document.querySelector('.app-main')
+    if (appMain) {
+      appMain.scrollTop = 0
+    }
+
+    const scrollWrap = document.querySelector('.el-scrollbar__wrap')
+    if (scrollWrap) {
+      scrollWrap.scrollTop = 0
+    }
+  })
+}
+
+async function handleSubmitQualityResult() {
+  console.log('点击了回填质量中心按钮')
+
+  const traceId = selectedTraceId.value || currentTrace.value.id
+
+  if (!traceId) {
+    proxy.$modal.msgWarning('请先在第一个页面选择追溯任务')
+    return
+  }
+
+  if (Number(currentTrace.value.traceReportStatus) !== 1 || !currentTrace.value.traceReportUrl) {
+    proxy.$modal.msgWarning('请先导出最终溯源 Word 报告，再回填质量问题管理中心')
+    return
+  }
+
+  submitQualityLoading.value = true
+
+  try {
+    await proxy.$modal.confirm('确认将当前最终溯源 Word 报告回填至质量问题管理中心吗？')
+
+    const res = await submitQualityResult(traceId)
+
+    proxy.$modal.msgSuccess(res.msg || '已回填质量问题管理中心')
+
+    refreshCurrentTrace(false)
+  } catch (error) {
+    console.error('回填质量中心失败或已取消：', error)
+
+    if (error && error !== 'cancel') {
+      const msg =
+        error?.response?.data?.msg ||
+        error?.response?.data?.message ||
+        error?.message ||
+        '回填质量中心失败，请检查后端接口'
+
+      proxy.$modal.msgError(msg)
+    }
+  } finally {
+    submitQualityLoading.value = false
+  }
+}
+
 function handlePushTopic2() {
   if (!selectedTraceId.value) {
-    proxy.$modal.msgWarning('请先选择追溯任务')
+    proxy.$modal.msgWarning('请先在第一个页面选择追溯任务')
     return
   }
 
@@ -577,7 +604,7 @@ function handlePushTopic2() {
 
 function handlePushTopic3() {
   if (!selectedTraceId.value) {
-    proxy.$modal.msgWarning('请先选择追溯任务')
+    proxy.$modal.msgWarning('请先在第一个页面选择追溯任务')
     return
   }
 
@@ -681,7 +708,7 @@ function buildTaskPayload(task, override = {}) {
 
 async function handleReturnQmsResult() {
   if (!selectedTraceId.value) {
-    proxy.$modal.msgWarning('请先选择追溯任务')
+    proxy.$modal.msgWarning('请先在第一个页面选择追溯任务')
     return
   }
 
@@ -771,8 +798,10 @@ function refreshCurrentTrace(needReloadSourceResult = true) {
       ...(res.data || {})
     }
 
-    algorithmForm.algorithmName = currentTrace.value.sourceAlgorithmName || algorithmForm.algorithmName
-    getTraceList()
+    algorithmForm.algorithmName =
+      currentTrace.value.sourceAlgorithmName || algorithmForm.algorithmName
+
+    setTopic5CurrentTrace(currentTrace.value)
 
     if (needReloadSourceResult) {
       loadSourceResult(selectedTraceId.value)
@@ -984,7 +1013,7 @@ function formatConfidence(value) {
 
 function openReport() {
   if (!selectedTraceId.value) {
-    proxy.$modal.msgWarning('请先选择追溯任务')
+    proxy.$modal.msgWarning('请先在第一个页面选择追溯任务')
     return
   }
 
@@ -1068,22 +1097,6 @@ function secondAlgorithmTagType(status) {
   return 'info'
 }
 
-function confirmStatusName(status) {
-  const value = Number(status)
-  if (value === 0) return '未人工确认'
-  if (value === 1) return '已确认保存'
-  if (value === 2) return '已驳回，需重跑'
-  return '未人工确认'
-}
-
-function confirmStatusTagType(status) {
-  const value = Number(status)
-  if (value === 0) return 'info'
-  if (value === 1) return 'success'
-  if (value === 2) return 'danger'
-  return 'info'
-}
-
 function sourceAlgorithmStatusName(status) {
   const value = Number(status)
   if (value === 0) return '未运行'
@@ -1139,15 +1152,13 @@ const handleResize = () => {
 }
 
 onMounted(() => {
-  getTraceList()
-
-  const traceId = route.query.traceId
-  if (traceId) {
-    selectedTraceId.value = Number(traceId)
-    handleTraceChange(Number(traceId))
-  }
+  scrollToTop()
+  initCurrentTraceFromFirstPage()
 
   window.addEventListener('resize', handleResize)
+})
+onActivated(() => {
+  scrollToTop()
 })
 
 onBeforeUnmount(() => {
@@ -1167,6 +1178,32 @@ onBeforeUnmount(() => {
 
 .mt15 {
   margin-top: 15px;
+}
+
+.source-algorithm-block {
+  width: 100%;
+}
+
+.source-algorithm-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.source-status-inline {
+  display: flex;
+  align-items: center;
+}
+
+.source-status-label {
+  margin-right: 8px;
+  font-size: 14px;
+  color: #606266;
+}
+
+.source-summary-form {
+  margin-top: 0;
 }
 
 .card-header {

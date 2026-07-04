@@ -2421,7 +2421,7 @@ public class Topic5TraceProblemServiceImpl000000000 implements ITopic5TraceProbl
                     {"当前流程阶段", workflowNameForReport(problem.getWorkflowStage())},
                     {"填报人", valueToText(problem.getReporter())},
                     {"问题来源", valueToText(problem.getSource())},
-                    {"问题描述", valueToText(problem.getProblemDescription())},
+                    {"问题详情", valueToText(problem.getProblemDescription())},
                     {"备注", valueToText(problem.getRemark())}
             });
 
