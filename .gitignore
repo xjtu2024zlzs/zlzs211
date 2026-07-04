@@ -49,3 +49,31 @@ python/project4/runtime/
 
 # Project4 local test files
 python/project4/new_py/test(2).py
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# frontend dependencies/build
+ruoyi-ui/node_modules/
+ruoyi-ui/dist/
+
+# backend build
+target/
+*.class
+*.jar
+*.war
+
+# logs
+logs/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# local output/data
+topic4-output/
+topic4-data/

@@ -1,14 +1,15 @@
 package com.ruoyi.project4;
 
-import com.ruoyi.common.security.annotation.EnableCustomConfig;
-import com.ruoyi.common.security.annotation.EnableRyFeignClients;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@EnableCustomConfig
-@EnableRyFeignClients
-@MapperScan("com.ruoyi.project4.mapper")
+@EnableFeignClients(basePackages = {
+        "com.ruoyi.project4.feign",
+        "com.ruoyi.system.api"
+})
+@MapperScan("com.ruoyi.project4.domain.mapper")
 @SpringBootApplication
 public class RuoYiProject4Application
 {

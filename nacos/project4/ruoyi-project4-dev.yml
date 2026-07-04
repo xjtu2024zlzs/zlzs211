@@ -30,9 +30,9 @@ spring:
         min-idle: 5
         maxActive: 20
         maxWait: 60000
-        connectTimeout: 30000
-        socketTimeout: 60000
-        timeBetweenEvictionRunsMillis: 60000
+        connectTimeout: 3000000
+        socketTimeout: 6000000
+        timeBetweenEvictionRunsMillis: 6000000
         minEvictableIdleTimeMillis: 300000
         validationQuery: SELECT 1 FROM DUAL
         testWhileIdle: true

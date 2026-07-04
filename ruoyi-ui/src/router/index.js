@@ -110,18 +110,34 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/project_4',
+    path: '/project4',
     component: Layout,
-    hidden: true,
+    redirect: '/project4/preprocess',
+    meta: { title: '故障诊断及根源性分析', icon: 'tree' },
     children: [
       {
-        path: '',
-        component: () => import('@/views/project_4/index.vue'),
-        name: 'Project4',
-        meta: { title: '课题四', icon: 'dashboard' }
+        path: 'preprocess',
+        component: () => import('@/views/project4/preprocess.vue'),
+        meta: { title: '数据预处理' }
+      },
+      {
+        path: 'augment',
+        component: () => import('@/views/project4/augment.vue'),
+        meta: { title: '数据增强' }
+      },
+      {
+        path: 'fusion',
+        component: () => import('@/views/project4/fusion.vue'),
+        meta: { title: '特征融合' }
+      },
+      {
+        path: 'diagnose',
+        component: () => import('@/views/project4/diagnose.vue'),
+        meta: { title: '故障诊断' }
       }
     ]
-  },
+  }
+  ,
   {
     path: '/project_5',
     component: Layout,
@@ -243,3 +259,4 @@ const router = createRouter({
 })
 
 export default router
+
