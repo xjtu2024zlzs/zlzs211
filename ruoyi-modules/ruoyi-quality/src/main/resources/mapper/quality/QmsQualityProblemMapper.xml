@@ -143,4 +143,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{problemId}
         </foreach>
     </delete>
+    <select id="selectProblemDtoListForModule" resultType="com.ruoyi.qms.api.domain.QualityProblemDto">
+        select
+            problem_id as problemId,
+            problem_code as problemCode,
+            title as problemTitle,
+            description as problemDescription,
+            product_model as productModel,
+            involved_system as relatedSystem,
+            severity as severityLevel,
+            status as problemStatus,
+            occur_time as occurTime,
+            current_module_code as moduleCode,
+            current_module_name as moduleName
+        from qms_quality_problem
+        where (del_flag is null or del_flag = '0')
+        order by occur_time desc, create_time desc
+    </select>
 </mapper>

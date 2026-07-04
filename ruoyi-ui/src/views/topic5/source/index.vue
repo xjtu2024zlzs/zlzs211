@@ -279,13 +279,21 @@
         </el-col>
 
         <el-col :span="4">
-          <el-button
+          <!-- <el-button
             type="warning"
             icon="Back"
             :loading="returningResult"
             @click="handleReturnQmsResult"
           >
             返回结果
+          </el-button> -->
+          <el-button
+            type="success"
+            icon="Upload"
+            :loading="submitQualityLoading"
+            @click="handleSubmitQualityResult"
+          >
+            回填质量中心
           </el-button>
         </el-col>
 

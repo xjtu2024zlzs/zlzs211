@@ -19,7 +19,14 @@ public interface Topic5TraceProblemMapper
      * @return 追溯问题
      */
     public Topic5TraceProblem selectTopic5TraceProblemById(Long id);
+    public List<Long> selectAllQualityTaskIdList();
 
+    /**
+     * 查询已有追溯编号
+     *
+     * @return 已有追溯编号列表
+     */
+    public List<String> selectAllTraceNoList();
     /**
      * 查询追溯问题列表
      * 

@@ -9,6 +9,8 @@
     <resultMap type="Topic5TraceProblem" id="Topic5TraceProblemResult">
         <result property="id" column="id" />
         <result property="traceNo" column="trace_no" />
+        <result property="qualityProblemId" column="quality_problem_id" />
+        <result property="qualityTaskId" column="quality_task_id" />
         <result property="eventTime" column="event_time" />
         <result property="aircraftNo" column="aircraft_no" />
         <result property="partName" column="part_name" />
@@ -70,6 +72,8 @@
         select
             id,
             trace_no,
+            quality_problem_id,
+            quality_task_id,
             event_time,
             aircraft_no,
             part_name,
@@ -163,6 +167,8 @@
         insert into topic5_trace_problem
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="traceNo != null and traceNo != ''">trace_no,</if>
+            <if test="qualityProblemId != null">quality_problem_id,</if>
+            <if test="qualityTaskId != null">quality_task_id,</if>
             <if test="eventTime != null">event_time,</if>
             <if test="aircraftNo != null and aircraftNo != ''">aircraft_no,</if>
             <if test="partName != null and partName != ''">part_name,</if>
@@ -221,6 +227,8 @@
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="traceNo != null and traceNo != ''">#{traceNo},</if>
+            <if test="qualityProblemId != null">#{qualityProblemId},</if>
+            <if test="qualityTaskId != null">#{qualityTaskId},</if>
             <if test="eventTime != null">#{eventTime},</if>
             <if test="aircraftNo != null and aircraftNo != ''">#{aircraftNo},</if>
             <if test="partName != null and partName != ''">#{partName},</if>
@@ -229,7 +237,6 @@
             <if test="problemType != null">#{problemType},</if>
             <if test="severityLevel != null">#{severityLevel},</if>
             <if test="problemDescription != null">#{problemDescription},</if>
-            <if test="attachmentSavePath != null">#{attachmentSavePath},</if>
 
             <if test="workflowStage != null">#{workflowStage},</if>
             <if test="status != null">#{status},</if>
@@ -253,6 +260,7 @@
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
             <if test="delFlag != null">#{delFlag},</if>
+            <if test="attachmentSavePath != null">#{attachmentSavePath},</if>
 
             <if test="topic1KgStatus != null">#{topic1KgStatus},</if>
             <if test="topic1KgJson != null">#{topic1KgJson},</if>
@@ -283,6 +291,8 @@
         update topic5_trace_problem
         <trim prefix="SET" suffixOverrides=",">
             <if test="traceNo != null and traceNo != ''">trace_no = #{traceNo},</if>
+            <if test="qualityProblemId != null">quality_problem_id = #{qualityProblemId},</if>
+            <if test="qualityTaskId != null">quality_task_id = #{qualityTaskId},</if>
             <if test="eventTime != null">event_time = #{eventTime},</if>
             <if test="aircraftNo != null and aircraftNo != ''">aircraft_no = #{aircraftNo},</if>
             <if test="partName != null and partName != ''">part_name = #{partName},</if>
@@ -368,5 +378,20 @@
             update_time = #{updateTime}
         where id = #{id}
     </update>
+    <!-- 查询已同步的质量任务ID，用于防止重复同步 -->
+    <select id="selectAllQualityTaskIdList" resultType="java.lang.Long">
+        select quality_task_id
+        from topic5_trace_problem
+        where quality_task_id is not null
+          and (del_flag is null or del_flag = '0')
+    </select>
 
+    <!-- 查询课题五已有追溯编号，用于质量问题同步去重，兼容历史数据 -->
+    <select id="selectAllTraceNoList" resultType="java.lang.String">
+        select trace_no
+        from topic5_trace_problem
+        where trace_no is not null
+          and trace_no != ''
+          and (del_flag is null or del_flag = '0')
+    </select>
 </mapper>

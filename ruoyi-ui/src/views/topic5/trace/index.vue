@@ -728,15 +728,17 @@ import {
   pushTopic4,
   topic4Callback,
   fillTopic4Result,
-  runAlgorithm
+  runAlgorithm,
+  syncQualityProblems,
+  submitQualityResult
 } from '@/api/topic5/trace'
-import { listProblem } from '@/api/quality/problem'
 import { getSourceResult } from '@/api/topic5/source'
 
 const { proxy } = getCurrentInstance()
 
 const loading = ref(false)
 const syncLoading = ref(false)
+const submitQualityLoading = ref(false)
 const open = ref(false)
 const detailOpen = ref(false)
 const savePathOpen = ref(false)
@@ -935,56 +937,20 @@ function handleAdd() {
   open.value = true
 }
 
+
 async function handleSyncQualityProblems() {
   syncLoading.value = true
 
   try {
-    const [qualityRes, traceRes] = await Promise.all([
-      listProblem({}),
-      listTrace({
-        pageNum: 1,
-        pageSize: 10000
-      })
-    ])
+    const res = await syncQualityProblems()
 
-    const qualityProblems = qualityRes.rows || []
-    const existedTraceList = traceRes.rows || []
-
-    if (qualityProblems.length === 0) {
-      proxy.$modal.msgWarning('质量问题管理中心暂无可同步的问题')
-      return
-    }
-
-    const existedTraceNoSet = new Set(
-      existedTraceList
-        .map(item => item.traceNo)
-        .filter(Boolean)
-    )
-
-    const waitSyncProblems = qualityProblems.filter(item => {
-      if (!item.problemCode) {
-        return true
-      }
-
-      return !existedTraceNoSet.has(item.problemCode)
-    })
-
-    if (waitSyncProblems.length === 0) {
-      proxy.$modal.msgWarning('质量问题管理中心的问题均已同步，无需重复同步')
-      return
-    }
-
-    for (const problem of waitSyncProblems) {
-      await addTrace(buildTraceFromQualityProblem(problem))
-    }
-
-    proxy.$modal.msgSuccess(`同步完成，新增 ${waitSyncProblems.length} 条追溯问题`)
+    proxy.$modal.msgSuccess(res.msg || '同步完成')
 
     queryParams.pageNum = 1
     getList()
   } catch (error) {
     console.error('同步质量问题失败：', error)
-    proxy.$modal.msgError('同步质量问题失败，请检查质量问题接口或追溯问题新增接口')
+    proxy.$modal.msgError('同步质量问题失败，请检查接口')
   } finally {
     syncLoading.value = false
   }
@@ -1195,7 +1161,19 @@ function handleSaveAttachments() {
 
   savePathOpen.value = true
 }
+function handleSubmitQualityResult() {
+  if (!selectedTraceId.value) {
+    proxy.$modal.msgWarning('请先选择追溯任务')
+    return
+  }
 
+  proxy.$modal.confirm('确认将当前追溯结果回填至质量问题管理中心').then(() => {
+    return submitQualityResult(selectedTraceId.value)
+  }).then(() => {
+    proxy.$modal.msgSuccess('已回填质量问题管理中心')
+    refreshCurrentTrace()
+  }).catch(() => {})
+}
 function submitSaveAttachmentsWithPath() {
   if (!selectedTraceId.value) {
     proxy.$modal.msgWarning('请先选择追溯任务')

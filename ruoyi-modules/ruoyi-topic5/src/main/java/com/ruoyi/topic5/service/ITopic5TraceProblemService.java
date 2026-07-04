@@ -18,6 +18,12 @@ import java.util.Map;
 public interface ITopic5TraceProblemService 
 {
     /**
+     * 从质量问题管理中心同步问题
+     *
+     * @return 新增数量
+     */
+    public int syncQualityProblemsFromQms();
+    /**
      * 查询追溯问题
      * 
      * @param id 追溯问题主键
@@ -32,7 +38,12 @@ public interface ITopic5TraceProblemService
      * @return 追溯问题集合
      */
     public List<Topic5TraceProblem> selectTopic5TraceProblemList(Topic5TraceProblem topic5TraceProblem);
-
+    /**
+     * 将课题五追溯结果回填到质量问题管理中心
+     *
+     * @param id 追溯任务ID
+     */
+    public void submitQualityResult(Long id);
     /**
      * 新增追溯问题
      * 

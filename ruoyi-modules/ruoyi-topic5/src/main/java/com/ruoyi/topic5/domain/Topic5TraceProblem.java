@@ -111,7 +111,31 @@ public class Topic5TraceProblem extends BaseEntity
     {
         return traceNo;
     }
+    /** 来源质量问题ID */
+    private Long qualityProblemId;
 
+    /** 来源质量任务ID */
+    private Long qualityTaskId;
+
+    public Long getQualityProblemId()
+    {
+        return qualityProblemId;
+    }
+
+    public void setQualityProblemId(Long qualityProblemId)
+    {
+        this.qualityProblemId = qualityProblemId;
+    }
+
+    public Long getQualityTaskId()
+    {
+        return qualityTaskId;
+    }
+
+    public void setQualityTaskId(Long qualityTaskId)
+    {
+        this.qualityTaskId = qualityTaskId;
+    }
     public void setEventTime(Date eventTime) 
     {
         this.eventTime = eventTime;

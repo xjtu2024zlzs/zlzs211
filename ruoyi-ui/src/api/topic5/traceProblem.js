@@ -41,4 +41,11 @@ export function delTraceProblem(id) {
     url: '/topic5/traceProblem/' + id,
     method: 'delete'
   })
+// 从质量问题管理中心同步问题到课题五追溯问题
+}
+export function syncQualityProblems() {
+  return request({
+    url: '/topic5/trace/syncQualityProblems',
+    method: 'post'
+  })
 }

@@ -244,8 +244,6 @@
               :total="recentRecords.length"
               @update:current-page="currentPage = $event"
               @update:page-size="pageSize = $event"
-              @current-change="handleCurrentPageChange"
-              @size-change="handlePageSizeChange"
             />
           </div>
         </div>

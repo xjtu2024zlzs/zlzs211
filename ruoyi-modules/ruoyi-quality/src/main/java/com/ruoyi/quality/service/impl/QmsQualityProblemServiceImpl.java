@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import com.ruoyi.quality.mapper.QmsQualityProblemMapper;
 import com.ruoyi.quality.domain.QmsQualityProblem;
 import com.ruoyi.quality.service.IQmsQualityProblemService;
-
+import com.ruoyi.qms.api.domain.QualityProblemDto;
 /**
  * 质量问题Service业务层处理
  * 
@@ -31,7 +31,17 @@ public class QmsQualityProblemServiceImpl implements IQmsQualityProblemService
     {
         return qmsQualityProblemMapper.selectQmsQualityProblemByProblemId(problemId);
     }
-
+    /**
+     * 查询指定模块可同步的质量问题
+     *
+     * @param moduleCode 模块编码
+     * @return 质量问题DTO列表
+     */
+    @Override
+    public List<QualityProblemDto> selectProblemDtoListForModule(String moduleCode)
+    {
+        return qmsQualityProblemMapper.selectProblemDtoListForModule(moduleCode);
+    }
     /**
      * 查询质量问题列表
      * 

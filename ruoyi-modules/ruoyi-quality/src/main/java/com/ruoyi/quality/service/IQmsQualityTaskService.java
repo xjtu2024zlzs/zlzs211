@@ -1,8 +1,8 @@
 package com.ruoyi.quality.service;
-
+import com.ruoyi.qms.api.domain.QualityTaskDto;
 import java.util.List;
 import com.ruoyi.quality.domain.QmsQualityTask;
-
+import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
 /**
  * 质量问题模块处理任务Service接口
  * 
@@ -11,6 +11,12 @@ import com.ruoyi.quality.domain.QmsQualityTask;
  */
 public interface IQmsQualityTaskService 
 {
+    /**
+     * 模块提交质量任务处理结果
+     *
+     * @param submitDto 提交结果
+     */
+    public void submitQualityTaskResult(QualityTaskSubmitDto submitDto);
     /**
      * 查询质量问题模块处理任务
      * 
@@ -58,4 +64,11 @@ public interface IQmsQualityTaskService
      * @return 结果
      */
     public int deleteQmsQualityTaskByTaskId(Long taskId);
+    /**
+     * 查询分派给指定模块的质量任务列表
+     *
+     * @param moduleCode 模块编码
+     * @return 任务列表
+     */
+    public List<QualityTaskDto> selectQualityTaskDtoListForModule(String moduleCode);
 }

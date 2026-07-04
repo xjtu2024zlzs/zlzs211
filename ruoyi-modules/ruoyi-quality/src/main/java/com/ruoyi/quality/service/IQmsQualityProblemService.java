@@ -2,7 +2,7 @@ package com.ruoyi.quality.service;
 
 import java.util.List;
 import com.ruoyi.quality.domain.QmsQualityProblem;
-
+import com.ruoyi.qms.api.domain.QualityProblemDto;
 /**
  * 质量问题Service接口
  * 
@@ -58,4 +58,6 @@ public interface IQmsQualityProblemService
      * @return 结果
      */
     public int deleteQmsQualityProblemByProblemId(Long problemId);
+
+    public List<QualityProblemDto> selectProblemDtoListForModule(String moduleCode);
 }

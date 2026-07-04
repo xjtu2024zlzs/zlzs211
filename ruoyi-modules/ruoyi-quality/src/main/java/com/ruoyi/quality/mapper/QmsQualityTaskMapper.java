@@ -2,7 +2,8 @@ package com.ruoyi.quality.mapper;
 
 import java.util.List;
 import com.ruoyi.quality.domain.QmsQualityTask;
-
+import com.ruoyi.qms.api.domain.QualityTaskDto;
+import org.apache.ibatis.annotations.Param;
 /**
  * 质量问题模块处理任务Mapper接口
  * 
@@ -11,6 +12,13 @@ import com.ruoyi.quality.domain.QmsQualityTask;
  */
 public interface QmsQualityTaskMapper 
 {
+    /**
+     * 查询分派给指定模块的质量任务列表
+     *
+     * @param moduleCode 模块编码
+     * @return 质量任务列表
+     */
+    public List<QualityTaskDto> selectQualityTaskDtoListForModule(@Param("moduleCode") String moduleCode);
     /**
      * 查询质量问题模块处理任务
      * 

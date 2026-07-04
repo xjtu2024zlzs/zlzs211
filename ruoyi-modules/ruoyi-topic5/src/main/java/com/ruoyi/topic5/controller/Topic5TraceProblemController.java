@@ -33,7 +33,7 @@ import com.ruoyi.common.core.exception.ServiceException;
  * 课题五追溯问题Controller
  */
 @RestController
-@RequestMapping("trace")
+@RequestMapping("/trace")
 public class Topic5TraceProblemController extends BaseController
 {
     @Autowired
@@ -61,7 +61,16 @@ public class Topic5TraceProblemController extends BaseController
         ExcelUtil<Topic5TraceProblem> util = new ExcelUtil<Topic5TraceProblem>(Topic5TraceProblem.class);
         util.exportExcel(response, list, "追溯问题数据");
     }
-
+    /**
+     * 回填课题五追溯结果到质量问题管理中心
+     */
+    @Log(title = "追溯问题", businessType = BusinessType.UPDATE)
+    @PostMapping("/{id}/submitQualityResult")
+    public AjaxResult submitQualityResult(@PathVariable("id") Long id)
+    {
+        traceProblemService.submitQualityResult(id);
+        return AjaxResult.success("已将课题五追溯结果回填至质量问题管理中心");
+    }
     /**
      * 获取追溯问题详细信息
      */
@@ -80,7 +89,22 @@ public class Topic5TraceProblemController extends BaseController
     {
         return toAjax(traceProblemService.insertTopic5TraceProblem(topic5TraceProblem));
     }
+    /**
+     * 从质量问题管理中心同步问题
+     */
+    @Log(title = "追溯问题", businessType = BusinessType.INSERT)
+    @PostMapping("/syncQualityProblems")
+    public AjaxResult syncQualityProblems()
+    {
+        int count = traceProblemService.syncQualityProblemsFromQms();
 
+        if (count == 0)
+        {
+            return AjaxResult.success("质量问题管理中心的问题均已同步，无需重复同步");
+        }
+
+        return AjaxResult.success("同步完成，新增 " + count + " 条追溯问题");
+    }
     /**
      * 修改追溯问题
      */

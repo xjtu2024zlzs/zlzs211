@@ -114,4 +114,19 @@ export function saveAttachmentsWithPath(id, data) {
     method: 'post',
     data: data
   })
+  // 从质量问题管理中心同步问题到课题五追溯问题
+
+}
+export function syncQualityProblems() {
+  return request({
+    url: '/topic5/trace/syncQualityProblems',
+    method: 'post'
+  })
+}
+// 回填课题五追溯结果到质量问题管理中心
+export function submitQualityResult(id) {
+  return request({
+    url: '/topic5/trace/' + id + '/submitQualityResult',
+    method: 'post'
+  })
 }

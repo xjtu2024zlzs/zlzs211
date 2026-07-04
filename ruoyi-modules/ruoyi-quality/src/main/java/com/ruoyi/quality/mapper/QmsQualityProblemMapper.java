@@ -2,7 +2,8 @@ package com.ruoyi.quality.mapper;
 
 import java.util.List;
 import com.ruoyi.quality.domain.QmsQualityProblem;
-
+import com.ruoyi.qms.api.domain.QualityProblemDto;
+import org.apache.ibatis.annotations.Param;
 /**
  * 质量问题Mapper接口
  * 
@@ -50,7 +51,13 @@ public interface QmsQualityProblemMapper
      * @return 结果
      */
     public int deleteQmsQualityProblemByProblemId(Long problemId);
-
+    /**
+     * 查询指定模块可同步的质量问题
+     *
+     * @param moduleCode 模块编码
+     * @return 质量问题DTO列表
+     */
+    public List<QualityProblemDto> selectProblemDtoListForModule(@Param("moduleCode") String moduleCode);
     /**
      * 批量删除质量问题
      * 

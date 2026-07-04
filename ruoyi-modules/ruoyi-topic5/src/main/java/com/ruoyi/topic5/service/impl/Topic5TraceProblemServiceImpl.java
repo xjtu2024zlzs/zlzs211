@@ -1,5 +1,17 @@
 package com.ruoyi.topic5.service.impl;
-
+import com.ruoyi.common.core.constant.SecurityConstants;
+import com.ruoyi.common.core.domain.R;
+import com.ruoyi.common.core.exception.ServiceException;
+import com.ruoyi.common.core.utils.DateUtils;
+import com.ruoyi.common.core.utils.StringUtils;
+import com.ruoyi.qms.api.RemoteQualityProblemService;
+import com.ruoyi.qms.api.domain.QualityProblemDto;
+import com.ruoyi.qms.api.RemoteQualityTaskService;
+import com.ruoyi.qms.api.domain.QualityTaskDto;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import com.alibaba.fastjson2.JSON;
-
+import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +34,7 @@ import com.ruoyi.topic5.domain.Topic5TraceAttachment;
 import com.ruoyi.topic5.domain.Topic5TraceFlowLog;
 import com.ruoyi.topic5.domain.Topic5TraceProblem;
 import com.ruoyi.topic5.domain.dto.Topic4CallbackDTO;
+import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
 import com.ruoyi.topic5.mapper.Topic5TraceAttachmentMapper;
 import com.ruoyi.topic5.mapper.Topic5TraceFlowLogMapper;
 import com.ruoyi.topic5.mapper.Topic5TraceProblemMapper;
@@ -70,6 +83,12 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     @Autowired
     private Topic5TraceProblemMapper topic5TraceProblemMapper;
 
+//    @Autowired
+//    private RemoteQualityProblemService remoteQualityProblemService;
+
+    @Autowired
+    private RemoteQualityTaskService remoteQualityTaskService;
+
     @Autowired
     private Topic5TraceAttachmentMapper traceAttachmentMapper;
 
@@ -100,7 +119,255 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     {
         return topic5TraceProblemMapper.selectTopic5TraceProblemList(topic5TraceProblem);
     }
+    /**
+     * 将质量问题转换为课题五追溯问题
+     */
+    private Topic5TraceProblem buildTraceFromQualityProblem(QualityProblemDto problem)
+    {
+        Topic5TraceProblem traceProblem = new Topic5TraceProblem();
 
+        // 质量问题编号 -> 追溯编号，用于后续去重
+        traceProblem.setTraceNo(problem.getProblemCode());
+
+        // 发生时间
+        traceProblem.setEventTime(problem.getOccurTime());
+
+        // 质量问题的产品型号 -> 课题五的架次/型号字段
+        traceProblem.setAircraftNo(problem.getProductModel());
+
+        // 涉及系统 -> 零部件/系统名称字段
+        traceProblem.setPartName(problem.getRelatedSystem());
+
+        // 问题类型先给一个固定值，后面需要时再细分
+        traceProblem.setProblemType("质量问题同步");
+
+        // 严重程度
+        traceProblem.setSeverityLevel(problem.getSeverityLevel());
+
+        // 问题描述
+        traceProblem.setProblemDescription(problem.getProblemDescription());
+
+        // 工作流阶段：这里用 0 表示刚同步/待处理，如果你系统里已有其他约定，就改成对应数字
+        traceProblem.setWorkflowStage(0L);
+
+        // 状态
+        traceProblem.setStatus("待追溯");
+
+        // 课题四相关状态先初始化为未回填
+        traceProblem.setTopic4ResultFilled(0L);
+
+        // 算法状态先初始化为未运行
+        traceProblem.setAlgorithmStatus(0L);
+
+        // 知识图谱重构状态、报告状态初始化
+        traceProblem.setKgRebuildStatus(0L);
+        traceProblem.setTraceReportStatus(0L);
+
+        // 来源
+        traceProblem.setSource("质量问题管理中心");
+
+        // 备注中保留质量问题标题，防止 description 太简略
+        traceProblem.setRemark(problem.getProblemTitle());
+
+        // 若依通用字段
+        traceProblem.setCreateTime(DateUtils.getNowDate());
+        traceProblem.setDelFlag("0");
+
+        return traceProblem;
+    }
+    /**
+     * 从质量问题管理中心同步问题
+     *
+     * @return 新增数量
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int syncQualityProblemsFromQms()
+    {
+        R<List<QualityTaskDto>> result = remoteQualityTaskService.listTaskForModule("PROJECT_5", SecurityConstants.INNER);
+
+        if (result == null)
+        {
+            throw new ServiceException("调用质量任务服务失败：返回结果为空");
+        }
+
+        if (R.FAIL == result.getCode())
+        {
+            throw new ServiceException(result.getMsg());
+        }
+
+        List<QualityTaskDto> taskList = result.getData();
+
+        if (taskList == null || taskList.isEmpty())
+        {
+            return 0;
+        }
+
+        List<Long> existedTaskIds = topic5TraceProblemMapper.selectAllQualityTaskIdList();
+        Set<Long> existedTaskIdSet = new HashSet<>();
+
+        if (existedTaskIds != null)
+        {
+            existedTaskIdSet.addAll(existedTaskIds);
+        }
+
+        List<String> existedTraceNos = topic5TraceProblemMapper.selectAllTraceNoList();
+        Set<String> existedTraceNoSet = new HashSet<>();
+
+        if (existedTraceNos != null)
+        {
+            existedTraceNoSet.addAll(existedTraceNos);
+        }
+
+        int count = 0;
+
+        for (QualityTaskDto task : taskList)
+        {
+            if (task.getTaskId() == null)
+            {
+                continue;
+            }
+
+            if (existedTaskIdSet.contains(task.getTaskId()))
+            {
+                continue;
+            }
+
+            String problemCode = task.getProblemCode();
+
+            if (StringUtils.isEmpty(problemCode))
+            {
+                continue;
+            }
+
+            // 兼容之前按 problemCode 同步过的历史数据，避免重复生成追溯任务
+            if (existedTraceNoSet.contains(problemCode))
+            {
+                continue;
+            }
+
+            Topic5TraceProblem traceProblem = buildTraceFromQualityTask(task);
+
+            int rows = topic5TraceProblemMapper.insertTopic5TraceProblem(traceProblem);
+
+            if (rows > 0)
+            {
+                count++;
+                existedTaskIdSet.add(task.getTaskId());
+                existedTraceNoSet.add(problemCode);
+            }
+        }
+
+        return count;
+    }
+    private Topic5TraceProblem buildTraceFromQualityTask(QualityTaskDto task)
+    {
+        Topic5TraceProblem traceProblem = new Topic5TraceProblem();
+
+        traceProblem.setQualityProblemId(task.getProblemId());
+        traceProblem.setQualityTaskId(task.getTaskId());
+
+        traceProblem.setTraceNo(task.getProblemCode());
+
+        Date eventTime = task.getOccurTime();
+
+        if (eventTime == null)
+        {
+            eventTime = task.getDispatchTime();
+        }
+
+        if (eventTime == null)
+        {
+            eventTime = DateUtils.getNowDate();
+        }
+
+        traceProblem.setEventTime(eventTime);
+
+        traceProblem.setAircraftNo(
+                StringUtils.isEmpty(task.getProductModel()) ? "未填写" : task.getProductModel()
+        );
+
+        traceProblem.setPartName(
+                StringUtils.isEmpty(task.getInvolvedSystem()) ? "未填写" : task.getInvolvedSystem()
+        );
+
+        traceProblem.setProblemType("质量追溯");
+
+        traceProblem.setSeverityLevel(
+                StringUtils.isEmpty(task.getSeverity()) ? "一般" : normalizeSeverityLevel(task.getSeverity())
+        );
+
+        traceProblem.setProblemDescription(buildTraceProblemDescription(task));
+
+        traceProblem.setWorkflowStage(1L);
+        traceProblem.setStatus("未处理");
+
+        traceProblem.setTopic4ResultFilled(0L);
+        traceProblem.setAlgorithmStatus(0L);
+        traceProblem.setKgRebuildStatus(0L);
+        traceProblem.setTraceReportStatus(0L);
+
+        traceProblem.setSource("质量问题管理中心分派");
+        traceProblem.setRemark(buildTraceRemark(task));
+
+        traceProblem.setCreateTime(DateUtils.getNowDate());
+        traceProblem.setDelFlag("0");
+
+        return traceProblem;
+    }
+    private String normalizeSeverityLevel(String value)
+    {
+        if (StringUtils.isEmpty(value))
+        {
+            return "一般";
+        }
+
+        if ("紧急".equals(value))
+        {
+            return "严重";
+        }
+
+        if ("一般".equals(value) || "重要".equals(value) || "严重".equals(value))
+        {
+            return value;
+        }
+
+        return "一般";
+    }
+
+    private String buildTraceProblemDescription(QualityTaskDto task)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("质量问题标题：").append(emptyToDash(task.getProblemTitle())).append("\n");
+        sb.append("质量问题编号：").append(emptyToDash(task.getProblemCode())).append("\n");
+        sb.append("产品型号：").append(emptyToDash(task.getProductModel())).append("\n");
+        sb.append("涉及系统：").append(emptyToDash(task.getInvolvedSystem())).append("\n");
+        sb.append("严重程度：").append(emptyToDash(task.getSeverity())).append("\n");
+        sb.append("任务状态：").append(emptyToDash(task.getTaskStatus())).append("\n");
+        sb.append("分派意见：").append(emptyToDash(task.getDispatchOpinion())).append("\n");
+        sb.append("问题描述：").append(emptyToDash(task.getProblemDescription()));
+
+        return sb.toString();
+    }
+
+    private String buildTraceRemark(QualityTaskDto task)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("由质量问题管理中心分派任务同步生成。").append("\n");
+        sb.append("来源质量任务ID：").append(task.getTaskId()).append("\n");
+        sb.append("来源质量问题ID：").append(task.getProblemId()).append("\n");
+        sb.append("来源质量问题编号：").append(emptyToDash(task.getProblemCode())).append("\n");
+        sb.append("来源模块任务状态：").append(emptyToDash(task.getTaskStatus()));
+
+        return sb.toString();
+    }
+
+    private String emptyToDash(String value)
+    {
+        return StringUtils.isEmpty(value) ? "-" : value;
+    }
     /**
      * 新增追溯问题
      *
@@ -1907,7 +2174,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             update.setTraceReportStatus(1L);
             update.setTraceReportUrl(relativeUrl);
 
-            // 导出报告后，总流程进入第6步
+// 导出报告后，总流程进入第6步
             update.setWorkflowStage(6L);
             update.setStatus("溯源完成");
             update.setUpdateTime(DateUtils.getNowDate());
@@ -1922,6 +2189,12 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                     "已生成最终溯源报告：" + relativeUrl
             );
 
+// 重新查询最新追溯任务数据，用于回填质量问题管理中心
+            Topic5TraceProblem updatedProblem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+// 回填质量问题管理中心：更新 qms_quality_task 的处理结果、报告路径和任务状态
+//            submitResultToQualityCenter(updatedProblem, relativeUrl);
+
             Map<String, Object> result = new HashMap<>();
             result.put("traceId", id);
             result.put("reportUrl", relativeUrl);
@@ -1934,6 +2207,135 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         {
             throw new ServiceException("最终溯源报告导出失败：" + e.getMessage());
         }
+    }
+    /**
+     * 将课题五最终追溯结果回填到质量问题管理中心
+     *
+     * @param problem 追溯任务
+     * @param reportUrl 报告相对路径
+     */
+    private void submitResultToQualityCenter(Topic5TraceProblem problem, String reportUrl)
+    {
+        if (problem == null)
+        {
+            return;
+        }
+
+        // 只有从质量问题管理中心分派来的任务才需要回填
+        if (problem.getQualityTaskId() == null)
+        {
+            return;
+        }
+
+        QualityTaskSubmitDto submitDto = new QualityTaskSubmitDto();
+
+        submitDto.setTaskId(problem.getQualityTaskId());
+        submitDto.setProblemId(problem.getQualityProblemId());
+        submitDto.setProblemCode(problem.getTraceNo());
+
+        submitDto.setModuleCode("PROJECT_5");
+        submitDto.setModuleName("质量自反馈与追溯");
+
+        submitDto.setProcessResult(buildQualityCenterSubmitResult(problem));
+        submitDto.setProcessFile(reportUrl);
+
+        submitDto.setSubmitUserId(null);
+        submitDto.setSubmitUserName("PROJECT_5质量追溯系统");
+
+        R<Boolean> result = remoteQualityTaskService.submitTaskResult(
+                submitDto,
+                SecurityConstants.INNER
+        );
+
+        if (result == null)
+        {
+            throw new ServiceException("回填质量问题管理中心失败：返回结果为空");
+        }
+
+        if (R.FAIL == result.getCode())
+        {
+            throw new ServiceException("回填质量问题管理中心失败：" + result.getMsg());
+        }
+    }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void submitQualityResult(Long id)
+    {
+        if (id == null)
+        {
+            throw new ServiceException("追溯任务ID不能为空");
+        }
+
+        Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+
+        if (problem == null)
+        {
+            throw new ServiceException("追溯任务不存在，无法回填质量问题管理中心");
+        }
+
+        if (problem.getQualityTaskId() == null)
+        {
+            throw new ServiceException("当前追溯任务不是由质量问题管理中心分派生成，无法回填");
+        }
+
+        // 建议至少完成最终溯源算法后再允许回填
+        if (problem.getSourceAlgorithmStatus() == null || !Long.valueOf(2L).equals(problem.getSourceAlgorithmStatus()))
+        {
+            throw new ServiceException("请先完成最终溯源算法，再回填质量问题管理中心");
+        }
+
+        submitResultToQualityCenter(problem, problem.getTraceReportUrl());
+
+        insertFlowLog(
+                id,
+                6L,
+                "回填质量问题管理中心",
+                "成功",
+                "已将课题五最终追溯结果回填至质量问题管理中心"
+        );
+    }
+    /**
+     * 构造回填到质量问题管理中心的处理结果摘要
+     *
+     * @param problem 追溯任务
+     * @return 处理结果摘要
+     */
+    private String buildQualityCenterSubmitResult(Topic5TraceProblem problem)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("质量自反馈与追溯模块已完成全生命周期追溯闭环分析。");
+
+        if (problem.getTraceNo() != null)
+        {
+            sb.append("\n追溯任务编号：").append(problem.getTraceNo());
+        }
+
+        if (problem.getPartName() != null)
+        {
+            sb.append("\n追溯对象：").append(problem.getPartName());
+        }
+
+        if (problem.getSeverityLevel() != null)
+        {
+            sb.append("\n严重程度：").append(problem.getSeverityLevel());
+        }
+
+        if (problem.getSourceAlgorithmName() != null)
+        {
+            sb.append("\n最终溯源算法：").append(problem.getSourceAlgorithmName());
+        }
+
+        if (problem.getSourceResultSummary() != null && !"".equals(problem.getSourceResultSummary().trim()))
+        {
+            sb.append("\n最终溯源结论：").append(problem.getSourceResultSummary());
+        }
+        else
+        {
+            sb.append("\n最终溯源结论：系统已完成数字卷宗数据调用、根因诊断、知识图谱推理与最终溯源报告生成。");
+        }
+
+        return sb.toString();
     }
 
     @Override
