@@ -16,6 +16,7 @@ import com.ruoyi.common.log.enums.BusinessType;
 import com.ruoyi.common.security.annotation.RequiresPermissions;
 import com.ruoyi.project1.domain.AccessPlan;
 import com.ruoyi.project1.service.IAccessPlanService;
+import com.ruoyi.project1.service.support.Project1PresetScenarioService;
 import com.ruoyi.common.core.web.controller.BaseController;
 import com.ruoyi.common.core.web.domain.AjaxResult;
 import com.ruoyi.common.core.utils.poi.ExcelUtil;
@@ -34,6 +35,9 @@ public class AccessPlanController extends BaseController
     @Autowired
     private IAccessPlanService accessPlanService;
 
+    @Autowired
+    private Project1PresetScenarioService presetScenarioService;
+
     /**
      * 查询数据接入管理列表
      */
@@ -41,6 +45,7 @@ public class AccessPlanController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(AccessPlan accessPlan)
     {
+        syncManagedAccessSchedules();
         startPage();
         List<AccessPlan> list = accessPlanService.selectAccessPlanList(accessPlan);
         return getDataTable(list);
@@ -54,6 +59,7 @@ public class AccessPlanController extends BaseController
     @PostMapping("/export")
     public void export(HttpServletResponse response, AccessPlan accessPlan)
     {
+        syncManagedAccessSchedules();
         List<AccessPlan> list = accessPlanService.selectAccessPlanList(accessPlan);
         ExcelUtil<AccessPlan> util = new ExcelUtil<AccessPlan>(AccessPlan.class);
         util.exportExcel(response, list, "数据接入管理数据");
@@ -144,5 +150,11 @@ public class AccessPlanController extends BaseController
     public AjaxResult remove(@PathVariable Long[] accessPlanIds)
     {
         return toAjax(accessPlanService.deleteAccessPlanByAccessPlanIds(accessPlanIds));
+    }
+
+    private void syncManagedAccessSchedules()
+    {
+        presetScenarioService.ensurePresetScenario();
+        presetScenarioService.syncManagedAccessSchedules();
     }
 }

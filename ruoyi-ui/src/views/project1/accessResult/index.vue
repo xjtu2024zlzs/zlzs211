@@ -107,7 +107,7 @@
       <el-table-column label="本次失败数" align="center" prop="failedCount" width="110" />
       <el-table-column label="累计成功数" align="center" prop="totalSuccessCount" width="110" />
       <el-table-column label="最近执行时间" align="center" prop="lastExecuteTime" width="170">
-        <template #default="scope">{{ parseTime(scope.row.lastExecuteTime, '{y}-{m}-{d} {h}:{i}:{s}') || '-' }}</template>
+        <template #default="scope">{{ parseTime(scope.row.lastExecuteTime, '{y}-{m}-{d} {h}:{i}') || '-' }}</template>
       </el-table-column>
       <el-table-column label="说明" align="left" prop="message" min-width="220" :show-overflow-tooltip="true" />
     </el-table>

@@ -16,6 +16,8 @@ public interface DossierInstanceMapper
 
     public List<Map<String, Object>> selectVersionList(@Param("instanceId") String instanceId);
 
+    public int selectJobCount(@Param("instanceId") String instanceId);
+
     public List<Map<String, Object>> selectJobList(@Param("instanceId") String instanceId);
 
     public List<Map<String, Object>> selectFileList(@Param("instanceId") String instanceId, @Param("versionId") String versionId);

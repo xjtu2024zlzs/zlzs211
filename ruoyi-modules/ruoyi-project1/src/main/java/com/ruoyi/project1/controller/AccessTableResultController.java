@@ -16,6 +16,7 @@ import com.ruoyi.common.log.enums.BusinessType;
 import com.ruoyi.common.security.annotation.RequiresPermissions;
 import com.ruoyi.project1.domain.AccessTableResult;
 import com.ruoyi.project1.service.IAccessTableResultService;
+import com.ruoyi.project1.service.support.Project1PresetScenarioService;
 import com.ruoyi.common.core.web.controller.BaseController;
 import com.ruoyi.common.core.web.domain.AjaxResult;
 import com.ruoyi.common.core.utils.poi.ExcelUtil;
@@ -34,6 +35,9 @@ public class AccessTableResultController extends BaseController
     @Autowired
     private IAccessTableResultService accessTableResultService;
 
+    @Autowired
+    private Project1PresetScenarioService presetScenarioService;
+
     /**
      * 查询数据接入结果展示列表
      */
@@ -41,6 +45,7 @@ public class AccessTableResultController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(AccessTableResult accessTableResult)
     {
+        syncManagedAccessSchedules();
         startPage();
         List<AccessTableResult> list = accessTableResultService.selectAccessTableResultList(accessTableResult);
         return getDataTable(list);
@@ -54,6 +59,7 @@ public class AccessTableResultController extends BaseController
     @PostMapping("/export")
     public void export(HttpServletResponse response, AccessTableResult accessTableResult)
     {
+        syncManagedAccessSchedules();
         List<AccessTableResult> list = accessTableResultService.selectAccessTableResultList(accessTableResult);
         ExcelUtil<AccessTableResult> util = new ExcelUtil<AccessTableResult>(AccessTableResult.class);
         util.exportExcel(response, list, "数据接入结果展示数据");
@@ -120,5 +126,11 @@ public class AccessTableResultController extends BaseController
     public AjaxResult remove(@PathVariable Long[] tableResultIds)
     {
         return toAjax(accessTableResultService.deleteAccessTableResultByTableResultIds(tableResultIds));
+    }
+
+    private void syncManagedAccessSchedules()
+    {
+        presetScenarioService.ensurePresetScenario();
+        presetScenarioService.syncManagedAccessSchedules();
     }
 }

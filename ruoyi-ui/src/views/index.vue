@@ -39,35 +39,151 @@
       </section>
 
       <!-- 课题一统计指标 -->
-      <section class="section-block project-one-section">
-        <div class="section-header">
-          <div>
-            <p class="section-label">全域异构信息集成系统</p>
-            <h2 class="section-title">数字卷宗</h2>
-            <p class="section-desc">
-              汇总相关的核心运行指标
+      <section class="section-block project-one-section dossier-home-section" v-loading="projectOneLoading">
+        <header class="dossier-band-header">
+          <div class="dossier-band-copy">
+            <p class="dossier-band-label">构建单台份数字卷宗</p>
+            <h2 class="dossier-band-title">全域异构信息集成系统</h2>
+            <p class="dossier-band-desc">
+              围绕多源异构系统执行模式映射算法，实现异构信息集成、异构数据接入及单台份数据卷宗构建。
             </p>
           </div>
 
-          <el-button type="primary" size="large" plain @click="navigateTo('/dossier/manage/instance')">
-            进入全域异构信息集成系统
-          </el-button>
-        </div>
-
-        <div class="metric-grid" v-loading="loading">
-          <div v-for="metric in projectOneMetrics" :key="metric.key" class="metric-card">
-            <div class="metric-card__header">
-              <span class="metric-card__label">{{ metric.label }}</span>
-              <span class="metric-card__icon">{{ metric.icon }}</span>
+          <div class="dossier-summary-strip">
+            <div class="dossier-summary-chip dossier-summary-chip--ok">
+              <span>数据源</span>
+              <strong>{{ projectOneSummary.status.datasourceConnectionText }}</strong>
             </div>
-            <div class="metric-card__value">{{ metric.value }}</div>
-            <div class="metric-card__footer">
-              <span class="metric-card__trend" :class="metric.trendClass">
-                {{ metric.change }}
-              </span>
-              <span class="metric-card__unit">{{ metric.unit }}</span>
+            <div class="dossier-summary-chip">
+              <span>接入成功</span>
+              <strong>{{ formatInteger(projectOneSummary.access.successAccessRecordTotal) }}</strong>
+            </div>
+            <div class="dossier-summary-chip">
+              <span>目录节点</span>
+              <strong>{{ formatInteger(projectOneSummary.dossier.directoryNodeCount) }}</strong>
+            </div>
+            <div class="dossier-summary-chip">
+              <span>当前版本</span>
+              <strong>{{ projectOneSummary.dossier.currentVersion }}</strong>
             </div>
           </div>
+        </header>
+
+        <div class="dossier-module-grid">
+          <article class="dossier-module-card">
+            <div class="dossier-card-head">
+              <h3>异构信息集成</h3>
+              <el-button size="small" plain @click="navigateTo('/dossier/integration/datasource')">
+                模式映射
+              </el-button>
+            </div>
+            <p class="dossier-card-desc">多源字段识别、语义匹配和结构关系汇聚。</p>
+            <div class="dossier-info-box">
+              <div class="dossier-info-title">
+                <strong>{{ formatInteger(projectOneSummary.integration.fieldMappingResultTotal) }}</strong>
+                <span>字段映射结果</span>
+              </div>
+              <div class="dossier-meta-grid">
+                <div class="dossier-meta-item">
+                  <span>异构数据源</span>
+                  <strong>{{ formatInteger(projectOneSummary.integration.datasourceCount) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>模式映射任务</span>
+                  <strong>{{ formatInteger(projectOneSummary.integration.matchTaskCount) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>F1分数</span>
+                  <strong>{{ formatDecimal(projectOneSummary.integration.f1Average, 3) }}</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="dossier-module-card">
+            <div class="dossier-card-head">
+              <h3>异构数据接入</h3>
+              <el-button size="small" plain @click="navigateTo('/dossier/access/accessPlan')">
+                计划执行
+              </el-button>
+            </div>
+            <p class="dossier-card-desc">接入计划执行、结果落库和失败记录追踪。</p>
+            <div class="dossier-info-box">
+              <div class="dossier-info-title">
+                <strong>{{ formatInteger(projectOneSummary.access.successAccessRecordTotal) }}</strong>
+                <span>成功接入记录</span>
+              </div>
+              <div class="dossier-meta-grid">
+                <div class="dossier-meta-item">
+                  <span>启用计划</span>
+                  <strong>{{ formatInteger(projectOneSummary.access.enabledPlanCount) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>失败记录</span>
+                  <strong>{{ formatInteger(projectOneSummary.access.failedRecordTotal) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>成功率</span>
+                  <strong>{{ formatPercent(projectOneSummary.access.successRate) }}</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="dossier-module-card">
+            <div class="dossier-card-head">
+              <h3>单台份数字卷宗</h3>
+              <el-button size="small" plain @click="navigateTo('/dossier/manage/instance')">
+                查看卷宗
+              </el-button>
+            </div>
+            <p class="dossier-card-desc">呈现整机卷宗、版本、目录和内容规模。</p>
+            <div class="dossier-info-box">
+              <div class="dossier-info-title">
+                <strong>{{ projectOneSummary.dossier.aircraftLabel }}</strong>
+                <span>当前版本 {{ projectOneSummary.dossier.currentVersion }}</span>
+              </div>
+              <div class="dossier-meta-grid">
+                <div class="dossier-meta-item">
+                  <span>卷宗实例</span>
+                  <strong>{{ formatInteger(projectOneSummary.dossier.instanceCount) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>卷宗版本</span>
+                  <strong>{{ formatInteger(projectOneSummary.dossier.versionCount) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>生成任务</span>
+                  <strong>{{ formatInteger(projectOneSummary.dossier.generationTaskCount) }}</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="dossier-module-card dossier-directory-card">
+            <div class="dossier-directory-head">
+              <h3>卷宗目录预览</h3>
+              <div class="dossier-directory-actions">
+                <span>
+                  {{ formatInteger(projectOneSummary.dossier.directoryNodeCount) }} 个目录节点 /
+                  {{ formatInteger(projectOneSummary.dossier.contentItemCount) }} 条内容
+                </span>
+                <el-button size="small" plain @click="navigateTo('/dossier/manage/detail')">
+                  详情可视化
+                </el-button>
+              </div>
+            </div>
+            <div class="dossier-directory-grid">
+              <section v-for="item in dossierDirectoryPreview" :key="item.no" class="dossier-directory-item">
+                <div class="dossier-directory-row">
+                  <span>{{ item.no }}</span>
+                  <strong>{{ item.name }}</strong>
+                </div>
+                <p>{{ item.desc }}</p>
+                <em>{{ item.tag }}</em>
+              </section>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -334,17 +450,56 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { listProblem } from '@/api/quality/problem'
+import { getDossierHomeSummary } from '@/api/project1/home'
 
 const router = useRouter()
 
-const loading = ref(true)
+const projectOneLoading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(5)
 const detailVisible = ref(false)
 const selectedRecord = ref(null)
 
-const projectOneMetrics = ref([])
+const createProjectOneSummary = () => ({
+  integration: {
+    fieldMappingResultTotal: 0,
+    datasourceCount: 0,
+    matchTaskCount: 0,
+    f1Average: 0
+  },
+  access: {
+    successAccessRecordTotal: 0,
+    failedRecordTotal: 0,
+    enabledPlanCount: 0,
+    successRate: 0
+  },
+  dossier: {
+    aircraftLabel: '-',
+    currentVersion: '-',
+    instanceCount: 0,
+    versionCount: 0,
+    generationTaskCount: 0,
+    directoryNodeCount: 0,
+    contentItemCount: 0
+  },
+  status: {
+    datasourceConnectionText: '待检测'
+  }
+})
+
+const projectOneSummary = ref(createProjectOneSummary())
 const recentRecords = ref([])
+
+const dossierDirectoryPreview = [
+  { no: '01', name: '飞机基本信息', desc: '基本/交付记录', tag: '概要表' },
+  { no: '02', name: '构型 / BOM', desc: '构型清单', tag: 'BOM' },
+  { no: '03', name: '设计数据', desc: '图样规范', tag: '概要表' },
+  { no: '04', name: '制造数据', desc: '工艺检验', tag: '时间线' },
+  { no: '05', name: '服役数据', desc: '飞行维修', tag: '时间线' },
+  { no: '06', name: '故障维修', desc: '故障闭环', tag: '维修单' },
+  { no: '07', name: '技术状态', desc: '状态版本', tag: '概要表' },
+  { no: '08', name: '附件材料', desc: '文件索引', tag: '文件清单' }
+]
 
 const knowledgeGraphRef = ref(null)
 const knowledgeGraphChart = ref(null)
@@ -912,53 +1067,58 @@ const resizeKnowledgeGraph = () => {
   }
 }
 
-const loadHomeData = async () => {
-  loading.value = true
-
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  projectOneMetrics.value = [
-    {
-      key: 'data-access',
-      label: '数据接入量',
-      value: '12,860',
-      change: '+8.6%',
-      trendClass: 'positive',
-      icon: 'D',
-      unit: '条记录'
+const normalizeProjectOneSummary = (data = {}) => {
+  const defaults = createProjectOneSummary()
+  return {
+    integration: {
+      ...defaults.integration,
+      ...(data.integration || {})
     },
-    {
-      key: 'task-count',
-      label: '分析任务数',
-      value: '246',
-      change: '+16',
-      trendClass: 'positive',
-      icon: 'T',
-      unit: '项任务'
+    access: {
+      ...defaults.access,
+      ...(data.access || {})
     },
-    {
-      key: 'abnormal-count',
-      label: '异常识别数',
-      value: '32',
-      change: '-12.5%',
-      trendClass: 'negative',
-      icon: 'A',
-      unit: '待处理'
+    dossier: {
+      ...defaults.dossier,
+      ...(data.dossier || {})
     },
-    {
-      key: 'module-status',
-      label: '模块运行状态',
-      value: '正常',
-      change: '在线',
-      trendClass: 'positive',
-      icon: 'S',
-      unit: '稳定运行'
+    status: {
+      ...defaults.status,
+      ...(data.status || {})
     }
-  ]
+  }
+}
 
-  await loadRecentQualityProblems()
+const formatInteger = (value) => {
+  const number = Number(value || 0)
+  return Number.isFinite(number) ? number.toLocaleString('en-US') : '0'
+}
 
-  loading.value = false
+const formatDecimal = (value, digits = 3) => {
+  const number = Number(value || 0)
+  return Number.isFinite(number) ? number.toFixed(digits) : Number(0).toFixed(digits)
+}
+
+const formatPercent = (value) => `${formatDecimal(value, 2)}%`
+
+const loadProjectOneSummary = async () => {
+  projectOneLoading.value = true
+  try {
+    const res = await getDossierHomeSummary()
+    projectOneSummary.value = normalizeProjectOneSummary(res?.data)
+  } catch (error) {
+    console.error('加载全域异构信息集成系统首页摘要失败：', error)
+    projectOneSummary.value = createProjectOneSummary()
+  } finally {
+    projectOneLoading.value = false
+  }
+}
+
+const loadHomeData = async () => {
+  await Promise.all([
+    loadProjectOneSummary(),
+    loadRecentQualityProblems()
+  ])
 }
 
 onMounted(async () => {
@@ -1146,71 +1306,305 @@ onBeforeUnmount(() => {
   line-height: 1.6;
 }
 
-.metric-grid {
+.dossier-home-section {
+  padding: 14px 14px 9px;
+  overflow: hidden;
+}
+
+.dossier-band-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 78px;
+  margin-bottom: 10px;
+}
+
+.dossier-band-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.dossier-band-label {
+  margin: 0 0 5px;
+  color: #2364aa;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.dossier-band-title {
+  margin: 0;
+  color: #102742;
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.dossier-band-desc {
+  max-width: 860px;
+  margin: 7px 0 0;
+  color: #647894;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.dossier-summary-strip {
+  flex: 0 0 630px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
-.metric-card {
-  border-radius: 20px;
-  padding: 16px;
-  border: 1px solid rgba(112, 154, 205, 0.4);
-  background:
-    linear-gradient(180deg, #ffffff, #f5f8fe),
-    rgba(244, 248, 255, 0.96);
-  box-shadow: 0 12px 24px rgba(72, 106, 149, 0.12);
+.dossier-summary-chip {
+  min-width: 0;
+  height: 58px;
+  padding: 8px 10px;
+  border: 1px solid #dcebf9;
+  border-radius: 10px;
+  background: #f8fbff;
 }
 
-.metric-card__header,
-.metric-card__footer {
+.dossier-summary-chip span {
+  display: block;
+  color: #647894;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.dossier-summary-chip strong {
+  display: block;
+  margin-top: 6px;
+  color: #10233f;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-summary-chip--ok strong {
+  color: #18a76f;
+}
+
+.dossier-module-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(520px, 1.72fr);
+  gap: 10px;
+}
+
+.dossier-module-card {
+  position: relative;
+  min-width: 0;
+  height: 203px;
+  padding: 11px;
+  border: 1px solid #b8d5f4;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.dossier-card-head,
+.dossier-directory-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  margin-bottom: 8px;
 }
 
-.metric-card__label {
-  color: #6b7f98;
+.dossier-card-head h3,
+.dossier-directory-head h3 {
+  margin: 0;
+  color: #102742;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.dossier-card-desc {
+  margin: 0;
+  color: #647894;
   font-size: 12px;
+  line-height: 1.35;
 }
 
-.metric-card__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
+.dossier-card-head :deep(.el-button),
+.dossier-directory-actions :deep(.el-button) {
   height: 28px;
-  border-radius: 9px;
-  background: linear-gradient(180deg, #127fd5, #0e5aa4);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.metric-card__value {
-  margin: 12px 0 10px;
-  color: #091a2f;
-  font-size: 30px;
-  font-weight: 800;
-}
-
-.metric-card__trend {
+  padding: 0 12px;
+  border-color: #a9d0ff;
+  border-radius: 4px;
+  color: #237de0;
+  background: #ffffff;
   font-size: 12px;
   font-weight: 700;
 }
 
-.metric-card__trend.positive {
-  color: #1f9d6b;
+.dossier-info-box {
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  bottom: 10px;
+  height: 104px;
+  padding: 8px;
+  border: 1px solid #dcebf9;
+  border-radius: 10px;
+  background: #f8fbff;
 }
 
-.metric-card__trend.negative {
-  color: #f29733;
+.dossier-info-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 3px 0 12px;
 }
 
-.metric-card__unit {
-  color: #6f7f97;
+.dossier-info-title strong {
+  min-width: 0;
+  color: #0b213b;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-info-title span {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid #c7ead5;
+  border-radius: 999px;
+  background: #eaf7ef;
+  color: #18a76f;
   font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dossier-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dossier-meta-item {
+  min-width: 0;
+  height: 43px;
+  padding: 5px 7px;
+  border: 1px solid #dcebf9;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.dossier-meta-item span {
+  display: block;
+  color: #647894;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-meta-item strong {
+  display: block;
+  margin-top: 3px;
+  color: #0b213b;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.dossier-directory-card {
+  padding: 9px;
+}
+
+.dossier-directory-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dossier-directory-actions span {
+  color: #0d6fd1;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.dossier-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.dossier-directory-item {
+  min-width: 0;
+  height: 70px;
+  padding: 6px;
+  border: 1px solid #dcebf9;
+  border-radius: 9px;
+  background: #f7fbff;
+  overflow: hidden;
+}
+
+.dossier-directory-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  margin-bottom: 2px;
+}
+
+.dossier-directory-row span {
+  flex: 0 0 auto;
+  color: #8ca4bf;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dossier-directory-row strong {
+  min-width: 0;
+  color: #10233f;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-directory-item p {
+  margin: 0 0 2px;
+  color: #647894;
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-directory-item em {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 6px;
+  border: 1px solid #d0e5fa;
+  border-radius: 4px;
+  color: #3f86c6;
+  background: #edf6ff;
+  font-size: 11px;
+  font-style: normal;
+  white-space: nowrap;
 }
 
 .project-card-grid {
@@ -1763,8 +2157,16 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 1100px) {
-  .metric-grid {
+  .dossier-module-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dossier-directory-card {
+    grid-column: 1 / -1;
+  }
+
+  .dossier-summary-strip {
+    flex: 0 0 100%;
   }
 
   .project-card-grid {
@@ -1788,9 +2190,28 @@ onBeforeUnmount(() => {
     flex-direction: column;
   }
 
-  .metric-grid,
+  .dossier-band-header,
+  .table-footer,
+  .bottom-start-section {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dossier-summary-strip,
+  .dossier-module-grid,
+  .dossier-directory-grid,
   .kg-stat-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dossier-module-card {
+    height: auto;
+    min-height: 210px;
+  }
+
+  .dossier-info-box {
+    position: static;
+    margin-top: 12px;
   }
 
   .detail-grid {

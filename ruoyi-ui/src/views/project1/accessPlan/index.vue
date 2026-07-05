@@ -42,7 +42,7 @@
         <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete" v-hasPermi="['project1:accessPlan:remove']">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="primary" plain icon="VideoPlay" :disabled="single" @click="handleExecute()" v-hasPermi="['project1:accessPlan:edit']">手动执行</el-button>
+        <el-button type="primary" plain icon="VideoPlay" :disabled="single || executionState.running" @click="handleExecute()" v-hasPermi="['project1:accessPlan:edit']">手动执行</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="warning" plain icon="VideoPause" :disabled="multiple" @click="handleBatchPause" v-hasPermi="['project1:accessPlan:edit']">批量暂停</el-button>
@@ -52,6 +52,10 @@
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
+
+    <div v-if="executionState.running" class="access-execution-progress">
+      <el-progress :percentage="executionState.progress" :stroke-width="8" :show-text="false" />
+    </div>
 
     <el-table v-loading="loading" :data="accessPlanList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="48" align="center" />
@@ -88,12 +92,12 @@
       <el-table-column label="最近失败数" align="center" prop="lastFailedCount" width="105" />
       <el-table-column label="累计失败数" align="center" prop="totalFailedCount" width="105" />
       <el-table-column label="最近执行时间" align="center" prop="lastExecuteTime" width="160">
-        <template #default="scope">{{ parseTime(scope.row.lastExecuteTime, '{y}-{m}-{d} {h}:{i}:{s}') || "-" }}</template>
+        <template #default="scope">{{ parseTime(scope.row.lastExecuteTime, '{y}-{m}-{d} {h}:{i}') || "-" }}</template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="290" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" @click="handleDetail(scope.row)">详情</el-button>
-          <el-button link type="primary" @click="handleExecute(scope.row)" v-hasPermi="['project1:accessPlan:edit']">手动执行</el-button>
+          <el-button link type="primary" :disabled="executionState.running" @click="handleExecute(scope.row)" v-hasPermi="['project1:accessPlan:edit']">手动执行</el-button>
           <el-button v-if="scope.row.useStatus === 'paused'" link type="primary" @click="handleResume(scope.row)" v-hasPermi="['project1:accessPlan:edit']">恢复</el-button>
           <el-button v-else link type="primary" @click="handlePause(scope.row)" v-hasPermi="['project1:accessPlan:edit']">暂停</el-button>
           <el-button link type="primary" @click="handleCancelRun(scope.row)" v-hasPermi="['project1:accessPlan:edit']">取消当前</el-button>
@@ -161,7 +165,7 @@
         <el-descriptions-item label="更新周期">{{ detailRow.accessType === "continuous" ? `每 ${detailRow.cycleHours || 1} 小时` : "-" }}</el-descriptions-item>
         <el-descriptions-item label="默认结果集">{{ detailRow.defaultResultSetName || "-" }}</el-descriptions-item>
         <el-descriptions-item label="当前状态">{{ displayStatusLabel(detailRow.displayStatus || detailRow.useStatus) }}</el-descriptions-item>
-        <el-descriptions-item label="最近执行时间">{{ parseTime(detailRow.lastExecuteTime, '{y}-{m}-{d} {h}:{i}:{s}') || "-" }}</el-descriptions-item>
+        <el-descriptions-item label="最近执行时间">{{ parseTime(detailRow.lastExecuteTime, '{y}-{m}-{d} {h}:{i}') || "-" }}</el-descriptions-item>
         <el-descriptions-item label="累计成功数">{{ detailRow.totalSuccessCount || 0 }}</el-descriptions-item>
         <el-descriptions-item label="累计失败数">{{ detailRow.totalFailedCount || 0 }}</el-descriptions-item>
         <el-descriptions-item label="最近新增数">{{ detailRow.lastInsertedCount || 0 }}</el-descriptions-item>
@@ -193,6 +197,15 @@ const single = ref(true)
 const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
+const EXECUTION_PROGRESS_DURATION = 15000
+const EXECUTION_PROGRESS_INTERVAL = 200
+const executionState = reactive({
+  running: false,
+  accessPlanId: undefined,
+  progress: 0,
+  timer: undefined,
+  message: undefined
+})
 
 const accessModeOptions = [
   { label: "数据库直连", value: "db_direct" },
@@ -373,10 +386,49 @@ function handleExecute(row) {
     proxy.$modal.msgWarning("请选择一个接入计划")
     return
   }
+  if (executionState.running) {
+    proxy.$modal.msgWarning("接入执行中，请稍后")
+    return
+  }
   executeAccessPlan(target.accessPlanId).then(response => {
-    proxy.$modal.msgSuccess(formatAccessExecutionMessage(response.data?.message))
-    getList()
+    startExecutionProgress(target.accessPlanId, response.data?.message)
   })
+}
+
+function startExecutionProgress(accessPlanId, message) {
+  clearExecutionTimer()
+  executionState.running = true
+  executionState.accessPlanId = accessPlanId
+  executionState.progress = 0
+  executionState.message = message
+  const startedAt = Date.now()
+  executionState.timer = window.setInterval(() => {
+    const elapsed = Date.now() - startedAt
+    executionState.progress = Math.min(100, Math.floor(elapsed * 100 / EXECUTION_PROGRESS_DURATION))
+    if (elapsed >= EXECUTION_PROGRESS_DURATION) {
+      finishExecutionProgress()
+    }
+  }, EXECUTION_PROGRESS_INTERVAL)
+}
+
+function finishExecutionProgress() {
+  clearExecutionTimer()
+  executionState.progress = 100
+  getList()
+  proxy.$modal.msgSuccess(formatAccessExecutionMessage(executionState.message))
+  window.setTimeout(() => {
+    executionState.running = false
+    executionState.accessPlanId = undefined
+    executionState.progress = 0
+    executionState.message = undefined
+  }, 300)
+}
+
+function clearExecutionTimer() {
+  if (executionState.timer) {
+    window.clearInterval(executionState.timer)
+    executionState.timer = undefined
+  }
 }
 
 function formatAccessExecutionMessage(message) {
@@ -474,6 +526,10 @@ function statusTagType(value) {
 
 loadDatasourceOptions()
 getList()
+
+onBeforeUnmount(() => {
+  clearExecutionTimer()
+})
 </script>
 
 <style scoped>
@@ -487,5 +543,10 @@ getList()
 
 .access-plan-form :deep(.el-form-item) {
   margin-bottom: 22px;
+}
+
+.access-execution-progress {
+  margin: 0 0 10px;
+  padding: 0 2px;
 }
 </style>
