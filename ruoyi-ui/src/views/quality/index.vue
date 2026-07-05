@@ -485,6 +485,7 @@
               >
                 生成报告
               </el-button>
+
             </div>
           </div>
 
@@ -618,6 +619,11 @@ const reportPreviewOpen = ref(false)
 const reportPreviewUrl = ref('')
 const reportPreviewTitle = ref('最终溯源Word报告预览')
 
+const PROJECT2_API_PREFIX = '/designtask'
+const HIDDEN_WORK_MODULE_CODES = ['PROJECT_1']
+
+
+
 const problemForm = reactive({
   title: '',
   occurTime: '',
@@ -664,6 +670,49 @@ const notifyCurrentTaskChanged = (moduleCode, payload = {}) => {
   localStorage.setItem(QMS_TASK_EVENT_KEY, JSON.stringify(eventData))
 }
 
+
+const normalizeProcessFilePath = (filePath) => {
+  if (!filePath) return ''
+
+  let path = filePath.replace(/\\/g, '/')
+
+  if (path.startsWith('/topic5/profile/')) {
+    path = path.replace('/topic5/profile/', '/profile/')
+  }
+
+  if (path.startsWith('/designtask/profile/')) {
+    path = path.replace('/designtask/profile/', '/profile/')
+  }
+
+  if (path.startsWith('/project2/profile/')) {
+    path = path.replace('/project2/profile/', '/profile/')
+  }
+
+  return path
+}
+
+const getProcessFileDownloadConfig = (filePath) => {
+  const normalizedPath = normalizeProcessFilePath(filePath)
+
+  // 全生命周期数字质量自反馈与追溯系统报告
+  if (normalizedPath.startsWith('/profile/topic5/report/')) {
+    return {
+      url: '/topic5/trace/report/downloadByPath',
+      filePath: normalizedPath
+    }
+  }
+
+  // 课题二：设计制造协同优化平台报告
+  if (normalizedPath.startsWith('/profile/topic2/report/')) {
+    return {
+      url: `${PROJECT2_API_PREFIX}/quality/report/downloadByPath`,
+      filePath: normalizedPath
+    }
+  }
+
+  throw new Error('暂不支持该处理结果文件路径：' + filePath)
+}
+
 const fetchProcessFileBlob = async (row) => {
   if (!row || !row.processFile) {
     throw new Error('当前任务暂无处理结果文件')
@@ -673,14 +722,31 @@ const fetchProcessFileBlob = async (row) => {
     throw new Error('当前处理结果文件不是Word报告')
   }
 
+  const config = getProcessFileDownloadConfig(row.processFile)
+
+  console.log('处理结果文件请求接口：', config.url)
+  console.log('处理结果文件请求路径：', config.filePath)
+
   const data = await request({
-    url: '/topic5/trace/report/downloadByPath',
+    url: config.url,
     method: 'get',
     params: {
-      filePath: row.processFile
+      filePath: config.filePath
     },
     responseType: 'blob'
   })
+
+  console.log('处理结果文件Blob类型：', data.type)
+  console.log('处理结果文件Blob大小：', data.size)
+
+  if (data.type && data.type.includes('application/json')) {
+    const text = await data.text()
+    throw new Error('后端返回错误信息：' + text)
+  }
+
+  if (!data.size || data.size < 1000) {
+    throw new Error('报告文件为空或不是有效Word文件')
+  }
 
   if (data instanceof Blob) {
     return data
@@ -717,19 +783,19 @@ const defaultModules = [
   },
   {
     moduleCode: 'PROJECT_3',
-    moduleName: '生命周期质量监管与故障预防系统',
+    moduleName: '生命周期质量监管与故障预防平台',
     moduleType: 'TOPIC',
     route: '/project_3'
   },
   {
     moduleCode: 'PROJECT_4',
-    moduleName: '智能故障诊断与根源性分析技术模块',
+    moduleName: '智能故障诊断与根源性分析技术平台',
     moduleType: 'TOPIC',
     route: '/project4'
   },
   {
     moduleCode: 'PROJECT_5',
-    moduleName: '全生命周期数字质量自反馈与追溯系统',
+    moduleName: '全生命周期数字质量自反馈与追溯平台',
     moduleType: 'TOPIC',
     route: '/project_5'
   }
@@ -738,9 +804,9 @@ const defaultModules = [
 const moduleDisplayNames = {
   PROJECT_1: '全域异构信息集成系统',
   PROJECT_2: '设计制造协同优化平台',
-  PROJECT_3: '生命周期质量监管与故障预防系统',
-  PROJECT_4: '智能故障诊断与根源性分析技术模块',
-  PROJECT_5: '全生命周期数字质量自反馈与追溯系统'
+  PROJECT_3: '生命周期质量监管与故障预防平台',
+  PROJECT_4: '智能故障诊断与根源性分析技术平台',
+  PROJECT_5: '全生命周期数字质量自反馈与追溯平台'
 }
 
 const getModuleDisplayName = (module) => {
@@ -770,21 +836,30 @@ const loadModules = async () => {
     const rows = Array.isArray(res?.rows) ? res.rows : []
 
     if (rows.length > 0) {
-      workModules.value = rows.map((item) => {
-        return {
-          moduleCode: item.moduleCode,
-          moduleName: item.moduleName,
-          moduleType: item.moduleType || 'TOPIC',
-          description: item.moduleDesc || item.description || '',
-          route: item.moduleRoute || item.route || ''
-        }
-      })
+      workModules.value = rows
+        .map((item) => {
+          return {
+            moduleCode: item.moduleCode,
+            moduleName: item.moduleName,
+            moduleType: item.moduleType || 'TOPIC',
+            description: item.moduleDesc || item.description || '',
+            route: item.moduleRoute || item.route || ''
+          }
+        })
+        .filter((item) => {
+          return !HIDDEN_WORK_MODULE_CODES.includes(item.moduleCode)
+        })
     } else {
-      workModules.value = defaultModules
+      workModules.value = defaultModules.filter((item) => {
+        return !HIDDEN_WORK_MODULE_CODES.includes(item.moduleCode)
+      })
     }
   } catch (error) {
     console.error('加载工作模块失败：', error)
-    workModules.value = defaultModules
+
+    workModules.value = defaultModules.filter((item) => {
+      return !HIDDEN_WORK_MODULE_CODES.includes(item.moduleCode)
+    })
   }
 }
 
@@ -1422,7 +1497,7 @@ const handlePreviewProcessFile = async (row) => {
     const objectUrl = window.URL.createObjectURL(blob)
 
     reportPreviewUrl.value = objectUrl
-    reportPreviewTitle.value = `${row.problemCode || currentProblem.value?.problemCode || ''} 课题五追溯报告预览`
+    reportPreviewTitle.value = `${row.problemCode || currentProblem.value?.problemCode || ''} 报告预览`
     reportPreviewOpen.value = true
   } catch (error) {
     console.error('预览Word报告失败：', error)

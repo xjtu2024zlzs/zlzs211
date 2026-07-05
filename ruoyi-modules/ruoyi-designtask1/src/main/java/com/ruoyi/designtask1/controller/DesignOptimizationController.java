@@ -15,6 +15,16 @@ import java.io.File;
 import java.net.URLConnection;
 import java.util.Map;
 
+import com.ruoyi.common.core.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Value;
+
+import jakarta.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 @RestController
 @RequestMapping({"", "/designtask"})
 public class DesignOptimizationController {
@@ -201,5 +211,66 @@ public class DesignOptimizationController {
     @PostMapping("/task/{taskId}/approve")
     public AjaxResult approve(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
         return AjaxResult.success(optimizationService.approve(taskId, body));
+    }
+
+    //--------------------------------------课题二报告---------------------------
+    @Value("${topic2.report-dir:D:/2.11/data/topic2/report}")
+    private String topic2ReportDir;
+
+    @GetMapping("/quality/report/downloadByPath")
+    public void downloadTopic2ReportByPath(String filePath, HttpServletResponse response) throws Exception
+    {
+        if (filePath == null || "".equals(filePath.trim()))
+        {
+            throw new ServiceException("报告路径不能为空");
+        }
+
+        String normalizedPath = filePath.replace("\\", "/");
+
+        if (!normalizedPath.startsWith("/profile/topic2/report/"))
+        {
+            throw new ServiceException("非法报告路径：" + filePath);
+        }
+
+        String fileName = normalizedPath.substring(normalizedPath.lastIndexOf("/") + 1);
+
+        if (fileName == null || "".equals(fileName.trim()))
+        {
+            throw new ServiceException("报告文件名不能为空");
+        }
+
+        if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\"))
+        {
+            throw new ServiceException("非法报告文件名：" + fileName);
+        }
+
+        String lowerName = fileName.toLowerCase();
+
+        if (!lowerName.endsWith(".doc") && !lowerName.endsWith(".docx"))
+        {
+            throw new ServiceException("当前文件不是Word报告：" + fileName);
+        }
+
+        Path baseDir = Paths.get(topic2ReportDir).toAbsolutePath().normalize();
+        Path reportPath = baseDir.resolve(fileName).normalize();
+
+        if (!reportPath.startsWith(baseDir))
+        {
+            throw new ServiceException("非法报告访问路径：" + filePath);
+        }
+
+        if (!Files.exists(reportPath))
+        {
+            throw new ServiceException("报告文件不存在：" + reportPath);
+        }
+
+        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString())
+                .replaceAll("\\+", "%20");
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + encodedFileName);
+        response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+        Files.copy(reportPath, response.getOutputStream());
     }
 }

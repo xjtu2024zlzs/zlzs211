@@ -54,6 +54,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Date;
 
 
 /**
@@ -371,7 +372,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         sb.append("质量问题编号：").append(emptyToDash(task.getProblemCode())).append("\n");
 
         // 新增字段
-        sb.append("发生时间：").append(emptyToDash(task.getOccurTime().toString())).append("\n");
+        sb.append("发生时间：").append(formatDate(task.getOccurTime())).append("\n");
         sb.append("发生部位：").append(emptyToDash(task.getModuleName())).append("\n");
         sb.append("部件编号：").append(emptyToDash(task.getModuleCode())).append("\n");
         sb.append("填报人员：").append(emptyToDash(task.getReporter())).append("\n");
@@ -384,6 +385,16 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         sb.append("问题描述：").append(emptyToDash(task.getProblemDescription()));
 
         return sb.toString();
+    }
+
+    private String formatDate(Date date)
+    {
+        if (date == null)
+        {
+            return "-";
+        }
+
+        return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
     }
 
     private String buildTraceRemark(QualityTaskDto task)

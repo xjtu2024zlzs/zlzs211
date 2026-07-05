@@ -250,7 +250,7 @@
               class="module-button"
               @click="navigateTo('/designtask/dashboard')"
             >
-              进入{{ project.label }}模块
+              进入{{ project.label }}平台
             </el-button>
 
             <el-button
@@ -259,7 +259,7 @@
               class="module-button"
               @click="navigateTo('/project_3/index')"
             >
-              进入{{ project.label }}模块
+              进入{{ project.label }}平台
             </el-button>
 
             <el-button
@@ -268,7 +268,7 @@
               class="module-button"
               @click="navigateTo('/project4/fileofda')"
             >
-              进入{{ project.label }}模块
+              进入{{ project.label }}平台
             </el-button>
           </article>
         </div>
@@ -310,7 +310,7 @@
 
           <div class="knowledge-actions">
             <el-button type="primary" @click="navigateTo('/topic_5/trace')">
-              进入全生命周期数字质量自反馈与追溯
+              进入全生命周期数字质量自反馈与追溯平台
             </el-button>
 
           </div>

@@ -27,7 +27,6 @@
       <template #header>
         <div class="card-header">
           <span>当前追溯任务信息</span>
-          <span class="header-tip">当前任务来自第一个页面的历史追溯问题选择</span>
         </div>
       </template>
 
@@ -98,7 +97,6 @@
       <template #header>
         <div class="card-header">
           <span>全链路追溯闭环算法运行</span>
-          <span class="header-tip">运行后输出溯源知识图谱和原因表单</span>
         </div>
       </template>
 
@@ -143,7 +141,6 @@
       <template #header>
         <div class="card-header">
           <span>全链路追溯闭环知识图谱</span>
-          <span class="header-tip">展示 Python API 返回的故障增强知识图谱</span>
         </div>
       </template>
 
@@ -164,7 +161,6 @@
       <template #header>
         <div class="card-header">
           <span>溯源原因表单</span>
-          <span class="header-tip">展示最终溯源候选原因及证据</span>
         </div>
       </template>
 
