@@ -36,7 +36,7 @@ from task_manager import cancel_task, get_logs, get_result, get_status, is_cance
 
 
 DEFAULT_ALGORITHM_DATA_ROOT = Path(
-    os.getenv("ALGORITHM_DATA_ROOT", r"F:\TotalData\FaultIdentifyData\AlgorithmData")
+    os.getenv("ALGORITHM_DATA_ROOT", r"D:\2.11\data\topic3\FaultIdentifyData\AlgorithmData")
 ).resolve()
 STORAGE_ROOT = Path(
     os.getenv("ALGORITHM_STORAGE_ROOT", DEFAULT_ALGORITHM_DATA_ROOT / "storage")

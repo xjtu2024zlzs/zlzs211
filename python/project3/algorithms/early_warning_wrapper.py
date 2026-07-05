@@ -61,7 +61,7 @@ def predict_frame_beam_crack(payload: Dict[str, Any], task_id: Optional[str] = N
         n_classes=n_classes,
     ).to(device)
     default_data_root = Path(
-        os.getenv("ALGORITHM_DATA_ROOT", r"F:\TotalData\FaultIdentifyData\AlgorithmData")
+        os.getenv("ALGORITHM_DATA_ROOT", r"D:\2.11\data\topic3\FaultIdentifyData\AlgorithmData")
     ).resolve()
     output_root = Path(os.getenv(
         "FRAME_BEAM_RESULT_ROOT",

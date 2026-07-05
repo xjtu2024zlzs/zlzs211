@@ -209,7 +209,26 @@
           <el-button @click="loadDetectResults">刷新</el-button>
         </div>
       </template>
-      <el-table v-loading="resultLoading" :data="resultRows" border>
+      <div v-if="detectHistoryCurrentTask" class="history-level-bar">
+        <el-button type="primary" link @click="backToDetectHistoryTasks">返回任务列表</el-button>
+        <span class="history-current-task">当前任务：{{ detectHistoryCurrentTask.taskName }}</span>
+      </div>
+      <el-table
+        v-if="!detectHistoryCurrentTask"
+        v-loading="resultLoading"
+        :data="detectHistoryVisibleTaskRows"
+        border
+        empty-text="暂无历史异常检测任务"
+        @row-click="openDetectHistoryTask"
+      >
+        <el-table-column prop="taskName" label="任务名称" min-width="260" show-overflow-tooltip>
+          <template #default="{ row }">
+            <el-button type="primary" link @click.stop="openDetectHistoryTask(row)">{{ row.taskName }}</el-button>
+            <span class="history-task-count">共 {{ row.recordCount || 0 }} 条</span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-table v-else v-loading="resultLoading" :data="resultRows" border empty-text="暂无历史异常检测记录">
         <el-table-column prop="taskId" label="任务ID" width="190" show-overflow-tooltip />
         <el-table-column prop="targetName" label="检测对象" min-width="140" show-overflow-tooltip />
         <el-table-column label="数据文件" min-width="170" show-overflow-tooltip>
@@ -236,7 +255,7 @@
         v-model:page="resultQuery.page_num"
         v-model:limit="resultQuery.page_size"
         :total="resultTotal"
-        @pagination="loadDetectResults"
+        @pagination="updateDetectHistoryViewRows"
       />
     </el-card>
 
@@ -247,7 +266,26 @@
           <el-button @click="loadKeyProcessResults">刷新</el-button>
         </div>
       </template>
-      <el-table v-loading="keyResultLoading" :data="keyResultRows" border>
+      <div v-if="keyHistoryCurrentTask" class="history-level-bar">
+        <el-button type="primary" link @click="backToKeyHistoryTasks">返回任务列表</el-button>
+        <span class="history-current-task">当前任务：{{ keyHistoryCurrentTask.taskName }}</span>
+      </div>
+      <el-table
+        v-if="!keyHistoryCurrentTask"
+        v-loading="keyResultLoading"
+        :data="keyHistoryVisibleTaskRows"
+        border
+        empty-text="暂无历史关键工序识别任务"
+        @row-click="openKeyHistoryTask"
+      >
+        <el-table-column prop="taskName" label="任务名称" min-width="260" show-overflow-tooltip>
+          <template #default="{ row }">
+            <el-button type="primary" link @click.stop="openKeyHistoryTask(row)">{{ row.taskName }}</el-button>
+            <span class="history-task-count">共 {{ row.recordCount || 0 }} 条</span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-table v-else v-loading="keyResultLoading" :data="keyResultRows" border empty-text="暂无历史关键工序识别记录">
         <el-table-column prop="taskId" label="任务ID" width="190" show-overflow-tooltip />
         <el-table-column prop="targetName" label="识别对象" min-width="150" show-overflow-tooltip />
         <el-table-column prop="keyProcessName" label="关键工序" min-width="150" show-overflow-tooltip />
@@ -267,7 +305,7 @@
         v-model:page="keyResultQuery.page_num"
         v-model:limit="keyResultQuery.page_size"
         :total="keyResultTotal"
-        @pagination="loadKeyProcessResults"
+        @pagination="updateKeyHistoryViewRows"
       />
     </el-card>
 
@@ -843,8 +881,18 @@ const selectedDevice = ref(null)
 const devicePartTotal = ref(0)
 const resultRows = ref([])
 const resultTotal = ref(0)
+const detectHistoryAllRows = ref([])
+const detectHistoryTaskRows = ref([])
+const detectHistoryVisibleTaskRows = ref([])
+const detectHistoryCurrentTask = ref(null)
+const historySampleTaskNameMap = ref(new Map())
+const historySampleTaskNameLoaded = ref(false)
 const keyResultRows = ref([])
 const keyResultTotal = ref(0)
+const keyHistoryAllRows = ref([])
+const keyHistoryTaskRows = ref([])
+const keyHistoryVisibleTaskRows = ref([])
+const keyHistoryCurrentTask = ref(null)
 const selectedSamples = ref([])
 const sampleTableRef = ref(null)
 const kqcSelectedSamples = ref([])
@@ -2315,25 +2363,336 @@ function pickValue(source, keys) {
   return undefined
 }
 
+function getResponseData(response) {
+  const payload = getApiPayload(response)
+  return payload?.data && typeof payload.data === 'object' ? payload.data : payload
+}
+
+function normalizeHistoryTaskName(value) {
+  const text = String(value || '').trim()
+  if (!text) return ''
+  const genericNames = new Set([
+    'PROCESS_ANOMALY',
+    'PROCESS_ANOMALY_DETECT',
+    'KEY_PROCESS',
+    'KEY_PROCESS_IDENTIFY',
+    'SINGLE_PROCESS_ANOMALY',
+    '工序异常检测',
+    '异常检测',
+    '关键工序识别'
+  ])
+  return genericNames.has(text) ? '' : text
+}
+
+function firstHistoryTaskName(row) {
+  const candidates = [
+    row?.importTaskName,
+    row?.import_task_name,
+    row?.taskName,
+    row?.task_name,
+    row?.dataTaskName,
+    row?.data_task_name,
+    row?.sourceTaskName,
+    row?.source_task_name,
+    row?.result?.importTaskName,
+    row?.result?.import_task_name,
+    row?.result?.taskName,
+    row?.result?.task_name,
+    row?.result?.dataTaskName,
+    row?.result?.data_task_name,
+    row?.params?.importTaskName,
+    row?.params?.import_task_name,
+    row?.params?.taskName,
+    row?.params?.task_name,
+    row?.algorithmParams?.importTaskName,
+    row?.algorithm_params?.import_task_name,
+    row?.algorithmParams?.taskName,
+    row?.algorithm_params?.task_name
+  ]
+  for (const value of candidates) {
+    const name = normalizeHistoryTaskName(value)
+    if (name) return name
+  }
+  return ''
+}
+
+function historyUploadBatchId(row) {
+  return normalizeHistoryTaskName(
+    row?.uploadBatchId ||
+    row?.upload_batch_id ||
+    row?.result?.uploadBatchId ||
+    row?.result?.upload_batch_id ||
+    row?.params?.uploadBatchId ||
+    row?.params?.upload_batch_id ||
+    row?.algorithmParams?.uploadBatchId ||
+    row?.algorithm_params?.upload_batch_id
+  )
+}
+
+function sampleTaskName(row) {
+  return normalizeHistoryTaskName(row?.taskName || row?.task_name) ||
+    normalizeHistoryTaskName(row?.uploadBatchId || row?.upload_batch_id)
+}
+
+function historySampleIndexKeys(row) {
+  return [
+    row?.id,
+    row?.sampleId,
+    row?.sample_id,
+    row?.fileId,
+    row?.file_id
+  ]
+    .map(value => String(value ?? '').trim())
+    .filter(Boolean)
+}
+
+function toHistorySampleIds(value) {
+  if (Array.isArray(value)) return value.map(item => String(item ?? '').trim()).filter(Boolean)
+  if (value === undefined || value === null || value === '') return []
+  if (typeof value === 'number') return Number.isFinite(value) ? [String(value)] : []
+  if (typeof value === 'string') {
+    return value.split(/[,，\s]+/).map(item => item.trim()).filter(Boolean)
+  }
+  return []
+}
+
+function collectHistorySampleIds(source, depth = 0, visited = new Set()) {
+  if (!source || typeof source !== 'object' || depth > 5 || visited.has(source)) return []
+  visited.add(source)
+  const ids = []
+  const idKeys = [
+    'sampleId',
+    'sample_id',
+    'extractedFromSampleId',
+    'extracted_from_sample_id',
+    'sampleIds',
+    'sample_ids',
+    'selectedSampleIds',
+    'selected_sample_ids',
+    'trainSampleIds',
+    'train_sample_ids',
+    'detectSampleIds',
+    'detect_sample_ids'
+  ]
+  idKeys.forEach(key => ids.push(...toHistorySampleIds(source[key])))
+  Object.values(source).forEach(value => {
+    if (value && typeof value === 'object') ids.push(...collectHistorySampleIds(value, depth + 1, visited))
+  })
+  return Array.from(new Set(ids))
+}
+
+async function loadHistorySampleTaskNameMapByUsage(dataUsage, pageSize = 5000) {
+  const rows = []
+  let pageNum = 1
+  let pageCount = 1
+  do {
+    const res = await listFaultIdenSamples({ dataUsage, pageNum, pageSize })
+    const data = getResponseData(res)
+    const pageRows = Array.isArray(data?.rows) ? data.rows : (Array.isArray(res?.rows) ? res.rows : [])
+    rows.push(...pageRows)
+    const total = Number(data?.total ?? res?.total ?? rows.length ?? 0)
+    pageCount = Math.max(1, Math.ceil(total / pageSize))
+    pageNum += 1
+  } while (pageNum <= pageCount)
+  return rows
+}
+
+async function ensureHistorySampleTaskNameMap() {
+  if (historySampleTaskNameLoaded.value) return historySampleTaskNameMap.value
+  const map = new Map()
+  try {
+    const results = await Promise.all(MANUFACTURING_DATA_USAGES.map(dataUsage => loadHistorySampleTaskNameMapByUsage(dataUsage)))
+    results.flat().forEach(row => {
+      const name = sampleTaskName(row)
+      if (!name) return
+      historySampleIndexKeys(row).forEach(key => map.set(key, name))
+    })
+  } catch (e) {
+    console.warn('load history sample task names failed', e)
+  } finally {
+    historySampleTaskNameMap.value = map
+    historySampleTaskNameLoaded.value = true
+  }
+  return map
+}
+
+function sampleBackedHistoryTaskName(row) {
+  const names = []
+  const sampleMap = historySampleTaskNameMap.value
+  collectHistorySampleIds(row).forEach(id => {
+    const name = sampleMap.get(String(id ?? '').trim())
+    if (name && !names.includes(name)) names.push(name)
+  })
+  return names.join('、')
+}
+
+function enrichAlgorithmHistoryRows(rows) {
+  return (Array.isArray(rows) ? rows : []).map(row => {
+    const taskName = firstHistoryTaskName(row) || sampleBackedHistoryTaskName(row) || historyUploadBatchId(row)
+    return taskName ? { ...row, importTaskName: taskName, import_task_name: taskName } : row
+  })
+}
+
+function algorithmHistoryTaskName(row) {
+  return firstHistoryTaskName(row) || sampleBackedHistoryTaskName(row) || historyUploadBatchId(row) || '未命名任务'
+}
+
+function algorithmHistoryTaskKey(row) {
+  return algorithmHistoryTaskName(row)
+}
+
+function sortAlgorithmHistoryRows(rows) {
+  return [...(Array.isArray(rows) ? rows : [])].sort((a, b) => {
+    const right = b?.createTime || b?.create_time || ''
+    const left = a?.createTime || a?.create_time || ''
+    return String(right).localeCompare(String(left))
+  })
+}
+
+function buildAlgorithmHistoryTasks(rows) {
+  const taskMap = new Map()
+  ;(Array.isArray(rows) ? rows : []).forEach(row => {
+    const taskKey = algorithmHistoryTaskKey(row)
+    if (!taskMap.has(taskKey)) {
+      taskMap.set(taskKey, {
+        taskKey,
+        taskName: algorithmHistoryTaskName(row),
+        recordCount: 0,
+        latestCreateTime: row.createTime || row.create_time || ''
+      })
+    }
+    const task = taskMap.get(taskKey)
+    task.recordCount += 1
+    const createTime = row.createTime || row.create_time || ''
+    if (!task.latestCreateTime || (createTime && String(createTime) > String(task.latestCreateTime))) {
+      task.latestCreateTime = createTime
+    }
+  })
+  return Array.from(taskMap.values()).sort((a, b) => String(b.latestCreateTime || '').localeCompare(String(a.latestCreateTime || '')))
+}
+
+async function loadAlgorithmHistoryRows(api, query, pageSize = 200) {
+  await ensureHistorySampleTaskNameMap()
+  const rows = []
+  let pageNum = 1
+  let pageCount = 1
+  do {
+    const res = await api({
+      ...query,
+      page_num: pageNum,
+      page_size: pageSize
+    })
+    const data = getResponseData(res)
+    const pageRows = Array.isArray(data.rows) ? data.rows : []
+    rows.push(...pageRows)
+    const total = Number(data.total || rows.length || 0)
+    pageCount = Math.max(1, Math.ceil(total / pageSize))
+    pageNum += 1
+  } while (pageNum <= pageCount)
+  return sortAlgorithmHistoryRows(enrichAlgorithmHistoryRows(rows))
+}
+
+function currentDetectHistoryTaskRows() {
+  if (!detectHistoryCurrentTask.value) return []
+  return detectHistoryAllRows.value.filter(row => algorithmHistoryTaskKey(row) === detectHistoryCurrentTask.value.taskKey)
+}
+
+function updateDetectHistoryViewRows() {
+  const sourceRows = detectHistoryCurrentTask.value ? currentDetectHistoryTaskRows() : detectHistoryTaskRows.value
+  resultTotal.value = sourceRows.length
+  const start = (resultQuery.page_num - 1) * resultQuery.page_size
+  if (detectHistoryCurrentTask.value) {
+    resultRows.value = sourceRows.slice(start, start + resultQuery.page_size)
+    detectHistoryVisibleTaskRows.value = []
+  } else {
+    resultRows.value = []
+    detectHistoryVisibleTaskRows.value = sourceRows.slice(start, start + resultQuery.page_size)
+  }
+}
+
 async function loadDetectResults() {
   resultLoading.value = true
   try {
-    const res = await listWarningDetectResults(resultQuery)
-    const data = getApiPayload(res)
-    resultRows.value = Array.isArray(data.rows) ? data.rows : []
-    resultTotal.value = Number(data.total || 0)
+    const rows = await loadAlgorithmHistoryRows(listWarningDetectResults, resultQuery)
+    detectHistoryAllRows.value = rows
+    detectHistoryTaskRows.value = buildAlgorithmHistoryTasks(rows)
+    if (detectHistoryCurrentTask.value && !detectHistoryTaskRows.value.some(item => item.taskKey === detectHistoryCurrentTask.value.taskKey)) {
+      detectHistoryCurrentTask.value = null
+    }
+    updateDetectHistoryViewRows()
+  } catch (e) {
+    detectHistoryAllRows.value = []
+    detectHistoryTaskRows.value = []
+    detectHistoryVisibleTaskRows.value = []
+    resultRows.value = []
+    resultTotal.value = 0
+    ElMessage.error(getErrorMessage(e, '历史异常检测结果加载失败'))
   } finally {
     resultLoading.value = false
   }
 }
 
+function openDetectHistoryTask(row) {
+  if (!row) return
+  detectHistoryCurrentTask.value = row
+  resultQuery.page_num = 1
+  updateDetectHistoryViewRows()
+}
+
+function backToDetectHistoryTasks() {
+  detectHistoryCurrentTask.value = null
+  resultQuery.page_num = 1
+  updateDetectHistoryViewRows()
+}
+
+function currentKeyHistoryTaskRows() {
+  if (!keyHistoryCurrentTask.value) return []
+  return keyHistoryAllRows.value.filter(row => algorithmHistoryTaskKey(row) === keyHistoryCurrentTask.value.taskKey)
+}
+
+function updateKeyHistoryViewRows() {
+  const sourceRows = keyHistoryCurrentTask.value ? currentKeyHistoryTaskRows() : keyHistoryTaskRows.value
+  keyResultTotal.value = sourceRows.length
+  const start = (keyResultQuery.page_num - 1) * keyResultQuery.page_size
+  if (keyHistoryCurrentTask.value) {
+    keyResultRows.value = sourceRows.slice(start, start + keyResultQuery.page_size)
+    keyHistoryVisibleTaskRows.value = []
+  } else {
+    keyResultRows.value = []
+    keyHistoryVisibleTaskRows.value = sourceRows.slice(start, start + keyResultQuery.page_size)
+  }
+}
+
+function openKeyHistoryTask(row) {
+  if (!row) return
+  keyHistoryCurrentTask.value = row
+  keyResultQuery.page_num = 1
+  updateKeyHistoryViewRows()
+}
+
+function backToKeyHistoryTasks() {
+  keyHistoryCurrentTask.value = null
+  keyResultQuery.page_num = 1
+  updateKeyHistoryViewRows()
+}
+
 async function loadKeyProcessResults() {
   keyResultLoading.value = true
   try {
-    const res = await listKeyProcessResults(keyResultQuery)
-    const data = getApiPayload(res)
-    keyResultRows.value = Array.isArray(data.rows) ? data.rows : []
-    keyResultTotal.value = Number(data.total || 0)
+    const rows = await loadAlgorithmHistoryRows(listKeyProcessResults, keyResultQuery)
+    keyHistoryAllRows.value = rows
+    keyHistoryTaskRows.value = buildAlgorithmHistoryTasks(rows)
+    if (keyHistoryCurrentTask.value && !keyHistoryTaskRows.value.some(item => item.taskKey === keyHistoryCurrentTask.value.taskKey)) {
+      keyHistoryCurrentTask.value = null
+    }
+    updateKeyHistoryViewRows()
+  } catch (e) {
+    keyHistoryAllRows.value = []
+    keyHistoryTaskRows.value = []
+    keyHistoryVisibleTaskRows.value = []
+    keyResultRows.value = []
+    keyResultTotal.value = 0
+    ElMessage.error(getErrorMessage(e, '历史关键工序识别结果加载失败'))
   } finally {
     keyResultLoading.value = false
   }
@@ -2901,6 +3260,33 @@ onBeforeUnmount(() => {
 
 .task-lookup-row .el-input {
   max-width: 320px;
+}
+
+.history-level-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.history-current-task {
+  min-width: 0;
+  color: #1f3b57;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-task-count {
+  margin-left: 10px;
+  color: #8a97a8;
+  font-size: 13px;
 }
 
 .dialog-action-row {

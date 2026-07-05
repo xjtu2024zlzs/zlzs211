@@ -13,7 +13,7 @@ from typing import Any, Callable, Dict, Optional
 
 
 DEFAULT_ALGORITHM_DATA_ROOT = Path(
-    os.getenv("ALGORITHM_DATA_ROOT", r"F:\TotalData\FaultIdentifyData\AlgorithmData")
+    os.getenv("ALGORITHM_DATA_ROOT", r"D:\2.11\data\topic3\FaultIdentifyData\AlgorithmData")
 ).resolve()
 TASK_ROOT = Path(
     os.getenv("ALGORITHM_TASK_ROOT", DEFAULT_ALGORITHM_DATA_ROOT / "tasks")

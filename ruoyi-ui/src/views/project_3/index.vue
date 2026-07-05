@@ -111,7 +111,7 @@
 
       <el-col :span="8">
         <el-card shadow="hover" class="module-card" @click="go('/project_3/service/identify')">
-          <div class="module-title">智能设备健康状态在线识别与故障预测</div>
+          <div class="module-title">服役性能周期故障预防</div>
           <div class="module-desc">
             进入故障识别、故障预防页面。
           </div>

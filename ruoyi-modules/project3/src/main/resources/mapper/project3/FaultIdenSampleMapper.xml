@@ -127,6 +127,17 @@
         order by condition_label, bearing_code, sample_no
     </select>
 
+    <select id="selectSampleBySourceFile" resultMap="FaultIdenSampleFileMap">
+        select
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            task_name, upload_batch_id,
+            aircraft_id, subsystem_id, equipment_id, component_id, create_time
+        from t3_fault_iden_sample
+        where source_file = #{sourceFile}
+        order by create_time desc, id desc
+        limit 1
+    </select>
+
     <select id="selectAllSamples" resultMap="FaultIdenSampleFileMap">
         select
             id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,

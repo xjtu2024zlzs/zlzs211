@@ -103,12 +103,15 @@ public class WarningDetectReqAssembler
         applyBoschParams(req, reqMap, boschPath);
         if (boschPath != null)
         {
+            List<Long> boschSampleIds = firstNonEmpty(trainIds, sampleIds(reqMap, "sampleIds", "sample_ids"));
             Map<String, Object> info = new LinkedHashMap<>();
             info.put("fileName", Paths.get(boschPath).getFileName().toString());
             info.put("fileUrl", boschPath);
             info.put("fileType", "csv");
             info.put("fileMode", "bosch_train_numeric");
             info.put("dataUsage", "BOSCH_PROCESS_ANOMALY");
+            info.put("selectedSampleIds", boschSampleIds);
+            info.put("trainSampleIds", boschSampleIds);
             req.setFileInfo(info);
         }
         else if (legacyPack == null)

@@ -456,7 +456,28 @@
         </div>
       </div>
 
-      <el-table v-loading="history_loading" :data="history_rows" border height="320" empty-text="暂无历史识别记录">
+      <div v-if="history_current_task" class="history-level-bar">
+        <el-button type="primary" link @click="backToHistoryTasks">返回任务列表</el-button>
+        <span class="history-current-task">当前任务：{{ history_current_task.taskName }}</span>
+      </div>
+
+      <el-table
+        v-if="!history_current_task"
+        v-loading="history_loading"
+        :data="history_visible_task_rows"
+        border
+        height="320"
+        empty-text="暂无历史识别任务"
+        @row-click="openHistoryTask"
+      >
+        <el-table-column prop="taskName" label="任务名称" min-width="260" show-overflow-tooltip>
+          <template #default="{ row }">
+            <el-button type="primary" link @click.stop="openHistoryTask(row)">{{ row.taskName }}</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-table v-else v-loading="history_loading" :data="history_rows" border height="320" empty-text="暂无历史识别记录">
         <el-table-column prop="taskId" label="任务ID" width="190" show-overflow-tooltip />
         <el-table-column prop="importTaskName" label="数据任务名称" min-width="160" show-overflow-tooltip>
           <template #default="{ row }">{{ row.importTaskName || row.import_task_name || '--' }}</template>
@@ -859,8 +880,12 @@ const prevention_advice_rows = computed(() => {
   return []
 })
 const history_loading = ref(false)
+const history_all_rows = ref([])
+const history_task_rows = ref([])
+const history_visible_task_rows = ref([])
 const history_rows = ref([])
 const history_total = ref(0)
+const history_current_task = ref(null)
 const history_query = reactive({
   keyword: '',
   task_type: '',
@@ -3047,16 +3072,73 @@ function sortIdentifyHistoryRows(rows) {
   })
 }
 
-async function loadIdentifyHistoryByType(taskType, pageSize = 1000) {
-  const res = await listFaultIdentifyResults({
-    keyword: history_query.keyword,
-    task_type: taskType,
-    status: history_query.status,
-    page_num: 1,
-    page_size: pageSize
+function historyTaskName(row) {
+  const name = row?.importTaskName || row?.import_task_name || row?.taskName || row?.task_name
+  return String(name || '').trim() || '未命名任务'
+}
+
+function historyTaskKey(row) {
+  return historyTaskName(row)
+}
+
+function buildIdentifyHistoryTasks(rows) {
+  const taskMap = new Map()
+  ;(Array.isArray(rows) ? rows : []).forEach(row => {
+    const taskKey = historyTaskKey(row)
+    if (!taskMap.has(taskKey)) {
+      taskMap.set(taskKey, {
+        taskKey,
+        taskName: historyTaskName(row),
+        latestCreateTime: row.createTime || row.create_time || ''
+      })
+    }
+    const task = taskMap.get(taskKey)
+    const createTime = row.createTime || row.create_time || ''
+    if (!task.latestCreateTime || (createTime && String(createTime) > String(task.latestCreateTime))) {
+      task.latestCreateTime = createTime
+    }
   })
-  const data = getApiPayload(res)
-  return Array.isArray(data?.rows) ? data.rows.filter(isIdentifyHistoryRow) : []
+  return Array.from(taskMap.values()).sort((a, b) => String(b.latestCreateTime || '').localeCompare(String(a.latestCreateTime || '')))
+}
+
+function currentHistoryTaskRows() {
+  if (!history_current_task.value) return []
+  return history_all_rows.value.filter(row => historyTaskKey(row) === history_current_task.value.taskKey)
+}
+
+function updateHistoryViewRows() {
+  const sourceRows = history_current_task.value ? currentHistoryTaskRows() : history_task_rows.value
+  history_total.value = sourceRows.length
+  const start = (history_query.page_num - 1) * history_query.page_size
+  if (history_current_task.value) {
+    history_rows.value = sourceRows.slice(start, start + history_query.page_size)
+    history_visible_task_rows.value = []
+  } else {
+    history_rows.value = []
+    history_visible_task_rows.value = sourceRows.slice(start, start + history_query.page_size)
+  }
+}
+
+async function loadIdentifyHistoryByType(taskType, pageSize = 500) {
+  const rows = []
+  let pageNum = 1
+  let pageCount = 1
+  do {
+    const res = await listFaultIdentifyResults({
+      keyword: history_query.keyword,
+      task_type: taskType,
+      status: history_query.status,
+      page_num: pageNum,
+      page_size: pageSize
+    })
+    const data = getApiPayload(res)
+    const pageRows = Array.isArray(data?.rows) ? data.rows.filter(isIdentifyHistoryRow) : []
+    rows.push(...pageRows)
+    const total = Number(data?.total || rows.length || 0)
+    pageCount = Math.max(1, Math.ceil(total / pageSize))
+    pageNum += 1
+  } while (pageNum <= pageCount)
+  return rows
 }
 
 async function loadIdentifyHistory(options = {}) {
@@ -3069,26 +3151,16 @@ async function loadIdentifyHistory(options = {}) {
       history_query.task_type = selectedTaskType
     }
 
-    if (selectedTaskType) {
-      const res = await listFaultIdentifyResults({
-        keyword: history_query.keyword,
-        task_type: selectedTaskType,
-        status: history_query.status,
-        page_num: history_query.page_num,
-        page_size: history_query.page_size
-      })
-      const data = getApiPayload(res)
-      const rows = Array.isArray(data?.rows) ? data.rows.filter(isIdentifyHistoryRow) : []
-      history_rows.value = rows
-      history_total.value = Number(data?.total || rows.length)
-    } else {
-      const rows = sortIdentifyHistoryRows((await Promise.all(
-        IDENTIFY_HISTORY_TASK_TYPES.map(taskType => loadIdentifyHistoryByType(taskType))
-      )).flat())
-      history_total.value = rows.length
-      const start = (history_query.page_num - 1) * history_query.page_size
-      history_rows.value = rows.slice(start, start + history_query.page_size)
+    const rows = sortIdentifyHistoryRows((await Promise.all(
+      (selectedTaskType ? [selectedTaskType] : IDENTIFY_HISTORY_TASK_TYPES)
+        .map(taskType => loadIdentifyHistoryByType(taskType))
+    )).flat())
+    history_all_rows.value = rows
+    history_task_rows.value = buildIdentifyHistoryTasks(rows)
+    if (history_current_task.value && !history_task_rows.value.some(item => item.taskKey === history_current_task.value.taskKey)) {
+      history_current_task.value = null
     }
+    updateHistoryViewRows()
     if (options?.restoreLatest === true) {
       await restoreLatestResults()
     }
@@ -3099,6 +3171,7 @@ async function loadIdentifyHistory(options = {}) {
 
 function handleHistorySearch() {
   history_query.page_num = 1
+  history_current_task.value = null
   loadIdentifyHistory()
 }
 
@@ -3107,7 +3180,21 @@ function resetHistorySearch() {
   history_query.task_type = ''
   history_query.status = ''
   history_query.page_num = 1
+  history_current_task.value = null
   loadIdentifyHistory()
+}
+
+function openHistoryTask(row) {
+  if (!row) return
+  history_current_task.value = row
+  history_query.page_num = 1
+  updateHistoryViewRows()
+}
+
+function backToHistoryTasks() {
+  history_current_task.value = null
+  history_query.page_num = 1
+  updateHistoryViewRows()
 }
 
 async function handle_degradation_detect() {
@@ -4378,6 +4465,27 @@ onBeforeUnmount(() => {
 .history-keyword {
   flex: 1 1 280px;
   max-width: 420px;
+}
+
+.history-level-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.history-current-task {
+  min-width: 0;
+  color: #1f3b57;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fault-iden-prepare-dialog {

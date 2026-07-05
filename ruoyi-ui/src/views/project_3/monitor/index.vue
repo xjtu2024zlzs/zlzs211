@@ -50,6 +50,10 @@
           <el-button type="primary" plain class="import-btn" @click.stop="openDataFileDialog">查看全部数据文件</el-button>
           <div class="import-desc">查看各部分已导入的数据文件，并支持删除。</div>
         </div>
+        <div class="data-import-card">
+          <el-button type="primary" plain class="import-btn" @click.stop="openAlgorithmDataExportDialog">导出算法数据</el-button>
+          <div class="import-desc">向其他课题导入算法结果，用于更新数字卷宗。</div>
+        </div>
       </div>
     </el-card>
 
@@ -203,7 +207,7 @@
           </div>
           <div class="numeric-switch-tip">
             <div class="numeric-switch-title"><span>导入方式</span></div>
-            <el-radio-group v-model="textObjDlg.form.importMode" class="numeric-import-mode">
+            <el-radio-group v-model="textObjDlg.form.importMode" class="numeric-import-mode" @change="onTextImportModeChange">
               <el-radio-button label="file">文件导入</el-radio-button>
               <el-radio-button label="api">API导入</el-radio-button>
             </el-radio-group>
@@ -224,16 +228,16 @@
               <el-input v-model="textObjDlg.form.apiUrl" placeholder="请输入返回Excel文件内容的HTTP/HTTPS地址" />
             </el-form-item>
             <el-form-item label="请求方法">
-              <el-select v-model="textObjDlg.form.apiMethod" style="width: 140px">
+              <el-select v-model="textObjDlg.form.apiMethod" style="width: 140px" :disabled="isTextFixedApiTask">
                 <el-option label="GET" value="GET" />
                 <el-option label="POST" value="POST" />
               </el-select>
             </el-form-item>
             <el-form-item label="请求头">
-              <el-input v-model="textObjDlg.form.apiHeaders" type="textarea" :rows="3" placeholder='可选，JSON格式，例如 {"Authorization":"Bearer token"}' />
+              <el-input v-model="textObjDlg.form.apiHeaders" type="textarea" :rows="3" :readonly="isTextFixedApiTask" placeholder='可选，JSON格式，例如 {"Authorization":"Bearer token"}' />
             </el-form-item>
             <el-form-item v-if="textObjDlg.form.apiMethod === 'POST'" label="请求体">
-              <el-input v-model="textObjDlg.form.apiBody" type="textarea" :rows="4" placeholder="可选，JSON或文本请求体" />
+              <el-input v-model="textObjDlg.form.apiBody" type="textarea" :rows="6" :readonly="isTextFixedApiTask" placeholder="可选，JSON或文本请求体" />
             </el-form-item>
             <el-form-item label="文件名">
               <el-input v-model="textObjDlg.form.apiFileName" placeholder="可选，例如 import.xlsx；为空则自动生成" />
@@ -380,6 +384,151 @@
         <el-table-column label="操作" width="90" fixed="right"><template #default="{ row }"><el-button type="danger" link @click="removeDataFile(row)">删除</el-button></template></el-table-column>
       </el-table>
       <pagination v-show="dataFileDialog.currentTask && dataFileDialog.total > 0" :total="dataFileDialog.total" v-model:page="dataFileQuery.pageNum" v-model:limit="dataFileQuery.pageSize" @pagination="loadDataFiles" />
+    </el-dialog>
+
+    <el-dialog v-model="algorithmDataExportDialog.visible" title="导出算法数据" width="980px" :close-on-click-modal="false">
+      <div class="algorithm-export-dialog" v-loading="algorithmDataExportDialog.loading">
+        <div class="algorithm-export-summary">
+          <span>历史类型：{{ algorithmExportStats.typeCount }}</span>
+          <span>任务名称：{{ algorithmExportStats.taskCount }}</span>
+          <span>历史记录：{{ algorithmExportStats.recordCount }}</span>
+          <span>已选记录：{{ algorithmExportSelectedCount }}</span>
+        </div>
+        <el-alert
+          v-if="algorithmDataExportDialog.error"
+          type="warning"
+          :title="algorithmDataExportDialog.error"
+          :closable="false"
+          show-icon
+          class="quality-mb16"
+        />
+        <el-form :model="algorithmDataExportDialog.form" label-width="100px" class="algorithm-export-form">
+          <el-row :gutter="12">
+            <el-col :span="16">
+              <el-form-item label="接口地址">
+                <el-input v-model="algorithmDataExportDialog.form.endpoint" placeholder="http://课题五服务器IP:8088/project1/dossier/openapi/writeback/fault-diagnosis" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="访问令牌">
+                <el-input v-model="algorithmDataExportDialog.form.token" placeholder="Bearer token，可选" show-password />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="卷宗ID">
+                <el-input v-model="algorithmDataExportDialog.form.instanceId" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="目标节点ID">
+                <el-input v-model="algorithmDataExportDialog.form.bomNodeId" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="飞机">
+                <el-input v-model="algorithmDataExportDialog.form.aircraft" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="零件号">
+                <el-input v-model="algorithmDataExportDialog.form.partNumber" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="任务名称">
+                <el-input v-model="algorithmDataExportDialog.form.taskName" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="系统路径">
+                <el-input v-model="algorithmDataExportDialog.form.systemPath" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+        <div class="algorithm-export-content">
+          <el-tree
+            class="algorithm-export-tree"
+            :data="algorithmDataExportDialog.treeData"
+            node-key="id"
+            :expand-on-click-node="true"
+            :props="{ label: 'label', children: 'children' }"
+            @node-click="selectAlgorithmExportNode"
+          >
+            <template #default="{ data }">
+              <div class="algorithm-export-node" :class="{ selected: algorithmDataExportDialog.selectedNode?.id === data.id }">
+                <el-checkbox
+                  v-if="data.level === 'record'"
+                  class="algorithm-export-checkbox"
+                  :model-value="isAlgorithmExportRecordSelected(data)"
+                  @click.stop
+                  @change="checked => setAlgorithmExportRecordSelected(data, checked)"
+                />
+                <div class="algorithm-export-node-main">
+                  <span class="algorithm-export-node-label">{{ data.label }}</span>
+                  <span v-if="data.subLabel" class="algorithm-export-node-sub">{{ data.subLabel }}</span>
+                </div>
+                <div class="algorithm-export-node-meta">
+                  <el-tag v-if="data.level === 'type'" size="small" type="primary">{{ data.recordCount || 0 }} 条</el-tag>
+                  <el-tag v-else-if="data.level === 'task'" size="small">{{ data.recordCount || 0 }} 条</el-tag>
+                  <el-tag v-else size="small" :type="statusTagType(data.status)">{{ statusText(data.status) }}</el-tag>
+                </div>
+              </div>
+            </template>
+          </el-tree>
+          <aside class="algorithm-export-selected">
+            <div class="algorithm-export-selected-head">
+              <span>已选历史记录</span>
+              <el-button link type="primary" :disabled="!algorithmExportSelectedCount" @click="clearAlgorithmExportSelectedRecords">清空</el-button>
+            </div>
+            <div class="algorithm-export-selected-count">共 {{ algorithmExportSelectedCount }} 条</div>
+            <div v-if="algorithmExportSelectedCount" class="algorithm-export-selected-list">
+              <div v-for="record in algorithmDataExportDialog.selectedRecords" :key="record.id" class="algorithm-export-selected-item">
+                <div class="algorithm-export-selected-main">
+                  <span class="algorithm-export-selected-title">{{ record.label }}</span>
+                  <span class="algorithm-export-selected-sub">{{ record.subLabel || '--' }}</span>
+                </div>
+                <el-button link type="danger" @click="removeAlgorithmExportSelectedRecord(record)">移除</el-button>
+              </div>
+            </div>
+            <el-empty v-else description="暂未选择历史记录" :image-size="60" />
+          </aside>
+        </div>
+        <el-empty v-if="!algorithmDataExportDialog.loading && !algorithmExportStats.recordCount" description="暂无可导出的历史记录" />
+      </div>
+      <template #footer>
+        <el-button @click="algorithmDataExportDialog.visible = false">取消</el-button>
+        <el-button
+          type="primary"
+          :loading="algorithmDataExportDialog.exporting"
+          :disabled="algorithmDataExportDialog.exporting || !algorithmExportSelectedCount"
+          @click="previewAlgorithmDataExportJson"
+        >
+          导出
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="algorithmDataExportDialog.previewVisible" title="确认导出JSON" width="860px" :close-on-click-modal="false">
+      <div class="algorithm-export-preview">
+        <div class="algorithm-export-preview-meta">
+          <span>请求方式：POST</span>
+          <span>接口地址：{{ algorithmDataExportDialog.previewEndpoint || '--' }}</span>
+          <span>已选记录：{{ algorithmExportSelectedCount }}</span>
+        </div>
+        <pre class="algorithm-export-json">{{ algorithmDataExportDialog.previewJson }}</pre>
+      </div>
+      <template #footer>
+        <el-button @click="algorithmDataExportDialog.previewVisible = false">返回修改</el-button>
+        <el-button
+          type="primary"
+          :loading="algorithmDataExportDialog.exporting"
+          :disabled="algorithmDataExportDialog.exporting"
+          @click="confirmAlgorithmDataExport"
+        >
+          确认导出
+        </el-button>
+      </template>
     </el-dialog>
 
     <el-row :gutter="16">
@@ -638,7 +787,32 @@
         <el-button type="primary" @click="searchKqcHistory">查询</el-button>
         <el-button @click="resetKqcHistory">重置</el-button>
       </div>
-      <el-table v-loading="kqcHistory.loading" :data="kqcHistory.rows" border height="300" empty-text="暂无挖掘历史记录">
+      <div v-if="kqcHistory.currentTask" class="history-level-bar">
+        <el-button type="primary" link @click="backToKqcHistoryTasks">返回任务列表</el-button>
+        <span class="history-current-task">当前任务：{{ kqcHistory.currentTask.taskName }}</span>
+      </div>
+      <el-table
+        v-if="!kqcHistory.currentTask"
+        v-loading="kqcHistory.loading"
+        :data="kqcHistory.visibleTaskRows"
+        border
+        height="300"
+        empty-text="暂无挖掘历史任务"
+        @row-click="openKqcHistoryTask"
+      >
+        <el-table-column prop="taskName" label="任务名称" min-width="260" show-overflow-tooltip>
+          <template #default="{ row }">
+            <el-button type="primary" link @click.stop="openKqcHistoryTask(row)">{{ row.taskName }}</el-button>
+            <span class="history-task-count">共 {{ row.recordCount || 0 }} 条</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="latestTargetName" label="执行对象" min-width="140" show-overflow-tooltip>
+          <template #default="{ row }">{{ row.latestTargetName || '--' }}</template>
+        </el-table-column>
+        <el-table-column prop="latestStatus" label="最新状态" width="100" />
+        <el-table-column prop="latestCreateTime" label="最新创建时间" width="170" />
+      </el-table>
+      <el-table v-else v-loading="kqcHistory.loading" :data="kqcHistory.rows" border height="300" empty-text="暂无挖掘历史记录">
         <el-table-column prop="taskId" label="任务ID" width="190" show-overflow-tooltip />
         <el-table-column prop="targetName" label="执行对象" min-width="140" show-overflow-tooltip>
           <template #default="{ row }">{{ row.targetName || '--' }}</template>
@@ -661,7 +835,7 @@
         v-model:page="kqcHistory.query.page_num"
         v-model:limit="kqcHistory.query.page_size"
         :total="kqcHistory.total"
-        @pagination="loadKqcHistory"
+        @pagination="updateKqcHistoryViewRows"
       />
     </el-card>
     <el-dialog v-model="kqcDialog.visible" title="关键质量特性挖掘" width="1180px" :close-on-click-modal="false" @closed="closeKqcDialog">
@@ -1071,6 +1245,7 @@ import {
   deleteKqcMiningResult,
   getKqcMiningTask,
   getWarningDetectTask,
+  listWarningDetectResults,
   listKqcMiningResults,
   startKqcMiningTask,
   startWarningDetectTask,
@@ -1080,7 +1255,9 @@ import {
   cancelKeyProcessTask,
   deleteFaultIdenSample as deleteDataFile,
   getKeyProcessTask,
+  listFaultIdentifyResults,
   listFaultIdenSamples as listAllDataFiles,
+  listKeyProcessResults,
   mergeNumericChunks,
   startKeyProcessTask,
   updateFaultIdenSampleDataUsage as updateDataFileUsage,
@@ -1167,6 +1344,36 @@ const textTaskOpts = [
     rule: 'Excel需包含飞机、分系统、设备、组件、零件、零件信息六个Sheet。'
   }
 ]
+const TEXT_FIXED_API_CONFIG = {
+  hierarchy: {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8',
+      Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    },
+    body: {
+      taskType: 'hierarchy',
+      dataType: 'HIERARCHY_OBJECT',
+      exportFormat: 'xlsx',
+      sheets: ['飞机', '分系统', '设备', '组件', '零件', '零件信息']
+    },
+    fileName: '层级对象导入.xlsx'
+  },
+  partProcess: {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8',
+      Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    },
+    body: {
+      taskType: 'partProcess',
+      dataType: 'PART_STANDARD_PROCESS',
+      exportFormat: 'xlsx',
+      sheets: ['零件模板', '工序路线', '详细工序']
+    },
+    fileName: '零件标准制作过程导入.xlsx'
+  }
+}
 const numObjDlg = reactive({
   visible: false,
   loading: false,
@@ -1216,6 +1423,43 @@ const dataFileDialog = reactive({
   selectedTaskRows: [],
   currentTask: null
 })
+const DEFAULT_PROJECT3_DOSSIER_EXPORT_FORM = {
+  endpoint: '/project1/dossier/openapi/writeback/fault-diagnosis',
+  token: '',
+  instanceId: '03a5b222-75b6-4186-b63c-14e394048ab3',
+  bomNodeId: 'f1000006-0006-4006-8006-000000000006',
+  sourceComponent: 'project3',
+  taskName: '课题三故障诊断结果写回',
+  resultTitle: '主起液压供压弯管故障诊断结果',
+  aircraft: 'C919 B-1234',
+  systemPath: '液压系统 / 起落架液压子系统 / 主起液压供压设备 / 液压供压管路组件 / 主起液压供压弯管',
+  partNumber: 'HYD-TUBE-MLG-32A'
+}
+const algorithmDataExportDialog = reactive({
+  visible: false,
+  loading: false,
+  exporting: false,
+  treeData: [],
+  selectedNode: null,
+  selectedRecords: [],
+  form: { ...DEFAULT_PROJECT3_DOSSIER_EXPORT_FORM },
+  previewVisible: false,
+  previewEndpoint: '',
+  previewPayload: null,
+  previewJson: '',
+  error: ''
+})
+const algorithmExportStats = computed(() => {
+  const types = algorithmDataExportDialog.treeData
+  const tasks = types.flatMap(item => item.children || [])
+  const recordCount = tasks.reduce((sum, item) => sum + ((item.children || []).length), 0)
+  return {
+    typeCount: types.length,
+    taskCount: tasks.length,
+    recordCount
+  }
+})
+const algorithmExportSelectedCount = computed(() => algorithmDataExportDialog.selectedRecords.length)
 const dataFileTableRef = ref(null)
 const dataTaskTableRef = ref(null)
 const dataFileSelectedCount = computed(() => dataFileDialog.currentTask ? dataFileDialog.selectedRows.length : dataFileDialog.selectedTaskRows.length)
@@ -1264,6 +1508,10 @@ const kqcDialog = reactive({
 })
 const kqcHistory = reactive({
   loading: false,
+  allRows: [],
+  taskRows: [],
+  visibleTaskRows: [],
+  currentTask: null,
   rows: [],
   total: 0,
   query: {
@@ -1621,6 +1869,7 @@ const textObjReqLevelText = computed(() => curTextTask.value.objectLevelText)
 const isTextPartQuality = computed(() => textObjDlg.form.taskType === 'partQuality')
 const isTextHierarchy = computed(() => textObjDlg.form.taskType === 'hierarchy')
 const isTextActualProcess = computed(() => textObjDlg.form.taskType === 'PART_ACTUAL_MANUFACTURING_PROCESS')
+const isTextFixedApiTask = computed(() => ['hierarchy', 'partProcess'].includes(textObjDlg.form.taskType) && textObjDlg.form.importMode === 'api')
 const textTaskRequiresObject = computed(() => !['partProcess', 'partQuality', 'hierarchy', 'PART_ACTUAL_MANUFACTURING_PROCESS'].includes(textObjDlg.form.taskType))
 const hasTextImportTemplate = computed(() => ['partProcess', 'partQuality', 'hierarchy', 'PART_ACTUAL_MANUFACTURING_PROCESS'].includes(textObjDlg.form.taskType))
 const textConfirmText = computed(() => '导入数据')
@@ -3418,17 +3667,127 @@ async function lookupKqcTaskResult() {
 async function loadKqcHistory() {
   kqcHistory.loading = true
   try {
-    const json = await listKqcMiningResults(kqcHistory.query)
-    const data = getKqcPayload(json)
-    kqcHistory.rows = Array.isArray(data.rows) ? data.rows : []
-    kqcHistory.total = Number(data.total || 0)
+    const rows = await loadAllKqcHistoryRows(kqcHistory.query)
+    kqcHistory.allRows = rows
+    kqcHistory.taskRows = buildKqcHistoryTasks(rows)
+    if (kqcHistory.currentTask && !kqcHistory.taskRows.some(item => item.taskKey === kqcHistory.currentTask.taskKey)) {
+      kqcHistory.currentTask = null
+    }
+    updateKqcHistoryViewRows()
   } finally {
     kqcHistory.loading = false
   }
 }
 
+async function loadAllKqcHistoryRows(query) {
+  const pageSize = 200
+  const rows = []
+  let pageNum = 1
+  let pageCount = 1
+  do {
+    const json = await listKqcMiningResults({
+      ...query,
+      page_num: pageNum,
+      page_size: pageSize
+    })
+    const data = getKqcPayload(json)
+    const pageRows = Array.isArray(data.rows) ? data.rows : []
+    rows.push(...pageRows)
+    const total = Number(data.total || rows.length || 0)
+    pageCount = Math.max(1, Math.ceil(total / pageSize))
+    pageNum += 1
+  } while (pageNum <= pageCount)
+  return sortKqcHistoryRows(rows)
+}
+
+function kqcHistoryTaskName(row) {
+  const name = row?.importTaskName ||
+    row?.import_task_name ||
+    row?.taskName ||
+    row?.task_name ||
+    row?.dataTaskName ||
+    row?.data_task_name ||
+    row?.sourceTaskName ||
+    row?.source_task_name ||
+    row?.uploadBatchId ||
+    row?.upload_batch_id
+  const text = String(name || '').trim()
+  const genericNames = new Set(['KQC_MINING', '关键质量特性挖掘', '关键质量特征挖掘'])
+  return text && !genericNames.has(text) ? text : '未命名任务'
+}
+
+function kqcHistoryTaskKey(row) {
+  return kqcHistoryTaskName(row)
+}
+
+function sortKqcHistoryRows(rows) {
+  return [...(Array.isArray(rows) ? rows : [])].sort((a, b) => {
+    const right = b?.createTime || b?.create_time || ''
+    const left = a?.createTime || a?.create_time || ''
+    return String(right).localeCompare(String(left))
+  })
+}
+
+function buildKqcHistoryTasks(rows) {
+  const taskMap = new Map()
+  ;(Array.isArray(rows) ? rows : []).forEach(row => {
+    const taskKey = kqcHistoryTaskKey(row)
+    if (!taskMap.has(taskKey)) {
+      taskMap.set(taskKey, {
+        taskKey,
+        taskName: kqcHistoryTaskName(row),
+        recordCount: 0,
+        latestCreateTime: row.createTime || row.create_time || '',
+        latestTargetName: row.targetName || row.target_name || '',
+        latestStatus: row.status || ''
+      })
+    }
+    const task = taskMap.get(taskKey)
+    task.recordCount += 1
+    const createTime = row.createTime || row.create_time || ''
+    if (!task.latestCreateTime || (createTime && String(createTime) > String(task.latestCreateTime))) {
+      task.latestCreateTime = createTime
+      task.latestTargetName = row.targetName || row.target_name || task.latestTargetName
+      task.latestStatus = row.status || task.latestStatus
+    }
+  })
+  return Array.from(taskMap.values()).sort((a, b) => String(b.latestCreateTime || '').localeCompare(String(a.latestCreateTime || '')))
+}
+
+function currentKqcHistoryTaskRows() {
+  if (!kqcHistory.currentTask) return []
+  return kqcHistory.allRows.filter(row => kqcHistoryTaskKey(row) === kqcHistory.currentTask.taskKey)
+}
+
+function updateKqcHistoryViewRows() {
+  const sourceRows = kqcHistory.currentTask ? currentKqcHistoryTaskRows() : kqcHistory.taskRows
+  kqcHistory.total = sourceRows.length
+  const start = (kqcHistory.query.page_num - 1) * kqcHistory.query.page_size
+  if (kqcHistory.currentTask) {
+    kqcHistory.rows = sourceRows.slice(start, start + kqcHistory.query.page_size)
+    kqcHistory.visibleTaskRows = []
+  } else {
+    kqcHistory.rows = []
+    kqcHistory.visibleTaskRows = sourceRows.slice(start, start + kqcHistory.query.page_size)
+  }
+}
+
+function openKqcHistoryTask(row) {
+  if (!row) return
+  kqcHistory.currentTask = row
+  kqcHistory.query.page_num = 1
+  updateKqcHistoryViewRows()
+}
+
+function backToKqcHistoryTasks() {
+  kqcHistory.currentTask = null
+  kqcHistory.query.page_num = 1
+  updateKqcHistoryViewRows()
+}
+
 function searchKqcHistory() {
   kqcHistory.query.page_num = 1
+  kqcHistory.currentTask = null
   loadKqcHistory()
 }
 
@@ -3436,6 +3795,7 @@ function resetKqcHistory() {
   kqcHistory.query.keyword = ''
   kqcHistory.query.status = ''
   kqcHistory.query.page_num = 1
+  kqcHistory.currentTask = null
   loadKqcHistory()
 }
 
@@ -4017,6 +4377,23 @@ function selectTextTask(value) {
   textObjDlg.form.taskType = value
   textObjDlg.form.componentId = ''
   textObjDlg.form.partId = ''
+  applyTextFixedApiConfig()
+}
+
+function onTextImportModeChange() {
+  applyTextFixedApiConfig()
+}
+
+function applyTextFixedApiConfig() {
+  if (textObjDlg.form.importMode !== 'api') return
+  const config = TEXT_FIXED_API_CONFIG[textObjDlg.form.taskType]
+  if (!config) return
+  textObjDlg.form.apiMethod = config.method
+  textObjDlg.form.apiHeaders = JSON.stringify(config.headers, null, 2)
+  textObjDlg.form.apiBody = JSON.stringify(config.body, null, 2)
+  if (!textObjDlg.form.apiFileName) {
+    textObjDlg.form.apiFileName = config.fileName
+  }
 }
 
 function onNumPurposeChange() {
@@ -4033,6 +4410,10 @@ function hasNumObjSel() {
     return !!(form.aircraftId || form.subsystemId || form.equipmentId || form.componentId || form.partId)
   }
   return !!(form.subsystemId || form.equipmentId || form.componentId)
+}
+
+function numPurposeRequiresTaskName() {
+  return ['faultIdentify', 'processAnomaly'].includes(numObjDlg.form.purpose)
 }
 
 function wait(ms) {
@@ -4088,7 +4469,7 @@ async function conNumObj() {
     ElMessage.warning(numObjReqText.value)
     return
   }
-  if (numObjDlg.form.purpose === 'faultIdentify') {
+  if (numPurposeRequiresTaskName()) {
     try {
       const result = await ElMessageBox.prompt('请填写此次任务名字', '填写此次任务名字', {
         confirmButtonText: '确定',
@@ -4107,19 +4488,21 @@ async function conNumObj() {
       return
     }
     numUploadBatchId = createNumUploadBatchId()
-    try {
-      await validateNumericTaskName({
-        aircraftId: numObjDlg.form.aircraftId || '',
-        subsystemId: numObjDlg.form.subsystemId || '',
-        equipmentId: numObjDlg.form.equipmentId || '',
-        componentId: numObjDlg.form.componentId || '',
-        taskName: numTaskName,
-        uploadBatchId: numUploadBatchId
-      })
-    } catch (error) {
-      const message = error?.response?.data?.msg || error?.message || '任务名称校验失败'
-      ElMessage.error(message)
-      return
+    if (numObjDlg.form.purpose === 'faultIdentify') {
+      try {
+        await validateNumericTaskName({
+          aircraftId: numObjDlg.form.aircraftId || '',
+          subsystemId: numObjDlg.form.subsystemId || '',
+          equipmentId: numObjDlg.form.equipmentId || '',
+          componentId: numObjDlg.form.componentId || '',
+          taskName: numTaskName,
+          uploadBatchId: numUploadBatchId
+        })
+      } catch (error) {
+        const message = error?.response?.data?.msg || error?.message || '任务名称校验失败'
+        ElMessage.error(message)
+        return
+      }
     }
   } else {
     numTaskName = ''
@@ -4317,6 +4700,16 @@ function createNumUploadBatchId() {
   return `NUM_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 }
 
+function createNumUploadHash(row, uploadId) {
+  const base = [
+    uploadId,
+    row?.name || '',
+    row?.size || 0,
+    row?.file?.lastModified || 0
+  ].join('_')
+  return base.replace(/[^0-9a-zA-Z_-]/g, '_').slice(0, 128) || uploadId
+}
+
 function numUploadForm(row) {
   const payload = new FormData()
   payload.append('purpose', numObjDlg.form.purpose)
@@ -4400,6 +4793,7 @@ async function uploadNumRow(row) {
 
 async function uploadNumRowChunks(row) {
   const uploadId = `${numUploadBatchId}_${row.index}_${Date.now()}`
+  const fileHash = createNumUploadHash(row, uploadId)
   const chunkCount = Math.ceil(row.size / NUM_CHUNK_SIZE)
   row.status = NUM_UPLOAD_CHUNK_UPLOADING
   for (let i = 0; i < chunkCount; i++) {
@@ -4410,6 +4804,7 @@ async function uploadNumRowChunks(row) {
     payload.append('chunkIndex', String(i))
     payload.append('chunkCount', String(chunkCount))
     payload.append('fileName', row.name)
+    payload.append('fileHash', fileHash)
     payload.append('chunk', row.file.slice(start, end))
     await uploadNumericChunk(payload)
     row.progress = Math.min(95, Math.round(((i + 1) / chunkCount) * 95))
@@ -4554,6 +4949,7 @@ function parseTextApiHeaders() {
 }
 
 async function submitTextApiData() {
+  applyTextFixedApiConfig()
   const apiUrl = (textObjDlg.form.apiUrl || '').trim()
   if (!apiUrl) {
     ElMessage.warning('请输入API地址')
@@ -4719,6 +5115,629 @@ async function openDataFileDialog() {
   dataFileQuery.pageNum = 1
   clearSelectedDataFiles()
   await loadDataFiles()
+}
+
+async function openAlgorithmDataExportDialog() {
+  algorithmDataExportDialog.visible = true
+  algorithmDataExportDialog.selectedNode = null
+  algorithmDataExportDialog.selectedRecords = []
+  clearAlgorithmExportPreview()
+  await loadAlgorithmDataExportTree()
+}
+
+function selectAlgorithmExportNode(node) {
+  algorithmDataExportDialog.selectedNode = node
+}
+
+function isAlgorithmExportRecordSelected(record) {
+  return !!record?.id && algorithmDataExportDialog.selectedRecords.some(item => item.id === record.id)
+}
+
+function setAlgorithmExportRecordSelected(record, checked) {
+  if (!record || record.level !== 'record') return
+  clearAlgorithmExportPreview()
+  if (checked) {
+    if (!isAlgorithmExportRecordSelected(record)) {
+      algorithmDataExportDialog.selectedRecords.push(record)
+    }
+  } else {
+    removeAlgorithmExportSelectedRecord(record)
+  }
+}
+
+function removeAlgorithmExportSelectedRecord(record) {
+  if (!record?.id) return
+  algorithmDataExportDialog.selectedRecords = algorithmDataExportDialog.selectedRecords.filter(item => item.id !== record.id)
+  clearAlgorithmExportPreview()
+}
+
+function clearAlgorithmExportSelectedRecords() {
+  algorithmDataExportDialog.selectedRecords = []
+  clearAlgorithmExportPreview()
+}
+
+function clearAlgorithmExportPreview() {
+  algorithmDataExportDialog.previewVisible = false
+  algorithmDataExportDialog.previewEndpoint = ''
+  algorithmDataExportDialog.previewPayload = null
+  algorithmDataExportDialog.previewJson = ''
+}
+
+function validateAlgorithmExportForm() {
+  const form = algorithmDataExportDialog.form
+  const endpoint = String(form.endpoint || '').trim()
+  if (!endpoint) {
+    ElMessage.warning('请填写接口地址')
+    return ''
+  }
+  if (!form.instanceId || !String(form.instanceId).trim()) {
+    ElMessage.warning('请填写卷宗ID')
+    return ''
+  }
+  if (!form.bomNodeId || !String(form.bomNodeId).trim()) {
+    ElMessage.warning('请填写目标节点ID')
+    return ''
+  }
+  if (!algorithmDataExportDialog.selectedRecords.length) {
+    ElMessage.warning('请先选择要导出的历史记录')
+    return ''
+  }
+  return endpoint
+}
+
+function previewAlgorithmDataExportJson() {
+  const endpoint = validateAlgorithmExportForm()
+  if (!endpoint) return
+  const payload = buildProject3DossierWritebackPayload()
+  algorithmDataExportDialog.previewEndpoint = endpoint
+  algorithmDataExportDialog.previewPayload = payload
+  algorithmDataExportDialog.previewJson = JSON.stringify(payload, null, 2)
+  algorithmDataExportDialog.previewVisible = true
+}
+
+async function confirmAlgorithmDataExport() {
+  const form = algorithmDataExportDialog.form
+  const endpoint = algorithmDataExportDialog.previewEndpoint || validateAlgorithmExportForm()
+  if (!endpoint) return
+  const payload = algorithmDataExportDialog.previewPayload || buildProject3DossierWritebackPayload()
+
+  algorithmDataExportDialog.exporting = true
+  try {
+    const headers = {
+      'Content-Type': 'application/json;charset=UTF-8'
+    }
+    const token = String(form.token || '').trim()
+    if (token) headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    })
+    const text = await response.text()
+    let data = null
+    if (text) {
+      try {
+        data = JSON.parse(text)
+      } catch {
+        data = text
+      }
+    }
+    if (!response.ok) {
+      const message = data?.msg || data?.message || text || `接口返回 ${response.status}`
+      throw new Error(message)
+    }
+    ElMessage.success(`导出成功：已写回 ${algorithmDataExportDialog.selectedRecords.length} 条历史记录`)
+    algorithmDataExportDialog.previewVisible = false
+  } catch (error) {
+    ElMessage.error(error?.message || '导出失败')
+  } finally {
+    algorithmDataExportDialog.exporting = false
+  }
+}
+
+function buildProject3DossierWritebackPayload() {
+  const form = algorithmDataExportDialog.form
+  const selectedRecords = algorithmDataExportDialog.selectedRecords
+  const typeNames = Array.from(new Set(selectedRecords.map(record => record.sectionLabel).filter(Boolean)))
+  const recordPayloads = selectedRecords.map((record, index) => normalizeAlgorithmExportRecordForWriteback(record, index))
+  const resultSummary = buildProject3WritebackSummary(typeNames, selectedRecords.length)
+  return {
+    instanceId: String(form.instanceId || '').trim(),
+    bomNodeId: String(form.bomNodeId || '').trim(),
+    sourceComponent: 'project3',
+    taskName: String(form.taskName || '').trim() || '课题三故障诊断结果写回',
+    resultTitle: String(form.resultTitle || '').trim() || '主起液压供压弯管故障诊断结果',
+    resultSummary,
+    aircraft: form.aircraft,
+    systemPath: form.systemPath,
+    partNumber: form.partNumber,
+    selectedRecordCount: selectedRecords.length,
+    selectedRecords: recordPayloads
+  }
+}
+
+function buildProject3WritebackSummary(typeNames, count) {
+  const typeText = typeNames.length ? typeNames.join('、') : '课题三算法'
+  return `已选择 ${count} 条${typeText}历史记录，写回主起液压供压弯管的课题三故障诊断结果。`
+}
+
+function normalizeAlgorithmExportRecordForWriteback(record, index) {
+  const raw = record?.raw || {}
+  const source = cleanAlgorithmExportResult(raw?.result && typeof raw.result === 'object' ? raw.result : raw)
+  return dropEmptyAlgorithmExportFields({
+    index: index + 1,
+    resultType: record?.sectionLabel || '',
+    taskName: record?.taskName || '',
+    taskId: record?.taskId || raw?.taskId || raw?.task_id || raw?.id || '',
+    status: record?.status || raw?.status || '',
+    createTime: record?.createTime || raw?.createTime || raw?.create_time || '',
+    title: record?.label || '',
+    summary: record?.subLabel || '',
+    targetName: raw?.targetName || raw?.target_name || raw?.objectName || raw?.object_name || '',
+    result: extractFinalAlgorithmBusinessResult(record, source)
+  })
+}
+
+const ALGORITHM_EXPORT_OMIT_KEYS = new Set([
+  'rawResponse',
+  'payload',
+  'logs',
+  'outputDir',
+  'outputFiles',
+  'adjPath',
+  'freqPath',
+  'featurePath',
+  'combinedDataPath',
+  'detectionPath',
+  'preventionPath',
+  'graphData',
+  'responseGraphData',
+  'predictionSeries',
+  'rmsTrendPrediction',
+  'vibrationSignalPrediction',
+  'time',
+  'rms',
+  'std',
+  'kurtosis',
+  'predictedValues',
+  'predictionTime',
+  'amplitude',
+  'values',
+  'results',
+  'task_id',
+  'dataFile',
+  'dataFileUrl',
+  'selectedSampleIds',
+  'selected_sample_ids',
+  'importTaskName',
+  'import_task_name',
+  'sourceTaskId',
+  'datasetId',
+  'featureSetId',
+  'detectionId',
+  'preventionId'
+])
+
+function cleanAlgorithmExportResult(value) {
+  const cleaned = sanitizeAlgorithmExportValue(value, [])
+  if (cleaned && typeof cleaned === 'object' && !Array.isArray(cleaned)) {
+    return cleaned
+  }
+  return {}
+}
+
+function sanitizeAlgorithmExportValue(value, path) {
+  if (Array.isArray(value)) {
+    return value
+      .map(item => sanitizeAlgorithmExportValue(item, path))
+      .filter(item => item !== undefined)
+  }
+  if (!value || typeof value !== 'object') return value
+
+  const entries = Object.entries(value)
+  const keys = entries.map(([key]) => key)
+  if (path[path.length - 1] === 'result' && keys.length === 1 && keys[0] === 'result' && value.result && typeof value.result === 'object') {
+    return sanitizeAlgorithmExportValue(value.result, path)
+  }
+
+  const result = {}
+  entries.forEach(([key, val]) => {
+    if (ALGORITHM_EXPORT_OMIT_KEYS.has(key)) return
+    if (path[path.length - 1] === 'result' && key === 'result') return
+    if (path[path.length - 1] === 'data' && key === 'result') return
+    const cleaned = sanitizeAlgorithmExportValue(val, [...path, key])
+    if (cleaned !== undefined) result[key] = cleaned
+  })
+  return result
+}
+
+function extractFinalAlgorithmBusinessResult(record, source) {
+  const type = record?.sectionKey
+  const rawType = identifyExportTaskType(record?.raw || {})
+  const result = {}
+  if (type === 'kqc') {
+    setPicked(result, source, 'taskType', ['taskType', 'task_type', 'type'])
+    setPicked(result, source, 'targetKqc', ['targetKqc', 'target_kqc', 'topFeature', 'top_feature', 'featureName', 'feature_name'])
+    setPicked(result, source, 'selectedFeatureCount', ['selectedFeatureCount', 'selected_feature_count', 'kqcCount', 'kqc_count'])
+    setPicked(result, source, 'influenceCount', ['influenceCount', 'influence_count'])
+    setPicked(result, source, 'topInfluences', ['topInfluences', 'top_influences'], normalizeTopInfluences)
+    setPicked(result, source, 'cvScore', ['cvScore', 'cv_score', 'score'])
+  } else if (type === 'processAnomaly') {
+    setPicked(result, source, 'taskType', ['taskType', 'task_type', 'type'])
+    setPicked(result, source, 'isAbnormal', ['isAbnormal', 'is_abnormal', 'abnormal'])
+    setPicked(result, source, 'abnormalLevel', ['abnormalLevel', 'abnormal_level', 'level'])
+    setPicked(result, source, 'abnormalScore', ['abnormalScore', 'abnormal_score', 'score'])
+    setPicked(result, source, 'abnormalTime', ['abnormalTime', 'abnormal_time', 'timePoint', 'time_point'])
+    setPicked(result, source, 'summary', ['summary', 'message'])
+  } else if (type === 'keyProcess') {
+    setPicked(result, source, 'taskType', ['taskType', 'task_type', 'type'])
+    setPicked(result, source, 'keyProcessCode', ['keyProcessCode', 'key_process_code', 'processCode', 'process_code', 'code'])
+    setPicked(result, source, 'keyProcessName', ['keyProcessName', 'key_process_name', 'processName', 'process_name', 'name'])
+    setPicked(result, source, 'confidence', ['confidence'])
+    setPicked(result, source, 'score', ['score'])
+    setPicked(result, source, 'reason', ['reason'])
+    setPicked(result, source, 'suggestion', ['suggestion'])
+    setPicked(result, source, 'candidateProcesses', ['candidateProcesses', 'candidate_processes'], normalizeCandidateProcesses)
+  } else if (type === 'identify' || rawType === 'FAULT_PREDICT' || rawType === 'DEGRADATION_DETECT' || rawType === 'EARLY_DEGRADATION_POINT_DETECT') {
+    setPicked(result, source, 'taskType', ['taskType', 'task_type', 'type'])
+    setPicked(result, source, 'riskLevel', ['riskLevel', 'risk_level', 'risk'])
+    setPicked(result, source, 'riskLevelCode', ['riskLevelCode', 'risk_level_code'])
+    setPicked(result, source, 'riskScore', ['riskScore', 'risk_score', 'score'])
+    setPicked(result, source, 'predictedRemainingLife', ['predictedRemainingLife', 'predicted_remaining_life'])
+    setPicked(result, source, 'remainingLife', ['remainingLife', 'remaining_life', 'life'])
+    setPicked(result, source, 'rulUnit', ['rulUnit', 'rul_unit', 'unit'])
+    setPicked(result, source, 'featureName', ['featureName', 'feature_name'])
+    setPicked(result, source, 'earlyDegradationTime', ['earlyDegradationTime', 'early_degradation_time'])
+    setPicked(result, source, 'degradationTime', ['degradationTime', 'degradation_time', 'time'])
+    setPicked(result, source, 'totalTime', ['totalTime', 'total_time'])
+    setPicked(result, source, 'increaseRate', ['increaseRate', 'increase_rate'])
+    setPicked(result, source, 'maintenanceAdvice', ['maintenanceAdvice', 'maintenance_advice', 'advice', 'suggestion'])
+  }
+  setPicked(result, source, 'conclusion', ['conclusion'])
+  setPicked(result, source, 'suggestion', ['suggestion'])
+  return dropEmptyAlgorithmExportFields(result)
+}
+
+function setPicked(target, source, targetKey, sourceKeys, normalize) {
+  const value = pickDeepAlgorithmExportValue(source, sourceKeys)
+  if (value === undefined || value === null || value === '') return
+  const nextValue = normalize ? normalize(value) : value
+  if (nextValue === undefined || nextValue === null || nextValue === '') return
+  if (Array.isArray(nextValue) && !nextValue.length) return
+  target[targetKey] = normalizeAlgorithmExportNumber(nextValue)
+}
+
+function pickDeepAlgorithmExportValue(source, keys) {
+  if (!source || typeof source !== 'object') return undefined
+  for (const key of keys) {
+    const direct = source[key]
+    if (direct !== undefined && direct !== null && direct !== '') return direct
+  }
+  const containers = [source.result, source.data, source.summary, source.metrics, source.prediction, source.degradation]
+  for (const item of containers) {
+    if (!item || typeof item !== 'object') continue
+    const value = pickDeepAlgorithmExportValue(item, keys)
+    if (value !== undefined && value !== null && value !== '') return value
+  }
+  return undefined
+}
+
+function normalizeTopInfluences(value) {
+  if (!Array.isArray(value)) return undefined
+  return value.slice(0, 20).map(item => dropEmptyAlgorithmExportFields({
+    feature: item?.feature || item?.name || item?.featureName || item?.feature_name,
+    weight: normalizeAlgorithmExportNumber(item?.weight),
+    frequency: normalizeAlgorithmExportNumber(item?.frequency),
+    score: normalizeAlgorithmExportNumber(item?.score)
+  })).filter(item => Object.keys(item).length)
+}
+
+function normalizeCandidateProcesses(value) {
+  if (!Array.isArray(value)) return undefined
+  return value.map(item => dropEmptyAlgorithmExportFields({
+    rank: item?.rank,
+    processCode: item?.processCode || item?.process_code || item?.code,
+    processName: item?.processName || item?.process_name || item?.name,
+    score: normalizeAlgorithmExportNumber(item?.score)
+  })).filter(item => Object.keys(item).length)
+}
+
+function normalizeAlgorithmExportNumber(value) {
+  if (Array.isArray(value)) return value.map(normalizeAlgorithmExportNumber)
+  if (value && typeof value === 'object') return value
+  if (typeof value !== 'number' || !Number.isFinite(value)) return value
+  return Number(value.toFixed(6))
+}
+
+function dropEmptyAlgorithmExportFields(value) {
+  if (Array.isArray(value)) {
+    return value.map(dropEmptyAlgorithmExportFields).filter(item => {
+      if (item === null || item === undefined || item === '') return false
+      if (Array.isArray(item) && !item.length) return false
+      if (item && typeof item === 'object' && !Object.keys(item).length) return false
+      return true
+    })
+  }
+  if (!value || typeof value !== 'object') return value
+  const result = {}
+  Object.entries(value).forEach(([key, val]) => {
+    const cleaned = dropEmptyAlgorithmExportFields(val)
+    if (cleaned === null || cleaned === undefined || cleaned === '') return
+    if (Array.isArray(cleaned) && !cleaned.length) return
+    if (cleaned && typeof cleaned === 'object' && !Array.isArray(cleaned) && !Object.keys(cleaned).length) return
+    result[key] = cleaned
+  })
+  return result
+}
+
+async function loadAlgorithmDataExportTree() {
+  algorithmDataExportDialog.loading = true
+  algorithmDataExportDialog.error = ''
+  const sections = [
+    {
+      key: 'kqc',
+      label: '关键质量特性挖掘',
+      loader: () => loadAllKqcHistoryRows({ keyword: '', status: '', page_num: 1, page_size: 200 }),
+      taskName: kqcHistoryTaskName,
+      taskKey: kqcHistoryTaskKey
+    },
+    {
+      key: 'processAnomaly',
+      label: '工序异常检测',
+      loader: () => loadAlgorithmExportRows(listWarningDetectResults),
+      taskName: algorithmHistoryTaskName,
+      taskKey: algorithmHistoryTaskKey
+    },
+    {
+      key: 'keyProcess',
+      label: '关键工序识别',
+      loader: () => loadAlgorithmExportRows(listKeyProcessResults),
+      taskName: algorithmHistoryTaskName,
+      taskKey: algorithmHistoryTaskKey
+    },
+    {
+      key: 'identify',
+      label: '历史识别记录查询',
+      loader: loadIdentifyExportRows,
+      taskName: identifyHistoryTaskName,
+      taskKey: identifyHistoryTaskKey
+    }
+  ]
+
+  const results = await Promise.allSettled(sections.map(section => section.loader()))
+  const failed = []
+  algorithmDataExportDialog.treeData = sections.map((section, index) => {
+    if (results[index].status !== 'fulfilled') {
+      failed.push(section.label)
+      return buildAlgorithmExportSection(section, [])
+    }
+    return buildAlgorithmExportSection(section, results[index].value)
+  })
+  if (failed.length) {
+    algorithmDataExportDialog.error = `${failed.join('、')}加载失败，请稍后刷新重试`
+  }
+  const validRecordIds = new Set(collectAlgorithmExportRecordNodes(algorithmDataExportDialog.treeData).map(item => item.id))
+  algorithmDataExportDialog.selectedRecords = algorithmDataExportDialog.selectedRecords.filter(item => validRecordIds.has(item.id))
+  algorithmDataExportDialog.loading = false
+}
+
+function collectAlgorithmExportRecordNodes(nodes) {
+  const records = []
+  ;(Array.isArray(nodes) ? nodes : []).forEach(node => {
+    if (node?.level === 'record') records.push(node)
+    if (Array.isArray(node?.children) && node.children.length) {
+      records.push(...collectAlgorithmExportRecordNodes(node.children))
+    }
+  })
+  return records
+}
+
+function buildAlgorithmExportSection(section, rows) {
+  const sortedRows = sortAlgorithmExportRows(rows)
+  const taskMap = new Map()
+  sortedRows.forEach((row, index) => {
+    const taskKey = section.taskKey(row) || '未命名任务'
+    if (!taskMap.has(taskKey)) {
+      taskMap.set(taskKey, {
+        id: `algorithm-export:${section.key}:task:${safeNodeId(taskKey)}`,
+        level: 'task',
+        label: section.taskName(row) || '未命名任务',
+        subLabel: '',
+        recordCount: 0,
+        latestCreateTime: '',
+        children: []
+      })
+    }
+    const task = taskMap.get(taskKey)
+    task.recordCount += 1
+    const createTime = row.createTime || row.create_time || ''
+    if (!task.latestCreateTime || (createTime && String(createTime) > String(task.latestCreateTime))) {
+      task.latestCreateTime = createTime
+      task.subLabel = createTime ? `最近：${createTime}` : ''
+    }
+    task.children.push(buildAlgorithmExportRecordNode(section, task, row, index))
+  })
+  const children = Array.from(taskMap.values()).sort((a, b) => String(b.latestCreateTime || '').localeCompare(String(a.latestCreateTime || '')))
+  return {
+    id: `algorithm-export:${section.key}`,
+    level: 'type',
+    label: section.label,
+    subLabel: children.length ? `共 ${children.length} 个任务` : '暂无任务',
+    recordCount: sortedRows.length,
+    children
+  }
+}
+
+function buildAlgorithmExportRecordNode(section, task, row, index) {
+  const taskId = row?.taskId || row?.task_id || row?.id || `${section.key}_${index}`
+  const createTime = row?.createTime || row?.create_time || ''
+  const status = row?.status || ''
+  return {
+    id: `algorithm-export:${section.key}:record:${safeNodeId(taskId)}:${index}`,
+    level: 'record',
+    label: algorithmExportRecordLabel(row, index, section),
+    subLabel: [taskId ? `任务ID：${taskId}` : '', createTime ? `创建时间：${createTime}` : ''].filter(Boolean).join('；'),
+    sectionKey: section.key,
+    sectionLabel: section.label,
+    taskName: task?.label || '',
+    taskId,
+    createTime,
+    status,
+    raw: row,
+    children: []
+  }
+}
+
+function algorithmExportRecordLabel(row, index, section = {}) {
+  const taskId = row?.taskId || row?.task_id || row?.id
+  const targetName = row?.targetName || row?.target_name || row?.objectName || row?.object_name || row?.importTaskName || row?.import_task_name || ''
+  const baseLabel = targetName ? `${targetName}（${taskId || index + 1}）` : `历史记录 ${index + 1}${taskId ? `（${taskId}）` : ''}`
+  const typeLabel = section.key === 'identify' ? identifyExportRecordTypeLabel(row) : ''
+  return typeLabel ? `${typeLabel}：${baseLabel}` : baseLabel
+}
+
+async function loadAlgorithmExportRows(api, query = {}, pageSize = 200) {
+  const rows = []
+  let pageNum = 1
+  let pageCount = 1
+  do {
+    const res = await api({
+      ...query,
+      page_num: pageNum,
+      page_size: pageSize
+    })
+    const data = getAlgorithmResponseData(res)
+    const pageRows = Array.isArray(data?.rows) ? data.rows : []
+    rows.push(...pageRows)
+    const total = Number(data?.total || rows.length || 0)
+    pageCount = Math.max(1, Math.ceil(total / pageSize))
+    pageNum += 1
+  } while (pageNum <= pageCount)
+  return rows
+}
+
+async function loadIdentifyExportRows() {
+  const taskTypes = ['FAULT_PREDICT', 'DEGRADATION_DETECT', 'EARLY_DEGRADATION_POINT_DETECT']
+  const rows = await Promise.all(taskTypes.map(taskType => loadAlgorithmExportRows(listFaultIdentifyResults, { task_type: taskType }, 500)))
+  return rows.flat().filter(row => ['FAULT_PREDICT', 'DEGRADATION_DETECT', 'EARLY_DEGRADATION_POINT_DETECT'].includes(identifyExportTaskType(row)))
+}
+
+function identifyExportTaskType(row) {
+  return row?.taskType || row?.task_type || ''
+}
+
+function identifyExportRecordTypeLabel(row) {
+  const taskType = identifyExportTaskType(row)
+  if (taskType === 'FAULT_PREDICT') return '故障预测'
+  if (taskType === 'DEGRADATION_DETECT' || taskType === 'EARLY_DEGRADATION_POINT_DETECT') return '早期识别点'
+  return ''
+}
+
+function getAlgorithmResponseData(response) {
+  const payload = response?.data || response?.payload || response || {}
+  return payload?.data && typeof payload.data === 'object' ? payload.data : payload
+}
+
+function normalizeAlgorithmHistoryTaskName(value) {
+  const text = String(value || '').trim()
+  if (!text) return ''
+  const genericNames = new Set([
+    'PROCESS_ANOMALY',
+    'PROCESS_ANOMALY_DETECT',
+    'KEY_PROCESS',
+    'KEY_PROCESS_IDENTIFY',
+    'SINGLE_PROCESS_ANOMALY',
+    'FEATURE_ANALYSIS',
+    'FEATURE_PROCESSING',
+    'DEGRADATION_DETECT',
+    'EARLY_DEGRADATION_POINT_DETECT',
+    'FAULT_PREDICT',
+    '工序异常检测',
+    '异常检测',
+    '关键工序识别',
+    '数据分析',
+    '特征处理',
+    '早期识别点',
+    '早期故障识别',
+    '故障预防'
+  ])
+  return genericNames.has(text) ? '' : text
+}
+
+function firstAlgorithmHistoryTaskName(row) {
+  const candidates = [
+    row?.importTaskName,
+    row?.import_task_name,
+    row?.taskName,
+    row?.task_name,
+    row?.dataTaskName,
+    row?.data_task_name,
+    row?.sourceTaskName,
+    row?.source_task_name,
+    row?.result?.importTaskName,
+    row?.result?.import_task_name,
+    row?.result?.taskName,
+    row?.result?.task_name,
+    row?.params?.importTaskName,
+    row?.params?.import_task_name,
+    row?.algorithmParams?.importTaskName,
+    row?.algorithm_params?.import_task_name,
+    row?.uploadBatchId,
+    row?.upload_batch_id
+  ]
+  for (const value of candidates) {
+    const name = normalizeAlgorithmHistoryTaskName(value)
+    if (name) return name
+  }
+  return ''
+}
+
+function algorithmHistoryTaskName(row) {
+  return firstAlgorithmHistoryTaskName(row) || '未命名任务'
+}
+
+function algorithmHistoryTaskKey(row) {
+  return algorithmHistoryTaskName(row)
+}
+
+function identifyHistoryTaskName(row) {
+  return normalizeAlgorithmHistoryTaskName(row?.importTaskName || row?.import_task_name || row?.taskName || row?.task_name) || '未命名任务'
+}
+
+function identifyHistoryTaskKey(row) {
+  return identifyHistoryTaskName(row)
+}
+
+function sortAlgorithmExportRows(rows) {
+  return [...(Array.isArray(rows) ? rows : [])].sort((a, b) => {
+    const right = b?.createTime || b?.create_time || ''
+    const left = a?.createTime || a?.create_time || ''
+    return String(right).localeCompare(String(left))
+  })
+}
+
+function safeNodeId(value) {
+  return encodeURIComponent(String(value ?? '').slice(0, 160))
+}
+
+function statusText(status) {
+  const map = {
+    SUCCESS: '成功',
+    RUNNING: '运行中',
+    PENDING: '等待中',
+    FAILED: '失败',
+    CANCELED: '已取消'
+  }
+  return map[status] || status || '未知'
+}
+
+function statusTagType(status) {
+  if (status === 'SUCCESS') return 'success'
+  if (status === 'FAILED') return 'danger'
+  if (status === 'RUNNING' || status === 'PENDING') return 'warning'
+  if (status === 'CANCELED') return 'info'
+  return 'info'
 }
 
 async function searchDataFiles() {
@@ -5165,6 +6184,33 @@ onBeforeUnmount(() => {
 
 .kqc-history-toolbar {
   margin-bottom: 12px;
+}
+
+.history-level-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.history-current-task {
+  min-width: 0;
+  color: #1f3b57;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-task-count {
+  margin-left: 10px;
+  color: #8a97a8;
+  font-size: 13px;
 }
 
 .kqc-history-toolbar .el-input {
@@ -5778,6 +6824,211 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   background: #f7fbff;
   color: #17324d;
+}
+
+.algorithm-export-dialog {
+  min-height: 420px;
+}
+
+.algorithm-export-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid #d8e5f2;
+  border-radius: 8px;
+  background: #f7fbff;
+  color: #17324d;
+  font-size: 14px;
+}
+
+.algorithm-export-form {
+  margin-bottom: 12px;
+  padding: 12px 12px 0;
+  border: 1px solid #d8e5f2;
+  border-radius: 8px;
+  background: #fbfdff;
+}
+
+.algorithm-export-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.algorithm-export-tree {
+  height: 460px;
+  padding: 8px;
+  border: 1px solid #d9e4f0;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+:deep(.algorithm-export-tree .el-tree-node__content) {
+  min-height: 42px;
+  height: auto;
+  padding: 3px 0;
+  border-radius: 8px;
+}
+
+:deep(.algorithm-export-tree .el-tree-node__content:hover) {
+  background: transparent;
+}
+
+.algorithm-export-node {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.algorithm-export-checkbox {
+  flex: 0 0 auto;
+}
+
+.algorithm-export-node.selected {
+  border-color: #8bc1ff;
+  background: #edf6ff;
+}
+
+.algorithm-export-node-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.algorithm-export-node-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #102a43;
+  font-weight: 600;
+}
+
+.algorithm-export-node-sub {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #718096;
+  font-size: 12px;
+}
+
+.algorithm-export-node-meta {
+  flex: 0 0 auto;
+}
+
+.algorithm-export-selected {
+  height: 460px;
+  padding: 12px;
+  border: 1px solid #d9e4f0;
+  border-radius: 8px;
+  background: #fbfdff;
+  overflow: auto;
+}
+
+.algorithm-export-selected-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #102a43;
+  font-weight: 700;
+}
+
+.algorithm-export-selected-count {
+  margin: 6px 0 10px;
+  color: #607081;
+  font-size: 13px;
+}
+
+.algorithm-export-selected-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.algorithm-export-selected-item {
+  padding: 9px 10px;
+  border: 1px solid #e3ebf4;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.algorithm-export-selected-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.algorithm-export-selected-title,
+.algorithm-export-selected-sub {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.algorithm-export-selected-title {
+  color: #102a43;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.algorithm-export-selected-sub {
+  color: #718096;
+  font-size: 12px;
+}
+
+.algorithm-export-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.algorithm-export-preview-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #d8e5f2;
+  border-radius: 8px;
+  background: #f7fbff;
+  color: #17324d;
+  font-size: 13px;
+}
+
+.algorithm-export-json {
+  max-height: 560px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid #d9e4f0;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #dbeafe;
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .module-card-grid {

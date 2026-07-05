@@ -559,13 +559,24 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
     private Set<Long> sampleIdsFromTasksAndPackages(List<AlgTaskResult> tasks, List<FaultIdenFilePackage> packages)
     {
         Set<Long> ids = new LinkedHashSet<>();
+        Set<String> kqcTaskIds = new LinkedHashSet<>();
         for (AlgTaskResult task : tasks == null ? Collections.<AlgTaskResult>emptyList() : tasks)
         {
-            collectSampleIdsFromRequest(parseJsonObject(task.getReqJson()), ids);
+            Map<String, Object> req = parseJsonObject(task.getReqJson());
+            collectSampleIdsFromRequest(req, ids);
+            collectKqcTaskIdsFromRequest(req, kqcTaskIds);
         }
         for (FaultIdenFilePackage pack : packages == null ? Collections.<FaultIdenFilePackage>emptyList() : packages)
         {
             collectSampleIdValue(pack.getSelectedSampleIds(), ids);
+        }
+        for (String kqcTaskId : kqcTaskIds)
+        {
+            AlgTaskResult kqcTask = algTaskMapper.getByTaskId(kqcTaskId);
+            if (kqcTask != null)
+            {
+                collectSampleIdsFromRequest(parseJsonObject(kqcTask.getReqJson()), ids);
+            }
         }
         return ids;
     }
@@ -583,7 +594,7 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
             for (Map.Entry<String, Object> entry : map.entrySet())
             {
                 String key = entry.getKey();
-                if ("sampleIds".equals(key) || "sample_ids".equals(key) || "selectedSampleIds".equals(key) || "selected_sample_ids".equals(key))
+                if (isSampleIdKey(key))
                 {
                     collectSampleIdValue(entry.getValue(), ids);
                 }
@@ -593,6 +604,59 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
                 }
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void collectKqcTaskIdsFromRequest(Object value, Set<String> ids)
+    {
+        if (value == null || ids == null)
+        {
+            return;
+        }
+        if (value instanceof Map)
+        {
+            Map<String, Object> map = (Map<String, Object>) value;
+            for (Map.Entry<String, Object> entry : map.entrySet())
+            {
+                String key = entry.getKey();
+                if ("kqcTaskId".equals(key) || "kqc_task_id".equals(key))
+                {
+                    String taskId = to_text(entry.getValue());
+                    if (taskId != null)
+                    {
+                        ids.add(taskId);
+                    }
+                }
+                else
+                {
+                    collectKqcTaskIdsFromRequest(entry.getValue(), ids);
+                }
+            }
+            return;
+        }
+        if (value instanceof Iterable)
+        {
+            for (Object item : (Iterable<?>) value)
+            {
+                collectKqcTaskIdsFromRequest(item, ids);
+            }
+        }
+    }
+
+    private boolean isSampleIdKey(String key)
+    {
+        return "sampleIds".equals(key)
+                || "sample_ids".equals(key)
+                || "selectedSampleIds".equals(key)
+                || "selected_sample_ids".equals(key)
+                || "trainSampleIds".equals(key)
+                || "train_sample_ids".equals(key)
+                || "detectSampleIds".equals(key)
+                || "detect_sample_ids".equals(key)
+                || "sampleId".equals(key)
+                || "sample_id".equals(key)
+                || "extractedFromSampleId".equals(key)
+                || "extracted_from_sample_id".equals(key);
     }
 
     private void collectSampleIdValue(Object value, Set<Long> ids)
@@ -2142,10 +2206,24 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
     {
         Map<String, Object> result = parseJsonObject(record.getResJson());
         Map<String, Object> data = keyPayload(result);
+        String flowTaskId = flowTaskId(record);
+        List<AlgTaskResult> tasks = algTaskMapper.getTasksByFlowTaskId(flowTaskId);
+        List<String> taskIds = stageTaskIds(tasks);
+        List<FaultIdenFilePackage> packages = taskIds.isEmpty()
+                ? Collections.emptyList()
+                : faultIdenFilePackageMapper.selectByTaskIds(taskIds);
+        Set<Long> sampleIds = sampleIdsFromTasksAndPackages(tasks, packages);
+        String importTaskName = importTaskNameFromSampleIds(sampleIds);
 
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("taskId", record.getTaskId());
         row.put("task_id", record.getTaskId());
+        row.put("flowTaskId", flowTaskId);
+        row.put("flow_task_id", flowTaskId);
+        row.put("importTaskName", importTaskName);
+        row.put("import_task_name", importTaskName);
+        row.put("selectedSampleIds", new ArrayList<>(sampleIds));
+        row.put("selected_sample_ids", new ArrayList<>(sampleIds));
         row.put("status", record.getStatus());
         row.put("targetType", record.getBizLevel());
         row.put("target_type", record.getBizLevel());
@@ -2235,11 +2313,24 @@ public class FaultIdentifyServiceImpl implements FaultIdentifyService
             return null;
         }
 
+        return importTaskNameFromSampleIds(sampleIds);
+    }
+
+    private String importTaskNameFromSampleIds(Set<Long> sampleIds)
+    {
+        if (sampleIds == null || sampleIds.isEmpty())
+        {
+            return null;
+        }
         Set<String> names = new LinkedHashSet<>();
         List<FaultIdenSampleFile> samples = faultIdenSampleMapper.selectSamplesByIds(new ArrayList<>(sampleIds), null);
         for (FaultIdenSampleFile sample : samples)
         {
             String name = to_text(sample.getTaskName());
+            if (name == null)
+            {
+                name = to_text(sample.getUploadBatchId());
+            }
             if (name != null)
             {
                 names.add(name);

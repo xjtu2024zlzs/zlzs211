@@ -71,6 +71,8 @@ public interface FaultIdenSampleMapper
 
     List<FaultIdenSampleFile> selectSamplesByIds(@Param("ids") List<Long> ids, @Param("dataUsage") String dataUsage);
 
+    FaultIdenSampleFile selectSampleBySourceFile(@Param("sourceFile") String sourceFile);
+
     List<FaultIdenSampleFile> selectAllSamples(
             @Param("dataUsage") String dataUsage,
             @Param("uploadBatchId") String uploadBatchId,
