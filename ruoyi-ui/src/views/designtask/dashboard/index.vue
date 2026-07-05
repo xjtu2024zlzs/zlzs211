@@ -24,44 +24,131 @@
       </section>
 
       <!-- 当前质量问题显示区域 -->
-      <el-card v-if="currentQualityTask" class="mb20 quality-task-card" shadow="hover">
+      <el-card class="mb20 quality-task-card" shadow="hover" v-loading="qualityTaskLoading">
         <template #header>
-          <div class="card-header">
-            <span>当前质量问题</span>
-            <el-tag type="warning" style="margin-left: 10px">
-              {{ currentQualityTask.moduleName || '课题二' }}
-            </el-tag>
+          <div class="card-header quality-card-header">
+            <div>
+              <span>当前质量问题</span>
+              <el-tag type="warning" style="margin-left: 10px">
+                质量中心分派
+              </el-tag>
+            </div>
+
+            <el-button size="small" type="primary" plain @click="loadCurrentQualityTask">
+              刷新任务
+            </el-button>
           </div>
         </template>
 
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="问题编号">
-            {{ currentQualityTask.problemCode || '-' }}
-          </el-descriptions-item>
+        <el-empty
+          v-if="!currentQualityTask"
+          description="暂无质量问题管理中心分派给本模块的处理中任务"
+          :image-size="90"
+        />
 
-          <el-descriptions-item label="任务状态">
-            {{ getQualityTaskStatusText(currentQualityTask.taskStatus) }}
-          </el-descriptions-item>
+        <template v-else>
+          <div v-if="qualityTaskList.length > 1" class="quality-task-switch">
+            <span class="switch-label">当前质量问题：</span>
+            <el-select
+              :model-value="currentQualityTask.taskId"
+              size="small"
+              style="width: 520px"
+              @change="selectQualityTask"
+            >
+              <el-option
+                v-for="item in qualityTaskList"
+                :key="item.taskId"
+                :label="`${item.problemCode || '-'}｜${item.problemTitle || '未命名问题'}`"
+                :value="item.taskId"
+              />
+            </el-select>
+          </div>
 
-          <el-descriptions-item label="分派说明" :span="2">
-            {{ currentQualityTask.dispatchOpinion || '-' }}
-          </el-descriptions-item>
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="问题编号">
+              {{ currentQualityTask.problemCode || '-' }}
+            </el-descriptions-item>
 
-          <el-descriptions-item label="分派时间" :span="2">
-            {{ currentQualityTask.dispatchTime || currentQualityTask.createTime || '-' }}
-          </el-descriptions-item>
-        </el-descriptions>
+            <el-descriptions-item label="问题标题">
+              {{ currentQualityTask.problemTitle || '-' }}
+            </el-descriptions-item>
 
-        <div class="quality-task-actions">
-          <el-button
-            type="success"
-            :loading="finishQualityTaskLoading"
-            :disabled="!currentQualityTask"
-            @click="finishCurrentQualityTask"
+            <el-descriptions-item label="产品型号">
+              {{ currentQualityTask.productModel || '-' }}
+            </el-descriptions-item>
+
+            <el-descriptions-item label="涉及系统">
+              {{ currentQualityTask.involvedSystem || '-' }}
+            </el-descriptions-item>
+
+            <el-descriptions-item label="发生部件">
+              {{ currentQualityTask.occurPart || '-' }}
+            </el-descriptions-item>
+
+            <el-descriptions-item label="部件编号">
+              {{ currentQualityTask.componentCode || '-' }}
+            </el-descriptions-item>
+
+            <el-descriptions-item label="问题描述" :span="2">
+              {{ currentQualityTask.description || '-' }}
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <div
+            v-if="currentQualityTask.lifecycleReportFile"
+            class="lifecycle-report-box"
           >
-            完成任务并回填模拟结果
-          </el-button>
-        </div>
+            <div class="lifecycle-report-header">
+              <div>
+                <div class="lifecycle-report-title">
+                  全生命周期数字质量自反馈与追溯报告
+                </div>
+              </div>
+
+              <el-tag type="success">
+                已关联
+              </el-tag>
+            </div>
+
+            <div class="lifecycle-report-info">
+              <span>报告文件：</span>
+              <strong>{{ getLifecycleReportFileName(currentQualityTask.lifecycleReportFile) }}</strong>
+            </div>
+            
+            <div
+              v-if="currentQualityTask.lifecycleReportSubmitTime"
+              class="lifecycle-report-info"
+            >
+              <span>返回时间：</span>
+              <strong>{{ currentQualityTask.lifecycleReportSubmitTime }}</strong>
+            </div>
+
+            <div class="lifecycle-report-actions">
+              <el-button type="primary" plain @click="previewLifecycleReport">
+                预览报告
+              </el-button>
+
+              <el-button type="success" plain @click="downloadLifecycleReport">
+                下载报告
+              </el-button>
+
+              <el-button plain @click="openLifecycleReportInNewWindow">
+                新窗口打开
+              </el-button>
+            </div>
+          </div>
+
+          <div class="quality-task-actions">
+            <el-button
+              type="success"
+              :loading="finishQualityTaskLoading"
+              :disabled="!currentQualityTask"
+              @click="finishCurrentQualityTask"
+            >
+              完成任务并回填结果
+            </el-button>
+          </div>
+        </template>
       </el-card>
 
       <section class="section-block">
@@ -235,17 +322,51 @@
         </aside>
       </div>
     </div>
+
+    <el-dialog
+      :title="lifecycleReportPreviewTitle"
+      v-model="lifecycleReportPreviewOpen"
+      width="90%"
+      append-to-body
+      destroy-on-close
+      @closed="clearLifecycleReportPreview"
+    >
+      <div class="word-preview-wrapper">
+        <VueOfficeDocx
+          v-if="lifecycleReportPreviewUrl"
+          :src="lifecycleReportPreviewUrl"
+          style="height: 100%;"
+        />
+      </div>
+
+      <template #footer>
+        <el-button @click="lifecycleReportPreviewOpen = false">
+          关闭
+        </el-button>
+
+        <el-button type="primary" @click="openLifecycleReportInNewWindow">
+          新窗口打开
+        </el-button>
+
+        <el-button type="success" @click="downloadLifecycleReport">
+          下载报告
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onActivated, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import VueOfficeDocx from '@vue-office/docx'
+import '@vue-office/docx/lib/index.css'
 
+import request from '@/utils/request'
 import { getDashboard, getDesignTask } from '@/api/designtask/optimization'
 import { listTask, updateTask } from '@/api/quality/task'
-import { updateProblem } from '@/api/quality/problem'
+import { getProblem, updateProblem } from '@/api/quality/problem'
 import { addLog } from '@/api/quality/log'
 
 const router = useRouter()
@@ -259,9 +380,20 @@ const selectedDetail = ref(null)
 const detailLoading = ref(false)
 
 const currentQualityTask = ref(null)
+const qualityTaskList = ref([])
+const qualityTaskLoading = ref(false)
 const finishQualityTaskLoading = ref(false)
 
+const lifecycleReportPreviewOpen = ref(false)
+const lifecycleReportPreviewUrl = ref('')
+const lifecycleReportPreviewTitle = ref('全生命周期数字质量自反馈与追溯模块报告预览')
+
 const MODULE_CODE = 'PROJECT_2'
+const MODULE_NAME = '设计制造协同优化平台'
+
+const RELATED_REPORT_MODULE_CODE = 'PROJECT_5'
+const RELATED_REPORT_MODULE_NAME = '全生命周期数字质量自反馈与追溯模块'
+
 const QMS_TASK_EVENT_NAME = 'qms-current-task-change'
 const QMS_TASK_EVENT_KEY = 'qms_current_task_change'
 
@@ -275,6 +407,17 @@ const objectiveNodeOrder = [
   'hydraulic_select',
   'manufacturing_select'
 ]
+
+const getLifecycleReportFileName = (filePath) => {
+  if (!filePath) {
+    return ''
+  }
+
+  const normalizedPath = normalizeLifecycleReportFilePath(filePath)
+  const fileName = normalizedPath.substring(normalizedPath.lastIndexOf('/') + 1)
+
+  return fileName || ''
+}
 
 const objectiveNodeNames = [
   { key: 'structure_select', name: '结构' },
@@ -364,35 +507,328 @@ const getNowTime = () => {
   return `${y}-${m}-${d} ${h}:${min}:${s}`
 }
 
-const getQualityTaskStatusText = (status) => {
-  const map = {
-    PROCESSING: '处理中',
-    SUBMITTED: '待确认',
-    CONFIRMED: '已确认'
+const normalizeQualityTask = (item) => {
+  return {
+    ...item,
+    taskId: item.taskId,
+    problemId: item.problemId,
+    problemCode: item.problemCode || '',
+    moduleCode: item.moduleCode || MODULE_CODE,
+    moduleName: item.moduleName || MODULE_NAME,
+    taskStatus: item.taskStatus || '',
+    dispatchOpinion: item.dispatchOpinion || '',
+    processResult: item.processResult || '',
+    processFile: item.processFile || '',
+    dispatchTime: item.dispatchTime || item.createTime || '',
+    createTime: item.createTime || '',
+    dispatchUserName: item.dispatchUserName || '',
+    submitTime: item.submitTime || '',
+
+    problemTitle: '',
+    occurTime: '',
+    productModel: '',
+    involvedSystem: '',
+    occurPart: '',
+    componentCode: '',
+    severity: '',
+    source: '',
+    reporter: '',
+    description: '',
+    influenceScope: '',
+
+    lifecycleReportFile: '',
+    lifecycleReportResult: '',
+    lifecycleReportSubmitTime: '',
+    lifecycleReportTaskId: ''
+  }
+}
+
+const loadLatestLifecycleReportByProblemId = async (problemId) => {
+  if (!problemId) {
+    return null
   }
 
-  return map[status] || status || '-'
+  try {
+    const res = await listTask({
+      problemId,
+      moduleCode: RELATED_REPORT_MODULE_CODE
+    })
+
+    const rows = Array.isArray(res?.rows) ? res.rows : []
+
+    const reportTasks = rows
+      .filter((item) => {
+        const file = item.processFile || ''
+
+        // 必须已经有报告文件
+        if (!file) {
+          return false
+        }
+
+        // 必须是 Word 报告
+        const lowerFile = file.toLowerCase()
+        if (!lowerFile.endsWith('.doc') && !lowerFile.endsWith('.docx')) {
+          return false
+        }
+
+        return ['SUBMITTED', 'CONFIRMED'].includes(item.taskStatus)
+      })
+      .sort((a, b) => {
+        const at =
+          a.submitTime ||
+          a.updateTime ||
+          a.confirmTime ||
+          a.dispatchTime ||
+          a.createTime ||
+          ''
+
+        const bt =
+          b.submitTime ||
+          b.updateTime ||
+          b.confirmTime ||
+          b.dispatchTime ||
+          b.createTime ||
+          ''
+
+        const timeCompare = bt.localeCompare(at)
+
+        if (timeCompare !== 0) {
+          return timeCompare
+        }
+
+        return Number(b.taskId || 0) - Number(a.taskId || 0)
+      })
+
+    return reportTasks.length > 0 ? reportTasks[0] : null
+  } catch (error) {
+    console.error(`查询${RELATED_REPORT_MODULE_NAME}最新运行报告失败：`, error)
+    return null
+  }
+}
+
+const loadQualityProblemInfo = async (task) => {
+  if (!task || !task.problemId) {
+    return task
+  }
+
+  try {
+    const [problemRes, lifecycleReportTask] = await Promise.all([
+      getProblem(task.problemId),
+      loadLatestLifecycleReportByProblemId(task.problemId)
+    ])
+
+    const problem = problemRes?.data || {}
+
+    return {
+      ...task,
+      problemTitle: problem.title || '',
+      occurTime: problem.occurTime || '',
+      productModel: problem.productModel || '',
+      involvedSystem: problem.involvedSystem || '',
+      occurPart: problem.occurPart || '',
+      componentCode: problem.componentCode || '',
+      severity: problem.severity || '',
+      source: problem.source || '',
+      reporter: problem.reporter || '',
+      description: problem.description || '',
+      influenceScope: problem.influenceScope || '',
+
+      // 这里取的是同一个质量问题下，全生命周期数字质量自反馈与追溯模块最新一次运行返回的报告
+      lifecycleReportFile: lifecycleReportTask?.processFile || '',
+      lifecycleReportResult: lifecycleReportTask?.processResult || '',
+      lifecycleReportSubmitTime:
+        lifecycleReportTask?.submitTime ||
+        lifecycleReportTask?.updateTime ||
+        lifecycleReportTask?.confirmTime ||
+        lifecycleReportTask?.dispatchTime ||
+        lifecycleReportTask?.createTime ||
+        '',
+      lifecycleReportTaskId: lifecycleReportTask?.taskId || ''
+    }
+  } catch (error) {
+    console.error('加载质量问题填报信息和关联报告失败：', error)
+    return task
+  }
+}
+
+const loadCurrentQualityTask = async () => {
+  qualityTaskLoading.value = true
+
+  try {
+    const res = await listTask({
+      moduleCode: MODULE_CODE,
+      taskStatus: 'PROCESSING'
+    })
+
+    const rows = Array.isArray(res?.rows) ? res.rows : []
+
+    const normalizedRows = rows
+      .map((item) => normalizeQualityTask(item))
+      .sort((a, b) => {
+        const at = a.dispatchTime || a.createTime || ''
+        const bt = b.dispatchTime || b.createTime || ''
+        return bt.localeCompare(at)
+      })
+
+    const rowsWithProblemInfo = await Promise.all(
+      normalizedRows.map((task) => loadQualityProblemInfo(task))
+    )
+
+    qualityTaskList.value = rowsWithProblemInfo
+    currentQualityTask.value = rowsWithProblemInfo.length > 0 ? rowsWithProblemInfo[0] : null
+  } catch (error) {
+    console.error('加载设计制造协同优化平台当前质量问题失败：', error)
+    qualityTaskList.value = []
+    currentQualityTask.value = null
+  } finally {
+    qualityTaskLoading.value = false
+  }
+}
+
+const selectQualityTask = (taskId) => {
+  const task = qualityTaskList.value.find((item) => item.taskId === taskId)
+
+  if (task) {
+    currentQualityTask.value = task
+  }
+}
+
+const isWordFile = (url) => {
+  if (!url) return false
+
+  const lower = url.toLowerCase()
+  return lower.endsWith('.doc') || lower.endsWith('.docx')
+}
+
+const normalizeLifecycleReportFilePath = (filePath) => {
+  if (!filePath) return ''
+
+  let path = filePath.replace(/\\/g, '/')
+
+  if (path.startsWith('/topic5/profile/')) {
+    path = path.replace('/topic5/profile/', '/profile/')
+  }
+
+  return path
+}
+
+const fetchLifecycleReportBlob = async (filePath) => {
+  if (!filePath) {
+    throw new Error(`${RELATED_REPORT_MODULE_NAME}报告文件为空`)
+  }
+
+  if (!isWordFile(filePath)) {
+    throw new Error(`${RELATED_REPORT_MODULE_NAME}报告不是Word文档`)
+  }
+
+  const normalizedPath = normalizeLifecycleReportFilePath(filePath)
+
+  const data = await request({
+    url: '/topic5/trace/report/downloadByPath',
+    method: 'get',
+    params: {
+      filePath: normalizedPath
+    },
+    responseType: 'blob'
+  })
+
+  if (data instanceof Blob) {
+    return data
+  }
+
+  return new Blob([data], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  })
+}
+
+const previewLifecycleReport = async () => {
+  if (!currentQualityTask.value || !currentQualityTask.value.lifecycleReportFile) {
+    ElMessage.warning(`当前质量问题暂无${RELATED_REPORT_MODULE_NAME}报告`)
+    return
+  }
+
+  try {
+    const blob = await fetchLifecycleReportBlob(currentQualityTask.value.lifecycleReportFile)
+    const objectUrl = window.URL.createObjectURL(blob)
+
+    if (lifecycleReportPreviewUrl.value && lifecycleReportPreviewUrl.value.startsWith('blob:')) {
+      window.URL.revokeObjectURL(lifecycleReportPreviewUrl.value)
+    }
+
+    lifecycleReportPreviewUrl.value = objectUrl
+    lifecycleReportPreviewTitle.value =
+      `${currentQualityTask.value.problemCode || ''} ${RELATED_REPORT_MODULE_NAME}报告预览`
+    lifecycleReportPreviewOpen.value = true
+  } catch (error) {
+    console.error(`${RELATED_REPORT_MODULE_NAME}报告预览失败：`, error)
+    ElMessage.error(error.message || `${RELATED_REPORT_MODULE_NAME}报告预览失败`)
+  }
+}
+
+const downloadLifecycleReport = async () => {
+  if (!currentQualityTask.value || !currentQualityTask.value.lifecycleReportFile) {
+    ElMessage.warning(`当前质量问题暂无${RELATED_REPORT_MODULE_NAME}报告`)
+    return
+  }
+
+  try {
+    const filePath = currentQualityTask.value.lifecycleReportFile
+    const blob = await fetchLifecycleReportBlob(filePath)
+
+    const normalizedPath = filePath.replace(/\\/g, '/')
+    const fileName =
+      normalizedPath.substring(normalizedPath.lastIndexOf('/') + 1) ||
+      `${RELATED_REPORT_MODULE_NAME}报告.docx`
+
+    const objectUrl = window.URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.href = objectUrl
+    link.download = fileName
+    link.style.display = 'none'
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    window.URL.revokeObjectURL(objectUrl)
+  } catch (error) {
+    console.error(`${RELATED_REPORT_MODULE_NAME}报告下载失败：`, error)
+    ElMessage.error(error.message || `${RELATED_REPORT_MODULE_NAME}报告下载失败`)
+  }
+}
+
+const openLifecycleReportInNewWindow = async () => {
+  if (!currentQualityTask.value || !currentQualityTask.value.lifecycleReportFile) {
+    ElMessage.warning(`当前质量问题暂无${RELATED_REPORT_MODULE_NAME}报告`)
+    return
+  }
+
+  try {
+    const blob = await fetchLifecycleReportBlob(currentQualityTask.value.lifecycleReportFile)
+    const objectUrl = window.URL.createObjectURL(blob)
+
+    window.open(objectUrl, '_blank')
+
+    setTimeout(() => {
+      window.URL.revokeObjectURL(objectUrl)
+    }, 60000)
+  } catch (error) {
+    console.error(`${RELATED_REPORT_MODULE_NAME}报告打开失败：`, error)
+    ElMessage.error(error.message || `${RELATED_REPORT_MODULE_NAME}报告打开失败`)
+  }
+}
+
+const clearLifecycleReportPreview = () => {
+  if (lifecycleReportPreviewUrl.value && lifecycleReportPreviewUrl.value.startsWith('blob:')) {
+    window.URL.revokeObjectURL(lifecycleReportPreviewUrl.value)
+  }
+
+  lifecycleReportPreviewUrl.value = ''
 }
 
 const buildMockProject2Result = () => {
-  return JSON.stringify(
-    {
-      moduleCode: 'PROJECT_2',
-      moduleName: '复杂产品设计制造协同优化平台',
-      resultType: 'SIMULATION_RESULT',
-      conclusion: '课题二已完成设计制造协同优化分析，当前质量问题已形成模拟处理结果。',
-      optimizationResult: {
-        recommendedAction: '建议对相关设计参数、制造约束和工艺方案进行协同优化校核。',
-        affectedStage: '设计制造协同优化阶段',
-        riskLevel: '中等',
-        status: '已完成模拟分析'
-      },
-      suggestion: '后续可接入真实优化算法输出，将算法结果、优化参数、约束冲突信息和推荐方案写入该字段。',
-      generateTime: getNowTime()
-    },
-    null,
-    2
-  )
+  return '设计制造协同优化平台已完成设计制造协同优化分析，当前质量问题已形成模拟处理结果。'
 }
 
 const buildTaskPayload = (task, override = {}) => {
@@ -448,22 +884,6 @@ const notifyQmsFlowChanged = (payload = {}) => {
   localStorage.setItem(QMS_FLOW_EVENT_KEY, JSON.stringify(eventData))
 }
 
-const loadCurrentQualityTask = async () => {
-  try {
-    const res = await listTask({
-      moduleCode: MODULE_CODE,
-      taskStatus: 'PROCESSING'
-    })
-
-    const rows = Array.isArray(res?.rows) ? res.rows : []
-
-    currentQualityTask.value = rows.length > 0 ? rows[0] : null
-  } catch (error) {
-    console.error('加载课题二当前质量问题失败：', error)
-    currentQualityTask.value = null
-  }
-}
-
 const finishCurrentQualityTask = async () => {
   if (!currentQualityTask.value) {
     ElMessage.warning('当前没有需要处理的质量问题')
@@ -474,13 +894,21 @@ const finishCurrentQualityTask = async () => {
 
   const now = getNowTime()
   const task = currentQualityTask.value
-  const mockResult = buildMockProject2Result()
 
   try {
+    const reportFilePath = getProject2ReportFilePath(task)
+
+    if (!reportFilePath) {
+      throw new Error('课题二报告路径为空，请检查报告路径配置')
+    }
+
+    const returnResult = buildProject2ReturnResult()
+
     await updateTask(
       buildTaskPayload(task, {
         taskStatus: 'SUBMITTED',
-        processResult: mockResult,
+        processResult: returnResult,
+        processFile: reportFilePath,
         submitTime: now
       })
     )
@@ -498,11 +926,11 @@ const finishCurrentQualityTask = async () => {
       problemCode: task.problemCode,
       taskId: task.taskId,
       actionType: 'SUBMIT',
-      actionName: '课题二任务完成',
-      operatorName: '课题二',
+      actionName: '设计制造协同优化平台任务完成',
+      operatorName: '设计制造协同优化平台',
       fromStatus: 'PROCESSING',
       toStatus: 'WAIT_CONFIRM',
-      actionContent: `课题二已完成模拟结果回填。处理结果：${mockResult}`,
+      actionContent: `设计制造协同优化平台已完成任务处理，并返回Word报告：${reportFilePath}`,
       createTime: now
     })
 
@@ -513,11 +941,11 @@ const finishCurrentQualityTask = async () => {
       action: 'SUBMIT'
     })
 
-    currentQualityTask.value = null
+    await loadCurrentQualityTask()
 
-    ElMessage.success('课题二模拟结果已回填，当前质量问题已从首页清空')
+    ElMessage.success('设计制造协同优化平台处理结果和Word报告已回填质量问题管理中心')
   } catch (error) {
-    console.error('课题二模拟结果回填失败：', error)
+    console.error('设计制造协同优化平台结果回填失败：', error)
 
     const realMsg =
       error?.response?.data?.msg ||
@@ -526,7 +954,7 @@ const finishCurrentQualityTask = async () => {
       error?.message ||
       String(error)
 
-    ElMessage.error(`模拟结果回填失败：${realMsg}`)
+    ElMessage.error(`结果回填失败：${realMsg}`)
   } finally {
     finishQualityTaskLoading.value = false
   }
@@ -554,6 +982,20 @@ const handleStorageChange = (event) => {
   } catch (error) {
     console.error('解析质量问题分派事件失败：', error)
   }
+}
+
+const buildProject2ReturnResult = () => {
+  return '设计制造协同优化平台已完成质量问题处理，并生成Word报告，详细结果请查看处理结果文件。'
+}
+
+/**
+ * 获取课题二本次任务对应的报告路径
+ *
+ * 当前测试阶段固定返回 000.docx。
+ * 后续课题二真实报告文件名确定后，只需要改这个函数。
+ */
+const getProject2ReportFilePath = (task) => {
+  return '/profile/topic2/report/QF-20260705-52435.docx'
 }
 
 function loadData() {
@@ -702,11 +1144,17 @@ onMounted(() => {
 
   window.addEventListener(QMS_TASK_EVENT_NAME, handleQmsTaskChange)
   window.addEventListener('storage', handleStorageChange)
+  window.addEventListener('focus', loadCurrentQualityTask)
+})
+
+onActivated(() => {
+  loadCurrentQualityTask()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener(QMS_TASK_EVENT_NAME, handleQmsTaskChange)
   window.removeEventListener('storage', handleStorageChange)
+  window.removeEventListener('focus', loadCurrentQualityTask)
 })
 </script>
 
@@ -723,14 +1171,84 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 
+.quality-card-header {
+  justify-content: space-between;
+}
+
 .quality-task-card {
   border-left: 4px solid #e6a23c;
+}
+
+.quality-task-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.switch-label {
+  font-size: 13px;
+  color: #606266;
 }
 
 .quality-task-actions {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
+}
+
+.lifecycle-report-box {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.lifecycle-report-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lifecycle-report-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.lifecycle-report-desc {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #909399;
+}
+
+.lifecycle-report-info {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #606266;
+  word-break: break-all;
+}
+
+.lifecycle-report-info strong {
+  color: #303133;
+  font-weight: 500;
+}
+
+.lifecycle-report-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.word-preview-wrapper {
+  height: 75vh;
+  overflow: auto;
+  background: #f5f7fa;
+  padding: 12px;
+  box-sizing: border-box;
 }
 
 .wait-action {

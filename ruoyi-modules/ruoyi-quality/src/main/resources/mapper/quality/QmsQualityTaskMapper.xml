@@ -178,12 +178,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             p.description as problemDescription,
             p.product_model as productModel,
             p.involved_system as involvedSystem,
+            p.occur_part as partName,
+            p.component_code as partCode,
             p.severity as severity,
             p.occur_time as occurTime,
             p.reporter as reporter,
             p.status as problemStatus
         from qms_quality_task t
-                 left join qms_quality_problem p on t.problem_id = p.problem_id
+                 inner join qms_quality_problem p on t.problem_id = p.problem_id
         where (t.del_flag is null or t.del_flag = '0')
           and t.task_status in ('DISPATCHED', 'PROCESSING')
           and (p.del_flag is null or p.del_flag = '0')
