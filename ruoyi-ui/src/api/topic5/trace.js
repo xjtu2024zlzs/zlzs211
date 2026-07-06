@@ -130,3 +130,12 @@ export function submitQualityResult(id) {
     method: 'post'
   })
 }
+
+// 下载最终溯源报告
+export function downloadTraceReport(id) {
+  return request({
+    url: '/topic5/trace/' + id + '/report/download',
+    method: 'get',
+    responseType: 'blob'
+  })
+}

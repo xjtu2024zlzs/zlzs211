@@ -3398,11 +3398,11 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                     {"问题类型", valueToText(problem.getProblemType())},
                     {"严重程度", valueToText(problem.getSeverityLevel())},
                     {"当前状态", valueToText(problem.getStatus())},
-                    {"当前流程阶段", workflowNameForReport(problem.getWorkflowStage())},
+//                    {"当前流程阶段", workflowNameForReport(problem.getWorkflowStage())},
 //                    {"填报人", valueToText(problem.getReporter())},
                     {"问题来源", valueToText(problem.getSource())},
                     {"问题描述", valueToText(problem.getProblemDescription())},
-                    {"备注", valueToText(problem.getRemark())}
+//                    {"备注", valueToText(problem.getRemark())}
             });
 
             /*
@@ -3425,26 +3425,26 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             addParagraph(document, "附件保存位置：" + valueToText(problem.getAttachmentSavePath()));
             addAttachmentTable(document, problem.getId());
 
-            addSectionTitle(document, "三、第一部分算法运行结果");
+            addSectionTitle(document, "三、故障根因分析结果");
             addFirstAlgorithmResult(document, problem.getAlgorithmResult());
 
-            addSectionTitle(document, "四、第二部分算法运行结果");
+            addSectionTitle(document, "四、溯源图谱构建结果");
             addSecondAlgorithmResult(document, problem.getSecondAlgorithmResultJson());
 
             String reportReasonTableJson = problem.getSourceReasonTableJson();
             String reportSummary = problem.getSourceResultSummary();
             boolean pipeDesignReport = isPipeDesignReportRelated(problem, reportReasonTableJson);
 
-            addSectionTitle(document, "五、最终溯源算法结果");
+            addSectionTitle(document, "五、全链路追溯闭环结果");
             addKeyValueTable(document, new String[][]{
-                    {"最终溯源算法", valueToText(problem.getSourceAlgorithmName())},
-                    {"最终溯源状态", sourceAlgorithmStatusNameForReport(problem.getSourceAlgorithmStatus())},
-                    {"最终溯源结论摘要", valueToText(reportSummary)},
+//                    {"最终溯源算法", valueToText(problem.getSourceAlgorithmName())},
+                    {"溯源状态", sourceAlgorithmStatusNameForReport(problem.getSourceAlgorithmStatus())},
+                    {"溯源结论摘要", valueToText(reportSummary)},
                     {"知识图谱JSON保存状态", problem.getSourceGraphJson() == null ? "未生成" : "已生成"},
                     {"报告路径", valueToText(problem.getTraceReportUrl())}
             });
 
-            addSectionTitle(document, "六、最终溯源原因表");
+            addSectionTitle(document, "六、溯源原因表");
             addSourceReasonTable(document, reportReasonTableJson);
 
             if (pipeDesignReport)

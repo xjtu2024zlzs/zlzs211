@@ -27,7 +27,6 @@
 
           <div class="current-quality-header-actions">
 
-
             <el-button
               size="small"
               type="primary"
@@ -719,7 +718,7 @@ function clearLifecycleReportPreview() {
 
   lifecycleReportPreviewUrl.value = ''
 }
-//---------------------结果返回------------------------------------------------------------
+//-----------------------------------结果返回------------------------------------------------------------
 function buildProject3ReturnResult() {
   return JSON.stringify(
     {

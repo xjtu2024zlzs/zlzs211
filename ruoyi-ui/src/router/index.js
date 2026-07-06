@@ -148,32 +148,6 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/frame-beam-crack-identify',
-    component: Layout,
-    hidden: true,
-    children: [
-      {
-        path: '',
-        component: () => import('@/views/project_3/service/FrameBeamCrackIdentify.vue'),
-        name: 'FrameBeamCrackIdentify',
-        meta: { title: '飞机框梁裂纹早期故障识别', icon: 'skill' }
-      }
-    ]
-  },
-  {
-    path: '/project4',
-    component: Layout,
-    hidden: true,
-    children: [
-      {
-        path: '',
-        component: () => import('@/views/project4/fileofda/index.vue'),
-        name: 'project4',
-        meta: { title: '课题四', icon: 'dashboard' }
-      }
-    ]
-  },
-  {
     path: '/project_5',
     component: Layout,
     hidden: true,

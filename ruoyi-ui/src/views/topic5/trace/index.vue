@@ -762,6 +762,7 @@ import {
   fillTopic4Result,
   runAlgorithm,
   syncQualityProblems,
+  downloadTraceReport,
   submitQualityResult
 } from '@/api/topic5/trace'
 import { getSourceResult } from '@/api/topic5/source'
@@ -1642,8 +1643,40 @@ function openTraceReport(row) {
     return
   }
 
-  const url = buildFileUrl(row.traceReportUrl)
-  window.open(url, '_blank')
+  downloadTraceReport(row.id).then(res => {
+    const blob = new Blob([res], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    })
+
+    const fileName = getReportFileName(row.traceReportUrl)
+
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }).catch(err => {
+    console.error('打开 Word 报告失败：', err)
+    proxy.$modal.msgError('打开 Word 报告失败，请检查报告文件是否存在')
+  })
+}
+
+function getReportFileName(reportUrl) {
+  if (!reportUrl) {
+    return '最终溯源报告.docx'
+  }
+
+  const index = reportUrl.lastIndexOf('/')
+  if (index >= 0) {
+    return reportUrl.substring(index + 1)
+  }
+
+  return reportUrl
 }
 
 function buildFileUrl(url) {
