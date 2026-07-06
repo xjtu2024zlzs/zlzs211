@@ -1184,6 +1184,22 @@
             update_time = now()
     </insert>
 
+    <select id="count_aircraft_by_id" resultType="int">
+        select count(1) from t3_aircraft where aircraft_id = #{aircraft_id}
+    </select>
+
+    <select id="count_subsystem_by_id" resultType="int">
+        select count(1) from t3_subsystems where subsystem_id = #{subsystem_id}
+    </select>
+
+    <select id="count_equipment_by_id" resultType="int">
+        select count(1) from t3_equipments where equipment_id = #{equipment_id}
+    </select>
+
+    <select id="count_component_by_id" resultType="int">
+        select count(1) from t3_components where component_id = #{component_id}
+    </select>
+
     <select id="count_part_tpl_by_id" resultType="int">
         select count(1) from t3_part_templates where part_template_id = #{part_template_id}
     </select>

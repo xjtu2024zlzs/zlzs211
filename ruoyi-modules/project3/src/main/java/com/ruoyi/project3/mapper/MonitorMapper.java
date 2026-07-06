@@ -200,6 +200,14 @@ public interface MonitorMapper {
 
     int upsert_part_instance(Map<String, Object> row);
 
+    int count_aircraft_by_id(@Param("aircraft_id") String aircraft_id);
+
+    int count_subsystem_by_id(@Param("subsystem_id") String subsystem_id);
+
+    int count_equipment_by_id(@Param("equipment_id") String equipment_id);
+
+    int count_component_by_id(@Param("component_id") String component_id);
+
     int count_part_tpl_by_id(@Param("part_template_id") String part_template_id);
 
     int count_part_instance_by_id(@Param("part_instance_id") String part_instance_id);

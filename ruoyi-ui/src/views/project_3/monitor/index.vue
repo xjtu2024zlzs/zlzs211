@@ -225,7 +225,10 @@
           </div>
           <el-form v-if="textObjDlg.form.importMode === 'api'" label-width="96px" class="numeric-api-form">
             <el-form-item label="API地址">
-              <el-input v-model="textObjDlg.form.apiUrl" placeholder="请输入返回Excel文件内容的HTTP/HTTPS地址" />
+              <el-input v-model="textObjDlg.form.apiUrl" :placeholder="textApiUrlPlaceholder" />
+            </el-form-item>
+            <el-form-item v-if="isTextFixedApiTask" label="接口示例">
+              <div class="form-tip">{{ textFixedApiTip }}</div>
             </el-form-item>
             <el-form-item label="请求方法">
               <el-select v-model="textObjDlg.form.apiMethod" style="width: 140px" :disabled="isTextFixedApiTask">
@@ -1346,32 +1349,24 @@ const textTaskOpts = [
 ]
 const TEXT_FIXED_API_CONFIG = {
   hierarchy: {
-    method: 'POST',
+    method: 'GET',
+    endpoint: 'http://<server>:8088/project1/dossier/openapi/project3/hierarchy/export?partNumber=HYD-TUBE-MLG-32A',
+    tip: 'GET导出Excel，需包含partNumber参数；返回 aircraft、subsystems、equipments、components、part_templates、part_instances 六张表。请先导入层级对象。',
     headers: {
-      'Content-Type': 'application/json;charset=UTF-8',
       Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     },
-    body: {
-      taskType: 'hierarchy',
-      dataType: 'HIERARCHY_OBJECT',
-      exportFormat: 'xlsx',
-      sheets: ['飞机', '分系统', '设备', '组件', '零件', '零件信息']
-    },
-    fileName: '层级对象导入.xlsx'
+    body: '',
+    fileName: 'project3_hierarchy_HYD-TUBE-MLG-32A.xlsx'
   },
   partProcess: {
-    method: 'POST',
+    method: 'GET',
+    endpoint: 'http://<server>:8088/project1/dossier/openapi/project3/part-process/export?partNumber=HYD-TUBE-MLG-32A',
+    tip: 'GET导出Excel，需包含partNumber参数；返回 零件模板、工序路线、详细工序 三张表。',
     headers: {
-      'Content-Type': 'application/json;charset=UTF-8',
       Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     },
-    body: {
-      taskType: 'partProcess',
-      dataType: 'PART_STANDARD_PROCESS',
-      exportFormat: 'xlsx',
-      sheets: ['零件模板', '工序路线', '详细工序']
-    },
-    fileName: '零件标准制作过程导入.xlsx'
+    body: '',
+    fileName: 'project3_part_process_HYD-TUBE-MLG-32A.xlsx'
   }
 }
 const numObjDlg = reactive({
@@ -1870,6 +1865,9 @@ const isTextPartQuality = computed(() => textObjDlg.form.taskType === 'partQuali
 const isTextHierarchy = computed(() => textObjDlg.form.taskType === 'hierarchy')
 const isTextActualProcess = computed(() => textObjDlg.form.taskType === 'PART_ACTUAL_MANUFACTURING_PROCESS')
 const isTextFixedApiTask = computed(() => ['hierarchy', 'partProcess'].includes(textObjDlg.form.taskType) && textObjDlg.form.importMode === 'api')
+const textFixedApiConfig = computed(() => TEXT_FIXED_API_CONFIG[textObjDlg.form.taskType] || null)
+const textApiUrlPlaceholder = computed(() => textFixedApiConfig.value?.endpoint || '请输入返回Excel文件内容的HTTP/HTTPS地址')
+const textFixedApiTip = computed(() => textFixedApiConfig.value?.tip || '')
 const textTaskRequiresObject = computed(() => !['partProcess', 'partQuality', 'hierarchy', 'PART_ACTUAL_MANUFACTURING_PROCESS'].includes(textObjDlg.form.taskType))
 const hasTextImportTemplate = computed(() => ['partProcess', 'partQuality', 'hierarchy', 'PART_ACTUAL_MANUFACTURING_PROCESS'].includes(textObjDlg.form.taskType))
 const textConfirmText = computed(() => '导入数据')
@@ -4388,10 +4386,15 @@ function applyTextFixedApiConfig() {
   if (textObjDlg.form.importMode !== 'api') return
   const config = TEXT_FIXED_API_CONFIG[textObjDlg.form.taskType]
   if (!config) return
+  const fixedFileNames = Object.values(TEXT_FIXED_API_CONFIG).map(item => item.fileName)
+  const fixedApiUrls = Object.values(TEXT_FIXED_API_CONFIG).map(item => item.endpoint)
+  if (!textObjDlg.form.apiUrl || fixedApiUrls.includes(textObjDlg.form.apiUrl)) {
+    textObjDlg.form.apiUrl = config.endpoint
+  }
   textObjDlg.form.apiMethod = config.method
   textObjDlg.form.apiHeaders = JSON.stringify(config.headers, null, 2)
-  textObjDlg.form.apiBody = JSON.stringify(config.body, null, 2)
-  if (!textObjDlg.form.apiFileName) {
+  textObjDlg.form.apiBody = config.body || ''
+  if (!textObjDlg.form.apiFileName || fixedFileNames.includes(textObjDlg.form.apiFileName)) {
     textObjDlg.form.apiFileName = config.fileName
   }
 }
@@ -4877,6 +4880,8 @@ async function submitTextData(file) {
     const data = res?.data || {}
     if (isTextActualProcess.value) {
       ElMessage.success('导入完成：新增制造质量记录 ' + (data.manufacturing_quality_count || 0) + ' 条，新增制造设备 ' + (data.manufacturing_device_count || 0) + ' 条，生产工单 ' + (data.work_order_count || 0) + ' 条，工序执行记录 ' + (data.process_execution_count || 0) + ' 条')
+    } else if (textObjDlg.form.taskType === 'partProcess') {
+      handleProcessImportResult(data, '导入完成')
     } else {
       ElMessage.success('导入完成：零件 ' + (data.part_count || 0) + ' 个，新增实例 ' + (data.instance_count || 0) + ' 个，工序 ' + (data.process_count || 0) + ' 条')
     }
@@ -4924,7 +4929,7 @@ async function submitHierarchyData(file) {
   try {
     const res = await uploadHierarchyData(payload)
     const data = res?.data || {}
-    ElMessage.success('导入完成：层级对象 ' + (data.total_count || 0) + ' 条')
+    handleHierarchyImportResult(data, '导入完成')
     await reloadTreeView(current_node.value?.id || '')
   } catch (error) {
     ElMessage.error(error?.response?.data?.msg || error?.message || '导入层级对象失败')
@@ -4963,9 +4968,9 @@ async function submitTextApiData() {
     componentId: textObjDlg.form.componentId || '',
     partId: textObjDlg.form.partId || '',
     apiUrl,
-    method: textObjDlg.form.apiMethod || 'GET',
+    method: isTextFixedApiTask.value ? 'GET' : (textObjDlg.form.apiMethod || 'GET'),
     headers,
-    body: textObjDlg.form.apiBody || '',
+    body: isTextFixedApiTask.value ? '' : (textObjDlg.form.apiBody || ''),
     fileName: (textObjDlg.form.apiFileName || '').trim()
   }
 
@@ -4991,10 +4996,13 @@ async function submitTextApiData() {
     res = await uploadProcessTextApiData(payload)
     const data = res?.data || {}
     if (isTextHierarchy.value) {
-      ElMessage.success('API导入完成：层级对象 ' + (data.total_count || 0) + ' 条')
+      handleHierarchyImportResult(data, 'API导入完成')
       await reloadTreeView(current_node.value?.id || '')
     } else if (isTextActualProcess.value) {
       ElMessage.success('API导入完成：新增制造质量记录 ' + (data.manufacturing_quality_count || 0) + ' 条，新增制造设备 ' + (data.manufacturing_device_count || 0) + ' 条，生产工单 ' + (data.work_order_count || 0) + ' 条，工序执行记录 ' + (data.process_execution_count || 0) + ' 条')
+      await reloadTreeView(current_node.value?.id || '')
+    } else if (textObjDlg.form.taskType === 'partProcess') {
+      handleProcessImportResult(data, 'API导入完成')
       await reloadTreeView(current_node.value?.id || '')
     } else {
       ElMessage.success('API导入完成：零件 ' + (data.part_count || 0) + ' 个，新增实例 ' + (data.instance_count || 0) + ' 个，工序 ' + (data.process_count || 0) + ' 条')
@@ -5008,6 +5016,65 @@ async function submitTextApiData() {
   } finally {
     textImporting.value = false
   }
+}
+
+function handleHierarchyImportResult(data, prefix) {
+  const inserted = Number(data?.total_count || 0)
+  const skipped = Number(data?.skipped_count || 0)
+  if (skipped > 0) {
+    ElMessage.warning(`${prefix}：新增层级对象 ${inserted} 条，跳过已存在数据 ${skipped} 条，已导出跳过明细`)
+    exportSkippedRows(data?.skipped_rows || [], '层级对象跳过明细')
+    return
+  }
+  ElMessage.success(`${prefix}：层级对象 ${inserted} 条`)
+}
+
+function handleProcessImportResult(data, prefix) {
+  const routes = Number(data?.route_count || 0)
+  const processes = Number(data?.process_count || 0)
+  const skipped = Number(data?.skipped_count || 0)
+  if (skipped > 0) {
+    ElMessage.warning(`${prefix}：新增工艺路线 ${routes} 条，新增详细工序 ${processes} 条，跳过已存在数据 ${skipped} 条，已导出跳过明细`)
+    exportSkippedRows(data?.skipped_rows || [], '零件标准制作过程跳过明细')
+    return
+  }
+  ElMessage.success(`${prefix}：工艺路线 ${routes} 条，详细工序 ${processes} 条`)
+}
+
+function exportSkippedRows(rows, filePrefix) {
+  if (!Array.isArray(rows) || !rows.length) return
+  const headers = [
+    { key: 'sheet_name', label: 'Sheet' },
+    { key: 'row_num', label: '行号' },
+    { key: 'id_column', label: '主键字段' },
+    { key: 'object_id', label: '对象ID' },
+    { key: 'object_name', label: '对象名称' },
+    { key: 'reason', label: '跳过原因' }
+  ]
+  const html = `
+    <html>
+      <head><meta charset="UTF-8"></head>
+      <body>
+        <table border="1">
+          <thead><tr>${headers.map(item => `<th>${escapeExcelHtml(item.label)}</th>`).join('')}</tr></thead>
+          <tbody>
+            ${rows.map(row => `<tr>${headers.map(item => `<td>${escapeExcelHtml(row?.[item.key])}</td>`).join('')}</tr>`).join('')}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' })
+  saveAs(blob, `${filePrefix || '导入跳过明细'}_${new Date().getTime()}.xls`)
+}
+
+function escapeExcelHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 async function downloadPartQualityTemplate() {
