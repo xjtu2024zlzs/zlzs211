@@ -75,7 +75,8 @@ public class Project1PresetScenarioService
 
     private static final String PRESET_DATASET_VERSION = "PRESET_DATASET_V2_FULL_GT";
     private static final String ACCESS_MANAGED_MARKER = "[PROJECT1_MANAGED_ACCESS_V1]";
-    private static final String ACCESS_DATA_VERSION = "PROJECT1_ACCESS_STATS_V1";
+    private static final String ACCESS_DATA_VERSION = "PROJECT1_ACCESS_STATS_V2_APPEND_HOURLY";
+    private static final String PRESET_REVIEW_BASE_TIME = "2026-07-03 14:13:35";
     private static final String SOURCE_DATABASE = "cf_source";
     private static final String DEFAULT_ENCODING_MODE = "header_values_default";
     private static final String DEFAULT_EMBEDDING_MODEL = "mpnet";
@@ -191,6 +192,26 @@ public class Project1PresetScenarioService
     }
 
     @Transactional(rollbackFor = Exception.class)
+    public void syncManagedAccessSchedules()
+    {
+        AccessPlan query = new AccessPlan();
+        query.setStatus("0");
+        for (AccessPlan plan : accessPlanMapper.selectAccessPlanList(query))
+        {
+            if (!isManagedAccessPlan(plan) || !"continuous".equals(plan.getAccessType())
+                    || !"enabled".equals(plan.getUseStatus()) || "1".equals(plan.getDelFlag()))
+            {
+                continue;
+            }
+            String system = resolveSystemKeyFromAccessPlan(plan);
+            if (system != null)
+            {
+                ensureManagedAccessResults(plan, system);
+            }
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> refreshManagedAccessPlan(Long accessPlanId)
     {
         if (accessPlanId == null)
@@ -216,8 +237,8 @@ public class Project1PresetScenarioService
             throw new ServiceException("无法识别接入计划对应系统");
         }
 
-        AccessBatch latestBatch = rebuildManagedAccessResults(plan, system);
-        PresetAccessDemoDataFactory.AccessProfile profile = accessDataFactory.profileFor(system);
+        ensureManagedAccessResults(plan, system);
+        AccessBatch latestBatch = appendManagedAccessBatch(plan, system);
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("accessPlanId", accessPlanId);
@@ -226,11 +247,11 @@ public class Project1PresetScenarioService
         result.put("batchNo", latestBatch == null ? null : latestBatch.getBatchNo());
         result.put("executionStatus", "success");
         result.put("message", "接入执行完成");
-        result.put("totalSuccessCount", profile.totalSuccessCount());
-        result.put("totalFailedCount", profile.totalFailedCount());
-        result.put("insertedCount", profile.lastInsertedCount());
-        result.put("updatedCount", profile.lastUpdatedCount());
-        result.put("failedCount", profile.lastFailedCount());
+        result.put("totalSuccessCount", plan.getTotalSuccessCount());
+        result.put("totalFailedCount", plan.getTotalFailedCount());
+        result.put("insertedCount", latestBatch == null ? 0L : safeLong(latestBatch.getInsertedCount()));
+        result.put("updatedCount", latestBatch == null ? 0L : safeLong(latestBatch.getUpdatedCount()));
+        result.put("failedCount", latestBatch == null ? 0L : safeLong(latestBatch.getWriteFailedCount()));
         return result;
     }
 
@@ -323,8 +344,11 @@ public class Project1PresetScenarioService
         rebuildPresetSpecs(specSet, groundTruth);
         updateAccessPlans(datasource.getDatasourceId(), specSet.getSpecSetId());
         AccessPlan managedPlan = ensureManagedAccessPlan(datasource, system, specSet.getSpecSetId());
-        rebuildManagedAccessScopes(managedPlan, datasource, specSet);
-        rebuildManagedAccessResults(managedPlan, system);
+        if (selectScopeTables(managedPlan.getAccessPlanId()).isEmpty())
+        {
+            rebuildManagedAccessScopes(managedPlan, datasource, specSet);
+        }
+        ensureManagedAccessResults(managedPlan, system);
     }
 
     private MatchTask ensureTask(Datasource datasource, String system)
@@ -587,8 +611,9 @@ public class Project1PresetScenarioService
         review.setAlgorithmScore(row.getScore());
         review.setReviewStatus(generatedRow.reviewStatus());
         review.setReviewedBy(reviewActor(generatedRow.reviewStatus()));
-        review.setReviewedAt(review.getReviewedBy() == null ? null : now());
-        review.setCreateTime(now());
+        Date reviewedAt = presetReviewedAt(generatedRow.reviewStatus(), generatedRow.rowNo());
+        review.setReviewedAt(review.getReviewedBy() == null ? null : reviewedAt);
+        review.setCreateTime(reviewedAt == null ? now() : reviewedAt);
         review.setRemark(executable ? PRESET_MARKER + " " + PRESET_DATASET_VERSION : PRESET_DATASET_VERSION);
         reviewedMatchMapper.insertReviewedMatch(review);
 
@@ -636,7 +661,7 @@ public class Project1PresetScenarioService
         history.setNewTargetColumn(review.getTargetColumn());
         history.setActor(review.getReviewedBy());
         history.setActionType("approved".equals(newStatus) ? "approve" : "reject");
-        history.setCreateTime(now());
+        history.setCreateTime(review.getReviewedAt() == null ? now() : review.getReviewedAt());
         history.setRemark(PRESET_DATASET_VERSION);
         reviewHistoryMapper.insertReviewHistory(history);
     }
@@ -812,8 +837,6 @@ public class Project1PresetScenarioService
 
     private void rebuildManagedAccessScopes(AccessPlan plan, Datasource datasource, MappingSpecSet specSet)
     {
-        clearAccessScopes(plan.getAccessPlanId());
-
         MappingSpec specQuery = new MappingSpec();
         specQuery.setSpecSetId(specSet.getSpecSetId());
         specQuery.setSpecStatus("active");
@@ -838,7 +861,14 @@ public class Project1PresetScenarioService
             }
             List<MappingSpec> fieldSpecs = dedupeSpecsByField(tableGroup);
             MappingSpec first = tableGroup.get(0);
-            AccessScopeTable scopeTable = new AccessScopeTable();
+            AccessScopeTable scopeTable = findAccessScopeTable(plan.getAccessPlanId(), first.getSourceTable(),
+                first.getTargetTable());
+            boolean insertScopeTable = scopeTable == null;
+            if (insertScopeTable)
+            {
+                scopeTable = new AccessScopeTable();
+                scopeTable.setCreateTime(now());
+            }
             scopeTable.setAccessPlanId(plan.getAccessPlanId());
             scopeTable.setSpecSetId(specSet.getSpecSetId());
             scopeTable.setSourceDatasourceId(datasource.getDatasourceId());
@@ -847,9 +877,17 @@ public class Project1PresetScenarioService
             scopeTable.setTargetTable(first.getTargetTable());
             scopeTable.setFieldMappingCount((long) fieldSpecs.size());
             scopeTable.setScopeStatus("active");
-            scopeTable.setCreateTime(now());
             scopeTable.setRemark(accessManagedRemark());
-            accessScopeTableMapper.insertAccessScopeTable(scopeTable);
+            if (insertScopeTable)
+            {
+                accessScopeTableMapper.insertAccessScopeTable(scopeTable);
+            }
+            else
+            {
+                scopeTable.setUpdateTime(now());
+                accessScopeTableMapper.updateAccessScopeTable(scopeTable);
+                clearAccessScopeFields(scopeTable.getScopeTableId());
+            }
 
             for (MappingSpec spec : fieldSpecs)
             {
@@ -867,6 +905,122 @@ public class Project1PresetScenarioService
                 accessScopeFieldMapper.insertAccessScopeField(scopeField);
             }
         }
+    }
+
+    private AccessScopeTable findAccessScopeTable(Long accessPlanId, String sourceTable, String targetTable)
+    {
+        for (AccessScopeTable row : selectScopeTables(accessPlanId))
+        {
+            if (isSameAccessScope(row, accessPlanId, sourceTable, targetTable))
+            {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    static boolean isSameAccessScope(AccessScopeTable row, Long accessPlanId, String sourceTable, String targetTable)
+    {
+        return row != null && accessPlanId != null && accessPlanId.equals(row.getAccessPlanId())
+            && StringUtils.equals(StringUtils.defaultString(row.getSourceTable()), StringUtils.defaultString(sourceTable))
+            && StringUtils.equals(StringUtils.defaultString(row.getTargetTable()), StringUtils.defaultString(targetTable));
+    }
+
+    private void clearAccessScopeFields(Long scopeTableId)
+    {
+        AccessScopeField fieldQuery = new AccessScopeField();
+        fieldQuery.setScopeTableId(scopeTableId);
+        for (AccessScopeField field : accessScopeFieldMapper.selectAccessScopeFieldList(fieldQuery))
+        {
+            accessScopeFieldMapper.deleteAccessScopeFieldByScopeFieldId(field.getScopeFieldId());
+        }
+    }
+
+    private AccessBatch ensureManagedAccessResults(AccessPlan plan, String system)
+    {
+        List<AccessBatch> batches = selectManagedBatches(plan.getAccessPlanId());
+        if (shouldRebuildManagedAccessResults(plan.getAccessPlanId(), batches))
+        {
+            return rebuildManagedAccessResults(plan, system);
+        }
+
+        AccessBatch latestBatch = refreshManagedScheduleWindow(plan, system, batches);
+        updateManagedPlanSummaryFromBatches(plan, accessDataFactory.profileFor(system), latestBatch);
+        return latestBatch;
+    }
+
+    private AccessBatch appendManagedAccessBatch(AccessPlan plan, String system)
+    {
+        List<AccessBatch> batches = selectManagedBatches(plan.getAccessPlanId());
+        if (shouldRebuildManagedAccessResults(plan.getAccessPlanId(), batches))
+        {
+            rebuildManagedAccessResults(plan, system);
+            batches = selectManagedBatches(plan.getAccessPlanId());
+        }
+
+        PresetAccessDemoDataFactory.AccessProfile profile = accessDataFactory.profileFor(system);
+        List<ScopeTableGroup> tableGroups = groupScopeTablesByTarget(selectScopeTables(plan.getAccessPlanId()));
+        AccessResultAccumulator accumulator = existingManagedAccessTotals(plan.getAccessPlanId());
+        int sequence = batches.size() + 1;
+        PresetAccessDemoDataFactory.BatchProfile batchProfile = accessDataFactory.manualBatchFor(system, sequence);
+        Date finishedAt = manualBatchFinishedAt(now());
+        AccessBatch latestBatch = insertManagedBatch(plan, profile, batchProfile, finishedAt);
+        insertManagedTableResults(plan, latestBatch, batchProfile, tableGroups, accumulator.cumulativeSuccess,
+            accumulator.cumulativeFailed, finishedAt);
+        updateManagedPlanSummaryFromBatches(plan, profile, latestBatch);
+        return latestBatch;
+    }
+
+    private AccessBatch refreshManagedScheduleWindow(AccessPlan plan, String system, List<AccessBatch> batches)
+    {
+        if (!shouldRollScheduleBatches(batches, now()))
+        {
+            return latestFinishedBatch(batches);
+        }
+
+        List<AccessBatch> manualBatches = new ArrayList<>();
+        for (AccessBatch batch : batches)
+        {
+            if ("manual".equals(batch.getTriggerType()))
+            {
+                manualBatches.add(batch);
+            }
+        }
+
+        List<AccessScopeTable> scopeTables = selectScopeTables(plan.getAccessPlanId());
+        if (scopeTables.isEmpty() && plan.getSpecSetId() != null)
+        {
+            Datasource datasource = datasourceMapper.selectDatasourceByDatasourceId(plan.getSourceDatasourceId());
+            MappingSpecSet specSet = mappingSpecSetMapper.selectMappingSpecSetBySpecSetId(plan.getSpecSetId());
+            if (datasource != null && specSet != null)
+            {
+                rebuildManagedAccessScopes(plan, datasource, specSet);
+                scopeTables = selectScopeTables(plan.getAccessPlanId());
+            }
+        }
+
+        List<ScopeTableGroup> tableGroups = groupScopeTablesByTarget(scopeTables);
+        PresetAccessDemoDataFactory.AccessProfile profile = accessDataFactory.profileFor(system);
+        clearManagedAccessResultRows(plan.getAccessPlanId());
+        clearScheduleBatches(plan.getAccessPlanId());
+
+        List<AccessBatch> refreshedBatches = new ArrayList<>(manualBatches);
+        Date baseTime = now();
+        for (PresetAccessDemoDataFactory.BatchProfile batchProfile : accessDataFactory.batchesFor(system))
+        {
+            Date finishedAt = scheduledBatchFinishedAt(baseTime, batchProfile.sequence());
+            refreshedBatches.add(insertManagedBatch(plan, profile, batchProfile, finishedAt));
+        }
+        refreshedBatches.sort(batchComparator());
+
+        Map<String, Long> cumulativeSuccess = new HashMap<>();
+        Map<String, Long> cumulativeFailed = new HashMap<>();
+        for (AccessBatch batch : refreshedBatches)
+        {
+            insertManagedTableResults(plan, batch, batchProfileFromBatch(batch), tableGroups, cumulativeSuccess,
+                cumulativeFailed, batch.getFinishedAt());
+        }
+        return latestFinishedBatch(refreshedBatches);
     }
 
     private AccessBatch rebuildManagedAccessResults(AccessPlan plan, String system)
@@ -892,14 +1046,14 @@ public class Project1PresetScenarioService
         Map<String, Long> cumulativeFailed = new HashMap<>();
         for (PresetAccessDemoDataFactory.BatchProfile batchProfile : accessDataFactory.batchesFor(system))
         {
-            Date finishedAt = batchFinishedAt(baseTime, batchProfile.sequence());
+            Date finishedAt = scheduledBatchFinishedAt(baseTime, batchProfile.sequence());
             AccessBatch batch = insertManagedBatch(plan, profile, batchProfile, finishedAt);
             latestBatch = batch;
             insertManagedTableResults(plan, batch, batchProfile, tableGroups, cumulativeSuccess, cumulativeFailed,
                 finishedAt);
         }
 
-        updateManagedPlanSummary(plan, profile, latestBatch);
+        updateManagedPlanSummaryFromBatches(plan, profile, latestBatch);
         return latestBatch;
     }
 
@@ -915,6 +1069,18 @@ public class Project1PresetScenarioService
 
     private void clearManagedAccessResults(Long accessPlanId)
     {
+        clearManagedAccessResultRows(accessPlanId);
+
+        AccessBatch batchQuery = new AccessBatch();
+        batchQuery.setAccessPlanId(accessPlanId);
+        for (AccessBatch batch : accessBatchMapper.selectAccessBatchList(batchQuery))
+        {
+            accessBatchMapper.deleteAccessBatchByAccessBatchId(batch.getAccessBatchId());
+        }
+    }
+
+    private void clearManagedAccessResultRows(Long accessPlanId)
+    {
         AccessFieldResult fieldQuery = new AccessFieldResult();
         fieldQuery.setAccessPlanId(accessPlanId);
         for (AccessFieldResult field : accessFieldResultMapper.selectAccessFieldResultList(fieldQuery))
@@ -928,9 +1094,13 @@ public class Project1PresetScenarioService
         {
             accessTableResultMapper.deleteAccessTableResultByTableResultId(table.getTableResultId());
         }
+    }
 
+    private void clearScheduleBatches(Long accessPlanId)
+    {
         AccessBatch batchQuery = new AccessBatch();
         batchQuery.setAccessPlanId(accessPlanId);
+        batchQuery.setTriggerType("schedule");
         for (AccessBatch batch : accessBatchMapper.selectAccessBatchList(batchQuery))
         {
             accessBatchMapper.deleteAccessBatchByAccessBatchId(batch.getAccessBatchId());
@@ -1102,9 +1272,71 @@ public class Project1PresetScenarioService
         return result;
     }
 
-    private void updateManagedPlanSummary(AccessPlan plan, PresetAccessDemoDataFactory.AccessProfile profile,
+    private List<AccessBatch> selectManagedBatches(Long accessPlanId)
+    {
+        AccessBatch query = new AccessBatch();
+        query.setAccessPlanId(accessPlanId);
+        List<AccessBatch> batches = accessBatchMapper.selectAccessBatchList(query);
+        batches.sort(batchComparator());
+        return batches;
+    }
+
+    private boolean shouldRebuildManagedAccessResults(Long accessPlanId, List<AccessBatch> batches)
+    {
+        if (batches == null || batches.isEmpty())
+        {
+            return true;
+        }
+        for (AccessBatch batch : batches)
+        {
+            if (!StringUtils.contains(StringUtils.defaultString(batch.getRemark()), ACCESS_DATA_VERSION))
+            {
+                return true;
+            }
+        }
+
+        AccessTableResult query = new AccessTableResult();
+        query.setAccessPlanId(accessPlanId);
+        return accessTableResultMapper.selectAccessTableResultList(query).isEmpty();
+    }
+
+    static AccessBatch latestFinishedBatch(List<AccessBatch> batches)
+    {
+        if (batches == null || batches.isEmpty())
+        {
+            return null;
+        }
+        return batches.stream().max(batchComparator()).orElse(null);
+    }
+
+    private AccessResultAccumulator existingManagedAccessTotals(Long accessPlanId)
+    {
+        AccessResultAccumulator accumulator = new AccessResultAccumulator();
+        AccessTableResult query = new AccessTableResult();
+        query.setAccessPlanId(accessPlanId);
+        for (AccessTableResult table : accessTableResultMapper.selectAccessTableResultList(query))
+        {
+            String targetTable = StringUtils.defaultString(table.getTargetTable());
+            accumulator.cumulativeSuccess.put(targetTable,
+                accumulator.cumulativeSuccess.getOrDefault(targetTable, 0L) + safeLong(table.getSuccessCount()));
+            accumulator.cumulativeFailed.put(targetTable,
+                accumulator.cumulativeFailed.getOrDefault(targetTable, 0L) + safeLong(table.getFailedCount()));
+        }
+        return accumulator;
+    }
+
+    private void updateManagedPlanSummaryFromBatches(AccessPlan plan, PresetAccessDemoDataFactory.AccessProfile profile,
             AccessBatch latestBatch)
     {
+        List<AccessBatch> batches = selectManagedBatches(plan.getAccessPlanId());
+        long totalSuccessCount = 0L;
+        long totalFailedCount = 0L;
+        for (AccessBatch batch : batches)
+        {
+            totalSuccessCount += safeLong(batch.getWriteSuccessCount());
+            totalFailedCount += safeLong(batch.getWriteFailedCount());
+        }
+
         plan.setPlanName(profile.planName());
         plan.setAccessMode("api_pull");
         plan.setAccessType(profile.accessType());
@@ -1112,27 +1344,112 @@ public class Project1PresetScenarioService
         plan.setUseStatus(profile.useStatus());
         plan.setStatus("0");
         plan.setDelFlag("0");
-        plan.setLastSuccessCount(profile.lastInsertedCount() + profile.lastUpdatedCount());
-        plan.setLastFailedCount(profile.lastFailedCount());
-        plan.setTotalSuccessCount(profile.totalSuccessCount());
-        plan.setTotalFailedCount(profile.totalFailedCount());
+        plan.setLastSuccessCount(latestBatch == null ? 0L : safeLong(latestBatch.getWriteSuccessCount()));
+        plan.setLastFailedCount(latestBatch == null ? 0L : safeLong(latestBatch.getWriteFailedCount()));
+        plan.setLastInsertedCount(latestBatch == null ? 0L : safeLong(latestBatch.getInsertedCount()));
+        plan.setLastUpdatedCount(latestBatch == null ? 0L : safeLong(latestBatch.getUpdatedCount()));
+        plan.setTotalSuccessCount(totalSuccessCount);
+        plan.setTotalFailedCount(totalFailedCount);
         plan.setCurrentBatchId(latestBatch == null ? null : latestBatch.getAccessBatchId());
-        plan.setLastExecuteTime(latestBatch == null ? now() : latestBatch.getFinishedAt());
+        plan.setLastExecuteTime(latestBatch == null ? truncateToHour(now()) : latestBatch.getFinishedAt());
         plan.setUpdateTime(now());
         plan.setRemark(accessManagedRemark());
         accessPlanMapper.updateAccessPlan(plan);
     }
 
-    private Date batchFinishedAt(Date baseTime, int sequence)
+    static boolean shouldRollScheduleBatches(List<AccessBatch> batches, Date currentTime)
+    {
+        List<AccessBatch> schedules = new ArrayList<>();
+        if (batches != null)
+        {
+            for (AccessBatch batch : batches)
+            {
+                if ("schedule".equals(batch.getTriggerType()))
+                {
+                    schedules.add(batch);
+                }
+            }
+        }
+        if (schedules.size() != 5)
+        {
+            return true;
+        }
+        schedules.sort(batchComparator());
+        for (int i = 0; i < schedules.size(); i++)
+        {
+            Date finishedAt = schedules.get(i).getFinishedAt();
+            Date expectedAt = scheduledBatchFinishedAt(currentTime, i + 1);
+            if (finishedAt == null || !finishedAt.equals(expectedAt))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static Date scheduledBatchFinishedAt(Date baseTime, int sequence)
     {
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(baseTime);
-        calendar.add(Calendar.DAY_OF_MONTH, sequence - 5);
-        calendar.set(Calendar.HOUR_OF_DAY, 8 + sequence);
-        calendar.set(Calendar.MINUTE, 17 + sequence * 6);
-        calendar.set(Calendar.SECOND, 11 + sequence);
-        calendar.set(Calendar.MILLISECOND, sequence * 17);
+        calendar.setTime(truncateToHour(baseTime));
+        calendar.add(Calendar.HOUR_OF_DAY, sequence - 5);
         return calendar.getTime();
+    }
+
+    static Date truncateToHour(Date source)
+    {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(source);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
+    }
+
+    static Date manualBatchFinishedAt(Date source)
+    {
+        return source;
+    }
+
+    static Date presetReviewedAt(String status, long rowNo)
+    {
+        if (!"auto_approved".equals(status) && !"approved".equals(status) && !"rejected".equals(status))
+        {
+            return null;
+        }
+        try
+        {
+            Date baseTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(PRESET_REVIEW_BASE_TIME);
+            if ("auto_approved".equals(status))
+            {
+                return baseTime;
+            }
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(baseTime);
+            calendar.add(Calendar.SECOND, (int) (10 + Math.floorMod(rowNo, 11L)));
+            return calendar.getTime();
+        }
+        catch (Exception e)
+        {
+            throw new IllegalStateException("Invalid preset review base time", e);
+        }
+    }
+
+    private static long safeLong(Long value)
+    {
+        return value == null ? 0L : value;
+    }
+
+    private static Comparator<AccessBatch> batchComparator()
+    {
+        return Comparator.comparing(AccessBatch::getFinishedAt, Comparator.nullsFirst(Date::compareTo))
+            .thenComparing(AccessBatch::getAccessBatchId, Comparator.nullsFirst(Long::compareTo));
+    }
+
+    private PresetAccessDemoDataFactory.BatchProfile batchProfileFromBatch(AccessBatch batch)
+    {
+        return new PresetAccessDemoDataFactory.BatchProfile(0, StringUtils.defaultString(batch.getTriggerType()),
+            safeLong(batch.getWriteSuccessCount()), safeLong(batch.getWriteFailedCount()),
+            safeLong(batch.getInsertedCount()), safeLong(batch.getUpdatedCount()));
     }
 
     private Date shiftMinutes(Date source, int minutes)
@@ -1154,6 +1471,19 @@ public class Project1PresetScenarioService
             }
         }
         return null;
+    }
+
+    private String resolveSystemKeyFromAccessPlan(AccessPlan plan)
+    {
+        if (plan == null)
+        {
+            return null;
+        }
+        Datasource datasource = datasourceMapper.selectDatasourceByDatasourceId(plan.getSourceDatasourceId());
+        ApiPullDatasource apiPull = datasource == null ? null
+            : apiPullDatasourceMapper.selectApiPullDatasourceByDatasourceId(datasource.getDatasourceId());
+        String system = resolveSystemKey(datasource, apiPull);
+        return system == null ? resolveSystemKeyFromPlanName(plan.getPlanName()) : system;
     }
 
     private String accessManagedRemark()
@@ -1362,6 +1692,12 @@ public class Project1PresetScenarioService
     private Date now()
     {
         return DateUtils.getNowDate();
+    }
+
+    private static class AccessResultAccumulator
+    {
+        private final Map<String, Long> cumulativeSuccess = new HashMap<>();
+        private final Map<String, Long> cumulativeFailed = new HashMap<>();
     }
 
     private static class ScopeTableGroup

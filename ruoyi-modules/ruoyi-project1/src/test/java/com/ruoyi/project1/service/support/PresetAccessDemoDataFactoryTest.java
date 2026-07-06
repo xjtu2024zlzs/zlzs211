@@ -41,8 +41,31 @@ class PresetAccessDemoDataFactoryTest
             assertEquals(profile.lastInsertedCount(), latest.insertedCount());
             assertEquals(profile.lastUpdatedCount(), latest.updatedCount());
             assertEquals(profile.lastFailedCount(), latest.failedCount());
+            assertEquals("schedule", latest.triggerType());
+
             assertNoForbiddenText(profile.batchPrefix());
         }
+    }
+
+    @Test
+    void manualBatchesUseDeterministicSequenceGrowth()
+    {
+        PresetAccessDemoDataFactory factory = PresetAccessDemoDataFactory.createDefault();
+        PresetAccessDemoDataFactory.AccessProfile profile = factory.profileFor("plm");
+
+        PresetAccessDemoDataFactory.BatchProfile firstManual = factory.manualBatchFor("plm", 6);
+        PresetAccessDemoDataFactory.BatchProfile secondManual = factory.manualBatchFor("plm", 7);
+
+        assertEquals("manual", firstManual.triggerType());
+        assertEquals(profile.lastInsertedCount() + 37L, firstManual.insertedCount());
+        assertEquals(profile.lastUpdatedCount() + 13L, firstManual.updatedCount());
+        assertEquals(profile.lastFailedCount() + 1L, firstManual.failedCount());
+        assertEquals(firstManual.insertedCount() + firstManual.updatedCount(), firstManual.successCount());
+
+        assertEquals(firstManual.insertedCount() + 37L, secondManual.insertedCount());
+        assertEquals(firstManual.updatedCount() + 13L, secondManual.updatedCount());
+        assertEquals(firstManual.failedCount() + 1L, secondManual.failedCount());
+        assertEquals(secondManual.insertedCount() + secondManual.updatedCount(), secondManual.successCount());
     }
 
     @Test

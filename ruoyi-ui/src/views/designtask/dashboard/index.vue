@@ -114,7 +114,7 @@
               <span>报告文件：</span>
               <strong>{{ getLifecycleReportFileName(currentQualityTask.lifecycleReportFile) }}</strong>
             </div>
-            
+
             <div
               v-if="currentQualityTask.lifecycleReportSubmitTime"
               class="lifecycle-report-info"

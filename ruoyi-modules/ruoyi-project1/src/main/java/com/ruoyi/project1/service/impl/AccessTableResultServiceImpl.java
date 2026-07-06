@@ -2,6 +2,7 @@ package com.ruoyi.project1.service.impl;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import com.ruoyi.project1.mapper.AccessTableResultMapper;
 import com.ruoyi.project1.domain.AccessBatch;
 import com.ruoyi.project1.domain.AccessTableResult;
 import com.ruoyi.project1.service.IAccessTableResultService;
+import com.ruoyi.project1.service.support.Project1PresetScenarioService;
 
 /**
  * 数据接入结果展示Service业务层处理
@@ -30,6 +32,9 @@ public class AccessTableResultServiceImpl implements IAccessTableResultService
     @Autowired
     private AccessBatchMapper accessBatchMapper;
 
+    @Autowired
+    private Project1PresetScenarioService presetScenarioService;
+
     /**
      * 查询数据接入结果展示
      * 
@@ -39,6 +44,7 @@ public class AccessTableResultServiceImpl implements IAccessTableResultService
     @Override
     public AccessTableResult selectAccessTableResultByTableResultId(Long tableResultId)
     {
+        syncManagedAccessSchedules();
         return accessTableResultMapper.selectAccessTableResultByTableResultId(tableResultId);
     }
 
@@ -107,25 +113,22 @@ public class AccessTableResultServiceImpl implements IAccessTableResultService
     @Override
     public Map<String, Object> summary(Long accessPlanId)
     {
+        syncManagedAccessSchedules();
         AccessTableResult query = new AccessTableResult();
         query.setAccessPlanId(accessPlanId);
-        List<AccessTableResult> rows = selectAccessTableResultList(query);
+        List<AccessTableResult> rows = accessTableResultMapper.selectAccessTableResultList(query);
 
         long totalSuccess = 0L;
         long totalFailed = 0L;
         long lastInserted = 0L;
         long lastUpdated = 0L;
         long lastFailed = 0L;
-        Long latestBatchId = null;
+        Long latestBatchId = latestBatchId(accessPlanId);
 
         for (AccessTableResult row : rows)
         {
             totalSuccess += value(row.getSuccessCount());
             totalFailed += value(row.getFailedCount());
-            if (row.getAccessBatchId() != null && (latestBatchId == null || row.getAccessBatchId() > latestBatchId))
-            {
-                latestBatchId = row.getAccessBatchId();
-            }
         }
         for (AccessTableResult row : rows)
         {
@@ -152,9 +155,10 @@ public class AccessTableResultServiceImpl implements IAccessTableResultService
     @Override
     public Map<String, Object> dashboard(Long accessPlanId)
     {
+        syncManagedAccessSchedules();
         AccessTableResult query = new AccessTableResult();
         query.setAccessPlanId(accessPlanId);
-        List<AccessTableResult> rows = selectAccessTableResultList(query);
+        List<AccessTableResult> rows = accessTableResultMapper.selectAccessTableResultList(query);
 
         List<Map<String, Object>> batchOptions = buildBatchOptions(accessPlanId);
         List<Map<String, Object>> recentBatches = buildRecentBatches(rows, batchOptions);
@@ -173,7 +177,7 @@ public class AccessTableResultServiceImpl implements IAccessTableResultService
         AccessBatch query = new AccessBatch();
         query.setAccessPlanId(accessPlanId);
         List<AccessBatch> batches = accessBatchMapper.selectAccessBatchList(query);
-        batches.sort(Comparator.comparing(AccessBatch::getAccessBatchId, Comparator.nullsLast(Long::compareTo)).reversed());
+        batches.sort(batchComparator().reversed());
 
         List<Map<String, Object>> rows = new ArrayList<>();
         for (AccessBatch batch : batches)
@@ -183,9 +187,20 @@ public class AccessTableResultServiceImpl implements IAccessTableResultService
             item.put("batchName", batch.getBatchNo());
             item.put("batchStatus", batch.getBatchStatus());
             item.put("startedAt", batch.getStartedAt());
+            item.put("finishedAt", batch.getFinishedAt());
             rows.add(item);
         }
         return rows;
+    }
+
+    private Long latestBatchId(Long accessPlanId)
+    {
+        List<Map<String, Object>> batchOptions = buildBatchOptions(accessPlanId);
+        if (batchOptions.isEmpty())
+        {
+            return null;
+        }
+        return (Long) batchOptions.get(0).get("batchId");
     }
 
     private List<Map<String, Object>> buildRecentBatches(List<AccessTableResult> rows, List<Map<String, Object>> batchOptions)
@@ -264,5 +279,17 @@ public class AccessTableResultServiceImpl implements IAccessTableResultService
     private long value(Long value)
     {
         return value == null ? 0L : value;
+    }
+
+    private static Comparator<AccessBatch> batchComparator()
+    {
+        return Comparator.comparing(AccessBatch::getFinishedAt, Comparator.nullsFirst(Date::compareTo))
+            .thenComparing(AccessBatch::getAccessBatchId, Comparator.nullsFirst(Long::compareTo));
+    }
+
+    private void syncManagedAccessSchedules()
+    {
+        presetScenarioService.ensurePresetScenario();
+        presetScenarioService.syncManagedAccessSchedules();
     }
 }

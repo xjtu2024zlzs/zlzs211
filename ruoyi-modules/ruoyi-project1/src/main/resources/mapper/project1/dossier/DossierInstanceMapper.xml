@@ -161,6 +161,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by dv.version_no desc
     </select>
 
+    <select id="selectJobCount" resultType="java.lang.Integer">
+        select count(1)
+        from t1_generation_job
+        where dossier_instance_id = #{instanceId}
+    </select>
+
     <select id="selectJobList" resultType="java.util.HashMap">
         select id as jobId,
                job_code as jobCode,
