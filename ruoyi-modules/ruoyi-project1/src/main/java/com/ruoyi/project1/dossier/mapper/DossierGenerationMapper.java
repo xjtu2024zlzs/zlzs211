@@ -48,7 +48,12 @@ public interface DossierGenerationMapper
             @Param("nodeId") String nodeId, @Param("partNumber") String partNumber,
             @Param("partInstanceId") String partInstanceId);
 
+    public List<Map<String, Object>> selectAnalysisResultRows(@Param("instanceId") String instanceId,
+            @Param("aircraftId") String aircraftId);
+
     public Map<String, Object> selectDossierInstance(@Param("aircraftId") String aircraftId, @Param("templateId") String templateId);
+
+    public Map<String, Object> selectDossierInstanceById(@Param("instanceId") String instanceId);
 
     public int insertDossierInstance(Map<String, Object> params);
 
@@ -76,6 +81,10 @@ public interface DossierGenerationMapper
     public int insertDataSnapshot(Map<String, Object> params);
 
     public int insertGenerationJob(Map<String, Object> params);
+
+    public int insertFailedGenerationJob(Map<String, Object> params);
+
+    public int resetBuildingInstanceAfterFailedPrecheck(Map<String, Object> params);
 
     public int updateGenerationJobVersion(Map<String, Object> params);
 

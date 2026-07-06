@@ -59,6 +59,14 @@ export function archiveDossierInstance(instanceId) {
   })
 }
 
+export function refreshDossierInstance(instanceId) {
+  return request({
+    url: '/project1/dossier/instance/' + instanceId + '/refresh',
+    method: 'post',
+    timeout: 120000
+  })
+}
+
 export function deleteDossierInstance(instanceId) {
   return request({
     url: '/project1/dossier/instance/' + instanceId,

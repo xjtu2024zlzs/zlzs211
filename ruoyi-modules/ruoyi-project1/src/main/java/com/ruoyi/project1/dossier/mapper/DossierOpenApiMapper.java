@@ -37,6 +37,20 @@ public interface DossierOpenApiMapper
 
     public List<Map<String, Object>> selectLifecycleDataByProduct(Map<String, Object> params);
 
+    public Map<String, Object> selectProject3HierarchyAircraft(Map<String, Object> params);
+
+    public List<Map<String, Object>> selectProject3HierarchyBomPath(Map<String, Object> params);
+
+    public Map<String, Object> selectProject3HierarchyPartTemplate(Map<String, Object> params);
+
+    public Map<String, Object> selectProject3HierarchyPartInstance(Map<String, Object> params);
+
+    public Map<String, Object> selectProject3PartProcessPart(@Param("partNumber") String partNumber);
+
+    public List<Map<String, Object>> selectProject3PartProcessRoutes(@Param("partNumber") String partNumber);
+
+    public List<Map<String, Object>> selectProject3PartProcessSteps(@Param("partNumber") String partNumber);
+
     public List<Map<String, Object>> selectNodeFiles(@Param("nodeId") String nodeId);
 
     public List<Map<String, Object>> selectFilesAndModels(Map<String, Object> params);
@@ -46,6 +60,16 @@ public interface DossierOpenApiMapper
     public int insertAnalysisTask(Map<String, Object> params);
 
     public int insertAnalysisResult(Map<String, Object> params);
+
+    public String selectFileAssetIdByCode(@Param("fileCode") String fileCode);
+
+    public int upsertWritebackFileAsset(Map<String, Object> params);
+
+    public String selectWritebackFileRelationId(@Param("fileId") String fileId,
+            @Param("targetType") String targetType, @Param("targetId") String targetId,
+            @Param("relationType") String relationType);
+
+    public int upsertWritebackFileRelation(Map<String, Object> params);
 
     public int insertOperationLog(Map<String, Object> params);
 

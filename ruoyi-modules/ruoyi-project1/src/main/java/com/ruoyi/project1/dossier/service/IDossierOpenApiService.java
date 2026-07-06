@@ -39,6 +39,10 @@ public interface IDossierOpenApiService
 
     public List<Map<String, Object>> selectManufacturingProcessData(Map<String, Object> query);
 
+    public byte[] exportProject3HierarchyWorkbook(Map<String, Object> query);
+
+    public byte[] exportProject3PartProcessWorkbook(Map<String, Object> query);
+
     public List<Map<String, Object>> selectOperationMaintenanceData(Map<String, Object> query);
 
     public List<Map<String, Object>> selectFilesAndModels(Map<String, Object> query);

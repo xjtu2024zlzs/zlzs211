@@ -19,6 +19,8 @@ public interface IDossierGenerationService
 
     public Map<String, Object> startGeneration(Map<String, Object> request);
 
+    public Map<String, Object> refreshInstance(String instanceId);
+
     public Map<String, Object> selectJob(String jobId);
 
     public List<Map<String, Object>> selectJobLogs(String jobId);
