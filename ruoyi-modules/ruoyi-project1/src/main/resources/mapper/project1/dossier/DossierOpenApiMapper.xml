@@ -126,21 +126,39 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select di.id as instanceId,
                di.aircraft_id as aircraftId,
                di.current_version_id as currentVersionId,
-               count(distinct sn.id) as structureNodeCount,
-               count(distinct dci.id) as contentItemCount,
-               count(distinct fr.id) as documentCount,
-               coalesce(sum(case when dci.completeness_status = 'missing' then 1 else 0 end), 0) as missingCount,
-               coalesce(sum(case when dci.completeness_status = 'warning' then 1 else 0 end), 0) as warningCount,
-               coalesce(sum(case when dci.is_key_part = 1 then 1 else 0 end), 0) as keyPartCount,
-               max(dv.created_at) as latestVersionTime
+               coalesce(sn.structure_node_count, 0) as structureNodeCount,
+               coalesce(ci.content_item_count, 0) as contentItemCount,
+               coalesce(fr.document_count, 0) as documentCount,
+               coalesce(ci.missing_count, 0) as missingCount,
+               coalesce(ci.warning_count, 0) as warningCount,
+               coalesce(ci.key_part_count, 0) as keyPartCount,
+               dv.created_at as latestVersionTime
         from t1_dossier_instance di
         left join t1_dossier_version dv on dv.id = di.current_version_id
-        left join t1_dossier_structure_node sn on sn.dossier_version_id = dv.id
-        left join t1_dossier_content_item dci on dci.dossier_version_id = dv.id
-        left join t1_file_relation fr on fr.dossier_version_id = dv.id and fr.relation_status != 'deleted'
+        left join (
+            select dossier_version_id,
+                   count(1) as structure_node_count
+            from t1_dossier_structure_node
+            group by dossier_version_id
+        ) sn on sn.dossier_version_id = dv.id
+        left join (
+            select dossier_version_id,
+                   count(1) as content_item_count,
+                   sum(case when completeness_status = 'missing' then 1 else 0 end) as missing_count,
+                   sum(case when completeness_status = 'warning' then 1 else 0 end) as warning_count,
+                   sum(case when is_key_part = 1 then 1 else 0 end) as key_part_count
+            from t1_dossier_content_item
+            group by dossier_version_id
+        ) ci on ci.dossier_version_id = dv.id
+        left join (
+            select dossier_version_id,
+                   count(1) as document_count
+            from t1_file_relation
+            where relation_status != 'deleted'
+            group by dossier_version_id
+        ) fr on fr.dossier_version_id = dv.id
         where di.id = #{instanceId}
           and di.deleted_at is null
-        group by di.id, di.aircraft_id, di.current_version_id
     </select>
 
     <sql id="BomColumnList">
@@ -489,6 +507,174 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         limit #{offset}, #{pageSize}
     </select>
 
+    <select id="selectProject3HierarchyAircraft" resultType="java.util.HashMap">
+        select pa.id as aircraft_id,
+               concat(coalesce(pa.aircraft_type, 'Aircraft'), ' ', pa.tail_number) as aircraft_name,
+               coalesce(am.model_code, pa.aircraft_type) as aircraft_model,
+               pa.msn as serial_number,
+               pa.operational_status as status,
+               concat('tail_number=', pa.tail_number, '; manufacturer=', coalesce(pa.manufacturer, '')) as remarks
+        from t1_physical_aircraft pa
+        left join t1_ac_model am on am.id = pa.model_id
+        where pa.id = #{aircraftId}
+        limit 1
+    </select>
+
+    <select id="selectProject3HierarchyBomPath" resultType="java.util.HashMap">
+        with recursive target_node as (
+            select abn.id
+            from t1_aircraft_bom_node abn
+            where abn.is_active = 1
+            <choose>
+                <when test="bomNodeId != null and bomNodeId != ''">
+                    and abn.id = #{bomNodeId}
+                </when>
+                <otherwise>
+                    <if test="aircraftId != null and aircraftId != ''">
+                        and abn.aircraft_id = #{aircraftId}
+                    </if>
+                    <if test="partNumber != null and partNumber != ''">
+                        and abn.part_number = #{partNumber}
+                    </if>
+                </otherwise>
+            </choose>
+            order by case when abn.node_type = 'PART' then 0 else 1 end,
+                     abn.node_level desc, abn.position_code, abn.id
+            limit 1
+        ),
+        bom_path as (
+            select abn.id as nodeId,
+                   abn.parent_id as parentId,
+                   abn.aircraft_id as aircraftId,
+                   abn.node_level as nodeLevel,
+                   abn.node_type as nodeType,
+                   abn.part_number as partNumber,
+                   abn.part_name as partName,
+                   abn.serial_number as serialNumber,
+                   abn.batch_number as batchNumber,
+                   abn.manufacturer,
+                   date_format(abn.install_date, '%Y-%m-%d') as installDate,
+                   abn.position_code as positionCode,
+                   abn.part_instance_id as partInstanceId,
+                   abn.remark,
+                   0 as depth
+            from t1_aircraft_bom_node abn
+            inner join target_node tn on tn.id = abn.id
+            union all
+            select parent.id as nodeId,
+                   parent.parent_id as parentId,
+                   parent.aircraft_id as aircraftId,
+                   parent.node_level as nodeLevel,
+                   parent.node_type as nodeType,
+                   parent.part_number as partNumber,
+                   parent.part_name as partName,
+                   parent.serial_number as serialNumber,
+                   parent.batch_number as batchNumber,
+                   parent.manufacturer,
+                   date_format(parent.install_date, '%Y-%m-%d') as installDate,
+                   parent.position_code as positionCode,
+                   parent.part_instance_id as partInstanceId,
+                   parent.remark,
+                   bp.depth + 1 as depth
+            from t1_aircraft_bom_node parent
+            inner join bom_path bp on bp.parentId = parent.id
+            where parent.is_active = 1
+        )
+        select *
+        from bom_path
+        order by depth desc
+    </select>
+
+    <select id="selectProject3HierarchyPartTemplate" resultType="java.util.HashMap">
+        select pm.part_number as part_template_id,
+               pm.part_number as part_number,
+               pm.part_name as part_name,
+               pm.material as material,
+               pm.specification as specification,
+               coalesce(pm.design_revision, pm.revision, pm.drawing_revision) as design_version
+        from t1_part_master pm
+        where pm.part_number = #{partNumber}
+          and pm.status = 'ACTIVE'
+        limit 1
+    </select>
+
+    <select id="selectProject3HierarchyPartInstance" resultType="java.util.HashMap">
+        select coalesce(pi.id, abn.part_instance_id, abn.id) as part_instance_id,
+               coalesce(pi.part_number, abn.part_number) as part_template_id,
+               coalesce(pi.serial_number, abn.serial_number, abn.part_number) as serial_number,
+               coalesce(pi.batch_number, abn.batch_number) as batch_number,
+               coalesce(pi.manufacturer, abn.manufacturer) as manufacturer,
+               date_format(coalesce(pi.production_date, pi.manufacture_date, abn.install_date), '%Y-%m-%d') as production_date,
+               coalesce(pi.instance_status, 'INSTALLED') as current_status,
+               coalesce(pi.quality_status, pi.release_status, 'A') as quality_level,
+               coalesce(pm.criticality_level, case when pm.is_critical = 1 then 'important' else 'general' end) as key_degree,
+               '' as image_url
+        from t1_aircraft_bom_node abn
+        left join t1_part_instance pi on pi.id = abn.part_instance_id or pi.current_node_id = abn.id
+        left join t1_part_master pm on pm.part_number = coalesce(pi.part_number, abn.part_number)
+        where abn.is_active = 1
+          and abn.id = #{bomNodeId}
+        order by case when pi.id = abn.part_instance_id then 0 else 1 end
+        limit 1
+    </select>
+
+    <select id="selectProject3PartProcessPart" resultType="java.util.HashMap">
+        select pm.part_number as part_template_id,
+               pm.part_number as part_number,
+               pm.part_name as part_name,
+               node.parent_id as component_id,
+               pm.material as material,
+               pm.specification as specification,
+               coalesce(pm.design_revision, pm.revision, pm.drawing_revision) as design_version,
+               date_format(pm.created_at, '%Y-%m-%d %H:%i:%s') as create_time,
+               date_format(pm.updated_at, '%Y-%m-%d %H:%i:%s') as update_time
+        from t1_part_master pm
+        left join (
+            select picked.part_number, picked.parent_id
+            from (
+                select abn.part_number,
+                       abn.parent_id,
+                       row_number() over (partition by abn.part_number order by abn.node_level desc, abn.position_code, abn.id) as rn
+                from t1_aircraft_bom_node abn
+                where abn.is_active = 1
+                  and abn.part_number = #{partNumber}
+            ) picked
+            where picked.rn = 1
+        ) node on node.part_number = pm.part_number
+        where pm.part_number = #{partNumber}
+          and pm.status = 'ACTIVE'
+        limit 1
+    </select>
+
+    <select id="selectProject3PartProcessRoutes" resultType="java.util.HashMap">
+        select pr.route_code as route_id,
+               pr.part_number as part_template_id,
+               pr.route_name as route_name,
+               coalesce(pr.revision, '') as version,
+               date_format(coalesce(pr.effectivity_from, pr.approval_date, pr.created_at), '%Y-%m-%d') as effective_date,
+               case when pr.status = 'ACTIVE' then '1' else '0' end as is_active
+        from t1_process_route pr
+        where pr.part_number = #{partNumber}
+          and pr.status = 'ACTIVE'
+        order by pr.default_flag desc, pr.effectivity_from desc, pr.route_code
+    </select>
+
+    <select id="selectProject3PartProcessSteps" resultType="java.util.HashMap">
+        select ps.step_code as process_def_id,
+               ps.route_code as route_id,
+               ps.step_seq as process_number,
+               ps.step_name as process_name,
+               ps.required_equipment_type as equipment_type,
+               cast(ps.standard_time_min as char) as standard_duration,
+               case when ps.is_kpc = 1 then '1' else '0' end as is_key_process,
+               case when ps.step_type in ('SPECIAL_PROCESS', 'TEST') then '1' else '0' end as is_high_risk
+        from t1_process_route pr
+        inner join t1_process_step ps on ps.route_code = pr.route_code
+        where pr.part_number = #{partNumber}
+          and pr.status = 'ACTIVE'
+        order by pr.default_flag desc, pr.route_code, ps.step_seq
+    </select>
+
     <select id="selectNodeFiles" resultType="java.util.HashMap">
         select fr.id as documentEntryId,
                fr.dossier_instance_id as instanceId,
@@ -600,6 +786,102 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         values
         (#{resultId}, #{taskId}, #{resultType}, #{resultTitle}, #{resultSummary}, #{resultValueJson},
          #{confidence}, #{rankNo}, #{relatedObjectType}, #{relatedObjectId}, #{evidenceJson})
+    </insert>
+
+    <select id="selectFileAssetIdByCode" resultType="java.lang.String">
+        select id
+        from t1_file_asset
+        where file_code = #{fileCode}
+        limit 1
+    </select>
+
+    <insert id="upsertWritebackFileAsset">
+        insert into t1_file_asset
+        (id, file_code, asset_kind, business_no, business_type, business_title, revision,
+         file_status, original_file_name, display_name, file_ext, mime_type, storage_type,
+         storage_key, storage_path, access_url, preview_storage_key, file_size, issued_by,
+         is_latest, source_system, source_table, source_record_id, source_record_key,
+         metadata_json, uploaded_by, created_by, updated_by)
+        values
+        (#{fileAssetId}, #{fileCode}, #{assetKind}, #{docNo}, #{docType}, #{title}, #{revision},
+         'active', #{fileName}, #{displayName}, #{fileExt}, #{mimeType}, #{storageType},
+         #{storageKey}, #{storagePath}, #{accessUrl}, #{previewStorageKey}, #{fileSize}, #{issuedBy},
+         1, #{sourceComponent}, 'openapi_writeback', #{resultId}, #{docNo},
+         #{metadataJson}, #{createdBy}, #{createdBy}, #{createdBy})
+        on duplicate key update
+            asset_kind = values(asset_kind),
+            business_no = values(business_no),
+            business_type = values(business_type),
+            business_title = values(business_title),
+            revision = values(revision),
+            file_status = 'active',
+            original_file_name = values(original_file_name),
+            display_name = values(display_name),
+            file_ext = values(file_ext),
+            mime_type = values(mime_type),
+            storage_type = values(storage_type),
+            storage_key = values(storage_key),
+            storage_path = values(storage_path),
+            access_url = values(access_url),
+            preview_storage_key = values(preview_storage_key),
+            file_size = values(file_size),
+            issued_by = values(issued_by),
+            is_latest = 1,
+            source_system = values(source_system),
+            source_table = values(source_table),
+            source_record_id = values(source_record_id),
+            source_record_key = values(source_record_key),
+            metadata_json = values(metadata_json),
+            updated_by = values(updated_by)
+    </insert>
+
+    <select id="selectWritebackFileRelationId" resultType="java.lang.String">
+        select id
+        from t1_file_relation
+        where file_id = #{fileId}
+          and target_type = #{targetType}
+          and target_id = #{targetId}
+          and relation_type = #{relationType}
+        limit 1
+    </select>
+
+    <insert id="upsertWritebackFileRelation">
+        insert into t1_file_relation
+        (id, file_id, category_id, relation_type, target_type, target_id, target_code,
+         target_name, dossier_instance_id, dossier_version_id, structure_node_id, aircraft_id,
+         bom_node_id, part_number, part_instance_id, object_level, lifecycle_stage, business_domain,
+         required_flag, included_flag, is_primary, is_current, completeness_status, relation_status,
+         sort_order, source_system, source_table, source_record_id, source_record_key,
+         source_trace_json, business_meta_json, created_by, updated_by)
+        values
+        (#{relationId}, #{fileAssetId}, null, #{relationType}, #{targetType}, #{targetId}, #{docNo},
+         #{title}, #{instanceId}, null, null, #{aircraftId}, #{bomNodeId}, #{partNumber},
+         #{partInstanceId}, #{objectLevel}, #{lifecycleStage}, #{businessDomain}, 0, 1, 0, 1,
+         'complete', 'active', #{sortOrder}, #{sourceComponent}, 'openapi_writeback', #{resultId},
+         #{docNo}, #{sourceTraceJson}, #{businessMetaJson}, #{createdBy}, #{createdBy})
+        on duplicate key update
+            target_code = values(target_code),
+            target_name = values(target_name),
+            dossier_instance_id = values(dossier_instance_id),
+            aircraft_id = values(aircraft_id),
+            bom_node_id = values(bom_node_id),
+            part_number = values(part_number),
+            part_instance_id = values(part_instance_id),
+            object_level = values(object_level),
+            lifecycle_stage = values(lifecycle_stage),
+            business_domain = values(business_domain),
+            included_flag = 1,
+            is_current = 1,
+            completeness_status = 'complete',
+            relation_status = 'active',
+            sort_order = values(sort_order),
+            source_system = values(source_system),
+            source_table = values(source_table),
+            source_record_id = values(source_record_id),
+            source_record_key = values(source_record_key),
+            source_trace_json = values(source_trace_json),
+            business_meta_json = values(business_meta_json),
+            updated_by = values(updated_by)
     </insert>
 
     <insert id="insertOperationLog">

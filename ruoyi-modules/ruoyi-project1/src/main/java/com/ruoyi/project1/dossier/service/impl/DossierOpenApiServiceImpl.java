@@ -1,11 +1,16 @@
 package com.ruoyi.project1.dossier.service.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +28,10 @@ public class DossierOpenApiServiceImpl implements IDossierOpenApiService
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final String DISPLAY_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+
+    private static final String DEFAULT_PROJECT3_PART_NUMBER = "HYD-TUBE-MLG-32A";
+
+    private static final String DEFAULT_PROJECT3_BOM_NODE_ID = "f1000006-0006-4006-8006-000000000006";
 
     @Autowired
     private DossierOpenApiMapper openApiMapper;
@@ -230,6 +239,124 @@ public class DossierOpenApiServiceImpl implements IDossierOpenApiService
     }
 
     @Override
+    public byte[] exportProject3HierarchyWorkbook(Map<String, Object> query)
+    {
+        query = safeMap(query);
+        Map<String, Object> params = normalizeProject3HierarchyQuery(query);
+        List<Map<String, Object>> path = normalizeRows(openApiMapper.selectProject3HierarchyBomPath(params));
+        if (path.isEmpty())
+        {
+            throw new ServiceException("未找到可导出的层级对象BOM链路。");
+        }
+
+        Map<String, Object> aircraftNode = path.get(0);
+        Map<String, Object> subsystemNode = findProject3HierarchyNode(path, "SUBSYSTEM");
+        Map<String, Object> systemNode = findProject3HierarchyNode(path, "SYSTEM");
+        Map<String, Object> equipmentNode = findProject3HierarchyNode(path, "EQUIPMENT");
+        Map<String, Object> componentNode = findProject3HierarchyNode(path, "COMPONENT");
+        Map<String, Object> partNode = findProject3HierarchyNode(path, "PART");
+        if (partNode.isEmpty())
+        {
+            partNode = path.get(path.size() - 1);
+        }
+        validateProject3HierarchyPath(subsystemNode, equipmentNode, componentNode, partNode);
+
+        String aircraftId = text(partNode.get("aircraftId"));
+        if (!hasText(aircraftId))
+        {
+            aircraftId = text(aircraftNode.get("aircraftId"));
+        }
+        String partNumber = defaultText(partNode.get("partNumber"), params.get("partNumber"));
+        String bomNodeId = text(partNode.get("nodeId"));
+
+        Map<String, Object> dataParams = map();
+        dataParams.put("aircraftId", aircraftId);
+        dataParams.put("partNumber", partNumber);
+        dataParams.put("bomNodeId", bomNodeId);
+        dataParams.put("partInstanceId", partNode.get("partInstanceId"));
+
+        Map<String, Object> aircraft = normalizeRow(openApiMapper.selectProject3HierarchyAircraft(dataParams));
+        Map<String, Object> partTemplate = normalizeRow(openApiMapper.selectProject3HierarchyPartTemplate(dataParams));
+        Map<String, Object> partInstance = normalizeRow(openApiMapper.selectProject3HierarchyPartInstance(dataParams));
+        if (aircraft.isEmpty())
+        {
+            throw new ServiceException("未找到可导出的飞机数据：" + aircraftId);
+        }
+        if (partTemplate.isEmpty())
+        {
+            throw new ServiceException("未找到可导出的零件模板数据：" + partNumber);
+        }
+        if (partInstance.isEmpty())
+        {
+            throw new ServiceException("未找到可导出的零件实例数据：" + partNumber);
+        }
+
+        Map<String, Object> subsystem = map();
+        subsystem.put("subsystem_id", subsystemNode.get("nodeId"));
+        subsystem.put("subsystem_name", subsystemNode.get("partName"));
+        subsystem.put("aircraft_id", aircraftId);
+        subsystem.put("remarks", hasText(systemNode.get("partName")) ? "上级系统：" + text(systemNode.get("partName")) : "");
+
+        Map<String, Object> equipment = map();
+        equipment.put("equipment_id", equipmentNode.get("nodeId"));
+        equipment.put("equipment_name", equipmentNode.get("partName"));
+        equipment.put("subsystem_id", subsystemNode.get("nodeId"));
+        equipment.put("remarks", equipmentNode.get("partNumber"));
+
+        Map<String, Object> component = map();
+        component.put("component_id", componentNode.get("nodeId"));
+        component.put("component_name", componentNode.get("partName"));
+        component.put("equipment_id", equipmentNode.get("nodeId"));
+        component.put("specification", componentNode.get("partNumber"));
+        component.put("remarks", componentNode.get("remark"));
+
+        partTemplate.put("component_id", componentNode.get("nodeId"));
+        partInstance.put("part_template_id", partNumber);
+
+        validateProject3HierarchyRows(aircraft, subsystem, equipment, component, partTemplate, partInstance);
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            new Project3HierarchyWorkbookBuilder().write(outputStream, Collections.singletonList(aircraft),
+                    Collections.singletonList(subsystem), Collections.singletonList(equipment),
+                    Collections.singletonList(component), Collections.singletonList(partTemplate),
+                    Collections.singletonList(partInstance));
+            return outputStream.toByteArray();
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("生成课题三层级对象Excel失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public byte[] exportProject3PartProcessWorkbook(Map<String, Object> query)
+    {
+        query = safeMap(query);
+        String partNumber = firstText(query.get("partNumber"), query.get("partNo"));
+        partNumber = firstText(partNumber, query.get("part_template_id"));
+        partNumber = defaultText(partNumber, DEFAULT_PROJECT3_PART_NUMBER);
+
+        Map<String, Object> part = normalizeRow(openApiMapper.selectProject3PartProcessPart(partNumber));
+        if (part.isEmpty())
+        {
+            throw new ServiceException("未找到可导出的零件标准制造过程零件数据：" + partNumber);
+        }
+
+        List<Map<String, Object>> routes = normalizeRows(openApiMapper.selectProject3PartProcessRoutes(partNumber));
+        List<Map<String, Object>> steps = normalizeRows(openApiMapper.selectProject3PartProcessSteps(partNumber));
+        validateProject3PartProcessRows(partNumber, routes, steps);
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            new Project3PartProcessWorkbookBuilder().write(outputStream, Collections.singletonList(part), routes, steps);
+            return outputStream.toByteArray();
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("生成课题三零件标准制造过程Excel失败：" + e.getMessage());
+        }
+    }
+
+    @Override
     public List<Map<String, Object>> selectOperationMaintenanceData(Map<String, Object> query)
     {
         Map<String, Object> params = normalizeOpenDataQuery(query);
@@ -334,12 +461,16 @@ public class DossierOpenApiServiceImpl implements IDossierOpenApiService
         result.put("evidenceJson", toJson(request.get("evidence") == null ? new ArrayList<>() : request.get("evidence")));
         openApiMapper.insertAnalysisResult(result);
 
+        List<Map<String, Object>> writebackDocuments = saveWritebackDocuments(resultType, request, resultValue,
+                instanceId, versionId, bomNodeId, resultId, sourceComponent);
+
         Map<String, Object> detail = map();
         detail.put("sourceComponent", sourceComponent);
         detail.put("resultType", resultType);
         detail.put("taskId", taskId);
         detail.put("resultId", resultId);
         detail.put("request", request);
+        detail.put("writebackDocuments", writebackDocuments);
 
         Map<String, Object> log = map();
         log.put("operationLogId", operationLogId);
@@ -361,7 +492,343 @@ public class DossierOpenApiServiceImpl implements IDossierOpenApiService
         response.put("instanceId", instanceId);
         response.put("versionId", versionId);
         response.put("resultType", resultType);
+        response.put("writebackDocumentCount", writebackDocuments.size());
+        response.put("writebackDocuments", writebackDocuments);
         return response;
+    }
+
+    private List<Map<String, Object>> saveWritebackDocuments(String resultType, Map<String, Object> request,
+            Map<String, Object> resultValue, String instanceId, String versionId, String bomNodeId, String resultId,
+            String sourceComponent)
+    {
+        List<Map<String, Object>> documents = extractWritebackDocuments(request, resultValue);
+        List<Map<String, Object>> saved = new ArrayList<>();
+        if (documents.isEmpty())
+        {
+            return saved;
+        }
+        if (!hasText(bomNodeId))
+        {
+            throw new ServiceException("Document writeback requires bomNodeId so the file can be attached to a dossier node.");
+        }
+
+        Map<String, Object> node = selectBomNode(bomNodeId);
+        String aircraftId = text(node.get("aircraftId"));
+        String partNumber = text(node.get("partNumber"));
+        String partInstanceId = text(node.get("partInstanceId"));
+        String partName = text(node.get("partName"));
+        String userName = currentUser();
+
+        int index = 1;
+        for (Map<String, Object> document : documents)
+        {
+            String location = firstText(document.get("fileUrl"), document.get("accessUrl"));
+            location = firstText(location, document.get("url"));
+            location = firstText(location, document.get("storageKey"));
+            location = firstText(location, document.get("fileStorageKey"));
+            location = firstText(location, document.get("storagePath"));
+            if (!hasText(location))
+            {
+                throw new ServiceException("Document writeback requires fileUrl, accessUrl, storageKey or storagePath.");
+            }
+
+            String fileName = firstText(document.get("fileName"), document.get("filename"));
+            fileName = firstText(fileName, document.get("originalFileName"));
+            fileName = defaultText(fileName, fileNameFromLocation(location));
+            String docNo = firstText(document.get("docNo"), document.get("documentNo"));
+            docNo = firstText(docNo, document.get("businessNo"));
+            docNo = firstText(docNo, document.get("code"));
+            docNo = defaultText(docNo, "WB-" + sourceComponent + "-" + resultId + "-" + index);
+            String title = firstText(document.get("docName"), document.get("documentName"));
+            title = firstText(title, document.get("title"));
+            title = firstText(title, document.get("name"));
+            title = defaultText(title, defaultText(fileName, docNo));
+            String docType = firstText(document.get("docType"), document.get("documentType"));
+            docType = firstText(docType, document.get("businessType"));
+            docType = defaultText(docType, defaultDocumentType(resultType));
+            String fileExt = firstText(document.get("fileExt"), document.get("extension"));
+            fileExt = defaultText(fileExt, extensionOf(defaultText(fileName, location)));
+            String mimeType = defaultText(document.get("mimeType"), mimeType(fileExt));
+            boolean httpLocation = isHttpUrl(location);
+            String accessUrl = httpLocation ? location : firstText(document.get("accessUrl"), null);
+            String storageKey = httpLocation ? text(document.get("storageKey"))
+                    : firstText(document.get("storageKey"), document.get("fileStorageKey"));
+            String storagePath = httpLocation ? text(document.get("storagePath")) : location;
+            String storageType = defaultText(document.get("storageType"), httpLocation ? "EXTERNAL" : "LOCAL");
+            String previewStorageKey = firstText(document.get("previewStorageKey"), document.get("previewUrl"));
+
+            String fileCode = writebackFileCode(sourceComponent, docNo, location);
+            String fileAssetId = openApiMapper.selectFileAssetIdByCode(fileCode);
+            if (!hasText(fileAssetId))
+            {
+                fileAssetId = IdUtils.randomUUID();
+            }
+
+            Map<String, Object> metadata = map();
+            metadata.put("resultType", resultType);
+            metadata.put("resultId", resultId);
+            metadata.put("sourceComponent", sourceComponent);
+            metadata.put("instanceId", instanceId);
+            metadata.put("versionId", versionId);
+            metadata.put("bomNodeId", bomNodeId);
+            metadata.put("partNumber", partNumber);
+            metadata.put("document", document);
+
+            Map<String, Object> asset = map();
+            asset.put("fileAssetId", fileAssetId);
+            asset.put("fileCode", fileCode);
+            asset.put("assetKind", defaultText(document.get("assetKind"), "DOCUMENT"));
+            asset.put("docNo", docNo);
+            asset.put("docType", docType);
+            asset.put("title", title);
+            asset.put("revision", blankToNull(firstText(document.get("revision"), document.get("version"))));
+            asset.put("fileName", defaultText(fileName, title));
+            asset.put("displayName", defaultText(document.get("displayName"), title));
+            asset.put("fileExt", blankToNull(fileExt));
+            asset.put("mimeType", blankToNull(mimeType));
+            asset.put("storageType", storageType);
+            asset.put("storageKey", blankToNull(storageKey));
+            asset.put("storagePath", blankToNull(storagePath));
+            asset.put("accessUrl", blankToNull(accessUrl));
+            asset.put("previewStorageKey", blankToNull(previewStorageKey));
+            asset.put("fileSize", document.get("fileSize"));
+            asset.put("issuedBy", defaultText(document.get("issuedBy"), sourceComponent));
+            asset.put("sourceComponent", sourceComponent);
+            asset.put("resultId", resultId);
+            asset.put("metadataJson", toJson(metadata));
+            asset.put("createdBy", userName);
+            openApiMapper.upsertWritebackFileAsset(asset);
+            fileAssetId = defaultText(openApiMapper.selectFileAssetIdByCode(fileCode), fileAssetId);
+
+            String targetType = "BOM_NODE";
+            String relationType = "DOSSIER_ATTACHMENT";
+            String relationId = openApiMapper.selectWritebackFileRelationId(fileAssetId, targetType, bomNodeId,
+                    relationType);
+            if (!hasText(relationId))
+            {
+                relationId = IdUtils.randomUUID();
+            }
+
+            Map<String, Object> trace = map();
+            trace.put("sourceSystem", sourceComponent);
+            trace.put("sourceTable", "openapi_writeback");
+            trace.put("sourceRecordId", resultId);
+            trace.put("sourceRecordKey", docNo);
+            trace.put("bomNodeId", bomNodeId);
+            trace.put("partNumber", partNumber);
+
+            Map<String, Object> relationMeta = map();
+            relationMeta.putAll(metadata);
+            relationMeta.put("docNo", docNo);
+            relationMeta.put("docType", docType);
+            relationMeta.put("title", title);
+            relationMeta.put("fileName", fileName);
+            relationMeta.put("fileUrl", location);
+
+            Map<String, Object> relation = map();
+            relation.put("relationId", relationId);
+            relation.put("fileAssetId", fileAssetId);
+            relation.put("relationType", relationType);
+            relation.put("targetType", targetType);
+            relation.put("targetId", bomNodeId);
+            relation.put("docNo", docNo);
+            relation.put("title", title);
+            relation.put("instanceId", instanceId);
+            relation.put("aircraftId", aircraftId);
+            relation.put("bomNodeId", bomNodeId);
+            relation.put("partNumber", partNumber);
+            relation.put("partInstanceId", blankToNull(partInstanceId));
+            relation.put("objectLevel", defaultText(node.get("objectLevel"), "part"));
+            relation.put("lifecycleStage", "DOCUMENT");
+            relation.put("businessDomain", documentBusinessDomain(resultType));
+            relation.put("sortOrder", 9000 + index);
+            relation.put("sourceComponent", sourceComponent);
+            relation.put("resultId", resultId);
+            relation.put("sourceTraceJson", toJson(trace));
+            relation.put("businessMetaJson", toJson(relationMeta));
+            relation.put("createdBy", userName);
+            openApiMapper.upsertWritebackFileRelation(relation);
+
+            Map<String, Object> savedItem = map();
+            savedItem.put("documentEntryId", relationId);
+            savedItem.put("fileAssetId", fileAssetId);
+            savedItem.put("docNo", docNo);
+            savedItem.put("title", title);
+            savedItem.put("fileName", fileName);
+            savedItem.put("fileUrl", location);
+            savedItem.put("bomNodeId", bomNodeId);
+            savedItem.put("partNumber", partNumber);
+            savedItem.put("partName", partName);
+            saved.add(savedItem);
+            index++;
+        }
+        return saved;
+    }
+
+    private List<Map<String, Object>> extractWritebackDocuments(Map<String, Object> request,
+            Map<String, Object> resultValue)
+    {
+        List<Map<String, Object>> documents = new ArrayList<>();
+        addDocumentCandidates(documents, resultValue.get("documents"));
+        addDocumentCandidates(documents, resultValue.get("document"));
+        addDocumentCandidates(documents, request.get("documents"));
+        addDocumentCandidates(documents, request.get("document"));
+        if (documents.isEmpty() && hasDocumentLocation(resultValue))
+        {
+            documents.add(resultValue);
+        }
+        if (documents.isEmpty() && hasDocumentLocation(request))
+        {
+            documents.add(request);
+        }
+        return documents;
+    }
+
+    private void addDocumentCandidates(List<Map<String, Object>> documents, Object value)
+    {
+        if (value instanceof List)
+        {
+            for (Object item : (List<?>) value)
+            {
+                Map<String, Object> document = castMap(item);
+                if (!document.isEmpty())
+                {
+                    documents.add(document);
+                }
+            }
+            return;
+        }
+        Map<String, Object> document = castMap(value);
+        if (!document.isEmpty())
+        {
+            documents.add(document);
+        }
+    }
+
+    private boolean hasDocumentLocation(Map<String, Object> value)
+    {
+        return hasText(value.get("fileUrl")) || hasText(value.get("accessUrl")) || hasText(value.get("url"))
+                || hasText(value.get("storageKey")) || hasText(value.get("fileStorageKey"))
+                || hasText(value.get("storagePath"));
+    }
+
+    private String writebackFileCode(String sourceComponent, String docNo, String location)
+    {
+        String businessKey = hasText(docNo) ? docNo : defaultText(location, "");
+        String key = defaultText(sourceComponent, "external") + "|" + businessKey;
+        UUID uuid = UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8));
+        String prefix = defaultText(sourceComponent, "external").toUpperCase(Locale.ROOT)
+                .replaceAll("[^A-Z0-9]+", "-");
+        if (prefix.length() > 24)
+        {
+            prefix = prefix.substring(0, 24);
+        }
+        return "WB-" + prefix + "-" + uuid;
+    }
+
+    private String fileNameFromLocation(String location)
+    {
+        String text = text(location);
+        int queryIndex = text.indexOf('?');
+        if (queryIndex >= 0)
+        {
+            text = text.substring(0, queryIndex);
+        }
+        int slashIndex = Math.max(text.lastIndexOf('/'), text.lastIndexOf('\\'));
+        if (slashIndex >= 0 && slashIndex + 1 < text.length())
+        {
+            return text.substring(slashIndex + 1);
+        }
+        return text;
+    }
+
+    private String extensionOf(String fileName)
+    {
+        String text = text(fileName);
+        int dotIndex = text.lastIndexOf('.');
+        if (dotIndex >= 0 && dotIndex + 1 < text.length())
+        {
+            return text.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
+        }
+        return "";
+    }
+
+    private String mimeType(String fileExt)
+    {
+        String ext = text(fileExt).toLowerCase(Locale.ROOT);
+        if ("pdf".equals(ext))
+        {
+            return "application/pdf";
+        }
+        if ("docx".equals(ext))
+        {
+            return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        }
+        if ("doc".equals(ext))
+        {
+            return "application/msword";
+        }
+        if ("png".equals(ext))
+        {
+            return "image/png";
+        }
+        if ("jpg".equals(ext) || "jpeg".equals(ext))
+        {
+            return "image/jpeg";
+        }
+        if ("xlsx".equals(ext))
+        {
+            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        }
+        return hasText(ext) ? "application/octet-stream" : "";
+    }
+
+    private String defaultDocumentType(String resultType)
+    {
+        if ("design_optimization".equals(resultType) || "optimization".equals(resultType))
+        {
+            return "DESIGN_OPTIMIZATION_DOCUMENT";
+        }
+        if ("quality_monitoring".equals(resultType) || "quality_supervision".equals(resultType))
+        {
+            return "QUALITY_DOCUMENT";
+        }
+        if ("fault_diagnosis".equals(resultType))
+        {
+            return "FAULT_DIAGNOSIS_DOCUMENT";
+        }
+        if ("traceability".equals(resultType))
+        {
+            return "TRACEABILITY_DOCUMENT";
+        }
+        return "WRITEBACK_DOCUMENT";
+    }
+
+    private String documentBusinessDomain(String resultType)
+    {
+        if ("design_optimization".equals(resultType) || "optimization".equals(resultType))
+        {
+            return "DESIGN";
+        }
+        if ("quality_monitoring".equals(resultType) || "quality_supervision".equals(resultType))
+        {
+            return "QUALITY";
+        }
+        if ("fault_diagnosis".equals(resultType))
+        {
+            return "SERVICE";
+        }
+        if ("traceability".equals(resultType))
+        {
+            return "DOSSIER";
+        }
+        return "DATA_SUPPORT";
+    }
+
+    private boolean isHttpUrl(String value)
+    {
+        String text = text(value).toLowerCase(Locale.ROOT);
+        return text.startsWith("http://") || text.startsWith("https://");
     }
 
     @Override
@@ -511,6 +978,8 @@ public class DossierOpenApiServiceImpl implements IDossierOpenApiService
         rows.add(api("GET", "/dossier/openapi/bom/nodes/{nodeId}/design-data", "List node design data"));
         rows.add(api("GET", "/dossier/openapi/bom/nodes/{nodeId}/manufacturing-data", "List node manufacturing data"));
         rows.add(api("GET", "/dossier/openapi/manufacturing/process-data", "List manufacturing process data"));
+        rows.add(api("GET", "/dossier/openapi/project3/hierarchy/export", "Export Project 3 hierarchy Excel"));
+        rows.add(api("GET", "/dossier/openapi/project3/part-process/export", "Export Project 3 standard part process Excel"));
         rows.add(api("GET", "/dossier/openapi/products/{productId}/manufacturing-process-data", "List product manufacturing process data"));
         rows.add(api("GET", "/dossier/openapi/bom/nodes/{nodeId}/inspection-records", "List node inspection records"));
         rows.add(api("GET", "/dossier/openapi/bom/nodes/{nodeId}/installation-records", "List node installation records"));
@@ -567,6 +1036,122 @@ public class DossierOpenApiServiceImpl implements IDossierOpenApiService
         result.put("compatibleFramework", "RuoYi Cloud Vue3");
         result.put("updatedAt", "2026-06-07");
         return result;
+    }
+
+    private Map<String, Object> normalizeProject3HierarchyQuery(Map<String, Object> query)
+    {
+        Map<String, Object> params = map();
+        String bomNodeId = firstText(query.get("bomNodeId"), query.get("nodeId"));
+        String partNumber = firstText(query.get("partNumber"), query.get("partNo"));
+        String aircraftId = firstText(query.get("aircraftId"), query.get("productId"));
+        if (!hasText(bomNodeId) && !hasText(partNumber) && !hasText(aircraftId))
+        {
+            bomNodeId = DEFAULT_PROJECT3_BOM_NODE_ID;
+            partNumber = DEFAULT_PROJECT3_PART_NUMBER;
+        }
+        if (!hasText(bomNodeId) && !hasText(partNumber))
+        {
+            partNumber = DEFAULT_PROJECT3_PART_NUMBER;
+        }
+        params.put("bomNodeId", blankToNull(bomNodeId));
+        params.put("partNumber", blankToNull(partNumber));
+        params.put("aircraftId", blankToNull(aircraftId));
+        return params;
+    }
+
+    private Map<String, Object> findProject3HierarchyNode(List<Map<String, Object>> path, String nodeType)
+    {
+        for (Map<String, Object> node : path)
+        {
+            if (nodeType.equalsIgnoreCase(text(node.get("nodeType"))))
+            {
+                return node;
+            }
+        }
+        return map();
+    }
+
+    private void validateProject3HierarchyPath(Map<String, Object> subsystemNode,
+            Map<String, Object> equipmentNode, Map<String, Object> componentNode, Map<String, Object> partNode)
+    {
+        if (subsystemNode.isEmpty())
+        {
+            throw new ServiceException("层级对象导出缺少分系统节点。");
+        }
+        if (equipmentNode.isEmpty())
+        {
+            throw new ServiceException("层级对象导出缺少设备节点。");
+        }
+        if (componentNode.isEmpty())
+        {
+            throw new ServiceException("层级对象导出缺少组件节点。");
+        }
+        if (partNode.isEmpty())
+        {
+            throw new ServiceException("层级对象导出缺少零件节点。");
+        }
+    }
+
+    private void validateProject3HierarchyRows(Map<String, Object> aircraft, Map<String, Object> subsystem,
+            Map<String, Object> equipment, Map<String, Object> component, Map<String, Object> partTemplate,
+            Map<String, Object> partInstance)
+    {
+        requireProject3Value(aircraft, "aircraft_id", "aircraft", 2, "飞机ID");
+        requireProject3Value(aircraft, "aircraft_name", "aircraft", 2, "飞机名称");
+        requireProject3Value(subsystem, "subsystem_id", "subsystems", 2, "分系统ID");
+        requireProject3Value(subsystem, "subsystem_name", "subsystems", 2, "分系统名称");
+        requireProject3Value(subsystem, "aircraft_id", "subsystems", 2, "飞机ID");
+        requireProject3Value(equipment, "equipment_id", "equipments", 2, "设备ID");
+        requireProject3Value(equipment, "equipment_name", "equipments", 2, "设备名称");
+        requireProject3Value(equipment, "subsystem_id", "equipments", 2, "分系统ID");
+        requireProject3Value(component, "component_id", "components", 2, "组件ID");
+        requireProject3Value(component, "component_name", "components", 2, "组件名称");
+        requireProject3Value(component, "equipment_id", "components", 2, "设备ID");
+        requireProject3Value(partTemplate, "part_template_id", "part_templates", 2, "零件模板ID");
+        requireProject3Value(partTemplate, "part_name", "part_templates", 2, "零件名称");
+        requireProject3Value(partTemplate, "component_id", "part_templates", 2, "组件ID");
+        requireProject3Value(partInstance, "part_instance_id", "part_instances", 2, "零件实例ID");
+        requireProject3Value(partInstance, "part_template_id", "part_instances", 2, "零件模板ID");
+        requireProject3Value(partInstance, "serial_number", "part_instances", 2, "序列号");
+    }
+
+    private void validateProject3PartProcessRows(String partNumber, List<Map<String, Object>> routes,
+            List<Map<String, Object>> steps)
+    {
+        if (routes.isEmpty())
+        {
+            throw new ServiceException("未找到可导出的工序路线：" + partNumber);
+        }
+        if (steps.isEmpty())
+        {
+            throw new ServiceException("未找到可导出的详细工序：" + partNumber);
+        }
+        for (int i = 0; i < routes.size(); i++)
+        {
+            Map<String, Object> route = routes.get(i);
+            requireProject3Value(route, "route_id", "工序路线", i + 2, "工序路线id");
+            requireProject3Value(route, "part_template_id", "工序路线", i + 2, "零件id");
+            requireProject3Value(route, "route_name", "工序路线", i + 2, "工序路线名称");
+        }
+        for (int i = 0; i < steps.size(); i++)
+        {
+            Map<String, Object> step = steps.get(i);
+            requireProject3Value(step, "process_def_id", "详细工序", i + 2, "工序id");
+            requireProject3Value(step, "route_id", "详细工序", i + 2, "工序路线id");
+            requireProject3Value(step, "process_number", "详细工序", i + 2, "工序序号");
+            requireProject3Value(step, "process_name", "详细工序", i + 2, "工序名称");
+            requireProject3Value(step, "equipment_type", "详细工序", i + 2, "设备类型");
+        }
+    }
+
+    private void requireProject3Value(Map<String, Object> row, String key, String sheetName, int rowNumber,
+            String fieldName)
+    {
+        if (!hasText(row.get(key)))
+        {
+            throw new ServiceException("课题三Excel数据缺少必填字段，Sheet：" + sheetName
+                    + "，第" + rowNumber + "行，字段：" + fieldName);
+        }
     }
 
     private Map<String, Object> normalizeOpenDataQuery(Map<String, Object> query)

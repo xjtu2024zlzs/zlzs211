@@ -162,8 +162,9 @@
             <el-table-column label="文件" prop="fileCount" width="76" align="right" />
             <el-table-column label="数据记录" prop="dataRecordCount" width="92" align="right" />
             <el-table-column label="生成时间" prop="generateTime" min-width="160" sortable="custom" />
-            <el-table-column label="操作" width="230" fixed="right">
+            <el-table-column label="操作" width="280" fixed="right">
               <template #default="{ row }">
+                <el-button v-if="canRefresh(row)" link type="primary" :loading="isRefreshing(row)" @click.stop="handleRefresh(row)">更新</el-button>
                 <el-button link type="primary" @click.stop="goDetail(row)">详情</el-button>
                 <el-button v-if="canPublish(row)" link type="primary" @click.stop="handlePublish(row)">发布</el-button>
                 <el-button v-if="canArchive(row)" link type="primary" @click.stop="handleArchive(row)">归档</el-button>
@@ -222,7 +223,8 @@ import {
   getDossierInstanceSummary,
   listDossierInstanceVersions,
   listDossierInstances,
-  publishDossierInstance
+  publishDossierInstance,
+  refreshDossierInstance
 } from '@/api/project1/dossier/instance'
 import { listGenerationModels } from '@/api/project1/dossier/generation'
 import { listTemplate } from '@/api/project1/dossier/template'
@@ -240,6 +242,7 @@ const total = ref(0)
 const summary = ref({})
 const versionMap = reactive({})
 const versionLoadingMap = reactive({})
+const refreshingMap = reactive({})
 const exportingKey = ref('')
 const exportDialogVisible = ref(false)
 const selectedExportFormat = ref('pdf')
@@ -471,6 +474,32 @@ async function loadVersions(row, force = false) {
   }
 }
 
+async function handleRefresh(row) {
+  if (!row || !row.instanceId) {
+    return
+  }
+  refreshingMap[row.instanceId] = true
+  try {
+    const res = await refreshDossierInstance(row.instanceId)
+    const data = res.data || {}
+    if (data.duplicated) {
+      ElMessage.info('当前为最新版本')
+    } else {
+      ElMessage.success('已生成最新版本')
+    }
+    delete versionMap[row.instanceId]
+    await getList()
+    const refreshed = instanceList.value.find(item => item.instanceId === row.instanceId)
+    if (refreshed) {
+      await loadVersions(refreshed, true)
+    }
+  } catch (error) {
+    ElMessage.error(error?.msg || error?.message || '更新失败')
+  } finally {
+    refreshingMap[row.instanceId] = false
+  }
+}
+
 async function handlePublish(row) {
   await ElMessageBox.confirm(`确认发布 ${row.instanceCode}？`, '发布卷宗', { type: 'warning' })
   await publishDossierInstance(row.instanceId)
@@ -580,6 +609,12 @@ async function runExport(option) {
   }
 }
 
+function canRefresh(row) {
+  return row && row.instanceId && row.aircraftId && row.templateId
+    && !['queued', 'running'].includes(row.generationJobStatus)
+    && !['building', 'archived'].includes(row.instanceStatus)
+}
+
 function canPublish(row) {
   return row.instanceStatus === 'ready' && row.generationJobStatus !== 'failed'
 }
@@ -615,6 +650,10 @@ function canDeleteVersion(instanceRow, version) {
 
 function isExporting(row, version) {
   return !!exportingKey.value && exportingKey.value.startsWith(`${exportScopeKey(row, version)}:`)
+}
+
+function isRefreshing(row) {
+  return !!(row && row.instanceId && refreshingMap[row.instanceId])
 }
 
 function exportScopeKey(row, version) {
@@ -677,6 +716,11 @@ function pruneVersionCache() {
       delete versionLoadingMap[instanceId]
     }
   })
+  Object.keys(refreshingMap).forEach(instanceId => {
+    if (!activeIds.has(instanceId)) {
+      delete refreshingMap[instanceId]
+    }
+  })
 }
 
 function versionReasonLabel(value) {
@@ -713,7 +757,7 @@ function templateLabel(item) {
 }
 
 function statusType(row) {
-  if (row.generationJobStatus === 'failed') return 'danger'
+  if (row.generationJobStatus === 'failed' || row.instanceStatus === 'failed') return 'danger'
   if (row.instanceStatus === 'published') return 'success'
   if (row.instanceStatus === 'ready') return 'primary'
   if (row.instanceStatus === 'building') return 'warning'
@@ -725,6 +769,7 @@ function statusLabel(status) {
   if (status === 'published') return '已发布'
   if (status === 'ready') return '已生成'
   if (status === 'building') return '生成中'
+  if (status === 'failed') return '生成失败'
   if (status === 'archived') return '已归档'
   return '草稿'
 }
@@ -734,7 +779,7 @@ function displayStatusName(row) {
   if (name && !name.includes('?') && !name.includes('�')) {
     return name
   }
-  if (row?.generationJobStatus === 'failed') return '生成失败'
+  if (row?.generationJobStatus === 'failed' || row?.instanceStatus === 'failed') return '生成失败'
   if (['queued', 'running'].includes(row?.generationJobStatus)) return '生成中'
   return statusLabel(row?.instanceStatus)
 }

@@ -185,8 +185,20 @@
             </div>
 
             <div v-if="showTimeline" class="data-block timeline-block">
-              <div class="block-title">时间线</div>
-              <el-timeline>
+              <div class="block-title block-title-row">
+                <span>时间线</span>
+                <div class="timeline-actions">
+                  <el-tag size="small" type="info">{{ activeTimelineItems.length }} 条记录</el-tag>
+                  <el-button
+                    size="small"
+                    :icon="isTimelineExpanded ? 'ArrowUp' : 'ArrowDown'"
+                    @click="toggleTimeline"
+                  >
+                    {{ isTimelineExpanded ? '收起' : '展开' }}
+                  </el-button>
+                </div>
+              </div>
+              <el-timeline v-if="isTimelineExpanded">
                 <el-timeline-item
                   v-for="item in activeTimelineItems"
                   :key="`${item.key}-${item.title}-${item.time}`"
@@ -202,16 +214,70 @@
 
             <div v-if="directoryTables.length" class="table-stack">
               <div v-for="table in directoryTables" :key="table.title" class="data-block">
-                <div class="block-title">{{ table.title }}</div>
-                <el-table :data="table.rows" border>
-                  <el-table-column prop="name" label="项目" min-width="150" />
-                  <el-table-column prop="value" label="内容" min-width="260" show-overflow-tooltip />
-                  <el-table-column prop="status" label="状态" width="100" align="center">
-                    <template #default="{ row }">
-                      <el-tag size="small" :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
-                    </template>
-                  </el-table-column>
-                </el-table>
+                <template v-if="isManufacturingTable(table)">
+                  <div class="block-title block-title-row">
+                    <span>{{ table.title }}</span>
+                    <el-tag size="small" type="primary">{{ manufacturingRecordCount(table) }} 条记录</el-tag>
+                  </div>
+                  <div class="manufacturing-group-list">
+                    <section v-for="group in manufacturingGroups(table)" :key="group.key" class="manufacturing-group">
+                      <div class="manufacturing-group-head">
+                        <div>
+                          <strong>{{ group.label }}</strong>
+                          <span>{{ group.description }}</span>
+                        </div>
+                        <el-tag size="small" effect="plain">{{ group.rows.length }} 条</el-tag>
+                      </div>
+                      <el-table :data="group.rows" border>
+                        <el-table-column prop="name" label="项目" min-width="190" />
+                        <el-table-column prop="value" label="记录内容" min-width="360" class-name="wrap-cell" />
+                        <el-table-column prop="status" label="状态" width="100" align="center">
+                          <template #default="{ row }">
+                            <el-tag size="small" :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </section>
+                  </div>
+                </template>
+                <template v-else-if="isInspectionTable(table)">
+                  <div class="block-title block-title-row">
+                    <span>{{ table.title }}</span>
+                    <el-tag size="small" type="primary">{{ inspectionRecordCount(table) }} 条记录</el-tag>
+                  </div>
+                  <div class="inspection-group-list">
+                    <section v-for="group in inspectionGroups(table)" :key="group.key" class="inspection-group">
+                      <div class="inspection-group-head">
+                        <div>
+                          <strong>{{ group.label }}</strong>
+                          <span>{{ group.description }}</span>
+                        </div>
+                        <el-tag size="small" effect="plain">{{ group.rows.length }} 条</el-tag>
+                      </div>
+                      <el-table :data="group.rows" border>
+                        <el-table-column prop="name" label="项目" min-width="190" />
+                        <el-table-column prop="value" label="检验内容" min-width="380" class-name="wrap-cell" />
+                        <el-table-column prop="status" label="状态" width="100" align="center">
+                          <template #default="{ row }">
+                            <el-tag size="small" :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </section>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="block-title">{{ table.title }}</div>
+                  <el-table :data="table.rows" border>
+                    <el-table-column prop="name" label="项目" min-width="150" />
+                    <el-table-column prop="value" label="内容" min-width="260" show-overflow-tooltip />
+                    <el-table-column prop="status" label="状态" width="100" align="center">
+                      <template #default="{ row }">
+                        <el-tag size="small" :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </template>
               </div>
             </div>
 
@@ -366,6 +432,7 @@ const selectedExportFormat = ref('pdf')
 const directoryKeyword = ref('')
 const bomKeyword = ref('')
 const activeDirectoryKey = ref('bom')
+const expandedTimelineKey = ref('')
 const activeTab = ref('data')
 const selectedInstanceId = ref(route.query.instanceId || '')
 const selectedVersionId = ref(route.query.versionId || '')
@@ -426,7 +493,7 @@ const treeProps = {
 }
 
 function goDossierInstance() {
-  router.push('/project1/dossier/manage/instance')
+  router.push('/dossier/manage/instance')
 }
 
 const context = computed(() => detailData.value.context || {})
@@ -439,35 +506,11 @@ const detail = computed(() => detailData.value.detail || {})
 const contentItems = computed(() => detailData.value.contentItems || [])
 const documents = computed(() => detailData.value.documents || [])
 const displayDocuments = computed(() => {
-  const rows = documents.value.map(item => ({
+  return documents.value.map(item => ({
     ...item,
     fileType: item.fileType || fileType(item.fileStorageKey),
     title: item.title || item.docNo || item.fileStorageKey || '-'
   }))
-  contentItems.value
-    .filter(item => isDocumentContent(item))
-    .forEach(item => {
-      rows.push({
-        documentEntryId: item.contentItemId,
-        fileType: fileType(item.fileStorageKey),
-        title: item.itemName,
-        docNo: firstPresent(item.itemCode, item.sourceRecordKey),
-        fileCode: item.itemCode,
-        revision: firstPresent(item.revision, item.attrs?.revision, item.attrs?.version),
-        relationType: contentItemRelationType(item),
-        sourceSystem: item.sourceSystem,
-        sourceTable: item.sourceTable,
-        lifecycleStage: item.lifecycleStage,
-        sourceRecordKey: item.sourceRecordKey,
-        documentStatus: item.itemStatus || 'active',
-        completenessStatus: item.completenessStatus,
-        issueDate: item.issueDate,
-        effectiveDate: item.effectiveDate,
-        createdAt: item.createdAt,
-        fileStorageKey: item.fileStorageKey
-      })
-    })
-  return rows
 })
 const directoryDocuments = computed(() => filterDocumentsForDirectory(activeDirectoryItem.value))
 const dataSources = computed(() => detailData.value.dataSources || [])
@@ -590,6 +633,8 @@ const showTimeline = computed(() => {
     && (activeDirectoryDisplayType.value === 'timeline_files' || activeDirectoryBlocks.value.includes('timeline'))
 })
 
+const isTimelineExpanded = computed(() => expandedTimelineKey.value === activeDirectoryKey.value)
+
 const directoryView = computed(() => {
   const label = activeDirectoryLabel.value || '目录数据'
   return {
@@ -611,7 +656,7 @@ const showDocumentList = computed(() => {
 })
 
 const showContentList = computed(() => {
-  return !['composition', 'documents'].includes(activeDirectoryCategory.value)
+  return !['composition', 'documents', 'manufacturing', 'inspection'].includes(activeDirectoryCategory.value)
     && categoryContentItems.value.length > 0
     && (!activeDirectoryBlocks.value.length || activeDirectoryBlocks.value.includes('details'))
 })
@@ -620,12 +665,17 @@ const showDetailPanel = computed(() => !isCompositionDirectory.value)
 
 function selectDirectory(item) {
   activeDirectoryKey.value = item.key
+  expandedTimelineKey.value = ''
   if (isCompositionRow(item)) {
     bomTreeKey.value += 1
     setCurrentTreeNode()
   } else {
     searchResults.value = []
   }
+}
+
+function toggleTimeline() {
+  expandedTimelineKey.value = isTimelineExpanded.value ? '' : activeDirectoryKey.value
 }
 
 function openMetaPanel(key) {
@@ -733,6 +783,7 @@ async function loadDetail() {
     selectedInstanceId.value = context.value.instanceId || selectedInstanceId.value || ''
     selectedVersionId.value = context.value.versionId || ''
     activeDirectoryKey.value = pickDefaultDirectoryKey(detailData.value, 'composition')
+    expandedTimelineKey.value = ''
     activeTab.value = 'data'
     searchResults.value = []
     bomTreeKey.value += 1
@@ -804,6 +855,7 @@ async function selectBomNode(node) {
       payload,
       payload.currentNode && payload.currentNode.objectLevel === 'aircraft' ? 'composition' : 'basic'
     )
+    expandedTimelineKey.value = ''
     activeTab.value = 'data'
     searchResults.value = []
     bomTreeKey.value += 1
@@ -877,8 +929,7 @@ function directoryCategory(item) {
   if (label.includes('故障')) return 'fault'
   if (label.includes('检验')) return 'inspection'
   if (label.includes('制造') || label.includes('追溯') || label.includes('装配')) return 'manufacturing'
-  if (label.includes('装机') || label.includes('服役') || label.includes('使用') || label.includes('履历')) return 'service'
-  if (label.includes('维修')) return 'fault'
+  if (label.includes('装机') || label.includes('服役') || label.includes('使用') || label.includes('履历') || label.includes('维修')) return 'service'
   if (label.includes('技术')) return 'status'
   if (label.includes('接口')) return 'interface'
   if (label.includes('设计')) return 'design'
@@ -964,8 +1015,8 @@ function tableMatchesCategory(table, category, label) {
   if (category === 'design') return title.includes('设计')
   if (category === 'manufacturing') return title.includes('制造') || title.includes('装配')
   if (category === 'inspection') return title.includes('检验') || title.includes('试验')
-  if (category === 'service') return title.includes('服役') || title.includes('装机') || title.includes('履历') || title.includes('使用')
-  if (category === 'fault') return title.includes('故障') || title.includes('维修') || title.includes('服役与故障')
+  if (category === 'service') return title.includes('服役') || title.includes('装机') || title.includes('履历') || title.includes('使用') || title.includes('维修')
+  if (category === 'fault') return title.includes('故障') || title.includes('服役与故障')
   if (category === 'status') return title.includes('技术') || title.includes('状态')
   if (category === 'interface') return title.includes('接口') || label.includes('接口')
   return false
@@ -986,7 +1037,7 @@ function sourceByCategory(category) {
     basic: 'v_*_profile_detail / physical_aircraft / part_instance',
     composition: 'aircraft_bom_node',
     design: 'part_master / file_relation / impact_tube_*',
-    manufacturing: 'shop_order / process_route / production_operation_record',
+    manufacturing: 'shop_order / material_lot_trace / task / operation / quality / issue / release',
     inspection: 'inspection_record / inspection_measurement',
     service: 'life_usage_record / install_removal / work_order',
     fault: 'fault_event / work_order',
@@ -1003,7 +1054,7 @@ function displayModeForDirectory(item, category) {
   }
   const map = {
     design: '参数卡片 + 明细表',
-    manufacturing: '工序记录 + 追溯表',
+    manufacturing: '分组追溯清单',
     inspection: '检验结论 + 记录表',
     service: '履历时间线 + 明细表',
     fault: '事件记录 + 闭环状态',
@@ -1024,6 +1075,120 @@ function displayTypeLabel(displayType) {
   return map[displayType] || displayType || '-'
 }
 
+const manufacturingGroupDefs = [
+  { key: 'overview', label: '制造概况', description: '工单、工艺路线、整体完成状态', order: 10 },
+  { key: 'material', label: '来料与材料', description: '原材料、辅料、批次、证书与供应商', order: 20 },
+  { key: 'operation', label: '任务与加工', description: '工序任务、执行人员、设备与加工记录', order: 30 },
+  { key: 'quality', label: '质量检测', description: '关键质量特性、检测记录与测量结果', order: 40 },
+  { key: 'issue', label: '异常与闭环', description: '制造异常、不符合项、处置与关闭情况', order: 50 },
+  { key: 'release', label: '制造放行', description: '最终签署、放行依据与归档状态', order: 60 },
+  { key: 'other', label: '其他记录', description: '未归入固定小节的补充记录', order: 90 }
+]
+
+const manufacturingGroupMap = manufacturingGroupDefs.reduce((map, item) => {
+  map[item.key] = item
+  return map
+}, {})
+
+function isManufacturingTable(table) {
+  return table?.category === 'manufacturing'
+    || String(table?.title || '').includes('制造')
+    || String(table?.title || '').includes('装配')
+}
+
+function manufacturingRecordCount(table) {
+  return Array.isArray(table?.rows) ? table.rows.length : 0
+}
+
+const inspectionGroupDefs = [
+  { key: 'record', label: '检验记录', description: '检验单、检验类型、规范、日期、人员与结论', order: 10 },
+  { key: 'measurement', label: '测量明细', description: '关键尺寸、压力、泄漏、清洁度等实测结果', order: 20 },
+  { key: 'issue', label: '问题与复验', description: '不合格、让步接收、复验和关闭情况', order: 30 },
+  { key: 'evidence', label: '证明附件', description: '检验报告、试验报告和合格证明文件', order: 40 },
+  { key: 'other', label: '其他检验数据', description: '未归入固定小节的补充记录', order: 90 }
+]
+
+const inspectionGroupMap = inspectionGroupDefs.reduce((map, item) => {
+  map[item.key] = item
+  return map
+}, {})
+
+function isInspectionTable(table) {
+  return table?.category === 'inspection'
+    || String(table?.title || '').includes('检验')
+    || String(table?.title || '').includes('试验')
+}
+
+function inspectionRecordCount(table) {
+  return Array.isArray(table?.rows) ? table.rows.length : 0
+}
+
+function inspectionGroups(table) {
+  const rows = Array.isArray(table?.rows) ? table.rows : []
+  const bucket = new Map()
+  rows.forEach((row, index) => {
+    const key = row?.groupKey || inferInspectionGroupKey(row)
+    const meta = inspectionGroupMap[key] || inspectionGroupMap.other
+    if (!bucket.has(meta.key)) {
+      bucket.set(meta.key, {
+        key: meta.key,
+        label: row?.groupLabel || meta.label,
+        description: meta.description,
+        order: Number(row?.groupOrder || meta.order),
+        rows: []
+      })
+    }
+    bucket.get(meta.key).rows.push({
+      ...row,
+      rowKey: `${meta.key}-${index}-${row?.name || ''}`
+    })
+  })
+  return Array.from(bucket.values()).sort((a, b) => a.order - b.order)
+}
+
+function inferInspectionGroupKey(row) {
+  const text = `${row?.name || ''} ${row?.value || ''}`
+  if (text.includes('不合格') || text.includes('让步') || text.includes('复验') || text.includes('问题')) return 'issue'
+  if (text.includes('测量') || text.includes('实测') || text.includes('允许范围') || text.includes('名义值')) return 'measurement'
+  if (text.includes('附件') || text.includes('报告') || text.includes('证明')) return 'evidence'
+  if (text.includes('检验单') || text.includes('规范') || text.includes('检验员')) return 'record'
+  return 'other'
+}
+
+function manufacturingGroups(table) {
+  const rows = Array.isArray(table?.rows) ? table.rows : []
+  const bucket = new Map()
+  rows.forEach((row, index) => {
+    const key = row?.groupKey || inferManufacturingGroupKey(row)
+    const meta = manufacturingGroupMap[key] || manufacturingGroupMap.other
+    if (!bucket.has(meta.key)) {
+      bucket.set(meta.key, {
+        key: meta.key,
+        label: row?.groupLabel || meta.label,
+        description: meta.description,
+        order: Number(row?.groupOrder || meta.order),
+        rows: []
+      })
+    }
+    bucket.get(meta.key).rows.push({
+      ...row,
+      rowKey: `${meta.key}-${index}-${row?.name || ''}`
+    })
+  })
+  return Array.from(bucket.values()).sort((a, b) => a.order - b.order)
+}
+
+function inferManufacturingGroupKey(row) {
+  const name = String(row?.name || '')
+  if (name.includes('工单') || name.includes('路线')) return 'overview'
+  if (name.includes('材料') || name.includes('批次') || name.includes('来料')) return 'material'
+  if (name.includes('任务') || name.includes('加工') || name.includes('工序')) return 'operation'
+  if (name.includes('质量') || name.includes('检测') || name.includes('检验') || name.includes('试验')) return 'quality'
+  if (name.includes('异常') || name.includes('闭环') || name.includes('问题')) return 'issue'
+  if (name.includes('放行')) return 'release'
+  return 'other'
+}
+
 function filterContentItemsForDirectory(directoryItem) {
   const category = directoryCategory(directoryItem)
   if (category === 'composition' || category === 'documents') {
@@ -1031,23 +1196,46 @@ function filterContentItemsForDirectory(directoryItem) {
   }
   const sourceTables = lowerStringSet(directoryItem?.sourceTables)
   const lifecycleStages = upperStringSet(directoryItem?.lifecycleStages)
-  const chapterId = String(directoryItem?.chapterId || '')
+  const chapterId = String(directoryItem?.chapterId || '').trim()
+  const exactItems = chapterId
+    ? contentItems.value.filter(item => contentItemChapterId(item) === chapterId)
+    : []
+  if (exactItems.length) {
+    return exactItems
+  }
   return contentItems.value.filter(item => {
-    const itemChapterId = String(item?.attrs?.chapterId || item?.chapterId || '')
+    const itemChapterId = contentItemChapterId(item)
     if (chapterId && itemChapterId) {
-      return chapterId === itemChapterId
+      return false
     }
-    if (sourceTables.size && sourceTables.has(String(item.sourceTable || '').toLowerCase())) {
+    if (chapterId && !isDirectoryFallbackCandidate(item)) {
+      return false
+    }
+    if (sourceTables.size && lifecycleStages.size) {
+      return sourceTableMatches(sourceTables, item.sourceTable)
+        && lifecycleStages.has(String(item.lifecycleStage || '').toUpperCase())
+    }
+    if (sourceTables.size && sourceTableMatches(sourceTables, item.sourceTable)) {
       return true
     }
     if (lifecycleStages.size && lifecycleStages.has(String(item.lifecycleStage || '').toUpperCase())) {
       return true
     }
-    if (item.itemType === 'key_node_summary') {
-      return category === 'basic' || category === 'content'
-    }
-    return matchesContentCategory(item, category)
+    return !chapterId && matchesContentCategory(item, category)
   })
+}
+
+function contentItemChapterId(item) {
+  return String(item?.attrs?.chapterId || item?.chapterId || '').trim()
+}
+
+function isDirectoryFallbackCandidate(item) {
+  const stage = String(item?.lifecycleStage || '').toUpperCase()
+  const itemType = String(item?.itemType || '').toLowerCase()
+  const sourceTable = String(item?.sourceTable || '').toLowerCase()
+  return itemType !== 'key_node_summary'
+    && !['DOSSIER', 'FULL_LIFECYCLE', 'DOCUMENT'].includes(stage)
+    && sourceTable !== 'dossier_content_item'
 }
 
 function filterDocumentsForDirectory(directoryItem) {
@@ -1057,7 +1245,7 @@ function filterDocumentsForDirectory(directoryItem) {
   const sourceTables = lowerStringSet(directoryItem?.sourceTables)
   const lifecycleStages = upperStringSet(directoryItem?.lifecycleStages)
   return displayDocuments.value.filter(row => {
-    if (sourceTables.size && sourceTables.has(String(row.sourceTable || '').toLowerCase())) {
+    if (sourceTables.size && sourceTableMatches(sourceTables, row.sourceTable)) {
       return true
     }
     if (lifecycleStages.size && lifecycleStages.has(String(row.lifecycleStage || '').toUpperCase())) {
@@ -1077,10 +1265,14 @@ function matchesContentCategory(item, category) {
       || ['physical_aircraft', 'part_instance', 'part_master'].includes(sourceTable)
       || itemType === 'key_node_summary'
   }
-  if (category === 'design') return ['DESIGN', 'INTERFACE', 'TECHNICAL_STATUS'].includes(stage)
+  if (category === 'design') return stage === 'DESIGN' || itemType.includes('design') || sourceTable.includes('design')
   if (category === 'manufacturing') return ['MANUFACTURING', 'INSTALLATION'].includes(stage) || sourceTable.includes('shop_order')
-  if (category === 'inspection') return stage === 'INSPECTION' || sourceTable.includes('inspection')
-  if (category === 'service') return stage === 'SERVICE' || itemType.includes('work_order') || sourceTable.includes('life_usage')
+  if (category === 'inspection') {
+    return stage === 'INSPECTION'
+      || ((sourceTable.includes('inspection') || itemType.includes('inspection'))
+        && !['MANUFACTURING', 'INSTALLATION'].includes(stage))
+  }
+  if (category === 'service') return stage === 'SERVICE' || itemType.includes('work_order') || itemType.includes('maintenance') || sourceTable.includes('life_usage')
   if (category === 'fault') return stage === 'FAULT' || itemType.includes('fault') || sourceTable.includes('fault')
   if (category === 'status') return stage === 'TECHNICAL_STATUS' || itemType.includes('status')
   if (category === 'interface') return stage === 'INTERFACE' || itemType.includes('interface') || sourceTable.includes('interface')
@@ -1173,20 +1365,15 @@ function lowerStringSet(value) {
   return new Set(getStringList(value).map(item => item.toLowerCase()))
 }
 
+function sourceTableMatches(expectedTables, actualTable) {
+  const table = String(actualTable || '').toLowerCase()
+  if (expectedTables.has(table)) return true
+  const logicalTable = table.startsWith('t1_') ? table.slice(3) : table
+  return expectedTables.has(logicalTable) || expectedTables.has(`t1_${logicalTable}`)
+}
+
 function upperStringSet(value) {
   return new Set(getStringList(value).map(item => item.toUpperCase()))
-}
-
-function isDocumentContent(item) {
-  return hasFileLikeStorageKey(item.fileStorageKey)
-}
-
-function hasFileLikeStorageKey(value) {
-  const key = String(value || '').trim().split(/[?#]/)[0]
-  if (!key || key.endsWith('/') || key.endsWith('\\')) {
-    return false
-  }
-  return !!fileExtension(key)
 }
 
 function fileType(fileStorageKey) {
@@ -1291,13 +1478,6 @@ function documentDisplayDate(row) {
     formatDateOnly(row?.expiryDate),
     '-'
   )
-}
-
-function contentItemRelationType(item) {
-  const sourceTable = String(item?.sourceTable || '').toLowerCase()
-  if (sourceTable.includes('certificate')) return 'CERTIFICATE'
-  if (sourceTable.includes('part_document')) return 'REFERENCE'
-  return 'CONTENT_FILE'
 }
 
 function formatDateOnly(value) {
@@ -1919,6 +2099,62 @@ onMounted(() => {
   gap: 12px;
 }
 
+.manufacturing-group-list,
+.inspection-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.manufacturing-group,
+.inspection-group {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.manufacturing-group-head,
+.inspection-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #edf0f5;
+  background: #f8fafc;
+
+  strong,
+  span {
+    display: block;
+  }
+
+  strong {
+    color: #1f2937;
+    font-size: 14px;
+    font-weight: 650;
+  }
+
+  span {
+    margin-top: 4px;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
+
+.manufacturing-group :deep(.el-table),
+.inspection-group :deep(.el-table) {
+  border-left: 0;
+  border-right: 0;
+}
+
+.manufacturing-group :deep(.wrap-cell .cell),
+.inspection-group :deep(.wrap-cell .cell) {
+  white-space: normal;
+  line-height: 1.6;
+}
+
 .block-title {
   margin-bottom: 8px;
   color: #1f2937;
@@ -1933,7 +2169,7 @@ onMounted(() => {
 }
 
 .timeline-block {
-  padding: 10px 12px 0;
+  padding: 10px 12px;
   border: 1px solid #edf0f5;
   border-radius: 6px;
   background: #ffffff;
@@ -1943,6 +2179,18 @@ onMounted(() => {
     color: #6b7280;
     line-height: 1.5;
   }
+}
+
+.timeline-block :deep(.el-timeline) {
+  margin-top: 10px;
+  padding-left: 2px;
+}
+
+.timeline-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .version-info {

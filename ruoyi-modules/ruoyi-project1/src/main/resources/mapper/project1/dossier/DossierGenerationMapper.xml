@@ -271,6 +271,83 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             (select count(1) from t1_inspection_measurement where aircraft_id = #{aircraftId}) as inspectionMeasurementCount,
             (
                 select count(1)
+                from t1_part_parameter_value pp
+                inner join (
+                    select distinct part_number
+                    from t1_aircraft_bom_node
+                    where aircraft_id = #{aircraftId}
+                      and is_active = 1
+                      and part_number is not null
+                ) pn on pn.part_number = pp.part_number
+                where pp.effective_to is null
+            ) as partParameterValueCount,
+            (
+                select sha2(coalesce(group_concat(concat_ws('#',
+                    pp.part_number,
+                    pp.param_code,
+                    coalesce(cast(pp.value_numeric as char), ''),
+                    coalesce(pp.value_string, ''),
+                    coalesce(cast(pp.value_boolean as char), ''),
+                    coalesce(cast(pp.value_json as char), ''),
+                    coalesce(date_format(pp.effective_from, '%Y-%m-%d %H:%i:%s.%f'), ''),
+                    coalesce(date_format(pp.effective_to, '%Y-%m-%d %H:%i:%s.%f'), '')
+                ) order by pp.part_number, pp.param_code separator '|'), ''), 256)
+                from t1_part_parameter_value pp
+                inner join (
+                    select distinct part_number
+                    from t1_aircraft_bom_node
+                    where aircraft_id = #{aircraftId}
+                      and is_active = 1
+                      and part_number is not null
+                ) pn on pn.part_number = pp.part_number
+                where pp.effective_to is null
+            ) as partParameterValueHash,
+            (
+                select sha2(coalesce(group_concat(concat_ws('#',
+                    hm.part_number,
+                    coalesce(hm.material_spec, ''),
+                    coalesce(cast(hm.density_kgm3 as char), ''),
+                    coalesce(cast(hm.poisson_ratio as char), ''),
+                    coalesce(cast(hm.youngs_modulus_gpa as char), ''),
+                    coalesce(cast(hm.yield_strength_mpa as char), ''),
+                    coalesce(cast(hm.elastic_modulus_gpa as char), ''),
+                    coalesce(cast(hm.outer_diameter_mm as char), ''),
+                    coalesce(cast(hm.wall_thickness_mm as char), ''),
+                    coalesce(hm.analysis_description, ''),
+                    coalesce(date_format(hm.updated_at, '%Y-%m-%d %H:%i:%s.%f'), '')
+                ) order by hm.part_number separator '|'), ''), 256)
+                from t1_part_hydraulic_tube_impact_model hm
+                inner join (
+                    select distinct part_number
+                    from t1_aircraft_bom_node
+                    where aircraft_id = #{aircraftId}
+                      and is_active = 1
+                      and part_number is not null
+                ) pn on pn.part_number = hm.part_number
+            ) as hydraulicTubeModelHash,
+            (
+                select sha2(coalesce(group_concat(concat_ws('#',
+                    seg.model_part_number,
+                    coalesce(cast(seg.segment_order as char), ''),
+                    coalesce(seg.segment_type, ''),
+                    coalesce(cast(seg.straight_length_mm as char), ''),
+                    coalesce(cast(seg.bend_radius_mm as char), ''),
+                    coalesce(cast(seg.bend_angle_deg as char), ''),
+                    coalesce(seg.bend_direction, ''),
+                    coalesce(cast(seg.local_outer_diameter_mm as char), ''),
+                    coalesce(cast(seg.local_wall_thickness_mm as char), '')
+                ) order by seg.model_part_number, seg.segment_order separator '|'), ''), 256)
+                from t1_impact_tube_segment seg
+                inner join (
+                    select distinct part_number
+                    from t1_aircraft_bom_node
+                    where aircraft_id = #{aircraftId}
+                      and is_active = 1
+                      and part_number is not null
+                ) pn on pn.part_number = seg.model_part_number
+            ) as impactTubeSegmentHash,
+            (
+                select count(1)
                 from t1_file_relation fr
                 inner join (
                     select distinct part_number
@@ -441,7 +518,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
               and ts.bom_node_id = #{nodeId}
             union all
             select 'CONFIG' as sourceSystem,
-                   coalesce(sh.source_table, 't1_object_status_history') as sourceTable,
+                   't1_object_status_history' as sourceTable,
                    sh.id as sourceRecordId,
                    coalesce(sh.source_record_id, sh.id) as sourceRecordKey,
                    'status_history' as itemType,
@@ -451,7 +528,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                    null as fileStorageKey,
                    cast(json_object(
                        'sourceSystem', 'CONFIG',
-                       'sourceTable', coalesce(sh.source_table, 't1_object_status_history'),
+                       'sourceTable', 't1_object_status_history',
+                       'originalSourceTable', sh.source_table,
                        'sourceRecordId', sh.id,
                        'sourceRecordKey', coalesce(sh.source_record_id, sh.id),
                        'snapshotAt', date_format(sysdate(6), '%Y-%m-%d %H:%i:%s')
@@ -461,6 +539,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                        'oldStatus', sh.old_status,
                        'newStatus', sh.new_status,
                        'changedBy', sh.changed_by,
+                       'originalSourceTable', sh.source_table,
                        'changeTime', sh.change_time
                    ) as char) as attrsJson,
                    sh.change_time as eventTime,
@@ -637,6 +716,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             from t1_inspection_record ir
             where ir.aircraft_id = #{aircraftId}
               and ir.bom_node_id = #{nodeId}
+              and coalesce(json_unquote(json_extract(ir.measurement_values, '$.kind')), '') != 'process_parameter'
+              and coalesce(ir.inspection_std_doc, '') not like '%工艺卡%'
             union all
             select 'MES' as sourceSystem,
                    't1_inspection_measurement' as sourceTable,
@@ -646,7 +727,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                    'INSPECTION' as lifecycleStage,
                    coalesce(im.indicator_name, im.indicator_code) as itemName,
                    concat_ws('，',
-                       concat('实测：', coalesce(im.measured_value, '-'), coalesce(im.unit, '')),
+                       concat('实测：', case when im.measured_value is null then '-'
+                           else concat(im.measured_value, coalesce(im.unit, '')) end),
                        concat('上限：', coalesce(im.upper_limit, '-')),
                        concat('下限：', coalesce(im.lower_limit, '-')),
                        concat('结论：', coalesce(im.result_flag, '-')),
@@ -676,8 +758,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                    null as eventTime,
                    90 as sortGroup
             from t1_inspection_measurement im
+            left join t1_inspection_record ir_parent on ir_parent.id = im.inspection_record_id
             where im.aircraft_id = #{aircraftId}
               and im.bom_node_id = #{nodeId}
+              and coalesce(json_unquote(json_extract(ir_parent.measurement_values, '$.kind')), '') != 'process_parameter'
+              and coalesce(ir_parent.inspection_std_doc, '') not like '%工艺卡%'
             union all
             select coalesce(fr.source_system, fa.source_system, 'DOC') as sourceSystem,
                    't1_file_relation' as sourceTable,
@@ -792,6 +877,46 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         limit 200
     </select>
 
+    <select id="selectAnalysisResultRows" resultType="java.util.HashMap">
+        select ar.id as resultId,
+               ar.task_id as taskId,
+               ar.result_type as resultType,
+               ar.result_title as resultTitle,
+               ar.result_summary as resultSummary,
+               cast(ar.result_value_json as char) as resultValueJson,
+               ar.confidence,
+               ar.rank_no as rankNo,
+               ar.related_object_type as relatedObjectType,
+               ar.related_object_id as relatedObjectId,
+               cast(ar.evidence_json as char) as evidenceJson,
+               ar.created_at as createdAt,
+               tsk.task_code as taskCode,
+               tsk.task_name as taskName,
+               tsk.algorithm_code as algorithmCode,
+               tsk.algorithm_version as algorithmVersion,
+               tsk.scope_type as scopeType,
+               cast(tsk.scope_json as char) as scopeJson,
+               json_unquote(json_extract(tsk.scope_json, '$.bomNodeId')) as scopeBomNodeId,
+               json_unquote(json_extract(tsk.scope_json, '$.sourceComponent')) as sourceComponent
+        from t1_analysis_result ar
+        inner join t1_analysis_task tsk on tsk.id = ar.task_id
+        where (
+            json_unquote(json_extract(tsk.scope_json, '$.instanceId')) = #{instanceId}
+            or (ar.related_object_type = 'dossier' and ar.related_object_id = #{instanceId})
+            or ar.related_object_id in (
+                select id from t1_aircraft_bom_node
+                where aircraft_id = #{aircraftId}
+                  and is_active = 1
+            )
+            or json_unquote(json_extract(tsk.scope_json, '$.bomNodeId')) in (
+                select id from t1_aircraft_bom_node
+                where aircraft_id = #{aircraftId}
+                  and is_active = 1
+            )
+        )
+        order by ar.created_at, ar.rank_no, ar.id
+    </select>
+
     <select id="selectDossierInstance" resultType="java.util.HashMap">
         select id as instanceId,
                instance_code as instanceCode,
@@ -805,6 +930,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           and template_id = #{templateId}
           and deleted_at is null
         order by created_at desc
+        limit 1
+    </select>
+
+    <select id="selectDossierInstanceById" resultType="java.util.HashMap">
+        select instance_id as instanceId,
+               instance_code as instanceCode,
+               instance_name as instanceName,
+               current_version_id as currentVersionId,
+               current_version_no as currentVersionNo,
+               instance_status as instanceStatus,
+               generation_job_status as generationJobStatus,
+               aircraft_id as aircraftId,
+               template_id as templateId
+        from t1_v_dossier_instance_manage
+        where instance_id = #{instanceId}
+          and deleted_at is null
         limit 1
     </select>
 
@@ -913,6 +1054,30 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         limit 1
     </select>
 
+    <select id="selectGeneratedVersionByPrecheckRunId" resultType="java.util.HashMap">
+        select dv.id as versionId,
+               dv.dossier_instance_id as instanceId,
+               dv.version_no as versionNo,
+               dv.version_label as versionLabel,
+               dv.major_version_no as majorVersionNo,
+               dv.minor_version_no as minorVersionNo,
+               dv.version_level as versionLevel,
+               dv.version_reason as versionReason,
+               dv.template_code as templateCode,
+               dv.template_version as templateVersion,
+               dv.generation_job_id as generationJobId,
+               dv.data_snapshot_id as dataSnapshotId,
+               dv.content_hash as contentHash,
+               dv.created_at as createdAt
+        from t1_generation_job gj
+        inner join t1_dossier_version dv on dv.id = gj.dossier_version_id
+        where gj.dossier_instance_id = #{instanceId}
+          and gj.precheck_run_id = #{precheckRunId}
+          and gj.job_status = 'succeeded'
+        order by gj.finished_at desc, gj.created_at desc
+        limit 1
+    </select>
+
     <update id="updateVersionContentHash">
         update t1_dossier_version
         set content_hash = #{contentHash}
@@ -986,6 +1151,28 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          'running', 'precheck_passed', 35.00, #{pullStrategyJson}, #{generatorParamsJson},
          'DOSSIER', #{requestedBy}, sysdate(6), json_object(), json_object())
     </insert>
+
+    <insert id="insertFailedGenerationJob">
+        insert into t1_generation_job
+        (id, job_code, job_type, dossier_instance_id, dossier_version_id, precheck_run_id,
+         job_status, current_stage, progress_percent, pull_strategy_json, generator_params_json,
+         source_system, requested_by, started_at, finished_at, error_message, result_summary_json, output_json)
+        values
+        (#{jobId}, #{jobCode}, 'generate', #{instanceId}, null, #{precheckRunId},
+         'failed', 'precheck_failed', 100.00, json_object(), #{generatorParamsJson},
+         'DOSSIER', #{requestedBy}, sysdate(6), sysdate(6), #{errorMessage}, #{resultSummaryJson}, json_object())
+    </insert>
+
+    <update id="resetBuildingInstanceAfterFailedPrecheck">
+        update t1_dossier_instance
+        set status = 'draft',
+            updated_by = #{updatedBy},
+            updated_at = sysdate(6)
+        where id = #{instanceId}
+          and status = 'building'
+          and current_version_id is null
+          and deleted_at is null
+    </update>
 
     <update id="updateGenerationJobVersion">
         update t1_generation_job

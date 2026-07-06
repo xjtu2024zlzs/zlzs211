@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
     private static final String DEFAULT_TEMPLATE_EXECUTION = "按模板全量生成";
 
-    private static final String GENERATOR_SCHEMA_VERSION = "template-source-snapshot-v3";
+    private static final String GENERATOR_SCHEMA_VERSION = "template-source-snapshot-v6";
 
     @Autowired
     private DossierGenerationMapper generationMapper;
@@ -85,12 +86,18 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         Map<String, Object> template = selectRequiredTemplate(templateId);
         Map<String, Object> instance = ensureInstance(aircraft, template);
         Map<String, Object> prepareData = buildPrepareData(aircraft, template);
-        Map<String, Object> run = insertPrecheckRun(instance, null, prepareData, currentUser());
+        String userName = currentUser();
+        Map<String, Object> run = insertPrecheckRun(instance, null, prepareData, userName);
+        Map<String, Object> summary = castMap(prepareData.get("checkSummary"));
+        if (toInt(summary.get("blockingCount"), 0) > 0)
+        {
+            recordFailedPrecheckGeneration(instance, run, summary, userName);
+        }
 
         Map<String, Object> result = map();
         result.put("runId", run.get("runId"));
         result.put("runCode", run.get("runCode"));
-        result.put("runStatus", precheckStatus(castMap(prepareData.get("checkSummary"))));
+        result.put("runStatus", precheckStatus(summary));
         result.put("summary", prepareData.get("checkSummary"));
         result.put("checks", prepareData.get("checks"));
         result.put("checkedAt", DISPLAY_TIME.format(new Date()));
@@ -109,7 +116,17 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         Map<String, Object> prepareData = buildPrepareData(aircraft, template);
         assertPrecheckPassed(prepareData);
         String userName = currentUser();
-        String contentHash = buildContentHash(aircraft, template, prepareData);
+        String contentHash = buildContentHash(aircraft, template, prepareData, instance);
+        String precheckRunId = text(request.get("precheckRunId"));
+        if (hasText(precheckRunId))
+        {
+            Map<String, Object> consumedVersion = generationMapper.selectGeneratedVersionByPrecheckRunId(
+                    text(instance.get("instanceId")), precheckRunId);
+            if (consumedVersion != null)
+            {
+                return buildDuplicateGenerationResult(consumedVersion, contentHash);
+            }
+        }
 
         Map<String, Object> duplicateVersion = selectDuplicateVersion(aircraft, template, instance, prepareData,
                 contentHash);
@@ -118,7 +135,6 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             return buildDuplicateGenerationResult(duplicateVersion, contentHash);
         }
 
-        String precheckRunId = text(request.get("precheckRunId"));
         if (!hasText(precheckRunId))
         {
             Map<String, Object> run = insertPrecheckRun(instance, null, prepareData, userName);
@@ -223,18 +239,51 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         return result;
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> refreshInstance(String instanceId)
+    {
+        if (!hasText(instanceId))
+        {
+            throw new ServiceException("dossier instance id is required");
+        }
+        Map<String, Object> instance = generationMapper.selectDossierInstanceById(instanceId);
+        if (instance == null)
+        {
+            throw new ServiceException("dossier instance does not exist");
+        }
+        String instanceStatus = text(instance.get("instanceStatus"));
+        String jobStatus = text(instance.get("generationJobStatus"));
+        if ("building".equals(instanceStatus) || "queued".equals(jobStatus) || "running".equals(jobStatus))
+        {
+            throw new ServiceException("dossier is generating, please try again later");
+        }
+
+        Map<String, Object> request = map();
+        request.put("aircraftId", instance.get("aircraftId"));
+        request.put("templateId", instance.get("templateId"));
+        request.put("trigger", "instance_refresh");
+        Map<String, Object> result = startGeneration(request);
+        result.put("refreshed", !Boolean.TRUE.equals(result.get("duplicated")));
+        return result;
+    }
+
     private MaterializedDossierStats materializeDossierData(String instanceId, String versionId, String jobId, Map<String, Object> aircraft,
             Map<String, Object> prepareData, String userName)
     {
         MaterializedDossierStats stats = new MaterializedDossierStats();
         List<Map<String, Object>> keyNodes = castList(prepareData.get("keyNodeChain"));
+        String aircraftId = text(aircraft.get("aircraftId"));
+        String rootBomNodeId = keyNodes.isEmpty() ? "" : text(keyNodes.get(0).get("nodeId"));
+        Set<String> keyNodeIds = keyNodes.stream().map(node -> text(node.get("nodeId"))).collect(Collectors.toSet());
+        Map<String, List<Map<String, Object>>> analysisRowsByBomNode = groupAnalysisRowsByBomNode(
+                latestAnalysisRowsForDossier(instanceId, aircraftId), keyNodeIds, rootBomNodeId);
         Map<String, String> nodeIdToStructureId = new LinkedHashMap<>();
         Map<String, String> nodeIdToPath = new LinkedHashMap<>();
         Map<String, String> partNumberToStructureId = new LinkedHashMap<>();
         Map<String, Set<String>> sourceColumnsCache = new LinkedHashMap<>();
         Set<String> fullContentNodeIds = fullContentNodeIds(keyNodes);
         String defaultDocumentCategoryId = defaultCategoryId();
-        int tubeSourceDocumentCount = 0;
 
         int sortOrder = 1;
         for (Map<String, Object> node : keyNodes)
@@ -251,7 +300,9 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
                     : Collections.emptyList();
             List<Map<String, Object>> lifecycleRows = fullContentNode ? generationMapper.selectNodeLifecycleSnapshotRows(
                     text(aircraft.get("aircraftId")), text(node.get("nodeId")), code) : Collections.emptyList();
-            int contentCount = countSnapshotRows(node, templateSourceRows, lifecycleRows);
+            List<Map<String, Object>> analysisRows = analysisRowsByBomNode.getOrDefault(text(node.get("nodeId")),
+                    Collections.emptyList());
+            int contentCount = countSnapshotRows(node, templateSourceRows, lifecycleRows) + analysisRows.size();
 
             Map<String, Object> params = map();
             params.put("structureNodeId", structureNodeId);
@@ -275,7 +326,8 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             params.put("missingCount", 0);
             params.put("requiredFlag", 1);
             params.put("attrsJson", toJson(structureAttrs(node)));
-            params.put("sourceTraceJson", toJson(sourceTrace("CONFIG", "aircraft_bom_node", node.get("nodeId"), code)));
+            String bomSourceTable = dossierSourceTable("aircraft_bom_node");
+            params.put("sourceTraceJson", toJson(sourceTrace("CONFIG", bomSourceTable, node.get("nodeId"), code)));
             generationMapper.insertStructureNode(params);
             stats.incrementStructureNodeCount();
 
@@ -283,19 +335,18 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
                     fullContentNode);
             stats.incrementContentItemCount();
             Set<String> insertedKeys = new HashSet<>();
-            insertedKeys.add(snapshotRowKey("aircraft_bom_node", node.get("nodeId"), "DOSSIER", ""));
+            insertedKeys.add(snapshotRowKey(bomSourceTable, node.get("nodeId"), "DOSSIER", ""));
             stats.addContentItemCount(insertTemplateSourceContentItems(instanceId, versionId,
                     text(aircraft.get("aircraftId")), structureNodeId, node, templateSourceRows, sortOrder,
                     insertedKeys));
             stats.addContentItemCount(insertLifecycleContentItems(instanceId, versionId, text(aircraft.get("aircraftId")),
                     structureNodeId, node, lifecycleRows, sortOrder, insertedKeys));
+            stats.addContentItemCount(insertAnalysisResultContentItems(instanceId, versionId,
+                    text(aircraft.get("aircraftId")), structureNodeId, node, analysisRows, sortOrder, insertedKeys,
+                    prepareData));
             int sourceDocumentCount = fullContentNode ? insertSourceDocumentSnapshots(instanceId, versionId,
                     text(aircraft.get("aircraftId")), structureNodeId, node, defaultDocumentCategoryId) : 0;
             stats.addDocumentCount(sourceDocumentCount);
-            if ("HYD-TUBE-MLG-32A".equals(code))
-            {
-                tubeSourceDocumentCount += sourceDocumentCount;
-            }
 
             nodeIdToStructureId.put(text(node.get("nodeId")), structureNodeId);
             nodeIdToPath.put(text(node.get("nodeId")), nodePath);
@@ -303,11 +354,6 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             sortOrder++;
         }
 
-        String tubeStructureNodeId = partNumberToStructureId.get("HYD-TUBE-MLG-32A");
-        if (tubeSourceDocumentCount <= 0)
-        {
-            stats.addDocumentCount(insertTubeDocuments(instanceId, versionId, tubeStructureNodeId));
-        }
         insertOperationLog(instanceId, versionId, jobId, userName);
         return stats;
     }
@@ -341,7 +387,8 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         params.put("isKeyPart", keyPart ? 1 : 0);
         params.put("supplyMode", "self_made");
         params.put("sourceSystem", "DOSSIER");
-        params.put("sourceTable", "aircraft_bom_node");
+        String bomSourceTable = dossierSourceTable("aircraft_bom_node");
+        params.put("sourceTable", bomSourceTable);
         params.put("sourceRecordId", node.get("nodeId"));
         params.put("sourceRecordKey", node.get("partNumber"));
         params.put("includeDesignData", keyPart ? 1 : 0);
@@ -355,7 +402,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         params.put("sortOrder", sortOrder);
         params.put("contentSummary", contentSummary(node, dataRollup));
         params.put("fileStorageKey", keyPart ? "/dossier/files/2026/05/B-1234/HYD-TUBE-MLG-32A/" : null);
-        params.put("sourceTraceJson", toJson(sourceTrace("CONFIG", "aircraft_bom_node", node.get("nodeId"),
+        params.put("sourceTraceJson", toJson(sourceTrace("CONFIG", bomSourceTable, node.get("nodeId"),
                 node.get("partNumber"))));
         params.put("attrsJson", toJson(attrs));
         generationMapper.insertContentItem(params);
@@ -429,30 +476,32 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             for (String queryTable : queryTablesForSource(text(source.get("sourceTable")), bomObjectLevel(node),
                     category))
             {
-                if (!isAllowedSourceTable(queryTable))
+                String sourceTable = canonicalSourceTable(queryTable);
+                if (!isAllowedSourceTable(sourceTable))
                 {
                     continue;
                 }
-                Set<String> columns = sourceTableColumns(sourceColumnsCache, queryTable);
+                String sqlTable = sourceQueryTable(sourceTable);
+                Set<String> columns = sourceTableColumns(sourceColumnsCache, sqlTable);
                 if (columns.isEmpty())
                 {
                     continue;
                 }
-                List<String> clauses = sourceWhereClauses(queryTable, aircraft, node, columns);
+                List<String> clauses = sourceWhereClauses(sourceTable, aircraft, node, columns, source, category);
                 if (clauses.isEmpty())
                 {
                     continue;
                 }
-                clauses.addAll(sourceFilterClauses(queryTable, parseJsonObject(source.get("filterConditionJson")),
+                clauses.addAll(sourceFilterClauses(sourceTable, parseJsonObject(source.get("filterConditionJson")),
                         columns));
                 Map<String, Object> params = map();
-                params.put("tableName", queryTable);
+                params.put("tableName", sqlTable);
                 params.put("whereSql", joinSql(clauses));
-                params.put("limit", sourceRowLimit(queryTable, category));
+                params.put("limit", sourceRowLimit(sourceTable, category));
                 List<Map<String, Object>> rawRows = generationMapper.selectTemplateSourceRows(params);
                 for (Map<String, Object> rawRow : rawRows)
                 {
-                    rows.add(toTemplateSourceContentRow(source, chapter, queryTable, rawRow, category));
+                    rows.add(toTemplateSourceContentRow(source, chapter, sqlTable, rawRow, category));
                 }
                 if (!rawRows.isEmpty())
                 {
@@ -473,7 +522,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         {
             String lifecycleStage = defaultText(row.get("lifecycleStage"), "DOSSIER");
             String sourceSystem = defaultText(row.get("sourceSystem"), "DOSSIER");
-            String sourceTable = defaultText(row.get("sourceTable"), "dossier_content_item");
+            String sourceTable = dossierSourceTable(defaultText(row.get("sourceTable"), "dossier_content_item"));
             String sourceRecordKey = defaultText(row.get("sourceRecordKey"), text(row.get("sourceRecordId")));
             String uniqueKey = snapshotRowKey(sourceTable, row.get("sourceRecordId"), lifecycleStage,
                     text(row.get("chapterId")));
@@ -529,7 +578,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             List<Map<String, Object>> lifecycleRows)
     {
         Set<String> keys = new HashSet<>();
-        keys.add(snapshotRowKey("aircraft_bom_node", node.get("nodeId"), "DOSSIER", ""));
+        keys.add(snapshotRowKey(dossierSourceTable("aircraft_bom_node"), node.get("nodeId"), "DOSSIER", ""));
         for (Map<String, Object> row : sourceRows)
         {
             keys.add(snapshotRowKey(row.get("sourceTable"), row.get("sourceRecordId"), row.get("lifecycleStage"),
@@ -545,8 +594,8 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
     private String snapshotRowKey(Object sourceTable, Object sourceRecordId, Object lifecycleStage, String chapterId)
     {
-        return text(sourceTable).toLowerCase() + "|" + text(sourceRecordId) + "|"
-                + text(lifecycleStage).toUpperCase() + "|" + text(chapterId);
+        return canonicalSourceTable(sourceTable) + "|" + text(sourceRecordId) + "|"
+                + text(lifecycleStage).toUpperCase();
     }
 
     private Map<String, Map<String, Object>> chaptersById(List<Map<String, Object>> chapters)
@@ -621,11 +670,12 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         {
             return "inspection";
         }
-        if (code.contains("SERVICE") || code.contains("USAGE") || code.contains("INSTALL"))
+        if (code.contains("SERVICE") || code.contains("USAGE") || code.contains("INSTALL")
+                || code.contains("MAINTENANCE") || code.contains("MAINT_RECORD"))
         {
             return "service";
         }
-        if (code.contains("FAULT") || code.contains("MAINT"))
+        if (code.contains("FAULT"))
         {
             return "fault";
         }
@@ -672,7 +722,25 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         {
             return "t1_file_relation";
         }
+        if (hasText(table) && table.startsWith("t1_"))
+        {
+            String logicalTable = table.substring(3);
+            if (allowedLogicalSourceTables().contains(logicalTable))
+            {
+                return logicalTable;
+            }
+        }
         return table;
+    }
+
+    private String sourceQueryTable(String tableName)
+    {
+        tableName = canonicalSourceTable(tableName);
+        if (allowedLogicalSourceTables().contains(tableName))
+        {
+            return "t1_" + tableName;
+        }
+        return tableName;
     }
 
     private String profileViewForLevel(String objectLevel)
@@ -706,14 +774,22 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
     private boolean isAllowedSourceTable(String tableName)
     {
-        return allowedSourceTables().contains(text(tableName).toLowerCase());
+        return allowedSourceTables().contains(canonicalSourceTable(tableName));
     }
 
     private Set<String> allowedSourceTables()
     {
-        return new HashSet<>(Arrays.asList(
+        Set<String> tables = allowedLogicalSourceTables();
+        tables.addAll(Arrays.asList(
                 "v_aircraft_profile_detail", "v_system_profile_detail", "v_subsystem_profile_detail",
                 "v_equipment_profile_detail", "v_component_profile_detail", "v_part_profile_detail",
+                "t1_file_category", "t1_file_asset", "t1_file_relation"));
+        return tables;
+    }
+
+    private Set<String> allowedLogicalSourceTables()
+    {
+        return new HashSet<>(Arrays.asList(
                 "physical_aircraft", "aircraft_object_profile", "system_object_profile",
                 "subsystem_object_profile", "equipment_object_master", "equipment_object_instance",
                 "component_object_master", "component_object_instance", "part_master", "part_instance",
@@ -721,15 +797,17 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
                 "object_status_history", "object_interface", "life_usage_record", "work_order",
                 "work_order_task", "fault_event", "fault_action", "event_flight_leg", "inspection_record",
                 "inspection_measurement", "shop_order", "shop_order_task", "production_operation_record",
-                "material_lot_trace", "process_route", "assembly_record", "install_removal",
-                "quality_text_record", "part_hydraulic_tube_impact_model", "impact_tube_segment",
-                "impact_tube_support", "impact_tube_fluid", "impact_tube_boundary_condition",
-                "part_parameter_value", "t1_file_category", "t1_file_asset", "t1_file_relation"));
+                "material_lot_trace", "process_route", "process_step", "work_step_detail",
+                "quality_characteristic", "manufacturing_anomaly", "nonconformance_record", "release_record",
+                "assembly_record", "install_removal", "quality_text_record", "part_hydraulic_tube_impact_model",
+                "impact_tube_segment", "impact_tube_support", "impact_tube_fluid",
+                "impact_tube_boundary_condition", "part_parameter_value", "engineering_change_execution",
+                "part_instance_assembly", "dossier_structure_node"));
     }
 
     private Set<String> sourceTableColumns(Map<String, Set<String>> cache, String tableName)
     {
-        String key = text(tableName).toLowerCase();
+        String key = sourceQueryTable(tableName);
         if (cache.containsKey(key))
         {
             return cache.get(key);
@@ -744,10 +822,10 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
     }
 
     private List<String> sourceWhereClauses(String tableName, Map<String, Object> aircraft, Map<String, Object> node,
-            Set<String> columns)
+            Set<String> columns, Map<String, Object> source, String category)
     {
         List<String> clauses = new ArrayList<>();
-        String table = text(tableName).toLowerCase();
+        String table = canonicalSourceTable(tableName);
         String aircraftId = text(aircraft.get("aircraftId"));
         String nodeId = text(node.get("nodeId"));
         String partInstanceId = text(node.get("partInstanceId"));
@@ -760,34 +838,51 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             {
                 clauses.add("t.relation_status != 'deleted'");
             }
+            if (columns.contains("included_flag"))
+            {
+                clauses.add("t.included_flag = 1");
+            }
+            if (columns.contains("dossier_version_id") && columns.contains("source_record_id"))
+            {
+                clauses.add("(t.dossier_version_id is null or (t.source_record_id is not null and not exists "
+                        + "(select 1 from t1_file_relation source_fr where source_fr.id = t.source_record_id)))");
+            }
             if (columns.contains("aircraft_id") && hasText(aircraftId))
             {
                 clauses.add("t.aircraft_id = " + quote(aircraftId));
             }
-            if ("aircraft".equals(bomObjectLevel(node)))
+            String objectLevel = bomObjectLevel(node);
+            List<String> anchors = new ArrayList<>();
+            if (columns.contains("bom_node_id") && hasText(nodeId))
             {
-                scoped = columns.contains("aircraft_id") && hasText(aircraftId);
+                anchors.add("t.bom_node_id = " + quote(nodeId));
             }
-            else
+            if (columns.contains("part_instance_id") && hasText(partInstanceId))
             {
-                List<String> anchors = new ArrayList<>();
-                if (columns.contains("bom_node_id") && hasText(nodeId))
-                {
-                    anchors.add("t.bom_node_id = " + quote(nodeId));
-                }
-                if (columns.contains("part_instance_id") && hasText(partInstanceId))
-                {
-                    anchors.add("t.part_instance_id = " + quote(partInstanceId));
-                }
-                if (columns.contains("part_number") && hasText(partNumber))
-                {
-                    anchors.add("t.part_number = " + quote(partNumber));
-                }
-                if (!anchors.isEmpty())
-                {
-                    clauses.add("(" + String.join(" or ", anchors) + ")");
-                    scoped = true;
-                }
+                anchors.add("t.part_instance_id = " + quote(partInstanceId));
+            }
+            if (columns.contains("part_number") && hasText(partNumber))
+            {
+                anchors.add("t.part_number = " + quote(partNumber));
+            }
+            if (columns.contains("object_level") && hasText(objectLevel))
+            {
+                anchors.add("t.object_level = " + quote(objectLevel));
+            }
+            if ("aircraft".equals(objectLevel) && columns.contains("target_type") && columns.contains("target_id"))
+            {
+                anchors.add("(t.target_type = 'AIRCRAFT' and t.target_id = " + quote(aircraftId) + ")");
+            }
+            if (!anchors.isEmpty())
+            {
+                clauses.add("(" + String.join(" or ", anchors) + ")");
+                scoped = true;
+            }
+            List<String> lifecycleStages = fileRelationLifecycleStages(source, category);
+            if (columns.contains("lifecycle_stage") && !lifecycleStages.isEmpty())
+            {
+                clauses.add("upper(t.lifecycle_stage) in (" + lifecycleStages.stream()
+                        .map(this::quote).collect(Collectors.joining(", ")) + ")");
             }
         }
         else if ("t1_file_asset".equals(table))
@@ -836,6 +931,27 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             clauses.add("t.id = " + quote(partInstanceId));
             scoped = true;
         }
+        else if ("part_instance_assembly".equals(table) && columns.contains("bom_node_id"))
+        {
+            List<String> anchors = new ArrayList<>();
+            if (hasText(nodeId))
+            {
+                anchors.add("t.bom_node_id = " + quote(nodeId));
+            }
+            if (hasText(partInstanceId) && columns.contains("child_instance_id"))
+            {
+                anchors.add("t.child_instance_id = " + quote(partInstanceId));
+            }
+            if (hasText(partInstanceId) && columns.contains("parent_instance_id"))
+            {
+                anchors.add("t.parent_instance_id = " + quote(partInstanceId));
+            }
+            if (!anchors.isEmpty())
+            {
+                clauses.add("(" + String.join(" or ", anchors) + ")");
+                scoped = true;
+            }
+        }
         else if (hasPartInstanceSourceScope(table) && hasText(partInstanceId) && columns.contains("part_instance_id"))
         {
             clauses.add("t.part_instance_id = " + quote(partInstanceId));
@@ -846,7 +962,65 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             clauses.add("t." + partNumberField(table) + " = " + quote(partNumber));
             scoped = true;
         }
+        if ("inspection".equals(category))
+        {
+            if ("inspection_record".equals(table))
+            {
+                if (columns.contains("measurement_values"))
+                {
+                    clauses.add("coalesce(json_unquote(json_extract(t.measurement_values, '$.kind')), '') != 'process_parameter'");
+                }
+                if (columns.contains("inspection_std_doc"))
+                {
+                    clauses.add("coalesce(t.inspection_std_doc, '') not like '%工艺卡%'");
+                }
+            }
+            if ("inspection_measurement".equals(table) && columns.contains("indicator_code"))
+            {
+                clauses.add("coalesce(t.indicator_code, '') not like 'PP-%'");
+            }
+        }
         return scoped ? clauses : Collections.emptyList();
+    }
+
+    private List<String> fileRelationLifecycleStages(Map<String, Object> source, String category)
+    {
+        if ("documents".equals(category))
+        {
+            return Collections.emptyList();
+        }
+        String stage = text(source.get("lifecycleStage")).toUpperCase();
+        if ("DESIGN".equals(stage) || "MANUFACTURING".equals(stage) || "INSPECTION".equals(stage)
+                || "INSTALLATION".equals(stage) || "SERVICE".equals(stage) || "FAULT".equals(stage)
+                || "TECHNICAL_STATUS".equals(stage))
+        {
+            return Collections.singletonList(stage);
+        }
+        if ("design".equals(category))
+        {
+            return Collections.singletonList("DESIGN");
+        }
+        if ("manufacturing".equals(category))
+        {
+            return Arrays.asList("MANUFACTURING", "INSTALLATION");
+        }
+        if ("inspection".equals(category))
+        {
+            return Collections.singletonList("INSPECTION");
+        }
+        if ("service".equals(category))
+        {
+            return Arrays.asList("SERVICE", "INSTALLATION");
+        }
+        if ("fault".equals(category))
+        {
+            return Collections.singletonList("FAULT");
+        }
+        if ("status".equals(category))
+        {
+            return Arrays.asList("TECHNICAL_STATUS", "CONFIGURATION");
+        }
+        return Collections.emptyList();
     }
 
     private boolean hasAircraftOnlySourceScope(String tableName)
@@ -863,15 +1037,20 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
                 "object_status_history", "object_interface", "life_usage_record", "work_order",
                 "work_order_task", "fault_event", "fault_action", "inspection_record", "inspection_measurement",
                 "shop_order", "shop_order_task", "production_operation_record", "material_lot_trace",
-                "assembly_record", "install_removal", "quality_text_record", "document_entry")).contains(tableName);
+                "process_step", "work_step_detail", "quality_characteristic", "manufacturing_anomaly",
+                "nonconformance_record", "release_record", "assembly_record", "install_removal",
+                "quality_text_record", "engineering_change_execution", "part_instance_assembly",
+                "document_entry")).contains(tableName);
     }
 
     private boolean hasPartInstanceSourceScope(String tableName)
     {
         return new HashSet<>(Arrays.asList("part_instance", "life_usage_record", "work_order", "work_order_task",
                 "fault_event", "fault_action", "inspection_record", "inspection_measurement", "shop_order",
-                "shop_order_task", "production_operation_record", "material_lot_trace", "assembly_record",
-                "install_removal", "quality_text_record", "document_entry")).contains(tableName);
+                "shop_order_task", "production_operation_record", "material_lot_trace", "process_step",
+                "work_step_detail", "quality_characteristic", "manufacturing_anomaly", "nonconformance_record",
+                "release_record", "assembly_record", "install_removal", "quality_text_record",
+                "engineering_change_execution", "document_entry")).contains(tableName);
     }
 
     private boolean hasPartNumberSourceScope(String tableName)
@@ -894,15 +1073,30 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
     private List<String> sourceFilterClauses(String tableName, Map<String, Object> filter, Set<String> columns)
     {
+        tableName = canonicalSourceTable(tableName);
         List<String> clauses = new ArrayList<>();
         for (Map.Entry<String, Object> entry : filter.entrySet())
         {
             String field = canonicalSourceField(tableName, text(entry.getKey()));
             Object value = entry.getValue();
             if (!isSafeSqlField(field) || !columns.contains(field.toLowerCase())
-                    || !isAllowedSourceField(tableName, field) || value instanceof Map
-                    || value instanceof List)
+                    || !isAllowedSourceField(tableName, field) || value instanceof Map)
             {
+                continue;
+            }
+            if (value instanceof List)
+            {
+                List<String> values = ((List<?>) value).stream()
+                        .map(this::text)
+                        .filter(this::hasText)
+                        .filter(item -> !item.contains("${"))
+                        .map(String::toUpperCase)
+                        .collect(Collectors.toList());
+                if (!values.isEmpty())
+                {
+                    clauses.add("upper(cast(t." + field + " as char)) in ("
+                            + values.stream().map(this::quote).collect(Collectors.joining(", ")) + ")");
+                }
                 continue;
             }
             String textValue = text(value);
@@ -921,14 +1115,17 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
                 "part_number", "model_part_number", "tail_number", "serial_number", "batch_number", "lot_number",
                 "is_current", "default_flag", "status", "result", "node_type", "object_level"));
         fields.addAll(Arrays.asList("source_table", "source_record_id", "dossier_version_id", "structure_node_id",
-                "route_code", "wo_number", "inspection_type", "document_status", "relation_status", "file_id",
-                "target_code", "relation_type"));
+                "route_code", "route_id", "order_code", "wo_number", "shop_order_id", "shop_order_task_id",
+                "task_code", "step_code", "operation_code", "inspection_type", "indicator_code",
+                "characteristic_code", "anomaly_number", "nc_number", "release_number", "equipment_id",
+                "operator_id", "assigned_equipment_id", "assigned_personnel_id", "document_status",
+                "relation_status", "release_status", "source_stage", "file_id", "target_code", "relation_type"));
         return fields.contains(field);
     }
 
     private String canonicalSourceField(String tableName, String field)
     {
-        if ("t1_file_relation".equals(text(tableName).toLowerCase()))
+        if ("t1_file_relation".equals(canonicalSourceTable(tableName)))
         {
             if ("file_storage_key".equals(field))
             {
@@ -957,6 +1154,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
     private int sourceRowLimit(String tableName, String category)
     {
+        tableName = canonicalSourceTable(tableName);
         if (text(tableName).startsWith("v_") || "basic".equals(category))
         {
             return 1;
@@ -982,17 +1180,19 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         attrs.put("templateSourceId", source.get("sourceId"));
         attrs.put("templateSourceCode", source.get("sourceCode"));
         attrs.put("templateSourceName", source.get("sourceName"));
-        attrs.put("templateSourceTable", source.get("sourceTable"));
-        attrs.put("actualSourceTable", queryTable);
+        attrs.put("templateSourceTable", dossierSourceTable(source.get("sourceTable")));
+        attrs.put("actualSourceTable", dossierSourceTable(queryTable));
         attrs.put("category", category);
 
-        String sourceTable = canonicalSourceTable(defaultText(source.get("sourceTable"), queryTable));
+        String sourceTable = dossierSourceTable(defaultText(source.get("sourceTable"), queryTable));
         Object sourceRecordId = firstValue(rawRow, "id", "aircraft_id", "bom_node_id", "system_id",
                 "subsystem_id", "equipment_instance_id", "component_instance_id", "part_instance_id",
                 "object_profile_id");
-        String sourceRecordKey = defaultText(firstValue(rawRow, "part_number", "tail_number", "system_code",
-                "subsystem_code", "equipment_code", "component_code", "serial_number", "doc_number",
-                "wo_number", "route_code", "id"), text(sourceRecordId));
+        String sourceRecordKey = defaultText(firstValue(rawRow, "order_code", "task_code", "operation_code",
+                "indicator_code", "characteristic_code", "anomaly_number", "nc_number", "release_number",
+                "material_pn", "part_number", "tail_number", "system_code", "subsystem_code", "equipment_code",
+                "component_code", "serial_number", "doc_number", "wo_number", "route_code", "id"),
+                text(sourceRecordId));
         String lifecycleStage = defaultText(source.get("lifecycleStage"), stageForCategory(category)).toUpperCase();
         String itemType = defaultText(source.get("sourceRecordType"),
                 queryTable.startsWith("v_") ? "profile_detail" : "template_source");
@@ -1033,6 +1233,16 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         return attrs;
     }
 
+    private String dossierSourceTable(Object sourceTable)
+    {
+        String table = canonicalSourceTable(sourceTable);
+        if (allowedLogicalSourceTables().contains(table))
+        {
+            return "t1_" + table;
+        }
+        return table;
+    }
+
     private String toCamelCase(String key)
     {
         StringBuilder result = new StringBuilder();
@@ -1070,6 +1280,68 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
     private String sourceSummary(Map<String, Object> row, String fallback)
     {
+        String orderCode = text(firstValue(row, "order_code", "orderCode"));
+        if (hasText(orderCode))
+        {
+            return shopOrderSummary(row, orderCode);
+        }
+        String taskCode = text(firstValue(row, "task_code", "taskCode"));
+        if (hasText(taskCode))
+        {
+            return shopTaskSummary(row, taskCode);
+        }
+        String routeCode = text(firstValue(row, "route_code", "routeCode"));
+        if (hasText(routeCode) && hasText(text(firstValue(row, "route_name", "routeName",
+                "total_standard_hours", "totalStandardHours"))))
+        {
+            return processRouteSummary(row, routeCode);
+        }
+        String materialPn = text(firstValue(row, "material_pn", "materialPn"));
+        if (hasText(materialPn))
+        {
+            return materialTraceSummary(row, materialPn);
+        }
+        if (hasText(text(firstValue(row, "actual_params", "actualParams", "equipment_id", "equipmentId",
+                "operator_id", "operatorId"))))
+        {
+            return operationRecordSummary(row, fallback);
+        }
+        String characteristicCode = text(firstValue(row, "characteristic_code", "characteristicCode"));
+        if (hasText(characteristicCode))
+        {
+            return qualityCharacteristicSummary(row, characteristicCode);
+        }
+        String anomalyNumber = text(firstValue(row, "anomaly_number", "anomalyNumber"));
+        if (hasText(anomalyNumber))
+        {
+            return manufacturingAnomalySummary(row, anomalyNumber);
+        }
+        String ncNumber = text(firstValue(row, "nc_number", "ncNumber"));
+        if (hasText(ncNumber))
+        {
+            return nonconformanceSummary(row, ncNumber);
+        }
+        String releaseNumber = text(firstValue(row, "release_number", "releaseNumber"));
+        if (hasText(releaseNumber))
+        {
+            return releaseSummary(row, releaseNumber);
+        }
+        String paramCode = text(firstValue(row, "param_code", "paramCode"));
+        if (hasText(paramCode))
+        {
+            return parameterSummary(row, paramCode, fallback);
+        }
+        String segmentType = text(firstValue(row, "segment_type", "segmentType"));
+        if (hasText(segmentType) && hasText(text(firstValue(row, "segment_order", "segmentOrder"))))
+        {
+            return impactSegmentSummary(row, segmentType);
+        }
+        if (hasText(text(firstValue(row, "material_spec", "materialSpec")))
+                && hasText(text(firstValue(row, "outer_diameter_mm", "outerDiameterMm"))))
+        {
+            return hydraulicTubeModelSummary(row);
+        }
+
         List<String> values = new ArrayList<>();
         for (String key : Arrays.asList("part_name", "system_name", "subsystem_name", "equipment_name",
                 "component_name", "tail_number", "serial_number", "manufacturer", "material",
@@ -1086,6 +1358,302 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             }
         }
         return values.isEmpty() ? fallback : join(values);
+    }
+
+    private String shopOrderSummary(Map<String, Object> row, String orderCode)
+    {
+        return summaryText(Arrays.asList("工单 " + orderCode,
+                valueText("状态 ", firstValue(row, "status")),
+                valueText("路线 ", firstValue(row, "route_code", "routeCode")),
+                timeRange(firstValue(row, "actual_start", "actualStart"), firstValue(row, "actual_finish",
+                        "actualFinish")),
+                text(firstValue(row, "remarks", "remark"))));
+    }
+
+    private String shopTaskSummary(Map<String, Object> row, String taskCode)
+    {
+        return summaryText(Arrays.asList("任务 " + taskCode,
+                valueText("工序 ", firstValue(row, "step_code", "stepCode")),
+                valueText("状态 ", firstValue(row, "status")),
+                valueText("设备 ", firstValue(row, "assigned_equipment_id", "assignedEquipmentId",
+                        "equipment_id", "equipmentId")),
+                valueText("人员 ", firstValue(row, "assigned_personnel_id", "assignedPersonnelId",
+                        "operator_id", "operatorId")),
+                timeRange(firstValue(row, "actual_start", "actualStart"), firstValue(row, "actual_finish",
+                        "actualFinish")),
+                text(firstValue(row, "result_notes", "resultNotes"))));
+    }
+
+    private String processRouteSummary(Map<String, Object> row, String routeCode)
+    {
+        return summaryText(Arrays.asList("工艺路线 " + routeCode,
+                text(firstValue(row, "route_name", "routeName")),
+                valueText("版本 ", firstValue(row, "route_version", "routeVersion")),
+                valueText("标准工时 ", firstValue(row, "total_standard_hours", "totalStandardHours")),
+                valueText("状态 ", firstValue(row, "status"))));
+    }
+
+    private String materialTraceSummary(Map<String, Object> row, String materialPn)
+    {
+        return summaryText(Arrays.asList("材料 " + materialPn,
+                valueText("批次 ", firstValue(row, "lot_number", "lotNumber", "batch_number", "batchNumber")),
+                valueText("证书 ", firstValue(row, "mill_cert_number", "millCertNumber", "certificate_no",
+                        "certificateNo")),
+                valueText("供应商 ", firstValue(row, "supplier", "supplierName")),
+                valueText("用量 ", quantityWithUnit(row))));
+    }
+
+    private String operationRecordSummary(Map<String, Object> row, String fallback)
+    {
+        Map<String, Object> params = parseJsonObject(firstValue(row, "actual_params", "actualParams"));
+        String processName = defaultText(firstValue(params, "processName", "process_name",
+                "operationName", "operation_name"), fallback);
+        return summaryText(Arrays.asList("加工记录 " + processName,
+                valueText("设备 ", firstValue(row, "equipment_id", "equipmentId")),
+                valueText("人员 ", firstValue(row, "operator_id", "operatorId")),
+                timeRange(firstValue(row, "start_time", "startTime"), firstValue(row, "end_time", "endTime")),
+                valueText("结论 ", defaultText(firstValue(params, "conclusion", "result"),
+                        text(firstValue(row, "result", "status")))),
+                text(firstValue(row, "remarks", "remark"))));
+    }
+
+    private String qualityCharacteristicSummary(Map<String, Object> row, String characteristicCode)
+    {
+        return summaryText(Arrays.asList("质量特性 " + characteristicCode,
+                text(firstValue(row, "characteristic_name", "characteristicName")),
+                valueText("目标 ", firstValue(row, "nominal_value", "nominalValue")),
+                valueText("范围 ", limitRange(row)),
+                valueText("方法 ", firstValue(row, "inspection_method", "inspectionMethod"))));
+    }
+
+    private String manufacturingAnomalySummary(Map<String, Object> row, String anomalyNumber)
+    {
+        return summaryText(Arrays.asList("制造异常 " + anomalyNumber,
+                text(firstValue(row, "anomaly_name", "anomalyName", "title")),
+                valueText("状态 ", firstValue(row, "status")),
+                valueText("处置 ", firstValue(row, "resolution", "resolution_action", "resolutionAction"))));
+    }
+
+    private String nonconformanceSummary(Map<String, Object> row, String ncNumber)
+    {
+        return summaryText(Arrays.asList("问题闭环 " + ncNumber,
+                text(firstValue(row, "nc_title", "ncTitle", "title")),
+                valueText("状态 ", firstValue(row, "status")),
+                valueText("处置 ", firstValue(row, "disposition", "disposition_result", "dispositionResult")),
+                valueText("关闭 ", firstValue(row, "closed_at", "closedAt"))));
+    }
+
+    private String releaseSummary(Map<String, Object> row, String releaseNumber)
+    {
+        return summaryText(Arrays.asList("制造放行 " + releaseNumber,
+                valueText("状态 ", firstValue(row, "release_status", "releaseStatus", "status")),
+                valueText("放行人 ", firstValue(row, "released_by", "releasedBy")),
+                valueText("时间 ", firstValue(row, "released_at", "releasedAt")),
+                valueText("依据 ", firstValue(row, "release_basis", "releaseBasis"))));
+    }
+
+    private String quantityWithUnit(Map<String, Object> row)
+    {
+        Object quantity = firstValue(row, "quantity_used", "quantityUsed", "quantity", "used_quantity",
+                "usedQuantity");
+        if (!hasText(text(quantity)))
+        {
+            return "";
+        }
+        return displayValue(quantity) + text(firstValue(row, "unit", "uom"));
+    }
+
+    private String limitRange(Map<String, Object> row)
+    {
+        String lower = displayValue(firstValue(row, "lower_limit", "lowerLimit"));
+        String upper = displayValue(firstValue(row, "upper_limit", "upperLimit"));
+        String unit = text(firstValue(row, "unit"));
+        if (!hasText(lower) && !hasText(upper))
+        {
+            return "";
+        }
+        return lower + " - " + upper + unit;
+    }
+
+    private String timeRange(Object start, Object finish)
+    {
+        if (!hasText(text(start)) && !hasText(text(finish)))
+        {
+            return "";
+        }
+        if (!hasText(text(start)))
+        {
+            return "完成 " + text(finish);
+        }
+        if (!hasText(text(finish)))
+        {
+            return "开始 " + text(start);
+        }
+        return text(start) + " 至 " + text(finish);
+    }
+
+    private String valueText(String label, Object value)
+    {
+        String text = text(value);
+        return hasText(text) ? label + text : "";
+    }
+
+    private String summaryText(List<String> parts)
+    {
+        List<String> values = parts.stream()
+                .filter(this::hasText)
+                .collect(Collectors.toList());
+        return values.isEmpty() ? "-" : join(values);
+    }
+
+    private String parameterSummary(Map<String, Object> row, String paramCode, String fallback)
+    {
+        Object numericValue = firstValue(row, "value_numeric", "valueNumeric");
+        String expression = text(firstValue(row, "value_string", "valueString"));
+        String valueText = hasText(text(numericValue)) ? displayValue(numericValue) : expression;
+        if (hasText(text(numericValue)) && hasText(expression) && !expression.equals(valueText))
+        {
+            valueText = valueText + " (" + expression + ")";
+        }
+        if (!hasText(valueText))
+        {
+            valueText = text(firstValue(row, "value_boolean", "valueBoolean", "value_json", "valueJson"));
+        }
+        if (!hasText(valueText))
+        {
+            valueText = fallback;
+        }
+        String unit = parameterUnit(paramCode);
+        if (hasText(unit) && hasText(valueText) && !valueText.endsWith(unit))
+        {
+            valueText = valueText + " " + unit;
+        }
+        return parameterLabel(paramCode) + ": " + valueText;
+    }
+
+    private String impactSegmentSummary(Map<String, Object> row, String segmentType)
+    {
+        String order = displayValue(firstValue(row, "segment_order", "segmentOrder"));
+        String outerDiameter = displayValue(firstValue(row, "local_outer_diameter_mm", "localOuterDiameterMm"));
+        String wallThickness = displayValue(firstValue(row, "local_wall_thickness_mm", "localWallThicknessMm"));
+        if ("BEND".equals(segmentType.toUpperCase()))
+        {
+            return "第" + order + "段弯管: 半径 "
+                    + displayValue(firstValue(row, "bend_radius_mm", "bendRadiusMm")) + " mm, 角度 "
+                    + displayValue(firstValue(row, "bend_angle_deg", "bendAngleDeg")) + " deg, 外径 "
+                    + outerDiameter + " mm, 壁厚 " + wallThickness + " mm";
+        }
+        return "第" + order + "段直管: 长度 "
+                + displayValue(firstValue(row, "straight_length_mm", "straightLengthMm")) + " mm, 外径 "
+                + outerDiameter + " mm, 壁厚 " + wallThickness + " mm";
+    }
+
+    private String hydraulicTubeModelSummary(Map<String, Object> row)
+    {
+        return "材料 " + text(firstValue(row, "material_spec", "materialSpec"))
+                + ", 密度 " + displayValue(firstValue(row, "density_kgm3", "densityKgm3")) + " kg*m^-3"
+                + ", 杨氏模量 " + displayValue(firstValue(row, "youngs_modulus_gpa", "youngsModulusGpa"))
+                + " GPa, 外径 " + displayValue(firstValue(row, "outer_diameter_mm", "outerDiameterMm"))
+                + " mm, 壁厚 " + displayValue(firstValue(row, "wall_thickness_mm", "wallThicknessMm")) + " mm";
+    }
+
+    private String parameterLabel(String paramCode)
+    {
+        String code = text(paramCode).toLowerCase();
+        switch (code)
+        {
+            case "material_name":
+                return "材料";
+            case "density_kg_m3":
+                return "密度";
+            case "thermal_expansion_coefficient":
+                return "热膨胀系数";
+            case "young_modulus_pa":
+                return "杨氏模量";
+            case "poisson_ratio":
+                return "泊松比";
+            case "bulk_modulus_pa":
+                return "体积模量";
+            case "shear_modulus_pa":
+                return "剪切模量";
+            case "yield_strength":
+            case "tensile_yield_strength_pa":
+                return "拉伸屈服强度";
+            case "compressive_yield_strength_pa":
+                return "压缩屈服强度";
+            case "tensile_ultimate_strength_pa":
+                return "拉伸极限强度";
+            case "outer_diameter":
+            case "pipe_outer_diameter_mm":
+                return "管道外径";
+            case "wall_thickness":
+            case "pipe_wall_thickness_mm":
+                return "管道壁厚";
+            case "pipe_inner_diameter_mm":
+                return "管道内径";
+            case "straight_length":
+                return "直管总长";
+            case "pipe_l1_mm":
+                return "L1 第一段直管长度";
+            case "pipe_l2_mm":
+                return "L2 第二段直管长度";
+            case "pipe_theta_1_deg":
+                return "θ1 第一个弯角弯曲角度";
+            case "pipe_theta_2_deg":
+                return "θ2 第二个弯角弯曲角度";
+            case "bend_radius":
+            case "pipe_bend_radius_mm":
+                return "R 两处弯管圆角半径";
+            default:
+                return paramCode;
+        }
+    }
+
+    private String parameterUnit(String paramCode)
+    {
+        String code = text(paramCode).toLowerCase();
+        switch (code)
+        {
+            case "density_kg_m3":
+                return "kg*m^-3";
+            case "thermal_expansion_coefficient":
+                return "C^-1";
+            case "young_modulus_pa":
+            case "bulk_modulus_pa":
+            case "shear_modulus_pa":
+            case "tensile_yield_strength_pa":
+            case "compressive_yield_strength_pa":
+            case "tensile_ultimate_strength_pa":
+                return "Pa";
+            case "yield_strength":
+                return "MPa";
+            case "outer_diameter":
+            case "wall_thickness":
+            case "bend_radius":
+            case "straight_length":
+            case "pipe_outer_diameter_mm":
+            case "pipe_wall_thickness_mm":
+            case "pipe_inner_diameter_mm":
+            case "pipe_l1_mm":
+            case "pipe_l2_mm":
+            case "pipe_bend_radius_mm":
+                return "mm";
+            case "pipe_theta_1_deg":
+            case "pipe_theta_2_deg":
+                return "deg";
+            default:
+                return "";
+        }
+    }
+
+    private String displayValue(Object value)
+    {
+        String valueText = text(value);
+        if (valueText.matches("-?\\d+\\.\\d+"))
+        {
+            valueText = valueText.replaceAll("0+$", "").replaceAll("\\.$", "");
+        }
+        return valueText;
     }
 
     private String stageForCategory(String category)
@@ -1131,7 +1699,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         {
             String lifecycleStage = text(row.get("lifecycleStage"));
             String sourceSystem = defaultText(row.get("sourceSystem"), "DOSSIER");
-            String sourceTable = defaultText(row.get("sourceTable"), "dossier_content_item");
+            String sourceTable = dossierSourceTable(defaultText(row.get("sourceTable"), "dossier_content_item"));
             String sourceRecordKey = defaultText(row.get("sourceRecordKey"), text(row.get("sourceRecordId")));
             String itemType = defaultText(row.get("itemType"), "lifecycle_record");
             String uniqueKey = snapshotRowKey(sourceTable, row.get("sourceRecordId"), lifecycleStage, text(row.get("chapterId")));
@@ -1182,6 +1750,247 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             index++;
         }
         return inserted;
+    }
+
+    private int insertAnalysisResultContentItems(String instanceId, String versionId, String aircraftId,
+            String structureNodeId, Map<String, Object> node, List<Map<String, Object>> rows, int baseSortOrder,
+            Set<String> insertedKeys, Map<String, Object> prepareData)
+    {
+        int index = 1;
+        int inserted = 0;
+        for (Map<String, Object> row : rows)
+        {
+            String resultType = defaultText(row.get("resultType"), "analysis");
+            String lifecycleStage = analysisLifecycleStage(resultType);
+            String chapterCode = analysisChapterCode(bomObjectLevel(node), resultType);
+            Map<String, Object> chapter = findChapterByCode(prepareData, chapterCode);
+            String sourceComponent = defaultText(row.get("sourceComponent"), "external-component");
+            String sourceRecordKey = defaultText(row.get("taskCode"), resultType);
+            String uniqueKey = snapshotRowKey("t1_analysis_result", row.get("resultId"), lifecycleStage,
+                    text(chapter.get("chapterId")));
+            if (insertedKeys != null && insertedKeys.contains(uniqueKey))
+            {
+                continue;
+            }
+
+            Map<String, Object> attrs = map();
+            attrs.put("chapterId", chapter.get("chapterId"));
+            attrs.put("chapterCode", chapter.get("chapterCode"));
+            attrs.put("chapterName", chapter.get("chapterName"));
+            attrs.put("resultType", resultType);
+            attrs.put("sourceComponent", sourceComponent);
+            attrs.put("confidence", row.get("confidence"));
+            attrs.put("rankNo", row.get("rankNo"));
+            attrs.put("taskId", row.get("taskId"));
+            attrs.put("taskCode", row.get("taskCode"));
+            attrs.put("taskName", row.get("taskName"));
+            attrs.put("algorithmCode", row.get("algorithmCode"));
+            attrs.put("algorithmVersion", row.get("algorithmVersion"));
+            attrs.put("scope", parseJsonObject(row.get("scopeJson")));
+            attrs.put("resultData", parseJsonObject(row.get("resultValueJson")));
+            attrs.put("evidenceJson", row.get("evidenceJson"));
+
+            Map<String, Object> params = map();
+            params.put("contentItemId", newId());
+            params.put("instanceId", instanceId);
+            params.put("versionId", versionId);
+            params.put("structureNodeId", structureNodeId);
+            params.put("itemCode", "CONTENT-" + String.format("%04d", baseSortOrder) + "-ANALYSIS-"
+                    + String.format("%03d", index));
+            params.put("itemName", analysisItemName(row, resultType, sourceComponent));
+            params.put("itemType", "cross_subject_result");
+            params.put("lifecycleStage", lifecycleStage);
+            params.put("aircraftId", aircraftId);
+            params.put("bomNodeId", node.get("nodeId"));
+            params.put("partInstanceId", node.get("partInstanceId"));
+            params.put("isKeyPart", Boolean.TRUE.equals(node.get("highlight")) ? 1 : 0);
+            params.put("supplyMode", "external_writeback");
+            params.put("sourceSystem", "WRITEBACK");
+            params.put("sourceTable", "t1_analysis_result");
+            params.put("sourceRecordId", row.get("resultId"));
+            params.put("sourceRecordKey", sourceRecordKey);
+            params.put("includeDesignData", isDesignStage(lifecycleStage) ? 1 : 0);
+            params.put("includeManufacturingData", isManufacturingStage(lifecycleStage) ? 1 : 0);
+            params.put("includeServiceData", isServiceStage(lifecycleStage) ? 1 : 0);
+            params.put("includeSourceProof", 1);
+            params.put("requiredFlag", 0);
+            params.put("includedFlag", 1);
+            params.put("completenessStatus", "complete");
+            params.put("itemStatus", "active");
+            params.put("sortOrder", baseSortOrder * 1000 + 700 + index);
+            params.put("contentSummary", defaultText(row.get("resultSummary"), defaultText(row.get("taskName"),
+                    analysisTypeLabel(resultType))));
+            params.put("fileStorageKey", null);
+            params.put("sourceTraceJson", toJson(sourceTrace(sourceComponent, "t1_analysis_result",
+                    row.get("resultId"), sourceRecordKey)));
+            params.put("attrsJson", toJson(attrs));
+            generationMapper.insertContentItem(params);
+            if (insertedKeys != null)
+            {
+                insertedKeys.add(uniqueKey);
+            }
+            inserted++;
+            index++;
+        }
+        return inserted;
+    }
+
+    private List<Map<String, Object>> latestAnalysisRowsForDossier(String instanceId, String aircraftId)
+    {
+        List<Map<String, Object>> rows = generationMapper.selectAnalysisResultRows(instanceId, aircraftId);
+        Map<String, Map<String, Object>> latest = new LinkedHashMap<>();
+        for (Map<String, Object> row : rows)
+        {
+            String key = defaultText(analysisBomNodeId(row), "dossier") + "|"
+                    + defaultText(row.get("resultType"), "analysis") + "|"
+                    + defaultText(row.get("sourceComponent"), "external-component");
+            latest.put(key, row);
+        }
+        return new ArrayList<>(latest.values());
+    }
+
+    private Map<String, List<Map<String, Object>>> groupAnalysisRowsByBomNode(List<Map<String, Object>> rows,
+            Set<String> keyNodeIds, String rootBomNodeId)
+    {
+        Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
+        for (Map<String, Object> row : rows)
+        {
+            String bomNodeId = analysisBomNodeId(row);
+            if (!keyNodeIds.contains(bomNodeId))
+            {
+                bomNodeId = rootBomNodeId;
+            }
+            if (!hasText(bomNodeId))
+            {
+                continue;
+            }
+            result.computeIfAbsent(bomNodeId, key -> new ArrayList<>()).add(row);
+        }
+        return result;
+    }
+
+    private String analysisBomNodeId(Map<String, Object> row)
+    {
+        String scopeBomNodeId = text(row.get("scopeBomNodeId"));
+        if (hasText(scopeBomNodeId))
+        {
+            return scopeBomNodeId;
+        }
+        String relatedObjectType = text(row.get("relatedObjectType")).toLowerCase();
+        if ("bom_node".equals(relatedObjectType) || "node".equals(relatedObjectType)
+                || "part".equals(relatedObjectType))
+        {
+            return text(row.get("relatedObjectId"));
+        }
+        return text(row.get("relatedObjectId"));
+    }
+
+    private String analysisItemName(Map<String, Object> row, String resultType, String sourceComponent)
+    {
+        String title = defaultText(row.get("resultTitle"), analysisTypeLabel(resultType));
+        return sourceComponent + " - " + title;
+    }
+
+    private String analysisTypeLabel(String resultType)
+    {
+        String type = text(resultType).toLowerCase();
+        if (type.contains("design") || type.contains("optimization"))
+        {
+            return "设计优化结果";
+        }
+        if (type.contains("quality") || type.contains("monitoring") || type.contains("supervision"))
+        {
+            return "质量监督结果";
+        }
+        if (type.contains("fault") || type.contains("diagnosis"))
+        {
+            return "故障诊断结果";
+        }
+        if (type.contains("trace"))
+        {
+            return "质量追溯结果";
+        }
+        if (type.contains("completion"))
+        {
+            return "数据补全结果";
+        }
+        return "外部分析结果";
+    }
+
+    private String analysisLifecycleStage(String resultType)
+    {
+        String type = text(resultType).toLowerCase();
+        if (type.contains("design") || type.contains("optimization"))
+        {
+            return "DESIGN";
+        }
+        if (type.contains("quality") || type.contains("monitoring") || type.contains("supervision"))
+        {
+            return "INSPECTION";
+        }
+        if (type.contains("fault") || type.contains("diagnosis"))
+        {
+            return "FAULT";
+        }
+        if (type.contains("trace") || type.contains("completion"))
+        {
+            return "MANUFACTURING";
+        }
+        return "SERVICE";
+    }
+
+    private String analysisChapterCode(String objectLevel, String resultType)
+    {
+        String prefix = analysisChapterPrefix(objectLevel);
+        String type = text(resultType).toLowerCase();
+        if (type.contains("design") || type.contains("optimization"))
+        {
+            return prefix + "_DESIGN";
+        }
+        if (type.contains("quality") || type.contains("monitoring") || type.contains("supervision"))
+        {
+            return prefix + "_INSPECTION";
+        }
+        if (type.contains("fault") || type.contains("diagnosis"))
+        {
+            return prefix + "_FAULT";
+        }
+        if (type.contains("trace") || type.contains("completion"))
+        {
+            return prefix + "_TRACE";
+        }
+        return prefix + "_SERVICE";
+    }
+
+    private String analysisChapterPrefix(String objectLevel)
+    {
+        String level = text(objectLevel).toUpperCase();
+        if ("AIRCRAFT".equals(level) || "SYSTEM".equals(level) || "SUBSYSTEM".equals(level)
+                || "EQUIPMENT".equals(level) || "COMPONENT".equals(level) || "PART".equals(level))
+        {
+            return level;
+        }
+        return "PART";
+    }
+
+    private Map<String, Object> findChapterByCode(Map<String, Object> prepareData, String chapterCode)
+    {
+        for (Map<String, Object> chapter : castList(prepareData.get("chapters")))
+        {
+            if (chapterCode.equals(text(chapter.get("chapterCode"))))
+            {
+                return chapter;
+            }
+        }
+        if (chapterCode.endsWith("_TRACE"))
+        {
+            return findChapterByCode(prepareData, chapterCode.replace("_TRACE", "_SERVICE"));
+        }
+        if (chapterCode.endsWith("_INSPECTION"))
+        {
+            return findChapterByCode(prepareData, chapterCode.replace("_INSPECTION", "_TECH_STATUS"));
+        }
+        return map();
     }
 
     private boolean isDesignStage(String lifecycleStage)
@@ -1606,6 +2415,36 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         return run;
     }
 
+    private void recordFailedPrecheckGeneration(Map<String, Object> instance, Map<String, Object> run,
+            Map<String, Object> summary, String userName)
+    {
+        Map<String, Object> jobParams = map();
+        jobParams.put("jobId", newId());
+        jobParams.put("jobCode", nextCode("DGJ"));
+        jobParams.put("instanceId", instance.get("instanceId"));
+        jobParams.put("precheckRunId", run.get("runId"));
+        Map<String, Object> generatorParams = map();
+        generatorParams.put("trigger", "precheck");
+        generatorParams.put("precheckRunCode", run.get("runCode"));
+        jobParams.put("generatorParamsJson", toJson(generatorParams));
+        jobParams.put("requestedBy", userName);
+        jobParams.put("errorMessage", buildPrecheckFailureMessage(summary));
+        jobParams.put("resultSummaryJson", toJson(summary));
+        generationMapper.insertFailedGenerationJob(jobParams);
+
+        Map<String, Object> instanceParams = map();
+        instanceParams.put("instanceId", instance.get("instanceId"));
+        instanceParams.put("updatedBy", userName);
+        generationMapper.resetBuildingInstanceAfterFailedPrecheck(instanceParams);
+    }
+
+    private String buildPrecheckFailureMessage(Map<String, Object> summary)
+    {
+        int blockingCount = toInt(summary.get("blockingCount"), 0);
+        int warningCount = toInt(summary.get("warningCount"), 0);
+        return "precheck failed: blocking=" + blockingCount + ", warning=" + warningCount;
+    }
+
     private Map<String, Object> buildVersionPlan(Map<String, Object> latestVersion, Map<String, Object> template)
     {
         int versionNo = latestVersion == null ? 1 : toInt(latestVersion.get("versionNo"), 0) + 1;
@@ -1784,8 +2623,9 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
                     pair("identity", Arrays.asList("件号 HYD-TUBE-MLG-32A", "序列号 HT-MLG-32A-2026-0042",
                             "安装日期 2026-02-18", "TSN " + decimalText(node.get("tsnFh")) + " FH / "
                                     + toInt(node.get("tsnFc"), 0) + " FC")),
-                    pair("design", Arrays.asList("材料 06Cr19Ni10 不锈钢无缝管", "外径 9.53 mm", "壁厚 0.71 mm",
-                            "展开长度 485 mm", "最小弯曲半径 28.6 mm", "工作压力 20.7 MPa")),
+                    pair("design", Arrays.asList("材料 不锈钢", "管道外径 9.53 mm", "管道壁厚 0.9 mm",
+                            "管道内径 7.73 mm", "L1 280 mm / L2 150 mm", "弯角 110 deg / 120 deg",
+                            "圆角半径 20 mm")),
                     pair("manufacturing", Arrays.asList("工单 MO-HYD-TUBE-202602-0042", "炉批 HT-L20260218-A",
                             "工序：下料、去毛刺、数控弯管、端头扩口、钝化、清洁封存", "生产日期 2026-02-12")),
                     pair("inspection", Arrays.asList("尺寸复验合格", "31.5 MPa 保压 5 min 无渗漏",
@@ -2288,7 +3128,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         {
             return evaluateRequiredTables(rule, expression, context);
         }
-        if ("assembly_record".equals(text(rule.get("targetTable"))) && (expression.containsKey("torqueNm")
+        if ("assembly_record".equals(canonicalRuleTable(rule.get("targetTable"))) && (expression.containsKey("torqueNm")
                 || expression.containsKey("result") || expression.containsKey("postInstallLeakCheckMpa")))
         {
             return evaluateAssemblyParams(rule, expression, context);
@@ -2451,7 +3291,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             throw new ServiceException("unsupported rule target table: " + tableName);
         }
         Map<String, Object> params = map();
-        params.put("tableName", tableName);
+        params.put("tableName", ruleQueryTable(tableName));
         params.put("whereSql", clauses == null || clauses.isEmpty() ? "1 = 1" : joinSql(clauses));
         Integer count = generationMapper.countRuleRows(params);
         return count == null ? 0 : count;
@@ -2671,7 +3511,26 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
     private String canonicalRuleTable(Object tableName)
     {
-        return canonicalSourceTable(tableName);
+        String table = canonicalSourceTable(tableName);
+        if (hasText(table) && table.startsWith("t1_"))
+        {
+            String logicalTable = table.substring(3);
+            if (allowedLogicalRuleTables().contains(logicalTable))
+            {
+                return logicalTable;
+            }
+        }
+        return table;
+    }
+
+    private String ruleQueryTable(String tableName)
+    {
+        tableName = canonicalRuleTable(tableName);
+        if (allowedLogicalRuleTables().contains(tableName))
+        {
+            return "t1_" + tableName;
+        }
+        return tableName;
     }
 
     private String canonicalRuleField(String tableName, String field)
@@ -2681,8 +3540,15 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
 
     private Set<String> allowedRuleTables()
     {
+        Set<String> tables = allowedLogicalRuleTables();
+        tables.addAll(Arrays.asList("t1_file_category", "t1_file_asset", "t1_file_relation"));
+        return tables;
+    }
+
+    private Set<String> allowedLogicalRuleTables()
+    {
         return new HashSet<>(Arrays.asList("physical_aircraft", "aircraft_bom_node", "part_instance", "part_master",
-                "t1_file_category", "t1_file_relation", "shop_order", "shop_order_task", "production_operation_record",
+                "shop_order", "shop_order_task", "production_operation_record",
                 "material_lot_trace", "inspection_record", "inspection_measurement", "assembly_record",
                 "install_removal", "fault_event", "work_order", "quality_text_record",
                 "part_hydraulic_tube_impact_model", "impact_tube_segment", "impact_tube_support",
@@ -3013,7 +3879,8 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         output.put("jobCode", jobCode);
         output.put("fileName", baseName + ".pdf");
         output.put("packageName", baseName + ".zip");
-        output.put("outputPath", "/dossier/output/2026/05/" + tailNumber + "/" + versionLabel + "/");
+        String outputMonth = DateTimeFormatter.ofPattern("yyyy/MM").format(LocalDateTime.now());
+        output.put("outputPath", "/dossier/output/" + outputMonth + "/" + tailNumber + "/" + versionLabel + "/");
         output.put("exportFormat", "PDF+ZIP");
         output.put("fileCount", 0);
         Map<String, Object> dataFingerprint = generationMapper.selectGenerationDataFingerprint(text(aircraft.get("aircraftId")));
@@ -3023,7 +3890,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         output.put("generatedAt", DISPLAY_TIME.format(new Date()));
         output.put("sections", buildOutputSections(prepareData));
         output.put("keyNodeChain", prepareData.get("keyNodeChain"));
-        output.put("attachments", buildAttachmentList());
+        output.put("attachments", Collections.emptyList());
         return output;
     }
 
@@ -3279,7 +4146,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
     {
         Map<String, Object> trace = map();
         trace.put("sourceSystem", sourceSystem);
-        trace.put("sourceTable", sourceTable);
+        trace.put("sourceTable", hasText(text(sourceTable)) ? dossierSourceTable(sourceTable) : sourceTable);
         trace.put("sourceRecordId", sourceRecordId);
         trace.put("sourceRecordKey", sourceRecordKey);
         trace.put("snapshotAt", DISPLAY_TIME.format(new Date()));
@@ -3372,7 +4239,7 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
     }
 
     private String buildContentHash(Map<String, Object> aircraft, Map<String, Object> template,
-            Map<String, Object> prepareData)
+            Map<String, Object> prepareData, Map<String, Object> instance)
     {
         StringBuilder raw = new StringBuilder();
         appendHashValue(raw, GENERATOR_SCHEMA_VERSION);
@@ -3380,6 +4247,38 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         appendHashValue(raw, template.get("templateId"));
         appendHashValue(raw, template.get("templateCode"));
         appendHashValue(raw, template.get("templateVersion"));
+        for (Map<String, Object> chapter : castList(prepareData.get("chapters")))
+        {
+            appendHashValue(raw, "chapter");
+            appendHashValue(raw, chapter.get("chapterId"));
+            appendHashValue(raw, chapter.get("parentId"));
+            appendHashValue(raw, chapter.get("chapterCode"));
+            appendHashValue(raw, chapter.get("chapterName"));
+            appendHashValue(raw, chapter.get("chapterLevel"));
+            appendHashValue(raw, chapter.get("sortOrder"));
+            appendHashValue(raw, chapter.get("requiredFlag"));
+            appendHashValue(raw, chapter.get("attrsJson"));
+        }
+        for (Map<String, Object> source : castList(prepareData.get("sources")))
+        {
+            appendHashValue(raw, "source");
+            appendHashValue(raw, source.get("sourceId"));
+            appendHashValue(raw, source.get("chapterId"));
+            appendHashValue(raw, source.get("sourceCode"));
+            appendHashValue(raw, source.get("sourceSystem"));
+            appendHashValue(raw, source.get("sourceTable"));
+            appendHashValue(raw, source.get("sourceName"));
+            appendHashValue(raw, source.get("sourceRecordType"));
+            appendHashValue(raw, source.get("joinConditionJson"));
+            appendHashValue(raw, source.get("filterConditionJson"));
+            appendHashValue(raw, source.get("lifecycleStage"));
+            appendHashValue(raw, source.get("applyObjectType"));
+            appendHashValue(raw, source.get("supplyModeScope"));
+            appendHashValue(raw, source.get("keyPartScope"));
+            appendHashValue(raw, source.get("requiredFlag"));
+            appendHashValue(raw, source.get("sortOrder"));
+            appendHashValue(raw, source.get("attrsJson"));
+        }
         for (Map<String, Object> node : castList(prepareData.get("keyNodeChain")))
         {
             appendHashValue(raw, node.get("nodeId"));
@@ -3403,6 +4302,28 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
             dataFingerprint.entrySet().stream()
                     .sorted(Map.Entry.comparingByKey())
                     .forEach(entry -> appendHashValue(raw, entry.getKey() + "=" + text(entry.getValue())));
+        }
+        for (Map<String, Object> row : latestAnalysisRowsForDossier(text(instance.get("instanceId")),
+                text(aircraft.get("aircraftId"))))
+        {
+            appendHashValue(raw, row.get("resultId"));
+            appendHashValue(raw, row.get("taskId"));
+            appendHashValue(raw, row.get("resultType"));
+            appendHashValue(raw, row.get("resultTitle"));
+            appendHashValue(raw, row.get("resultSummary"));
+            appendHashValue(raw, row.get("resultValueJson"));
+            appendHashValue(raw, row.get("confidence"));
+            appendHashValue(raw, row.get("rankNo"));
+            appendHashValue(raw, row.get("relatedObjectType"));
+            appendHashValue(raw, row.get("relatedObjectId"));
+            appendHashValue(raw, row.get("evidenceJson"));
+            appendHashValue(raw, row.get("taskCode"));
+            appendHashValue(raw, row.get("algorithmCode"));
+            appendHashValue(raw, row.get("algorithmVersion"));
+            appendHashValue(raw, row.get("scopeJson"));
+            appendHashValue(raw, row.get("scopeBomNodeId"));
+            appendHashValue(raw, row.get("sourceComponent"));
+            appendHashValue(raw, row.get("createdAt"));
         }
         return sha256(raw.toString());
     }

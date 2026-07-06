@@ -1,6 +1,7 @@
 package com.ruoyi.project1.dossier.controller;
 
 import java.util.Map;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.ruoyi.common.core.utils.file.FileUtils;
 import com.ruoyi.common.core.web.controller.BaseController;
 import com.ruoyi.common.core.web.domain.AjaxResult;
 import com.ruoyi.common.security.annotation.RequiresLogin;
@@ -168,6 +170,28 @@ public class DossierOpenApiController extends BaseController
     public AjaxResult manufacturingProcessData(@RequestParam Map<String, Object> query)
     {
         return success(openApiService.selectManufacturingProcessData(query));
+    }
+
+    @RequiresLogin
+    @GetMapping("/project3/hierarchy/export")
+    public void project3HierarchyExport(@RequestParam Map<String, Object> query, HttpServletResponse response)
+            throws Exception
+    {
+        byte[] workbook = openApiService.exportProject3HierarchyWorkbook(query);
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        FileUtils.setAttachmentResponseHeader(response, hierarchyFileName(query));
+        response.getOutputStream().write(workbook);
+    }
+
+    @RequiresLogin
+    @GetMapping("/project3/part-process/export")
+    public void project3PartProcessExport(@RequestParam Map<String, Object> query, HttpServletResponse response)
+            throws Exception
+    {
+        byte[] workbook = openApiService.exportProject3PartProcessWorkbook(query);
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        FileUtils.setAttachmentResponseHeader(response, partProcessFileName(query));
+        response.getOutputStream().write(workbook);
     }
 
     @RequiresLogin
@@ -397,5 +421,21 @@ public class DossierOpenApiController extends BaseController
     public AjaxResult version()
     {
         return success(openApiService.selectVersion());
+    }
+
+    private String partProcessFileName(Map<String, Object> query)
+    {
+        Object partNumber = query == null ? null : query.get("partNumber");
+        String value = partNumber == null || String.valueOf(partNumber).trim().isEmpty()
+                ? "HYD-TUBE-MLG-32A" : String.valueOf(partNumber).trim();
+        return "project3_part_process_" + value.replaceAll("[^A-Za-z0-9_.-]", "_") + ".xlsx";
+    }
+
+    private String hierarchyFileName(Map<String, Object> query)
+    {
+        Object partNumber = query == null ? null : query.get("partNumber");
+        String value = partNumber == null || String.valueOf(partNumber).trim().isEmpty()
+                ? "HYD-TUBE-MLG-32A" : String.valueOf(partNumber).trim();
+        return "project3_hierarchy_" + value.replaceAll("[^A-Za-z0-9_.-]", "_") + ".xlsx";
     }
 }

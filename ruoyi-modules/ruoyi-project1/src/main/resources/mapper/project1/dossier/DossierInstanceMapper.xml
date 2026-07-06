@@ -69,7 +69,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 and instance_status = #{status}
             </if>
             <if test="failedOnly != null and failedOnly">
-                and generation_job_status = 'failed'
+                and (generation_job_status = 'failed' or instance_status = 'failed')
             </if>
             <if test="beginTime != null and beginTime != ''">
                 and generate_time &gt;= #{beginTime}
@@ -111,8 +111,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             count(1) as totalCount,
             coalesce(sum(case when instance_status = 'published' then 1 else 0 end), 0) as publishedCount,
             coalesce(sum(case when instance_status = 'ready' and coalesce(generation_job_status, '') &lt;&gt; 'failed' then 1 else 0 end), 0) as readyCount,
-            coalesce(sum(case when instance_status = 'building' or generation_job_status in ('queued', 'running') then 1 else 0 end), 0) as buildingCount,
-            coalesce(sum(case when generation_job_status = 'failed' then 1 else 0 end), 0) as failedCount,
+            coalesce(sum(case when (instance_status = 'building' and coalesce(generation_job_status, '') &lt;&gt; 'failed') or generation_job_status in ('queued', 'running') then 1 else 0 end), 0) as buildingCount,
+            coalesce(sum(case when generation_job_status = 'failed' or instance_status = 'failed' then 1 else 0 end), 0) as failedCount,
             coalesce(sum(case when instance_status = 'archived' then 1 else 0 end), 0) as archivedCount,
             coalesce(sum(case when generate_time &gt;= date_format(curdate(), '%Y-%m-01') then 1 else 0 end), 0) as monthNewCount
         <include refid="InstanceWhere" />
