@@ -22,6 +22,46 @@ export function importAndStartFrameBeamCrack(data) {
   })
 }
 
+export function uploadFrameBeamCrackFile(data, onUploadProgress) {
+  return request({
+    url: '/service/frame-beam-crack/uploads/file',
+    method: 'post',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      repeatSubmit: false
+    },
+    timeout: 300000,
+    onUploadProgress
+  })
+}
+
+export function uploadFrameBeamCrackChunk(data) {
+  return request({
+    url: '/service/frame-beam-crack/uploads/chunk',
+    method: 'post',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      repeatSubmit: false
+    },
+    timeout: 300000
+  })
+}
+
+export function mergeFrameBeamCrackChunks(data) {
+  return request({
+    url: '/service/frame-beam-crack/uploads/merge',
+    method: 'post',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      repeatSubmit: false
+    },
+    timeout: 300000
+  })
+}
+
 export function getFrameBeamCrackTask(taskId) {
   return request({
     url: `/service/frame-beam-crack/tasks/${encodeURIComponent(taskId)}`,

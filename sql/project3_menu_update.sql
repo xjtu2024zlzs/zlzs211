@@ -88,9 +88,9 @@ UPDATE sys_menu
 SET
   parent_id = @project3_parent_id,
   order_num = 2,
-  path = 'monitor',
+  path = 'lifecycle-monitor',
   component = 'project_3/monitor/index',
-  route_name = 'Project3MenuMonitor',
+  route_name = 'Project3LifecycleMonitor',
   menu_type = 'C',
   visible = '0',
   status = '0'

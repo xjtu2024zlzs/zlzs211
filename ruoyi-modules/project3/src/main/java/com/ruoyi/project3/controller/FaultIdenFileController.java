@@ -16,6 +16,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 @RequestMapping("/quality/fault-iden")
@@ -26,6 +29,13 @@ public class FaultIdenFileController
 
     @Resource
     private FaultIdenFileService faultIdenFileService;
+
+    @GetMapping("/source-file/package/{taskId}")
+    public void sourcePackage(@PathVariable("taskId") String taskId, HttpServletResponse response) throws Exception
+    {
+        List<Path> files = faultIdenFileService.packageSourceFiles(taskId);
+        streamZip(response, files, taskId + "_selected_raw_files.zip");
+    }
 
     @GetMapping("/source-file/{sampleId}")
     public void source(@PathVariable("sampleId") Long sampleId, HttpServletResponse response) throws Exception
@@ -77,6 +87,28 @@ public class FaultIdenFileController
         try (InputStream in = Files.newInputStream(file); OutputStream out = response.getOutputStream())
         {
             in.transferTo(out);
+        }
+    }
+
+    private void streamZip(HttpServletResponse response, List<Path> files, String name) throws Exception
+    {
+        response.setContentType("application/zip");
+        response.setHeader(
+                "Content-Disposition",
+                "attachment; filename*=UTF-8''" + URLEncoder.encode(name, StandardCharsets.UTF_8).replace("+", "%20")
+        );
+        try (ZipOutputStream out = new ZipOutputStream(response.getOutputStream()))
+        {
+            for (int i = 0; i < files.size(); i++)
+            {
+                Path file = files.get(i);
+                out.putNextEntry(new ZipEntry((i + 1) + "_" + file.getFileName()));
+                try (InputStream in = Files.newInputStream(file))
+                {
+                    in.transferTo(out);
+                }
+                out.closeEntry();
+            }
         }
     }
 

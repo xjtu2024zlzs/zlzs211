@@ -714,7 +714,7 @@ const qualityKgJson = {
     x: 0,
     y: 0,
     fixed: false,
-    desc: '用户填报的质量反馈事件，是课题五智能追溯流程的入口。'
+    desc: '用户填报的质量反馈事件，是智能追溯流程的入口。'
   },
   {
     id: 'C010',
@@ -1172,7 +1172,7 @@ const initKnowledgeGraph = () => {
 
   selectedKgNode.value = {
     name: '压力异常反馈',
-    desc: '用户填报的质量反馈事件，是课题五智能追溯流程的入口。'
+    desc: '用户填报的质量反馈事件，是智能追溯流程的入口。'
   }
 }
 

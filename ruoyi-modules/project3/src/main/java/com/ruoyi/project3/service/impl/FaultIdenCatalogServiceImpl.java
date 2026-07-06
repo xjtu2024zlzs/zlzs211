@@ -41,7 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
 {
     private static final Logger log = LoggerFactory.getLogger(FaultIdenCatalogServiceImpl.class);
-    private static final String DEFAULT_DATA_ROOT = "F:/TotalData";
+    private static final String DEFAULT_DATA_ROOT = System.getProperty("user.dir") + "/data/project3";
     private static final String USAGE_FEATURE = "FEATURE_ANALYSIS";
     private static final String USAGE_PREDICT = "FAULT_PREDICT";
     private static final String USAGE_IDENTIFY = "FAULT_IDENTIFY";
@@ -60,6 +60,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
     private static final String BEARING_DATASET_DIR = "XJTU-SY_Bearing_Datasets";
     private static final String CHUNK_DIR = "_chunks";
     private static final long API_IMPORT_MAX_BYTES = 100L * 1024L * 1024L;
+    private static final int NUMERIC_SAMPLE_INSERT_RETRY_LIMIT = 200;
     private static final Pattern FIRST_NUMBER = Pattern.compile("(\\d+)");
     private static final String[][] NUMERIC_DATASET_DIRS = {
             {"35Hz12kN", "Bearing1_1"},
@@ -182,13 +183,13 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                     selectedInBearing++;
                     try
                     {
-                        if (sampleMapper.selectByUniqueKey(condition, bearing, fileName, dataUsage) != null)
+                        if (sampleMapper.selectByUniqueKey(condition, bearing, fileName, dataUsage, null) != null)
                         {
                             skippedCount++;
                             continue;
                         }
 
-                        while (sampleMapper.countByConditionBearingSampleNo(condition, bearing, sampleNo, dataUsage) > 0)
+                        while (sampleMapper.countByConditionBearingSampleNo(condition, bearing, sampleNo, dataUsage, null) > 0)
                         {
                             sampleNo++;
                         }
@@ -321,7 +322,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             Path target = stableTarget(uploadDir, fileName);
             try
             {
-                if (sampleMapper.selectByUniqueKey(sampleCondition, sampleBearing, fileName, dataUsage) != null)
+                if (sampleMapper.selectByUniqueKey(sampleCondition, sampleBearing, fileName, dataUsage, null) != null)
                 {
                     skippedCount++;
                     continue;
@@ -335,7 +336,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                 {
                     sampleNo = fallbackNo++;
                 }
-                while (sampleMapper.countByConditionBearingSampleNo(sampleCondition, sampleBearing, sampleNo, dataUsage) > 0)
+                while (sampleMapper.countByConditionBearingSampleNo(sampleCondition, sampleBearing, sampleNo, dataUsage, null) > 0)
                 {
                     sampleNo++;
                 }
@@ -391,6 +392,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             String eqpId,
             String cmpId,
             String ptId,
+            String taskName,
             String uploadBatchId,
             Integer fileIndex,
             Integer totalFiles,
@@ -398,7 +400,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             String relativePath
     )
     {
-        UploadContext ctx = uploadContext(purpose, executionObject, conditionLabel, bearingNo, airId, subId, eqpId, cmpId, ptId);
+        UploadContext ctx = uploadContext(purpose, executionObject, conditionLabel, bearingNo, airId, subId, eqpId, cmpId, ptId, taskName);
+        ensureTaskNameUnique(ctx, uploadBatchId);
         log.info("数值型数据单文件上传开始，batchId={}，fileIndex={}，totalFiles={}，fileName={}",
                 text(uploadBatchId), fileIndex, totalFiles, file == null ? null : file.getOriginalFilename());
         Map<String, Object> ret = saveNumericSample(ctx, file, uploadBatchId, fileIndex, totalFiles, relativePath);
@@ -424,7 +427,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                 text(req.get("subsystemId")),
                 text(req.get("equipmentId")),
                 text(req.get("componentId")),
-                text(req.get("partId"))
+                text(req.get("partId")),
+                text(req.get("taskName"))
         );
 
         String apiUrl = text(req.get("apiUrl"));
@@ -456,8 +460,9 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
 
         String fileName = apiFileName(text(req.get("fileName")));
         String uploadBatchId = text(req.get("uploadBatchId"));
+        ensureTaskNameUnique(ctx, uploadBatchId);
         Path targetDir = uploadTargetDir(ctx, uploadBatchId);
-        FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage);
+        FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage, ctx.taskName);
         if (existing != null)
         {
             Map<String, Object> ret = sampleResult(ctx, existing, Paths.get(existing.getSourceFile()), uploadBatchId, "SKIPPED");
@@ -580,6 +585,62 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
     }
 
     @Override
+    public Map<String, Object> uploadNumericChunk(
+            String uploadId,
+            Integer chunkIndex,
+            Integer chunkCount,
+            String fileName,
+            String fileHash,
+            MultipartFile chunk
+    )
+    {
+        String id = safeToken(uploadId, "uploadId");
+        String cleanName = cleanFileName(fileName);
+        validateNumericUploadFile(cleanName, chunk, true);
+        validateHash(fileHash);
+        int idx = nonNegative(chunkIndex, "chunkIndex");
+        Integer count = positiveInt(chunkCount);
+        if (count == null || idx >= count)
+        {
+            throw new ServiceException("Chunk index out of range");
+        }
+
+        try
+        {
+            Path dir = chunkRoot().resolve(id).normalize();
+            if (!dir.startsWith(chunkRoot()))
+            {
+                throw new ServiceException("Invalid chunk directory");
+            }
+            Files.createDirectories(dir);
+            Path part = dir.resolve(idx + ".part").normalize();
+            if (!part.startsWith(dir))
+            {
+                throw new ServiceException("Invalid chunk path");
+            }
+            Files.copy(chunk.getInputStream(), part, StandardCopyOption.REPLACE_EXISTING);
+
+            Map<String, Object> ret = new LinkedHashMap<>();
+            ret.put("uploadId", id);
+            ret.put("fileName", cleanName);
+            ret.put("fileHash", text(fileHash));
+            ret.put("chunkIndex", idx);
+            ret.put("chunkCount", count);
+            ret.put("uploadedCount", uploadedChunkCount(id));
+            ret.put("uploadStatus", "CHUNK_UPLOADED");
+            return ret;
+        }
+        catch (ServiceException e)
+        {
+            throw e;
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("Chunk upload failed: " + e.getMessage());
+        }
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public synchronized Map<String, Object> mergeNumericChunks(
             String purpose,
@@ -591,6 +652,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             String eqpId,
             String cmpId,
             String ptId,
+            String taskName,
             String uploadBatchId,
             String uploadId,
             String fileName,
@@ -605,7 +667,8 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         {
             throw new ServiceException("仅支持上传 CSV/TXT 文件");
         }
-        UploadContext ctx = uploadContext(purpose, executionObject, conditionLabel, bearingNo, airId, subId, eqpId, cmpId, ptId);
+        UploadContext ctx = uploadContext(purpose, executionObject, conditionLabel, bearingNo, airId, subId, eqpId, cmpId, ptId, taskName);
+        ensureTaskNameUnique(ctx, uploadBatchId);
         Path dir = chunkRoot().resolve(id).normalize();
         if (!dir.startsWith(chunkRoot()) || !Files.isDirectory(dir))
         {
@@ -636,7 +699,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                 }
             }
 
-            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, storedName, ctx.dataUsage);
+            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, storedName, ctx.dataUsage, ctx.taskName);
             if (existing != null)
             {
                 deleteChunkDirectory(dir);
@@ -726,6 +789,22 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             String ptId
     )
     {
+        return uploadContext(purpose, executionObject, conditionLabel, bearingNo, airId, subId, eqpId, cmpId, ptId, null);
+    }
+
+    private UploadContext uploadContext(
+            String purpose,
+            String executionObject,
+            String conditionLabel,
+            Integer bearingNo,
+            String airId,
+            String subId,
+            String eqpId,
+            String cmpId,
+            String ptId,
+            String taskName
+    )
+    {
         Map<String, Object> req = new LinkedHashMap<>();
         req.put("purpose", purpose);
         req.put("executionObject", executionObject);
@@ -772,7 +851,74 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         ctx.sampleCondition = sampleCondition;
         ctx.sampleBearing = sampleBearing;
         ctx.bind = bind;
+        ctx.taskName = text(taskName);
+        if (PURPOSE_FAULT_IDENTIFY.equals(options.purpose) && ctx.taskName == null)
+        {
+            throw new ServiceException("服役周期数据导入必须填写任务名称");
+        }
         return ctx;
+    }
+
+    private void ensureTaskNameUnique(UploadContext ctx, String uploadBatchId)
+    {
+        if (ctx == null || !PURPOSE_FAULT_IDENTIFY.equals(ctx.options.purpose))
+        {
+            return;
+        }
+        String batchId = text(uploadBatchId);
+        if (batchId == null)
+        {
+            throw new ServiceException("服役周期数据导入缺少上传批次");
+        }
+        Long count = sampleMapper.countTaskNameOutsideBatch(
+                ctx.bind.tgtLv,
+                ctx.bind.tgtId,
+                ctx.bind.airId,
+                ctx.bind.subId,
+                ctx.bind.eqpId,
+                ctx.bind.cmpId,
+                ctx.dataUsage,
+                ctx.taskName,
+                batchId
+        );
+        if (count != null && count > 0)
+        {
+            throw new ServiceException("该对象下任务名称已存在，请修改任务名称");
+        }
+    }
+
+    @Override
+    public Map<String, Object> validateTaskName(
+            String airId,
+            String subId,
+            String eqpId,
+            String cmpId,
+            String taskName,
+            String uploadBatchId
+    )
+    {
+        String name = text(taskName);
+        if (name == null)
+        {
+            throw new ServiceException("任务名称不能为空");
+        }
+        if (name.length() > 128)
+        {
+            throw new ServiceException("任务名称不能超过128个字符");
+        }
+        ObjBind bind = valObjBind(airId, subId, eqpId, cmpId);
+        UploadContext ctx = new UploadContext();
+        ctx.options = new NumericImportOptions();
+        ctx.options.purpose = PURPOSE_FAULT_IDENTIFY;
+        ctx.dataUsage = dataUsage(PURPOSE_FAULT_IDENTIFY);
+        ctx.bind = bind;
+        ctx.taskName = name;
+        ensureTaskNameUnique(ctx, uploadBatchId);
+
+        Map<String, Object> ret = new LinkedHashMap<>();
+        ret.put("available", true);
+        ret.put("taskName", name);
+        return ret;
     }
 
     private Map<String, Object> saveNumericSample(UploadContext ctx, MultipartFile file, String uploadBatchId, Integer fileIndex, Integer totalFiles)
@@ -795,7 +941,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         try
         {
             Path dir = uploadTargetDir(ctx, uploadBatchId);
-            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage);
+            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage, ctx.taskName);
             if (existing != null)
             {
                 Map<String, Object> ret = sampleResult(ctx, existing, Paths.get(existing.getSourceFile()), uploadBatchId, "SKIPPED");
@@ -828,7 +974,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         try
         {
             String fileName = text(storedName) == null ? target.getFileName().toString() : storedName.replace("\\", "/");
-            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage);
+            FaultIdenSampleFile existing = sampleMapper.selectByUniqueKey(ctx.sampleCondition, ctx.sampleBearing, fileName, ctx.dataUsage, ctx.taskName);
             if (existing != null)
             {
                 Map<String, Object> ret = sampleResult(ctx, existing, Paths.get(existing.getSourceFile()), uploadBatchId, "SKIPPED");
@@ -841,24 +987,46 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             {
                 sampleNo = fileIndex == null || fileIndex <= 0 ? 1 : fileIndex;
             }
-            while (sampleMapper.countByConditionBearingSampleNo(ctx.sampleCondition, ctx.sampleBearing, sampleNo, ctx.dataUsage) > 0)
-            {
-                sampleNo++;
-            }
-
             FaultIdenSampleFile sample = new FaultIdenSampleFile();
             sample.setConditionLabel(ctx.sampleCondition);
             sample.setBearingCode(ctx.sampleBearing);
-            sample.setSampleNo(sampleNo);
             sample.setFileName(fileName);
             sample.setSourceFile(target.toAbsolutePath().normalize().toString());
             sample.setFileSize(Files.size(target));
             sample.setDataUsage(ctx.dataUsage);
+            sample.setTaskName(ctx.taskName);
+            sample.setUploadBatchId(text(uploadBatchId));
             sample.setAircraftId(ctx.bind.airId);
             sample.setSubsystemId(ctx.bind.subId);
             sample.setEquipmentId(ctx.bind.eqpId);
             sample.setComponentId(ctx.bind.cmpId);
-            sampleMapper.inFaultIdenSample(sample);
+            boolean inserted = false;
+            for (int attempt = 0; attempt < NUMERIC_SAMPLE_INSERT_RETRY_LIMIT; attempt++)
+            {
+                while (sampleMapper.countByConditionBearingSampleNo(ctx.sampleCondition, ctx.sampleBearing, sampleNo, ctx.dataUsage, ctx.taskName) > 0)
+                {
+                    sampleNo++;
+                }
+                sample.setSampleNo(sampleNo);
+                try
+                {
+                    sampleMapper.inFaultIdenSample(sample);
+                    inserted = true;
+                    break;
+                }
+                catch (Exception e)
+                {
+                    if (!isDuplicateKeyError(e))
+                    {
+                        throw e;
+                    }
+                    sampleNo++;
+                }
+            }
+            if (!inserted)
+            {
+                throw new ServiceException("保存样本记录失败：样本编号冲突，请稍后重试");
+            }
 
             Map<String, Object> ret = sampleResult(ctx, sample, target, uploadBatchId, "SUCCESS");
             ret.put("fileIndex", fileIndex);
@@ -898,6 +1066,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         ret.put("uploadBatchId", text(uploadBatchId));
         ret.put("uploadStatus", status);
         ret.put("dataUsage", ctx.dataUsage);
+        ret.put("taskName", ctx.taskName);
         ret.put("conditionLabel", ctx.sampleCondition);
         ret.put("bearingCode", ctx.sampleBearing);
         ret.put("objectBinding", ctx.bind.toMap());
@@ -1041,6 +1210,45 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         }
         catch (Exception ignored)
         {
+        }
+    }
+
+    private void validateNumericUploadFile(String fileName, MultipartFile file, boolean allowOctetStream)
+    {
+        if (!isDataFile(fileName))
+        {
+            throw new ServiceException("Only CSV/TXT files are supported");
+        }
+        if (file == null || file.isEmpty() || file.getSize() <= 0)
+        {
+            throw new ServiceException("Upload file cannot be empty");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || contentType.isBlank())
+        {
+            return;
+        }
+        String lower = contentType.toLowerCase();
+        boolean allowed = lower.startsWith("text/")
+                || "application/csv".equals(lower)
+                || "application/vnd.ms-excel".equals(lower)
+                || (allowOctetStream && "application/octet-stream".equals(lower));
+        if (!allowed)
+        {
+            throw new ServiceException("Unsupported upload MIME type: " + contentType);
+        }
+    }
+
+    private void validateHash(String hash)
+    {
+        String value = text(hash);
+        if (value == null)
+        {
+            throw new ServiceException("Upload hash cannot be empty");
+        }
+        if (!value.matches("^[0-9a-zA-Z_-]{6,128}$"))
+        {
+            throw new ServiceException("Upload hash is invalid");
         }
     }
 
@@ -1640,6 +1848,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         private Path uploadDir;
         private String sampleCondition;
         private String sampleBearing;
+        private String taskName;
         private ObjBind bind;
     }
 
@@ -1670,6 +1879,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             String cmpId,
             String partId,
             String dataUsage,
+            String taskName,
             String uploadBatchId,
             Integer pageNum,
             Integer pageSize
@@ -1693,6 +1903,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                     bind.eqpId,
                     bind.cmpId,
                     usage,
+                    taskName,
                     uploadBatchId,
                     keyword,
                     (page - 1) * size,
@@ -1706,6 +1917,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
                     bind.eqpId,
                     bind.cmpId,
                     usage,
+                    taskName,
                     uploadBatchId,
                     keyword
             ));
@@ -1722,6 +1934,34 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         }
         ret.put("rows", sampleMapper.selectSamplesByConditionAndBearing(condition, bearing, usage, uploadBatchId, keyword, (page - 1) * size, size));
         ret.put("total", sampleMapper.countSamplesByConditionAndBearing(condition, bearing, usage, uploadBatchId, keyword));
+        return ret;
+    }
+
+    @Override
+    public Map<String, Object> taskNames(
+            String airId,
+            String subId,
+            String eqpId,
+            String cmpId,
+            String partId,
+            String dataUsage,
+            String keyword
+    )
+    {
+        ObjBind bind = valObjBind(airId, subId, eqpId, cmpId, partId);
+        String usageText = text(dataUsage);
+        String usage = USAGE_ALL.equalsIgnoreCase(String.valueOf(usageText)) ? null : sampleUsage(usageText);
+        Map<String, Object> ret = new LinkedHashMap<>();
+        ret.put("rows", sampleMapper.selectTaskNamesByObject(
+                bind.tgtLv,
+                bind.tgtId,
+                bind.airId,
+                bind.subId,
+                bind.eqpId,
+                bind.cmpId,
+                usage,
+                keyword
+        ));
         return ret;
     }
 
@@ -1833,7 +2073,7 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
             for (Path file : dataFiles)
             {
                 int no = sampleNo(file.getFileName().toString());
-                if (no == Integer.MAX_VALUE || sampleMapper.countByConditionBearingSampleNo(condition, bearing, no, USAGE_FEATURE) > 0)
+                if (no == Integer.MAX_VALUE || sampleMapper.countByConditionBearingSampleNo(condition, bearing, no, USAGE_FEATURE, null) > 0)
                 {
                     continue;
                 }
@@ -1904,6 +2144,27 @@ public class FaultIdenCatalogServiceImpl implements FaultIdenCatalogService
         {
             return Integer.MAX_VALUE;
         }
+    }
+
+    private boolean isDuplicateKeyError(Throwable e)
+    {
+        Throwable cause = e;
+        while (cause != null)
+        {
+            String className = cause.getClass().getName();
+            if (className.contains("DuplicateKeyException")
+                    || className.contains("SQLIntegrityConstraintViolationException"))
+            {
+                return true;
+            }
+            String message = cause.getMessage();
+            if (message != null && (message.contains("Duplicate entry") || message.contains("uk_fault_iden_sample")))
+            {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 
     private Path root(String rootPath)

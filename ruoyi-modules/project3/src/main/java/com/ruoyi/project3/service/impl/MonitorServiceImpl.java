@@ -419,14 +419,19 @@ public class MonitorServiceImpl implements MonitorService {
 
         ProcessImportData processData = parse_process_template_workbook(file);
         if (processData != null) {
-            int routeCount = upsert_rows(processData.routeRows, monitorMapper::upsert_process_route);
-            int processCount = upsert_rows(processData.processRows, monitorMapper::upsert_process_def);
+            List<Map<String, Object>> skippedRows = new ArrayList<>();
+            int routeCount = insert_new_process_rows(processData.routeRows, "工序路线", "route_id", "route_name",
+                    row -> monitorMapper.count_process_route_by_id(get_str(row, "route_id")), monitorMapper::upsert_process_route, skippedRows);
+            int processCount = insert_new_process_rows(processData.processRows, "详细工序", "process_def_id", "process_name",
+                    row -> monitorMapper.count_process_def_by_id(get_str(row, "process_def_id")), monitorMapper::upsert_process_def, skippedRows);
 
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("component_id", "");
             payload.put("part_count", processData.partIds.size());
             payload.put("route_count", routeCount);
             payload.put("process_count", processCount);
+            payload.put("skipped_count", skippedRows.size());
+            payload.put("skipped_rows", skippedRows);
             return payload;
         }
 
@@ -509,6 +514,7 @@ public class MonitorServiceImpl implements MonitorService {
             new PartActualManufacturingProcessTemplateGenerator().write(
                     outputStream,
                     monitorMapper.sel_all_part_template_ids(),
+                    monitorMapper.sel_all_part_instances(),
                     monitorMapper.sel_all_process_route_ids(),
                     monitorMapper.sel_all_process_def_ids()
             );
@@ -529,15 +535,46 @@ public class MonitorServiceImpl implements MonitorService {
         ActualProcessImportData data = parse_actual_process_workbook(file);
         validate_actual_process_data(data);
 
-        int partInstanceCount = upsert_rows(data.partInstanceRows, monitorMapper::upsert_part_instance);
+        int manufacturingQualityCount = ensure_manufacturing_quality_rows(data.workOrderRows);
+        int manufacturingDeviceCount = ensure_manufacturing_device_rows(data.processExecutionRows);
         int workOrderCount = upsert_rows(data.workOrderRows, monitorMapper::upsert_work_order);
         int processExecutionCount = upsert_rows(data.processExecutionRows, monitorMapper::upsert_process_execution);
 
         Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("part_instance_count", partInstanceCount);
+        payload.put("part_instance_count", 0);
+        payload.put("manufacturing_quality_count", manufacturingQualityCount);
+        payload.put("manufacturing_device_count", manufacturingDeviceCount);
         payload.put("work_order_count", workOrderCount);
         payload.put("process_execution_count", processExecutionCount);
         return payload;
+    }
+
+    private int ensure_manufacturing_quality_rows(List<Map<String, Object>> workOrderRows) {
+        int count = 0;
+        if (workOrderRows == null) return count;
+        for (Map<String, Object> row : workOrderRows) {
+            String manufacturingQualityId = get_str(row, "manufacturing_quality_id");
+            if (manufacturingQualityId == null) continue;
+            if (monitorMapper.count_manufacturing_quality_by_id(manufacturingQualityId) > 0) {
+                continue;
+            }
+            count += monitorMapper.insert_manufacturing_quality_if_absent(row);
+        }
+        return count;
+    }
+
+    private int ensure_manufacturing_device_rows(List<Map<String, Object>> processExecutionRows) {
+        int count = 0;
+        if (processExecutionRows == null) return count;
+        for (Map<String, Object> row : processExecutionRows) {
+            String deviceId = get_str(row, "device_id");
+            if (deviceId == null) continue;
+            if (monitorMapper.count_manufacturing_device_by_id(deviceId) > 0) {
+                continue;
+            }
+            count += monitorMapper.insert_manufacturing_device_if_absent(row);
+        }
+        return count;
     }
 
     private ActualProcessImportData parse_actual_process_workbook(MultipartFile file) {
@@ -700,11 +737,10 @@ public class MonitorServiceImpl implements MonitorService {
     }
 
     private void validate_actual_process_data(ActualProcessImportData data) {
-        if (data.partInstanceRows.isEmpty() && data.workOrderRows.isEmpty() && data.processExecutionRows.isEmpty()) {
+        if (data.workOrderRows.isEmpty() && data.processExecutionRows.isEmpty()) {
             throw new ServiceException("Excel 中没有可导入的零件实际制作过程数据");
         }
 
-        Map<String, String> excelPartTemplates = new LinkedHashMap<>();
         Map<String, String> excelWorkOrderRoutes = new LinkedHashMap<>();
         Set<String> partInstanceIds = new LinkedHashSet<>();
         Set<String> workOrderIds = new LinkedHashSet<>();
@@ -721,7 +757,6 @@ public class MonitorServiceImpl implements MonitorService {
             if (monitorMapper.count_part_tpl_by_id(partTemplateId) == 0) {
                 throw new ServiceException("Sheet 零件实例 第" + rowNum + "行字段 零件模板ID 不存在于 part_templates");
             }
-            excelPartTemplates.put(partInstanceId, partTemplateId);
         }
 
         for (int i = 0; i < data.workOrderRows.size(); i++) {
@@ -734,17 +769,11 @@ public class MonitorServiceImpl implements MonitorService {
             if (!workOrderIds.add(workOrderId)) {
                 throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 生产工单ID 重复");
             }
-            if (manufacturingQualityId != null && monitorMapper.count_manufacturing_quality_by_id(manufacturingQualityId) == 0) {
-                throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 制造质量记录ID 不存在于 manufacturing_quality");
+            Map<String, Object> dbPart = monitorMapper.sel_part_instance_ref(partInstanceId);
+            if (dbPart == null || dbPart.isEmpty()) {
+                throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 零件实例ID 不存在于数据库 part_instances");
             }
-            String partTemplateId = excelPartTemplates.get(partInstanceId);
-            if (partTemplateId == null) {
-                Map<String, Object> dbPart = monitorMapper.sel_part_instance_ref(partInstanceId);
-                if (dbPart == null || dbPart.isEmpty()) {
-                    throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 零件实例ID 不存在于本次Excel或数据库 part_instances");
-                }
-                partTemplateId = get_str(dbPart, "part_template_id");
-            }
+            String partTemplateId = get_str(dbPart, "part_template_id");
             Map<String, Object> route = monitorMapper.sel_process_route_ref(routeId);
             if (route == null || route.isEmpty()) {
                 throw new ServiceException("Sheet 生产工单 第" + rowNum + "行字段 工艺路线ID 不存在于 process_routes");
@@ -761,12 +790,8 @@ public class MonitorServiceImpl implements MonitorService {
             String processExecId = get_str(row, "process_exec_id");
             String workOrderId = get_str(row, "work_order_id");
             String processDefId = get_str(row, "process_def_id");
-            String deviceId = get_str(row, "device_id");
             if (!processExecIds.add(processExecId)) {
                 throw new ServiceException("Sheet 工序执行记录 第" + rowNum + "行字段 工序执行记录ID 重复");
-            }
-            if (deviceId != null && monitorMapper.count_manufacturing_device_by_id(deviceId) == 0) {
-                throw new ServiceException("Sheet 工序执行记录 第" + rowNum + "行字段 制造设备ID 不存在于 manufacturing_devices");
             }
             String routeId = excelWorkOrderRoutes.get(workOrderId);
             if (routeId == null) {
@@ -798,12 +823,19 @@ public class MonitorServiceImpl implements MonitorService {
         }
 
         Map<String, List<Map<String, Object>>> rows = parse_hierarchy_workbook(file);
-        int aircraftCount = upsert_rows(rows.get("aircraft"), monitorMapper::upsert_aircraft);
-        int subsystemCount = upsert_rows(rows.get("subsystems"), monitorMapper::upsert_subsystem);
-        int equipmentCount = upsert_rows(rows.get("equipments"), monitorMapper::upsert_equipment);
-        int componentCount = upsert_rows(rows.get("components"), monitorMapper::upsert_component);
-        int partTemplateCount = upsert_rows(rows.get("part_templates"), monitorMapper::upsert_part_template);
-        int partInstanceCount = upsert_rows(rows.get("part_instances"), monitorMapper::upsert_part_instance);
+        List<Map<String, Object>> skippedRows = new ArrayList<>();
+        int aircraftCount = insert_new_hierarchy_rows(rows.get("aircraft"), "aircraft", "aircraft_id", "aircraft_name",
+                row -> monitorMapper.count_aircraft_by_id(get_str(row, "aircraft_id")), monitorMapper::upsert_aircraft, skippedRows);
+        int subsystemCount = insert_new_hierarchy_rows(rows.get("subsystems"), "subsystems", "subsystem_id", "subsystem_name",
+                row -> monitorMapper.count_subsystem_by_id(get_str(row, "subsystem_id")), monitorMapper::upsert_subsystem, skippedRows);
+        int equipmentCount = insert_new_hierarchy_rows(rows.get("equipments"), "equipments", "equipment_id", "equipment_name",
+                row -> monitorMapper.count_equipment_by_id(get_str(row, "equipment_id")), monitorMapper::upsert_equipment, skippedRows);
+        int componentCount = insert_new_hierarchy_rows(rows.get("components"), "components", "component_id", "component_name",
+                row -> monitorMapper.count_component_by_id(get_str(row, "component_id")), monitorMapper::upsert_component, skippedRows);
+        int partTemplateCount = insert_new_hierarchy_rows(rows.get("part_templates"), "part_templates", "part_template_id", "part_name",
+                row -> monitorMapper.count_part_tpl_by_id(get_str(row, "part_template_id")), monitorMapper::upsert_part_template, skippedRows);
+        int partInstanceCount = insert_new_hierarchy_rows(rows.get("part_instances"), "part_instances", "part_instance_id", "serial_number",
+                row -> monitorMapper.count_part_instance_by_id(get_str(row, "part_instance_id")), monitorMapper::upsert_part_instance, skippedRows);
 
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("aircraft_count", aircraftCount);
@@ -813,6 +845,8 @@ public class MonitorServiceImpl implements MonitorService {
         payload.put("part_template_count", partTemplateCount);
         payload.put("part_instance_count", partInstanceCount);
         payload.put("total_count", aircraftCount + subsystemCount + equipmentCount + componentCount + partTemplateCount + partInstanceCount);
+        payload.put("skipped_count", skippedRows.size());
+        payload.put("skipped_rows", skippedRows);
         return payload;
     }
 
@@ -873,6 +907,7 @@ public class MonitorServiceImpl implements MonitorService {
             for (Map.Entry<String, Integer> header : headerMap.entrySet()) {
                 values.put(header.getKey(), trm_to_nil(formatter.formatCellValue(row.getCell(header.getValue()))));
             }
+            values.put("__row_num", i + 1);
             for (String column : requiredColumns) {
                 if (values.get(column) == null) {
                     throw new ServiceException("Sheet " + sheet.getSheetName() + " 第" + (i + 1) + "行缺少必填字段：" + hierarchy_column_label(column));
@@ -924,6 +959,78 @@ public class MonitorServiceImpl implements MonitorService {
             count++;
         }
         return count;
+    }
+
+    private int insert_new_process_rows(
+            List<Map<String, Object>> rows,
+            String sheetName,
+            String idColumn,
+            String nameColumn,
+            Function<Map<String, Object>, Integer> existsCounter,
+            Function<Map<String, Object>, Integer> inserter,
+            List<Map<String, Object>> skippedRows
+    ) {
+        if (rows == null || rows.isEmpty()) return 0;
+        int count = 0;
+        for (int i = 0; i < rows.size(); i++) {
+            Map<String, Object> row = rows.get(i);
+            String objectId = get_str(row, idColumn);
+            if (existsCounter.apply(row) > 0) {
+                skippedRows.add(build_import_skipped_row(sheetName, import_source_row_num(row, i + 2), idColumn, objectId, get_str(row, nameColumn)));
+                continue;
+            }
+            inserter.apply(row);
+            count++;
+        }
+        return count;
+    }
+
+    private int insert_new_hierarchy_rows(
+            List<Map<String, Object>> rows,
+            String sheetName,
+            String idColumn,
+            String nameColumn,
+            Function<Map<String, Object>, Integer> existsCounter,
+            Function<Map<String, Object>, Integer> inserter,
+            List<Map<String, Object>> skippedRows
+    ) {
+        if (rows == null || rows.isEmpty()) return 0;
+        int count = 0;
+        for (int i = 0; i < rows.size(); i++) {
+            Map<String, Object> row = rows.get(i);
+            String objectId = get_str(row, idColumn);
+            if (existsCounter.apply(row) > 0) {
+                skippedRows.add(build_import_skipped_row(sheetName, import_source_row_num(row, i + 2), idColumn, objectId, get_str(row, nameColumn)));
+                continue;
+            }
+            inserter.apply(row);
+            count++;
+        }
+        return count;
+    }
+
+    private Map<String, Object> build_import_skipped_row(String sheetName, int rowNum, String idColumn, String objectId, String objectName) {
+        Map<String, Object> skipped = new LinkedHashMap<>();
+        skipped.put("sheet_name", sheetName);
+        skipped.put("row_num", rowNum);
+        skipped.put("id_column", idColumn);
+        skipped.put("object_id", objectId);
+        skipped.put("object_name", objectName);
+        skipped.put("reason", "数据库中已存在，已跳过");
+        return skipped;
+    }
+
+    private int import_source_row_num(Map<String, Object> row, int fallback) {
+        Object rowNum = row == null ? null : row.get("__row_num");
+        if (rowNum instanceof Number) return ((Number) rowNum).intValue();
+        if (rowNum != null) {
+            try {
+                return Integer.parseInt(String.valueOf(rowNum));
+            } catch (NumberFormatException ignored) {
+                return fallback;
+            }
+        }
+        return fallback;
     }
 
 
@@ -1028,12 +1135,13 @@ public class MonitorServiceImpl implements MonitorService {
             }
 
             Map<String, Object> values = new LinkedHashMap<>();
+            values.put("__row_num", rowNum);
             values.put("route_id", routeId);
             values.put("part_template_id", partId);
             values.put("route_name", routeName);
             values.put("version", process_cell(row, formatter, header, "版本"));
             values.put("effective_date", process_cell(row, formatter, header, "生效日期"));
-            values.put("is_active", process_default(process_cell(row, formatter, header, "是否启用"), "1"));
+            values.put("is_active", parse_process_flag(process_cell(row, formatter, header, "是否启用"), "工序路线", rowNum, "是否启用", 1));
             rows.add(values);
         }
         return rows;
@@ -1066,14 +1174,15 @@ public class MonitorServiceImpl implements MonitorService {
             }
 
             Map<String, Object> values = new LinkedHashMap<>();
+            values.put("__row_num", rowNum);
             values.put("process_def_id", processId);
             values.put("route_id", routeId);
             values.put("process_number", parse_process_int(processNumber, "详细工序", rowNum, "工序序号"));
             values.put("process_name", processName);
             values.put("equipment_type", equipmentType);
             values.put("standard_duration", process_cell(row, formatter, header, "标准工时"));
-            values.put("is_key_process", process_cell(row, formatter, header, "是否关键工序"));
-            values.put("is_high_risk", process_cell(row, formatter, header, "是否高风险"));
+            values.put("is_key_process", parse_process_flag(process_cell(row, formatter, header, "是否关键工序"), "详细工序", rowNum, "是否关键工序", 0));
+            values.put("is_high_risk", parse_process_flag(process_cell(row, formatter, header, "是否高风险"), "详细工序", rowNum, "是否高风险", 0));
             rows.add(values);
         }
         return rows;
@@ -1114,16 +1223,24 @@ public class MonitorServiceImpl implements MonitorService {
         }
     }
 
-    private Object process_default(String value, String defaultValue) {
-        return value == null ? defaultValue : value;
-    }
-
     private Integer parse_process_int(String value, String sheetName, int rowNum, String column) {
         try {
             return new BigDecimal(value.trim()).intValueExact();
         } catch (Exception e) {
             throw new ServiceException("Sheet " + sheetName + " 第" + rowNum + "行 " + column + " 错误：" + column + "必须是整数");
         }
+    }
+
+    private Integer parse_process_flag(String value, String sheetName, int rowNum, String column, Integer defaultValue) {
+        if (value == null) return defaultValue;
+        String text = value.trim();
+        if ("1".equals(text) || "是".equals(text) || "启用".equals(text) || "true".equalsIgnoreCase(text)) {
+            return 1;
+        }
+        if ("0".equals(text) || "否".equals(text) || "停用".equals(text) || "false".equalsIgnoreCase(text)) {
+            return 0;
+        }
+        throw new ServiceException("Sheet " + sheetName + " 第" + rowNum + "行 " + column + " 错误：" + column + "需要规范填写，应该为：1/0、是/否、启用/停用、true/false");
     }
 
     private List<ImportedPart> parse_process_workbook(MultipartFile file) {

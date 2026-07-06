@@ -12,7 +12,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from pydantic import ValidationError
 
-from algorithms.data_upload_analysis import process_uploaded_dataset
+from algorithms.data_upload_analysis import (
+    load_global_raw_waveform_preview,
+    load_time_domain_overview,
+    load_time_domain_window,
+    process_uploaded_dataset,
+)
 from algorithms.feature_processing import extract_features_from_dataset
 from algorithms.early_fault_detection import run_early_fault_detection
 from algorithms.fault_prevention import run_fault_prevention
@@ -20,16 +25,22 @@ from algorithms.process_anomaly import run_process_anomaly
 from algorithms.single_process_anomaly import run_single_process_anomaly
 from algorithms.early_warning_wrapper import predict_frame_beam_crack
 from algorithms.frame_beam_crack import run_frame_beam_crack
+from algorithms.preventive_maintenance import run_preventive_maintenance
 from algorithms.bosch_services import (
     run_bosch_key_station,
     run_bosch_kqc_mining,
     run_bosch_process_anomaly,
     run_id,
 )
-from task_manager import cancel_task, get_logs, get_result, get_status, submit_task
+from task_manager import cancel_task, get_logs, get_result, get_status, is_canceled, recover_incomplete_tasks, submit_task
 
 
-STORAGE_ROOT = Path(os.getenv("ALGORITHM_STORAGE_ROOT", "D:/2.11/data/topic3/result")).resolve()
+DEFAULT_ALGORITHM_DATA_ROOT = Path(
+    os.getenv("ALGORITHM_DATA_ROOT", r"D:\2.11\data\topic3\FaultIdentifyData\AlgorithmData")
+).resolve()
+STORAGE_ROOT = Path(
+    os.getenv("ALGORITHM_STORAGE_ROOT", DEFAULT_ALGORITHM_DATA_ROOT / "storage")
+).resolve()
 STORAGE_ROOT.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
@@ -44,6 +55,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def recover_tasks_on_startup():
+    recover_incomplete_tasks()
 
 
 class UploadAnalyzeRequest(BaseModel):
@@ -65,6 +81,28 @@ class UploadAnalyzeRequest(BaseModel):
     overlapPercent: float = 50.0
     removeOutliers: bool = True
     maxSeconds: float = 5.0
+
+
+class TimeDomainWindowRequest(BaseModel):
+    datasetId: Optional[str] = None
+    combinedDataPath: Optional[str] = None
+    samplingFrequency: int = 25600
+    startIndex: int = 0
+    limit: int = 5000
+
+
+class TimeDomainOverviewRequest(BaseModel):
+    datasetId: Optional[str] = None
+    combinedDataPath: Optional[str] = None
+    samplingFrequency: int = 25600
+    maxBuckets: int = 2000
+
+
+class GlobalRawWaveformPreviewRequest(BaseModel):
+    datasetId: Optional[str] = None
+    combinedDataPath: Optional[str] = None
+    samplingFrequency: int = 25600
+    maxPoints: int = 8000
 
 
 class FeatureExtractRequest(BaseModel):
@@ -320,7 +358,7 @@ def _json_field(value: Any) -> Any:
 @app.post("/algorithm/tasks")
 def submit_algorithm_task(request: AlgorithmTaskSubmitRequest):
     algorithm_type = (request.algorithmType or "").strip().upper()
-    if algorithm_type not in {"PROCESS_ANOMALY", "KEY_PROCESS", "KQC_MINING"}:
+    if algorithm_type not in {"PROCESS_ANOMALY", "KEY_PROCESS", "KQC_MINING", "PREVENTIVE_MAINTENANCE"}:
         return {"success": False, "message": f"unsupported algorithmType: {request.algorithmType}"}
     task = submit_task(algorithm_type, dict(request.payload or {}), _run_algorithm_task)
     return {
@@ -437,6 +475,88 @@ async def python_data_analysis(http_request: Request):
             "message": str(exc),
             "errorCode": "DATA_ANALYSIS_FAILED",
             "fileReports": [],
+        }
+
+
+@app.post("/python/time-domain-window")
+def python_time_domain_window(request: TimeDomainWindowRequest):
+    try:
+        combined_data_path = request.combinedDataPath
+        if not combined_data_path and request.datasetId:
+            combined_data_path = (
+                STORAGE_ROOT / "datasets" / request.datasetId / "data_combined.npy"
+            ).as_posix()
+        if not combined_data_path:
+            raise ValueError("datasetId and combinedDataPath cannot both be empty")
+
+        return {
+            "status": "SUCCESS",
+            "data": load_time_domain_window(
+                combined_data_path,
+                sampling_frequency=request.samplingFrequency,
+                start_index=request.startIndex,
+                limit=min(max(request.limit, 1), 25600),
+            ),
+        }
+    except Exception as exc:
+        return {
+            "status": "FAILED",
+            "message": str(exc),
+            "data": None,
+        }
+
+
+@app.post("/python/time-domain-overview")
+def python_time_domain_overview(request: TimeDomainOverviewRequest):
+    try:
+        combined_data_path = request.combinedDataPath
+        if not combined_data_path and request.datasetId:
+            combined_data_path = (
+                STORAGE_ROOT / "datasets" / request.datasetId / "data_combined.npy"
+            ).as_posix()
+        if not combined_data_path:
+            raise ValueError("datasetId and combinedDataPath cannot both be empty")
+
+        return {
+            "status": "SUCCESS",
+            "data": load_time_domain_overview(
+                combined_data_path,
+                sampling_frequency=request.samplingFrequency,
+                max_buckets=min(max(request.maxBuckets, 1), 5000),
+            ),
+        }
+    except Exception as exc:
+        return {
+            "status": "FAILED",
+            "message": str(exc),
+            "data": None,
+        }
+
+
+@app.post("/python/time-domain-global-raw-preview")
+def python_time_domain_global_raw_preview(request: GlobalRawWaveformPreviewRequest):
+    try:
+        combined_data_path = request.combinedDataPath
+        if not combined_data_path and request.datasetId:
+            combined_data_path = (
+                STORAGE_ROOT / "datasets" / request.datasetId / "data_combined.npy"
+            ).as_posix()
+        if not combined_data_path:
+            raise ValueError("datasetId and combinedDataPath cannot both be empty")
+
+        return {
+            "status": "SUCCESS",
+            "data": load_global_raw_waveform_preview(
+                combined_data_path,
+                sampling_frequency=request.samplingFrequency,
+                max_points=min(max(request.maxPoints, 1000), 20000),
+            ),
+        }
+    except Exception as exc:
+        return {
+            "status": "FAILED",
+            "message": str(exc),
+            "data": None,
         }
 
 
@@ -732,6 +852,7 @@ def process_anomaly_execute(request: ProcessAnomalyRequest):
                 ewma_lambda=request.ewmaLambda,
                 seed=request.seed,
                 device=request.device,
+                cancel_check=lambda: is_canceled(request.taskId) if request.taskId else False,
             )
             return _algorithm_response(result)
 
@@ -834,6 +955,7 @@ def bosch_kqc_mining_execute(request: BoschKqcRequest):
             top_k=request.topK,
             ss_runs=request.ssRuns,
             ss_frac=request.ssFrac,
+            cancel_check=lambda: is_canceled(task_id) if task_id else False,
         )
         return _algorithm_response(result)
     except Exception as exc:
@@ -882,6 +1004,7 @@ async def key_process_identify(http_request: Request):
             keep_freq=request.keepFreq,
             weight_thresh=request.weightThresh,
             top_n=request.topN,
+            cancel_check=lambda: is_canceled(task_id) if task_id else False,
         )
         return _algorithm_response(result)
     except Exception as exc:
@@ -1021,11 +1144,13 @@ def _run_algorithm_task(task_id: str, algorithm_type: str, payload: Dict[str, An
     if algorithm_type == "KQC_MINING":
         return bosch_kqc_mining_execute(BoschKqcRequest.model_validate(data))
     if algorithm_type == "KEY_PROCESS":
-        return _key_process_identify_payload(data)
+        return _key_process_identify_payload(data, cancel_check=lambda: is_canceled(task_id))
+    if algorithm_type == "PREVENTIVE_MAINTENANCE":
+        return run_preventive_maintenance(data, cancel_check=lambda: is_canceled(task_id))
     raise ValueError(f"unsupported algorithmType: {algorithm_type}")
 
 
-def _key_process_identify_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+def _key_process_identify_payload(payload: Dict[str, Any], cancel_check=None) -> Dict[str, Any]:
     params = payload.get("params") if isinstance(payload.get("params"), dict) else {}
     merged = {k: v for k, v in payload.items() if k != "params" and v is not None}
     merged.update({k: v for k, v in params.items() if v is not None})
@@ -1056,5 +1181,6 @@ def _key_process_identify_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
         keep_freq=request.keepFreq,
         weight_thresh=request.weightThresh,
         top_n=request.topN,
+        cancel_check=cancel_check,
     )
     return _algorithm_response(result)

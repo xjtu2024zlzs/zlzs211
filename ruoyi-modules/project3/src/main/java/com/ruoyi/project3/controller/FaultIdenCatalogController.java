@@ -77,6 +77,7 @@ public class FaultIdenCatalogController
             @RequestParam(value = "equipmentId", required = false) String eqpId,
             @RequestParam(value = "componentId", required = false) String cmpId,
             @RequestParam(value = "partId", required = false) String ptId,
+            @RequestParam(value = "taskName", required = false) String taskName,
             @RequestParam(value = "uploadBatchId", required = false) String uploadBatchId,
             @RequestParam(value = "fileIndex", required = false) Integer fileIndex,
             @RequestParam(value = "totalFiles", required = false) Integer totalFiles,
@@ -94,6 +95,7 @@ public class FaultIdenCatalogController
                 eqpId,
                 cmpId,
                 ptId,
+                taskName,
                 uploadBatchId,
                 fileIndex,
                 totalFiles,
@@ -108,16 +110,32 @@ public class FaultIdenCatalogController
         return AjaxResult.success("API瀵煎叆瀹屾垚", faultIdenCatalogService.uploadNumericApi(req));
     }
 
+    @PostMapping("/catalog/validate-task-name")
+    public AjaxResult validateTaskName(@RequestBody(required = false) Map<String, Object> req)
+    {
+        return AjaxResult.success(faultIdenCatalogService.validateTaskName(
+                text(req, "aircraftId"),
+                text(req, "subsystemId"),
+                text(req, "equipmentId"),
+                text(req, "componentId"),
+                text(req, "taskName"),
+                text(req, "uploadBatchId")
+        ));
+    }
+
     @PostMapping("/catalog/upload-numeric-chunk")
     public AjaxResult uploadNumericChunk(
             @RequestParam("uploadId") String uploadId,
             @RequestParam("chunkIndex") Integer chunkIndex,
             @RequestParam("chunkCount") Integer chunkCount,
             @RequestParam("fileName") String fileName,
+            @RequestParam(value = "fileHash", required = false) String fileHash,
+            @RequestParam(value = "hash", required = false) String hash,
             @RequestParam("chunk") MultipartFile chunk
     )
     {
-        return AjaxResult.success("分片上传完成", faultIdenCatalogService.uploadNumericChunk(uploadId, chunkIndex, chunkCount, fileName, chunk));
+        String effectiveHash = fileHash != null && !fileHash.isBlank() ? fileHash : hash;
+        return AjaxResult.success("分片上传完成", faultIdenCatalogService.uploadNumericChunk(uploadId, chunkIndex, chunkCount, fileName, effectiveHash, chunk));
     }
 
     @PostMapping("/catalog/merge-numeric-chunks")
@@ -131,6 +149,7 @@ public class FaultIdenCatalogController
             @RequestParam(value = "equipmentId", required = false) String eqpId,
             @RequestParam(value = "componentId", required = false) String cmpId,
             @RequestParam(value = "partId", required = false) String ptId,
+            @RequestParam(value = "taskName", required = false) String taskName,
             @RequestParam(value = "uploadBatchId", required = false) String uploadBatchId,
             @RequestParam("uploadId") String uploadId,
             @RequestParam("fileName") String fileName,
@@ -140,7 +159,7 @@ public class FaultIdenCatalogController
     {
         return AjaxResult.success("合并完成", faultIdenCatalogService.mergeNumericChunks(
                 purpose, executionObject, conditionLabel, bearingNo,
-                airId, subId, eqpId, cmpId, ptId, uploadBatchId, uploadId, fileName, totalFiles, relativePath
+                airId, subId, eqpId, cmpId, ptId, taskName, uploadBatchId, uploadId, fileName, totalFiles, relativePath
         ));
     }
 
@@ -173,6 +192,7 @@ public class FaultIdenCatalogController
             @RequestParam(value = "componentId", required = false) String cmpId,
             @RequestParam(value = "partId", required = false) String partId,
             @RequestParam(value = "dataUsage", required = false) String dataUsage,
+            @RequestParam(value = "taskName", required = false) String taskName,
             @RequestParam(value = "uploadBatchId", required = false) String uploadBatchId,
             @RequestParam(value = "pageNum", required = false, defaultValue = "1") Integer pageNum,
             @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize
@@ -188,6 +208,7 @@ public class FaultIdenCatalogController
                 cmpId,
                 partId,
                 dataUsage,
+                taskName,
                 uploadBatchId,
                 pageNum,
                 pageSize
@@ -196,6 +217,22 @@ public class FaultIdenCatalogController
         ret.put("rows", page.get("rows"));
         ret.put("total", page.get("total"));
         return ret;
+    }
+
+    @GetMapping("/sample-tasks")
+    public AjaxResult sampleTasks(
+            @RequestParam(value = "aircraftId", required = false) String airId,
+            @RequestParam(value = "subsystemId", required = false) String subId,
+            @RequestParam(value = "equipmentId", required = false) String eqpId,
+            @RequestParam(value = "componentId", required = false) String cmpId,
+            @RequestParam(value = "partId", required = false) String partId,
+            @RequestParam(value = "dataUsage", required = false) String dataUsage,
+            @RequestParam(value = "keyword", required = false) String keyword
+    )
+    {
+        return AjaxResult.success(faultIdenCatalogService.taskNames(
+                airId, subId, eqpId, cmpId, partId, dataUsage, keyword
+        ).get("rows"));
     }
 
     @DeleteMapping("/samples/{sampleId}")

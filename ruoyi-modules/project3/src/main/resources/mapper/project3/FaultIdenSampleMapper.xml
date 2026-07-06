@@ -14,6 +14,8 @@
         <result property="sourceFile" column="source_file"/>
         <result property="fileSize" column="file_size"/>
         <result property="dataUsage" column="data_usage"/>
+        <result property="taskName" column="task_name"/>
+        <result property="uploadBatchId" column="upload_batch_id"/>
         <result property="aircraftId" column="aircraft_id"/>
         <result property="subsystemId" column="subsystem_id"/>
         <result property="equipmentId" column="equipment_id"/>
@@ -23,17 +25,18 @@
 
     <insert id="inFaultIdenSample" parameterType="com.ruoyi.project3.domain.faultiden.FaultIdenSampleFile" useGeneratedKeys="true" keyProperty="id">
         insert into t3_fault_iden_sample (
-            condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage, task_name, upload_batch_id,
             aircraft_id, subsystem_id, equipment_id, component_id, create_time
         ) values (
             #{conditionLabel}, #{bearingCode}, #{sampleNo}, #{fileName}, #{sourceFile}, #{fileSize}, #{dataUsage},
+            coalesce(#{taskName}, ''), coalesce(#{uploadBatchId}, ''),
             #{aircraftId}, #{subsystemId}, #{equipmentId}, #{componentId}, now()
         )
     </insert>
 
     <select id="seFaultIdenSampleById" resultMap="FaultIdenSampleFileMap">
         select
-            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage, task_name,
             aircraft_id, subsystem_id, equipment_id, component_id, create_time
         from t3_fault_iden_sample
         where id = #{id}
@@ -41,7 +44,7 @@
 
     <select id="selectByUniqueKey" resultMap="FaultIdenSampleFileMap">
         select
-            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage, task_name,
             aircraft_id, subsystem_id, equipment_id, component_id, create_time
         from t3_fault_iden_sample
         where condition_label = #{conditionLabel}
@@ -50,6 +53,14 @@
         <if test="dataUsage != null and dataUsage != ''">
           and data_usage = #{dataUsage}
         </if>
+        <choose>
+          <when test="taskName != null and taskName != ''">
+            and task_name = #{taskName}
+          </when>
+          <otherwise>
+            and (task_name is null or task_name = '')
+          </otherwise>
+        </choose>
         limit 1
     </select>
 
@@ -103,6 +114,7 @@
     <select id="selectSamplesByIds" resultMap="FaultIdenSampleFileMap">
         select
             id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            task_name, upload_batch_id,
             aircraft_id, subsystem_id, equipment_id, component_id, create_time
         from t3_fault_iden_sample
         where id in
@@ -115,9 +127,21 @@
         order by condition_label, bearing_code, sample_no
     </select>
 
+    <select id="selectSampleBySourceFile" resultMap="FaultIdenSampleFileMap">
+        select
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            task_name, upload_batch_id,
+            aircraft_id, subsystem_id, equipment_id, component_id, create_time
+        from t3_fault_iden_sample
+        where source_file = #{sourceFile}
+        order by create_time desc, id desc
+        limit 1
+    </select>
+
     <select id="selectAllSamples" resultMap="FaultIdenSampleFileMap">
         select
             id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            task_name, upload_batch_id,
             aircraft_id, subsystem_id, equipment_id, component_id, create_time
         from t3_fault_iden_sample
         where 1 = 1
@@ -215,6 +239,9 @@
         <if test="dataUsage != null and dataUsage != ''">
           and data_usage = #{dataUsage}
         </if>
+        <if test="taskName != null and taskName != ''">
+          and task_name = #{taskName}
+        </if>
         <if test="uploadBatchId != null and uploadBatchId != ''">
           and source_file like concat('%', #{uploadBatchId}, '%')
         </if>
@@ -242,7 +269,7 @@
 
     <select id="selectSamplesByObject" resultMap="FaultIdenSampleFileMap">
         select
-            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage,
+            id, condition_label, bearing_code, sample_no, file_name, source_file, file_size, data_usage, task_name,
             aircraft_id, subsystem_id, equipment_id, component_id, create_time
         from t3_fault_iden_sample
         where condition_label = concat('object_', #{targetLevel})
@@ -263,6 +290,92 @@
         <include refid="ObjectSampleWhere"/>
     </select>
 
+    <select id="selectTaskNamesByObject" resultType="java.util.HashMap">
+        select
+            task_name as taskName,
+            count(1) as fileCount,
+            max(create_time) as createTime
+        from t3_fault_iden_sample
+        where condition_label = concat('object_', #{targetLevel})
+          and task_name is not null
+          and task_name != ''
+        <if test="aircraftId != null and aircraftId != ''">
+          and aircraft_id = #{aircraftId}
+        </if>
+        <if test="subsystemId != null and subsystemId != ''">
+          and subsystem_id = #{subsystemId}
+        </if>
+        <if test="equipmentId != null and equipmentId != ''">
+          and equipment_id = #{equipmentId}
+        </if>
+        <if test="componentId != null and componentId != ''">
+          and component_id = #{componentId}
+        </if>
+        <if test="dataUsage != null and dataUsage != ''">
+          and data_usage = #{dataUsage}
+        </if>
+        <choose>
+            <when test="targetLevel == 'aircraft'">
+              and (subsystem_id is null or subsystem_id = '')
+              and (equipment_id is null or equipment_id = '')
+              and (component_id is null or component_id = '')
+            </when>
+            <when test="targetLevel == 'subsystem'">
+              and (equipment_id is null or equipment_id = '')
+              and (component_id is null or component_id = '')
+            </when>
+            <when test="targetLevel == 'equipment'">
+              and (component_id is null or component_id = '')
+            </when>
+            <when test="targetLevel == 'part'">
+              and bearing_code = #{targetId}
+            </when>
+        </choose>
+        <if test="keyword != null and keyword != ''">
+          and task_name like concat('%', #{keyword}, '%')
+        </if>
+        group by task_name
+        order by max(create_time) desc, task_name
+    </select>
+
+    <select id="countTaskNameOutsideBatch" resultType="java.lang.Long">
+        select count(1)
+        from t3_fault_iden_sample
+        where condition_label = concat('object_', #{targetLevel})
+          and data_usage = #{dataUsage}
+          and task_name = #{taskName}
+          and upload_batch_id != #{uploadBatchId}
+        <if test="aircraftId != null and aircraftId != ''">
+          and aircraft_id = #{aircraftId}
+        </if>
+        <if test="subsystemId != null and subsystemId != ''">
+          and subsystem_id = #{subsystemId}
+        </if>
+        <if test="equipmentId != null and equipmentId != ''">
+          and equipment_id = #{equipmentId}
+        </if>
+        <if test="componentId != null and componentId != ''">
+          and component_id = #{componentId}
+        </if>
+        <choose>
+            <when test="targetLevel == 'aircraft'">
+              and (subsystem_id is null or subsystem_id = '')
+              and (equipment_id is null or equipment_id = '')
+              and (component_id is null or component_id = '')
+            </when>
+            <when test="targetLevel == 'subsystem'">
+              and (equipment_id is null or equipment_id = '')
+              and (component_id is null or component_id = '')
+            </when>
+            <when test="targetLevel == 'equipment'">
+              and (component_id is null or component_id = '')
+            </when>
+            <when test="targetLevel == 'part'">
+              and bearing_code = #{targetId}
+            </when>
+        </choose>
+    </select>
+
     <select id="countByConditionBearingSampleNo" resultType="java.lang.Long">
         select count(1)
         from t3_fault_iden_sample
@@ -272,5 +385,13 @@
         <if test="dataUsage != null and dataUsage != ''">
           and data_usage = #{dataUsage}
         </if>
+        <choose>
+          <when test="taskName != null and taskName != ''">
+            and task_name = #{taskName}
+          </when>
+          <otherwise>
+            and (task_name is null or task_name = '')
+          </otherwise>
+        </choose>
     </select>
 </mapper>

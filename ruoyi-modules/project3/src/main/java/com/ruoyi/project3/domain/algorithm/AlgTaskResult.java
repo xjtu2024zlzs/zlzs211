@@ -12,6 +12,10 @@ public class AlgTaskResult extends BaseEntity
     private String taskType;
     private String taskName;
     private String status;
+    private Long statusVersion;
+    private Date lastSyncAt;
+    private String lastSyncError;
+    private Integer syncRetryCount;
     private String requestId;
 
     private String algVersion;
@@ -80,6 +84,42 @@ public class AlgTaskResult extends BaseEntity
     public void setStatus(String status)
     {
         this.status = status;
+    }
+
+    public Long getStatusVersion()
+    {
+        return statusVersion;
+    }
+    public void setStatusVersion(Long statusVersion)
+    {
+        this.statusVersion = statusVersion;
+    }
+
+    public Date getLastSyncAt()
+    {
+        return lastSyncAt;
+    }
+    public void setLastSyncAt(Date lastSyncAt)
+    {
+        this.lastSyncAt = lastSyncAt;
+    }
+
+    public String getLastSyncError()
+    {
+        return lastSyncError;
+    }
+    public void setLastSyncError(String lastSyncError)
+    {
+        this.lastSyncError = lastSyncError;
+    }
+
+    public Integer getSyncRetryCount()
+    {
+        return syncRetryCount;
+    }
+    public void setSyncRetryCount(Integer syncRetryCount)
+    {
+        this.syncRetryCount = syncRetryCount;
     }
 
     public String getRequestId()

@@ -97,7 +97,7 @@ public class PartQualityServiceImpl implements PartQualityService
     @Override
     public void writeTemplate(OutputStream outputStream) throws IOException
     {
-        new PartQualityTemplateGenerator().write(outputStream);
+        new PartQualityTemplateGenerator().write(outputStream, partQualityMapper.selectManufacturingQualityRows());
     }
 
     private void validateReferences(PartQualityImportData data)

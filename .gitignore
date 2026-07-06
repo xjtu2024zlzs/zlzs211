@@ -73,16 +73,13 @@ solidworks_pipe/*.SLDPRT
 
 ruoyi-ui/.edge-project3-task8-profile/unpacked/
 uploadPath/
-
-# 项目特定忽略规则
-
-ruoyi-ui/.edge-project3-task8-profile/
-
-# Python 缓存文件
+# runtime generated datasets
+python/project3/runtime/storage/datasets/
+*.npy
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
+python/project3/runtime/storage/datasets/
+*.npy
 
 docx/
 

@@ -12,5 +12,6 @@ public interface FaultIdenFileService
     FaultIdenFilePackage prepare(String taskId, List<Long> sampleIds, String dataUsage);
     FaultIdenSampleFile sample(Long sampleId);
     Path sourceFile(Long sampleId);
+    List<Path> packageSourceFiles(String taskId);
     Path exportFile(String fileName);
 }

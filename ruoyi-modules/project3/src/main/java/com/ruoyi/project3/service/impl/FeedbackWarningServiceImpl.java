@@ -602,6 +602,11 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         String dataFile = txt(pick(fileInfo, "fileName", "file_name"));
         String dataFileUrl = txt(pick(fileInfo, "fileUrl", "file_url"));
         String fileMode = txt(pick(fileInfo, "fileMode", "file_mode"));
+        List<Long> sampleIds = warningSampleIds(req);
+        String importTaskName = importTaskName(sampleIds);
+        if (importTaskName == null) {
+            importTaskName = importTaskNameFromSourceFile(dataFileUrl);
+        }
         if ("bosch_train_numeric".equals(fileMode) && !blank(dataFileUrl)) {
             try {
                 dataFile = Paths.get(dataFileUrl).getFileName().toString();
@@ -617,6 +622,10 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         row.put("targetName", record.getBizName());
         row.put("dataFile", dataFile);
         row.put("dataFileUrl", dataFileUrl);
+        row.put("importTaskName", importTaskName);
+        row.put("import_task_name", importTaskName);
+        row.put("selectedSampleIds", sampleIds);
+        row.put("selected_sample_ids", sampleIds);
         row.put("isAbnormal", pick(result, "isAbnormal", "is_abnormal"));
         row.put("abnormalLevel", txt(pick(result, "abnormalLevel", "abnormal_level")));
         row.put("abnormalScore", pick(result, "abnormalScore", "abnormal_score"));
@@ -627,10 +636,99 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         return row;
     }
 
+    private List<Long> warningSampleIds(Map<String, Object> req) {
+        LinkedHashSet<Long> ids = new LinkedHashSet<>();
+        collectWarningSampleIds(req, ids);
+        return new ArrayList<>(ids);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void collectWarningSampleIds(Object source, Set<Long> ids) {
+        if (ids == null || source == null) {
+            return;
+        }
+        if (source instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) source;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                if (isWarningSampleIdKey(entry.getKey())) {
+                    addSampleIds(ids, entry.getValue());
+                } else {
+                    collectWarningSampleIds(entry.getValue(), ids);
+                }
+            }
+            return;
+        }
+        if (source instanceof Iterable) {
+            for (Object item : (Iterable<?>) source) {
+                collectWarningSampleIds(item, ids);
+            }
+        }
+    }
+
+    private boolean isWarningSampleIdKey(String key) {
+        return "sampleIds".equals(key)
+                || "sample_ids".equals(key)
+                || "selectedSampleIds".equals(key)
+                || "selected_sample_ids".equals(key)
+                || "trainSampleIds".equals(key)
+                || "train_sample_ids".equals(key)
+                || "detectSampleIds".equals(key)
+                || "detect_sample_ids".equals(key)
+                || "sampleId".equals(key)
+                || "sample_id".equals(key)
+                || "extractedFromSampleId".equals(key)
+                || "extracted_from_sample_id".equals(key);
+    }
+
+    private void addSampleIds(Set<Long> ids, Object value) {
+        if (ids == null || value == null) {
+            return;
+        }
+        ids.addAll(AlgorithmParamReader.sampleIds(value, "sampleIds"));
+    }
+
+    private String importTaskName(List<Long> sampleIds) {
+        if (sampleIds == null || sampleIds.isEmpty()) {
+            return null;
+        }
+        List<FaultIdenSampleFile> samples = faultIdenSampleMapper.selectSamplesByIds(sampleIds, null);
+        if (samples == null || samples.isEmpty()) {
+            return null;
+        }
+        Set<String> names = new LinkedHashSet<>();
+        for (FaultIdenSampleFile sample : samples) {
+            String name = txt(sample.getTaskName());
+            if (name == null) {
+                name = txt(sample.getUploadBatchId());
+            }
+            if (name != null) {
+                names.add(name);
+            }
+        }
+        return names.isEmpty() ? null : String.join("、", names);
+    }
+
+    private String importTaskNameFromSourceFile(String sourceFile) {
+        if (blank(sourceFile)) {
+            return null;
+        }
+        FaultIdenSampleFile sample = faultIdenSampleMapper.selectSampleBySourceFile(sourceFile);
+        if (sample == null) {
+            return null;
+        }
+        String name = txt(sample.getTaskName());
+        return name == null ? txt(sample.getUploadBatchId()) : name;
+    }
+
     private Map<String, Object> kqcRow(AlgTaskResult record) {
         Map<String, Object> result = jsonMap(record.getResJson());
         Map<String, Object> req = jsonMap(record.getReqJson());
         Map<String, Object> top = topKqc(result);
+        List<Long> sampleIds = warningSampleIds(req);
+        String importTaskName = importTaskName(sampleIds);
+        if (importTaskName == null) {
+            importTaskName = importTaskNameFromSourceFile(txt(pick(req, "trainNumericPath", "train_numeric_path")));
+        }
         String targetType = txt(record.getBizLevel());
         String targetId = txt(record.getBizId());
         String targetName = txt(record.getBizName());
@@ -646,6 +744,10 @@ public class FeedbackWarningServiceImpl implements FeedbackWarningService {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("taskId", record.getTaskId());
         row.put("task_id", record.getTaskId());
+        row.put("importTaskName", importTaskName);
+        row.put("import_task_name", importTaskName);
+        row.put("selectedSampleIds", sampleIds);
+        row.put("selected_sample_ids", sampleIds);
         row.put("status", record.getStatus());
         row.put("targetType", targetType);
         row.put("targetId", targetId);

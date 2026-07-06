@@ -558,6 +558,8 @@ CREATE TABLE IF NOT EXISTS `t3_fault_iden_sample` (
     `source_file` VARCHAR(1000) NOT NULL COMMENT 'absolute original csv path on server',
     `file_size` BIGINT NULL COMMENT 'file size in bytes',
     `data_usage` VARCHAR(64) NOT NULL DEFAULT 'FEATURE_ANALYSIS' COMMENT 'FEATURE_ANALYSIS/FAULT_PREDICT/FAULT_IDENTIFY/COMMON',
+    `task_name` VARCHAR(255) NULL COMMENT '任务名称',
+    `upload_batch_id` VARCHAR(64) NULL COMMENT '上传批次ID',
     `aircraft_id` VARCHAR(50) NULL COMMENT 'aircraft id',
     `subsystem_id` VARCHAR(50) NULL COMMENT 'subsystem id',
     `equipment_id` VARCHAR(50) NULL COMMENT 'equipment id',

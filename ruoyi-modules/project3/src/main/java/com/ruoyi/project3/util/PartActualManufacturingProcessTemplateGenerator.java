@@ -35,10 +35,11 @@ public class PartActualManufacturingProcessTemplateGenerator
 
     public void write(OutputStream outputStream) throws IOException
     {
-        write(outputStream, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        write(outputStream, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
     }
 
     public void write(OutputStream outputStream, List<Map<String, Object>> partTemplateRows,
+                      List<Map<String, Object>> partInstanceRows,
                       List<Map<String, Object>> routeRows, List<Map<String, Object>> processDefRows) throws IOException
     {
         try (Workbook workbook = new XSSFWorkbook()) {
@@ -52,7 +53,7 @@ public class PartActualManufacturingProcessTemplateGenerator
             Sheet processExecutionSheet = workbook.createSheet(PROCESS_EXECUTION_SHEET);
 
             writeMasterData(masterDataSheet, partTemplateRows, routeRows, processDefRows, requiredStyle, lockedStyle);
-            writePartInstances(partInstanceSheet, requiredStyle, optionalStyle);
+            writePartInstances(partInstanceSheet, partInstanceRows, requiredStyle, optionalStyle, lockedStyle);
             writeWorkOrders(workOrderSheet, requiredStyle, optionalStyle);
             writeProcessExecutions(processExecutionSheet, requiredStyle, optionalStyle);
             defineNames(workbook, size(partTemplateRows), size(routeRows), size(processDefRows));
@@ -66,10 +67,12 @@ public class PartActualManufacturingProcessTemplateGenerator
         }
     }
 
-    private void writePartInstances(Sheet sheet, CellStyle requiredStyle, CellStyle optionalStyle)
+    private void writePartInstances(Sheet sheet, List<Map<String, Object>> rows,
+                                    CellStyle requiredStyle, CellStyle optionalStyle, CellStyle lockedStyle)
     {
         String[] labels = {"零件实例ID", "零件模板ID", "零件序列号", "批次号", "制造商", "生产日期(yyyy-MM-dd)", "当前状态", "质量等级", "关键度", "零件图片地址"};
         writeHeaders(sheet, labels, requiredStyle, optionalStyle, 3);
+        writeRows(sheet, rows, new String[]{"part_instance_id", "part_template_id", "serial_number", "batch_number", "manufacturer", "production_date", "current_status", "quality_level", "key_degree", "image_url"}, lockedStyle);
         addListValidation(sheet, DATA_FIRST_ROW, DATA_LAST_ROW, 6, "未生产", "生产中", "已完成", "已报废", "已返工");
         addListValidation(sheet, DATA_FIRST_ROW, DATA_LAST_ROW, 7, "A", "B", "C", "D");
         addListValidation(sheet, DATA_FIRST_ROW, DATA_LAST_ROW, 8, "低", "中", "高", "关键");
@@ -113,6 +116,20 @@ public class PartActualManufacturingProcessTemplateGenerator
             Cell cell = row.createCell(column);
             cell.setCellValue(text(rows.get(i), field));
             cell.setCellStyle(lockedStyle);
+        }
+    }
+
+    private void writeRows(Sheet sheet, List<Map<String, Object>> rows, String[] fields, CellStyle lockedStyle)
+    {
+        if (rows == null) return;
+        for (int i = 0; i < rows.size(); i++) {
+            Row row = sheet.getRow(i + 1);
+            if (row == null) row = sheet.createRow(i + 1);
+            for (int j = 0; j < fields.length; j++) {
+                Cell cell = row.createCell(j);
+                cell.setCellValue(text(rows.get(i), fields[j]));
+                cell.setCellStyle(lockedStyle);
+            }
         }
     }
 

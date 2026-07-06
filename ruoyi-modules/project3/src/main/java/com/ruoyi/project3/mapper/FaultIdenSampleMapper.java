@@ -16,7 +16,8 @@ public interface FaultIdenSampleMapper
             @Param("conditionLabel") String conditionLabel,
             @Param("bearingCode") String bearingCode,
             @Param("fileName") String fileName,
-            @Param("dataUsage") String dataUsage
+            @Param("dataUsage") String dataUsage,
+            @Param("taskName") String taskName
     );
 
     List<Map<String, Object>> selectConditions();
@@ -48,6 +49,7 @@ public interface FaultIdenSampleMapper
             @Param("equipmentId") String eqpId,
             @Param("componentId") String cmpId,
             @Param("dataUsage") String dataUsage,
+            @Param("taskName") String taskName,
             @Param("uploadBatchId") String uploadBatchId,
             @Param("keyword") String keyword,
             @Param("offset") Integer offset,
@@ -62,11 +64,14 @@ public interface FaultIdenSampleMapper
             @Param("equipmentId") String eqpId,
             @Param("componentId") String cmpId,
             @Param("dataUsage") String dataUsage,
+            @Param("taskName") String taskName,
             @Param("uploadBatchId") String uploadBatchId,
             @Param("keyword") String keyword
     );
 
     List<FaultIdenSampleFile> selectSamplesByIds(@Param("ids") List<Long> ids, @Param("dataUsage") String dataUsage);
+
+    FaultIdenSampleFile selectSampleBySourceFile(@Param("sourceFile") String sourceFile);
 
     List<FaultIdenSampleFile> selectAllSamples(
             @Param("dataUsage") String dataUsage,
@@ -88,6 +93,30 @@ public interface FaultIdenSampleMapper
             @Param("conditionLabel") String conditionLabel,
             @Param("bearingCode") String bearingCode,
             @Param("sampleNo") Integer sampleNo,
-            @Param("dataUsage") String dataUsage
+            @Param("dataUsage") String dataUsage,
+            @Param("taskName") String taskName
+    );
+
+    List<Map<String, Object>> selectTaskNamesByObject(
+            @Param("targetLevel") String tgtLv,
+            @Param("targetId") String tgtId,
+            @Param("aircraftId") String airId,
+            @Param("subsystemId") String subId,
+            @Param("equipmentId") String eqpId,
+            @Param("componentId") String cmpId,
+            @Param("dataUsage") String dataUsage,
+            @Param("keyword") String keyword
+    );
+
+    Long countTaskNameOutsideBatch(
+            @Param("targetLevel") String tgtLv,
+            @Param("targetId") String tgtId,
+            @Param("aircraftId") String airId,
+            @Param("subsystemId") String subId,
+            @Param("equipmentId") String eqpId,
+            @Param("componentId") String cmpId,
+            @Param("dataUsage") String dataUsage,
+            @Param("taskName") String taskName,
+            @Param("uploadBatchId") String uploadBatchId
     );
 }

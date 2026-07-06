@@ -47,6 +47,23 @@
         where component_id = #{id}
     </select>
 
+    <select id="selectManufacturingQualityRows" resultType="java.util.HashMap">
+        select
+            manufacturing_quality_id,
+            part_instance_id,
+            production_order_id,
+            workshop_id,
+            production_line_id,
+            date_format(start_time, '%Y-%m-%d %H:%i:%s') as start_time,
+            date_format(end_time, '%Y-%m-%d %H:%i:%s') as end_time,
+            process_status,
+            final_inspection_result,
+            defect_count,
+            rework_count
+        from t3_manufacturing_quality
+        order by manufacturing_quality_id
+    </select>
+
     <insert id="upsertDesign" parameterType="com.ruoyi.project3.domain.partquality.DesignQuality">
         insert into t3_design_quality (
             design_quality_id,

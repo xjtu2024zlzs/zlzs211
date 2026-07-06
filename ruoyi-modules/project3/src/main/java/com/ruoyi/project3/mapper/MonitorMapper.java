@@ -164,6 +164,8 @@ public interface MonitorMapper {
 
     List<Map<String, Object>> sel_all_part_template_ids();
 
+    List<Map<String, Object>> sel_all_part_instances();
+
     List<Map<String, Object>> sel_all_process_route_ids();
 
     List<Map<String, Object>> sel_all_process_def_ids();
@@ -198,6 +200,14 @@ public interface MonitorMapper {
 
     int upsert_part_instance(Map<String, Object> row);
 
+    int count_aircraft_by_id(@Param("aircraft_id") String aircraft_id);
+
+    int count_subsystem_by_id(@Param("subsystem_id") String subsystem_id);
+
+    int count_equipment_by_id(@Param("equipment_id") String equipment_id);
+
+    int count_component_by_id(@Param("component_id") String component_id);
+
     int count_part_tpl_by_id(@Param("part_template_id") String part_template_id);
 
     int count_part_instance_by_id(@Param("part_instance_id") String part_instance_id);
@@ -211,6 +221,10 @@ public interface MonitorMapper {
     int count_manufacturing_quality_by_id(@Param("manufacturing_quality_id") String manufacturing_quality_id);
 
     int count_manufacturing_device_by_id(@Param("device_id") String device_id);
+
+    int insert_manufacturing_quality_if_absent(Map<String, Object> row);
+
+    int insert_manufacturing_device_if_absent(Map<String, Object> row);
 
     Map<String, Object> sel_part_instance_ref(@Param("part_instance_id") String part_instance_id);
 

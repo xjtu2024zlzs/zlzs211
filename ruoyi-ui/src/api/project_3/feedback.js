@@ -143,6 +143,10 @@ export function getKqcMiningTask(taskId) {
   })
 }
 
+export function lookupKqcMiningTask(taskId) {
+  return getKqcMiningTask(taskId)
+}
+
 export function cancelKqcMiningTask(taskId) {
   return request({
     url: `/feedback/warning/kqc-mining/tasks/${encodeURIComponent(taskId)}/cancel`,
@@ -155,6 +159,13 @@ export function listKqcMiningResults(query) {
     url: '/feedback/warning/kqc-mining/results',
     method: 'get',
     params: query
+  })
+}
+
+export function deleteKqcMiningResult(taskId) {
+  return request({
+    url: `/feedback/warning/results/${encodeURIComponent(taskId)}`,
+    method: 'delete'
   })
 }
 
