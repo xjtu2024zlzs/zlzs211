@@ -2,10 +2,10 @@
   <div class="project4-page">
     <div class="hero-card">
       <div>
-        <div class="hero-subtitle">轴承算法 · 数据预处理</div>
-        <div class="hero-title">轴承振动数据预处理</div>
+        <div class="hero-subtitle">航空液压管路 · 数据预处理</div>
+        <div class="hero-title">航空设备液压管路信号预处理</div>
         <div class="hero-desc">
-          从 CWRU 数据文件库中选择具体样本，完成滑窗切片、去噪处理与归一化处理，为数据增强、特征融合和故障诊断提供标准化输入。
+          从航空设备液压管路故障样本库中选择具体样本，完成滑窗切片、去噪处理与归一化处理，为数据增强、特征融合和故障诊断提供标准化输入。
         </div>
       </div>
       <div class="hero-status">
@@ -17,9 +17,9 @@
 
     <div class="metric-grid">
       <div class="metric-card">
-        <div class="metric-label">当前数据文件</div>
+        <div class="metric-label">当前管路样本</div>
         <div class="metric-value">{{ form.keyNum || '-' }}</div>
-        <div class="metric-foot">keyNum</div>
+        <div class="metric-foot">样本编号</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">滑窗长度</div>
@@ -51,10 +51,10 @@
         </template>
 
         <el-form ref="form" :model="form" label-width="140px" class="nice-form">
-          <el-form-item label="选择数据文件">
+          <el-form-item label="从数字卷宗选取样本">
             <el-select
               v-model="form.keyNum"
-              placeholder="请选择数据文件"
+              placeholder="请选择液压管路样本"
               filterable
               clearable
               :loading="fileOptionsLoading"
@@ -107,19 +107,19 @@
         <div class="flow-list">
           <div class="flow-item active">
             <div class="flow-index">1</div>
-            <div><div class="flow-title">选择 CWRU 数据文件</div><div class="flow-desc">从数据库文件列表中选择具体 keyNum。</div></div>
+            <div><div class="flow-title">选择航空液压管路样本</div><div class="flow-desc">从数据库样本列表中选择具体液压管路样本编号。</div></div>
           </div>
           <div class="flow-item">
             <div class="flow-index">2</div>
-            <div><div class="flow-title">后端读取文件路径</div><div class="flow-desc">Java 根据 keyNum 获取 file_abs_path，并交由 Python 读取 .mat 文件。</div></div>
+            <div><div class="flow-title">后端读取样本数据</div><div class="flow-desc">Java 根据样本编号获取样本数据路径，并交由 Python 读取 .mat 信号文件。</div></div>
           </div>
           <div class="flow-item">
             <div class="flow-index">3</div>
-            <div><div class="flow-title">信号预处理</div><div class="flow-desc">完成滑窗、去噪、归一化，生成 norm_de 与 norm_fe。</div></div>
+            <div><div class="flow-title">信号预处理</div><div class="flow-desc">完成滑窗、去噪与归一化，生成两路标准化管路监测信号。</div></div>
           </div>
           <div class="flow-item">
             <div class="flow-index">4</div>
-            <div><div class="flow-title">结果入库与缓存</div><div class="flow-desc">结果保存后自动供增强和融合页面调用。</div></div>
+            <div><div class="flow-title">结果入库与缓存</div><div class="flow-desc">结果保存后自动供数据增强、特征融合和故障诊断页面调用。</div></div>
           </div>
         </div>
       </el-card>
@@ -138,9 +138,9 @@
         </template>
         <div class="summary-grid">
           <div class="summary-item"><span>结果ID</span><strong>{{ result.id }}</strong></div>
-          <div class="summary-item"><span>源数据ID</span><strong>{{ result.sourceId }}</strong></div>
-          <div class="summary-item"><span>norm_de</span><strong>{{ result.hasNormDe ? '已生成' : '未生成' }}</strong></div>
-          <div class="summary-item"><span>norm_fe</span><strong>{{ result.hasNormFe ? '已生成' : '未生成' }}</strong></div>
+          <div class="summary-item"><span>源样本ID</span><strong>{{ result.sourceId }}</strong></div>
+          <div class="summary-item"><span>管路信号A</span><strong>{{ result.hasNormDe ? '已生成' : '未生成' }}</strong></div>
+          <div class="summary-item"><span>管路信号B</span><strong>{{ result.hasNormFe ? '已生成' : '未生成' }}</strong></div>
         </div>
         <el-input class="result-textarea" :model-value="JSON.stringify(result, null, 2)" type="textarea" rows="8" readonly />
       </el-card>
@@ -183,7 +183,7 @@ export default {
             const keyNum = Number(item.fileName || item.file_name || item.keyNum || item.key_num)
             return {
               keyNum,
-              label: `${keyNum} | ${item.dataDir || item.data_dir || ''} | ${item.sampleRate || item.sample_rate || ''}Hz | load=${item.loadHp ?? item.load_hp ?? ''}`
+              label: `${keyNum}`
             }
           }).filter(item => item.keyNum)
 
@@ -191,11 +191,11 @@ export default {
             this.form.keyNum = this.fileOptions[0].keyNum
           }
         } else {
-          this.$modal.msgError(res.msg || "数据文件列表加载失败")
+          this.$modal.msgError(res.msg || "液压管路样本列表加载失败")
         }
       } catch (err) {
         console.error(err)
-        this.$modal.msgError("数据文件列表加载失败：" + err.message)
+        this.$modal.msgError("液压管路样本列表加载失败：" + err.message)
       } finally {
         this.fileOptionsLoading = false
       }
@@ -207,11 +207,11 @@ export default {
     },
     async submit() {
       if (!this.form.keyNum || this.form.keyNum <= 0) {
-        return this.$modal.msgError("请选择数据文件keyNum")
+        return this.$modal.msgError("请选择液压管路样本")
       }
 
       if (!this.form.keyNum || this.form.keyNum <= 0) {
-        return this.$modal.msgError("数据编号keyNum必须大于0，例如108")
+        return this.$modal.msgError("液压管路样本编号必须大于0，例如108")
       }
 
       this.loading = true
@@ -250,7 +250,7 @@ export default {
 
             if (!preprocessResult || !preprocessResult.norm_de || !preprocessResult.norm_fe) {
               console.error("预处理结果解析失败，当前内容：", preprocessResult)
-              this.$modal.msgError("预处理成功，但结果中缺少 norm_de 或 norm_fe")
+              this.$modal.msgError("预处理成功，但结果中缺少标准化管路信号A或管路信号B")
               return
             }
 
@@ -265,7 +265,7 @@ export default {
               status: res.data.status,
               createTime: res.data.createTime,
               updateTime: res.data.updateTime,
-              message: "预处理已完成，完整结果已保存，可用于数据增强和特征融合",
+              message: "预处理已完成，完整结果已保存，可用于数据增强、特征融合和故障诊断",
               hasNormDe: !!preprocessResult.norm_de,
               hasNormFe: !!preprocessResult.norm_fe
             }

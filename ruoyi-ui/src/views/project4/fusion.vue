@@ -2,19 +2,19 @@
   <div class="project4-page">
     <div class="hero-card">
       <div>
-        <div class="hero-subtitle">轴承算法 · 特征融合</div>
+        <div class="hero-subtitle">航空液压管路 · 特征融合</div>
         <div class="hero-title">双模态特征融合</div>
         <div class="hero-desc">
-          面向 DE 与 FE 双通道振动信息，设置融合权重并执行联合特征构建，提升故障表征的稳定性和可解释性。
+          面向模态1与模态2两路管路监测信息，设置融合权重并执行联合特征构建，提升故障表征的稳定性和可解释性。
         </div>
       </div>
-      <div class="hero-status"><el-tag effect="light" type="success">融合链路</el-tag><el-tag effect="light" type="primary">DE + FE</el-tag><el-tag effect="light" type="info">特征图谱</el-tag></div>
+      <div class="hero-status"><el-tag effect="light" type="success">融合链路</el-tag><el-tag effect="light" type="primary">模态1 + 模态2</el-tag><el-tag effect="light" type="info">特征图谱</el-tag></div>
     </div>
 
     <div class="metric-grid">
       <div class="metric-card"><div class="metric-label">上游预处理ID</div><div class="metric-value">{{ preprocessId || '-' }}</div><div class="metric-foot">preprocessId</div></div>
-      <div class="metric-card"><div class="metric-label">DE 权重</div><div class="metric-value">{{ form.wX1 }}</div><div class="metric-foot">wX1</div></div>
-      <div class="metric-card"><div class="metric-label">FE 权重</div><div class="metric-value">{{ form.wX2 }}</div><div class="metric-foot">wX2</div></div>
+      <div class="metric-card"><div class="metric-label">模态1权重</div><div class="metric-value">{{ form.wX1 }}</div><div class="metric-foot">权重参数</div></div>
+      <div class="metric-card"><div class="metric-label">模态2权重</div><div class="metric-value">{{ form.wX2 }}</div><div class="metric-foot">权重参数</div></div>
       <div class="metric-card"><div class="metric-label">图像结果</div><div class="metric-value">{{ Object.keys(images || {}).length }}</div><div class="metric-foot">images</div></div>
     </div>
 
@@ -23,8 +23,8 @@
         <template #header><div class="card-header"><div><div class="card-kicker">参数配置</div><div class="card-title">融合任务设置</div></div><el-tag type="primary" effect="plain">Step 3</el-tag></div></template>
         <el-form ref="form" :model="form" label-width="140px" class="nice-form">
           <el-form-item label="上游预处理ID"><el-input-number v-model="preprocessId" :min="1" /></el-form-item>
-          <el-form-item label="DE权重 wX1"><el-input-number v-model="form.wX1" :step="0.1" :min="0" :max="1" /></el-form-item>
-          <el-form-item label="FE权重 wX2"><el-input-number v-model="form.wX2" :step="0.1" :min="0" :max="1" /></el-form-item>
+          <el-form-item label="模态1权重"><el-input-number v-model="form.wX1" :step="0.1" :min="0" :max="1" /></el-form-item>
+          <el-form-item label="模态2权重"><el-input-number v-model="form.wX2" :step="0.1" :min="0" :max="1" /></el-form-item>
           <el-form-item><el-button class="main-action" type="primary" @click="submit" :loading="loading">执行特征融合</el-button></el-form-item>
         </el-form>
       </el-card>
@@ -32,8 +32,8 @@
       <el-card class="panel-card" shadow="never">
         <template #header><div class="card-header"><div><div class="card-kicker">运行状态</div><div class="card-title">融合执行流程</div></div><el-tag :type="result ? 'success' : 'info'" effect="plain">{{ result ? '已完成' : '待执行' }}</el-tag></div></template>
         <div class="flow-list">
-          <div class="flow-item active"><div class="flow-index">1</div><div><div class="flow-title">读取预处理结果</div><div class="flow-desc">从缓存和数据库链路中获取 norm_de 与 norm_fe。</div></div></div>
-          <div class="flow-item"><div class="flow-index">2</div><div><div class="flow-title">配置融合权重</div><div class="flow-desc">通过 wX1 与 wX2 控制 DE/FE 特征贡献。</div></div></div>
+          <div class="flow-item active"><div class="flow-index">1</div><div><div class="flow-title">读取预处理结果</div><div class="flow-desc">从缓存和数据库链路中获取模态1与模态2标准化信号。</div></div></div>
+          <div class="flow-item"><div class="flow-index">2</div><div><div class="flow-title">配置融合权重</div><div class="flow-desc">通过模态1与模态2权重控制不同信号源的特征贡献。</div></div></div>
           <div class="flow-item"><div class="flow-index">3</div><div><div class="flow-title">生成融合特征</div><div class="flow-desc">输出散点图、热力图和相关性图。</div></div></div>
           <div class="flow-item"><div class="flow-index">4</div><div><div class="flow-title">保存融合结果</div><div class="flow-desc">结果入库，为诊断与根因分析提供依据。</div></div></div>
         </div>
@@ -46,8 +46,8 @@
         <div class="summary-grid">
           <div class="summary-item"><span>结果ID</span><strong>{{ result.id }}</strong></div>
           <div class="summary-item"><span>源数据ID</span><strong>{{ result.sourceId }}</strong></div>
-          <div class="summary-item"><span>DE权重</span><strong>{{ form.wX1 }}</strong></div>
-          <div class="summary-item"><span>FE权重</span><strong>{{ form.wX2 }}</strong></div>
+          <div class="summary-item"><span>模态1权重</span><strong>{{ form.wX1 }}</strong></div>
+          <div class="summary-item"><span>模态2权重</span><strong>{{ form.wX2 }}</strong></div>
         </div>
         <el-input class="result-textarea" :model-value="JSON.stringify(result, null, 2)" type="textarea" rows="8" readonly />
       </el-card>
@@ -57,10 +57,10 @@
       <el-card class="panel-card" shadow="never">
         <template #header><div class="card-header"><div><div class="card-kicker">图像结果</div><div class="card-title">特征融合可视化</div></div><el-tag type="primary" effect="plain">{{ Object.keys(images).length }} 张</el-tag></div></template>
         <div class="image-grid">
-          <div v-if="images.feat1_dot" class="image-card"><div class="image-title">DE特征散点图</div><img :src="formatImg(images.feat1_dot)" /></div>
-          <div v-if="images.feat2_dot" class="image-card"><div class="image-title">FE特征散点图</div><img :src="formatImg(images.feat2_dot)" /></div>
-          <div v-if="images.feat1_heatmap" class="image-card"><div class="image-title">DE特征热力图</div><img :src="formatImg(images.feat1_heatmap)" /></div>
-          <div v-if="images.feat2_heatmap" class="image-card"><div class="image-title">FE特征热力图</div><img :src="formatImg(images.feat2_heatmap)" /></div>
+          <div v-if="images.feat1_dot" class="image-card"><div class="image-title">模态1特征散点图</div><img :src="formatImg(images.feat1_dot)" /></div>
+          <div v-if="images.feat2_dot" class="image-card"><div class="image-title">模态2特征散点图</div><img :src="formatImg(images.feat2_dot)" /></div>
+          <div v-if="images.feat1_heatmap" class="image-card"><div class="image-title">模态1特征热力图</div><img :src="formatImg(images.feat1_heatmap)" /></div>
+          <div v-if="images.feat2_heatmap" class="image-card"><div class="image-title">模态2特征热力图</div><img :src="formatImg(images.feat2_heatmap)" /></div>
           <div v-if="images.feature_correlation" class="image-card"><div class="image-title">特征相关性图</div><img :src="formatImg(images.feature_correlation)" /></div>
         </div>
       </el-card>
@@ -165,7 +165,7 @@ export default {
 
       if (!preprocessResult || !preprocessResult.norm_de || !preprocessResult.norm_fe) {
         console.error("当前融合页面拿到的预处理结果：", preprocessResult)
-        return this.$modal.msgError("预处理结果中缺少 norm_de 或 norm_fe，请回到数据预处理页面重新执行")
+        return this.$modal.msgError("预处理结果中缺少模态1或模态2标准化信号，请回到数据预处理页面重新执行")
       }
 
       this.form.preprocessResult = preprocessResult

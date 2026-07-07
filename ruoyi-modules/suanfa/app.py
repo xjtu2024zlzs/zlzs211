@@ -214,7 +214,7 @@ if __name__ == "__main__":
     uvicorn.run(
         app="app:app",
         host="0.0.0.0",
-        port=8000,
+        port=9761,
         reload=True,  # 开发环境开启热更新；生产环境关闭
         log_level="info"
     )

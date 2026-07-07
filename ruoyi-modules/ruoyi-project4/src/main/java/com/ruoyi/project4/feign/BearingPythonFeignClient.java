@@ -13,7 +13,7 @@ import java.util.Map;
  */
 @FeignClient(
         name = "bearing-python-service",
-        url = "${python.api.url:http://127.0.0.1:8000}"
+        url = "${python.api.url:http://127.0.0.1:9761}"
 )
 public interface BearingPythonFeignClient {
 
