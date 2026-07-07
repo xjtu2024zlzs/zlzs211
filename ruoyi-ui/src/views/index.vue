@@ -223,7 +223,7 @@
                 <strong>{{ project.chartValue }}</strong>
               </div>
 
-              <div v-if="project.chartType === 'faultPie'" class="fault-pie-panel">
+              <!-- <div v-if="project.chartType === 'faultPie'" class="fault-pie-panel">
                 <div class="fault-pie" :style="buildPieStyle(project.faultDistribution)">
                   <div class="fault-pie__center">
                     <strong>{{ project.chartValue }}</strong>
@@ -240,6 +240,26 @@
                     <span class="fault-pie-legend__dot" :style="{ background: item.color }"></span>
                     <span class="fault-pie-legend__name">{{ item.name }}</span>
                     <strong>{{ item.value }}%</strong>
+                  </div>
+                </div>
+              </div> -->
+              <div v-if="project.chartType === 'faultPie'" class="fault-pie-panel">
+                <div class="fault-pie" :style="buildPieStyle(project.faultDistribution)">
+                  <div class="fault-pie__center">
+                    <strong>{{ project.chartValue }}</strong>
+                    <span>故障占比</span>
+                  </div>
+                </div>
+
+                <div class="fault-pie-legend">
+                  <div
+                    v-for="item in project.faultDistribution"
+                    :key="item.name"
+                    class="fault-pie-legend__item"
+                  >
+                    <span class="fault-pie-legend__dot" :style="{ background: item.color }"></span>
+                    <span class="fault-pie-legend__name">{{ item.name }}</span>
+                    <strong>{{ formatOneDecimalPercent(item.value) }}</strong>
                   </div>
                 </div>
               </div>
@@ -475,6 +495,104 @@ import { getDossierHomeSummary } from '@/api/project1/home'
 
 const router = useRouter()
 
+// const buildPieStyle = (distribution = []) => {
+//   const total = distribution.reduce((sum, item) => sum + Number(item.value || 0), 0)
+
+//   if (!total) {
+//     return {
+//       background: '#dce6f5'
+//     }
+//   }
+
+//   let current = 0
+//   const segments = distribution.map((item) => {
+//     const start = current
+//     current += (Number(item.value || 0) / total) * 100
+//     return `${item.color} ${start}% ${current}%`
+//   })
+
+//   return {
+//     background: `conic-gradient(${segments.join(', ')})`
+//   }
+// }
+
+
+// const randomInt = (min, max) => {
+//   return Math.floor(Math.random() * (max - min + 1)) + min
+// }
+
+// const randomFloat = (min, max) => {
+//   return Math.random() * (max - min) + min
+// }
+
+// const generateProject4RandomData = () => {
+//   // 控制在合理演示范围内：故障占比 74%～86%，总文件数 150～180，根因完成数不超过故障文件数
+//   const detectedFiles = randomInt(150, 180)
+//   const normalRate = randomInt(14, 26)
+//   const faultRate = 100 - normalRate
+
+//   let innerFault = Math.round(faultRate * randomFloat(0.46, 0.56))
+//   let outerFault = Math.round(faultRate * randomFloat(0.25, 0.34))
+//   let ballFault = faultRate - innerFault - outerFault
+
+//   // 防止个别随机情况下滚动体故障占比过低或过高
+//   if (ballFault < 8) {
+//     const diff = 8 - ballFault
+//     innerFault -= diff
+//     ballFault = 8
+//   }
+//   if (ballFault > 22) {
+//     const diff = ballFault - 22
+//     innerFault += diff
+//     ballFault = 22
+//   }
+
+//   const faultFiles = Math.round(detectedFiles * faultRate / 100)
+//   const minRcaFiles = Math.max(1, Math.round(faultFiles * 0.56))
+//   const maxRcaFiles = Math.max(minRcaFiles, Math.round(faultFiles * 0.78))
+//   const rcaFiles = randomInt(minRcaFiles, Math.min(faultFiles, maxRcaFiles))
+
+//   return {
+//     faultRate,
+//     detectedFiles,
+//     faultFiles,
+//     rcaFiles,
+//     distribution: [
+//       { name: '内圈故障', value: innerFault, color: '#6b5cf6' },
+//       { name: '外圈故障', value: outerFault, color: '#3f8cff' },
+//       { name: '滚动体故障', value: ballFault, color: '#28c7a0' },
+//       { name: '正常样本', value: normalRate, color: '#dce6f5' }
+//     ]
+//   }
+// }
+
+// const refreshProject4RandomData = () => {
+//   const project4 = middleProjects.value.find((item) => item.key === 'project-4')
+//   if (!project4) return
+
+//   const randomData = generateProject4RandomData()
+
+//   project4.chartValue = `${randomData.faultRate}.0%`
+//   project4.faultDistribution = randomData.distribution
+//   project4.chartData = randomData.distribution.map((item) => item.value)
+//   project4.meta = [
+//     { name: '已检测文件数', value: String(randomData.detectedFiles) },
+//     { name: '故障文件数', value: String(randomData.faultFiles) },
+//     { name: '已完成根因分析文件数', value: String(randomData.rcaFiles) }
+//   ]
+// }
+const toOneDecimal = (value) => {
+  return Math.round(Number(value || 0) * 10) / 10
+}
+
+const formatOneDecimal = (value) => {
+  return Number(value || 0).toFixed(1)
+}
+
+const formatOneDecimalPercent = (value) => {
+  return `${formatOneDecimal(value)}%`
+}
+
 const buildPieStyle = (distribution = []) => {
   const total = distribution.reduce((sum, item) => sum + Number(item.value || 0), 0)
 
@@ -485,9 +603,16 @@ const buildPieStyle = (distribution = []) => {
   }
 
   let current = 0
-  const segments = distribution.map((item) => {
+  const segments = distribution.map((item, index) => {
     const start = current
-    current += (Number(item.value || 0) / total) * 100
+    const value = Number(item.value || 0)
+
+    if (index === distribution.length - 1) {
+      current = 100
+    } else {
+      current = toOneDecimal(current + (value / total) * 100)
+    }
+
     return `${item.color} ${start}% ${current}%`
   })
 
@@ -495,7 +620,6 @@ const buildPieStyle = (distribution = []) => {
     background: `conic-gradient(${segments.join(', ')})`
   }
 }
-
 
 const randomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -505,27 +629,38 @@ const randomFloat = (min, max) => {
   return Math.random() * (max - min) + min
 }
 
-const generateProject4RandomData = () => {
-  // 控制在合理演示范围内：故障占比 74%～86%，总文件数 150～180，根因完成数不超过故障文件数
-  const detectedFiles = randomInt(150, 180)
-  const normalRate = randomInt(14, 26)
-  const faultRate = 100 - normalRate
+const randomFloatOneDecimal = (min, max) => {
+  return toOneDecimal(randomFloat(min, max))
+}
 
-  let innerFault = Math.round(faultRate * randomFloat(0.46, 0.56))
-  let outerFault = Math.round(faultRate * randomFloat(0.25, 0.34))
-  let ballFault = faultRate - innerFault - outerFault
+const generateProject4RandomData = () => {
+  // 控制在合理演示范围内：故障占比 74.0%～86.0%，总文件数 150～180，根因完成数不超过故障文件数
+  const detectedFiles = randomInt(150, 180)
+
+  const normalRate = randomFloatOneDecimal(14, 26)
+  const faultRate = toOneDecimal(100 - normalRate)
+
+  let innerFault = toOneDecimal(faultRate * randomFloat(0.46, 0.56))
+  let outerFault = toOneDecimal(faultRate * randomFloat(0.25, 0.34))
+  let ballFault = toOneDecimal(faultRate - innerFault - outerFault)
 
   // 防止个别随机情况下滚动体故障占比过低或过高
   if (ballFault < 8) {
-    const diff = 8 - ballFault
-    innerFault -= diff
-    ballFault = 8
+    const diff = toOneDecimal(8 - ballFault)
+    innerFault = toOneDecimal(innerFault - diff)
+    ballFault = 8.0
   }
+
   if (ballFault > 22) {
-    const diff = ballFault - 22
-    innerFault += diff
-    ballFault = 22
+    const diff = toOneDecimal(ballFault - 22)
+    innerFault = toOneDecimal(innerFault + diff)
+    ballFault = 22.0
   }
+
+  // 修正小数四舍五入误差，保证三类故障之和等于 faultRate
+  const faultSum = toOneDecimal(innerFault + outerFault + ballFault)
+  const correction = toOneDecimal(faultRate - faultSum)
+  innerFault = toOneDecimal(innerFault + correction)
 
   const faultFiles = Math.round(detectedFiles * faultRate / 100)
   const minRcaFiles = Math.max(1, Math.round(faultFiles * 0.56))
@@ -548,11 +683,13 @@ const generateProject4RandomData = () => {
 
 const refreshProject4RandomData = () => {
   const project4 = middleProjects.value.find((item) => item.key === 'project-4')
-  if (!project4) return
+  if (!project4) {
+    return
+  }
 
   const randomData = generateProject4RandomData()
 
-  project4.chartValue = `${randomData.faultRate}.0%`
+  project4.chartValue = formatOneDecimalPercent(randomData.faultRate)
   project4.faultDistribution = randomData.distribution
   project4.chartData = randomData.distribution.map((item) => item.value)
   project4.meta = [
@@ -661,10 +798,10 @@ const middleProjects = ref([
     chartTitle: '故障类型占比',
     chartValue: '80.0%',
     faultDistribution: [
-      { name: '内圈故障', value: 42, color: '#6b5cf6' },
-      { name: '外圈故障', value: 24, color: '#3f8cff' },
-      { name: '滚动体故障', value: 14, color: '#28c7a0' },
-      { name: '正常样本', value: 20, color: '#dce6f5' }
+      { name: '内圈故障', value: 42.3, color: '#6b5cf6' },
+      { name: '外圈故障', value: 24.1,color: '#3f8cff' },
+      { name: '滚动体故障', value: 14.2, color: '#28c7a0' },
+      { name: '正常样本', value: 19.4, color: '#dce6f5' }
     ],
     chartLabels: ['内圈', '外圈', '滚动体', '正常'],
     chartData: [42, 24, 14, 20],

@@ -493,6 +493,33 @@ export default {
       )
     },
 
+    saveDiagnosisInfoToLocalStorage(diagnosis) {
+      if (!diagnosis) {
+        return
+      }
+
+      const diagnosisInfo = JSON.parse(JSON.stringify(diagnosis))
+
+      const diagnosisText = JSON.stringify(diagnosisInfo, null, 2)
+
+      // 通用保存，课题四首页优先读取这个
+      localStorage.setItem('project4_diagnosis_info', diagnosisText)
+
+      // 按 keyNum 保存一份，防止不同数据编号的结果混用
+      if (this.form && this.form.keyNum) {
+        localStorage.setItem(`project4_diagnosis_info_key_${this.form.keyNum}`, diagnosisText)
+      }
+
+      // 按 rawDataId 保存一份，便于后续扩展
+      if (this.rawDataId) {
+        localStorage.setItem(`project4_diagnosis_info_raw_${this.rawDataId}`, diagnosisText)
+      }
+
+      localStorage.setItem('project4_diagnosis_info_save_time', new Date().toLocaleString())
+
+      console.log('diagnose diagnosis 已保存到 localStorage：', diagnosisInfo)
+    },
+
     extractDiagnosisFromText(text) {
       if (!text || typeof text !== 'string') return null
 
@@ -594,6 +621,68 @@ export default {
       for (const key of Object.keys(obj)) {
         if (priorityKeys.includes(key)) continue
         const found = this.findDiagnosis(obj[key], visited)
+        if (found) return found
+      }
+
+      return null
+    },
+
+    extractFaultInfo(obj, visited = new Set()) {
+      if (!obj) return null
+
+      if (typeof obj === 'string') {
+        const parsed = this.safeJsonParse(obj)
+
+        if (parsed && parsed !== obj) {
+          return this.extractFaultInfo(parsed, visited)
+        }
+
+        return null
+      }
+
+      if (typeof obj !== 'object') return null
+
+      if (visited.has(obj)) return null
+      visited.add(obj)
+
+      if (obj.fault_info) {
+        return obj.fault_info
+      }
+
+      if (obj.faultInfo) {
+        return obj.faultInfo
+      }
+
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          const found = this.extractFaultInfo(item, visited)
+          if (found) return found
+        }
+        return null
+      }
+
+      const priorityKeys = [
+        'data',
+        'result',
+        'output',
+        'diagnosis',
+        'diagnosis_result',
+        'diagnosisResult',
+        'prediction',
+        'fault',
+        'bizResult'
+      ]
+
+      for (const key of priorityKeys) {
+        if (obj[key]) {
+          const found = this.extractFaultInfo(obj[key], visited)
+          if (found) return found
+        }
+      }
+
+      for (const key of Object.keys(obj)) {
+        if (priorityKeys.includes(key)) continue
+        const found = this.extractFaultInfo(obj[key], visited)
         if (found) return found
       }
 
@@ -762,12 +851,45 @@ export default {
           const pythonResponse = this.safeJsonParse(res.data.bizResult) || {}
           const bizResult = pythonResponse.data || pythonResponse || {}
 
+          const faultInfo =
+            this.extractFaultInfo(bizResult) ||
+            this.extractFaultInfo(pythonResponse) ||
+            this.extractFaultInfo(res.data.bizResult) ||
+            this.extractFaultInfo(res.data)
+
+          if (faultInfo) {
+            const faultInfoText = typeof faultInfo === 'string'
+              ? faultInfo
+              : JSON.stringify(faultInfo, null, 2)
+
+            localStorage.setItem('project4_fault_info', faultInfoText)
+
+            if (this.form.keyNum) {
+              localStorage.setItem(`project4_fault_info_key_${this.form.keyNum}`, faultInfoText)
+            }
+
+            console.log("diagnose fault_info =", faultInfo)
+          } else {
+            localStorage.removeItem('project4_fault_info')
+            console.warn("诊断结果中未找到 fault_info，当前 bizResult =", bizResult)
+          }
+
           this.images = bizResult.images || {}
           this.result = this.buildResult(res, bizResult, res.data.bizResult)
+
+          if (this.result && this.result.diagnosis) {
+            this.saveDiagnosisInfoToLocalStorage(this.result.diagnosis)
+          } else {
+            localStorage.removeItem('project4_diagnosis_info')
+            console.warn('诊断完成，但未解析到 diagnose diagnosis')
+            this.$modal.msgWarning('诊断完成，但未解析到 diagnose diagnosis')
+          }
 
           console.log("diagnose bizResult =", bizResult)
           console.log("diagnose diagnosis =", this.result.diagnosis)
           console.log("root cause info =", this.rootCauseInfo)
+
+
         } else {
           this.$modal.msgError(res.msg)
         }

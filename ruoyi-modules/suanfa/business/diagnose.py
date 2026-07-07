@@ -100,7 +100,7 @@ def run_diagnose_biz(
         "model_output": {
             "logits": logits.numpy().tolist()[0],
             "predict_label": pred_label,
-            "fault_info": fault_info
+            ",": fault_info#000000000000000000000000000000000000000000000000
         },
         "images": {
             # 复用融合业务全部特征图

@@ -1271,7 +1271,7 @@ const dispatchSelectedModule = async () => {
       action: 'DISPATCH'
     })
 
-    ElMessage.success(`已分派到${module.moduleName}，对应课题首页将自动显示当前质量问题`)
+    ElMessage.success(`已分派到${module.moduleName}，对应平台首页将自动显示当前质量问题`)
 
     await loadProblemList({
       keepCurrent: true,
