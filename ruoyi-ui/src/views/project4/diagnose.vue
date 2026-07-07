@@ -2,10 +2,10 @@
   <div class="project4-page">
     <div class="hero-card">
       <div>
-        <div class="hero-subtitle">轴承算法 · 故障诊断</div>
-        <div class="hero-title">轴承故障智能诊断</div>
+        <div class="hero-subtitle">航空液压管路 · 故障诊断</div>
+        <div class="hero-title">航空设备液压管路故障智能诊断</div>
         <div class="hero-desc">
-          基于数据预处理、双通道权重配置与诊断模型执行故障识别，输出故障标签、故障名称、根因分析、置信度和证据链，用于质量追溯和维修决策。
+          基于数据预处理、双模态权重配置与诊断模型执行液压管路故障识别，输出故障标签、故障类型、根因分析、置信度和证据链，用于航空设备状态监测、质量追溯和维修决策。
         </div>
       </div>
       <div class="hero-status">
@@ -17,17 +17,17 @@
 
     <div class="metric-grid">
       <div class="metric-card">
-        <div class="metric-label">原始数据ID</div>
+        <div class="metric-label">原始样本ID</div>
         <div class="metric-value">{{ rawDataId || '-' }}</div>
         <div class="metric-foot">rawDataId</div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">数据编号</div>
+        <div class="metric-label">样本编码</div>
         <div class="metric-value">{{ form.keyNum }}</div>
         <div class="metric-foot">keyNum</div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">DE/FE 权重</div>
+        <div class="metric-label">模态1/模态2权重</div>
         <div class="metric-value">{{ form.wX1 }} / {{ form.wX2 }}</div>
         <div class="metric-foot">wX1 / wX2</div>
       </div>
@@ -51,15 +51,15 @@
         </template>
 
         <el-form ref="form" :model="form" label-width="140px" class="nice-form">
-          <el-form-item label="原始数据ID">
+          <el-form-item label="原始样本ID">
             <el-input-number v-model="rawDataId" :min="1" />
           </el-form-item>
 
-          <el-form-item label="数据集路径">
+          <el-form-item label="样本库路径">
             <el-input v-model="form.dataRootPath" />
           </el-form-item>
 
-          <el-form-item label="当前数据编号">
+          <el-form-item label="当前样本编码">
             <el-input v-model="form.keyNum" disabled>
               <template #append>来自数据预处理</template>
             </el-input>
@@ -89,11 +89,11 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="DE权重 wX1">
+          <el-form-item label="模态1权重">
             <el-input-number v-model="form.wX1" :step="0.1" :min="0" :max="1" />
           </el-form-item>
 
-          <el-form-item label="FE权重 wX2">
+          <el-form-item label="模态2权重">
             <el-input-number v-model="form.wX2" :step="0.1" :min="0" :max="1" />
           </el-form-item>
 
@@ -122,8 +122,8 @@
           <div class="flow-item active">
             <div class="flow-index">1</div>
             <div>
-              <div class="flow-title">读取振动数据</div>
-              <div class="flow-desc">根据数据路径、keyNum 和滑窗参数读取样本。</div>
+              <div class="flow-title">读取管路监测信号</div>
+              <div class="flow-desc">根据样本库路径、样本编码和滑窗参数读取液压管路样本。</div>
             </div>
           </div>
 
@@ -131,7 +131,7 @@
             <div class="flow-index">2</div>
             <div>
               <div class="flow-title">执行预处理</div>
-              <div class="flow-desc">完成去噪、归一化与诊断前数据整理。</div>
+              <div class="flow-desc">完成去噪、归一化与诊断前管路信号整理。</div>
             </div>
           </div>
 
@@ -139,7 +139,7 @@
             <div class="flow-index">3</div>
             <div>
               <div class="flow-title">权重融合诊断</div>
-              <div class="flow-desc">按 DE 与 FE 权重执行故障类型识别。</div>
+              <div class="flow-desc">按模态1与模态2权重执行液压管路故障类型识别。</div>
             </div>
           </div>
 
@@ -147,7 +147,7 @@
             <div class="flow-index">4</div>
             <div>
               <div class="flow-title">输出根因分析</div>
-              <div class="flow-desc">生成故障结论、置信度饼图和证据链说明。</div>
+              <div class="flow-desc">生成液压管路故障结论、置信度饼图和证据链说明。</div>
             </div>
           </div>
         </div>
@@ -192,20 +192,28 @@
             <div class="field-foot">label</div>
           </div>
           <div class="diagnosis-field-card">
-            <div class="field-label">故障名称</div>
+            <div class="field-label">故障类型</div>
             <div class="field-value">{{ diagnosisInfo.fullName }}</div>
             <div class="field-foot">fault_full_name</div>
           </div>
           <div class="diagnosis-field-card">
-            <div class="field-label">故障简称</div>
+            <div class="field-label">故障代号</div>
             <div class="field-value">{{ diagnosisInfo.abbr }}</div>
             <div class="field-foot">fault_abbr</div>
           </div>
           <div class="diagnosis-field-card">
-            <div class="field-label">故障尺寸</div>
+            <div class="field-label">故障特征量</div>
             <div class="field-value">{{ diagnosisInfo.size }}</div>
-            <div class="field-foot">fault_size_inch</div>
+            <div class="field-foot">fault_size</div>
           </div>
+          <el-button
+            type="success"
+            :disabled="!result || !result.id"
+            :loading="writebackLoading"
+            @click="handleWriteback"
+          >
+            写回数字卷宗
+          </el-button>
         </div>
       </el-card>
 
@@ -293,7 +301,7 @@
 </template>
 
 <script>
-import { runDiagnose } from '@/api/project4/diagnose'
+import { runDiagnose, writebackDossier } from '@/api/project4/diagnose'
 
 export default {
   name: "Diagnose",
@@ -303,8 +311,10 @@ export default {
       rawDataId: 1,
       result: null,
       images: {},
+      writebackLoading: false,
+      writebackResult: null,
       form: {
-        dataRootPath: "D:/topic4-data/CWRU/12k Drive End Bearing Fault Data/",
+        dataRootPath: "D:/topic4-data/hydraulic-pipeline/",
         keyNum: Number(localStorage.getItem('project4_key_num')) || 108,
         winLength: 1024,
         denoise: true,
@@ -347,8 +357,8 @@ export default {
       const label = d.label !== undefined ? d.label : '-'
       const fullName = d.fault_full_name || d.faultFullName || this.formatDiagnosis(d)
       const abbr = d.fault_abbr || d.faultAbbr || this.inferAbbrFromName(fullName)
-      const sizeValue = d.fault_size_inch !== undefined ? d.fault_size_inch : d.faultSizeInch
-      const size = sizeValue !== undefined && sizeValue !== null ? sizeValue + ' inch' : '-'
+      const sizeValue = d.fault_size !== undefined ? d.fault_size : (d.faultSize !== undefined ? d.faultSize : (d.fault_size_inch !== undefined ? d.fault_size_inch : d.faultSizeInch))
+      const size = sizeValue !== undefined && sizeValue !== null ? String(sizeValue) : '-'
       return {
         label,
         fullName,
@@ -362,61 +372,61 @@ export default {
       const name = info.fullName || ''
       const abbr = info.abbr || ''
 
-      if (abbr === 'IR' || name.includes('内圈')) {
+      if (abbr === 'F' || name.includes('疲劳裂纹')) {
         return {
-          title: '内圈滚道局部损伤或疲劳剥落',
-          desc: '诊断结果指向内圈故障，常见原因包括内圈滚道疲劳点蚀、局部剥落、装配偏心或润滑不足导致的接触应力集中。',
-          suggestion: '建议优先检查轴承内圈滚道表面、配合过盈量与润滑状态；必要时进行拆检、内圈磨损复核和轴承更换。',
+          title: '液压管路疲劳裂纹萌生或扩展',
+          desc: '诊断结果指向疲劳裂纹类故障，可能与航空设备液压管路长期振动、压力脉动、交变载荷、弯折处应力集中或固定支撑不足有关。',
+          suggestion: '建议优先检查管路弯折段、接头过渡区、卡箍固定点和焊接/连接部位，必要时进行无损检测、泄漏复核和裂纹扩展风险评估。',
           confidence: this.calcConfidence(88),
           evidence: [
-            '诊断模型输出故障简称为 IR，故障名称指向内圈故障。',
-            '故障标签为 ' + info.label + '，与当前模型中的内圈故障类别相匹配。',
-            '故障尺寸为 ' + info.size + '，提示存在局部化缺陷特征。',
-            'DE/FE 双通道权重融合后仍输出同一故障类型，增强了根因判断的一致性。'
+            '诊断模型输出故障代号为 F，故障类型指向疲劳裂纹。',
+            '故障标签为 ' + info.label + '，与当前模型中的疲劳裂纹类别相匹配。',
+            '故障特征量为 ' + info.size + '，提示存在可识别的裂纹类异常特征。',
+            '模态1/模态2特征融合后仍输出同一故障类型，增强了根因判断的一致性。'
           ]
         }
       }
 
-      if (abbr === 'OR' || name.includes('外圈')) {
+      if (abbr === 'W' || name.includes('磨损')) {
         return {
-          title: '外圈滚道局部损伤或支承刚度异常',
-          desc: '诊断结果指向外圈故障，常见原因包括外圈滚道剥落、安装座松动、载荷冲击或外圈局部应力集中。',
-          suggestion: '建议检查轴承座固定状态、外圈滚道剥落痕迹、安装同轴度和外部冲击载荷来源。',
+          title: '液压管路磨损或密封接触退化',
+          desc: '诊断结果指向磨损类故障，可能与管路内壁冲刷、接头密封面磨耗、装配间隙异常、颗粒污染或长期摩擦振动有关。',
+          suggestion: '建议检查管路内壁磨损、接头密封状态、油液污染度、过滤器状态和固定夹磨擦接触位置，必要时更换磨损管段或密封件。',
           confidence: this.calcConfidence(86),
           evidence: [
-            '诊断模型输出故障简称为 OR，故障名称指向外圈故障。',
-            '故障标签为 ' + info.label + '，与外圈故障类别相匹配。',
-            '故障尺寸为 ' + info.size + '，提示外圈存在可识别局部缺陷。',
-            '融合诊断结果显示故障状态稳定，支持外圈滚道异常的根因判断。'
+            '诊断模型输出故障代号为 W，故障类型指向磨损。',
+            '故障标签为 ' + info.label + '，与当前模型中的磨损类别相匹配。',
+            '故障特征量为 ' + info.size + '，提示管路存在可识别的磨损异常。',
+            '融合诊断结果显示故障状态稳定，支持液压管路磨损退化的根因判断。'
           ]
         }
       }
 
-      if (abbr === 'B' || abbr === 'BALL' || name.includes('滚动体') || name.includes('滚珠')) {
+      if (abbr === 'D' || name.includes('凹痕')) {
         return {
-          title: '滚动体表面损伤或接触疲劳',
-          desc: '诊断结果指向滚动体故障，可能与滚动体表面点蚀、剥落、污染颗粒压痕或润滑膜破坏有关。',
-          suggestion: '建议检查滚动体表面压痕与剥落情况，同时复核润滑脂清洁度、润滑膜状态和轴承运行冲击。',
+          title: '液压管路局部凹痕或外力挤压变形',
+          desc: '诊断结果指向凹痕类故障，可能与外部碰撞、装配挤压、维护过程压伤、支撑夹具局部压痕或管路受载变形有关。',
+          suggestion: '建议检查管路外表面凹陷、压痕位置、固定支架间隙和周边结构干涉情况；若凹痕影响截面积或存在泄漏风险，应及时更换管段。',
           confidence: this.calcConfidence(85),
           evidence: [
-            '诊断模型输出结果指向滚动体故障。',
-            '故障标签为 ' + info.label + '，与滚动体缺陷类别相匹配。',
-            '故障尺寸为 ' + info.size + '，提示局部损伤程度可被模型识别。',
-            '双通道特征融合后故障类别明确，支持滚动体异常判断。'
+            '诊断模型输出故障代号为 D，故障类型指向凹痕。',
+            '故障标签为 ' + info.label + '，与当前模型中的凹痕类别相匹配。',
+            '故障特征量为 ' + info.size + '，提示局部变形特征可被模型识别。',
+            '模态融合后故障类别明确，支持液压管路局部凹痕或压伤判断。'
           ]
         }
       }
 
-      if (name.includes('正常') || abbr === 'N' || abbr === 'NORMAL') {
+      if (name.includes('正常') || abbr === 'N' || abbr === 'NORMAL' || abbr === 'Normal') {
         return {
-          title: '未发现明显轴承故障根因',
-          desc: '当前诊断结果倾向正常状态，未识别出明显内圈、外圈或滚动体局部损伤特征。',
-          suggestion: '建议维持常规巡检，并结合趋势变化、温升、噪声和振动幅值继续监测。',
+          title: '未发现明显液压管路故障根因',
+          desc: '当前诊断结果倾向正常状态，未识别出明显疲劳裂纹、磨损或凹痕类异常特征。',
+          suggestion: '建议维持常规巡检，并结合压力波动、泄漏情况、油液污染度和多时段监测趋势继续观察。',
           confidence: this.calcConfidence(82),
           evidence: [
             '诊断结论显示当前样本更接近正常状态。',
-            '模型未输出明确的内圈、外圈或滚动体故障类别。',
-            '当前 DE/FE 融合结果未触发高风险故障判断。',
+            '模型未输出明确的疲劳裂纹、磨损或凹痕故障类别。',
+            '当前模态1/模态2融合结果未触发高风险故障判断。',
             '建议结合连续监测数据进一步确认长期稳定性。'
           ]
         }
@@ -424,13 +434,13 @@ export default {
 
       return {
         title: '根因信息待确认',
-        desc: '当前结果中诊断字段不完整，系统已完成故障诊断，但根因类型需要结合原始波形、频谱特征和人工复核进一步确认。',
-        suggestion: '建议查看下方诊断可视化图，并补充故障标签、故障名称或模型输出字段后再次执行分析。',
+        desc: '当前结果中诊断字段不完整，系统已完成液压管路故障诊断，但根因类型需要结合原始信号、频域特征和人工复核进一步确认。',
+        suggestion: '建议查看下方诊断可视化图，并补充故障标签、故障类型或模型输出字段后再次执行分析。',
         confidence: this.calcConfidence(60),
         evidence: [
-          '当前结果未解析到明确的故障简称或故障名称。',
+          '当前结果未解析到明确的故障代号或故障类型。',
           '可视化图像已生成，可作为人工复核依据。',
-          '建议检查 Python 返回的 biz_result 中是否包含 fault_full_name、fault_abbr、label 等字段。'
+          '建议检查 Python 返回的 biz_result 中是否包含 fault_full_name、fault_abbr、label、fault_size 等字段。'
         ]
       }
     },
@@ -476,6 +486,29 @@ export default {
       }
     },
 
+    async handleWriteback() {
+      if (!this.result || !this.result.id) {
+        this.$modal.msgError('请先执行故障诊断，获得诊断结果ID')
+        return
+      }
+
+      this.writebackLoading = true
+      try {
+        const res = await writebackDossier(this.result.id)
+
+        if (res.code === 200) {
+          this.writebackResult = res.data
+          this.$modal.msgSuccess('数字卷宗写回请求已发送')
+        } else {
+          this.$modal.msgError(res.msg || '数字卷宗写回失败')
+        }
+      } catch (e) {
+        this.$modal.msgError('数字卷宗写回失败：' + (e.message || e))
+      } finally {
+        this.writebackLoading = false
+      }
+    },
+
     hasDiagnosisFields(obj) {
       return !!(
         obj &&
@@ -486,6 +519,8 @@ export default {
           obj.faultFullName ||
           obj.fault_abbr ||
           obj.faultAbbr ||
+          obj.fault_size !== undefined ||
+          obj.faultSize !== undefined ||
           obj.fault_size_inch !== undefined ||
           obj.faultSizeInch !== undefined ||
           obj.label !== undefined
@@ -518,6 +553,7 @@ export default {
         label: pickNumber(['label']),
         fault_abbr: pickString(['fault_abbr', 'faultAbbr']),
         fault_full_name: pickString(['fault_full_name', 'faultFullName']),
+        fault_size: pickNumber(['fault_size', 'faultSize']),
         fault_size_inch: pickNumber(['fault_size_inch', 'faultSizeInch'])
       }
 
@@ -525,15 +561,16 @@ export default {
         diagnosis.fault_full_name ||
         diagnosis.fault_abbr ||
         diagnosis.label !== undefined ||
+        diagnosis.fault_size !== undefined ||
         diagnosis.fault_size_inch !== undefined
       ) {
         return diagnosis
       }
 
-      if (text.includes('内圈故障')) return '内圈故障(IR)'
-      if (text.includes('外圈故障')) return '外圈故障(OR)'
-      if (text.includes('滚动体故障')) return '滚动体故障(B)'
-      if (text.includes('正常')) return '正常状态'
+      if (text.includes('疲劳裂纹')) return '疲劳裂纹(F)'
+      if (text.includes('磨损')) return '磨损(W)'
+      if (text.includes('凹痕')) return '凹痕(D)'
+      if (text.includes('正常')) return '正常状态(N)'
 
       return null
     },
@@ -627,10 +664,10 @@ export default {
 
     inferAbbrFromName(name) {
       if (!name) return '-'
-      if (name.includes('IR') || name.includes('内圈')) return 'IR'
-      if (name.includes('OR') || name.includes('外圈')) return 'OR'
-      if (name.includes('B') || name.includes('滚动体') || name.includes('滚珠')) return 'B'
-      if (name.includes('正常')) return 'Normal'
+      if (name.includes('F') || name.includes('疲劳裂纹')) return 'F'
+      if (name.includes('W') || name.includes('磨损')) return 'W'
+      if (name.includes('D') || name.includes('凹痕')) return 'D'
+      if (name.includes('N') || name.includes('正常')) return 'N'
       return '-'
     },
 
@@ -717,8 +754,8 @@ export default {
         updateTime: res.data.updateTime,
         diagnosis: cleanedDiagnosis,
         message: cleanedDiagnosis
-          ? "故障诊断已完成，诊断结论、根因分析和图片已解析"
-          : "故障诊断已完成，图片已解析，但未解析到诊断结论"
+          ? "液压管路故障诊断已完成，诊断结论、根因分析和图片已解析"
+          : "液压管路故障诊断已完成，图片已解析，但未解析到诊断结论"
       }
     },
 
@@ -726,15 +763,15 @@ export default {
       this.syncKeyNumFromPreprocess()
 
       if (!this.rawDataId) {
-        return this.$modal.msgError("请填写原始数据ID")
+        return this.$modal.msgError("请填写原始样本ID")
       }
 
       if (!this.form.dataRootPath) {
-        return this.$modal.msgError("请填写数据集路径")
+        return this.$modal.msgError("请填写样本库路径")
       }
 
       if (!this.form.keyNum || this.form.keyNum <= 0) {
-        return this.$modal.msgError("数据编号keyNum必须大于0，例如108")
+        return this.$modal.msgError("样本编码keyNum必须大于0，例如108")
       }
 
       this.loading = true

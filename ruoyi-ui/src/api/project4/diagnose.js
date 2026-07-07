@@ -13,3 +13,11 @@ export function runDiagnose(rawDataId, data) {
         data
     })
 }
+
+// 写回数字卷宗
+export function writebackDossier(diagnoseId) {
+    return request({
+        url: '/project4/bearing/dossier/writeback/' + diagnoseId,
+        method: 'post'
+    })
+}

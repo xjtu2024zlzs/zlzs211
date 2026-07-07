@@ -12,4 +12,13 @@ public interface BearingDiagnoseService {
      * @return 诊断入库记录
      */
     T4BearingDiagnose execDiagnose(Long sourceRawId, DiagnoseReqDTO reqDTO);
+    /**
+     * 根据ID查询诊断结果
+     * @param id 诊断结果ID
+     * @return 诊断入库记录
+     */
+    T4BearingDiagnose selectById(Long id);
+
+
+
 }
