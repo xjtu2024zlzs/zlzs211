@@ -76,7 +76,7 @@ public class Topic5TraceProblemController extends BaseController
     public AjaxResult submitQualityResult(@PathVariable("id") Long id)
     {
         traceProblemService.submitQualityResult(id);
-        return AjaxResult.success("已将课题五追溯结果回填至质量问题管理中心");
+        return AjaxResult.success("已将追溯结果回填至质量问题管理中心");
     }
     /**
      * 获取追溯问题详细信息

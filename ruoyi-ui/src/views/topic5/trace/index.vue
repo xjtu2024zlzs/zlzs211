@@ -239,6 +239,12 @@
           {{ workflowName(currentTrace.workflowStage) }}
         </el-descriptions-item>
 
+        <el-descriptions-item label="智能故障诊断结果" :span="3">
+          <div class="topic4-result-box">
+            {{ currentTrace.topic4CauseAnalysis || '暂无智能故障诊断结果' }}
+          </div>
+        </el-descriptions-item>
+
         <el-descriptions-item label="附件保存位置" :span="3">
           {{ currentTrace.attachmentSavePath || '未设置' }}
         </el-descriptions-item>
@@ -321,7 +327,13 @@
       /> -->
 
       <div class="mt15">
-        <el-button type="warning" icon="Cpu" @click="handleRunAlgorithm">
+        <el-button
+          type="warning"
+          icon="Cpu"
+          :loading="algorithmRunning"
+          :disabled="algorithmRunning"
+          @click="handleRunAlgorithm"
+        >
           进行根因诊断
         </el-button>
       </div>
@@ -782,6 +794,7 @@ const graphLoading = ref(false)
 const graphDialogRef = ref(null)
 const graphTraceInfo = ref({})
 const graphDataCache = ref(null)
+const algorithmRunning = ref(false)
 
 let graphDialogChart = null
 
@@ -926,7 +939,7 @@ const activeStep = computed(() => {
 })
 
 const topic4StatusText = computed(() => {
-  return '课题四状态：' + topic4StatusName(currentTrace.value.topic4Status)
+  return '故障诊断状态：' + topic4StatusName(currentTrace.value.topic4Status)
 })
 
 const topic4AlertType = computed(() => {
@@ -1408,9 +1421,20 @@ function handleRunAlgorithm() {
     return
   }
 
+  if (algorithmRunning.value) {
+    return
+  }
+
+  algorithmRunning.value = true
+
   runAlgorithm(selectedTraceId.value).then(() => {
     proxy.$modal.msgSuccess('根因诊断算法运行完成')
     refreshCurrentTrace()
+  }).catch(err => {
+    console.error('根因诊断算法运行失败：', err)
+    proxy.$modal.msgError('根因诊断算法运行失败')
+  }).finally(() => {
+    algorithmRunning.value = false
   })
 }
 
@@ -2048,6 +2072,12 @@ onActivated(() => {
   justify-content: center;
   color: #909399;
   font-size: 15px;
+}
+
+.topic4-result-box {
+  white-space: pre-line;
+  line-height: 24px;
+  color: #303133;
 }
 
 .graph-info {

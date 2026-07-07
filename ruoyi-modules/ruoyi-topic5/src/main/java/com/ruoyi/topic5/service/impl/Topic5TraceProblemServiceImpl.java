@@ -55,6 +55,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.LinkedHashMap;
+import org.springframework.core.io.ClassPathResource;
 
 
 
@@ -229,7 +230,8 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     @Transactional(rollbackFor = Exception.class)
     public int syncQualityProblemsFromQms()
     {
-        R<List<QualityTaskDto>> result = remoteQualityTaskService.listTaskForModule("PROJECT_5", SecurityConstants.INNER);
+        R<List<QualityTaskDto>> result =
+                remoteQualityTaskService.listTaskForModule("PROJECT_5", SecurityConstants.INNER);
 
         if (result == null)
         {
@@ -248,7 +250,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             return 0;
         }
 
-        // 只按照质量任务ID去重
+        // 已经同步过的课题五质量任务ID
         List<Long> existedTaskIds = topic5TraceProblemMapper.selectAllQualityTaskIdList();
         Set<Long> existedTaskIdSet = new HashSet<>();
 
@@ -261,13 +263,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         for (QualityTaskDto task : taskList)
         {
-            if (task.getTaskId() == null)
-            {
-                continue;
-            }
-
-            // 核心：同一个 task_id 只同步一次
-            if (existedTaskIdSet.contains(task.getTaskId()))
+            if (task == null || task.getTaskId() == null)
             {
                 continue;
             }
@@ -277,7 +273,45 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                 continue;
             }
 
+            /*
+             * 新增逻辑：
+             * 同步 PROJECT_5 任务时，根据同一个 problemId 反查 PROJECT_4
+             * 如果 PROJECT_4 已完成，则把智能故障诊断结果同步到课题五追溯任务。
+             */
+            QualityTaskDto project4Task = getProject4FinishedTask(task);
+
+            /*
+             * 关键修改：
+             * 如果这个 PROJECT_5 任务已经同步过，不能直接 continue。
+             * 因为可能第一次同步时 PROJECT_4 还没完成，
+             * 第二次点击同步时 PROJECT_4 已经完成，需要更新已有追溯任务。
+             */
+            if (existedTaskIdSet.contains(task.getTaskId()))
+            {
+                Topic5TraceProblem existedTrace =
+                        topic5TraceProblemMapper.selectTopic5TraceProblemByQualityTaskId(task.getTaskId());
+
+                if (existedTrace != null && project4Task != null)
+                {
+                    fillProject4DiagnosisResult(existedTrace, project4Task);
+                    existedTrace.setUpdateTime(DateUtils.getNowDate());
+
+                    topic5TraceProblemMapper.updateTopic5TraceProblem(existedTrace);
+
+                    count++;
+                }
+
+                continue;
+            }
+
+            // 第一次同步该 PROJECT_5 任务
             Topic5TraceProblem traceProblem = buildTraceFromQualityTask(task);
+
+            // 如果 PROJECT_4 已完成，则新增时直接写入智能故障诊断结果
+            if (project4Task != null)
+            {
+                fillProject4DiagnosisResult(traceProblem, project4Task);
+            }
 
             int rows = topic5TraceProblemMapper.insertTopic5TraceProblem(traceProblem);
 
@@ -289,6 +323,98 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         }
 
         return count;
+    }
+    private QualityTaskDto getProject4FinishedTask(QualityTaskDto project5Task)
+    {
+        if (project5Task == null || project5Task.getProblemId() == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            R<QualityTaskDto> result =
+                    remoteQualityTaskService.getTaskByProblemIdAndModuleCode(
+                            project5Task.getProblemId(),
+                            "PROJECT_4",
+                            SecurityConstants.INNER
+                    );
+
+            if (result == null || R.FAIL == result.getCode())
+            {
+                return null;
+            }
+
+            QualityTaskDto project4Task = result.getData();
+
+            if (!isProject4TaskFinished(project4Task))
+            {
+                return null;
+            }
+
+            return project4Task;
+        }
+        catch (Exception e)
+        {
+            System.err.println("查询 PROJECT_4 智能故障诊断任务失败：" + e.getMessage());
+            return null;
+        }
+    }
+    private boolean isProject4TaskFinished(QualityTaskDto task)
+    {
+        if (task == null)
+        {
+            return false;
+        }
+
+        String status = task.getTaskStatus();
+        String processResult = task.getProcessResult();
+
+        boolean finishedStatus =
+                "CONFIRMED".equals(status)
+                        || "SUBMITTED".equals(status)
+                        || "COMPLETED".equals(status)
+                        || "FINISHED".equals(status);
+
+        return finishedStatus
+                && StringUtils.isNotEmpty(processResult);
+    }
+    private void fillProject4DiagnosisResult(Topic5TraceProblem traceProblem, QualityTaskDto project4Task)
+    {
+        if (traceProblem == null || project4Task == null)
+        {
+            return;
+        }
+
+        String processResult = project4Task.getProcessResult();
+
+        if (StringUtils.isEmpty(processResult))
+        {
+            return;
+        }
+
+        // 标记智能故障诊断与根源性分析平台已经完成
+        traceProblem.setTopic4Status(2L);
+        traceProblem.setTopic4ResultFilled(1L);
+
+        // 保存智能故障诊断结果
+        // 注意：Topic5TraceProblem 里没有 topic4Result 字段，所以不要写 setTopic4Result(...)
+        traceProblem.setTopic4CauseAnalysis(processResult);
+
+        // 如果实体类里有 topic4DeductionProcess 字段，可以同步保存一份
+        traceProblem.setTopic4DeductionProcess(processResult);
+
+        // 暂时先不解析 JSON，先给通用显示值
+        traceProblem.setTopic4FaultType("智能故障诊断结果");
+        traceProblem.setTopic4FaultLocation(
+                StringUtils.isEmpty(traceProblem.getPartName()) ? "-" : traceProblem.getPartName()
+        );
+        traceProblem.setTopic4RootConfidence("-");
+
+        if (StringUtils.isEmpty(traceProblem.getStatus()) || "未处理".equals(traceProblem.getStatus()))
+        {
+            traceProblem.setStatus("智能故障诊断已完成");
+        }
     }
     private Topic5TraceProblem buildTraceFromQualityTask(QualityTaskDto task)
     {
@@ -333,6 +459,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         traceProblem.setStatus("未处理");
 
         traceProblem.setTopic4ResultFilled(0L);
+        traceProblem.setTopic4Status(0L);
         traceProblem.setAlgorithmStatus(0L);
         traceProblem.setKgRebuildStatus(0L);
         traceProblem.setTraceReportStatus(0L);
@@ -751,7 +878,6 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
      * 模拟运行 Python 追溯算法
      */
     @Override
-    @Transactional
     public Map<String, Object> runAlgorithmMock(Long id)
     {
         Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
@@ -791,6 +917,37 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             requestBody.put("case_id", problem.getTraceNo() == null ? String.valueOf(problem.getId()) : problem.getTraceNo());
             requestBody.put("product_model", problem.getAircraftNo() == null ? "Aircraft-A" : problem.getAircraftNo());
             requestBody.put("algorithm", "时空图神经网络定位算法");
+
+            // 新增：从智能故障诊断结果中提取“故障标签”并传给第一部分 Python 算法
+            Integer topic4FaultLabel = extractTopic4FaultLabel(problem);
+
+            if (topic4FaultLabel == null)
+            {
+                throw new ServiceException("未能从智能故障诊断结果中解析出故障标签，无法运行根因诊断算法");
+            }
+
+            // Python 端当前要求的字段名
+            requestBody.put("pipe_fault_label", topic4FaultLabel);
+
+            // 兼容保留字段
+            requestBody.put("fault_label", topic4FaultLabel);
+            requestBody.put("topic4_fault_label", topic4FaultLabel);
+
+            // 智能故障诊断原始结果
+            requestBody.put(
+                    "topic4_diagnosis_result",
+                    StringUtils.isEmpty(problem.getTopic4CauseAnalysis()) ? "" : problem.getTopic4CauseAnalysis()
+            );
+
+            System.out.println("传给第一部分Python的 pipe_fault_label = " + topic4FaultLabel);
+
+            // 新增：同时把智能故障诊断原始文本也传过去，便于 Python 端记录或兜底解析
+            requestBody.put(
+                    "topic4_diagnosis_result",
+                    StringUtils.isEmpty(problem.getTopic4CauseAnalysis()) ? "" : problem.getTopic4CauseAnalysis()
+            );
+
+            System.out.println("传给第一部分Python的故障标签 topic4_fault_label = " + topic4FaultLabel);
 
             // 2. 设置请求头
             HttpHeaders headers = new HttpHeaders();
@@ -885,6 +1042,51 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
             throw new ServiceException("Python算法运行失败：" + e.getMessage());
         }
+    }
+    private Integer extractTopic4FaultLabel(Topic5TraceProblem problem)
+    {
+        if (problem == null)
+        {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        if (!StringUtils.isEmpty(problem.getTopic4CauseAnalysis()))
+        {
+            sb.append(problem.getTopic4CauseAnalysis()).append(" ");
+        }
+
+        if (!StringUtils.isEmpty(problem.getTopic4DeductionProcess()))
+        {
+            sb.append(problem.getTopic4DeductionProcess()).append(" ");
+        }
+
+        String text = sb.toString();
+
+        if (StringUtils.isEmpty(text))
+        {
+            return null;
+        }
+
+        try
+        {
+            java.util.regex.Pattern pattern =
+                    java.util.regex.Pattern.compile("故障标签\\s*[:：]\\s*(\\d+)");
+
+            java.util.regex.Matcher matcher = pattern.matcher(text);
+
+            if (matcher.find())
+            {
+                return Integer.parseInt(matcher.group(1));
+            }
+        }
+        catch (Exception e)
+        {
+            System.err.println("解析智能故障诊断故障标签失败：" + e.getMessage());
+        }
+
+        return null;
     }
 
     /**
@@ -1025,6 +1227,11 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         if (problem == null)
         {
             throw new ServiceException("追溯任务不存在，无法保存附件");
+        }
+
+        if (Long.valueOf(1L).equals(problem.getAlgorithmStatus()))
+        {
+            throw new ServiceException("根因诊断算法正在运行中，请勿重复点击");
         }
 
         if (attachmentSavePath == null || "".equals(attachmentSavePath.trim()))
@@ -1358,27 +1565,47 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     }
     private String buildMockTopic1KgJson(Topic5TraceProblem problem)
     {
-        Long id = problem.getId();
-        String partName = problem.getPartName() == null ? "故障部件" : problem.getPartName();
-        String aircraftNo = problem.getAircraftNo() == null ? "未知架次" : problem.getAircraftNo();
+        try
+        {
+            ClassPathResource resource = new ClassPathResource("mock/topic5/c011_pipe_kg.json");
 
-        return "{"
-                + "\"nodes\":["
-                + "{\"id\":\"T" + id + "\",\"name\":\"追溯任务" + id + "\",\"category\":\"追溯任务\"},"
-                + "{\"id\":\"A" + id + "\",\"name\":\"" + aircraftNo + "\",\"category\":\"架次\"},"
-                + "{\"id\":\"P" + id + "\",\"name\":\"" + partName + "\",\"category\":\"部件\"},"
-                + "{\"id\":\"S1" + id + "\",\"name\":\"压力传感器\",\"category\":\"传感器\"},"
-                + "{\"id\":\"S2" + id + "\",\"name\":\"温度传感器\",\"category\":\"传感器\"},"
-                + "{\"id\":\"F" + id + "\",\"name\":\"质量异常\",\"category\":\"故障\"}"
-                + "],"
-                + "\"links\":["
-                + "{\"source\":\"T" + id + "\",\"target\":\"A" + id + "\",\"name\":\"对应架次\"},"
-                + "{\"source\":\"A" + id + "\",\"target\":\"P" + id + "\",\"name\":\"包含部件\"},"
-                + "{\"source\":\"P" + id + "\",\"target\":\"S1" + id + "\",\"name\":\"关联传感器\"},"
-                + "{\"source\":\"P" + id + "\",\"target\":\"S2" + id + "\",\"name\":\"关联传感器\"},"
-                + "{\"source\":\"S1" + id + "\",\"target\":\"F" + id + "\",\"name\":\"检测异常\"}"
-                + "]"
-                + "}";
+            String json;
+
+            try (InputStream inputStream = resource.getInputStream())
+            {
+                json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            }
+
+            Map graphWrapper = JSON.parseObject(json, Map.class);
+
+            /*
+             * 你上传的 JSON 中已经包含 echartsOption。
+             * 第二页面显示原始知识图谱时，直接返回 echartsOption 最稳。
+             */
+            Object echartsOption = graphWrapper.get("echartsOption");
+
+            if (echartsOption != null)
+            {
+                return JSON.toJSONString(echartsOption);
+            }
+
+            /*
+             * 如果后续某个 JSON 没有 echartsOption，但有 rawGraph，
+             * 则自动把 rawGraph 转成 ECharts option。
+             */
+            Object rawGraph = graphWrapper.get("rawGraph");
+
+            if (rawGraph != null)
+            {
+                return JSON.toJSONString(convertRawGraphToEchartsOption(rawGraph, "C011 管路总成知识图谱"));
+            }
+
+            return json;
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("读取C011原始知识图谱JSON失败：" + e.getMessage());
+        }
     }
     private String buildMockSecondAlgorithmTableJson(Topic5TraceProblem problem, String algorithmName)
     {

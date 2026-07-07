@@ -75,4 +75,5 @@ public interface Topic5TraceProblemMapper
                                            @Param("secondAlgorithmConfirmRemark") String secondAlgorithmConfirmRemark,
                                            @Param("workflowStage") Long workflowStage,
                                            @Param("updateTime") Date updateTime);
+    public Topic5TraceProblem selectTopic5TraceProblemByQualityTaskId(Long qualityTaskId);
 }

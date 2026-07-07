@@ -3,6 +3,7 @@ import com.ruoyi.qms.api.domain.QualityTaskDto;
 import java.util.List;
 import com.ruoyi.quality.domain.QmsQualityTask;
 import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
+import com.ruoyi.qms.api.domain.QualityTaskDto;
 /**
  * 质量问题模块处理任务Service接口
  * 
@@ -71,4 +72,13 @@ public interface IQmsQualityTaskService
      * @return 任务列表
      */
     public List<QualityTaskDto> selectQualityTaskDtoListForModule(String moduleCode);
+
+    /**
+     * 根据质量问题ID和模块编码查询指定模块任务
+     *
+     * @param problemId 质量问题ID
+     * @param moduleCode 模块编码
+     * @return 质量任务DTO
+     */
+    public QualityTaskDto selectQualityTaskDtoByProblemIdAndModuleCode(Long problemId, String moduleCode);
 }

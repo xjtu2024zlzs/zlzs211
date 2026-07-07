@@ -11,6 +11,7 @@ import com.ruoyi.quality.service.IQmsQualityTaskService;
 import com.ruoyi.common.core.exception.ServiceException;
 import com.ruoyi.common.core.utils.StringUtils;
 import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
+import com.ruoyi.qms.api.domain.QualityTaskDto;
 /**
  * 质量问题模块处理任务Service业务层处理
  * 
@@ -177,5 +178,18 @@ public class QmsQualityTaskServiceImpl implements IQmsQualityTaskService
     public int deleteQmsQualityTaskByTaskId(Long taskId)
     {
         return qmsQualityTaskMapper.deleteQmsQualityTaskByTaskId(taskId);
+    }
+
+    /**
+     * 根据质量问题ID和模块编码查询指定模块任务
+     *
+     * @param problemId 质量问题ID
+     * @param moduleCode 模块编码
+     * @return 质量任务DTO
+     */
+    @Override
+    public QualityTaskDto selectQualityTaskDtoByProblemIdAndModuleCode(Long problemId, String moduleCode)
+    {
+        return qmsQualityTaskMapper.selectQualityTaskDtoByProblemIdAndModuleCode(problemId, moduleCode);
     }
 }

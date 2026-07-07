@@ -334,7 +334,13 @@ function loadTraceKg(id) {
     }
 
     if (data.topic1KgJson) {
-      renderGraph(originGraphRef.value, parseGraphJson(data.topic1KgJson))
+      const graphData = parseGraphJson(data.topic1KgJson)
+
+      if (graphData) {
+        renderGraph(originGraphRef.value, graphData)
+      } else {
+        clearOriginGraph(originGraphRef.value)
+      }
     } else {
       clearOriginGraph(originGraphRef.value)
     }
@@ -352,11 +358,14 @@ function handlePullTopic1Kg() {
     currentTrace.value = res.data.traceProblem || currentTrace.value
 
     const graphData = res.data.graphData || null
-    if (graphData) {
-      renderGraph(originGraphRef.value, graphData)
-    }
 
-    refreshCurrentTrace()
+      if (graphData) {
+        nextTick(() => {
+          renderGraph(originGraphRef.value, graphData)
+        })
+      }
+
+      refreshCurrentTrace()
   })
 }
 
@@ -756,7 +765,7 @@ function formatResultValue(value) {
 
 function parseGraphJson(json) {
   if (!json) {
-    return { nodes: [], links: [] }
+    return null
   }
 
   if (typeof json === 'object') {
@@ -766,7 +775,8 @@ function parseGraphJson(json) {
   try {
     return JSON.parse(json)
   } catch (e) {
-    return { nodes: [], links: [] }
+    console.error('知识图谱 JSON 解析失败：', e)
+    return null
   }
 }
 
@@ -778,59 +788,226 @@ function renderGraph(dom, graphData) {
       originChart = echarts.init(dom)
     }
 
-    const nodes = graphData.nodes || []
-    const links = graphData.links || []
+    const option = normalizeGraphOption(graphData)
 
-    const categories = []
-    const categorySet = new Set()
+    if (!option) {
+      console.warn('无法识别的知识图谱格式：', graphData)
+      originChart.clear()
+      return
+    }
 
-    nodes.forEach(node => {
-      if (node.category && !categorySet.has(node.category)) {
-        categorySet.add(node.category)
-        categories.push({ name: node.category })
-      }
-    })
-
-    originChart.setOption({
-      tooltip: {},
-      legend: [
-        {
-          data: categories.map(item => item.name)
-        }
-      ],
-      series: [
-        {
-          type: 'graph',
-          layout: 'force',
-          roam: true,
-          draggable: true,
-          symbolSize: 52,
-          categories,
-          label: {
-            show: true,
-            position: 'right'
-          },
-          edgeLabel: {
-            show: true,
-            formatter: function (params) {
-              return params.data.name || ''
-            }
-          },
-          force: {
-            repulsion: 500,
-            edgeLength: 130
-          },
-          data: nodes.map(node => ({
-            ...node,
-            category: categoryIndex(categories, node.category)
-          })),
-          links
-        }
-      ]
-    }, true)
+    originChart.clear()
+    originChart.setOption(option, true)
 
     originChart.resize()
+
+    setTimeout(() => {
+      if (originChart) {
+        originChart.resize()
+      }
+    }, 100)
   })
+}
+
+function normalizeGraphOption(graphData) {
+  if (!graphData) {
+    return null
+  }
+
+  let data = graphData
+
+  if (typeof data === 'string') {
+    try {
+      data = JSON.parse(data)
+    } catch (e) {
+      console.error('知识图谱字符串解析失败：', e)
+      return null
+    }
+  }
+
+  /*
+   * 情况1：后端直接返回完整 ECharts option
+   * 你现在的新 JSON 如果后端保存的是 echartsOption，
+   * 这里会直接命中。
+   */
+  if (data.series && Array.isArray(data.series)) {
+    return patchGraphOption(data)
+  }
+
+  /*
+   * 情况2：后端返回完整外层 JSON，里面包含 echartsOption
+   */
+  if (data.echartsOption && data.echartsOption.series) {
+    return patchGraphOption(data.echartsOption)
+  }
+
+  /*
+   * 情况3：后端返回 rawGraph
+   */
+  if (data.rawGraph) {
+    const rawGraph = data.rawGraph
+
+    if (rawGraph.nodes && rawGraph.edges) {
+      return buildGraphOptionFromNodesLinks(rawGraph.nodes, rawGraph.edges, 'C011 管路总成知识图谱')
+    }
+
+    if (rawGraph.nodes && rawGraph.links) {
+      return buildGraphOptionFromNodesLinks(rawGraph.nodes, rawGraph.links, 'C011 管路总成知识图谱')
+    }
+  }
+
+  /*
+   * 情况4：旧格式 nodes / links
+   */
+  if (data.nodes && data.links) {
+    return buildGraphOptionFromNodesLinks(data.nodes, data.links, '原始知识图谱')
+  }
+
+  /*
+   * 情况5：旧格式 nodes / edges
+   */
+  if (data.nodes && data.edges) {
+    return buildGraphOptionFromNodesLinks(data.nodes, data.edges, '原始知识图谱')
+  }
+
+  return null
+}
+
+function patchGraphOption(option) {
+  const finalOption = JSON.parse(JSON.stringify(option))
+
+  if (!finalOption.tooltip) {
+    finalOption.tooltip = {
+      trigger: 'item',
+      confine: true
+    }
+  }
+
+  if (!finalOption.series || !Array.isArray(finalOption.series) || finalOption.series.length === 0) {
+    return finalOption
+  }
+
+  const series = finalOption.series[0]
+
+  series.type = 'graph'
+  series.layout = series.layout || 'force'
+  series.roam = true
+  series.draggable = true
+  series.focusNodeAdjacency = true
+
+  if (!series.label) {
+    series.label = {
+      show: true,
+      position: 'right',
+      formatter: '{b}'
+    }
+  }
+
+  if (!series.edgeLabel) {
+    series.edgeLabel = {
+      show: true,
+      formatter: function (params) {
+        return params.data.name || ''
+      }
+    }
+  }
+
+  series.force = {
+    ...series.force,
+
+    // 节点之间的斥力，越大越分散
+    repulsion: 950,
+
+    // 边长范围，越大节点间距越宽
+    edgeLength: [150, 300],
+
+    // 重力越小，节点越不容易挤到中心
+    gravity: 0.025
+  }
+
+  return finalOption
+}
+
+function buildGraphOptionFromNodesLinks(nodes, links, title = '原始知识图谱') {
+  const safeNodes = Array.isArray(nodes) ? nodes : []
+  const safeLinks = Array.isArray(links) ? links : []
+
+  const categories = []
+  const categorySet = new Set()
+
+  safeNodes.forEach(node => {
+    const categoryName = node.category || node.stage_name || node.type || '默认类别'
+
+    if (!categorySet.has(categoryName)) {
+      categorySet.add(categoryName)
+      categories.push({ name: categoryName })
+    }
+  })
+
+  return {
+    title: {
+      text: title
+    },
+    tooltip: {
+      trigger: 'item',
+      confine: true
+    },
+    legend: [
+      {
+        data: categories.map(item => item.name)
+      }
+    ],
+    series: [
+      {
+        name: title,
+        type: 'graph',
+        layout: 'force',
+        roam: true,
+        draggable: true,
+        focusNodeAdjacency: true,
+        label: {
+          show: true,
+          position: 'right',
+          formatter: '{b}'
+        },
+        edgeLabel: {
+          show: true,
+          formatter: function (params) {
+            return params.data.name || ''
+          }
+        },
+        force: {
+          repulsion: 1200,
+          edgeLength: [180, 360],
+          gravity: 0.002
+        },
+        categories,
+        data: safeNodes.map(node => {
+          const categoryName = node.category || node.stage_name || node.type || '默认类别'
+
+          return {
+            id: node.id,
+            name: node.name || node.id,
+            value: node.score || node.value || 1,
+            category: categoryName,
+            symbolSize: node.symbolSize || 42,
+            properties: node,
+            label: node.label || {
+              show: true,
+              formatter: node.name || node.id
+            }
+          }
+        }),
+        links: safeLinks.map(edge => ({
+          source: edge.source,
+          target: edge.target,
+          name: edge.relation_name || edge.name || edge.relation || '',
+          value: edge.weight || edge.value || edge.score || 1,
+          properties: edge
+        }))
+      }
+    ]
+  }
 }
 
 function clearOriginGraph(dom) {
@@ -979,7 +1156,7 @@ onActivated(() => {
 
 .graph-container {
   width: 100%;
-  height: 460px;
+  height: 700px;
   border: 1px solid #ebeef5;
   border-radius: 4px;
   background: #fafafa;

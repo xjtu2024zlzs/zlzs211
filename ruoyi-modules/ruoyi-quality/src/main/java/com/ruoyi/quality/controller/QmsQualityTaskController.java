@@ -13,13 +13,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.common.log.annotation.Log;
 import com.ruoyi.common.log.enums.BusinessType;
-import com.ruoyi.common.security.annotation.RequiresPermissions;
 import com.ruoyi.quality.domain.QmsQualityTask;
 import com.ruoyi.quality.service.IQmsQualityTaskService;
 import com.ruoyi.common.core.web.controller.BaseController;
 import com.ruoyi.common.core.web.domain.AjaxResult;
 import com.ruoyi.common.core.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.web.page.TableDataInfo;
+import com.ruoyi.common.core.domain.R;
+import com.ruoyi.qms.api.domain.QualityTaskDto;
 
 /**
  * 质量问题模块处理任务Controller
@@ -100,5 +101,12 @@ public class QmsQualityTaskController extends BaseController
     public AjaxResult remove(@PathVariable Long[] taskIds)
     {
         return toAjax(qmsQualityTaskService.deleteQmsQualityTaskByTaskIds(taskIds));
+    }
+    @GetMapping("/problem/{problemId}/module/{moduleCode}")
+    public R<QualityTaskDto> getTaskByProblemIdAndModuleCode(
+            @PathVariable("problemId") Long problemId,
+            @PathVariable("moduleCode") String moduleCode)
+    {
+        return R.ok(qmsQualityTaskService.selectQualityTaskDtoByProblemIdAndModuleCode(problemId, moduleCode));
     }
 }

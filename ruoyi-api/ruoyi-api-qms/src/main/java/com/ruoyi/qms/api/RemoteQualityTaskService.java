@@ -13,6 +13,7 @@ import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
+import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  * 质量任务远程服务
@@ -46,6 +47,13 @@ public interface RemoteQualityTaskService
     @GetMapping("/remote/qualityTask/listForModule")
     public R<List<QualityTaskDto>> listTaskForModule(
             @RequestParam("moduleCode") String moduleCode,
+            @RequestHeader(SecurityConstants.FROM_SOURCE) String source
+    );
+
+    @GetMapping("/qms/task/problem/{problemId}/module/{moduleCode}")
+    public R<QualityTaskDto> getTaskByProblemIdAndModuleCode(
+            @PathVariable("problemId") Long problemId,
+            @PathVariable("moduleCode") String moduleCode,
             @RequestHeader(SecurityConstants.FROM_SOURCE) String source
     );
 }
