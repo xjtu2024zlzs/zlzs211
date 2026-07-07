@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$CondaEnv = if ($env:PROJECT1_ALGORITHM_CONDA_ENV) { $env:PROJECT1_ALGORITHM_CONDA_ENV } else { "py310-magneto" }
+$CondaEnv = if ($env:PROJECT1_ALGORITHM_CONDA_ENV) { $env:PROJECT1_ALGORITHM_CONDA_ENV } else { "project1" }
 $Port = if ($env:PROJECT1_ALGORITHM_PORT) { [int]$env:PROJECT1_ALGORITHM_PORT } else { 9701 }
 $HostAddress = if ($env:PROJECT1_ALGORITHM_HOST) { $env:PROJECT1_ALGORITHM_HOST } else { "127.0.0.1" }
 $LogDir = Join-Path $Root "logs"
