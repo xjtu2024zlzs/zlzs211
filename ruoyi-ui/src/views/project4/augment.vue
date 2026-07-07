@@ -2,10 +2,10 @@
   <div class="project4-page">
     <div class="hero-card">
       <div>
-        <div class="hero-subtitle">轴承算法 · 数据增强</div>
-        <div class="hero-title">轴承样本数据增强</div>
+        <div class="hero-subtitle">航空液压管路 · 数据增强</div>
+        <div class="hero-title">液压管路样本数据增强</div>
         <div class="hero-desc">
-          基于上游预处理结果，对标准化振动信号进行样本扩增，提高训练样本多样性和后续诊断模型的鲁棒性。
+          基于上游预处理结果，对标准化管路监测信号进行样本扩增，提高样本多样性和后续诊断模型的鲁棒性。
         </div>
       </div>
       <div class="hero-status">
@@ -36,7 +36,7 @@
       <el-card class="panel-card" shadow="never">
         <template #header><div class="card-header"><div><div class="card-kicker">运行状态</div><div class="card-title">增强执行流程</div></div><el-tag :type="result ? 'success' : 'info'" effect="plain">{{ result ? '已完成' : '待执行' }}</el-tag></div></template>
         <div class="flow-list">
-          <div class="flow-item active"><div class="flow-index">1</div><div><div class="flow-title">读取预处理结果</div><div class="flow-desc">根据 preprocessId 读取上游 norm_de 与 norm_fe。</div></div></div>
+          <div class="flow-item active"><div class="flow-index">1</div><div><div class="flow-title">读取预处理结果</div><div class="flow-desc">根据 preprocessId 读取上游模态1与模态2标准化信号。</div></div></div>
           <div class="flow-item"><div class="flow-index">2</div><div><div class="flow-title">执行样本扩增</div><div class="flow-desc">按增强模型和倍数生成扩增样本。</div></div></div>
           <div class="flow-item"><div class="flow-index">3</div><div><div class="flow-title">生成对比图像</div><div class="flow-desc">解析 Python 返回图片并在页面展示。</div></div></div>
           <div class="flow-item"><div class="flow-index">4</div><div><div class="flow-title">结果保存</div><div class="flow-desc">增强结果写入数据库，供后续诊断链路追踪。</div></div></div>

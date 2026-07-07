@@ -46,4 +46,8 @@ public class BearingDiagnoseServiceImpl implements BearingDiagnoseService {
         diagnoseMapper.insert(entity);
         return entity;
     }
+    @Override
+    public T4BearingDiagnose selectById(Long id) {
+        return diagnoseMapper.selectById(id);
+    }
 }

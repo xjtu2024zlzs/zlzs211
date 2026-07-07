@@ -32,15 +32,15 @@ def feature_plot(logits):
 def get_fault_info(label: int) -> dict:
     label_mapping = {
         0:  {"full_name": "正常状态(N)", "fault_size": 0},
-        1:  {"full_name": "滚动体故障(B)", "fault_size": 0.007},
-        2:  {"full_name": "滚动体故障(B)", "fault_size": 0.014},
-        3:  {"full_name": "滚动体故障(B)", "fault_size": 0.021},
-        4:  {"full_name": "内圈故障(IR)", "fault_size": 0.007},
-        5:  {"full_name": "内圈故障(IR)", "fault_size": 0.014},
-        6:  {"full_name": "内圈故障(IR)", "fault_size": 0.021},
-        7:  {"full_name": "外圈故障(OR)", "fault_size": 0.007},
-        8:  {"full_name": "外圈故障(OR)", "fault_size": 0.014},
-        9:  {"full_name": "外圈故障(OR)", "fault_size": 0.021},
+        1:  {"full_name": "疲劳裂纹(F)", "fault_size": 0.007},
+        2:  {"full_name": "疲劳裂纹(F)", "fault_size": 0.014},
+        3:  {"full_name": "疲劳裂纹(F)", "fault_size": 0.021},
+        4:  {"full_name": "磨损(W)", "fault_size": 0.007},
+        5:  {"full_name": "磨损(W)", "fault_size": 0.014},
+        6:  {"full_name": "磨损(W)", "fault_size": 0.021},
+        7:  {"full_name": "凹痕(D)", "fault_size": 0.007},
+        8:  {"full_name": "凹痕(D)", "fault_size": 0.014},
+        9:  {"full_name": "凹痕(D)", "fault_size": 0.021},
     }
     if not isinstance(label, int) or label not in label_mapping:
         raise ValueError(f"标签输入错误！标签必须是0~9的整数，当前输入：{label}")
