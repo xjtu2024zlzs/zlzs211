@@ -313,7 +313,7 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <h2 class="section-title">领导审批</h2>
+              <h2 class="section-title">优化方案审批</h2>
             </div>
           </div>
 
@@ -521,7 +521,7 @@ function handledReason(detailData) {
     return '已完成仿真确认'
   }
   if (Number(task.leaderUserId) === currentUserId && task.currentNodeKey === 'end') {
-    return '已完成领导审批'
+    return '已完成优化方案审批'
   }
   return ''
 }

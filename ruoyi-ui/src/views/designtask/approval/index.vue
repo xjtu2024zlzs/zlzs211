@@ -3,7 +3,7 @@
     <div class="design-platform-shell">
       <section class="platform-topbar">
         <div>
-          <h1 class="platform-title">领导审批</h1>
+          <h1 class="platform-title">优化方案审批</h1>
           <p class="platform-subtitle">选择已生成正式报告的设计优化任务，查看模型解耦阶段形成的最终设计方案并完成审批。</p>
         </div>
         <div class="topbar-meta">
@@ -37,7 +37,7 @@
             <div class="metric-card">
               <div class="metric-card__label">待审批报告</div>
               <div class="metric-card__value">{{ pendingReports.length }}</div>
-              <div class="metric-card__footer">当前流转到领导审批节点</div>
+              <div class="metric-card__footer">当前流转到优化方案审批节点</div>
             </div>
             <div class="metric-card">
               <div class="metric-card__label">已处理报告</div>
@@ -114,7 +114,7 @@
             <el-result icon="info" title="报告正文未保存" sub-title="当前任务已有正式报告记录，但未读取到报告正文，可下载正式报告文件查看。" />
           </div>
           <div v-else class="report-paper report-paper--empty">
-            <el-result icon="warning" title="当前任务尚未提交正式报告" sub-title="设计工程师提交最终设计方案报告后，领导审批页面才会展示报告正文。" />
+            <el-result icon="warning" title="当前任务尚未提交正式报告" sub-title="设计工程师提交最终设计方案报告后，优化方案审批页面才会展示报告正文。" />
           </div>
 
           <div class="approval-footer">
@@ -379,7 +379,7 @@ function buildQualityApprovalResult() {
     moduleCode: MODULE_CODE,
     moduleName: MODULE_NAME,
     resultType: 'DESIGN_APPROVAL_RESULT',
-    conclusion: '设计制造协同优化平台已完成领导审批，最终设计方案报告可回填至质量问题管理中心。',
+    conclusion: '设计制造协同优化平台已完成优化方案审批，最终设计方案报告可回填至质量问题管理中心。',
     designTaskId: task.taskId || selectedTaskId.value,
     designTaskName: task.taskName || '',
     designReport: {
@@ -431,7 +431,7 @@ async function syncQualityTaskAfterApproval() {
       operatorName: MODULE_NAME,
       fromStatus: 'PROCESSING',
       toStatus: 'PENDING_BACKFILL',
-      actionContent: `设计制造协同优化平台领导审批通过，最终设计方案报告已进入待回填状态：${selectedReport.value?.reportTitle || '设计制造协同优化方案报告'}。`,
+      actionContent: `设计制造协同优化平台优化方案审批通过，最终设计方案报告已进入待回填状态：${selectedReport.value?.reportTitle || '设计制造协同优化方案报告'}。`,
       createTime: formatDateTime()
     })
 

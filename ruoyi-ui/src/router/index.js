@@ -244,7 +244,7 @@ export const constantRoutes = [
         path: 'approval',
         component: () => import('@/views/designtask/approval/index'),
         name: 'DesignTaskApproval',
-        meta: { title: '领导审批', icon: 'checkbox' }
+        meta: { title: '优化方案审批', icon: 'checkbox' }
       },
       {
         path: 'decision-advice',

@@ -987,7 +987,7 @@ public class DesignOptimizationService {
         }
         boolean passed = Boolean.parseBoolean(String.valueOf(firstNonNull(body.get("simulationPassed"), body.get("passed"), "true")));
         String comment = str(firstNonNull(body.get("comment"), body.get("submitComment")),
-            passed ? "设计方案报告已提交，进入领导审批。" : "设计方案验证不通过，退回模型解耦求解。");
+            passed ? "设计方案报告已提交，进入优化方案审批。" : "设计方案验证不通过，退回模型解耦求解。");
         if (!passed) {
             Map<String, Object> simulationBody = new LinkedHashMap<>();
             simulationBody.put("simulationPassed", false);

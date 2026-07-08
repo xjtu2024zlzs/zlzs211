@@ -193,8 +193,9 @@ WHERE menu_name = '模型解耦求解'
   AND (component IS NULL OR component <> 'designtask/solve/index');
 
 UPDATE sys_menu
-SET component = 'designtask/approval/index'
-WHERE menu_name = '领导审批'
+SET menu_name = '优化方案审批',
+    component = 'designtask/approval/index'
+WHERE menu_name IN ('领导审批', '优化方案审批')
   AND (component IS NULL OR component <> 'designtask/approval/index');
 
 DROP PROCEDURE IF EXISTS t2_add_column_if_missing;

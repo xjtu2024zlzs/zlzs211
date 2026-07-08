@@ -118,7 +118,7 @@ public class DesignPlatformStartupCheck implements ApplicationRunner {
     private void repairPlatformMenus() {
         jdbcTemplate.update("""
             update sys_menu
-            set menu_name = '领导审批',
+            set menu_name = '优化方案审批',
                 path = 'approval',
                 component = 'designtask/approval/index',
                 perms = 'designtask:task:approve',

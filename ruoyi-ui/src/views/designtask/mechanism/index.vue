@@ -332,7 +332,7 @@ const nodes = [
   { key: 'conflict_check', name: '目标约束冲突校验' },
   { key: 'model_decompose_solve', name: '模型解耦求解' },
   { key: 'simulation_confirm', name: '仿真验证确认' },
-  { key: 'leader_approve', name: '领导审批' }
+  { key: 'leader_approve', name: '优化方案审批' }
 ]
 
 const expectedNodeKeys = nodes.map(item => item.key)
