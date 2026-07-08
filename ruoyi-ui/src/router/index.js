@@ -57,16 +57,30 @@ export const constantRoutes = [
     component: () => import('@/views/error/401'),
     hidden: true
   },
-  {
+  // {
+  //   path: '',
+  //   component: Layout,
+  //   hidden: true,
+  //   redirect: '/project_3',
+  //   children: [
+  //     {
+  //       path: '/index',
+  //       redirect: '/project_3',
+  //       hidden: true
+  //     }
+  //   ]
+  // },
+    {
     path: '',
     component: Layout,
-    hidden: true,
-    redirect: '/project_3',
+    // hidden: true,
+    redirect: '/index',
     children: [
       {
         path: '/index',
-        redirect: '/project_3',
-        hidden: true
+        component: () => import('@/views/index.vue'),
+        name: 'Index',
+        meta: { title: '首页', icon: 'dashboard', affix: true }
       }
     ]
   },
@@ -144,32 +158,6 @@ export const constantRoutes = [
         component: () => import('@/views/project_3/service/identify.vue'),
         name: 'Project3ServiceIdentify',
         meta: { title: '故障识别与预测', icon: 'skill' }
-      }
-    ]
-  },
-  {
-    path: '/frame-beam-crack-identify',
-    component: Layout,
-    hidden: true,
-    children: [
-      {
-        path: '',
-        component: () => import('@/views/project_3/service/FrameBeamCrackIdentify.vue'),
-        name: 'FrameBeamCrackIdentify',
-        meta: { title: '飞机框梁裂纹早期故障识别', icon: 'skill' }
-      }
-    ]
-  },
-  {
-    path: '/project4',
-    component: Layout,
-    hidden: true,
-    children: [
-      {
-        path: '',
-        component: () => import('@/views/project4/fileofda/index.vue'),
-        name: 'project4',
-        meta: { title: '课题四', icon: 'dashboard' }
       }
     ]
   },

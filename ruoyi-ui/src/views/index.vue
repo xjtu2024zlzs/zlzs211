@@ -39,35 +39,151 @@
       </section>
 
       <!-- 课题一统计指标 -->
-      <section class="section-block project-one-section">
-        <div class="section-header">
-          <div>
-            <p class="section-label">全域异构信息集成系统</p>
-            <h2 class="section-title">数字卷宗</h2>
-            <p class="section-desc">
-              汇总相关的核心运行指标
+      <section class="section-block project-one-section dossier-home-section" v-loading="projectOneLoading">
+        <header class="dossier-band-header">
+          <div class="dossier-band-copy">
+            <p class="dossier-band-label">构建单台份数字卷宗</p>
+            <h2 class="dossier-band-title">全域异构信息集成系统</h2>
+            <p class="dossier-band-desc">
+              围绕多源异构系统执行模式映射算法，实现异构信息集成、异构数据接入及单台份数据卷宗构建。
             </p>
           </div>
 
-          <el-button type="primary" size="large" plain @click="navigateTo('/project1')">
-            进入全域异构信息集成系统
-          </el-button>
-        </div>
-
-        <div class="metric-grid" v-loading="loading">
-          <div v-for="metric in projectOneMetrics" :key="metric.key" class="metric-card">
-            <div class="metric-card__header">
-              <span class="metric-card__label">{{ metric.label }}</span>
-              <span class="metric-card__icon">{{ metric.icon }}</span>
+          <div class="dossier-summary-strip">
+            <div class="dossier-summary-chip dossier-summary-chip--ok">
+              <span>数据源</span>
+              <strong>{{ projectOneSummary.status.datasourceConnectionText }}</strong>
             </div>
-            <div class="metric-card__value">{{ metric.value }}</div>
-            <div class="metric-card__footer">
-              <span class="metric-card__trend" :class="metric.trendClass">
-                {{ metric.change }}
-              </span>
-              <span class="metric-card__unit">{{ metric.unit }}</span>
+            <div class="dossier-summary-chip">
+              <span>接入成功</span>
+              <strong>{{ formatInteger(projectOneSummary.access.successAccessRecordTotal) }}</strong>
+            </div>
+            <div class="dossier-summary-chip">
+              <span>目录节点</span>
+              <strong>{{ formatInteger(projectOneSummary.dossier.directoryNodeCount) }}</strong>
+            </div>
+            <div class="dossier-summary-chip">
+              <span>当前版本</span>
+              <strong>{{ projectOneSummary.dossier.currentVersion }}</strong>
             </div>
           </div>
+        </header>
+
+        <div class="dossier-module-grid">
+          <article class="dossier-module-card">
+            <div class="dossier-card-head">
+              <h3>异构信息集成</h3>
+              <el-button size="small" plain @click="navigateTo('/dossier/integration/datasource')">
+                模式映射
+              </el-button>
+            </div>
+            <p class="dossier-card-desc">多源字段识别、语义匹配和结构关系汇聚。</p>
+            <div class="dossier-info-box">
+              <div class="dossier-info-title">
+                <strong>{{ formatInteger(projectOneSummary.integration.fieldMappingResultTotal) }}</strong>
+                <span>字段映射结果</span>
+              </div>
+              <div class="dossier-meta-grid">
+                <div class="dossier-meta-item">
+                  <span>异构数据源</span>
+                  <strong>{{ formatInteger(projectOneSummary.integration.datasourceCount) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>模式映射任务</span>
+                  <strong>{{ formatInteger(projectOneSummary.integration.matchTaskCount) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>F1分数</span>
+                  <strong>{{ formatDecimal(projectOneSummary.integration.f1Average, 3) }}</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="dossier-module-card">
+            <div class="dossier-card-head">
+              <h3>异构数据接入</h3>
+              <el-button size="small" plain @click="navigateTo('/dossier/access/accessPlan')">
+                计划执行
+              </el-button>
+            </div>
+            <p class="dossier-card-desc">接入计划执行、结果落库和失败记录追踪。</p>
+            <div class="dossier-info-box">
+              <div class="dossier-info-title">
+                <strong>{{ formatInteger(projectOneSummary.access.successAccessRecordTotal) }}</strong>
+                <span>成功接入记录</span>
+              </div>
+              <div class="dossier-meta-grid">
+                <div class="dossier-meta-item">
+                  <span>启用计划</span>
+                  <strong>{{ formatInteger(projectOneSummary.access.enabledPlanCount) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>失败记录</span>
+                  <strong>{{ formatInteger(projectOneSummary.access.failedRecordTotal) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>成功率</span>
+                  <strong>{{ formatPercent(projectOneSummary.access.successRate) }}</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="dossier-module-card">
+            <div class="dossier-card-head">
+              <h3>单台份数字卷宗</h3>
+              <el-button size="small" plain @click="navigateTo('/dossier/manage/instance')">
+                查看卷宗
+              </el-button>
+            </div>
+            <p class="dossier-card-desc">呈现整机卷宗、版本、目录和内容规模。</p>
+            <div class="dossier-info-box">
+              <div class="dossier-info-title">
+                <strong>{{ projectOneSummary.dossier.aircraftLabel }}</strong>
+                <span>当前版本 {{ projectOneSummary.dossier.currentVersion }}</span>
+              </div>
+              <div class="dossier-meta-grid">
+                <div class="dossier-meta-item">
+                  <span>卷宗实例</span>
+                  <strong>{{ formatInteger(projectOneSummary.dossier.instanceCount) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>卷宗版本</span>
+                  <strong>{{ formatInteger(projectOneSummary.dossier.versionCount) }}</strong>
+                </div>
+                <div class="dossier-meta-item">
+                  <span>生成任务</span>
+                  <strong>{{ formatInteger(projectOneSummary.dossier.generationTaskCount) }}</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="dossier-module-card dossier-directory-card">
+            <div class="dossier-directory-head">
+              <h3>卷宗目录预览</h3>
+              <div class="dossier-directory-actions">
+                <span>
+                  {{ formatInteger(projectOneSummary.dossier.directoryNodeCount) }} 个目录节点 /
+                  {{ formatInteger(projectOneSummary.dossier.contentItemCount) }} 条内容
+                </span>
+                <el-button size="small" plain @click="navigateTo('/dossier/manage/detail')">
+                  详情可视化
+                </el-button>
+              </div>
+            </div>
+            <div class="dossier-directory-grid">
+              <section v-for="item in dossierDirectoryPreview" :key="item.no" class="dossier-directory-item">
+                <div class="dossier-directory-row">
+                  <span>{{ item.no }}</span>
+                  <strong>{{ item.name }}</strong>
+                </div>
+                <p>{{ item.desc }}</p>
+                <em>{{ item.tag }}</em>
+              </section>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -101,13 +217,54 @@
               {{ project.description }}
             </p>
 
-            <div class="mini-chart">
+            <div class="mini-chart" :class="{ 'mini-chart--pie': project.chartType === 'faultPie' }">
               <div class="mini-chart__header">
                 <span>{{ project.chartTitle }}</span>
                 <strong>{{ project.chartValue }}</strong>
               </div>
 
-              <div class="bar-chart">
+              <!-- <div v-if="project.chartType === 'faultPie'" class="fault-pie-panel">
+                <div class="fault-pie" :style="buildPieStyle(project.faultDistribution)">
+                  <div class="fault-pie__center">
+                    <strong>{{ project.chartValue }}</strong>
+                    <span>故障占比</span>
+                  </div>
+                </div>
+
+                <div class="fault-pie-legend">
+                  <div
+                    v-for="item in project.faultDistribution"
+                    :key="item.name"
+                    class="fault-pie-legend__item"
+                  >
+                    <span class="fault-pie-legend__dot" :style="{ background: item.color }"></span>
+                    <span class="fault-pie-legend__name">{{ item.name }}</span>
+                    <strong>{{ item.value }}%</strong>
+                  </div>
+                </div>
+              </div> -->
+              <div v-if="project.chartType === 'faultPie'" class="fault-pie-panel">
+                <div class="fault-pie" :style="buildPieStyle(project.faultDistribution)">
+                  <div class="fault-pie__center">
+                    <strong>{{ project.chartValue }}</strong>
+                    <span>故障占比</span>
+                  </div>
+                </div>
+
+                <div class="fault-pie-legend">
+                  <div
+                    v-for="item in project.faultDistribution"
+                    :key="item.name"
+                    class="fault-pie-legend__item"
+                  >
+                    <span class="fault-pie-legend__dot" :style="{ background: item.color }"></span>
+                    <span class="fault-pie-legend__name">{{ item.name }}</span>
+                    <strong>{{ formatOneDecimalPercent(item.value) }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="bar-chart">
                 <div
                   v-for="(bar, index) in project.chartData"
                   :key="index"
@@ -128,8 +285,31 @@
               </div>
             </div>
 
-            <el-button type="primary" class="module-button" @click="navigateTo(project.route)">
-              进入{{ project.label }}模块
+            <el-button
+              v-if="project.key === 'project-2'"
+              type="primary"
+              class="module-button"
+              @click="navigateTo('/designtask/dashboard')"
+            >
+              进入{{ project.label }}平台
+            </el-button>
+
+            <el-button
+              v-else-if="project.key === 'project-3'"
+              type="primary"
+              class="module-button"
+              @click="navigateTo('/project_3/index')"
+            >
+              进入{{ project.label }}平台
+            </el-button>
+
+            <el-button
+              v-else-if="project.key === 'project-4'"
+              type="primary"
+              class="module-button"
+              @click="navigateTo('/project_4/project4')"
+            >
+              进入{{ project.label }}平台
             </el-button>
           </article>
         </div>
@@ -170,8 +350,8 @@
           </div>
 
           <div class="knowledge-actions">
-            <el-button type="primary" @click="navigateTo('/project_5')">
-              进入全生命周期数字质量自反馈与追溯
+            <el-button type="primary" @click="navigateTo('/topic_5/trace')">
+              进入全生命周期数字质量自反馈与追溯平台
             </el-button>
 
           </div>
@@ -249,7 +429,7 @@
         </div>
       </section>
 
-      
+
     </div>
 
     <!-- 详情弹窗 -->
@@ -311,17 +491,260 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { listProblem } from '@/api/quality/problem'
+import { getDossierHomeSummary } from '@/api/project1/home'
 
 const router = useRouter()
 
-const loading = ref(true)
+// const buildPieStyle = (distribution = []) => {
+//   const total = distribution.reduce((sum, item) => sum + Number(item.value || 0), 0)
+
+//   if (!total) {
+//     return {
+//       background: '#dce6f5'
+//     }
+//   }
+
+//   let current = 0
+//   const segments = distribution.map((item) => {
+//     const start = current
+//     current += (Number(item.value || 0) / total) * 100
+//     return `${item.color} ${start}% ${current}%`
+//   })
+
+//   return {
+//     background: `conic-gradient(${segments.join(', ')})`
+//   }
+// }
+
+
+// const randomInt = (min, max) => {
+//   return Math.floor(Math.random() * (max - min + 1)) + min
+// }
+
+// const randomFloat = (min, max) => {
+//   return Math.random() * (max - min) + min
+// }
+
+// const generateProject4RandomData = () => {
+//   // 控制在合理演示范围内：故障占比 74%～86%，总文件数 150～180，根因完成数不超过故障文件数
+//   const detectedFiles = randomInt(150, 180)
+//   const normalRate = randomInt(14, 26)
+//   const faultRate = 100 - normalRate
+
+//   let innerFault = Math.round(faultRate * randomFloat(0.46, 0.56))
+//   let outerFault = Math.round(faultRate * randomFloat(0.25, 0.34))
+//   let ballFault = faultRate - innerFault - outerFault
+
+//   // 防止个别随机情况下滚动体故障占比过低或过高
+//   if (ballFault < 8) {
+//     const diff = 8 - ballFault
+//     innerFault -= diff
+//     ballFault = 8
+//   }
+//   if (ballFault > 22) {
+//     const diff = ballFault - 22
+//     innerFault += diff
+//     ballFault = 22
+//   }
+
+//   const faultFiles = Math.round(detectedFiles * faultRate / 100)
+//   const minRcaFiles = Math.max(1, Math.round(faultFiles * 0.56))
+//   const maxRcaFiles = Math.max(minRcaFiles, Math.round(faultFiles * 0.78))
+//   const rcaFiles = randomInt(minRcaFiles, Math.min(faultFiles, maxRcaFiles))
+
+//   return {
+//     faultRate,
+//     detectedFiles,
+//     faultFiles,
+//     rcaFiles,
+//     distribution: [
+//       { name: '内圈故障', value: innerFault, color: '#6b5cf6' },
+//       { name: '外圈故障', value: outerFault, color: '#3f8cff' },
+//       { name: '滚动体故障', value: ballFault, color: '#28c7a0' },
+//       { name: '正常样本', value: normalRate, color: '#dce6f5' }
+//     ]
+//   }
+// }
+
+// const refreshProject4RandomData = () => {
+//   const project4 = middleProjects.value.find((item) => item.key === 'project-4')
+//   if (!project4) return
+
+//   const randomData = generateProject4RandomData()
+
+//   project4.chartValue = `${randomData.faultRate}.0%`
+//   project4.faultDistribution = randomData.distribution
+//   project4.chartData = randomData.distribution.map((item) => item.value)
+//   project4.meta = [
+//     { name: '已检测文件数', value: String(randomData.detectedFiles) },
+//     { name: '故障文件数', value: String(randomData.faultFiles) },
+//     { name: '已完成根因分析文件数', value: String(randomData.rcaFiles) }
+//   ]
+// }
+const toOneDecimal = (value) => {
+  return Math.round(Number(value || 0) * 10) / 10
+}
+
+const formatOneDecimal = (value) => {
+  return Number(value || 0).toFixed(1)
+}
+
+const formatOneDecimalPercent = (value) => {
+  return `${formatOneDecimal(value)}%`
+}
+
+const buildPieStyle = (distribution = []) => {
+  const total = distribution.reduce((sum, item) => sum + Number(item.value || 0), 0)
+
+  if (!total) {
+    return {
+      background: '#dce6f5'
+    }
+  }
+
+  let current = 0
+  const segments = distribution.map((item, index) => {
+    const start = current
+    const value = Number(item.value || 0)
+
+    if (index === distribution.length - 1) {
+      current = 100
+    } else {
+      current = toOneDecimal(current + (value / total) * 100)
+    }
+
+    return `${item.color} ${start}% ${current}%`
+  })
+
+  return {
+    background: `conic-gradient(${segments.join(', ')})`
+  }
+}
+
+const randomInt = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+const randomFloat = (min, max) => {
+  return Math.random() * (max - min) + min
+}
+
+const randomFloatOneDecimal = (min, max) => {
+  return toOneDecimal(randomFloat(min, max))
+}
+
+const generateProject4RandomData = () => {
+  // 控制在合理演示范围内：故障占比 74.0%～86.0%，总文件数 150～180，根因完成数不超过故障文件数
+  const detectedFiles = randomInt(150, 180)
+
+  const normalRate = randomFloatOneDecimal(14, 26)
+  const faultRate = toOneDecimal(100 - normalRate)
+
+  let innerFault = toOneDecimal(faultRate * randomFloat(0.46, 0.56))
+  let outerFault = toOneDecimal(faultRate * randomFloat(0.25, 0.34))
+  let ballFault = toOneDecimal(faultRate - innerFault - outerFault)
+
+  // 防止个别随机情况下滚动体故障占比过低或过高
+  if (ballFault < 8) {
+    const diff = toOneDecimal(8 - ballFault)
+    innerFault = toOneDecimal(innerFault - diff)
+    ballFault = 8.0
+  }
+
+  if (ballFault > 22) {
+    const diff = toOneDecimal(ballFault - 22)
+    innerFault = toOneDecimal(innerFault + diff)
+    ballFault = 22.0
+  }
+
+  // 修正小数四舍五入误差，保证三类故障之和等于 faultRate
+  const faultSum = toOneDecimal(innerFault + outerFault + ballFault)
+  const correction = toOneDecimal(faultRate - faultSum)
+  innerFault = toOneDecimal(innerFault + correction)
+
+  const faultFiles = Math.round(detectedFiles * faultRate / 100)
+  const minRcaFiles = Math.max(1, Math.round(faultFiles * 0.56))
+  const maxRcaFiles = Math.max(minRcaFiles, Math.round(faultFiles * 0.78))
+  const rcaFiles = randomInt(minRcaFiles, Math.min(faultFiles, maxRcaFiles))
+
+  return {
+    faultRate,
+    detectedFiles,
+    faultFiles,
+    rcaFiles,
+    distribution: [
+      { name: '内圈故障', value: innerFault, color: '#6b5cf6' },
+      { name: '外圈故障', value: outerFault, color: '#3f8cff' },
+      { name: '滚动体故障', value: ballFault, color: '#28c7a0' },
+      { name: '正常样本', value: normalRate, color: '#dce6f5' }
+    ]
+  }
+}
+
+const refreshProject4RandomData = () => {
+  const project4 = middleProjects.value.find((item) => item.key === 'project-4')
+  if (!project4) {
+    return
+  }
+
+  const randomData = generateProject4RandomData()
+
+  project4.chartValue = formatOneDecimalPercent(randomData.faultRate)
+  project4.faultDistribution = randomData.distribution
+  project4.chartData = randomData.distribution.map((item) => item.value)
+  project4.meta = [
+    { name: '已检测文件数', value: String(randomData.detectedFiles) },
+    { name: '故障文件数', value: String(randomData.faultFiles) },
+    { name: '已完成根因分析文件数', value: String(randomData.rcaFiles) }
+  ]
+}
+
+const projectOneLoading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(5)
 const detailVisible = ref(false)
 const selectedRecord = ref(null)
 
-const projectOneMetrics = ref([])
+const createProjectOneSummary = () => ({
+  integration: {
+    fieldMappingResultTotal: 0,
+    datasourceCount: 0,
+    matchTaskCount: 0,
+    f1Average: 0
+  },
+  access: {
+    successAccessRecordTotal: 0,
+    failedRecordTotal: 0,
+    enabledPlanCount: 0,
+    successRate: 0
+  },
+  dossier: {
+    aircraftLabel: '-',
+    currentVersion: '-',
+    instanceCount: 0,
+    versionCount: 0,
+    generationTaskCount: 0,
+    directoryNodeCount: 0,
+    contentItemCount: 0
+  },
+  status: {
+    datasourceConnectionText: '待检测'
+  }
+})
+
+const projectOneSummary = ref(createProjectOneSummary())
 const recentRecords = ref([])
+
+const dossierDirectoryPreview = [
+  { no: '01', name: '飞机基本信息', desc: '基本/交付记录', tag: '概要表' },
+  { no: '02', name: '构型 / BOM', desc: '构型清单', tag: 'BOM' },
+  { no: '03', name: '设计数据', desc: '图样规范', tag: '概要表' },
+  { no: '04', name: '制造数据', desc: '工艺检验', tag: '时间线' },
+  { no: '05', name: '服役数据', desc: '飞行维修', tag: '时间线' },
+  { no: '06', name: '故障维修', desc: '故障闭环', tag: '维修单' },
+  { no: '07', name: '技术状态', desc: '状态版本', tag: '概要表' },
+  { no: '08', name: '附件材料', desc: '文件索引', tag: '文件清单' }
+]
 
 const knowledgeGraphRef = ref(null)
 const knowledgeGraphChart = ref(null)
@@ -367,19 +790,26 @@ const middleProjects = ref([
   {
     key: 'project-4',
     label: '故障诊断与根源性分析',
-    title: '智能故障诊断与根源性分析技术',
+    title: '航空轴承智能故障诊断与根因分析',
     icon: '四',
     iconClass: 'project-card__icon--purple',
-    description: '汇总试验检测结果、评价等级和质量波动趋势，用于形成质量评价支撑信息。',
-    chartTitle: '检测通过率',
-    chartValue: '94.7%',
-    chartLabels: ['A', 'B', 'C', 'D', 'E', 'F'],
-    chartData: [86, 82, 90, 76, 94, 88],
-    route: '/project4',
+    description: '面向航空轴承振动信号，统计不同故障类型识别结果及根因分析完成情况，支撑异常文件快速定位与质量追溯。',
+    chartType: 'faultPie',
+    chartTitle: '故障类型占比',
+    chartValue: '80.0%',
+    faultDistribution: [
+      { name: '内圈故障', value: 42.3, color: '#6b5cf6' },
+      { name: '外圈故障', value: 24.1,color: '#3f8cff' },
+      { name: '滚动体故障', value: 14.2, color: '#28c7a0' },
+      { name: '正常样本', value: 19.4, color: '#dce6f5' }
+    ],
+    chartLabels: ['内圈', '外圈', '滚动体', '正常'],
+    chartData: [42, 24, 14, 20],
+    route: '/project4/diagnose',
     meta: [
-      { name: '检测项目', value: '26' },
-      { name: '合格记录', value: '168' },
-      { name: '预警项', value: '5' }
+      { name: '已检测文件数', value: '161' },
+      { name: '故障文件数', value: '129' },
+      { name: '已完成根因分析文件数', value: '86' }
     ]
   }
 ])
@@ -421,7 +851,7 @@ const qualityKgJson = {
     x: 0,
     y: 0,
     fixed: false,
-    desc: '用户填报的质量反馈事件，是课题五智能追溯流程的入口。'
+    desc: '用户填报的质量反馈事件，是智能追溯流程的入口。'
   },
   {
     id: 'C010',
@@ -585,7 +1015,7 @@ const qualityKgJson = {
         name: '写入报告'
       }
     ]
-  
+
 }
 const getProblemStatusText = (status) => {
   const map = {
@@ -879,7 +1309,7 @@ const initKnowledgeGraph = () => {
 
   selectedKgNode.value = {
     name: '压力异常反馈',
-    desc: '用户填报的质量反馈事件，是课题五智能追溯流程的入口。'
+    desc: '用户填报的质量反馈事件，是智能追溯流程的入口。'
   }
 }
 
@@ -889,56 +1319,62 @@ const resizeKnowledgeGraph = () => {
   }
 }
 
-const loadHomeData = async () => {
-  loading.value = true
-
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  projectOneMetrics.value = [
-    {
-      key: 'data-access',
-      label: '数据接入量',
-      value: '12,860',
-      change: '+8.6%',
-      trendClass: 'positive',
-      icon: 'D',
-      unit: '条记录'
+const normalizeProjectOneSummary = (data = {}) => {
+  const defaults = createProjectOneSummary()
+  return {
+    integration: {
+      ...defaults.integration,
+      ...(data.integration || {})
     },
-    {
-      key: 'task-count',
-      label: '分析任务数',
-      value: '246',
-      change: '+16',
-      trendClass: 'positive',
-      icon: 'T',
-      unit: '项任务'
+    access: {
+      ...defaults.access,
+      ...(data.access || {})
     },
-    {
-      key: 'abnormal-count',
-      label: '异常识别数',
-      value: '32',
-      change: '-12.5%',
-      trendClass: 'negative',
-      icon: 'A',
-      unit: '待处理'
+    dossier: {
+      ...defaults.dossier,
+      ...(data.dossier || {})
     },
-    {
-      key: 'module-status',
-      label: '模块运行状态',
-      value: '正常',
-      change: '在线',
-      trendClass: 'positive',
-      icon: 'S',
-      unit: '稳定运行'
+    status: {
+      ...defaults.status,
+      ...(data.status || {})
     }
-  ]
+  }
+}
 
-  await loadRecentQualityProblems()
+const formatInteger = (value) => {
+  const number = Number(value || 0)
+  return Number.isFinite(number) ? number.toLocaleString('en-US') : '0'
+}
 
-  loading.value = false
+const formatDecimal = (value, digits = 3) => {
+  const number = Number(value || 0)
+  return Number.isFinite(number) ? number.toFixed(digits) : Number(0).toFixed(digits)
+}
+
+const formatPercent = (value) => `${formatDecimal(value, 2)}%`
+
+const loadProjectOneSummary = async () => {
+  projectOneLoading.value = true
+  try {
+    const res = await getDossierHomeSummary()
+    projectOneSummary.value = normalizeProjectOneSummary(res?.data)
+  } catch (error) {
+    console.error('加载全域异构信息集成系统首页摘要失败：', error)
+    projectOneSummary.value = createProjectOneSummary()
+  } finally {
+    projectOneLoading.value = false
+  }
+}
+
+const loadHomeData = async () => {
+  await Promise.all([
+    loadProjectOneSummary(),
+    loadRecentQualityProblems()
+  ])
 }
 
 onMounted(async () => {
+  refreshProject4RandomData()
   await loadHomeData()
   await nextTick()
   initKnowledgeGraph()
@@ -1121,6 +1557,308 @@ onBeforeUnmount(() => {
   color: #667892;
   font-size: 13px;
   line-height: 1.6;
+}
+
+
+.dossier-home-section {
+  padding: 14px 14px 9px;
+  overflow: hidden;
+}
+
+.dossier-band-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 78px;
+  margin-bottom: 10px;
+}
+
+.dossier-band-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.dossier-band-label {
+  margin: 0 0 5px;
+  color: #2364aa;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.dossier-band-title {
+  margin: 0;
+  color: #102742;
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.dossier-band-desc {
+  max-width: 860px;
+  margin: 7px 0 0;
+  color: #647894;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.dossier-summary-strip {
+  flex: 0 0 630px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dossier-summary-chip {
+  min-width: 0;
+  height: 58px;
+  padding: 8px 10px;
+  border: 1px solid #dcebf9;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.dossier-summary-chip span {
+  display: block;
+  color: #647894;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.dossier-summary-chip strong {
+  display: block;
+  margin-top: 6px;
+  color: #10233f;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-summary-chip--ok strong {
+  color: #18a76f;
+}
+
+.dossier-module-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(520px, 1.72fr);
+  gap: 10px;
+}
+
+.dossier-module-card {
+  position: relative;
+  min-width: 0;
+  height: 203px;
+  padding: 11px;
+  border: 1px solid #b8d5f4;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.dossier-card-head,
+.dossier-directory-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.dossier-card-head h3,
+.dossier-directory-head h3 {
+  margin: 0;
+  color: #102742;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.dossier-card-desc {
+  margin: 0;
+  color: #647894;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.dossier-card-head :deep(.el-button),
+.dossier-directory-actions :deep(.el-button) {
+  height: 28px;
+  padding: 0 12px;
+  border-color: #a9d0ff;
+  border-radius: 4px;
+  color: #237de0;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dossier-info-box {
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  bottom: 10px;
+  height: 104px;
+  padding: 8px;
+  border: 1px solid #dcebf9;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.dossier-info-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 3px 0 12px;
+}
+
+.dossier-info-title strong {
+  min-width: 0;
+  color: #0b213b;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-info-title span {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid #c7ead5;
+  border-radius: 999px;
+  background: #eaf7ef;
+  color: #18a76f;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dossier-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dossier-meta-item {
+  min-width: 0;
+  height: 43px;
+  padding: 5px 7px;
+  border: 1px solid #dcebf9;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.dossier-meta-item span {
+  display: block;
+  color: #647894;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-meta-item strong {
+  display: block;
+  margin-top: 3px;
+  color: #0b213b;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.dossier-directory-card {
+  padding: 9px;
+}
+
+.dossier-directory-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dossier-directory-actions span {
+  color: #0d6fd1;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.dossier-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.dossier-directory-item {
+  min-width: 0;
+  height: 70px;
+  padding: 6px;
+  border: 1px solid #dcebf9;
+  border-radius: 9px;
+  background: #f7fbff;
+  overflow: hidden;
+}
+
+.dossier-directory-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  margin-bottom: 2px;
+}
+
+.dossier-directory-row span {
+  flex: 0 0 auto;
+  color: #8ca4bf;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dossier-directory-row strong {
+  min-width: 0;
+  color: #10233f;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-directory-item p {
+  margin: 0 0 2px;
+  color: #647894;
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-directory-item em {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 6px;
+  border: 1px solid #d0e5fa;
+  border-radius: 4px;
+  color: #3f86c6;
+  background: #edf6ff;
+  font-size: 11px;
+  font-style: normal;
+  white-space: nowrap;
 }
 
 .metric-grid {
@@ -1321,6 +2059,94 @@ onBeforeUnmount(() => {
   margin: 6px 0 0;
   color: #6c7d90;
   font-size: 10px;
+}
+
+.mini-chart--pie {
+  min-height: 206px;
+}
+
+.fault-pie-panel {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.fault-pie {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(100, 128, 176, 0.08), 0 12px 24px rgba(82, 105, 152, 0.14);
+}
+
+.fault-pie::after {
+  content: '';
+  position: absolute;
+  inset: 36px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff, #f4f8ff);
+  box-shadow: inset 0 0 0 1px rgba(95, 139, 196, 0.16);
+}
+
+.fault-pie__center {
+  position: absolute;
+  inset: 43px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.fault-pie__center strong {
+  color: #162f55;
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.fault-pie__center span {
+  margin-top: 4px;
+  color: #70839d;
+  font-size: 10px;
+}
+
+.fault-pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fault-pie-legend__item {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(106, 148, 199, 0.18);
+}
+
+.fault-pie-legend__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+}
+
+.fault-pie-legend__name {
+  color: #536982;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fault-pie-legend__item strong {
+  color: #152d4d;
+  font-size: 12px;
 }
 
 .project-card__meta {
@@ -1740,7 +2566,309 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 1100px) {
-  .metric-grid {
+  
+.dossier-home-section {
+  padding: 14px 14px 9px;
+  overflow: hidden;
+}
+
+.dossier-band-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 78px;
+  margin-bottom: 10px;
+}
+
+.dossier-band-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.dossier-band-label {
+  margin: 0 0 5px;
+  color: #2364aa;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.dossier-band-title {
+  margin: 0;
+  color: #102742;
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.dossier-band-desc {
+  max-width: 860px;
+  margin: 7px 0 0;
+  color: #647894;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.dossier-summary-strip {
+  flex: 0 0 630px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dossier-summary-chip {
+  min-width: 0;
+  height: 58px;
+  padding: 8px 10px;
+  border: 1px solid #dcebf9;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.dossier-summary-chip span {
+  display: block;
+  color: #647894;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.dossier-summary-chip strong {
+  display: block;
+  margin-top: 6px;
+  color: #10233f;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-summary-chip--ok strong {
+  color: #18a76f;
+}
+
+.dossier-module-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(520px, 1.72fr);
+  gap: 10px;
+}
+
+.dossier-module-card {
+  position: relative;
+  min-width: 0;
+  height: 203px;
+  padding: 11px;
+  border: 1px solid #b8d5f4;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.dossier-card-head,
+.dossier-directory-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.dossier-card-head h3,
+.dossier-directory-head h3 {
+  margin: 0;
+  color: #102742;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.dossier-card-desc {
+  margin: 0;
+  color: #647894;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.dossier-card-head :deep(.el-button),
+.dossier-directory-actions :deep(.el-button) {
+  height: 28px;
+  padding: 0 12px;
+  border-color: #a9d0ff;
+  border-radius: 4px;
+  color: #237de0;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dossier-info-box {
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  bottom: 10px;
+  height: 104px;
+  padding: 8px;
+  border: 1px solid #dcebf9;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.dossier-info-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 3px 0 12px;
+}
+
+.dossier-info-title strong {
+  min-width: 0;
+  color: #0b213b;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-info-title span {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid #c7ead5;
+  border-radius: 999px;
+  background: #eaf7ef;
+  color: #18a76f;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dossier-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dossier-meta-item {
+  min-width: 0;
+  height: 43px;
+  padding: 5px 7px;
+  border: 1px solid #dcebf9;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.dossier-meta-item span {
+  display: block;
+  color: #647894;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-meta-item strong {
+  display: block;
+  margin-top: 3px;
+  color: #0b213b;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.dossier-directory-card {
+  padding: 9px;
+}
+
+.dossier-directory-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dossier-directory-actions span {
+  color: #0d6fd1;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.dossier-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.dossier-directory-item {
+  min-width: 0;
+  height: 70px;
+  padding: 6px;
+  border: 1px solid #dcebf9;
+  border-radius: 9px;
+  background: #f7fbff;
+  overflow: hidden;
+}
+
+.dossier-directory-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  margin-bottom: 2px;
+}
+
+.dossier-directory-row span {
+  flex: 0 0 auto;
+  color: #8ca4bf;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dossier-directory-row strong {
+  min-width: 0;
+  color: #10233f;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-directory-item p {
+  margin: 0 0 2px;
+  color: #647894;
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-directory-item em {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 6px;
+  border: 1px solid #d0e5fa;
+  border-radius: 4px;
+  color: #3f86c6;
+  background: #edf6ff;
+  font-size: 11px;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1765,9 +2893,29 @@ onBeforeUnmount(() => {
     flex-direction: column;
   }
 
+  .dossier-band-header,
+  .table-footer,
+  .bottom-start-section {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dossier-summary-strip,
+  .dossier-module-grid,
+  .dossier-directory-grid,
   .metric-grid,
   .kg-stat-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dossier-module-card {
+    height: auto;
+    min-height: 210px;
+  }
+
+  .dossier-info-box {
+    position: static;
+    margin-top: 12px;
   }
 
   .detail-grid {

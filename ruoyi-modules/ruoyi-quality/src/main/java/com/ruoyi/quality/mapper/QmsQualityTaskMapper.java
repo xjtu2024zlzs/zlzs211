@@ -66,4 +66,9 @@ public interface QmsQualityTaskMapper
      * @return 结果
      */
     public int deleteQmsQualityTaskByTaskIds(Long[] taskIds);
+
+    QualityTaskDto selectQualityTaskDtoByProblemIdAndModuleCode(
+            @Param("problemId") Long problemId,
+            @Param("moduleCode") String moduleCode
+    );
 }

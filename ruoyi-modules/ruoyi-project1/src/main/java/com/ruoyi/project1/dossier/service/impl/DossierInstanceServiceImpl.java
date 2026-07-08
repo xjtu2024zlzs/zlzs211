@@ -379,7 +379,7 @@ public class DossierInstanceServiceImpl implements IDossierInstanceService
         {
             return name;
         }
-        if ("failed".equals(text(row.get("generationJobStatus"))))
+        if ("failed".equals(text(row.get("generationJobStatus"))) || "failed".equals(text(row.get("instanceStatus"))))
         {
             return "生成失败";
         }

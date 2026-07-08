@@ -66,3 +66,11 @@ export function downloadSourceReport(id) {
     responseType: 'blob'
   })
 }
+
+// 回填课题五追溯 Word 报告到质量问题管理中心
+export function submitQualityResult(id) {
+  return request({
+    url: '/topic5/trace/' + id + '/submitQualityResult',
+    method: 'post'
+  })
+}

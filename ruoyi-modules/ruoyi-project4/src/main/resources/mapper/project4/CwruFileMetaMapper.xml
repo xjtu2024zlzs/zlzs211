@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.project4.domain.mapper.CwruFileMetaMapper">
+
+<resultMap id="CwruFileMetaResult" type="com.ruoyi.project4.domain.entity.CwruFileMeta">
+<id property="id" column="id"/>
+<result property="fileName" column="file_name"/>
+<result property="fileAbsPath" column="file_abs_path"/>
+<result property="sampleRate" column="sample_rate"/>
+<result property="loadHp" column="load_hp"/>
+<result property="dataDir" column="data_dir"/>
+</resultMap>
+
+<select id="selectCwruFileMetaList" resultMap="CwruFileMetaResult">
+SELECT
+id,
+file_name,
+file_abs_path,
+sample_rate,
+load_hp,
+data_dir
+FROM cwru_file_meta
+ORDER BY CAST(file_name AS UNSIGNED), load_hp
+</select>
+
+<select id="selectByFileName" resultMap="CwruFileMetaResult">
+SELECT
+id,
+file_name,
+file_abs_path,
+sample_rate,
+load_hp,
+data_dir
+FROM cwru_file_meta
+WHERE file_name = #{fileName}
+LIMIT 1
+</select>
+
+</mapper>

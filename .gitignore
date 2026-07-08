@@ -40,6 +40,32 @@ nbdist/
 *.log
 *.xml.versionsBackup
 *.swp
+.env
+**/.env
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+python/**/run/
+python/**/logs/
+tmp_*
+.codex-tmp/
+.m2/
+maven-repo/
+maven-tmp/
+ruoyi-ui/npm-cache/
+
+######################################################################
+# Local runtime/generated files
+
+__pycache__/
+*.py[cod]
+uploads/
+photos/
+solidworks_worker/output/
+solidworks_pipe/pipe_centerline.csv
+solidworks_pipe/pipe_model.stl
+solidworks_pipe/*.SLDPRT
 
 !*/build/*.java
 !*/build/*.html
@@ -54,3 +80,41 @@ __pycache__/
 *.pyc
 python/project3/runtime/storage/datasets/
 *.npy
+
+docx/
+
+AGENTS.md
+algorithm-service/
+# Project4 runtime outputs
+python/project4/runtime/
+
+# Project4 local test files
+python/project4/new_py/test(2).py
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# frontend dependencies/build
+ruoyi-ui/node_modules/
+ruoyi-ui/dist/
+
+# backend build
+target/
+*.class
+*.jar
+*.war
+
+# logs
+logs/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# local output/data
+topic4-output/
+topic4-data/

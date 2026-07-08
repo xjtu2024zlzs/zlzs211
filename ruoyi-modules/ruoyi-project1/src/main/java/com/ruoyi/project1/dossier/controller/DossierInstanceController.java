@@ -21,6 +21,7 @@ import com.ruoyi.common.log.annotation.Log;
 import com.ruoyi.common.log.enums.BusinessType;
 import com.ruoyi.common.security.annotation.RequiresPermissions;
 import com.ruoyi.project1.dossier.service.IDossierExportService;
+import com.ruoyi.project1.dossier.service.IDossierGenerationService;
 import com.ruoyi.project1.dossier.service.IDossierInstanceService;
 
 @RestController
@@ -32,6 +33,9 @@ public class DossierInstanceController extends BaseController
 
     @Autowired
     private IDossierExportService exportService;
+
+    @Autowired
+    private IDossierGenerationService generationService;
 
     @RequiresPermissions("project1:dossier:instance:list")
     @GetMapping("/list")
@@ -111,6 +115,14 @@ public class DossierInstanceController extends BaseController
     {
         instanceService.archiveInstance(instanceId);
         return success();
+    }
+
+    @RequiresPermissions("project1:dossier:instance:list")
+    @Log(title = "卷宗更新", businessType = BusinessType.UPDATE)
+    @PostMapping("/{instanceId}/refresh")
+    public AjaxResult refresh(@PathVariable String instanceId)
+    {
+        return success(generationService.refreshInstance(instanceId));
     }
 
     @RequiresPermissions("project1:dossier:instance:list")

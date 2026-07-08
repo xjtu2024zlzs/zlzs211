@@ -69,9 +69,19 @@ class PresetAccessDemoDataFactory
             long updated = successParts[i] - inserted;
             batches.add(new BatchProfile(i + 1, "schedule", successParts[i], failedParts[i], inserted, updated));
         }
-        batches.add(new BatchProfile(5, "manual", latestSuccess, profile.lastFailedCount(),
+        batches.add(new BatchProfile(5, "schedule", latestSuccess, profile.lastFailedCount(),
             profile.lastInsertedCount(), profile.lastUpdatedCount()));
         return batches;
+    }
+
+    BatchProfile manualBatchFor(String systemKey, int sequence)
+    {
+        AccessProfile profile = profileFor(systemKey);
+        int manualRun = Math.max(1, sequence - 5);
+        long inserted = profile.lastInsertedCount() + manualRun * 37L;
+        long updated = profile.lastUpdatedCount() + manualRun * 13L;
+        long failed = profile.lastFailedCount() + manualRun;
+        return new BatchProfile(sequence, "manual", inserted + updated, failed, inserted, updated);
     }
 
     String successMessage()

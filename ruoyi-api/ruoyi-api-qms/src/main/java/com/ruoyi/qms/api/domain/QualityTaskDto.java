@@ -64,6 +64,8 @@ public class QualityTaskDto implements Serializable
     /** 发生时间 */
     private Date occurTime;
 
+    private String reporter;
+
     /** 质量问题状态 */
     private String problemStatus;
 
@@ -93,6 +95,16 @@ public class QualityTaskDto implements Serializable
 
     public String getModuleCode() {
         return moduleCode;
+    }
+
+    public String getReporter()
+    {
+        return reporter;
+    }
+
+    public void setReporter(String reporter)
+    {
+        this.reporter = reporter;
     }
 
     public void setModuleCode(String moduleCode) {

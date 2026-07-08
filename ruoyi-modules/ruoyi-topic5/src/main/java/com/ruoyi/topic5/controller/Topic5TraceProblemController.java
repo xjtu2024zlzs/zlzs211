@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Value;
 import com.ruoyi.common.core.exception.ServiceException;
+import jakarta.servlet.http.HttpServletResponse;
 /**
  * 课题五追溯问题Controller
  */
@@ -50,6 +51,12 @@ public class Topic5TraceProblemController extends BaseController
         return getDataTable(list);
     }
 
+    @GetMapping("/report/downloadByPath")
+    public void downloadReportByPath(String filePath, HttpServletResponse response) throws Exception
+    {
+        traceProblemService.downloadReportByPath(filePath, response);
+    }
+
     /**
      * 导出追溯问题列表
      */
@@ -69,7 +76,7 @@ public class Topic5TraceProblemController extends BaseController
     public AjaxResult submitQualityResult(@PathVariable("id") Long id)
     {
         traceProblemService.submitQualityResult(id);
-        return AjaxResult.success("已将课题五追溯结果回填至质量问题管理中心");
+        return AjaxResult.success("已将追溯结果回填至质量问题管理中心");
     }
     /**
      * 获取追溯问题详细信息

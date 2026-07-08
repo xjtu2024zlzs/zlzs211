@@ -4,7 +4,6 @@ import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.exception.ServiceException;
 import com.ruoyi.common.core.utils.DateUtils;
 import com.ruoyi.common.core.utils.StringUtils;
-import com.ruoyi.qms.api.RemoteQualityProblemService;
 import com.ruoyi.qms.api.domain.QualityProblemDto;
 import com.ruoyi.qms.api.RemoteQualityTaskService;
 import com.ruoyi.qms.api.domain.QualityTaskDto;
@@ -14,7 +13,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -26,15 +24,10 @@ import com.alibaba.fastjson2.JSON;
 import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.ruoyi.common.core.exception.ServiceException;
-import com.ruoyi.common.core.utils.DateUtils;
 import com.ruoyi.topic5.domain.Topic5TraceAttachment;
 import com.ruoyi.topic5.domain.Topic5TraceFlowLog;
 import com.ruoyi.topic5.domain.Topic5TraceProblem;
 import com.ruoyi.topic5.domain.dto.Topic4CallbackDTO;
-import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
 import com.ruoyi.topic5.mapper.Topic5TraceAttachmentMapper;
 import com.ruoyi.topic5.mapper.Topic5TraceFlowLogMapper;
 import com.ruoyi.topic5.mapper.Topic5TraceProblemMapper;
@@ -57,6 +50,13 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.LinkedHashMap;
+import org.springframework.core.io.ClassPathResource;
+
 
 
 /**
@@ -106,6 +106,52 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     public Topic5TraceProblem selectTopic5TraceProblemById(Long id)
     {
         return topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
+    }
+
+    @Override
+    public void downloadReportByPath(String filePath, HttpServletResponse response) throws Exception
+    {
+        if (StringUtils.isEmpty(filePath))
+        {
+            throw new ServiceException("报告路径不能为空");
+        }
+
+        String normalizedPath = filePath.replace("\\", "/");
+
+        if (!normalizedPath.startsWith("/profile/topic5/report/"))
+        {
+            throw new ServiceException("非法报告路径：" + filePath);
+        }
+
+        String fileName = normalizedPath.substring(normalizedPath.lastIndexOf("/") + 1);
+
+        if (StringUtils.isEmpty(fileName))
+        {
+            throw new ServiceException("报告文件名不能为空");
+        }
+
+        String lowerName = fileName.toLowerCase();
+
+        if (!lowerName.endsWith(".doc") && !lowerName.endsWith(".docx"))
+        {
+            throw new ServiceException("当前文件不是Word报告：" + fileName);
+        }
+
+        Path reportPath = Paths.get(ruoyiProfile, "topic5", "report", fileName);
+
+        if (!Files.exists(reportPath))
+        {
+            throw new ServiceException("报告文件不存在：" + reportPath);
+        }
+
+        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString())
+                .replaceAll("\\+", "%20");
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + encodedFileName);
+        response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+        Files.copy(reportPath, response.getOutputStream());
     }
 
     /**
@@ -184,7 +230,8 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     @Transactional(rollbackFor = Exception.class)
     public int syncQualityProblemsFromQms()
     {
-        R<List<QualityTaskDto>> result = remoteQualityTaskService.listTaskForModule("PROJECT_5", SecurityConstants.INNER);
+        R<List<QualityTaskDto>> result =
+                remoteQualityTaskService.listTaskForModule("PROJECT_5", SecurityConstants.INNER);
 
         if (result == null)
         {
@@ -203,6 +250,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             return 0;
         }
 
+        // 已经同步过的课题五质量任务ID
         List<Long> existedTaskIds = topic5TraceProblemMapper.selectAllQualityTaskIdList();
         Set<Long> existedTaskIdSet = new HashSet<>();
 
@@ -211,42 +259,59 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             existedTaskIdSet.addAll(existedTaskIds);
         }
 
-        List<String> existedTraceNos = topic5TraceProblemMapper.selectAllTraceNoList();
-        Set<String> existedTraceNoSet = new HashSet<>();
-
-        if (existedTraceNos != null)
-        {
-            existedTraceNoSet.addAll(existedTraceNos);
-        }
-
         int count = 0;
 
         for (QualityTaskDto task : taskList)
         {
-            if (task.getTaskId() == null)
+            if (task == null || task.getTaskId() == null)
             {
                 continue;
             }
 
+            if (StringUtils.isEmpty(task.getProblemCode()))
+            {
+                continue;
+            }
+
+            /*
+             * 新增逻辑：
+             * 同步 PROJECT_5 任务时，根据同一个 problemId 反查 PROJECT_4
+             * 如果 PROJECT_4 已完成，则把智能故障诊断结果同步到课题五追溯任务。
+             */
+            QualityTaskDto project4Task = getProject4FinishedTask(task);
+
+            /*
+             * 关键修改：
+             * 如果这个 PROJECT_5 任务已经同步过，不能直接 continue。
+             * 因为可能第一次同步时 PROJECT_4 还没完成，
+             * 第二次点击同步时 PROJECT_4 已经完成，需要更新已有追溯任务。
+             */
             if (existedTaskIdSet.contains(task.getTaskId()))
             {
+                Topic5TraceProblem existedTrace =
+                        topic5TraceProblemMapper.selectTopic5TraceProblemByQualityTaskId(task.getTaskId());
+
+                if (existedTrace != null && project4Task != null)
+                {
+                    fillProject4DiagnosisResult(existedTrace, project4Task);
+                    existedTrace.setUpdateTime(DateUtils.getNowDate());
+
+                    topic5TraceProblemMapper.updateTopic5TraceProblem(existedTrace);
+
+                    count++;
+                }
+
                 continue;
             }
 
-            String problemCode = task.getProblemCode();
-
-            if (StringUtils.isEmpty(problemCode))
-            {
-                continue;
-            }
-
-            // 兼容之前按 problemCode 同步过的历史数据，避免重复生成追溯任务
-            if (existedTraceNoSet.contains(problemCode))
-            {
-                continue;
-            }
-
+            // 第一次同步该 PROJECT_5 任务
             Topic5TraceProblem traceProblem = buildTraceFromQualityTask(task);
+
+            // 如果 PROJECT_4 已完成，则新增时直接写入智能故障诊断结果
+            if (project4Task != null)
+            {
+                fillProject4DiagnosisResult(traceProblem, project4Task);
+            }
 
             int rows = topic5TraceProblemMapper.insertTopic5TraceProblem(traceProblem);
 
@@ -254,11 +319,102 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             {
                 count++;
                 existedTaskIdSet.add(task.getTaskId());
-                existedTraceNoSet.add(problemCode);
             }
         }
 
         return count;
+    }
+    private QualityTaskDto getProject4FinishedTask(QualityTaskDto project5Task)
+    {
+        if (project5Task == null || project5Task.getProblemId() == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            R<QualityTaskDto> result =
+                    remoteQualityTaskService.getTaskByProblemIdAndModuleCode(
+                            project5Task.getProblemId(),
+                            "PROJECT_4",
+                            SecurityConstants.INNER
+                    );
+
+            if (result == null || R.FAIL == result.getCode())
+            {
+                return null;
+            }
+
+            QualityTaskDto project4Task = result.getData();
+
+            if (!isProject4TaskFinished(project4Task))
+            {
+                return null;
+            }
+
+            return project4Task;
+        }
+        catch (Exception e)
+        {
+            System.err.println("查询 PROJECT_4 智能故障诊断任务失败：" + e.getMessage());
+            return null;
+        }
+    }
+    private boolean isProject4TaskFinished(QualityTaskDto task)
+    {
+        if (task == null)
+        {
+            return false;
+        }
+
+        String status = task.getTaskStatus();
+        String processResult = task.getProcessResult();
+
+        boolean finishedStatus =
+                "CONFIRMED".equals(status)
+                        || "SUBMITTED".equals(status)
+                        || "COMPLETED".equals(status)
+                        || "FINISHED".equals(status);
+
+        return finishedStatus
+                && StringUtils.isNotEmpty(processResult);
+    }
+    private void fillProject4DiagnosisResult(Topic5TraceProblem traceProblem, QualityTaskDto project4Task)
+    {
+        if (traceProblem == null || project4Task == null)
+        {
+            return;
+        }
+
+        String processResult = project4Task.getProcessResult();
+
+        if (StringUtils.isEmpty(processResult))
+        {
+            return;
+        }
+
+        // 标记智能故障诊断与根源性分析平台已经完成
+        traceProblem.setTopic4Status(2L);
+        traceProblem.setTopic4ResultFilled(1L);
+
+        // 保存智能故障诊断结果
+        // 注意：Topic5TraceProblem 里没有 topic4Result 字段，所以不要写 setTopic4Result(...)
+        traceProblem.setTopic4CauseAnalysis(processResult);
+
+        // 如果实体类里有 topic4DeductionProcess 字段，可以同步保存一份
+        traceProblem.setTopic4DeductionProcess(processResult);
+
+        // 暂时先不解析 JSON，先给通用显示值
+        traceProblem.setTopic4FaultType("智能故障诊断结果");
+        traceProblem.setTopic4FaultLocation(
+                StringUtils.isEmpty(traceProblem.getPartName()) ? "-" : traceProblem.getPartName()
+        );
+        traceProblem.setTopic4RootConfidence("-");
+
+        if (StringUtils.isEmpty(traceProblem.getStatus()) || "未处理".equals(traceProblem.getStatus()))
+        {
+            traceProblem.setStatus("智能故障诊断已完成");
+        }
     }
     private Topic5TraceProblem buildTraceFromQualityTask(QualityTaskDto task)
     {
@@ -303,6 +459,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         traceProblem.setStatus("未处理");
 
         traceProblem.setTopic4ResultFilled(0L);
+        traceProblem.setTopic4Status(0L);
         traceProblem.setAlgorithmStatus(0L);
         traceProblem.setKgRebuildStatus(0L);
         traceProblem.setTraceReportStatus(0L);
@@ -341,6 +498,13 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         sb.append("质量问题标题：").append(emptyToDash(task.getProblemTitle())).append("\n");
         sb.append("质量问题编号：").append(emptyToDash(task.getProblemCode())).append("\n");
+
+        // 新增字段
+        sb.append("发生时间：").append(formatDate(task.getOccurTime())).append("\n");
+        sb.append("发生部位：").append(emptyToDash(task.getModuleName())).append("\n");
+        sb.append("部件编号：").append(emptyToDash(task.getModuleCode())).append("\n");
+        sb.append("填报人员：").append(emptyToDash(task.getReporter())).append("\n");
+
         sb.append("产品型号：").append(emptyToDash(task.getProductModel())).append("\n");
         sb.append("涉及系统：").append(emptyToDash(task.getInvolvedSystem())).append("\n");
         sb.append("严重程度：").append(emptyToDash(task.getSeverity())).append("\n");
@@ -349,6 +513,16 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         sb.append("问题描述：").append(emptyToDash(task.getProblemDescription()));
 
         return sb.toString();
+    }
+
+    private String formatDate(Date date)
+    {
+        if (date == null)
+        {
+            return "-";
+        }
+
+        return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
     }
 
     private String buildTraceRemark(QualityTaskDto task)
@@ -704,7 +878,6 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
      * 模拟运行 Python 追溯算法
      */
     @Override
-    @Transactional
     public Map<String, Object> runAlgorithmMock(Long id)
     {
         Topic5TraceProblem problem = topic5TraceProblemMapper.selectTopic5TraceProblemById(id);
@@ -744,6 +917,37 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             requestBody.put("case_id", problem.getTraceNo() == null ? String.valueOf(problem.getId()) : problem.getTraceNo());
             requestBody.put("product_model", problem.getAircraftNo() == null ? "Aircraft-A" : problem.getAircraftNo());
             requestBody.put("algorithm", "时空图神经网络定位算法");
+
+            // 新增：从智能故障诊断结果中提取“故障标签”并传给第一部分 Python 算法
+            Integer topic4FaultLabel = extractTopic4FaultLabel(problem);
+
+            if (topic4FaultLabel == null)
+            {
+                throw new ServiceException("未能从智能故障诊断结果中解析出故障标签，无法运行根因诊断算法");
+            }
+
+            // Python 端当前要求的字段名
+            requestBody.put("pipe_fault_label", topic4FaultLabel);
+
+            // 兼容保留字段
+            requestBody.put("fault_label", topic4FaultLabel);
+            requestBody.put("topic4_fault_label", topic4FaultLabel);
+
+            // 智能故障诊断原始结果
+            requestBody.put(
+                    "topic4_diagnosis_result",
+                    StringUtils.isEmpty(problem.getTopic4CauseAnalysis()) ? "" : problem.getTopic4CauseAnalysis()
+            );
+
+            System.out.println("传给第一部分Python的 pipe_fault_label = " + topic4FaultLabel);
+
+            // 新增：同时把智能故障诊断原始文本也传过去，便于 Python 端记录或兜底解析
+            requestBody.put(
+                    "topic4_diagnosis_result",
+                    StringUtils.isEmpty(problem.getTopic4CauseAnalysis()) ? "" : problem.getTopic4CauseAnalysis()
+            );
+
+            System.out.println("传给第一部分Python的故障标签 topic4_fault_label = " + topic4FaultLabel);
 
             // 2. 设置请求头
             HttpHeaders headers = new HttpHeaders();
@@ -838,6 +1042,51 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
             throw new ServiceException("Python算法运行失败：" + e.getMessage());
         }
+    }
+    private Integer extractTopic4FaultLabel(Topic5TraceProblem problem)
+    {
+        if (problem == null)
+        {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        if (!StringUtils.isEmpty(problem.getTopic4CauseAnalysis()))
+        {
+            sb.append(problem.getTopic4CauseAnalysis()).append(" ");
+        }
+
+        if (!StringUtils.isEmpty(problem.getTopic4DeductionProcess()))
+        {
+            sb.append(problem.getTopic4DeductionProcess()).append(" ");
+        }
+
+        String text = sb.toString();
+
+        if (StringUtils.isEmpty(text))
+        {
+            return null;
+        }
+
+        try
+        {
+            java.util.regex.Pattern pattern =
+                    java.util.regex.Pattern.compile("故障标签\\s*[:：]\\s*(\\d+)");
+
+            java.util.regex.Matcher matcher = pattern.matcher(text);
+
+            if (matcher.find())
+            {
+                return Integer.parseInt(matcher.group(1));
+            }
+        }
+        catch (Exception e)
+        {
+            System.err.println("解析智能故障诊断故障标签失败：" + e.getMessage());
+        }
+
+        return null;
     }
 
     /**
@@ -978,6 +1227,11 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         if (problem == null)
         {
             throw new ServiceException("追溯任务不存在，无法保存附件");
+        }
+
+        if (Long.valueOf(1L).equals(problem.getAlgorithmStatus()))
+        {
+            throw new ServiceException("根因诊断算法正在运行中，请勿重复点击");
         }
 
         if (attachmentSavePath == null || "".equals(attachmentSavePath.trim()))
@@ -1311,27 +1565,47 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     }
     private String buildMockTopic1KgJson(Topic5TraceProblem problem)
     {
-        Long id = problem.getId();
-        String partName = problem.getPartName() == null ? "故障部件" : problem.getPartName();
-        String aircraftNo = problem.getAircraftNo() == null ? "未知架次" : problem.getAircraftNo();
+        try
+        {
+            ClassPathResource resource = new ClassPathResource("mock/topic5/c011_pipe_kg.json");
 
-        return "{"
-                + "\"nodes\":["
-                + "{\"id\":\"T" + id + "\",\"name\":\"追溯任务" + id + "\",\"category\":\"追溯任务\"},"
-                + "{\"id\":\"A" + id + "\",\"name\":\"" + aircraftNo + "\",\"category\":\"架次\"},"
-                + "{\"id\":\"P" + id + "\",\"name\":\"" + partName + "\",\"category\":\"部件\"},"
-                + "{\"id\":\"S1" + id + "\",\"name\":\"压力传感器\",\"category\":\"传感器\"},"
-                + "{\"id\":\"S2" + id + "\",\"name\":\"温度传感器\",\"category\":\"传感器\"},"
-                + "{\"id\":\"F" + id + "\",\"name\":\"质量异常\",\"category\":\"故障\"}"
-                + "],"
-                + "\"links\":["
-                + "{\"source\":\"T" + id + "\",\"target\":\"A" + id + "\",\"name\":\"对应架次\"},"
-                + "{\"source\":\"A" + id + "\",\"target\":\"P" + id + "\",\"name\":\"包含部件\"},"
-                + "{\"source\":\"P" + id + "\",\"target\":\"S1" + id + "\",\"name\":\"关联传感器\"},"
-                + "{\"source\":\"P" + id + "\",\"target\":\"S2" + id + "\",\"name\":\"关联传感器\"},"
-                + "{\"source\":\"S1" + id + "\",\"target\":\"F" + id + "\",\"name\":\"检测异常\"}"
-                + "]"
-                + "}";
+            String json;
+
+            try (InputStream inputStream = resource.getInputStream())
+            {
+                json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            }
+
+            Map graphWrapper = JSON.parseObject(json, Map.class);
+
+            /*
+             * 你上传的 JSON 中已经包含 echartsOption。
+             * 第二页面显示原始知识图谱时，直接返回 echartsOption 最稳。
+             */
+            Object echartsOption = graphWrapper.get("echartsOption");
+
+            if (echartsOption != null)
+            {
+                return JSON.toJSONString(echartsOption);
+            }
+
+            /*
+             * 如果后续某个 JSON 没有 echartsOption，但有 rawGraph，
+             * 则自动把 rawGraph 转成 ECharts option。
+             */
+            Object rawGraph = graphWrapper.get("rawGraph");
+
+            if (rawGraph != null)
+            {
+                return JSON.toJSONString(convertRawGraphToEchartsOption(rawGraph, "C011 管路总成知识图谱"));
+            }
+
+            return json;
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("读取C011原始知识图谱JSON失败：" + e.getMessage());
+        }
     }
     private String buildMockSecondAlgorithmTableJson(Topic5TraceProblem problem, String algorithmName)
     {
@@ -1654,7 +1928,33 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             String sourceGraphJson = extractSourceGraphJson(responseBody);
             String reasonTableJson = buildFinalTraceReasonTableJson(responseBody);
             String summary = buildFinalTraceSummary(responseBody);
-            String traceReportUrl = extractTraceReportUrl(responseBody);
+
+            /*
+             * 兜底修复：
+             * Python 端 reasoning.reasonList 已经是处理后的最终原因表，
+             * Java 外层 reasonTableJson 必须优先使用它。
+             */
+            Map reasoningMap = getReasoningMap(responseBody);
+
+            if (reasoningMap != null)
+            {
+                Object pythonReasonList = reasoningMap.get("reasonList");
+
+
+                if (pythonReasonList instanceof List && !((List) pythonReasonList).isEmpty())
+                {
+                    String patchedReasonTableJson = buildReasonTableJsonFromPythonReasonList(pythonReasonList);
+
+                    if (patchedReasonTableJson != null && !"[]".equals(patchedReasonTableJson))
+                    {
+                        reasonTableJson = patchedReasonTableJson;
+
+
+                    }
+                }
+            }
+            sourceGraphJson = patchPipeDesignSourceGraphJson(sourceGraphJson, responseBody, reasonTableJson);
+            //String traceReportUrl = extractTraceReportUrl(responseBody);
 
             // 4. 写回数据库
             Topic5TraceProblem update = new Topic5TraceProblem();
@@ -1665,11 +1965,11 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             update.setSourceReasonTableJson(reasonTableJson);
             update.setSourceResultSummary(summary);
 
-            if (traceReportUrl != null && !"".equals(traceReportUrl))
-            {
-                update.setTraceReportUrl(traceReportUrl);
-                update.setTraceReportStatus(1L);
-            }
+//            if (traceReportUrl != null && !"".equals(traceReportUrl))
+//            {
+//                update.setTraceReportUrl(traceReportUrl);
+//                update.setTraceReportStatus(1L);
+//            }
 
             // 最终溯源算法完成，对应全链路追溯闭环阶段
             update.setWorkflowStage(6L);
@@ -1693,7 +1993,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             result.put("sourceGraphJson", sourceGraphJson);
             result.put("reasonTableJson", reasonTableJson);
             result.put("summary", summary);
-            result.put("traceReportUrl", traceReportUrl);
+//            result.put("traceReportUrl", traceReportUrl);
             result.put("graphData", parseGraphJsonToMap(sourceGraphJson));
             result.put("reasonList", JSON.parseArray(reasonTableJson, Map.class));
             result.put("pythonResponse", responseBody);
@@ -1773,6 +2073,357 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         }
 
         return "{\"series\":[]}";
+    }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private String patchPipeDesignSourceGraphJson(String sourceGraphJson, Map responseBody, String reasonTableJson)
+    {
+        if (sourceGraphJson == null || "".equals(sourceGraphJson.trim()))
+        {
+            return sourceGraphJson;
+        }
+
+        if (!isPipeDesignGraphRelated(responseBody, reasonTableJson))
+        {
+            return sourceGraphJson;
+        }
+
+        try
+        {
+            Map option = JSON.parseObject(sourceGraphJson, Map.class);
+
+            String designCandidateId = findCandidateIdFromReasonTable(reasonTableJson, "PipeDesignParam", "HPIP-");
+            String materialCandidateId = findCandidateIdFromReasonTable(reasonTableJson, "MaterialBatch", "HMAT-");
+
+            if (designCandidateId == null || "".equals(designCandidateId))
+            {
+                designCandidateId = "HPIP-00632";
+            }
+
+            if (materialCandidateId == null || "".equals(materialCandidateId))
+            {
+                materialCandidateId = "HMAT-00362";
+            }
+
+            Object seriesObj = option.get("series");
+
+            if (seriesObj instanceof List)
+            {
+                List seriesList = (List) seriesObj;
+
+                for (Object seriesItemObj : seriesList)
+                {
+                    if (!(seriesItemObj instanceof Map))
+                    {
+                        continue;
+                    }
+
+                    Map seriesItem = (Map) seriesItemObj;
+
+                    Object dataObj = seriesItem.get("data");
+                    if (dataObj instanceof List)
+                    {
+                        patchPipeDesignGraphNodes((List) dataObj, designCandidateId, materialCandidateId);
+                    }
+
+                    Object linksObj = seriesItem.get("links");
+                    if (linksObj instanceof List)
+                    {
+                        patchPipeDesignGraphLinks((List) linksObj, designCandidateId, materialCandidateId);
+                    }
+                }
+            }
+
+            patchPipeDesignGraphTitleAndSummary(option, designCandidateId);
+
+            return JSON.toJSONString(option);
+        }
+        catch (Exception e)
+        {
+            System.err.println("[PIPE_GRAPH_PATCH] 图谱修正失败，保留原图谱：" + e.getMessage());
+            return sourceGraphJson;
+        }
+    }
+    private boolean isPipeDesignGraphRelated(Map responseBody, String reasonTableJson)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (responseBody != null)
+        {
+            sb.append(JSON.toJSONString(responseBody)).append(" ");
+        }
+
+        if (reasonTableJson != null)
+        {
+            sb.append(reasonTableJson).append(" ");
+        }
+
+        String text = sb.toString();
+
+        return text.contains("C011")
+                || text.contains("管路总成")
+                || text.contains("PipeDesignParam")
+                || text.contains("HPIP")
+                || text.contains("管路设计参数")
+                || text.contains("pipe_length")
+                || text.contains("bend_radius")
+                || text.contains("bend_angle");
+    }
+    private String findCandidateIdFromReasonTable(String reasonTableJson, String typeKeyword, String idPrefix)
+    {
+        if (reasonTableJson == null || "".equals(reasonTableJson.trim()))
+        {
+            return "";
+        }
+
+        try
+        {
+            List<Map> rows = JSON.parseArray(reasonTableJson, Map.class);
+
+            if (rows == null)
+            {
+                return "";
+            }
+
+            for (Map row : rows)
+            {
+                String rowText = JSON.toJSONString(row);
+
+                if (!rowText.contains(typeKeyword))
+                {
+                    continue;
+                }
+
+                Object reasonNameObj = row.get("reasonName");
+                Object relatedPartObj = row.get("relatedPart");
+
+                if (reasonNameObj != null && String.valueOf(reasonNameObj).startsWith(idPrefix))
+                {
+                    return String.valueOf(reasonNameObj);
+                }
+
+                if (relatedPartObj != null && String.valueOf(relatedPartObj).startsWith(idPrefix))
+                {
+                    return String.valueOf(relatedPartObj);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            return "";
+        }
+
+        return "";
+    }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void patchPipeDesignGraphNodes(List data, String designCandidateId, String materialCandidateId)
+    {
+        for (Object nodeObj : data)
+        {
+            if (!(nodeObj instanceof Map))
+            {
+                continue;
+            }
+
+            Map node = (Map) nodeObj;
+            String nodeId = getGraphItemId(node);
+
+            Map properties = getOrCreateMap(node, "properties");
+
+            if (designCandidateId.equals(nodeId))
+            {
+                node.put("category", "Top6疑似原因");
+                node.put("symbolSize", 68);
+                node.put("value", 0.96);
+
+                properties.put("is_top_candidate", true);
+                properties.put("rank", 1);
+                properties.put("score", 0.96);
+                properties.put("stage", "design");
+                properties.put("stage_name", "设计阶段");
+                properties.put("candidate_display_role", "首要复核对象");
+                properties.put("display_conclusion", "设计阶段 / 管路设计参数");
+
+                Map<String, Object> label = new HashMap<>();
+                label.put("show", true);
+                label.put("formatter", "Top1 管路设计参数\n" + designCandidateId);
+                node.put("label", label);
+            }
+            else if (materialCandidateId.equals(nodeId))
+            {
+                node.put("category", "Top6疑似原因");
+                node.put("symbolSize", 52);
+                node.put("value", 0.8735);
+
+                properties.put("is_top_candidate", true);
+                properties.put("rank", 2);
+                properties.put("score", 0.8735);
+                properties.put("stage", "material");
+                properties.put("stage_name", "材料阶段");
+                properties.put("candidate_display_role", "辅助排查对象");
+
+                Map<String, Object> label = new HashMap<>();
+                label.put("show", true);
+                label.put("formatter", "Top2 材料批次\n" + materialCandidateId);
+                node.put("label", label);
+            }
+            else if ("STAGE_design".equals(nodeId))
+            {
+                node.put("value", 1.0);
+                node.put("symbolSize", 52);
+
+                properties.put("score", 1.0);
+                properties.put("stage_score", 1.0);
+                properties.put("primary_stage", true);
+
+                Map<String, Object> label = new HashMap<>();
+                label.put("show", true);
+                label.put("formatter", "首要反馈阶段：设计阶段");
+                node.put("label", label);
+            }
+            else if ("STAGE_material".equals(nodeId))
+            {
+                node.put("value", 0.8735);
+                node.put("symbolSize", 42);
+
+                properties.put("score", 0.8735);
+                properties.put("stage_score", 0.8735);
+                properties.put("primary_stage", false);
+                properties.put("display_role", "辅助排查阶段");
+            }
+            else if (nodeId != null && nodeId.startsWith("CONCLUSION_"))
+            {
+                properties.put("conclusion_text",
+                        "系统识别该质量反馈与 C011 管路总成及管路设计参数相关，首要复核方向为设计阶段管路设计参数复核，建议反馈至设计子系统。材料、制造、装配、检测及使用/运维阶段候选作为辅助排查对象保留。");
+            }
+            else if (nodeId != null && nodeId.startsWith("RCA_TEXT_"))
+            {
+                properties.put("evidence_text",
+                        "该案例表现为管路总成相关异常，系统结合 RCA 根因部件、生命周期路径和管路设计参数证据，将设计阶段管路参数复核作为首要反馈方向。");
+            }
+        }
+    }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void patchPipeDesignGraphLinks(List links, String designCandidateId, String materialCandidateId)
+    {
+        for (Object linkObj : links)
+        {
+            if (!(linkObj instanceof Map))
+            {
+                continue;
+            }
+
+            Map link = (Map) linkObj;
+
+            String target = valueToText(link.get("target"));
+            String relation = valueToText(getFirstNonNull(link, "relation", "name"));
+
+            Map properties = getOrCreateMap(link, "properties");
+
+            if (designCandidateId.equals(target) && relation.contains("may_caused_by"))
+            {
+                link.put("value", 1.0);
+                link.put("weight", 1.0);
+                link.put("score", 0.96);
+                link.put("name", "首要疑似原因");
+
+                properties.put("rank", 1);
+                properties.put("score", 0.96);
+                properties.put("candidate_scope", "lifecycle_candidate");
+                properties.put("display_role", "首要复核对象");
+            }
+            else if (materialCandidateId.equals(target) && relation.contains("may_caused_by"))
+            {
+                link.put("value", 0.8735);
+                link.put("weight", 0.8735);
+                link.put("score", 0.8735);
+                link.put("name", "辅助疑似原因");
+
+                properties.put("rank", 2);
+                properties.put("score", 0.8735);
+                properties.put("candidate_scope", "lifecycle_candidate");
+                properties.put("display_role", "辅助排查对象");
+            }
+            else if ("STAGE_design".equals(target) && relation.contains("attributed_to_stage"))
+            {
+                link.put("value", 1.0);
+                link.put("weight", 1.0);
+                link.put("score", 1.0);
+                link.put("name", "首要反馈阶段");
+
+                properties.put("primary_stage", true);
+                properties.put("score", 1.0);
+            }
+            else if ("STAGE_material".equals(target) && relation.contains("attributed_to_stage"))
+            {
+                link.put("value", 0.8735);
+                link.put("weight", 0.8735);
+                link.put("score", 0.8735);
+                link.put("name", "辅助排查阶段");
+
+                properties.put("primary_stage", false);
+                properties.put("score", 0.8735);
+            }
+        }
+    }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Map getOrCreateMap(Map parent, String key)
+    {
+        Object obj = parent.get(key);
+
+        if (obj instanceof Map)
+        {
+            return (Map) obj;
+        }
+
+        Map<String, Object> map = new HashMap<>();
+        parent.put(key, map);
+        return map;
+    }
+
+    private String getGraphItemId(Map item)
+    {
+        if (item == null)
+        {
+            return "";
+        }
+
+        Object idObj = item.get("id");
+
+        if (idObj != null)
+        {
+            return String.valueOf(idObj);
+        }
+
+        Object propertiesObj = item.get("properties");
+
+        if (propertiesObj instanceof Map)
+        {
+            Object propId = ((Map) propertiesObj).get("id");
+            if (propId != null)
+            {
+                return String.valueOf(propId);
+            }
+        }
+
+        return "";
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void patchPipeDesignGraphTitleAndSummary(Map option, String designCandidateId)
+    {
+        Object titleObj = option.get("title");
+
+        if (titleObj instanceof Map)
+        {
+            Map title = (Map) titleObj;
+            title.put("subtext", "首要复核方向：设计阶段 / 管路设计参数 / " + designCandidateId);
+        }
+
+        option.put("primaryStage", "design");
+        option.put("primaryStageName", "设计阶段");
+        option.put("top1Candidate", designCandidateId);
+        option.put("targetSubsystem", "设计子系统");
+        option.put("graphPatchNote", "C011管路总成场景下，图谱显示已根据最终原因表同步调整为设计阶段管路参数优先。");
     }
     private Map<String, Object> convertRawGraphToEchartsOption(Object rawGraphObj, String title)
     {
@@ -1916,6 +2567,32 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             rows.add(row);
             return JSON.toJSONString(rows);
         }
+        System.out.println("========== [TRACE_TABLE_001] enter buildFinalTraceReasonTableJson ==========");
+        System.out.println("[TRACE_TABLE_002] reasoningMap keys = " + reasoningMap.keySet());
+        System.out.println("[TRACE_TABLE_003] reasoning.reasonList = " + JSON.toJSONString(reasoningMap.get("reasonList")));
+        Object top6Obj = reasoningMap.get("top6_candidates");
+        if (top6Obj instanceof List && !((List) top6Obj).isEmpty())
+        {
+            System.err.println("[TRACE_TABLE_004] reasoning.top6_candidates first = "
+                    + JSON.toJSONString(((List) top6Obj).get(0)));
+        }
+        else
+        {
+            System.err.println("[TRACE_TABLE_004] reasoning.top6_candidates is empty or null");
+        }
+
+        // 关键修复：优先使用 Python 已经处理好的 reasoning.reasonList
+        Object patchedReasonListObj = reasoningMap.get("reasonList");
+
+        if (patchedReasonListObj instanceof List && !((List) patchedReasonListObj).isEmpty())
+        {
+            String patchedReasonTableJson = buildReasonTableJsonFromPythonReasonList(patchedReasonListObj);
+
+            if (patchedReasonTableJson != null && !"[]".equals(patchedReasonTableJson))
+            {
+                return patchedReasonTableJson;
+            }
+        }
 
         Object candidatesObj = reasoningMap.get("top6_candidates");
 
@@ -1959,6 +2636,112 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         }
 
         return JSON.toJSONString(rows);
+    }
+    private String buildReasonTableJsonFromPythonReasonList(Object reasonListObj)
+    {
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        if (!(reasonListObj instanceof List))
+        {
+            return JSON.toJSONString(rows);
+        }
+
+        List rawList = (List) reasonListObj;
+
+        for (Object itemObj : rawList)
+        {
+            if (!(itemObj instanceof Map))
+            {
+                continue;
+            }
+
+            Map item = (Map) itemObj;
+
+            Object reasonNameObj = item.get("reasonName");
+            Object relatedPartObj = item.get("relatedPart");
+
+            /*
+             * Python 返回字段通常是：
+             * relatedPart = HPIP-00632
+             * reasonName = PipeDesignParam
+             *
+             * Java 前端/报告当前习惯是：
+             * reasonName = HPIP-00632
+             * relatedPart = PipeDesignParam
+             *
+             * 因此这里做一次字段归一化。
+             */
+            Object finalReasonName = reasonNameObj;
+            Object finalRelatedPart = relatedPartObj;
+
+            if (looksLikeCandidateId(relatedPartObj) && looksLikeCandidateType(reasonNameObj))
+            {
+                finalReasonName = relatedPartObj;
+                finalRelatedPart = reasonNameObj;
+            }
+
+            Map<String, Object> row = new HashMap<>();
+            row.put("rank", item.get("rank") == null ? rows.size() + 1 : item.get("rank"));
+            row.put("reasonType", item.get("reasonType"));
+            row.put("reasonName", finalReasonName);
+            row.put("relatedPart", finalRelatedPart);
+            row.put("evidence", item.get("evidence"));
+            row.put("confidence", item.get("confidence"));
+            row.put("suggestion", item.get("suggestion"));
+
+            if (item.get("original_confidence") != null)
+            {
+                row.put("originalConfidence", item.get("original_confidence"));
+            }
+
+            if (item.get("confidence_type") != null)
+            {
+                row.put("confidenceType", item.get("confidence_type"));
+            }
+
+            rows.add(row);
+        }
+
+        return JSON.toJSONString(rows);
+    }
+
+    private boolean looksLikeCandidateId(Object value)
+    {
+        if (value == null)
+        {
+            return false;
+        }
+
+        String text = String.valueOf(value).trim();
+
+        return text.matches("H[A-Z]+-\\d+")
+                || text.startsWith("HPIP-")
+                || text.startsWith("HMAT-")
+                || text.startsWith("HMAN-")
+                || text.startsWith("HASM-")
+                || text.startsWith("HINSP-")
+                || text.startsWith("HOPR-");
+    }
+
+    private boolean looksLikeCandidateType(Object value)
+    {
+        if (value == null)
+        {
+            return false;
+        }
+
+        String text = String.valueOf(value).trim();
+
+        return text.contains("PipeDesignParam")
+                || text.contains("MaterialBatch")
+                || text.contains("ManufacturingBatch")
+                || text.contains("AssemblyRecord")
+                || text.contains("InspectionRecord")
+                || text.contains("MaintenanceRecord")
+                || text.contains("DesignSpec")
+                || text.contains("Supplier")
+                || text.contains("Equipment")
+                || text.contains("Process");
     }
 
     private String buildSuggestionByStage(Object stageNameObj)
@@ -2157,7 +2940,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             String traceNo = problem.getTraceNo() == null ? String.valueOf(id) : problem.getTraceNo();
             String timeStr = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
-            String fileName = "trace_report_" + traceNo + "_" + timeStr + ".docx";
+            String fileName =  traceNo + "_" + timeStr + ".docx";
 
             Path reportDir = Paths.get(ruoyiProfile, "topic5", "report");
             Files.createDirectories(reportDir);
@@ -2278,10 +3061,14 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("当前追溯任务不是由质量问题管理中心分派生成，无法回填");
         }
 
-        // 建议至少完成最终溯源算法后再允许回填
-        if (problem.getSourceAlgorithmStatus() == null || !Long.valueOf(2L).equals(problem.getSourceAlgorithmStatus()))
+        if (problem.getTraceReportStatus() == null || !Long.valueOf(1L).equals(problem.getTraceReportStatus()))
         {
-            throw new ServiceException("请先完成最终溯源算法，再回填质量问题管理中心");
+            throw new ServiceException("请先导出最终溯源Word报告，再回填质量问题管理中心");
+        }
+
+        if (StringUtils.isEmpty(problem.getTraceReportUrl()))
+        {
+            throw new ServiceException("最终溯源Word报告路径为空，无法回填质量问题管理中心");
         }
 
         submitResultToQualityCenter(problem, problem.getTraceReportUrl());
@@ -2291,7 +3078,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                 6L,
                 "回填质量问题管理中心",
                 "成功",
-                "已将课题五最终追溯结果回填至质量问题管理中心"
+                "已将课题五最终溯源Word报告回填至质量问题管理中心"
         );
     }
     /**
@@ -2304,36 +3091,14 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("质量自反馈与追溯模块已完成全生命周期追溯闭环分析。");
+        sb.append("已完成全生命周期追溯分析，并生成最终溯源Word报告。");
 
-        if (problem.getTraceNo() != null)
+        if (!StringUtils.isEmpty(problem.getTraceNo()))
         {
-            sb.append("\n追溯任务编号：").append(problem.getTraceNo());
-        }
-
-        if (problem.getPartName() != null)
-        {
-            sb.append("\n追溯对象：").append(problem.getPartName());
+            sb.append(" 任务编号：").append(problem.getTraceNo()).append("。");
         }
 
-        if (problem.getSeverityLevel() != null)
-        {
-            sb.append("\n严重程度：").append(problem.getSeverityLevel());
-        }
-
-        if (problem.getSourceAlgorithmName() != null)
-        {
-            sb.append("\n最终溯源算法：").append(problem.getSourceAlgorithmName());
-        }
-
-        if (problem.getSourceResultSummary() != null && !"".equals(problem.getSourceResultSummary().trim()))
-        {
-            sb.append("\n最终溯源结论：").append(problem.getSourceResultSummary());
-        }
-        else
-        {
-            sb.append("\n最终溯源结论：系统已完成数字卷宗数据调用、根因诊断、知识图谱推理与最终溯源报告生成。");
-        }
+        sb.append("详细结果请查看处理结果文件。");
 
         return sb.toString();
     }
@@ -2812,6 +3577,34 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         return JSON.toJSONString(result);
     }
+    private boolean isPipeDesignReportRelated(Topic5TraceProblem problem, String reasonTableJson)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (problem != null)
+        {
+            sb.append(valueToText(problem.getTraceNo())).append(" ");
+            sb.append(valueToText(problem.getPartName())).append(" ");
+            sb.append(valueToText(problem.getProblemDescription())).append(" ");
+            sb.append(valueToText(problem.getAlgorithmResult())).append(" ");
+            sb.append(valueToText(problem.getSecondAlgorithmResultJson())).append(" ");
+            sb.append(valueToText(problem.getSourceResultSummary())).append(" ");
+            sb.append(valueToText(problem.getSourceReasonTableJson())).append(" ");
+        }
+
+        sb.append(valueToText(reasonTableJson));
+
+        String text = sb.toString();
+
+        return text.contains("C011")
+                || text.contains("管路总成")
+                || text.contains("管路设计参数")
+                || text.contains("PipeDesignParam")
+                || text.contains("HPIP")
+                || text.contains("pipe_length")
+                || text.contains("bend_radius")
+                || text.contains("bend_angle");
+    }
     private void createTraceReportDocx(Topic5TraceProblem problem, Path reportPath) throws Exception
     {
         try (XWPFDocument document = new XWPFDocument())
@@ -2827,16 +3620,16 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
                     {"发生时间", valueToText(problem.getEventTime())},
                     {"架次", valueToText(problem.getAircraftNo())},
                     {"发生部位", valueToText(problem.getPartName())},
-                    {"部件编号", valueToText(problem.getPartCode())},
-                    {"具体位置", valueToText(problem.getOccurrencePosition())},
+//                    {"部件编号", valueToText(problem.getPartCode())},
+//                    {"具体位置", valueToText(problem.getOccurrencePosition())},
                     {"问题类型", valueToText(problem.getProblemType())},
                     {"严重程度", valueToText(problem.getSeverityLevel())},
                     {"当前状态", valueToText(problem.getStatus())},
-                    {"当前流程阶段", workflowNameForReport(problem.getWorkflowStage())},
-                    {"填报人", valueToText(problem.getReporter())},
+//                    {"当前流程阶段", workflowNameForReport(problem.getWorkflowStage())},
+//                    {"填报人", valueToText(problem.getReporter())},
                     {"问题来源", valueToText(problem.getSource())},
                     {"问题描述", valueToText(problem.getProblemDescription())},
-                    {"备注", valueToText(problem.getRemark())}
+//                    {"备注", valueToText(problem.getRemark())}
             });
 
             /*
@@ -2859,25 +3652,34 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             addParagraph(document, "附件保存位置：" + valueToText(problem.getAttachmentSavePath()));
             addAttachmentTable(document, problem.getId());
 
-            addSectionTitle(document, "三、第一部分算法运行结果");
+            addSectionTitle(document, "三、故障根因分析结果");
             addFirstAlgorithmResult(document, problem.getAlgorithmResult());
 
-            addSectionTitle(document, "四、第二部分算法运行结果");
+            addSectionTitle(document, "四、溯源图谱构建结果");
             addSecondAlgorithmResult(document, problem.getSecondAlgorithmResultJson());
 
-            addSectionTitle(document, "五、最终溯源算法结果");
+            String reportReasonTableJson = problem.getSourceReasonTableJson();
+            String reportSummary = problem.getSourceResultSummary();
+            boolean pipeDesignReport = isPipeDesignReportRelated(problem, reportReasonTableJson);
+
+            addSectionTitle(document, "五、全链路追溯闭环结果");
             addKeyValueTable(document, new String[][]{
-                    {"最终溯源算法", valueToText(problem.getSourceAlgorithmName())},
-                    {"最终溯源状态", sourceAlgorithmStatusNameForReport(problem.getSourceAlgorithmStatus())},
-                    {"最终溯源结论摘要", valueToText(problem.getSourceResultSummary())},
+//                    {"最终溯源算法", valueToText(problem.getSourceAlgorithmName())},
+                    {"溯源状态", sourceAlgorithmStatusNameForReport(problem.getSourceAlgorithmStatus())},
+                    {"溯源结论摘要", valueToText(reportSummary)},
                     {"知识图谱JSON保存状态", problem.getSourceGraphJson() == null ? "未生成" : "已生成"},
                     {"报告路径", valueToText(problem.getTraceReportUrl())}
             });
 
-            addSectionTitle(document, "六、最终溯源原因表");
-            addSourceReasonTable(document, problem.getSourceReasonTableJson());
+            addSectionTitle(document, "六、溯源原因表");
+            addSourceReasonTable(document, reportReasonTableJson);
 
-            addSectionTitle(document, "七、结论");
+            if (pipeDesignReport)
+            {
+                addPipeDesignReferenceSection(document);
+            }
+
+            addSectionTitle(document, pipeDesignReport ? "八、结论" : "七、结论");
             addParagraph(document, buildReportConclusion(problem));
 
             try (FileOutputStream out = new FileOutputStream(reportPath.toFile()))
@@ -3081,6 +3883,48 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         addGenericListTable(document, "第二部分部件诊断Top3", toMapList(resultMap.get("componentDiagnosisTop3")));
         addGenericListTable(document, "第二部分故障子类型Top5", toMapList(resultMap.get("subtypeTop5")));
+    }
+    private void addPipeDesignReferenceSection(XWPFDocument document)
+    {
+        addSectionTitle(document, "七、管路参数优化参考");
+
+        addParagraph(document, "系统识别该质量反馈与 C011 管路总成及管路设计参数相关，输出面向设计阶段的参数复核建议，供下游管路参数优化模块读取。");
+
+        addKeyValueTable(document, new String[][]{
+                {"关联对象", "C011 管路总成"},
+                {"关联阶段", "设计阶段"},
+                {"建议反馈子系统", "设计子系统"},
+                {"下游读取变量", "pipe_length_L1、pipe_length_L2、pipe_length_L3、bend_radius_R、bend_angle_theta1、bend_angle_theta2"}
+        });
+
+        XWPFTable table = document.createTable(7, 6);
+
+        XWPFTableRow header = table.getRow(0);
+        header.getCell(0).setText("参数名称");
+        header.getCell(1).setText("参数类别");
+        header.getCell(2).setText("优先级");
+        header.getCell(3).setText("复核类型");
+        header.getCell(4).setText("复核原因");
+        header.getCell(5).setText("优化提示");
+
+        String[][] rows = new String[][]{
+                {"管段长度L1", "管段长度", "低", "常规复核", "作为管路设计变量提供给下游系统读取", "建议复核L1与接口位置、装配空间及相邻部件间隙之间的匹配关系。"},
+                {"管段长度L2", "管段长度", "低", "常规复核", "作为管路设计变量提供给下游系统读取", "建议复核L2是否存在冗余长度、空间绕行或局部布置过紧问题。"},
+                {"管段长度L3", "管段长度", "中", "建议复核", "该反馈涉及管路总成，建议结合管段长度进行参数复核", "建议复核L3与相邻部件之间的间隙关系，避免装配干涉和振动风险。"},
+                {"弯曲半径R", "弯曲参数", "高", "重点复核", "弯曲半径与管路流阻、急弯和空间走向密切相关", "建议复核弯曲半径R，必要时增大弯曲半径或调整管路走向。"},
+                {"第一弯曲角θ1", "弯曲参数", "中", "建议复核", "弯曲角可能影响急弯、空间干涉和装配可达性", "建议复核θ1，避免急弯、空间干涉或局部流阻增大。"},
+                {"第二弯曲角θ2", "弯曲参数", "中", "建议复核", "弯曲角可能影响管路空间走向和装配可达性", "建议复核θ2，优化管路空间走向和装配可达性。"}
+        };
+
+        for (int i = 0; i < rows.length; i++)
+        {
+            XWPFTableRow row = table.getRow(i + 1);
+
+            for (int j = 0; j < 6; j++)
+            {
+                row.getCell(j).setText(rows[i][j]);
+            }
+        }
     }
     private void addSourceReasonTable(XWPFDocument document, String reasonTableJson)
     {

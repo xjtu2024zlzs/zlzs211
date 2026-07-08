@@ -378,6 +378,27 @@
                           <span class="log-label">处理结果</span>
                           <span>{{ record.processResult }}</span>
                         </div>
+
+                        <div v-if="record.processFile" class="log-line result-line">
+                          <span class="log-label">结果报告</span>
+                          <span class="report-action">
+                            <el-button
+                              link
+                              type="primary"
+                              @click.stop="handlePreviewProcessFile(record)"
+                            >
+                              预览Word报告
+                            </el-button>
+
+                            <el-button
+                              link
+                              type="success"
+                              @click.stop="handleOpenProcessFile(record)"
+                            >
+                              新窗口打开
+                            </el-button>
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -464,6 +485,7 @@
               >
                 生成报告
               </el-button>
+
             </div>
           </div>
 
@@ -481,9 +503,35 @@
               </template>
             </el-table-column>
             <el-table-column prop="dispatchOpinion" label="分派说明" show-overflow-tooltip />
-            <el-table-column prop="processResult" label="处理结果" show-overflow-tooltip>
+            <el-table-column prop="processResult" label="处理结果摘要" min-width="260" show-overflow-tooltip>
               <template #default="scope">
                 {{ scope.row.processResult || '-' }}
+              </template>
+            </el-table-column>
+
+            <el-table-column label="处理结果文件" width="180" align="center">
+              <template #default="scope">
+                <template v-if="scope.row.processFile">
+                  <el-button
+                    link
+                    type="primary"
+                    @click.stop="handlePreviewProcessFile(scope.row)"
+                  >
+                    预览Word报告
+                  </el-button>
+
+                  <el-button
+                    link
+                    type="success"
+                    @click.stop="handleOpenProcessFile(scope.row)"
+                  >
+                    打开
+                  </el-button>
+                </template>
+
+                <el-tag v-else type="info" size="small">
+                  暂无
+                </el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="createTime" label="创建时间" width="160" />
@@ -512,13 +560,41 @@
         </div>
       </template>
     </section>
+    <el-dialog
+      :title="reportPreviewTitle"
+      v-model="reportPreviewOpen"
+      width="90%"
+      append-to-body
+      destroy-on-close
+    >
+      <div class="word-preview-wrapper">
+        <VueOfficeDocx
+          v-if="reportPreviewUrl"
+          :src="reportPreviewUrl"
+          style="height: 100%;"
+        />
+      </div>
+
+      <template #footer>
+        <el-button @click="reportPreviewOpen = false">关闭</el-button>
+        <el-button
+          type="primary"
+          @click="handleOpenPreviewUrl"
+        >
+          新窗口打开
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { computed, reactive, ref, onMounted } from 'vue'
+import VueOfficeDocx from '@vue-office/docx'
+import '@vue-office/docx/lib/index.css'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import request from '@/utils/request'
 
 import { listProblem, addProblem, updateProblem, delProblem, exportProblemReport } from '@/api/quality/problem'
 import { listModule } from '@/api/quality/module'
@@ -539,6 +615,14 @@ const dispatchLoading = ref(false)
 const finishLoading = ref(false)
 const deleteLoading = ref(false)
 const reportLoading = ref(false)
+const reportPreviewOpen = ref(false)
+const reportPreviewUrl = ref('')
+const reportPreviewTitle = ref('最终溯源Word报告预览')
+
+const PROJECT2_API_PREFIX = '/designtask'
+const HIDDEN_WORK_MODULE_CODES = ['PROJECT_1']
+
+
 
 const problemForm = reactive({
   title: '',
@@ -553,6 +637,15 @@ const problemForm = reactive({
   description: '',
   influenceScope: ''
 })
+
+const handleOpenPreviewUrl = () => {
+  if (!reportPreviewUrl.value) {
+    ElMessage.warning('暂无可打开的Word报告')
+    return
+  }
+
+  window.open(reportPreviewUrl.value, '_blank')
+}
 
 const QMS_TASK_EVENT_NAME = 'qms-current-task-change'
 const QMS_TASK_EVENT_KEY = 'qms_current_task_change'
@@ -575,6 +668,93 @@ const notifyCurrentTaskChanged = (moduleCode, payload = {}) => {
 
   // 2. 其他浏览器标签页也能收到 storage 变化
   localStorage.setItem(QMS_TASK_EVENT_KEY, JSON.stringify(eventData))
+}
+
+
+const normalizeProcessFilePath = (filePath) => {
+  if (!filePath) return ''
+
+  let path = filePath.replace(/\\/g, '/')
+
+  if (path.startsWith('/topic5/profile/')) {
+    path = path.replace('/topic5/profile/', '/profile/')
+  }
+
+  if (path.startsWith('/designtask/profile/')) {
+    path = path.replace('/designtask/profile/', '/profile/')
+  }
+
+  if (path.startsWith('/project2/profile/')) {
+    path = path.replace('/project2/profile/', '/profile/')
+  }
+
+  return path
+}
+
+const getProcessFileDownloadConfig = (filePath) => {
+  const normalizedPath = normalizeProcessFilePath(filePath)
+
+  // 全生命周期数字质量自反馈与追溯系统报告
+  if (normalizedPath.startsWith('/profile/topic5/report/')) {
+    return {
+      url: '/topic5/trace/report/downloadByPath',
+      filePath: normalizedPath
+    }
+  }
+
+  // 课题二：设计制造协同优化平台报告
+  if (normalizedPath.startsWith('/profile/topic2/report/')) {
+    return {
+      url: `${PROJECT2_API_PREFIX}/quality/report/downloadByPath`,
+      filePath: normalizedPath
+    }
+  }
+
+  throw new Error('暂不支持该处理结果文件路径：' + filePath)
+}
+
+const fetchProcessFileBlob = async (row) => {
+  if (!row || !row.processFile) {
+    throw new Error('当前任务暂无处理结果文件')
+  }
+
+  if (!isWordFile(row.processFile)) {
+    throw new Error('当前处理结果文件不是Word报告')
+  }
+
+  const config = getProcessFileDownloadConfig(row.processFile)
+
+  console.log('处理结果文件请求接口：', config.url)
+  console.log('处理结果文件请求路径：', config.filePath)
+
+  const data = await request({
+    url: config.url,
+    method: 'get',
+    params: {
+      filePath: config.filePath
+    },
+    responseType: 'blob'
+  })
+
+  console.log('处理结果文件Blob类型：', data.type)
+  console.log('处理结果文件Blob大小：', data.size)
+
+  if (data.type && data.type.includes('application/json')) {
+    const text = await data.text()
+    throw new Error('后端返回错误信息：' + text)
+  }
+
+  if (!data.size || data.size < 1000) {
+    throw new Error('报告文件为空或不是有效Word文件')
+  }
+
+  if (data instanceof Blob) {
+    return data
+  }
+
+  return new Blob([data], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  })
 }
 
 const problemRules = {
@@ -603,19 +783,19 @@ const defaultModules = [
   },
   {
     moduleCode: 'PROJECT_3',
-    moduleName: '生命周期质量监管与故障预防系统',
+    moduleName: '生命周期质量监管与故障预防平台',
     moduleType: 'TOPIC',
     route: '/project_3'
   },
   {
     moduleCode: 'PROJECT_4',
-    moduleName: '智能故障诊断与根源性分析技术模块',
+    moduleName: '智能故障诊断与根源性分析技术平台',
     moduleType: 'TOPIC',
     route: '/project4'
   },
   {
     moduleCode: 'PROJECT_5',
-    moduleName: '全生命周期数字质量自反馈与追溯系统',
+    moduleName: '全生命周期数字质量自反馈与追溯平台',
     moduleType: 'TOPIC',
     route: '/project_5'
   }
@@ -624,9 +804,9 @@ const defaultModules = [
 const moduleDisplayNames = {
   PROJECT_1: '全域异构信息集成系统',
   PROJECT_2: '设计制造协同优化平台',
-  PROJECT_3: '生命周期质量监管与故障预防系统',
-  PROJECT_4: '智能故障诊断与根源性分析技术模块',
-  PROJECT_5: '全生命周期数字质量自反馈与追溯系统'
+  PROJECT_3: '生命周期质量监管与故障预防平台',
+  PROJECT_4: '智能故障诊断与根源性分析技术平台',
+  PROJECT_5: '全生命周期数字质量自反馈与追溯平台'
 }
 
 const getModuleDisplayName = (module) => {
@@ -656,21 +836,30 @@ const loadModules = async () => {
     const rows = Array.isArray(res?.rows) ? res.rows : []
 
     if (rows.length > 0) {
-      workModules.value = rows.map((item) => {
-        return {
-          moduleCode: item.moduleCode,
-          moduleName: item.moduleName,
-          moduleType: item.moduleType || 'TOPIC',
-          description: item.moduleDesc || item.description || '',
-          route: item.moduleRoute || item.route || ''
-        }
-      })
+      workModules.value = rows
+        .map((item) => {
+          return {
+            moduleCode: item.moduleCode,
+            moduleName: item.moduleName,
+            moduleType: item.moduleType || 'TOPIC',
+            description: item.moduleDesc || item.description || '',
+            route: item.moduleRoute || item.route || ''
+          }
+        })
+        .filter((item) => {
+          return !HIDDEN_WORK_MODULE_CODES.includes(item.moduleCode)
+        })
     } else {
-      workModules.value = defaultModules
+      workModules.value = defaultModules.filter((item) => {
+        return !HIDDEN_WORK_MODULE_CODES.includes(item.moduleCode)
+      })
     }
   } catch (error) {
     console.error('加载工作模块失败：', error)
-    workModules.value = defaultModules
+
+    workModules.value = defaultModules.filter((item) => {
+      return !HIDDEN_WORK_MODULE_CODES.includes(item.moduleCode)
+    })
   }
 }
 
@@ -745,6 +934,7 @@ const normalizeTask = (item) => {
     submitTime: item.submitTime || '',
     confirmTime: item.confirmTime || '',
     processResult: item.processResult || '',
+    processFile: item.processFile || '',
     dispatchOpinion: item.dispatchOpinion || ''
   }
 }
@@ -1081,7 +1271,7 @@ const dispatchSelectedModule = async () => {
       action: 'DISPATCH'
     })
 
-    ElMessage.success(`已分派到${module.moduleName}，对应课题首页将自动显示当前质量问题`)
+    ElMessage.success(`已分派到${module.moduleName}，对应平台首页将自动显示当前质量问题`)
 
     await loadProblemList({
       keepCurrent: true,
@@ -1272,6 +1462,67 @@ const downloadBlob = (blobData, fileName) => {
   window.URL.revokeObjectURL(url)
 }
 
+const buildFileRequestUrl = (url) => {
+  if (!url) return ''
+
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+
+  // 课题五回填的报告路径一般是 /profile/topic5/report/xxx.docx
+  // 通过 axios 访问网关时，需要加 /topic5 前缀
+  if (url.startsWith('/profile/topic5/report/')) {
+    return '/topic5' + url
+  }
+
+  if (url.startsWith('/')) {
+    return url
+  }
+
+  return '/' + url
+}
+
+
+const isWordFile = (url) => {
+  if (!url) return false
+
+  const lower = url.toLowerCase()
+  return lower.endsWith('.doc') || lower.endsWith('.docx')
+}
+
+const handlePreviewProcessFile = async (row) => {
+  try {
+    const blob = await fetchProcessFileBlob(row)
+
+    const objectUrl = window.URL.createObjectURL(blob)
+
+    reportPreviewUrl.value = objectUrl
+    reportPreviewTitle.value = `${row.problemCode || currentProblem.value?.problemCode || ''} 报告预览`
+    reportPreviewOpen.value = true
+  } catch (error) {
+    console.error('预览Word报告失败：', error)
+    ElMessage.error(error.message || '预览Word报告失败')
+  }
+}
+
+const handleOpenProcessFile = async (row) => {
+  try {
+    const blob = await fetchProcessFileBlob(row)
+
+    const objectUrl = window.URL.createObjectURL(blob)
+
+    window.open(objectUrl, '_blank')
+
+    // 延迟释放，避免新窗口还没加载完成就失效
+    setTimeout(() => {
+      window.URL.revokeObjectURL(objectUrl)
+    }, 60000)
+  } catch (error) {
+    console.error('打开Word报告失败：', error)
+    ElMessage.error(error.message || '打开Word报告失败')
+  }
+}
+
 const createFlowLog = async (data) => {
   return addLog({
     problemId: data.problemId,
@@ -1397,6 +1648,21 @@ const getNowTime = () => {
   box-sizing: border-box;
   background: #f5f7fa;
   color: #303133;
+}
+
+.word-preview-wrapper {
+  height: 75vh;
+  overflow: auto;
+  background: #f5f7fa;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.report-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .task-action-buttons {

@@ -1,7 +1,7 @@
--- 课题四：航空装备智能故障诊断模块业务表
+﻿-- 课题四：航空装备智能故障诊断模块业务表
 -- 表名前缀统一使用 t4_
 
-CREATE TABLE IF NOT EXISTS t4_fd_data_file (
+CREATE TABLE IF NOT EXISTS t4_t4_data_file (
                                                file_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '文件ID',
                                                file_name VARCHAR(255) NOT NULL COMMENT '文件名称',
     file_path VARCHAR(500) COMMENT '文件路径',
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS t4_fd_data_file (
     PRIMARY KEY (file_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='课题四-数据文件表';
 
-CREATE TABLE IF NOT EXISTS t4_fd_augment_result (
+CREATE TABLE IF NOT EXISTS t4_t4_augment_result (
                                                     augment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '数据增强结果ID',
                                                     file_id BIGINT COMMENT '文件ID',
                                                     augment_code VARCHAR(100) COMMENT '增强任务编号',
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS t4_fd_augment_result (
     PRIMARY KEY (augment_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='课题四-数据增强结果表';
 
-CREATE TABLE IF NOT EXISTS t4_fd_diagnosis_result (
+CREATE TABLE IF NOT EXISTS t4_t4_diagnosis_result (
                                                       diagnosis_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '故障诊断结果ID',
                                                       file_id BIGINT COMMENT '文件ID',
                                                       sample_id BIGINT COMMENT '样本ID',
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS t4_fd_diagnosis_result (
     PRIMARY KEY (diagnosis_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='课题四-故障诊断结果表';
 
-CREATE TABLE IF NOT EXISTS t4_fd_fusion_result (
+CREATE TABLE IF NOT EXISTS t4_t4_fusion_result (
                                                    fusion_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '融合结果ID',
                                                    fusion_code VARCHAR(100) COMMENT '融合编号',
     pipeline_id BIGINT COMMENT '流程ID',
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS t4_fd_fusion_result (
     PRIMARY KEY (fusion_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='课题四-特征融合结果表';
 
-CREATE TABLE IF NOT EXISTS t4_fd_root_cause_analysis (
+CREATE TABLE IF NOT EXISTS t4_t4_root_cause_analysis (
                                                          analysis_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '根因分析ID',
                                                          diagnosis_id BIGINT COMMENT '诊断结果ID',
                                                          file_id BIGINT COMMENT '文件ID',

@@ -29,6 +29,11 @@ public class RemoteQualityTaskFallbackFactory implements FallbackFactory<RemoteQ
             {
                 return R.fail("提交质量任务处理结果失败：" + throwable.getMessage());
             }
+            @Override
+            public R<QualityTaskDto> getTaskByProblemIdAndModuleCode(Long problemId, String moduleCode, String source)
+            {
+                return R.fail("根据质量问题ID和模块编码查询质量任务失败：" + throwable.getMessage());
+            }
         };
     }
 }

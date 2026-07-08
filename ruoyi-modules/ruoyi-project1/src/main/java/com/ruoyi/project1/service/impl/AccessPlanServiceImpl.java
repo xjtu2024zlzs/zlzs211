@@ -72,6 +72,7 @@ public class AccessPlanServiceImpl implements IAccessPlanService
     public AccessPlan selectAccessPlanByAccessPlanId(Long accessPlanId)
     {
         presetScenarioService.ensurePresetScenario();
+        presetScenarioService.syncManagedAccessSchedules();
         AccessPlan plan = accessPlanMapper.selectAccessPlanByAccessPlanId(accessPlanId);
         enrichAccessPlan(plan);
         return plan;

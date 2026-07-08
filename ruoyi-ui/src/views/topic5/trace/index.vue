@@ -102,14 +102,46 @@
 
       <el-table
         v-loading="loading"
-        :data="traceList"
+        :data="groupedTraceList"
         border
         highlight-current-row
         @row-click="handleRowClick"
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column prop="traceNo" label="追溯任务编号" min-width="170" />
+        <el-table-column label="追溯任务编号" min-width="260">
+          <template #default="scope">
+            <div class="trace-no-cell">
+              <div class="trace-main-no">
+                {{ scope.row.traceNo }}
+              </div>
+
+              <el-select
+                v-if="scope.row.taskCount > 1"
+                v-model="selectedTaskMap[scope.row.groupKey]"
+                size="small"
+                class="task-select"
+                @change="taskId => handleGroupTaskChange(scope.row, taskId)"
+              >
+                <el-option
+                  v-for="task in scope.row.taskOptions"
+                  :key="task.id"
+                  :label="buildTaskOptionLabel(task)"
+                  :value="task.id"
+                />
+              </el-select>
+
+              <el-tag
+                v-else
+                size="small"
+                type="info"
+                class="single-task-tag"
+              >
+                分派任务ID：{{ scope.row.qualityTaskId || '-' }}
+              </el-tag>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="eventTime" label="发生时间" min-width="170" />
         <el-table-column prop="aircraftNo" label="架次" min-width="120" />
         <el-table-column prop="partName" label="发生部位" min-width="150" />
@@ -207,6 +239,12 @@
           {{ workflowName(currentTrace.workflowStage) }}
         </el-descriptions-item>
 
+        <el-descriptions-item label="智能故障诊断结果" :span="3">
+          <div class="topic4-result-box">
+            {{ currentTrace.topic4CauseAnalysis || '暂无智能故障诊断结果' }}
+          </div>
+        </el-descriptions-item>
+
         <el-descriptions-item label="附件保存位置" :span="3">
           {{ currentTrace.attachmentSavePath || '未设置' }}
         </el-descriptions-item>
@@ -289,7 +327,13 @@
       /> -->
 
       <div class="mt15">
-        <el-button type="warning" icon="Cpu" @click="handleRunAlgorithm">
+        <el-button
+          type="warning"
+          icon="Cpu"
+          :loading="algorithmRunning"
+          :disabled="algorithmRunning"
+          @click="handleRunAlgorithm"
+        >
           进行根因诊断
         </el-button>
       </div>
@@ -716,7 +760,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance, onActivated  } from 'vue'
 import * as echarts from 'echarts'
 import {
   listTrace,
@@ -730,9 +774,11 @@ import {
   fillTopic4Result,
   runAlgorithm,
   syncQualityProblems,
+  downloadTraceReport,
   submitQualityResult
 } from '@/api/topic5/trace'
 import { getSourceResult } from '@/api/topic5/source'
+import { setTopic5CurrentTrace, clearTopic5CurrentTrace } from '@/utils/topic5CurrentTrace'
 
 const { proxy } = getCurrentInstance()
 
@@ -748,10 +794,12 @@ const graphLoading = ref(false)
 const graphDialogRef = ref(null)
 const graphTraceInfo = ref({})
 const graphDataCache = ref(null)
+const algorithmRunning = ref(false)
 
 let graphDialogChart = null
 
 const traceList = ref([])
+const selectedTaskMap = ref({})
 const attachmentList = ref([])
 const selectedTraceId = ref(null)
 const currentTrace = ref({})
@@ -777,6 +825,62 @@ const queryParams = reactive({
   traceNo: null,
   aircraftNo: null,
   partName: null
+})
+
+const groupedTraceList = computed(() => {
+  const map = new Map()
+
+  traceList.value.forEach(item => {
+    const key = item.traceNo || item.problemCode || item.id
+
+    if (!map.has(key)) {
+      map.set(key, {
+        ...item,
+        groupKey: key,
+        taskOptions: [],
+        taskCount: 0,
+        selectedTaskId: null
+      })
+    }
+
+    const group = map.get(key)
+
+    group.taskOptions.push(item)
+    group.taskCount = group.taskOptions.length
+
+    // 默认选择最新的一条，优先按 createTime，其次按 id
+    group.taskOptions.sort((a, b) => {
+      const timeA = new Date(a.createTime || a.eventTime || 0).getTime()
+      const timeB = new Date(b.createTime || b.eventTime || 0).getTime()
+
+      if (timeA !== timeB) {
+        return timeB - timeA
+      }
+
+      return Number(b.id || 0) - Number(a.id || 0)
+    })
+
+    const selectedId = selectedTaskMap.value[key]
+
+    if (selectedId) {
+      const selected = group.taskOptions.find(task => task.id === selectedId)
+      if (selected) {
+        Object.assign(group, selected)
+        group.taskOptions = map.get(key).taskOptions
+        group.taskCount = group.taskOptions.length
+        group.selectedTaskId = selectedId
+      }
+    } else {
+      const latest = group.taskOptions[0]
+      Object.assign(group, latest)
+      group.taskOptions = map.get(key).taskOptions
+      group.taskCount = group.taskOptions.length
+      group.selectedTaskId = latest.id
+      selectedTaskMap.value[key] = latest.id
+    }
+  })
+
+  return Array.from(map.values())
 })
 
 const form = reactive({
@@ -835,7 +939,7 @@ const activeStep = computed(() => {
 })
 
 const topic4StatusText = computed(() => {
-  return '课题四状态：' + topic4StatusName(currentTrace.value.topic4Status)
+  return '故障诊断状态：' + topic4StatusName(currentTrace.value.topic4Status)
 })
 
 const topic4AlertType = computed(() => {
@@ -861,6 +965,52 @@ function getList() {
 function handleQuery() {
   queryParams.pageNum = 1
   getList()
+}
+
+function buildTaskOptionLabel(task) {
+  const taskId = task.qualityTaskId || '-'
+  const status = task.status || '-'
+  const workflow = workflowName ? workflowName(task.workflowStage) : task.workflowStage || '-'
+  const time = task.createTime || task.eventTime || '-'
+
+  return `任务ID:${taskId} | ${status} | ${workflow} | ${time}`
+}
+
+function scrollToTop() {
+  nextTick(() => {
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+
+    const appMain = document.querySelector('.app-main')
+    if (appMain) {
+      appMain.scrollTop = 0
+    }
+
+    const scrollWrap = document.querySelector('.el-scrollbar__wrap')
+    if (scrollWrap) {
+      scrollWrap.scrollTop = 0
+    }
+  })
+}
+
+function handleGroupTaskChange(groupRow, selectedId) {
+  const task = groupRow.taskOptions.find(item => item.id === selectedId)
+
+  if (!task) {
+    return
+  }
+
+  selectedTaskMap.value[groupRow.groupKey] = selectedId
+
+  Object.assign(groupRow, task)
+
+  // 如果你的页面有“当前选择任务”，这里同步更新
+  selectedTraceId.value = task.id
+  currentTrace.value = {
+    ...currentTrace.value,
+    ...task
+  }
 }
 
 function canViewKnowledgeGraph(row) {
@@ -904,6 +1054,7 @@ function handleDeleteSelected() {
 
     // 如果当前选择的任务被删除，则清空当前任务
     if (selectedTraceId.value && selectedIds.value.includes(selectedTraceId.value)) {
+      clearTopic5CurrentTrace()
       selectedTraceId.value = null
       currentTrace.value = {}
       attachmentList.value = []
@@ -1107,7 +1258,18 @@ function submitForm() {
 }
 
 function handleRowClick(row) {
-  selectTrace(row)
+  if (!row || !row.id) {
+    return
+  }
+
+  selectedTraceId.value = row.id
+  currentTrace.value = row
+
+  // 关键：每次选择历史追溯问题，都覆盖当前任务缓存
+  setTopic5CurrentTrace(row)
+
+  // 保留你原来的详情加载逻辑
+  getTraceDetail(row.id)
 }
 
 function selectTrace(row) {
@@ -1259,9 +1421,20 @@ function handleRunAlgorithm() {
     return
   }
 
+  if (algorithmRunning.value) {
+    return
+  }
+
+  algorithmRunning.value = true
+
   runAlgorithm(selectedTraceId.value).then(() => {
     proxy.$modal.msgSuccess('根因诊断算法运行完成')
     refreshCurrentTrace()
+  }).catch(err => {
+    console.error('根因诊断算法运行失败：', err)
+    proxy.$modal.msgError('根因诊断算法运行失败')
+  }).finally(() => {
+    algorithmRunning.value = false
   })
 }
 
@@ -1494,8 +1667,40 @@ function openTraceReport(row) {
     return
   }
 
-  const url = buildFileUrl(row.traceReportUrl)
-  window.open(url, '_blank')
+  downloadTraceReport(row.id).then(res => {
+    const blob = new Blob([res], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    })
+
+    const fileName = getReportFileName(row.traceReportUrl)
+
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }).catch(err => {
+    console.error('打开 Word 报告失败：', err)
+    proxy.$modal.msgError('打开 Word 报告失败，请检查报告文件是否存在')
+  })
+}
+
+function getReportFileName(reportUrl) {
+  if (!reportUrl) {
+    return '最终溯源报告.docx'
+  }
+
+  const index = reportUrl.lastIndexOf('/')
+  if (index >= 0) {
+    return reportUrl.substring(index + 1)
+  }
+
+  return reportUrl
 }
 
 function buildFileUrl(url) {
@@ -1786,6 +1991,7 @@ function workflowName(stage) {
 }
 
 onMounted(() => {
+  scrollToTop()
   getList()
 
   window.addEventListener('resize', () => {
@@ -1793,6 +1999,9 @@ onMounted(() => {
       graphDialogChart.resize()
     }
   })
+})
+onActivated(() => {
+  scrollToTop()
 })
 </script>
 
@@ -1863,6 +2072,12 @@ onMounted(() => {
   justify-content: center;
   color: #909399;
   font-size: 15px;
+}
+
+.topic4-result-box {
+  white-space: pre-line;
+  line-height: 24px;
+  color: #303133;
 }
 
 .graph-info {

@@ -394,4 +394,11 @@
           and trace_no != ''
           and (del_flag is null or del_flag = '0')
     </select>
+
+    <select id="selectTopic5TraceProblemByQualityTaskId" parameterType="Long" resultMap="Topic5TraceProblemResult">
+        <include refid="selectTopic5TraceProblemVo"/>
+        where quality_task_id = #{qualityTaskId}
+        and (del_flag is null or del_flag = '0')
+        limit 1
+    </select>
 </mapper>

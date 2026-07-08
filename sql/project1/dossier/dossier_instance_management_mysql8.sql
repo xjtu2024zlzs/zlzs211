@@ -231,7 +231,7 @@ SELECT
   di.instance_label,
   di.status AS instance_status,
   CASE
-    WHEN lj.job_status = 'failed' THEN '生成失败'
+    WHEN lj.job_status = 'failed' OR di.status = 'failed' THEN '生成失败'
     WHEN lj.job_status IN ('queued','running') OR di.status = 'building' THEN '生成中'
     WHEN di.status = 'published' THEN '已发布'
     WHEN di.status = 'archived' THEN '已归档'

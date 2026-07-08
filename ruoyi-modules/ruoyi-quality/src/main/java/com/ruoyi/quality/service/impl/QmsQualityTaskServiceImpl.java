@@ -9,9 +9,9 @@ import com.ruoyi.quality.mapper.QmsQualityTaskMapper;
 import com.ruoyi.quality.domain.QmsQualityTask;
 import com.ruoyi.quality.service.IQmsQualityTaskService;
 import com.ruoyi.common.core.exception.ServiceException;
-import com.ruoyi.common.core.utils.DateUtils;
 import com.ruoyi.common.core.utils.StringUtils;
 import com.ruoyi.qms.api.domain.QualityTaskSubmitDto;
+import com.ruoyi.qms.api.domain.QualityTaskDto;
 /**
  * 质量问题模块处理任务Service业务层处理
  * 
@@ -60,8 +60,34 @@ public class QmsQualityTaskServiceImpl implements IQmsQualityTaskService
             throw new ServiceException("当前模块无权提交该质量任务结果");
         }
 
+        /*
+         * 关键限制：
+         * 只允许回填当前正在处理或刚分派的任务。
+         * 避免同一个质量问题多次分派时，误把结果回填到历史任务。
+         */
+        String taskStatus = task.getTaskStatus();
+
+        if (!"DISPATCHED".equals(taskStatus) && !"PROCESSING".equals(taskStatus))
+        {
+            throw new ServiceException("当前质量任务状态不是待处理或处理中，不能回填结果。当前状态：" + taskStatus);
+        }
+
+        if (StringUtils.isEmpty(submitDto.getProcessFile()))
+        {
+            throw new ServiceException("处理结果文件不能为空，请先在课题五导出最终溯源Word报告");
+        }
+
+        if (!isWordFile(submitDto.getProcessFile()))
+        {
+            throw new ServiceException("处理结果文件不是Word报告，不能回填。当前文件：" + submitDto.getProcessFile());
+        }
+
         QmsQualityTask updateTask = new QmsQualityTask();
-        updateTask.setTaskId(submitDto.getTaskId());
+
+        /*
+         * 核心：只按照 task_id 更新当前这一次分派任务
+         */
+        updateTask.setTaskId(task.getTaskId());
         updateTask.setTaskStatus("SUBMITTED");
         updateTask.setProcessResult(submitDto.getProcessResult());
         updateTask.setProcessFile(submitDto.getProcessFile());
@@ -73,8 +99,18 @@ public class QmsQualityTaskServiceImpl implements IQmsQualityTaskService
         updateTask.setUpdateTime(DateUtils.getNowDate());
 
         qmsQualityTaskMapper.updateQmsQualityTask(updateTask);
+    }
 
-        // 暂时先只更新任务表。流程日志下一步再加，避免这一步改太多。
+    private boolean isWordFile(String fileUrl)
+    {
+        if (StringUtils.isEmpty(fileUrl))
+        {
+            return false;
+        }
+
+        String lower = fileUrl.toLowerCase();
+
+        return lower.endsWith(".doc") || lower.endsWith(".docx");
     }
 
     /**
@@ -142,5 +178,18 @@ public class QmsQualityTaskServiceImpl implements IQmsQualityTaskService
     public int deleteQmsQualityTaskByTaskId(Long taskId)
     {
         return qmsQualityTaskMapper.deleteQmsQualityTaskByTaskId(taskId);
+    }
+
+    /**
+     * 根据质量问题ID和模块编码查询指定模块任务
+     *
+     * @param problemId 质量问题ID
+     * @param moduleCode 模块编码
+     * @return 质量任务DTO
+     */
+    @Override
+    public QualityTaskDto selectQualityTaskDtoByProblemIdAndModuleCode(Long problemId, String moduleCode)
+    {
+        return qmsQualityTaskMapper.selectQualityTaskDtoByProblemIdAndModuleCode(problemId, moduleCode);
     }
 }

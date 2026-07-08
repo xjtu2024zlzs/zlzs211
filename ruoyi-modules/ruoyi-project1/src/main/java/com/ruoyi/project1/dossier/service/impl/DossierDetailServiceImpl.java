@@ -540,15 +540,457 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         List<Map<String, Object>> rows = new ArrayList<>();
         for (Map<String, Object> item : items)
         {
-            rows.add(row(defaultText(item.get("itemName"), item.get("itemCode")),
-                    defaultText(item.get("contentSummary"), item.get("sourceRecordKey")),
-                    defaultText(item.get("completenessStatus"), item.get("itemStatus"))));
+            if ("manufacturing".equals(category))
+            {
+                rows.add(manufacturingRow(item));
+            }
+            else if ("inspection".equals(category))
+            {
+                rows.add(inspectionRow(item));
+            }
+            else
+            {
+                rows.add(row(defaultText(item.get("itemName"), item.get("itemCode")),
+                        defaultText(item.get("contentSummary"), item.get("sourceRecordKey")),
+                        defaultText(item.get("completenessStatus"), item.get("itemStatus"))));
+            }
         }
         if (rows.isEmpty())
         {
             rows.add(row("数据状态", "当前目录暂无匹配记录，等待数据来源补充或重新生成", "missing"));
         }
         return rows;
+    }
+
+    private Map<String, Object> manufacturingRow(Map<String, Object> item)
+    {
+        Map<String, Object> attrs = castMap(item.get("attrs"));
+        String table = logicalSourceTable(defaultText(attrs.get("actualSourceTable"), item.get("sourceTable")));
+        if ("shop_order".equals(table))
+        {
+            return manufacturingGroupedRow(table,
+                    "制造工单：" + defaultText(attr(attrs, "orderCode", "order_code"), item.get("sourceRecordKey")),
+                    joinParts(Arrays.asList(valueText("状态", readableStatus(attr(attrs, "status"))),
+                            valueText("路线", attr(attrs, "routeCode", "route_code")),
+                            timeRange(attr(attrs, "actualStart", "actual_start"),
+                                    attr(attrs, "actualFinish", "actual_finish")),
+                            text(attr(attrs, "remarks")))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+        }
+        if ("process_route".equals(table))
+        {
+            return manufacturingGroupedRow(table, "工艺路线：" + defaultText(attr(attrs, "routeName", "route_name"),
+                    attr(attrs, "routeCode", "route_code")),
+                    joinParts(Arrays.asList(valueText("编号", attr(attrs, "routeCode", "route_code")),
+                            valueText("版本", attr(attrs, "routeVersion", "route_version")),
+                            valueText("标准工时", attr(attrs, "totalStandardHours", "total_standard_hours")),
+                            valueText("状态", readableStatus(attr(attrs, "status"))),
+                            text(attr(attrs, "remarks")))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+        }
+        if ("shop_order_task".equals(table))
+        {
+            return manufacturingGroupedRow(table,
+                    "制造任务：" + defaultText(attr(attrs, "taskCode", "task_code"), item.get("sourceRecordKey")),
+                    joinParts(Arrays.asList(valueText("工序", attr(attrs, "stepCode", "step_code")),
+                            valueText("状态", readableStatus(attr(attrs, "status"))),
+                            valueText("设备", attr(attrs, "assignedEquipmentId", "assigned_equipment_id",
+                                    "equipmentId", "equipment_id")),
+                            valueText("人员", attr(attrs, "assignedPersonnelId", "assigned_personnel_id",
+                                    "operatorId", "operator_id")),
+                            timeRange(attr(attrs, "actualStart", "actual_start"),
+                                    attr(attrs, "actualFinish", "actual_finish")),
+                            text(attr(attrs, "resultNotes", "result_notes")))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+        }
+        if ("production_operation_record".equals(table))
+        {
+            Map<String, Object> params = parseJsonObject(attr(attrs, "actualParams", "actual_params"));
+            String processName = defaultText(attr(params, "processName", "process_name"),
+                    defaultText(item.get("sourceRecordKey"), item.get("itemName")));
+            return manufacturingGroupedRow(table, "加工记录：" + processName,
+                    joinParts(Arrays.asList(valueText("人员", attr(attrs, "operatorId", "operator_id")),
+                            valueText("设备", attr(attrs, "equipmentId", "equipment_id")),
+                            timeRange(attr(attrs, "startTime", "start_time"), attr(attrs, "endTime", "end_time")),
+                            valueText("结论", defaultText(attr(params, "conclusion", "result"),
+                                    attr(attrs, "result", "status"))),
+                            valueText("推荐设备", attr(params, "recommendedDevice", "recommended_device")),
+                            text(attr(attrs, "remarks")))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+        }
+        if ("material_lot_trace".equals(table))
+        {
+            return manufacturingGroupedRow(table, "材料批次：" + defaultText(attr(attrs, "materialPn", "material_pn"),
+                    item.get("sourceRecordKey")),
+                    joinParts(Arrays.asList(valueText("批号", attr(attrs, "lotNumber", "lot_number",
+                            "batchNumber", "batch_number")),
+                            valueText("证书", attr(attrs, "millCertNumber", "mill_cert_number",
+                                    "certificateNo", "certificate_no")),
+                            valueText("供应商", attr(attrs, "supplier", "supplierName")),
+                            valueText("用量", quantityWithUnit(attrs)))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+        }
+        if ("quality_characteristic".equals(table))
+        {
+            return manufacturingGroupedRow(table, "质量特性：" + defaultText(attr(attrs, "characteristicName", "characteristic_name"),
+                    attr(attrs, "characteristicCode", "characteristic_code")),
+                    joinParts(Arrays.asList(valueText("目标", attr(attrs, "nominalValue", "nominal_value")),
+                            valueText("范围", limitRange(attrs)),
+                            valueText("方法", attr(attrs, "inspectionMethod", "inspection_method")),
+                            valueText("风险", attr(attrs, "riskLevel", "risk_level")))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+        }
+        if ("manufacturing_anomaly".equals(table))
+        {
+            return manufacturingGroupedRow(table, "制造异常：" + defaultText(attr(attrs, "anomalyNumber", "anomaly_number"),
+                    item.get("sourceRecordKey")),
+                    joinParts(Arrays.asList(text(attr(attrs, "anomalyName", "anomaly_name", "title")),
+                            valueText("状态", readableStatus(attr(attrs, "status"))),
+                            valueText("处置", attr(attrs, "resolution", "resolutionAction",
+                                    "resolution_action")))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+        }
+        if ("nonconformance_record".equals(table))
+        {
+            return manufacturingGroupedRow(table,
+                    "问题闭环：" + defaultText(attr(attrs, "ncNumber", "nc_number"), item.get("sourceRecordKey")),
+                    joinParts(Arrays.asList(text(attr(attrs, "ncTitle", "nc_title", "title")),
+                            valueText("状态", readableStatus(attr(attrs, "status"))),
+                            valueText("处置", attr(attrs, "disposition", "dispositionResult",
+                                    "disposition_result")),
+                            valueText("关闭", attr(attrs, "closedAt", "closed_at")))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+        }
+        if ("release_record".equals(table))
+        {
+            return manufacturingGroupedRow(table, "制造放行：" + defaultText(attr(attrs, "releaseNumber", "release_number"),
+                    item.get("sourceRecordKey")),
+                    joinParts(Arrays.asList(valueText("状态", readableStatus(attr(attrs, "releaseStatus",
+                            "release_status", "status"))),
+                            valueText("放行人", attr(attrs, "releasedBy", "released_by")),
+                            valueText("时间", attr(attrs, "releasedAt", "released_at")),
+                            valueText("依据", attr(attrs, "releaseBasis", "release_basis")))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+        }
+        return manufacturingGroupedRow(table, defaultText(item.get("itemName"), item.get("itemCode")),
+                defaultText(item.get("contentSummary"), item.get("sourceRecordKey")),
+                defaultText(item.get("completenessStatus"), item.get("itemStatus")));
+    }
+
+    private Map<String, Object> inspectionRow(Map<String, Object> item)
+    {
+        Map<String, Object> attrs = castMap(item.get("attrs"));
+        String table = logicalSourceTable(defaultText(attrs.get("actualSourceTable"), item.get("sourceTable")));
+        if ("inspection_record".equals(table))
+        {
+            Map<String, Object> values = parseJsonObject(attr(attrs, "measurementValues", "measurement_values"));
+            Object result = defaultText(attr(attrs, "result", "resultStatus", "result_status"),
+                    item.get("itemStatus"));
+            return inspectionGroupedRow(table,
+                    "检验单：" + defaultText(attr(attrs, "inspectionType", "inspection_type"),
+                            defaultText(item.get("itemName"), item.get("sourceRecordKey"))),
+                    joinParts(Arrays.asList(
+                            valueText("规范", attr(attrs, "inspectionStdDoc", "inspection_std_doc")),
+                            valueText("结论", readableStatus(result)),
+                            valueText("日期", attr(attrs, "inspectionDate", "inspection_date", "eventTime",
+                                    "event_time")),
+                            valueText("检验员", attr(attrs, "inspectorId", "inspector_id")),
+                            inspectionMeasurementValues(values),
+                            cleanInspectionSummary(item.get("contentSummary")))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")), result);
+        }
+        if ("inspection_measurement".equals(table))
+        {
+            Object result = attr(attrs, "resultFlag", "result_flag");
+            return inspectionGroupedRow(table,
+                    "测量项：" + defaultText(attr(attrs, "indicatorName", "indicator_name"),
+                            defaultText(item.get("itemName"), attr(attrs, "indicatorCode", "indicator_code"))),
+                    joinParts(Arrays.asList(
+                            valueText("实测", measuredValueWithUnit(attrs)),
+                            valueText("名义值", valueWithUnit(attr(attrs, "nominalValue", "nominal_value"),
+                                    attr(attrs, "unit"))),
+                            valueText("允许范围", limitRange(attrs)),
+                            valueText("结论", readableStatus(result)),
+                            valueText("缺陷", attr(attrs, "defectCode", "defect_code", "defectLevel",
+                                    "defect_level")),
+                            cleanMeasurementSummary(item.get("contentSummary")))),
+                    defaultText(item.get("completenessStatus"), item.get("itemStatus")), result);
+        }
+        return inspectionGroupedRow(table, defaultText(item.get("itemName"), item.get("itemCode")),
+                defaultText(item.get("contentSummary"), item.get("sourceRecordKey")),
+                defaultText(item.get("completenessStatus"), item.get("itemStatus")), item.get("itemStatus"));
+    }
+
+    private Map<String, Object> inspectionGroupedRow(String table, Object name, Object value, Object status,
+            Object inspectionResult)
+    {
+        Map<String, Object> row = row(name, value, status);
+        row.put("groupKey", inspectionGroupKey(table, inspectionResult));
+        row.put("groupLabel", inspectionGroupLabel(table, inspectionResult));
+        row.put("groupOrder", inspectionGroupOrder(table, inspectionResult));
+        return row;
+    }
+
+    private String inspectionGroupKey(String table, Object inspectionResult)
+    {
+        String result = text(inspectionResult).toUpperCase();
+        if (result.contains("FAIL") || result.contains("CONCESSION") || result.contains("WARNING"))
+        {
+            return "issue";
+        }
+        if ("inspection_record".equals(table))
+        {
+            return "record";
+        }
+        if ("inspection_measurement".equals(table))
+        {
+            return "measurement";
+        }
+        if (table.contains("file") || table.contains("document"))
+        {
+            return "evidence";
+        }
+        return "other";
+    }
+
+    private String inspectionGroupLabel(String table, Object inspectionResult)
+    {
+        String group = inspectionGroupKey(table, inspectionResult);
+        if ("record".equals(group)) return "检验记录";
+        if ("measurement".equals(group)) return "测量明细";
+        if ("issue".equals(group)) return "问题与复验";
+        if ("evidence".equals(group)) return "证明附件";
+        return "其他检验数据";
+    }
+
+    private int inspectionGroupOrder(String table, Object inspectionResult)
+    {
+        String group = inspectionGroupKey(table, inspectionResult);
+        if ("record".equals(group)) return 10;
+        if ("measurement".equals(group)) return 20;
+        if ("issue".equals(group)) return 30;
+        if ("evidence".equals(group)) return 40;
+        return 90;
+    }
+
+    private Map<String, Object> manufacturingGroupedRow(String table, Object name, Object value, Object status)
+    {
+        Map<String, Object> row = row(name, value, status);
+        row.put("groupKey", manufacturingGroupKey(table));
+        row.put("groupLabel", manufacturingGroupLabel(table));
+        row.put("groupOrder", manufacturingGroupOrder(table));
+        return row;
+    }
+
+    private String manufacturingGroupKey(String table)
+    {
+        if ("shop_order".equals(table) || "process_route".equals(table))
+        {
+            return "overview";
+        }
+        if ("material_lot_trace".equals(table))
+        {
+            return "material";
+        }
+        if ("shop_order_task".equals(table) || "production_operation_record".equals(table)
+                || "assembly_record".equals(table))
+        {
+            return "operation";
+        }
+        if ("quality_characteristic".equals(table) || "inspection_record".equals(table)
+                || "inspection_measurement".equals(table))
+        {
+            return "quality";
+        }
+        if ("manufacturing_anomaly".equals(table) || "nonconformance_record".equals(table))
+        {
+            return "issue";
+        }
+        if ("release_record".equals(table))
+        {
+            return "release";
+        }
+        return "other";
+    }
+
+    private String manufacturingGroupLabel(String table)
+    {
+        String group = manufacturingGroupKey(table);
+        if ("overview".equals(group)) return "制造概况";
+        if ("material".equals(group)) return "来料与材料";
+        if ("operation".equals(group)) return "任务与加工";
+        if ("quality".equals(group)) return "质量检测";
+        if ("issue".equals(group)) return "异常与闭环";
+        if ("release".equals(group)) return "制造放行";
+        return "其他记录";
+    }
+
+    private int manufacturingGroupOrder(String table)
+    {
+        String group = manufacturingGroupKey(table);
+        if ("overview".equals(group)) return 10;
+        if ("material".equals(group)) return 20;
+        if ("operation".equals(group)) return 30;
+        if ("quality".equals(group)) return 40;
+        if ("issue".equals(group)) return 50;
+        if ("release".equals(group)) return 60;
+        return 90;
+    }
+
+    private String logicalSourceTable(Object sourceTable)
+    {
+        String table = canonicalSourceTable(sourceTable);
+        return table.startsWith("t1_") ? table.substring(3) : table;
+    }
+
+    private Object attr(Map<String, Object> attrs, String... fields)
+    {
+        for (String field : fields)
+        {
+            Object value = lookupAttr(attrs, field);
+            if (hasText(value))
+            {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private String quantityWithUnit(Map<String, Object> attrs)
+    {
+        Object quantity = attr(attrs, "quantityUsed", "quantity_used", "quantity", "usedQuantity",
+                "used_quantity");
+        if (!hasText(quantity))
+        {
+            return "";
+        }
+        return text(quantity) + text(attr(attrs, "unit", "uom"));
+    }
+
+    private String measuredValueWithUnit(Map<String, Object> attrs)
+    {
+        return valueWithUnit(attr(attrs, "measuredValue", "measured_value"), attr(attrs, "unit"));
+    }
+
+    private String valueWithUnit(Object value, Object unit)
+    {
+        if (!hasText(value))
+        {
+            return "";
+        }
+        return text(value) + text(unit);
+    }
+
+    private String limitRange(Map<String, Object> attrs)
+    {
+        String lower = text(attr(attrs, "lowerLimit", "lower_limit"));
+        String upper = text(attr(attrs, "upperLimit", "upper_limit"));
+        String unit = text(attr(attrs, "unit"));
+        if (!hasText(lower) && !hasText(upper))
+        {
+            return "";
+        }
+        return lower + " - " + upper + unit;
+    }
+
+    private String inspectionMeasurementValues(Map<String, Object> values)
+    {
+        if (values.isEmpty())
+        {
+            return "";
+        }
+        return joinParts(Arrays.asList(
+                valueText("项目", attr(values, "item", "stepName", "step_name", "kind")),
+                valueText("标准", attr(values, "standard")),
+                valueText("实测", attr(values, "actual")),
+                valueText("保压压力", valueWithUnit(attr(values, "holdPressureMpa", "hold_pressure_mpa"),
+                        "MPa")),
+                valueText("泄漏率", valueWithUnit(attr(values, "leakRateMlMin", "leak_rate_ml_min"),
+                        "mL/min")),
+                valueText("复核说明", attr(values, "reviewNote", "review_note"))));
+    }
+
+    private String cleanInspectionSummary(Object value)
+    {
+        String summary = text(value);
+        if (!hasText(summary))
+        {
+            return "";
+        }
+        return summary.replace("结果：PASS", "结果：合格")
+                .replace("结果：FAIL", "结果：不合格")
+                .replace("结果：CONCESSION", "结果：让步接收");
+    }
+
+    private String cleanMeasurementSummary(Object value)
+    {
+        String summary = cleanInspectionSummary(value);
+        if (!hasText(summary))
+        {
+            return "";
+        }
+        summary = summary.replace("实测：-，上限：-，下限：-，", "")
+                .replace("结论：PASS，", "结论：合格；")
+                .replace("结论：FAIL，", "结论：不合格；")
+                .replace("结论：WARNING，", "结论：需关注；");
+        return summary;
+    }
+
+    private String timeRange(Object start, Object finish)
+    {
+        if (!hasText(start) && !hasText(finish))
+        {
+            return "";
+        }
+        if (!hasText(start))
+        {
+            return "完成：" + text(finish);
+        }
+        if (!hasText(finish))
+        {
+            return "开始：" + text(start);
+        }
+        return text(start) + " 至 " + text(finish);
+    }
+
+    private String valueText(String label, Object value)
+    {
+        return hasText(value) ? label + "：" + text(value) : "";
+    }
+
+    private String joinParts(List<String> parts)
+    {
+        List<String> result = new ArrayList<>();
+        for (String part : parts)
+        {
+            if (hasText(part))
+            {
+                result.add(part);
+            }
+        }
+        return result.isEmpty() ? "-" : String.join("；", result);
+    }
+
+    private String readableStatus(Object value)
+    {
+        String status = text(value);
+        switch (status.toUpperCase())
+        {
+            case "CLOSED":
+                return "已归档";
+            case "COMPLETED":
+                return "已完成";
+            case "ACTIVE":
+                return "有效";
+            case "PASS":
+            case "PASSED":
+                return "合格";
+            case "FAIL":
+            case "FAILED":
+                return "不合格";
+            default:
+                return status;
+        }
     }
 
     private List<Map<String, Object>> basicRows(Map<String, Object> node, Map<String, Object> directory,
@@ -842,12 +1284,18 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         List<Map<String, Object>> fallback = new ArrayList<>();
         for (Map<String, Object> item : contentItems)
         {
+            String stage = text(item.get("lifecycleStage")).toUpperCase();
+            String itemType = text(item.get("itemType")).toLowerCase();
+            String sourceTable = text(item.get("sourceTable")).toLowerCase();
             String itemChapterId = contentItemChapterId(item);
             if (hasDirectoryChapter && hasText(itemChapterId))
             {
                 if (chapterId.equals(itemChapterId))
                 {
-                    exact.add(item);
+                    if (matchesDirectoryFilters(sourceTableSet, lifecycleStageSet, stage, sourceTable))
+                    {
+                        exact.add(item);
+                    }
                 }
                 continue;
             }
@@ -855,18 +1303,15 @@ public class DossierDetailServiceImpl implements IDossierDetailService
             {
                 continue;
             }
-            String stage = text(item.get("lifecycleStage")).toUpperCase();
-            String itemType = text(item.get("itemType")).toLowerCase();
-            String sourceTable = text(item.get("sourceTable")).toLowerCase();
             if (!sourceTableSet.isEmpty() && !lifecycleStageSet.isEmpty())
             {
-                if (sourceTableSet.contains(sourceTable) && lifecycleStageSet.contains(stage))
+                if (sourceTableMatches(sourceTableSet, sourceTable) && lifecycleStageSet.contains(stage))
                 {
                     fallback.add(item);
                 }
                 continue;
             }
-            if (!sourceTableSet.isEmpty() && sourceTableSet.contains(sourceTable))
+            if (!sourceTableSet.isEmpty() && sourceTableMatches(sourceTableSet, sourceTable))
             {
                 fallback.add(item);
                 continue;
@@ -882,6 +1327,35 @@ public class DossierDetailServiceImpl implements IDossierDetailService
             }
         }
         return exact.isEmpty() ? fallback : exact;
+    }
+
+    private boolean matchesDirectoryFilters(Set<String> sourceTableSet, Set<String> lifecycleStageSet, String stage,
+            String sourceTable)
+    {
+        if (!sourceTableSet.isEmpty() && !sourceTableMatches(sourceTableSet, sourceTable))
+        {
+            return false;
+        }
+        if (!lifecycleStageSet.isEmpty() && !lifecycleStageSet.contains(stage))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean sourceTableMatches(Set<String> expectedTables, String actualTable)
+    {
+        String table = text(actualTable).toLowerCase();
+        if (expectedTables.contains(table))
+        {
+            return true;
+        }
+        String logicalTable = table.startsWith("t1_") ? table.substring(3) : table;
+        if (expectedTables.contains(logicalTable))
+        {
+            return true;
+        }
+        return expectedTables.contains("t1_" + logicalTable);
     }
 
     private String contentItemChapterId(Map<String, Object> item)
@@ -923,7 +1397,9 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         }
         if ("inspection".equals(category))
         {
-            return "INSPECTION".equals(stage) || sourceTable.contains("inspection") || itemType.contains("inspection");
+            return "INSPECTION".equals(stage)
+                    || (sourceTable.contains("inspection") || itemType.contains("inspection"))
+                            && !"MANUFACTURING".equals(stage) && !"INSTALLATION".equals(stage);
         }
         if ("service".equals(category))
         {
