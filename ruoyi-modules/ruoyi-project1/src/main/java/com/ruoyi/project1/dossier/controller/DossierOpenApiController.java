@@ -16,6 +16,8 @@ import com.ruoyi.common.core.web.controller.BaseController;
 import com.ruoyi.common.core.web.domain.AjaxResult;
 import com.ruoyi.common.security.annotation.RequiresLogin;
 import com.ruoyi.project1.dossier.service.IDossierOpenApiService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/dossier/openapi")
@@ -296,6 +298,7 @@ public class DossierOpenApiController extends BaseController
     {
         return success(openApiService.writebackResult("quality_supervision", request));
     }
+
 
     @RequiresLogin
     @PostMapping("/writeback/fault-diagnosis-results")
