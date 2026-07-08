@@ -214,7 +214,12 @@
 
       <el-empty v-if="!currentTrace.id" description="请先从历史追溯问题表中选择一条追溯任务" />
 
-      <el-descriptions v-else :column="3" border>
+      <el-descriptions
+        v-else
+        :column="3"
+        border
+        class="current-trace-descriptions"
+      >
         <el-descriptions-item label="追溯任务编号">
           {{ currentTrace.traceNo }}
         </el-descriptions-item>
@@ -280,17 +285,10 @@
 
         <el-col :span="5">
           <el-button type="primary" icon="Connection" @click="handleImportDossier">
-            调用数字卷宗数据
+            读取数据
           </el-button>
         </el-col>
       </el-row>
-
-      <el-alert
-        class="mt15"
-        type="info"
-        show-icon
-        :closable="false"
-      />
 
       <el-table :data="attachmentList" border class="mt15">
         <el-table-column prop="fileName" label="附件名称" min-width="220" />
@@ -1949,6 +1947,12 @@ onActivated(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.current-trace-descriptions :deep(.el-descriptions__label) {
+  width: 140px;
+  min-width: 140px;
+  white-space: nowrap;
 }
 
 .header-tip {

@@ -286,13 +286,6 @@
           </div>
         </div>
 
-        <div class="detect-method-panel config-panel">
-          <div class="config-panel-title">检测方法</div>
-          <el-checkbox-group v-model="degradation_params.detection_methods" class="detect-method-list">
-            <el-checkbox value="kurtosis">峰度+3σ准则（对脉冲故障敏感）</el-checkbox>
-            <el-checkbox value="rms">RMS趋势（反映整体能量变化）</el-checkbox>
-          </el-checkbox-group>
-        </div>
       </div>
 
       <div class="degradation-status-layout">
@@ -358,7 +351,6 @@
           header-cell-class-name="degradation-result-table-header"
           empty-text="暂无检测结果"
         >
-          <el-table-column prop="method" label="检测方法" min-width="180" />
           <el-table-column prop="time" label="检测时间" min-width="180" />
           <el-table-column prop="result" label="检测结果" min-width="180" />
         </el-table>
@@ -857,12 +849,12 @@ const feature_params = reactive({
   channel: 'vertical',
   samplingRate: 25600
 })
+const DEFAULT_DEGRADATION_DETECTION_METHODS = ['kurtosis', 'rms']
 const degradation_params = reactive({
   window_size: '1.0',
   overlap_rate: '50',
   baseline_window_count: '500',
-  rms_sensitivity: 0.2,
-  detection_methods: ['kurtosis', 'rms']
+  rms_sensitivity: 0.2
 })
 const degradation_table_rows = ref([])
 const has_degradation_point = computed(() => {
@@ -2423,18 +2415,11 @@ function get_prevention_field(type) {
 function build_degradation_rows(value) {
   const data = value?.result && typeof value.result === 'object' ? value.result : value || {}
   const results = data.results && typeof data.results === 'object' ? data.results : {}
-  const methodNames = {
-    kurtosis_3sigma: '峰度+3σ准则',
-    kurtosis: '峰度+3σ准则',
-    rms_trend: 'RMS趋势',
-    rms: 'RMS趋势'
-  }
-  return Object.entries(results).map(([key, item]) => {
+  return Object.values(results).map((item) => {
     const row = item && typeof item === 'object' ? item : {}
     const time = row.degradationTime ?? row.degradation_time ?? ''
     const detected = row.detected === true
     return {
-      method: methodNames[key] || key,
       time: time === '' || time === null || time === undefined ? '--' : `${time}s`,
       result: detected ? '检测到退化点' : '未检测到退化点'
     }
@@ -3206,10 +3191,6 @@ async function handle_degradation_detect() {
     ElMessage.warning('未找到特征分析结果，无法进行退化点检测')
     return
   }
-  if (!degradation_params.detection_methods.length) {
-    ElMessage.warning('请至少选择一种检测方法')
-    return
-  }
 
   degrade_loading.value = true
   degrade_status.value = 'RUNNING'
@@ -3231,7 +3212,7 @@ async function handle_degradation_detect() {
       overlapRate: num_or(degradation_params.overlap_rate, 50),
       baselineWindowCount: num_or(degradation_params.baseline_window_count, 500),
       rmsSensitivity: num_or(degradation_params.rms_sensitivity, 0.2),
-      detectionMethods: [...degradation_params.detection_methods]
+      detectionMethods: [...DEFAULT_DEGRADATION_DETECTION_METHODS]
     }
   }
 
@@ -3503,36 +3484,12 @@ onBeforeUnmount(() => {
   width: 140px;
 }
 
-.detect-method-panel {
-  margin: 4px 0 18px;
-}
-
-.detect-method-title {
-  margin-bottom: 6px;
-  color: #001f3f;
-  font-size: 14px;
-}
-
 .section-title {
   font-size: 24px;
   font-weight: 700;
   color: #001f3f;
 }
 
-.detect-method-list {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid #dcdfe6;
-  background: #fff;
-}
-
-.detect-method-list :deep(.el-checkbox) {
-  height: auto;
-  margin-right: 0;
-}
 .signal-panel {
   margin-bottom: 20px;
   padding: 18px 16px 24px;
@@ -4295,7 +4252,7 @@ onBeforeUnmount(() => {
 
 .degradation-config-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.5fr);
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 18px;
 }
@@ -4336,13 +4293,6 @@ onBeforeUnmount(() => {
 .degradation-status-layout .degradation-task-status-row {
   align-items: center;
   justify-content: flex-end;
-}
-
-.detect-method-list {
-  padding: 14px 16px;
-  border-color: #e2e8f0;
-  border-radius: 8px;
-  background: #f8fafc;
 }
 
 /* Charts */

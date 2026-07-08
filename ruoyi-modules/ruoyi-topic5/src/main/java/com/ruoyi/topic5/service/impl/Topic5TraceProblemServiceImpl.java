@@ -775,7 +775,6 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     /**
      * 根据课题四故障标签筛选数字卷宗附件。
      *
-     * 规则：
      * faultLabel = 0 -> 第1~5个文件
      * faultLabel = 1 -> 第2~6个文件
      * faultLabel = 2 -> 第3~7个文件
@@ -1396,9 +1395,9 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             Topic5TraceAttachment updateAttachment = new Topic5TraceAttachment();
             updateAttachment.setId(item.getId());
             updateAttachment.setFileUrl(targetPath);
-            updateAttachment.setFileSource("课题五本地保存");
+            updateAttachment.setFileSource("本地保存");
             updateAttachment.setSavedFlag(1L);
-            updateAttachment.setRemark("已从数字卷宗源路径复制到课题五设置目录");
+            updateAttachment.setRemark("已从数字卷宗源路径复制到对应目录");
 
             traceAttachmentMapper.updateTopic5TraceAttachment(updateAttachment);
         }
@@ -3728,10 +3727,10 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
     {
         try (XWPFDocument document = new XWPFDocument())
         {
-            addTitle(document, "课题五质量追溯任务报告");
+            addTitle(document, "质量追溯任务报告");
 
             addParagraph(document, "报告生成时间：" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-            addParagraph(document, "本报告由课题五质量追溯系统自动生成，内容包括追溯任务基本信息、数字卷宗附件信息、第一部分算法结果、第二部分算法结果、最终溯源知识图谱与最终溯源结论。");
+            addParagraph(document, "本报告由质量追溯系统自动生成，内容包括追溯任务基本信息、数字卷宗附件信息、第一部分算法结果、第二部分算法结果、最终溯源知识图谱与最终溯源结论。");
 
             addSectionTitle(document, "一、追溯任务基本信息");
             addKeyValueTable(document, new String[][]{

@@ -39,19 +39,19 @@
         </div>
 
         <el-input
-          v-model="searchKeyword"
-          placeholder="搜索编号/标题"
-          clearable
-          class="history-search"
+            v-model="searchKeyword"
+            placeholder="搜索编号/标题"
+            clearable
+            class="history-search"
         />
 
         <div class="problem-list">
           <div
-            v-for="item in filteredProblemList"
-            :key="item.problemId"
-            class="problem-item"
-            :class="{ active: currentProblem && currentProblem.problemId === item.problemId }"
-            @click="selectProblem(item)"
+              v-for="item in filteredProblemList"
+              :key="item.problemId"
+              class="problem-item"
+              :class="{ active: currentProblem && currentProblem.problemId === item.problemId }"
+              @click="selectProblem(item)"
           >
             <div class="problem-item-top">
               <span class="problem-code">{{ item.problemCode }}</span>
@@ -71,9 +71,9 @@
           </div>
 
           <el-empty
-            v-if="filteredProblemList.length === 0"
-            description="暂无匹配问题"
-            :image-size="80"
+              v-if="filteredProblemList.length === 0"
+              description="暂无匹配问题"
+              :image-size="80"
           />
         </div>
       </section>
@@ -89,11 +89,11 @@
         </div>
 
         <el-form
-          ref="problemFormRef"
-          :model="problemForm"
-          :rules="problemRules"
-          label-width="110px"
-          class="problem-form"
+            ref="problemFormRef"
+            :model="problemForm"
+            :rules="problemRules"
+            label-width="110px"
+            class="problem-form"
         >
           <el-row :gutter="16">
             <el-col :span="12">
@@ -105,11 +105,11 @@
             <el-col :span="6">
               <el-form-item label="发生时间" prop="occurTime">
                 <el-date-picker
-                  v-model="problemForm.occurTime"
-                  type="datetime"
-                  placeholder="选择发生时间"
-                  value-format="YYYY-MM-DD HH:mm:ss"
-                  style="width: 100%"
+                    v-model="problemForm.occurTime"
+                    type="datetime"
+                    placeholder="选择发生时间"
+                    value-format="YYYY-MM-DD HH:mm:ss"
+                    style="width: 100%"
                 />
               </el-form-item>
             </el-col>
@@ -123,11 +123,11 @@
             <el-col :span="6">
               <el-form-item label="涉及系统" prop="involvedSystem">
                 <el-select
-                  v-model="problemForm.involvedSystem"
-                  placeholder="请选择涉及系统"
-                  clearable
-                  filterable
-                  style="width: 100%"
+                    v-model="problemForm.involvedSystem"
+                    placeholder="请选择涉及系统"
+                    clearable
+                    filterable
+                    style="width: 100%"
                 >
                   <el-option label="液压系统" value="液压系统" />
                   <el-option label="电气系统" value="电气系统" />
@@ -187,10 +187,10 @@
             <el-col :span="24">
               <el-form-item label="问题描述" prop="description">
                 <el-input
-                  v-model="problemForm.description"
-                  type="textarea"
-                  :rows="4"
-                  placeholder="请输入问题现象、发生位置、影响范围、异常表现等信息"
+                    v-model="problemForm.description"
+                    type="textarea"
+                    :rows="4"
+                    placeholder="请输入问题现象、发生位置、影响范围、异常表现等信息"
                 />
               </el-form-item>
             </el-col>
@@ -198,10 +198,10 @@
             <el-col :span="24">
               <el-form-item label="影响范围">
                 <el-input
-                  v-model="problemForm.influenceScope"
-                  type="textarea"
-                  :rows="3"
-                  placeholder="选填，例如：影响某批次产品、某试验环节或某部件功能"
+                    v-model="problemForm.influenceScope"
+                    type="textarea"
+                    :rows="3"
+                    placeholder="选填，例如：影响某批次产品、某试验环节或某部件功能"
                 />
               </el-form-item>
             </el-col>
@@ -217,11 +217,11 @@
             </el-button>
 
             <el-button
-              type="danger"
-              plain
-              :loading="deleteLoading"
-              :disabled="!currentProblem"
-              @click="deleteSelectedProblem"
+                type="danger"
+                plain
+                :loading="deleteLoading"
+                :disabled="!currentProblem"
+                @click="deleteSelectedProblem"
             >
               删除选中问题
             </el-button>
@@ -240,8 +240,8 @@
       </div>
 
       <el-empty
-        v-if="!currentProblem"
-        description="请先在左侧选择一个问题，或在右侧新建质量问题"
+          v-if="!currentProblem"
+          description="请先在左侧选择一个问题，或在右侧新建质量问题"
       />
 
       <template v-else>
@@ -281,11 +281,11 @@
 
             <div class="module-list-vertical">
               <div
-                v-for="module in workModules"
-                :key="module.moduleCode"
-                class="module-item-vertical"
-                :class="{ selected: selectedModuleCode === module.moduleCode }"
-                @click="selectModule(module.moduleCode)"
+                  v-for="module in workModules"
+                  :key="module.moduleCode"
+                  class="module-item-vertical"
+                  :class="{ selected: selectedModuleCode === module.moduleCode }"
+                  @click="selectModule(module.moduleCode)"
               >
                 <div class="module-name">{{ getModuleDisplayName(module) }}</div>
                 <div class="module-desc">{{ module.description }}</div>
@@ -293,34 +293,34 @@
             </div>
 
             <el-input
-              v-model="dispatchOpinion"
-              type="textarea"
-              :rows="4"
-              placeholder="请输入本轮分派说明"
+                v-model="dispatchOpinion"
+                type="textarea"
+                :rows="4"
+                placeholder="请输入本轮分派说明"
             />
 
             <div class="workflow-button-row">
               <el-button
-                type="primary"
-                :loading="dispatchLoading"
-                :disabled="currentProblem.status === 'FINISHED'"
-                @click="dispatchSelectedModule"
+                  type="primary"
+                  :loading="dispatchLoading"
+                  :disabled="currentProblem.status === 'FINISHED'"
+                  @click="dispatchSelectedModule"
               >
                 分派到选中模块
               </el-button>
 
               <el-button
-                type="success"
-                plain
-                :disabled="!selectedModuleCode"
-                @click="goToSelectedModule"
+                  type="success"
+                  plain
+                  :disabled="!selectedModuleCode"
+                  @click="goToSelectedModule"
               >
                 进入选中模块
               </el-button>
 
             </div>
 
-            
+
           </div>
 
           <div class="log-flow-layout">
@@ -333,10 +333,10 @@
               <div class="log-scroll">
                 <div v-if="taskFlowRecords.length > 0" class="dispatch-log-list">
                   <div
-                    v-for="record in taskFlowRecords"
-                    :key="record.taskId"
-                    class="dispatch-log-card"
-                    :class="getFlowRecordCardClass(record.taskStatus)"
+                      v-for="record in taskFlowRecords"
+                      :key="record.taskId"
+                      class="dispatch-log-card"
+                      :class="getFlowRecordCardClass(record.taskStatus)"
                   >
                     <div class="dispatch-log-main">
                       <div class="dispatch-log-top">
@@ -346,8 +346,8 @@
                         </div>
 
                         <span
-                          class="process-state"
-                          :class="getProcessStateClass(record.taskStatus)"
+                            class="process-state"
+                            :class="getProcessStateClass(record.taskStatus)"
                         >
                           {{ getProcessStateText(record.taskStatus) }}
                         </span>
@@ -362,8 +362,8 @@
                         <div class="log-line">
                           <span class="log-label">处理状态</span>
                           <span
-                            class="module-process-text"
-                            :class="getProcessStateClass(record.taskStatus)"
+                              class="module-process-text"
+                              :class="getProcessStateClass(record.taskStatus)"
                           >
                             {{ getModuleProcessSentence(record.taskStatus) }}
                           </span>
@@ -376,8 +376,23 @@
 
                         <div v-if="record.processResult" class="log-line result-line">
                           <span class="log-label">处理结果</span>
-                          <span class="process-result-content">
+
+                          <div
+                            v-if="record.moduleCode === 'PROJECT_3'"
+                            class="process-result-display"
+                          >
+                            <div
+                              v-for="item in formatProcessResultLines(record)"
+                              :key="item.label"
+                              class="process-result-row"
+                            >
+                              <span class="process-result-label">{{ item.label }}</span>
+                              <span class="process-result-value">{{ item.value }}</span>
+                            </div>
+                          </div>
+                          <span v-else class="process-result-content">
                             <span>{{ formatProcessResult(record.processResult) }}</span>
+
                             <el-button
                               v-if="isDesignModuleTask(record) && !record.processFile"
                               link
@@ -395,17 +410,17 @@
                           <span class="log-label">结果报告</span>
                           <span class="report-action">
                             <el-button
-                              link
-                              type="primary"
-                              @click.stop="handlePreviewProcessFile(record)"
+                                link
+                                type="primary"
+                                @click.stop="handlePreviewProcessFile(record)"
                             >
                               预览Word报告
                             </el-button>
 
                             <el-button
-                              link
-                              type="success"
-                              @click.stop="handleOpenProcessFile(record)"
+                                link
+                                type="success"
+                                @click.stop="handleOpenProcessFile(record)"
                             >
                               新窗口打开
                             </el-button>
@@ -416,19 +431,19 @@
 
                     <div class="dispatch-log-side">
                       <el-button
-                        v-if="record.taskStatus === 'SUBMITTED'"
-                        size="small"
-                        type="warning"
-                        plain
-                        @click="confirmTask(record)"
+                          v-if="record.taskStatus === 'SUBMITTED'"
+                          size="small"
+                          type="warning"
+                          plain
+                          @click="confirmTask(record)"
                       >
                         待确认
                       </el-button>
 
                       <div v-else class="side-status">
                         <span
-                          class="confirm-state"
-                          :class="getConfirmStateClass(record.taskStatus)"
+                            class="confirm-state"
+                            :class="getConfirmStateClass(record.taskStatus)"
                         >
                           {{ getConfirmStateText(record.taskStatus) }}
                         </span>
@@ -442,9 +457,9 @@
                 </div>
 
                 <el-empty
-                  v-else
-                  description="暂无模块分派日志"
-                  :image-size="90"
+                    v-else
+                    description="暂无模块分派日志"
+                    :image-size="90"
                 />
               </div>
             </div>
@@ -456,11 +471,11 @@
               </div>
 
               <el-steps
-                :active="workflowActiveStep"
-                direction="vertical"
-                finish-status="success"
-                process-status="process"
-                class="vertical-steps"
+                  :active="workflowActiveStep"
+                  direction="vertical"
+                  finish-status="success"
+                  process-status="process"
+                  class="vertical-steps"
               >
                 <el-step title="问题填报" description="问题已创建" />
                 <el-step title="问题处理" description="模块分派与处理" />
@@ -479,21 +494,21 @@
 
             <div class="task-action-buttons">
               <el-button
-                type="success"
-                plain
-                :loading="finishLoading"
-                :disabled="currentProblem.status === 'FINISHED'"
-                @click="finishProblem"
+                  type="success"
+                  plain
+                  :loading="finishLoading"
+                  :disabled="currentProblem.status === 'FINISHED'"
+                  @click="finishProblem"
               >
                 结束问题
               </el-button>
 
               <el-button
-                type="primary"
-                plain
-                :loading="reportLoading"
-                :disabled="!currentProblem"
-                @click="generateProblemReport"
+                  type="primary"
+                  plain
+                  :loading="reportLoading"
+                  :disabled="!currentProblem"
+                  @click="generateProblemReport"
               >
                 生成报告
               </el-button>
@@ -516,7 +531,7 @@
             <el-table-column prop="dispatchOpinion" label="分派说明" show-overflow-tooltip />
             <el-table-column prop="processResult" label="处理结果摘要" min-width="260" show-overflow-tooltip>
               <template #default="scope">
-                {{ scope.row.processResult || '-' }}
+                {{ formatProcessResultSummary(scope.row) }}
               </template>
             </el-table-column>
 
@@ -524,17 +539,17 @@
               <template #default="scope">
                 <template v-if="scope.row.processFile">
                   <el-button
-                    link
-                    type="primary"
-                    @click.stop="handlePreviewProcessFile(scope.row)"
+                      link
+                      type="primary"
+                      @click.stop="handlePreviewProcessFile(scope.row)"
                   >
                     预览Word报告
                   </el-button>
 
                   <el-button
-                    link
-                    type="success"
-                    @click.stop="handleOpenProcessFile(scope.row)"
+                      link
+                      type="success"
+                      @click.stop="handleOpenProcessFile(scope.row)"
                   >
                     打开
                   </el-button>
@@ -549,18 +564,18 @@
             <el-table-column label="操作" width="160" fixed="right">
               <template #default="scope">
                 <el-button
-                  v-if="scope.row.taskStatus === 'SUBMITTED'"
-                  size="small"
-                  type="success"
-                  plain
-                  @click="confirmTask(scope.row)"
+                    v-if="scope.row.taskStatus === 'SUBMITTED'"
+                    size="small"
+                    type="success"
+                    plain
+                    @click="confirmTask(scope.row)"
                 >
                   结果确认
                 </el-button>
 
                 <span
-                  v-else-if="['UNSTARTED', 'DISPATCHED', 'PROCESSING', 'PENDING_BACKFILL'].includes(scope.row.taskStatus)"
-                  class="wait-action"
+                    v-else-if="['UNSTARTED', 'DISPATCHED', 'PROCESSING', 'PENDING_BACKFILL'].includes(scope.row.taskStatus)"
+                    class="wait-action"
                 >
                   {{ getConfirmStateText(scope.row.taskStatus) }}
                 </span>
@@ -575,25 +590,25 @@
       </template>
     </section>
     <el-dialog
-      :title="reportPreviewTitle"
-      v-model="reportPreviewOpen"
-      width="90%"
-      append-to-body
-      destroy-on-close
+        :title="reportPreviewTitle"
+        v-model="reportPreviewOpen"
+        width="90%"
+        append-to-body
+        destroy-on-close
     >
       <div class="word-preview-wrapper">
         <VueOfficeDocx
-          v-if="reportPreviewUrl"
-          :src="reportPreviewUrl"
-          style="height: 100%;"
+            v-if="reportPreviewUrl"
+            :src="reportPreviewUrl"
+            style="height: 100%;"
         />
       </div>
 
       <template #footer>
         <el-button @click="reportPreviewOpen = false">关闭</el-button>
         <el-button
-          type="primary"
-          @click="handleOpenPreviewUrl"
+            type="primary"
+            @click="handleOpenPreviewUrl"
         >
           新窗口打开
         </el-button>
@@ -601,29 +616,29 @@
     </el-dialog>
 
     <el-dialog
-      :title="designReportPreviewTitle"
-      v-model="designReportPreviewOpen"
-      width="88%"
-      append-to-body
-      destroy-on-close
+        :title="designReportPreviewTitle"
+        v-model="designReportPreviewOpen"
+        width="88%"
+        append-to-body
+        destroy-on-close
     >
       <div v-if="designReportPreviewHtml" class="design-report-preview-wrapper">
         <article class="design-report-paper" v-html="designReportPreviewHtml"></article>
       </div>
 
       <el-empty
-        v-else
-        description="暂无可预览的优化方案报告正文"
-        :image-size="100"
+          v-else
+          description="暂无可预览的优化方案报告正文"
+          :image-size="100"
       />
 
       <template #footer>
         <el-button @click="designReportPreviewOpen = false">关闭</el-button>
         <el-button
-          type="primary"
-          icon="Download"
-          :disabled="!designReportDownloadFileId && !designReportPreviewHtml"
-          @click="downloadDesignReportAttachment"
+            type="primary"
+            icon="Download"
+            :disabled="!designReportDownloadFileId && !designReportPreviewHtml"
+            @click="downloadDesignReportAttachment"
         >
           下载附件
         </el-button>
@@ -713,9 +728,9 @@ const notifyCurrentTaskChanged = (moduleCode, payload = {}) => {
 
   // 1. 同一个浏览器窗口 / RuoYi 多标签页内通知
   window.dispatchEvent(
-    new CustomEvent(QMS_TASK_EVENT_NAME, {
-      detail: eventData
-    })
+      new CustomEvent(QMS_TASK_EVENT_NAME, {
+        detail: eventData
+      })
   )
 
   // 2. 其他浏览器标签页也能收到 storage 变化
@@ -890,6 +905,185 @@ const getModuleDisplayName = (module) => {
   return moduleDisplayNames[module.moduleCode] || module.moduleName || '课题模块'
 }
 
+
+const project3ProcessResultFields = [
+  {
+    label: '关键质量特性',
+    paths: ['keyQualityCharacteristics.targetKqc', 'keyQualityCharacteristics.summary']
+  },
+  {
+    label: '关键工序',
+    paths: ['keyProcess.keyProcessName', 'keyProcess.keyProcessCode', 'keyProcess.summary']
+  },
+  {
+    label: '异常检测',
+    paths: ['processAnomaly.summary', 'processAnomaly.abnormalLevel', 'processAnomaly.abnormalScore']
+  },
+  {
+    label: '早期退化点',
+    paths: ['earlyDegradationPoint.summary', 'earlyDegradationPoint.degradationPoint']
+  },
+  {
+    label: '风险等级',
+    paths: ['faultPrediction.riskLevel']
+  },
+  {
+    label: '风险评分',
+    paths: ['faultPrediction.riskScore']
+  },
+  {
+    label: '预测剩余寿命',
+    paths: ['faultPrediction.predictedRemainingLife', 'faultPrediction.remainingLife']
+  },
+  {
+    label: '维修建议',
+    paths: ['faultPrediction.maintenanceAdvice']
+  },
+  {
+    label: '结果摘要',
+    paths: ['faultPrediction.summary']
+  }
+]
+
+const processResultLabelMap = {
+  taskId: '任务编号',
+  task_id: '任务编号',
+  flowTaskId: '流程任务编号',
+  flow_task_id: '流程任务编号',
+  status: '处理状态',
+  result: '处理结果',
+  errorMessage: '错误信息',
+  error_message: '错误信息',
+  summary: '结果摘要',
+  riskLevel: '风险等级',
+  risk_level: '风险等级',
+  riskScore: '风险评分',
+  risk_score: '风险评分',
+  predictedRemainingLife: '预测剩余寿命',
+  predicted_remaining_life: '预测剩余寿命',
+  remainingLife: '剩余寿命',
+  remaining_life: '剩余寿命',
+  maintenanceAdvice: '维修建议',
+  maintenance_advice: '维修建议',
+  abnormalLevel: '异常等级',
+  abnormal_level: '异常等级',
+  abnormalScore: '异常评分',
+  abnormal_score: '异常评分',
+  degradationPoint: '退化点',
+  degradation_point: '退化点',
+  keyProcessName: '关键工序',
+  key_process_name: '关键工序',
+  keyProcessCode: '关键工序编号',
+  key_process_code: '关键工序编号',
+  targetKqc: '关键质量特性',
+  target_kqc: '关键质量特性',
+  conclusion: '处理结论',
+  message: '提示信息',
+  moduleCode: '模块编码',
+  moduleName: '模块名称',
+  resultType: '结果类型',
+  suggestion: '处理建议',
+  generateTime: '生成时间',
+  reportFileName: '报告文件',
+  reportFilePath: '报告路径',
+  reportTitle: '报告标题'
+}
+
+const getValueByPath = (source, path) => {
+  if (!source || !path) return undefined
+
+  return path.split('.').reduce((current, key) => {
+    if (current === undefined || current === null) return undefined
+    return current[key]
+  }, source)
+}
+
+const formatProcessResultValue = (value) => {
+  if (value === undefined || value === null || value === '') return ''
+  if (value === true || value === 'true') return '是'
+  if (value === false || value === 'false') return '否'
+
+  if (Array.isArray(value)) {
+    return value
+        .map((item) => formatProcessResultValue(item))
+        .filter(Boolean)
+        .join('；')
+  }
+
+  if (typeof value === 'object') {
+    return Object.entries(value)
+        .map(([key, item]) => {
+          const text = formatProcessResultValue(item)
+          return text ? `${processResultLabelMap[key] || key}：${text}` : ''
+        })
+        .filter(Boolean)
+        .join('；')
+  }
+
+  return String(value)
+}
+
+const buildProject3ProcessResultLines = (result) => {
+  const source = result?.result && typeof result.result === 'object' ? result.result : result
+
+  return project3ProcessResultFields
+      .map((field) => {
+        const value = field.paths
+            .map((path) => formatProcessResultValue(getValueByPath(source, path)))
+            .find(Boolean)
+
+        return value ? { label: field.label, value } : null
+      })
+      .filter(Boolean)
+}
+
+const buildGenericProcessResultLines = (result, parentLabel = '') => {
+  if (!result || typeof result !== 'object') {
+    const value = formatProcessResultValue(result)
+    return value ? [{ label: parentLabel || '处理结果', value }] : []
+  }
+
+  return Object.entries(result).flatMap(([key, value]) => {
+    if (value === undefined || value === null || value === '') return []
+
+    const label = processResultLabelMap[key] || parentLabel || key
+
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      const nested = buildGenericProcessResultLines(value, label)
+      return nested.length ? nested : []
+    }
+
+    const text = formatProcessResultValue(value)
+    return text ? [{ label, value: text }] : []
+  })
+}
+
+const formatProcessResultLines = (row) => {
+  const rawValue = row?.processResult || ''
+  const parsed = parseProcessResult(rawValue)
+
+  if (!parsed || Object.keys(parsed).length === 0) {
+    return rawValue ? [{ label: '处理结果', value: rawValue }] : []
+  }
+
+  const lines = row?.moduleCode === 'PROJECT_3'
+      ? buildProject3ProcessResultLines(parsed)
+      : buildGenericProcessResultLines(parsed)
+
+  return lines.length ? lines.slice(0, 8) : [{ label: '处理结果', value: '已完成处理' }]
+}
+
+const formatProcessResultSummary = (row) => {
+  const lines = formatProcessResultLines(row)
+
+  if (!lines.length) return '-'
+
+  return lines
+      .slice(0, 3)
+      .map((item) => `${item.label}：${item.value}`)
+      .join('；')
+}
+
 const workModules = ref([])
 const problemList = ref([])
 
@@ -912,18 +1106,18 @@ const loadModules = async () => {
 
     if (rows.length > 0) {
       workModules.value = rows
-        .map((item) => {
-          return {
-            moduleCode: item.moduleCode,
-            moduleName: item.moduleName,
-            moduleType: item.moduleType || 'TOPIC',
-            description: item.moduleDesc || item.description || '',
-            route: item.moduleRoute || item.route || ''
-          }
-        })
-        .filter((item) => {
-          return !HIDDEN_WORK_MODULE_CODES.includes(item.moduleCode)
-        })
+          .map((item) => {
+            return {
+              moduleCode: item.moduleCode,
+              moduleName: item.moduleName,
+              moduleType: item.moduleType || 'TOPIC',
+              description: item.moduleDesc || item.description || '',
+              route: item.moduleRoute || item.route || ''
+            }
+          })
+          .filter((item) => {
+            return !HIDDEN_WORK_MODULE_CODES.includes(item.moduleCode)
+          })
     } else {
       workModules.value = defaultModules.filter((item) => {
         return !HIDDEN_WORK_MODULE_CODES.includes(item.moduleCode)
@@ -980,11 +1174,11 @@ const loadProblemList = async (options = {}) => {
     console.error('加载质量问题列表失败：', error)
 
     const realMsg =
-      error?.response?.data?.msg ||
-      error?.data?.msg ||
-      error?.msg ||
-      error?.message ||
-      String(error)
+        error?.response?.data?.msg ||
+        error?.data?.msg ||
+        error?.msg ||
+        error?.message ||
+        String(error)
 
     ElMessage.error(`加载质量问题列表失败：${realMsg}`)
   } finally {
@@ -1108,10 +1302,10 @@ const workflowActiveStep = computed(() => {
   // 只要已经分派过任务，就保持在“问题处理”阶段
   // 效果：问题填报绿色，问题处理蓝色，问题结束灰色
   if (
-    status === 'PROCESSING' ||
-    status === 'WAIT_CONFIRM' ||
-    status === 'CONFIRMED' ||
-    tasks.length > 0
+      status === 'PROCESSING' ||
+      status === 'WAIT_CONFIRM' ||
+      status === 'CONFIRMED' ||
+      tasks.length > 0
   ) {
     return 1
   }
@@ -1131,12 +1325,12 @@ const taskFlowRecords = computed(() => {
   }
 
   return [...currentProblem.value.tasks]
-    .map((item) => normalizeTask(item))
-    .sort((a, b) => {
-      const at = a.dispatchTime || a.createTime || ''
-      const bt = b.dispatchTime || b.createTime || ''
-      return bt.localeCompare(at)
-    })
+      .map((item) => normalizeTask(item))
+      .sort((a, b) => {
+        const at = a.dispatchTime || a.createTime || ''
+        const bt = b.dispatchTime || b.createTime || ''
+        return bt.localeCompare(at)
+      })
 })
 
 const getLatestTaskForModule = (moduleCode) => {
@@ -1145,13 +1339,13 @@ const getLatestTaskForModule = (moduleCode) => {
   }
 
   return [...currentProblem.value.tasks]
-    .filter((item) => item.moduleCode === moduleCode)
-    .sort((a, b) => {
-      const at = new Date(a.dispatchTime || a.createTime || 0).getTime()
-      const bt = new Date(b.dispatchTime || b.createTime || 0).getTime()
-      if (bt !== at) return bt - at
-      return Number(b.taskId || 0) - Number(a.taskId || 0)
-    })[0] || null
+      .filter((item) => item.moduleCode === moduleCode)
+      .sort((a, b) => {
+        const at = new Date(a.dispatchTime || a.createTime || 0).getTime()
+        const bt = new Date(b.dispatchTime || b.createTime || 0).getTime()
+        if (bt !== at) return bt - at
+        return Number(b.taskId || 0) - Number(a.taskId || 0)
+      })[0] || null
 }
 
 const fetchLatestTaskForModule = async (moduleCode) => {
@@ -1169,13 +1363,13 @@ const fetchLatestTaskForModule = async (moduleCode) => {
 
     const rows = Array.isArray(res?.rows) ? res.rows : []
     return rows
-      .filter((item) => item.moduleCode === moduleCode)
-      .sort((a, b) => {
-        const at = new Date(a.dispatchTime || a.createTime || 0).getTime()
-        const bt = new Date(b.dispatchTime || b.createTime || 0).getTime()
-        if (bt !== at) return bt - at
-        return Number(b.taskId || 0) - Number(a.taskId || 0)
-      })[0] || null
+        .filter((item) => item.moduleCode === moduleCode)
+        .sort((a, b) => {
+          const at = new Date(a.dispatchTime || a.createTime || 0).getTime()
+          const bt = new Date(b.dispatchTime || b.createTime || 0).getTime()
+          if (bt !== at) return bt - at
+          return Number(b.taskId || 0) - Number(a.taskId || 0)
+        })[0] || null
   } catch (error) {
     console.warn('查询最新模块分派任务失败：', error)
     return null
@@ -1198,13 +1392,13 @@ const deleteSelectedProblem = async () => {
 
   try {
     await ElMessageBox.confirm(
-      `确认删除当前选中的质量问题？\n${problem.problemCode || ''}｜${problem.title || ''}`,
-      '删除确认',
-      {
-        confirmButtonText: '确认删除',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+        `确认删除当前选中的质量问题？\n${problem.problemCode || ''}｜${problem.title || ''}`,
+        '删除确认',
+        {
+          confirmButtonText: '确认删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
     )
 
     deleteLoading.value = true
@@ -1226,11 +1420,11 @@ const deleteSelectedProblem = async () => {
       console.error('删除选中问题失败：', error)
 
       const realMsg =
-        error?.response?.data?.msg ||
-        error?.data?.msg ||
-        error?.msg ||
-        error?.message ||
-        String(error)
+          error?.response?.data?.msg ||
+          error?.data?.msg ||
+          error?.msg ||
+          error?.message ||
+          String(error)
 
       ElMessage.error(`删除选中问题失败：${realMsg}`)
     }
@@ -1346,8 +1540,8 @@ const dispatchSelectedModule = async () => {
   const opinion = dispatchOpinion.value || `请处理该质量问题。`
   const initialTaskStatus = module.moduleCode === DESIGN_MODULE_CODE ? 'UNSTARTED' : 'PROCESSING'
   const dispatchActionContent = module.moduleCode === DESIGN_MODULE_CODE
-    ? `已分派至${module.moduleName}，等待设计制造协同优化平台开始处置。分派说明：${opinion}`
-    : `已分派至${module.moduleName}，${module.moduleName}正在处理。分派说明：${opinion}`
+      ? `已分派至${module.moduleName}，等待设计制造协同优化平台开始处置。分派说明：${opinion}`
+      : `已分派至${module.moduleName}，${module.moduleName}正在处理。分派说明：${opinion}`
   let latestModuleTask = null
 
   try {
@@ -1654,7 +1848,7 @@ const handlePreviewProcessFile = async (row) => {
     const objectUrl = window.URL.createObjectURL(blob)
 
     reportPreviewUrl.value = objectUrl
-    reportPreviewTitle.value = `${row.problemCode || currentProblem.value?.problemCode || ''} 课题五追溯报告预览`
+    reportPreviewTitle.value = `${row.problemCode || currentProblem.value?.problemCode || ''} 追溯报告预览`
     reportPreviewOpen.value = true
   } catch (error) {
     console.error('预览Word报告失败：', error)
@@ -1715,11 +1909,11 @@ const firstValue = (...values) => {
 
 const escapeHtml = (value) => {
   return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
 }
 
 const isDesignModuleTask = (row) => {
@@ -1727,10 +1921,10 @@ const isDesignModuleTask = (row) => {
   const result = parseProcessResult(row?.processResult)
   const resultModuleName = result.moduleName || ''
   return row?.moduleCode === DESIGN_MODULE_CODE ||
-    result.moduleCode === DESIGN_MODULE_CODE ||
-    moduleName === DESIGN_MODULE_NAME ||
-    moduleName.includes('设计制造协同优化') ||
-    resultModuleName.includes('设计制造协同优化')
+      result.moduleCode === DESIGN_MODULE_CODE ||
+      moduleName === DESIGN_MODULE_NAME ||
+      moduleName.includes('设计制造协同优化') ||
+      resultModuleName.includes('设计制造协同优化')
 }
 
 const formatProcessResult = (value) => {
@@ -1738,13 +1932,13 @@ const formatProcessResult = (value) => {
 
   if (Object.keys(result).length > 0) {
     return firstValue(
-      result.conclusion,
-      result.summary,
-      result.processResult,
-      result.result,
-      result.message,
-      result.optimizationResult?.conclusion,
-      '已完成处理并提交结果。'
+        result.conclusion,
+        result.summary,
+        result.processResult,
+        result.result,
+        result.message,
+        result.optimizationResult?.conclusion,
+        '已完成处理并提交结果。'
     )
   }
 
@@ -1763,51 +1957,51 @@ const buildDesignReportPayload = (row = {}, extra = {}) => {
 
   return {
     reportHtml: firstValue(
-      row.reportHtml,
-      result.reportHtml,
-      report.reportHtml,
-      reportSubmission.reportHtml,
-      optimizationResult.reportHtml
+        row.reportHtml,
+        result.reportHtml,
+        report.reportHtml,
+        reportSubmission.reportHtml,
+        optimizationResult.reportHtml
     ),
     reportFileId: firstValue(
-      row.reportFileId,
-      result.reportFileId,
-      report.reportFileId,
-      reportSubmission.reportFileId,
-      optimizationResult.reportFileId
+        row.reportFileId,
+        result.reportFileId,
+        report.reportFileId,
+        reportSubmission.reportFileId,
+        optimizationResult.reportFileId
     ),
     reportFilePath: firstValue(
-      row.reportFilePath,
-      result.reportFilePath,
-      report.reportFilePath,
-      reportSubmission.reportFilePath,
-      optimizationResult.reportFilePath
+        row.reportFilePath,
+        result.reportFilePath,
+        report.reportFilePath,
+        reportSubmission.reportFilePath,
+        optimizationResult.reportFilePath
     ),
     reportFileName: firstValue(
-      row.reportFileName,
-      result.reportFileName,
-      report.reportFileName,
-      reportSubmission.reportFileName,
-      optimizationResult.reportFileName,
-      '设计制造协同优化方案报告.doc'
+        row.reportFileName,
+        result.reportFileName,
+        report.reportFileName,
+        reportSubmission.reportFileName,
+        optimizationResult.reportFileName,
+        '设计制造协同优化方案报告.doc'
     ),
     reportTitle: firstValue(
-      row.reportTitle,
-      result.reportTitle,
-      report.reportTitle,
-      reportSubmission.reportTitle,
-      `${row.problemCode || currentProblem.value?.problemCode || ''} 设计制造协同优化方案报告`
+        row.reportTitle,
+        result.reportTitle,
+        report.reportTitle,
+        reportSubmission.reportTitle,
+        `${row.problemCode || currentProblem.value?.problemCode || ''} 设计制造协同优化方案报告`
     ),
     designTaskId: firstValue(
-      row.designTaskId,
-      row.designtaskTaskId,
-      result.designTaskId,
-      result.designtaskTaskId,
-      result.taskId,
-      designTask.taskId,
-      report.taskId,
-      reportSubmission.taskId,
-      optimizationResult.designTaskId
+        row.designTaskId,
+        row.designtaskTaskId,
+        result.designTaskId,
+        result.designtaskTaskId,
+        result.taskId,
+        designTask.taskId,
+        report.taskId,
+        reportSubmission.taskId,
+        optimizationResult.designTaskId
     )
   }
 }
@@ -1844,8 +2038,8 @@ const fetchDesignProcessFileBlob = async (row = {}) => {
 
   return new Blob([data], {
     type: String(payload.reportFileName || '').toLowerCase().endsWith('.docx')
-      ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      : 'application/msword'
+        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        : 'application/msword'
   })
 }
 
@@ -1934,11 +2128,11 @@ const handleViewDesignReportAttachment = async (row) => {
     console.error('查看设计制造协同优化方案报告失败：', error)
 
     const realMsg =
-      error?.response?.data?.msg ||
-      error?.data?.msg ||
-      error?.msg ||
-      error?.message ||
-      '查看优化方案报告失败'
+        error?.response?.data?.msg ||
+        error?.data?.msg ||
+        error?.msg ||
+        error?.message ||
+        '查看优化方案报告失败'
 
     ElMessage.error(realMsg)
   } finally {
@@ -1988,8 +2182,8 @@ const downloadDesignReportAttachment = async () => {
   try {
     if (!designReportDownloadFileId.value) {
       downloadHtmlAsWord(
-        designReportPreviewHtml.value,
-        designReportDownloadFileName.value || '设计制造协同优化方案报告.doc'
+          designReportPreviewHtml.value,
+          designReportDownloadFileName.value || '设计制造协同优化方案报告.doc'
       )
       return
     }
@@ -2041,7 +2235,10 @@ const getProblemStatusType = (status) => {
 
 const getTaskStatusText = (status) => {
   const map = {
+    UNSTARTED: '未开始',
+    DISPATCHED: '未开始',
     PROCESSING: '处理中',
+    PENDING_BACKFILL: '待回填',
     SUBMITTED: '待确认',
     CONFIRMED: '已确认'
   }
@@ -2164,6 +2361,35 @@ const getNowTime = () => {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.process-result-display {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #303133;
+}
+
+.process-result-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.process-result-label {
+  color: #909399;
+}
+
+.process-result-value {
+  color: #303133;
+  word-break: break-word;
+}
+
+.process-result-attachment-button {
+  align-self: flex-start;
+  margin-top: 2px;
 }
 
 .design-report-preview-wrapper {
@@ -2648,6 +2874,10 @@ const getNowTime = () => {
 .module-process-text,
 .confirm-state {
   font-weight: 600;
+}
+
+.state-waiting {
+  color: #909399;
 }
 
 .state-processing {

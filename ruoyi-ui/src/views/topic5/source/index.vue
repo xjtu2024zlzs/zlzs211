@@ -550,14 +550,14 @@ async function handleSubmitQualityResult() {
   }
 
   if (Number(currentTrace.value.traceReportStatus) !== 1 || !currentTrace.value.traceReportUrl) {
-    proxy.$modal.msgWarning('请先导出最终溯源 Word 报告，再回填质量问题管理中心')
+    proxy.$modal.msgWarning('请先导出最终溯源报告，再回填质量问题管理中心')
     return
   }
 
   submitQualityLoading.value = true
 
   try {
-    await proxy.$modal.confirm('确认将当前最终溯源 Word 报告回填至质量问题管理中心吗？')
+    await proxy.$modal.confirm('确认将当前最终溯源报告回填至质量问题管理中心吗？')
 
     const res = await submitQualityResult(traceId)
 
