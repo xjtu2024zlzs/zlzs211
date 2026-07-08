@@ -18,4 +18,6 @@ public interface IDossierDetailService
     public List<Map<String, Object>> selectBomPath(String nodeId, String versionId);
 
     public Map<String, Object> selectPreviewFile(String documentEntryId);
+
+    public byte[] exportTraceResultWord(String instanceId, String versionId, String bomNodeId, String resultId);
 }

@@ -55,6 +55,15 @@ public interface DossierDetailMapper
     public List<Map<String, Object>> selectDocuments(@Param("versionId") String versionId,
             @Param("structureNodeId") String structureNodeId);
 
+    public List<Map<String, Object>> selectTraceResultRows(@Param("instanceId") String instanceId,
+            @Param("versionId") String versionId, @Param("bomNodeId") String bomNodeId);
+
+    public List<Map<String, Object>> selectTraceResultDocuments(@Param("instanceId") String instanceId,
+            @Param("bomNodeId") String bomNodeId);
+
+    public List<Map<String, Object>> selectQualityTraceRows(@Param("tokens") List<String> tokens,
+            @Param("demoTraceEnabled") boolean demoTraceEnabled);
+
     public List<Map<String, Object>> selectAllDocuments(@Param("versionId") String versionId);
 
     public Map<String, Object> selectPreviewFile(@Param("documentEntryId") String documentEntryId);

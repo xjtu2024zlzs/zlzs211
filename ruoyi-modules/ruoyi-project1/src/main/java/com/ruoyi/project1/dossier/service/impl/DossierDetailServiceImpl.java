@@ -1,5 +1,6 @@
 package com.ruoyi.project1.dossier.service.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -8,11 +9,18 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.common.core.exception.ServiceException;
@@ -25,6 +33,10 @@ public class DossierDetailServiceImpl implements IDossierDetailService
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final SimpleDateFormat DISPLAY_TIME = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    private static final String DEMO_TRACE_BOM_NODE_ID = "f1000006-0006-4006-8006-000000000006";
+
+    private static final String DEMO_TRACE_PART_NUMBER = "HYD-TUBE-MLG-32A";
 
     @Autowired
     private DossierDetailMapper detailMapper;
@@ -119,6 +131,33 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         return detailMapper.selectPreviewFile(documentEntryId);
     }
 
+    @Override
+    public byte[] exportTraceResultWord(String instanceId, String versionId, String bomNodeId, String resultId)
+    {
+        if (!hasText(resultId))
+        {
+            throw new ServiceException("Trace result id is required.");
+        }
+        Map<String, Object> node = null;
+        if (hasText(versionId) && hasText(bomNodeId))
+        {
+            node = detailMapper.selectStructureBomNode(versionId, bomNodeId);
+        }
+        Map<String, Object> bomNode = node == null ? null : normalizeBomNode(node);
+        List<Map<String, Object>> traceRows = bomNode != null
+                ? detailMapper.selectQualityTraceRows(qualityTraceTokens(bomNode), demoTraceEnabled(bomNode))
+                : Collections.emptyList();
+        List<Map<String, Object>> traceResults = buildTraceResults(traceRows, Collections.emptyList());
+        for (Map<String, Object> result : traceResults)
+        {
+            if (resultId.equals(text(result.get("resultId"))))
+            {
+                return buildTraceResultWord(result);
+            }
+        }
+        throw new ServiceException("Trace result not found.");
+    }
+
     private Map<String, Object> buildDetailData(Map<String, Object> instance, Map<String, Object> version,
             Map<String, Object> selectedNode)
     {
@@ -157,6 +196,9 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         List<Map<String, Object>> contentItems = normalizeContentItems(detailMapper.selectContentItems(versionId, bomNodeId));
         String structureNodeId = structureNode == null ? null : text(structureNode.get("structureNodeId"));
         List<Map<String, Object>> documents = normalizeDocuments(detailMapper.selectDocuments(versionId, structureNodeId));
+        List<Map<String, Object>> traceRows = detailMapper.selectQualityTraceRows(qualityTraceTokens(bomNode),
+                demoTraceEnabled(bomNode));
+        List<Map<String, Object>> traceResults = buildTraceResults(traceRows, Collections.emptyList());
         List<Map<String, Object>> directoryRows = buildDirectoryRows(templateConfig, text(bomNode.get("objectLevel")),
                 contentItems, documents);
 
@@ -169,7 +211,9 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         result.put("structureNode", structureNode);
         result.put("contentItems", contentItems);
         result.put("documents", documents);
-        result.put("detail", buildNodeDetail(bomNode, structureNode, contentItems, documents, directoryRows));
+        result.put("traceResults", traceResults);
+        result.put("detail", buildNodeDetail(bomNode, structureNode, contentItems, documents, directoryRows,
+                traceResults));
         return result;
     }
 
@@ -450,7 +494,7 @@ public class DossierDetailServiceImpl implements IDossierDetailService
 
     private Map<String, Object> buildNodeDetail(Map<String, Object> node, Map<String, Object> structureNode,
             List<Map<String, Object>> contentItems, List<Map<String, Object>> documents,
-            List<Map<String, Object>> directoryRows)
+            List<Map<String, Object>> directoryRows, List<Map<String, Object>> traceResults)
     {
         Map<String, Object> detail = map();
         Map<String, Object> fieldMap = buildFieldMap(node, structureNode, contentItems, documents);
@@ -465,7 +509,471 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         detail.put("tables", buildConfiguredTables(directoryRows, node, contentItems, documents));
         detail.put("timeline", buildTimeline(directoryRows, contentItems));
         detail.put("contentSummary", contentSummary(node, contentItems));
+        detail.put("traceResults", traceResults);
         return detail;
+    }
+
+    private List<Map<String, Object>> buildTraceResults(List<Map<String, Object>> rows,
+            List<Map<String, Object>> documents)
+    {
+        List<Map<String, Object>> normalizedRows = normalizeRows(rows);
+        Map<String, List<Map<String, Object>>> documentsByResult = groupTraceDocuments(documents);
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (Map<String, Object> row : normalizedRows)
+        {
+            if (isQualityTraceRow(row))
+            {
+                results.add(qualityTraceResult(row));
+                continue;
+            }
+            String resultId = text(row.get("resultId"));
+            Map<String, Object> value = parseJsonObject(row.get("resultValueJson"));
+            Map<String, Object> scope = parseJsonObject(row.get("scopeJson"));
+            List<Map<String, Object>> resultDocuments = documentsByResult.getOrDefault(resultId,
+                    Collections.emptyList());
+
+            Map<String, Object> item = map();
+            item.put("key", resultId);
+            item.put("resultId", resultId);
+            item.put("taskId", row.get("taskId"));
+            item.put("taskCode", row.get("taskCode"));
+            item.put("taskName", row.get("taskName"));
+            item.put("title", defaultText(row.get("resultTitle"), row.get("taskName")));
+            item.put("summary", defaultText(row.get("resultSummary"), ""));
+            item.put("resultType", row.get("resultType"));
+            item.put("resultTypeLabel", traceResultTypeLabel(row.get("resultType")));
+            item.put("sourceComponent", defaultText(row.get("sourceComponent"), scope.get("sourceComponent")));
+            item.put("sourceLabel", sourceComponentLabel(item.get("sourceComponent")));
+            item.put("createdAt", displayTime(row.get("createdAt")));
+            item.put("confidence", row.get("confidence"));
+            item.put("rankNo", row.get("rankNo"));
+            item.put("algorithmCode", row.get("algorithmCode"));
+            item.put("algorithmVersion", row.get("algorithmVersion"));
+            item.put("relatedObjectType", row.get("relatedObjectType"));
+            item.put("relatedObjectId", row.get("relatedObjectId"));
+            item.put("fields", traceFieldRows(value));
+            item.put("fullContent", traceFullContent(value, row));
+            item.put("documents", resultDocuments);
+            item.put("attachmentCount", resultDocuments.size());
+            item.put("status", "complete");
+            results.add(item);
+        }
+        return results;
+    }
+
+    private boolean isQualityTraceRow(Map<String, Object> row)
+    {
+        return row.containsKey("problemId") || row.containsKey("problemCode") || row.containsKey("taskStatus");
+    }
+
+    private Map<String, Object> qualityTraceResult(Map<String, Object> row)
+    {
+        String taskId = text(row.get("taskId"));
+        String problemId = text(row.get("problemId"));
+        String problemCode = text(row.get("problemCode"));
+        String problemTitle = defaultText(row.get("problemTitle"), row.get("problemCode"));
+        String moduleName = firstText(row.get("moduleName"), row.get("currentModuleName"), "\u8d28\u91cf\u7ba1\u7406\u4e2d\u5fc3");
+        String summary = firstText(row.get("processResult"), row.get("dispatchOpinion"),
+                row.get("problemDescription"), row.get("problemTitle"));
+
+        Map<String, Object> item = map();
+        item.put("key", hasText(taskId) ? "quality-task-" + taskId : "quality-problem-" + problemId);
+        item.put("resultId", item.get("key"));
+        item.put("taskId", row.get("taskId"));
+        item.put("taskCode", row.get("problemCode"));
+        item.put("taskName", moduleName);
+        item.put("title", qualityTraceTitle(problemCode, problemTitle, moduleName, hasText(taskId)));
+        item.put("summary", defaultText(summary, "\u6682\u65e0\u5904\u7406\u7ed3\u679c"));
+        item.put("resultType", hasText(taskId) ? "quality_task" : "quality_problem");
+        item.put("resultTypeLabel", hasText(taskId) ? "\u8ffd\u6eaf\u4efb\u52a1" : "\u8ffd\u6eaf\u95ee\u9898");
+        item.put("sourceComponent", defaultText(row.get("moduleCode"), "qms"));
+        item.put("sourceLabel", moduleName);
+        item.put("createdAt", displayTime(firstText(row.get("confirmTime"), row.get("submitTime"),
+                row.get("dispatchTime"), row.get("taskUpdateTime"), row.get("problemUpdateTime"),
+                row.get("occurTime"), row.get("problemCreateTime"))));
+        item.put("confidence", "-");
+        item.put("rankNo", null);
+        item.put("algorithmCode", row.get("moduleCode"));
+        item.put("algorithmVersion", "");
+        item.put("relatedObjectType", "quality_problem");
+        item.put("relatedObjectId", row.get("problemId"));
+        item.put("fields", qualityTraceFields(row));
+        item.put("fullContent", qualityTraceFullContent(row));
+        item.put("documents", qualityTraceDocuments(row));
+        item.put("attachmentCount", castList(item.get("documents")).size());
+        item.put("status", firstText(row.get("taskStatus"), row.get("problemStatus"), "complete"));
+        return item;
+    }
+
+    private String qualityTraceTitle(String problemCode, String problemTitle, String moduleName, boolean hasTask)
+    {
+        List<String> parts = new ArrayList<>();
+        if (hasText(problemCode))
+        {
+            parts.add(problemCode);
+        }
+        if (hasText(problemTitle))
+        {
+            parts.add(problemTitle);
+        }
+        if (hasTask && hasText(moduleName))
+        {
+            parts.add(moduleName);
+        }
+        return parts.isEmpty() ? "\u8d28\u91cf\u8ffd\u6eaf" : String.join(" / ", parts);
+    }
+
+    private List<Map<String, Object>> qualityTraceFields(Map<String, Object> row)
+    {
+        List<Map<String, Object>> fields = new ArrayList<>();
+        addTraceField(fields, "\u8d28\u91cf\u95ee\u9898\u7f16\u53f7", row.get("problemCode"));
+        addTraceField(fields, "\u95ee\u9898\u72b6\u6001", row.get("problemStatus"));
+        addTraceField(fields, "\u4e25\u91cd\u7a0b\u5ea6", row.get("severity"));
+        addTraceField(fields, "\u53d1\u751f\u90e8\u4f4d", row.get("occurPart"));
+        addTraceField(fields, "\u90e8\u4ef6\u7f16\u53f7", row.get("componentCode"));
+        addTraceField(fields, "\u5904\u7406\u8bfe\u9898", firstText(row.get("moduleName"), row.get("currentModuleName")));
+        addTraceField(fields, "\u4efb\u52a1\u72b6\u6001", row.get("taskStatus"));
+        addTraceField(fields, "\u5206\u6d3e\u8bf4\u660e", row.get("dispatchOpinion"));
+        addTraceField(fields, "\u5904\u7406\u7ed3\u679c", row.get("processResult"));
+        addTraceField(fields, "\u5904\u7406\u6587\u4ef6", row.get("processFile"));
+        addTraceField(fields, "\u53d1\u751f\u65f6\u95f4", displayTime(row.get("occurTime")));
+        addTraceField(fields, "\u63d0\u4ea4\u65f6\u95f4", displayTime(row.get("submitTime")));
+        addTraceField(fields, "\u786e\u8ba4\u65f6\u95f4", displayTime(row.get("confirmTime")));
+        return fields;
+    }
+
+    private void addTraceField(List<Map<String, Object>> fields, String label, Object value)
+    {
+        if (!hasText(value))
+        {
+            return;
+        }
+        Map<String, Object> field = map();
+        field.put("label", label);
+        field.put("value", text(value));
+        fields.add(field);
+    }
+
+    private String qualityTraceFullContent(Map<String, Object> row)
+    {
+        List<String> lines = new ArrayList<>();
+        addTraceLine(lines, "\u8d28\u91cf\u95ee\u9898\u7f16\u53f7", row.get("problemCode"));
+        addTraceLine(lines, "\u95ee\u9898\u6807\u9898", row.get("problemTitle"));
+        addTraceLine(lines, "\u95ee\u9898\u63cf\u8ff0", row.get("problemDescription"));
+        addTraceLine(lines, "\u53d1\u751f\u90e8\u4f4d", row.get("occurPart"));
+        addTraceLine(lines, "\u90e8\u4ef6\u7f16\u53f7", row.get("componentCode"));
+        addTraceLine(lines, "\u95ee\u9898\u72b6\u6001", row.get("problemStatus"));
+        addTraceLine(lines, "\u5904\u7406\u8bfe\u9898", firstText(row.get("moduleName"), row.get("currentModuleName")));
+        addTraceLine(lines, "\u4efb\u52a1\u72b6\u6001", row.get("taskStatus"));
+        addTraceLine(lines, "\u5206\u6d3e\u8bf4\u660e", row.get("dispatchOpinion"));
+        addTraceLine(lines, "\u5904\u7406\u7ed3\u679c", row.get("processResult"));
+        addTraceLine(lines, "\u5904\u7406\u6587\u4ef6", row.get("processFile"));
+        return lines.isEmpty() ? "-" : String.join("\n", lines);
+    }
+
+    private void addTraceLine(List<String> lines, String label, Object value)
+    {
+        if (hasText(value))
+        {
+            lines.add(label + "\uff1a" + text(value));
+        }
+    }
+
+    private List<Map<String, Object>> qualityTraceDocuments(Map<String, Object> row)
+    {
+        if (!hasText(row.get("processFile")))
+        {
+            return Collections.emptyList();
+        }
+        Map<String, Object> document = map();
+        document.put("title", fileNameFromPath(row.get("processFile")));
+        document.put("docNo", row.get("problemCode"));
+        document.put("fileType", fileType(text(row.get("processFile"))));
+        document.put("accessUrl", row.get("processFile"));
+        return Collections.singletonList(document);
+    }
+
+    private String fileNameFromPath(Object value)
+    {
+        String path = text(value).replace("\\", "/");
+        int index = path.lastIndexOf('/');
+        return index >= 0 && index < path.length() - 1 ? path.substring(index + 1) : path;
+    }
+
+    private List<String> qualityTraceTokens(Map<String, Object> node)
+    {
+        Set<String> tokens = new LinkedHashSet<>();
+        addQualityTraceToken(tokens, node == null ? null : node.get("partNumber"));
+        addQualityTraceToken(tokens, node == null ? null : node.get("partName"));
+        addQualityTraceToken(tokens, node == null ? null : node.get("serialNumber"));
+        addQualityTraceToken(tokens, node == null ? null : node.get("positionCode"));
+        addQualityTraceToken(tokens, node == null ? null : node.get("partInstanceId"));
+        addQualityTraceToken(tokens, node == null ? null : node.get("nodeId"));
+
+        return new ArrayList<>(tokens);
+    }
+
+    private boolean demoTraceEnabled(Map<String, Object> node)
+    {
+        if (node == null)
+        {
+            return false;
+        }
+        return DEMO_TRACE_BOM_NODE_ID.equals(text(node.get("nodeId")))
+                || DEMO_TRACE_PART_NUMBER.equals(text(node.get("partNumber")));
+    }
+
+    private void addQualityTraceToken(Set<String> tokens, Object value)
+    {
+        if (!hasText(value))
+        {
+            return;
+        }
+        String token = text(value).trim();
+        if (token.length() < 2)
+        {
+            return;
+        }
+        tokens.add(token);
+    }
+
+    private Map<String, List<Map<String, Object>>> groupTraceDocuments(List<Map<String, Object>> documents)
+    {
+        Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+        for (Map<String, Object> document : normalizeTraceDocuments(documents))
+        {
+            String resultId = traceDocumentResultId(document);
+            if (!hasText(resultId))
+            {
+                continue;
+            }
+            grouped.computeIfAbsent(resultId, key -> new ArrayList<>()).add(document);
+        }
+        return grouped;
+    }
+
+    private List<Map<String, Object>> normalizeTraceDocuments(List<Map<String, Object>> documents)
+    {
+        List<Map<String, Object>> result = normalizeRows(documents);
+        for (Map<String, Object> item : result)
+        {
+            if (!item.containsKey("attrs"))
+            {
+                parseJsonField(item, "attrsJson", "attrs");
+            }
+            if (!item.containsKey("sourceTrace"))
+            {
+                parseJsonField(item, "sourceTraceJson", "sourceTrace");
+            }
+            item.put("fileType", defaultText(item.get("fileType"),
+                    fileType(defaultText(item.get("fileStorageKey"), item.get("fileExt")))));
+            item.put("createdAt", displayTime(item.get("createdAt")));
+        }
+        return result;
+    }
+
+    private String traceDocumentResultId(Map<String, Object> document)
+    {
+        Map<String, Object> sourceTrace = castMap(document.get("sourceTrace"));
+        Map<String, Object> attrs = castMap(document.get("attrs"));
+        return firstText(document.get("sourceRecordId"), sourceTrace.get("sourceRecordId"), attrs.get("resultId"));
+    }
+
+    private List<Map<String, Object>> traceFieldRows(Map<String, Object> value)
+    {
+        if (value.isEmpty())
+        {
+            return Collections.emptyList();
+        }
+        List<Map<String, Object>> fields = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : value.entrySet())
+        {
+            String key = entry.getKey();
+            if (!hasText(key) || traceFieldSkipped(key))
+            {
+                continue;
+            }
+            Map<String, Object> field = map();
+            field.put("label", key);
+            field.put("value", traceValueText(entry.getValue()));
+            fields.add(field);
+        }
+        return fields;
+    }
+
+    private boolean traceFieldSkipped(String key)
+    {
+        String lower = key.toLowerCase(Locale.ROOT);
+        return "documents".equals(lower) || "document".equals(lower) || "files".equals(lower)
+                || "file".equals(lower);
+    }
+
+    private String traceFullContent(Map<String, Object> value, Map<String, Object> row)
+    {
+        if (!value.isEmpty())
+        {
+            return toPrettyJson(value);
+        }
+        return defaultText(row.get("resultSummary"), row.get("resultTitle"));
+    }
+
+    private String traceValueText(Object value)
+    {
+        if (value instanceof Map || value instanceof List)
+        {
+            return toCompactJson(value);
+        }
+        return text(value);
+    }
+
+    private byte[] buildTraceResultWord(Map<String, Object> result)
+    {
+        try (XWPFDocument document = new XWPFDocument(); ByteArrayOutputStream output = new ByteArrayOutputStream())
+        {
+            addWordTitle(document, "\u8ffd\u6eaf\u7ed3\u679c\u62a5\u544a");
+            addWordSection(document, "\u57fa\u672c\u4fe1\u606f");
+            List<String[]> basicRows = new ArrayList<>();
+            basicRows.add(new String[] { "\u7ed3\u679c\u6807\u9898", text(result.get("title")) });
+            basicRows.add(new String[] { "\u6765\u6e90\u8bfe\u9898", text(result.get("sourceLabel")) });
+            basicRows.add(new String[] { "\u7ed3\u679c\u7c7b\u578b", text(result.get("resultTypeLabel")) });
+            basicRows.add(new String[] { "\u56de\u5199\u65f6\u95f4", text(result.get("createdAt")) });
+            basicRows.add(new String[] { "\u7f6e\u4fe1\u5ea6", defaultText(result.get("confidence"), "-") });
+            basicRows.add(new String[] { "\u6458\u8981", text(result.get("summary")) });
+            addWordKeyValueTable(document, basicRows);
+
+            addWordSection(document, "\u5b57\u6bb5\u660e\u7ec6");
+            addWordMapTable(document, castList(result.get("fields")), "\u5b57\u6bb5", "\u503c", "label", "value");
+
+            addWordSection(document, "\u5b8c\u6574\u5185\u5bb9");
+            addWordParagraph(document, defaultText(result.get("fullContent"), "-"));
+
+            addWordSection(document, "\u5173\u8054\u6587\u6863");
+            addWordMapTable(document, castList(result.get("documents")), "\u6587\u6863\u540d\u79f0",
+                    "\u6587\u6863\u7f16\u53f7", "title", "docNo");
+
+            document.write(output);
+            return output.toByteArray();
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("Failed to export trace result.");
+        }
+    }
+
+    private void addWordTitle(XWPFDocument document, String text)
+    {
+        XWPFParagraph paragraph = document.createParagraph();
+        XWPFRun run = paragraph.createRun();
+        run.setBold(true);
+        run.setFontSize(18);
+        run.setText(text);
+    }
+
+    private void addWordSection(XWPFDocument document, String text)
+    {
+        XWPFParagraph paragraph = document.createParagraph();
+        XWPFRun run = paragraph.createRun();
+        run.setBold(true);
+        run.setFontSize(13);
+        run.setText(text);
+    }
+
+    private void addWordParagraph(XWPFDocument document, String text)
+    {
+        XWPFParagraph paragraph = document.createParagraph();
+        XWPFRun run = paragraph.createRun();
+        run.setFontSize(10);
+        run.setText(text);
+    }
+
+    private void addWordKeyValueTable(XWPFDocument document, List<String[]> rows)
+    {
+        if (rows.isEmpty())
+        {
+            addWordParagraph(document, "\u65e0");
+            return;
+        }
+        XWPFTable table = document.createTable(rows.size(), 2);
+        for (int i = 0; i < rows.size(); i++)
+        {
+            XWPFTableRow row = table.getRow(i);
+            setWordCell(row, 0, rows.get(i)[0], true);
+            setWordCell(row, 1, rows.get(i)[1], false);
+        }
+    }
+
+    private void addWordMapTable(XWPFDocument document, List<Map<String, Object>> rows, String firstHeader,
+            String secondHeader, String firstKey, String secondKey)
+    {
+        if (rows.isEmpty())
+        {
+            addWordParagraph(document, "\u65e0");
+            return;
+        }
+        XWPFTable table = document.createTable(rows.size() + 1, 2);
+        setWordCell(table.getRow(0), 0, firstHeader, true);
+        setWordCell(table.getRow(0), 1, secondHeader, true);
+        for (int i = 0; i < rows.size(); i++)
+        {
+            XWPFTableRow row = table.getRow(i + 1);
+            setWordCell(row, 0, text(rows.get(i).get(firstKey)), false);
+            setWordCell(row, 1, text(rows.get(i).get(secondKey)), false);
+        }
+    }
+
+    private void setWordCell(XWPFTableRow row, int index, String text, boolean bold)
+    {
+        XWPFRun run = row.getCell(index).getParagraphArray(0).createRun();
+        run.setBold(bold);
+        run.setText(defaultText(text, "-"));
+    }
+
+    private String sourceComponentLabel(Object sourceComponent)
+    {
+        String source = text(sourceComponent).toLowerCase(Locale.ROOT);
+        if (source.contains("project2") || source.contains("topic2"))
+        {
+            return "\u8bfe\u9898\u4e8c";
+        }
+        if (source.contains("project3") || source.contains("topic3"))
+        {
+            return "\u8bfe\u9898\u4e09";
+        }
+        if (source.contains("project4") || source.contains("topic4"))
+        {
+            return "\u8bfe\u9898\u56db";
+        }
+        if (source.contains("project5") || source.contains("topic5"))
+        {
+            return "\u8bfe\u9898\u4e94";
+        }
+        return hasText(sourceComponent) ? text(sourceComponent) : "\u5916\u90e8\u7ed3\u679c";
+    }
+
+    private String traceResultTypeLabel(Object resultType)
+    {
+        String type = text(resultType).toLowerCase(Locale.ROOT);
+        if (type.contains("design") || type.contains("optimization"))
+        {
+            return "\u8bbe\u8ba1\u4f18\u5316";
+        }
+        if (type.contains("quality"))
+        {
+            return "\u8d28\u91cf\u76d1\u63a7";
+        }
+        if (type.contains("fault"))
+        {
+            return "\u6545\u969c\u8bca\u65ad";
+        }
+        if (type.contains("trace"))
+        {
+            return "\u8ffd\u6eaf\u5206\u6790";
+        }
+        if (type.contains("completion"))
+        {
+            return "\u6570\u636e\u8865\u5168";
+        }
+        return hasText(resultType) ? text(resultType) : "\u8ffd\u6eaf\u7ed3\u679c";
     }
 
     private List<Map<String, Object>> basicFields(Map<String, Object> node)
@@ -499,7 +1007,7 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         List<Map<String, Object>> tables = new ArrayList<>();
         for (Map<String, Object> directory : directoryRows)
         {
-            String category = text(directory.get("category"));
+            String category = effectiveDirectoryCategory(directory);
             if ("composition".equals(category))
             {
                 continue;
@@ -531,7 +1039,7 @@ public class DossierDetailServiceImpl implements IDossierDetailService
 
     private List<Map<String, Object>> contentRows(Map<String, Object> directory, List<Map<String, Object>> contentItems)
     {
-        String category = text(directory.get("category"));
+        String category = effectiveDirectoryCategory(directory);
         String chapterId = text(directory.get("chapterId"));
         List<String> sourceTables = toStringList(directory.get("sourceTables"));
         List<String> lifecycleStages = toStringList(directory.get("lifecycleStages"));
@@ -544,9 +1052,21 @@ public class DossierDetailServiceImpl implements IDossierDetailService
             {
                 rows.add(manufacturingRow(item));
             }
+            else if ("installation".equals(category))
+            {
+                rows.add(serviceRow(item));
+            }
             else if ("inspection".equals(category))
             {
                 rows.add(inspectionRow(item));
+            }
+            else if ("service".equals(category))
+            {
+                rows.add(serviceRow(item));
+            }
+            else if ("fault".equals(category))
+            {
+                rows.add(faultRow(item));
             }
             else
             {
@@ -560,6 +1080,184 @@ public class DossierDetailServiceImpl implements IDossierDetailService
             rows.add(row("数据状态", "当前目录暂无匹配记录，等待数据来源补充或重新生成", "missing"));
         }
         return rows;
+    }
+
+    private Map<String, Object> serviceRow(Map<String, Object> item)
+    {
+        Map<String, Object> attrs = castMap(item.get("attrs"));
+        String table = logicalSourceTable(defaultText(attrs.get("actualSourceTable"), item.get("sourceTable")));
+        Object status = defaultText(item.get("completenessStatus"), item.get("itemStatus"));
+        if ("install_removal".equals(table))
+        {
+            Map<String, Object> params = parseJsonObject(attr(attrs, "assemblyParams", "assembly_params"));
+            String action = text(attr(attrs, "actionType", "action_type")).toUpperCase();
+            String stage = text(item.get("lifecycleStage")).toUpperCase();
+            boolean installAction = action.contains("INSTALL") || "INSTALLATION".equals(stage);
+            String group = installAction ? "install" : "removal";
+            String title = (installAction ? "装机记录：" : action.contains("REMOVAL") ? "拆卸记录：" : "装拆记录：")
+                    + defaultText(attr(attrs, "objectName", "object_name", "partName", "part_name"),
+                            defaultText(item.get("itemName"), item.get("sourceRecordKey")));
+            return serviceGroupedRow(group, title,
+                    joinParts(Arrays.asList(valueText("时间", attr(attrs, "actionDate", "action_date",
+                            "eventTime", "event_time")),
+                            valueText("位置", attr(attrs, "installPosition", "install_position",
+                                    "positionCode", "position_code", "installPosCode", "install_pos_code")),
+                            valueText("原因", attr(attrs, "removalReason", "removal_reason", "reason")),
+                            valueText("故障", attr(attrs, "removalFaultCode", "removal_fault_code")),
+                            valueText("力矩", valueWithUnit(attr(params, "torqueNm", "torque_n_m"), "N*m")),
+                            valueText("泄漏检查", attr(params, "leakCheckResult", "leak_check_result")),
+                            text(attr(attrs, "removalRemark", "removal_remark", "remarks", "remark")),
+                            text(attr(params, "displayText", "display_text")),
+                            cleanRecordSummary(item.get("contentSummary"), item.get("sourceRecordKey"),
+                                    item.get("sourceRecordId")))),
+                    status);
+        }
+        if ("life_usage_record".equals(table))
+        {
+            return serviceGroupedRow("usage",
+                    "使用量记录：" + defaultText(attr(attrs, "objectName", "object_name"),
+                            defaultText(item.get("itemName"), item.get("sourceRecordKey"))),
+                    joinParts(Arrays.asList(valueText("累计FH", attr(attrs, "tsnFh", "tsn_fh", "totalFh",
+                            "total_fh")),
+                            valueText("累计FC", attr(attrs, "tsnFc", "tsn_fc", "totalFc", "total_fc")),
+                            valueText("本次FH", attr(attrs, "fhDelta", "fh_delta")),
+                            valueText("本次FC", attr(attrs, "fcDelta", "fc_delta")),
+                            valueText("剩余寿命", valueWithUnit(attr(attrs, "remainingLifeValue",
+                                    "remaining_life_value"), attr(attrs, "remainingLifeUnit",
+                                            "remaining_life_unit"))),
+                            valueText("时间", attr(attrs, "recordTime", "record_time", "eventTime",
+                                    "event_time")),
+                            cleanRecordSummary(item.get("contentSummary"), item.get("sourceRecordKey"),
+                                    item.get("sourceRecordId")))),
+                    status);
+        }
+        if ("work_order".equals(table))
+        {
+            return serviceGroupedRow("work_order",
+                    "维修工单：" + defaultText(attr(attrs, "woNumber", "wo_number", "orderCode", "order_code"),
+                            item.get("sourceRecordKey")),
+                    joinParts(Arrays.asList(valueText("类型", attr(attrs, "workOrderType", "work_order_type")),
+                            valueText("状态", readableStatus(attr(attrs, "status", "woStatus", "wo_status"))),
+                            timeRange(attr(attrs, "plannedStart", "planned_start", "actualStart",
+                                    "actual_start"), attr(attrs, "actualFinish", "actual_finish", "closedAt",
+                                            "closed_at")),
+                            text(attr(attrs, "workDesc", "work_desc", "taskTitle", "task_title")),
+                            text(attr(attrs, "closeSummary", "close_summary", "resultNotes", "result_notes")),
+                            cleanRecordSummary(item.get("contentSummary"), item.get("sourceRecordKey"),
+                                    item.get("sourceRecordId")))),
+                    status);
+        }
+        if ("quality_text_record".equals(table))
+        {
+            return serviceGroupedRow("feedback",
+                    "巡检记录：" + defaultText(attr(attrs, "recordTitle", "record_title", "title"),
+                            defaultText(item.get("itemName"), item.get("sourceRecordKey"))),
+                    joinParts(Arrays.asList(valueText("时间", attr(attrs, "recordTime", "record_time",
+                            "createdAt", "created_at")),
+                            text(attr(attrs, "recordText", "record_text", "textContent", "text_content",
+                                    "feedbackText", "feedback_text", "remarks", "remark")),
+                            valueText("结论", readableStatus(attr(attrs, "result", "status"))),
+                            cleanRecordSummary(item.get("contentSummary"), item.get("sourceRecordKey"),
+                                    item.get("sourceRecordId")))),
+                    status);
+        }
+        return serviceGroupedRow("other", defaultText(item.get("itemName"), item.get("itemCode")),
+                defaultText(item.get("contentSummary"), item.get("sourceRecordKey")), status);
+    }
+
+    private Map<String, Object> faultRow(Map<String, Object> item)
+    {
+        Map<String, Object> attrs = castMap(item.get("attrs"));
+        String table = logicalSourceTable(defaultText(attrs.get("actualSourceTable"), item.get("sourceTable")));
+        Object status = defaultText(item.get("completenessStatus"), item.get("itemStatus"));
+        if ("fault_event".equals(table))
+        {
+            Object eventStatus = defaultText(attr(attrs, "status", "eventStatus", "event_status"),
+                    item.get("itemStatus"));
+            return faultGroupedRow("fault",
+                    "故障事件：" + defaultText(attr(attrs, "faultCode", "fault_code", "eventCode", "event_code"),
+                            item.get("sourceRecordKey")),
+                    joinParts(Arrays.asList(text(attr(attrs, "faultDescription", "fault_description",
+                            "description", "eventDescription", "event_description")),
+                            valueText("严重度", attr(attrs, "severityLevel", "severity_level", "severity")),
+                            valueText("状态", readableStatus(eventStatus)),
+                            valueText("处置", attr(attrs, "resolutionType", "resolution_type",
+                                    "resolutionAction", "resolution_action", "resolution")),
+                            valueText("发现时间", attr(attrs, "reportedAt", "reported_at", "eventTime",
+                                    "event_time")),
+                            valueText("关闭时间", attr(attrs, "closedAt", "closed_at")),
+                            cleanRecordSummary(item.get("contentSummary"), item.get("sourceRecordKey"),
+                                    item.get("sourceRecordId")))),
+                    status);
+        }
+        return faultGroupedRow("other", defaultText(item.get("itemName"), item.get("itemCode")),
+                defaultText(item.get("contentSummary"), item.get("sourceRecordKey")), status);
+    }
+
+    private Map<String, Object> serviceGroupedRow(String group, Object name, Object value, Object status)
+    {
+        Map<String, Object> row = row(name, value, status);
+        row.put("groupKey", group);
+        row.put("groupLabel", serviceGroupLabel(group));
+        row.put("groupOrder", serviceGroupOrder(group));
+        return row;
+    }
+
+    private String serviceGroupLabel(String group)
+    {
+        if ("install".equals(group)) return "装机履历";
+        if ("removal".equals(group)) return "拆卸复查";
+        if ("usage".equals(group)) return "使用量";
+        if ("work_order".equals(group)) return "维修工单";
+        if ("feedback".equals(group)) return "巡检反馈";
+        return "其他服役数据";
+    }
+
+    private int serviceGroupOrder(String group)
+    {
+        if ("install".equals(group)) return 10;
+        if ("usage".equals(group)) return 20;
+        if ("work_order".equals(group)) return 30;
+        if ("removal".equals(group)) return 40;
+        if ("feedback".equals(group)) return 50;
+        return 90;
+    }
+
+    private Map<String, Object> faultGroupedRow(String group, Object name, Object value, Object status)
+    {
+        Map<String, Object> row = row(name, value, status);
+        row.put("groupKey", group);
+        row.put("groupLabel", faultGroupLabel(group));
+        row.put("groupOrder", faultGroupOrder(group));
+        return row;
+    }
+
+    private String faultGroupLabel(String group)
+    {
+        if ("fault".equals(group)) return "故障事件";
+        if ("analysis".equals(group)) return "分析结果";
+        return "其他故障数据";
+    }
+
+    private int faultGroupOrder(String group)
+    {
+        if ("fault".equals(group)) return 10;
+        if ("analysis".equals(group)) return 20;
+        return 90;
+    }
+
+    private String cleanRecordSummary(Object summary, Object recordKey, Object recordId)
+    {
+        String value = text(summary);
+        if (!hasText(value))
+        {
+            return "";
+        }
+        if (value.equalsIgnoreCase(text(recordKey)) || value.equalsIgnoreCase(text(recordId)))
+        {
+            return "";
+        }
+        return value;
     }
 
     private Map<String, Object> manufacturingRow(Map<String, Object> item)
@@ -1198,7 +1896,7 @@ public class DossierDetailServiceImpl implements IDossierDetailService
             {
                 continue;
             }
-            List<Map<String, Object>> items = filterContentItems(text(directory.get("category")),
+            List<Map<String, Object>> items = filterContentItems(effectiveDirectoryCategory(directory),
                     text(directory.get("chapterId")), toStringList(directory.get("sourceTables")),
                     toStringList(directory.get("lifecycleStages")), contentItems);
             for (Map<String, Object> item : items)
@@ -1303,6 +2001,11 @@ public class DossierDetailServiceImpl implements IDossierDetailService
             {
                 continue;
             }
+            if ("installation".equals(category) && matchesCategory(category, stage, itemType, sourceTable))
+            {
+                fallback.add(item);
+                continue;
+            }
             if (!sourceTableSet.isEmpty() && !lifecycleStageSet.isEmpty())
             {
                 if (sourceTableMatches(sourceTableSet, sourceTable) && lifecycleStageSet.contains(stage))
@@ -1326,7 +2029,85 @@ public class DossierDetailServiceImpl implements IDossierDetailService
                 fallback.add(item);
             }
         }
-        return exact.isEmpty() ? fallback : exact;
+        return exact.isEmpty() ? fallback : mergeDetailedFallbackItems(exact, fallback);
+    }
+
+    private List<Map<String, Object>> mergeDetailedFallbackItems(List<Map<String, Object>> exact,
+            List<Map<String, Object>> fallback)
+    {
+        if (fallback.isEmpty())
+        {
+            return exact;
+        }
+        List<Map<String, Object>> result = new ArrayList<>(exact);
+        for (Map<String, Object> item : fallback)
+        {
+            if (!hasInformativeContent(item))
+            {
+                continue;
+            }
+            String key = contentItemMergeKey(item);
+            int existingIndex = findContentItemIndex(result, key);
+            if (existingIndex < 0)
+            {
+                result.add(item);
+                continue;
+            }
+            Map<String, Object> existing = result.get(existingIndex);
+            if (contentInfoScore(item) > contentInfoScore(existing))
+            {
+                result.set(existingIndex, item);
+            }
+        }
+        return result;
+    }
+
+    private int findContentItemIndex(List<Map<String, Object>> items, String key)
+    {
+        for (int i = 0; i < items.size(); i++)
+        {
+            if (key.equals(contentItemMergeKey(items.get(i))))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private String contentItemMergeKey(Map<String, Object> item)
+    {
+        String table = logicalSourceTable(item.get("sourceTable"));
+        String record = defaultText(item.get("sourceRecordId"), item.get("sourceRecordKey"));
+        if (hasText(record))
+        {
+            return table + "|" + record;
+        }
+        return table + "|" + text(item.get("itemName")) + "|" + text(item.get("contentSummary"));
+    }
+
+    private boolean hasInformativeContent(Map<String, Object> item)
+    {
+        return contentInfoScore(item) > 0;
+    }
+
+    private int contentInfoScore(Map<String, Object> item)
+    {
+        int score = 0;
+        String summary = text(item.get("contentSummary"));
+        if (hasText(summary) && !summary.equalsIgnoreCase(text(item.get("sourceRecordKey")))
+                && !summary.equalsIgnoreCase(text(item.get("sourceRecordId"))))
+        {
+            score += summary.length();
+        }
+        Map<String, Object> attrs = castMap(item.get("attrs"));
+        for (Map.Entry<String, Object> entry : attrs.entrySet())
+        {
+            if (hasText(text(entry.getValue())) && !"chapterId".equalsIgnoreCase(entry.getKey()))
+            {
+                score += 5;
+            }
+        }
+        return score;
     }
 
     private boolean matchesDirectoryFilters(Set<String> sourceTableSet, Set<String> lifecycleStageSet, String stage,
@@ -1341,6 +2122,38 @@ public class DossierDetailServiceImpl implements IDossierDetailService
             return false;
         }
         return true;
+    }
+
+    private String effectiveDirectoryCategory(Map<String, Object> directory)
+    {
+        String category = text(directory.get("category"));
+        if (isInstallationDirectory(directory))
+        {
+            return "installation";
+        }
+        return category;
+    }
+
+    private boolean isInstallationDirectory(Map<String, Object> directory)
+    {
+        Map<String, Object> attrs = castMap(directory.get("attrs"));
+        List<String> fields = toStringList(directory.get("primaryFields"));
+        if (fields.isEmpty())
+        {
+            fields = toStringList(attrs.get("primaryFields"));
+        }
+        for (String field : fields)
+        {
+            String normalized = text(field).toLowerCase();
+            if ("install_date".equals(normalized) || "installdate".equals(normalized)
+                    || "torque_n_m".equals(normalized) || "torquenm".equals(normalized)
+                    || "leak_check_result".equals(normalized) || "leakcheckresult".equals(normalized))
+            {
+                return true;
+            }
+        }
+        Set<String> sourceTables = lowerSet(toStringList(directory.get("sourceTables")));
+        return sourceTableMatches(sourceTables, "t1_assembly_record");
     }
 
     private boolean sourceTableMatches(Set<String> expectedTables, String actualTable)
@@ -1395,6 +2208,10 @@ public class DossierDetailServiceImpl implements IDossierDetailService
                     || sourceTable.contains("manufacturing") || sourceTable.contains("work_order")
                     || sourceTable.contains("shop");
         }
+        if ("installation".equals(category))
+        {
+            return "INSTALLATION".equals(stage) || sourceTable.contains("assembly") || sourceTable.contains("install");
+        }
         if ("inspection".equals(category))
         {
             return "INSPECTION".equals(stage)
@@ -1444,7 +2261,11 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         {
             return "manufacturing";
         }
-        if (containsAny(label, "装机", "服役", "使用", "履历", "维修"))
+        if (containsAny(label, "装机"))
+        {
+            return "installation";
+        }
+        if (containsAny(label, "服役", "使用", "履历", "维修"))
         {
             return "service";
         }
@@ -1790,6 +2611,30 @@ public class DossierDetailServiceImpl implements IDossierDetailService
         }
     }
 
+    private String toPrettyJson(Object value)
+    {
+        try
+        {
+            return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(value);
+        }
+        catch (Exception e)
+        {
+            return text(value);
+        }
+    }
+
+    private String toCompactJson(Object value)
+    {
+        try
+        {
+            return OBJECT_MAPPER.writeValueAsString(value);
+        }
+        catch (Exception e)
+        {
+            return text(value);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> castList(Object value)
     {
@@ -1939,6 +2784,22 @@ public class DossierDetailServiceImpl implements IDossierDetailService
     private String defaultText(Object value, Object fallback)
     {
         return hasText(value) ? text(value) : text(fallback);
+    }
+
+    private String firstText(Object... values)
+    {
+        if (values == null)
+        {
+            return "";
+        }
+        for (Object value : values)
+        {
+            if (hasText(value))
+            {
+                return text(value);
+            }
+        }
+        return "";
     }
 
     private String blankToNull(String value)

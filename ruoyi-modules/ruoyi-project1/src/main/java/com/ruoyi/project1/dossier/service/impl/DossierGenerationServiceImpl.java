@@ -1119,7 +1119,8 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
                 "task_code", "step_code", "operation_code", "inspection_type", "indicator_code",
                 "characteristic_code", "anomaly_number", "nc_number", "release_number", "equipment_id",
                 "operator_id", "assigned_equipment_id", "assigned_personnel_id", "document_status",
-                "relation_status", "release_status", "source_stage", "file_id", "target_code", "relation_type"));
+                "relation_status", "release_status", "source_stage", "file_id", "target_code", "relation_type",
+                "action_type", "record_type", "fault_code", "event_code", "work_order_type"));
         return fields.contains(field);
     }
 
@@ -1341,6 +1342,31 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
         {
             return hydraulicTubeModelSummary(row);
         }
+        String actionType = text(firstValue(row, "action_type", "actionType"));
+        if (hasText(actionType))
+        {
+            return installRemovalSummary(row, actionType, fallback);
+        }
+        String woNumber = text(firstValue(row, "wo_number", "woNumber"));
+        if (hasText(woNumber))
+        {
+            return serviceWorkOrderSummary(row, woNumber);
+        }
+        if (hasText(text(firstValue(row, "tsn_fh", "tsnFh", "total_fh", "totalFh",
+                "remaining_life_value", "remainingLifeValue"))))
+        {
+            return lifeUsageSummary(row);
+        }
+        if (hasText(text(firstValue(row, "fault_code", "faultCode", "fault_description",
+                "faultDescription"))))
+        {
+            return faultEventSummary(row, fallback);
+        }
+        if (hasText(text(firstValue(row, "record_title", "recordTitle", "record_text", "recordText",
+                "text_content", "textContent", "feedback_text", "feedbackText"))))
+        {
+            return qualityTextSummary(row, fallback);
+        }
 
         List<String> values = new ArrayList<>();
         for (String key : Arrays.asList("part_name", "system_name", "subsystem_name", "equipment_name",
@@ -1450,6 +1476,81 @@ public class DossierGenerationServiceImpl implements IDossierGenerationService
                 valueText("放行人 ", firstValue(row, "released_by", "releasedBy")),
                 valueText("时间 ", firstValue(row, "released_at", "releasedAt")),
                 valueText("依据 ", firstValue(row, "release_basis", "releaseBasis"))));
+    }
+
+    private String installRemovalSummary(Map<String, Object> row, String actionType, String fallback)
+    {
+        Map<String, Object> params = parseJsonObject(firstValue(row, "assembly_params", "assemblyParams"));
+        String action = actionType.toUpperCase().contains("INSTALL") ? "装机" : actionType.toUpperCase().contains("REMOVAL")
+                ? "拆卸" : "装拆";
+        return summaryText(Arrays.asList(action + " " + defaultText(firstValue(row, "install_position",
+                "installPosition", "position_code", "positionCode", "install_pos_code", "installPosCode"),
+                fallback),
+                valueText("时间 ", firstValue(row, "action_date", "actionDate", "event_time", "eventTime")),
+                valueText("原因 ", firstValue(row, "removal_reason", "removalReason", "reason")),
+                valueText("故障 ", firstValue(row, "removal_fault_code", "removalFaultCode")),
+                valueText("力矩 ", summaryValueWithUnit(firstValue(params, "torqueNm", "torque_n_m"), "N*m")),
+                valueText("泄漏检查 ", firstValue(params, "leakCheckResult", "leak_check_result")),
+                text(firstValue(row, "removal_remark", "removalRemark", "remarks", "remark")),
+                text(firstValue(params, "displayText", "display_text"))));
+    }
+
+    private String serviceWorkOrderSummary(Map<String, Object> row, String woNumber)
+    {
+        return summaryText(Arrays.asList("维修工单 " + woNumber,
+                valueText("类型 ", firstValue(row, "work_order_type", "workOrderType")),
+                valueText("状态 ", firstValue(row, "status", "wo_status", "woStatus")),
+                timeRange(firstValue(row, "planned_start", "plannedStart", "actual_start", "actualStart"),
+                        firstValue(row, "actual_finish", "actualFinish", "closed_at", "closedAt")),
+                text(firstValue(row, "work_desc", "workDesc", "task_title", "taskTitle")),
+                text(firstValue(row, "close_summary", "closeSummary", "result_notes", "resultNotes"))));
+    }
+
+    private String lifeUsageSummary(Map<String, Object> row)
+    {
+        return summaryText(Arrays.asList("使用量记录",
+                valueText("累计FH ", firstValue(row, "tsn_fh", "tsnFh", "total_fh", "totalFh")),
+                valueText("累计FC ", firstValue(row, "tsn_fc", "tsnFc", "total_fc", "totalFc")),
+                valueText("本次FH ", firstValue(row, "fh_delta", "fhDelta")),
+                valueText("本次FC ", firstValue(row, "fc_delta", "fcDelta")),
+                valueText("剩余寿命 ", summaryValueWithUnit(firstValue(row, "remaining_life_value",
+                        "remainingLifeValue"), firstValue(row, "remaining_life_unit", "remainingLifeUnit"))),
+                valueText("时间 ", firstValue(row, "record_time", "recordTime", "event_time", "eventTime")),
+                text(firstValue(row, "remarks", "remark"))));
+    }
+
+    private String faultEventSummary(Map<String, Object> row, String fallback)
+    {
+        String faultCode = defaultText(firstValue(row, "fault_code", "faultCode", "event_code", "eventCode"),
+                fallback);
+        return summaryText(Arrays.asList("故障 " + faultCode,
+                text(firstValue(row, "fault_description", "faultDescription", "description",
+                        "event_description", "eventDescription")),
+                valueText("严重度 ", firstValue(row, "severity_level", "severityLevel", "severity")),
+                valueText("状态 ", firstValue(row, "status", "event_status", "eventStatus")),
+                valueText("处置 ", firstValue(row, "resolution_type", "resolutionType", "resolution_action",
+                        "resolutionAction", "resolution")),
+                valueText("发现时间 ", firstValue(row, "reported_at", "reportedAt", "event_time", "eventTime")),
+                valueText("关闭时间 ", firstValue(row, "closed_at", "closedAt"))));
+    }
+
+    private String qualityTextSummary(Map<String, Object> row, String fallback)
+    {
+        return summaryText(Arrays.asList("巡检记录 " + defaultText(firstValue(row, "record_title",
+                "recordTitle", "title"), fallback),
+                valueText("时间 ", firstValue(row, "record_time", "recordTime", "created_at", "createdAt")),
+                text(firstValue(row, "record_text", "recordText", "text_content", "textContent",
+                        "feedback_text", "feedbackText", "remarks", "remark")),
+                valueText("结论 ", firstValue(row, "result", "status"))));
+    }
+
+    private String summaryValueWithUnit(Object value, Object unit)
+    {
+        if (!hasText(text(value)))
+        {
+            return "";
+        }
+        return displayValue(value) + text(unit);
     }
 
     private String quantityWithUnit(Map<String, Object> row)
