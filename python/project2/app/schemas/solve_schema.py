@@ -18,7 +18,9 @@ class AlgorithmConfig(BaseModel):
 
 class OptimizeRequest(BaseModel):
     taskId: Optional[int] = None
+    modelName: Optional[str] = None
     modelPath: Optional[str] = None
+    fixedParams: Dict[str, float] = Field(default_factory=dict)
     variables: Dict[str, VariableBound]
     algorithm: AlgorithmConfig = Field(default_factory=AlgorithmConfig)
 

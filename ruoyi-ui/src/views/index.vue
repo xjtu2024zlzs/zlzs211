@@ -101,7 +101,28 @@
               {{ project.description }}
             </p>
 
-            <div class="mini-chart">
+            <div v-if="project.stats" class="project-stats">
+              <div class="project-stats__header">
+                <span>{{ project.statsTitle }}</span>
+                <strong>{{ project.statsValue }}</strong>
+              </div>
+
+              <div class="project-stats__grid">
+                <div
+                  v-for="item in project.stats"
+                  :key="item.name"
+                  class="project-stats__item"
+                >
+                  <span>{{ item.name }}</span>
+                  <strong>
+                    {{ item.value }}
+                    <em v-if="item.unit">{{ item.unit }}</em>
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="mini-chart">
               <div class="mini-chart__header">
                 <span>{{ project.chartTitle }}</span>
                 <strong>{{ project.chartValue }}</strong>
@@ -334,6 +355,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { listProblem } from '@/api/quality/problem'
+import { listTask as listQualityTask } from '@/api/quality/task'
 
 const router = useRouter()
 
@@ -350,23 +372,31 @@ const knowledgeGraphRef = ref(null)
 const knowledgeGraphChart = ref(null)
 const selectedKgNode = ref(null)
 
+const DESIGN_MODULE_CODE = 'PROJECT_2'
+const DESIGN_TASK_VISIBLE_STATUSES = ['UNSTARTED', 'DISPATCHED', 'PROCESSING', 'PENDING_BACKFILL', 'SUBMITTED']
+const DESIGN_TASK_FINISHED_STATUSES = ['PENDING_BACKFILL', 'SUBMITTED', 'CONFIRMED', 'FINISHED']
+
 const middleProjects = ref([
   {
     key: 'project-2',
-    label: '工艺过程质量分析',
-    title: '复杂产品设计制造协同优化平台',
+    label: '设计制造协同优化',
+    title: '设计制造协同优化平台',
     icon: '二',
     iconClass: 'project-card__icon--blue',
-    description: '展示工艺参数、过程波动、关键工序状态和异常趋势，用于支撑过程质量分析。',
-    chartTitle: '工艺稳定度',
-    chartValue: '91.2%',
-    chartLabels: ['1月', '2月', '3月', '4月', '5月', '6月'],
-    chartData: [62, 68, 74, 79, 84, 91],
+    description: '承接质量问题任务，完成协同机制生成、目标约束确认、模型解耦求解、参数化建模、ANSYS 仿真验证与报告回填。',
+    statsTitle: '任务运行统计',
+    statsValue: '暂无任务',
+    stats: [
+      { name: '当前任务', value: '0', unit: '项' },
+      { name: '处理中', value: '0', unit: '项' },
+      { name: '待回填', value: '0', unit: '项' },
+      { name: '平均时长', value: '-', unit: '' }
+    ],
     route: '/designtask/dashboard',
     meta: [
-      { name: '接入工序', value: '18' },
-      { name: '异常批次', value: '6' },
-      { name: '分析任务', value: '42' }
+      { name: '未开始', value: '0' },
+      { name: '处理中', value: '0' },
+      { name: '待确认', value: '0' }
     ]
   },
   {
@@ -704,6 +734,86 @@ const loadRecentQualityProblems = async () => {
   }
 }
 
+const parseTaskTime = (value) => {
+  const time = value ? new Date(value).getTime() : 0
+  return Number.isFinite(time) ? time : 0
+}
+
+const formatTaskDuration = (duration) => {
+  if (!duration) return '-'
+  const minutes = Math.max(1, Math.round(duration / 60000))
+  if (minutes < 60) return `${minutes}分钟`
+  const hours = duration / 3600000
+  if (hours < 24) return `${hours < 10 ? hours.toFixed(1) : Math.round(hours)}小时`
+  const days = duration / 86400000
+  return `${days < 10 ? days.toFixed(1) : Math.round(days)}天`
+}
+
+const getAverageTaskDuration = (tasks) => {
+  const now = Date.now()
+  const durations = tasks
+    .filter((item) => !['UNSTARTED', 'DISPATCHED'].includes(item.taskStatus))
+    .map((item) => {
+      const start = parseTaskTime(item.dispatchTime || item.createTime)
+      if (!start) return 0
+      const finished = DESIGN_TASK_FINISHED_STATUSES.includes(item.taskStatus)
+      const end = finished ? (parseTaskTime(item.updateTime) || now) : now
+      return end > start ? end - start : 0
+    })
+    .filter((item) => item > 0)
+
+  if (!durations.length) return '-'
+  const total = durations.reduce((sum, item) => sum + item, 0)
+  return formatTaskDuration(total / durations.length)
+}
+
+const updateDesignProjectStats = (stats) => {
+  const index = middleProjects.value.findIndex((item) => item.key === 'project-2')
+  if (index < 0) return
+
+  const currentProject = middleProjects.value[index]
+  middleProjects.value[index] = {
+    ...currentProject,
+    statsValue: stats.total ? `${stats.total} 项当前任务` : '暂无任务',
+    stats: [
+      { name: '当前任务', value: String(stats.total), unit: '项' },
+      { name: '处理中', value: String(stats.processing), unit: '项' },
+      { name: '待回填', value: String(stats.pendingBackfill), unit: '项' },
+      { name: '平均时长', value: stats.averageDuration, unit: '' }
+    ],
+    meta: [
+      { name: '未开始', value: String(stats.waiting) },
+      { name: '处理中', value: String(stats.processing) },
+      { name: '待确认', value: String(stats.submitted) }
+    ]
+  }
+}
+
+const loadDesignTaskStats = async () => {
+  try {
+    const res = await listQualityTask({
+      moduleCode: DESIGN_MODULE_CODE,
+      pageNum: 1,
+      pageSize: 9999
+    })
+    const rows = Array.isArray(res?.rows) ? res.rows : []
+    const designTasks = rows
+      .filter((item) => item.moduleCode === DESIGN_MODULE_CODE)
+      .filter((item) => DESIGN_TASK_VISIBLE_STATUSES.includes(item.taskStatus))
+
+    updateDesignProjectStats({
+      total: designTasks.length,
+      waiting: designTasks.filter((item) => ['UNSTARTED', 'DISPATCHED'].includes(item.taskStatus)).length,
+      processing: designTasks.filter((item) => item.taskStatus === 'PROCESSING').length,
+      pendingBackfill: designTasks.filter((item) => item.taskStatus === 'PENDING_BACKFILL').length,
+      submitted: designTasks.filter((item) => item.taskStatus === 'SUBMITTED').length,
+      averageDuration: getAverageTaskDuration(designTasks)
+    })
+  } catch (error) {
+    console.warn('加载设计制造协同优化平台任务统计失败：', error)
+  }
+}
+
 const pagedRecords = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   return recentRecords.value.slice(start, start + pageSize.value)
@@ -956,7 +1066,10 @@ const loadHomeData = async () => {
     }
   ]
 
-  await loadRecentQualityProblems()
+  await Promise.all([
+    loadRecentQualityProblems(),
+    loadDesignTaskStats()
+  ])
 
   loading.value = false
 }
@@ -1344,6 +1457,68 @@ onBeforeUnmount(() => {
   margin: 6px 0 0;
   color: #6c7d90;
   font-size: 10px;
+}
+
+.project-stats {
+  min-height: 172px;
+  padding: 14px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  border: 1px solid rgba(104, 148, 197, 0.26);
+  background: rgba(246, 250, 255, 0.96);
+}
+
+.project-stats__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #53677e;
+  font-size: 12px;
+}
+
+.project-stats__header strong {
+  color: #10395f;
+  font-size: 18px;
+}
+
+.project-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.project-stats__item {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 58px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(104, 148, 197, 0.18);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.project-stats__item span {
+  color: #728195;
+  font-size: 11px;
+}
+
+.project-stats__item strong {
+  display: block;
+  margin-top: 8px;
+  color: #17375b;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.project-stats__item em {
+  margin-left: 3px;
+  color: #6d7e94;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
 }
 
 .project-card__meta {

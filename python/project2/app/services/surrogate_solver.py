@@ -10,9 +10,10 @@ from app.schemas.solve_schema import (
     OptimizeRequest,
     OptimizeResponse,
 )
-from app.services.model_registry import active_model
+from app.services.model_registry import active_model, model_input_features
 
 INPUT_KEYS = ["L1", "L2", "theta1", "theta2", "R"]
+INFEASIBLE_PENALTY = 1e12
 
 
 def _bounds(request: OptimizeRequest) -> List[Tuple[float, float]]:
@@ -59,7 +60,7 @@ def _solution(vector, stress: float) -> BestSolution:
 
 def optimize(request: OptimizeRequest) -> OptimizeResponse:
     try:
-        model_info, model = active_model()
+        model_info, model = active_model(request.modelName)
         bounds = _bounds(request)
         steps = _steps(request)
         history: List[IterationPoint] = []
@@ -69,7 +70,11 @@ def optimize(request: OptimizeRequest) -> OptimizeResponse:
         def objective(x):
             snapped = _snap_to_steps(x, bounds, steps)
             x_array = snapped.reshape(1, -1)
-            stress = float(model.predict(x_array)[0])
+            try:
+                features = model_input_features(model, x_array, request.fixedParams)
+                stress = float(model.predict(features)[0])
+            except (ValueError, RuntimeError, np.linalg.LinAlgError, FloatingPointError):
+                return INFEASIBLE_PENALTY
             candidates[tuple(round(float(v), 6) for v in snapped)] = stress
             return stress
 
@@ -89,8 +94,12 @@ def optimize(request: OptimizeRequest) -> OptimizeResponse:
             callback=callback,
         )
 
+        if not candidates:
+            raise ValueError("No feasible geometry was found in the selected design variable bounds.")
+
         best_vector = _snap_to_steps(result.x, bounds, steps)
-        best_stress = float(model.predict(best_vector.reshape(1, -1))[0])
+        best_features = model_input_features(model, best_vector.reshape(1, -1), request.fixedParams)
+        best_stress = float(model.predict(best_features)[0])
         best_solution = _solution(best_vector, best_stress)
         ranked = sorted(candidates.items(), key=lambda item: item[1])[:10]
         top_candidates = [
@@ -106,7 +115,7 @@ def optimize(request: OptimizeRequest) -> OptimizeResponse:
             candidates=top_candidates,
             history=history,
             iterations=max(iteration["value"], int(getattr(result, "nit", 0) or 0)),
-            modelName=model_info.get("activeModel", ""),
+            modelName=model_info.get("modelName", ""),
             modelType=model_info.get("modelType", ""),
             objectiveName=model_info.get("outputName", "predictedStress"),
             objectiveUnit=model_info.get("outputUnit", "MPa"),

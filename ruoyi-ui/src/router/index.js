@@ -187,6 +187,19 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/quality',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/quality/index.vue'),
+        name: 'QualityCenter',
+        meta: { title: '质量问题管理中心', icon: 'form' }
+      }
+    ]
+  },
+  {
     path: '/designtask',
     component: Layout,
     hidden: true,
@@ -228,10 +241,10 @@ export const constantRoutes = [
         meta: { title: '寿命预测评估', icon: 'chart' }
       },
       {
-        path: 'simulation',
-        component: () => import('@/views/designtask/simulation/index'),
-        name: 'DesignTaskSimulation',
-        meta: { title: '仿真验证确认', icon: 'chart' }
+        path: 'approval',
+        component: () => import('@/views/designtask/approval/index'),
+        name: 'DesignTaskApproval',
+        meta: { title: '领导审批', icon: 'checkbox' }
       },
       {
         path: 'decision-advice',

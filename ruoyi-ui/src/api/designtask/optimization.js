@@ -65,6 +65,13 @@ export function getDesignTask(taskId) {
   })
 }
 
+export function getDesignTaskByQualityTask(qualityTaskId) {
+  return request({
+    url: `/designtask/task/quality-task/${qualityTaskId}`,
+    method: 'get'
+  })
+}
+
 export function getDesignTaskArchive(taskId) {
   return request({
     url: `/designtask/task/${taskId}/archive`,
@@ -80,10 +87,11 @@ export function getTaskAttachmentFile(fileId) {
   })
 }
 
-export function getObjectiveCatalog(discipline) {
+export function getObjectiveCatalog(discipline, params = {}) {
   return request({
     url: `/designtask/objective/catalog/${discipline}`,
-    method: 'get'
+    method: 'get',
+    params
   })
 }
 
@@ -170,6 +178,13 @@ export function submitSurrogateSolveTask(taskId, data = {}) {
   })
 }
 
+export function getSurrogateModels() {
+  return request({
+    url: '/designtask/surrogate-models',
+    method: 'get'
+  })
+}
+
 export function getSurrogateSolveTask(taskId) {
   return request({
     url: `/designtask/task/${taskId}/surrogate-solve`,
@@ -189,6 +204,24 @@ export function runSimulation(taskId, data = {}) {
     url: `/designtask/task/${taskId}/simulation`,
     method: 'post',
     data
+  })
+}
+
+export function submitDesignReportTask(taskId, data = {}) {
+  return request({
+    url: `/designtask/task/${taskId}/design-report`,
+    method: 'post',
+    data,
+    headers: {
+      repeatSubmit: false
+    }
+  })
+}
+
+export function getDesignReportTask(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/design-report`,
+    method: 'get'
   })
 }
 
@@ -290,6 +323,66 @@ export function confirmFrameBeamMaintenanceAdvice(taskId, data = {}) {
     url: `/designtask/task/${taskId}/frame-beam-maintenance-advice/confirm`,
     method: 'post',
     data
+  })
+}
+
+export function submitStandaloneFatiguePredict(data) {
+  return request({
+    url: '/designtask/fatigue-predict',
+    method: 'post',
+    data
+  })
+}
+
+export function submitFatiguePredictBatch(taskId, data) {
+  return request({
+    url: `/designtask/task/${taskId}/fatigue-predict/batch`,
+    method: 'post',
+    data
+  })
+}
+
+export function submitStandaloneFatiguePredictBatch(data) {
+  return request({
+    url: '/designtask/fatigue-predict/batch',
+    method: 'post',
+    data
+  })
+}
+
+export function importFatiguePredictExcel(taskId, formData) {
+  return request({
+    url: `/designtask/task/${taskId}/fatigue-predict/import`,
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+export function importStandaloneFatiguePredictExcel(formData) {
+  return request({
+    url: '/designtask/fatigue-predict/import',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+export function getFatiguePredict(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/fatigue-predict`,
+    method: 'get'
+  })
+}
+
+export function confirmFatiguePredict(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/fatigue-predict/confirm`,
+    method: 'post'
   })
 }
 

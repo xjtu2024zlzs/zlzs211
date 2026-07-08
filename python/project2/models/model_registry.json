@@ -3,5 +3,21 @@
   "modelType": "Kriging / Gaussian Process",
   "inputOrder": ["L1", "L2", "theta1", "theta2", "R"],
   "outputName": "predictedStress",
-  "outputUnit": "MPa"
+  "outputUnit": "MPa",
+  "models": [
+    {
+      "modelName": "aero_pipe_kriging.pkl",
+      "displayName": "默认液压弯管抗冲击代理模型",
+      "modelType": "Kriging / Gaussian Process",
+      "outputName": "predictedStress",
+      "outputUnit": "MPa"
+    },
+    {
+      "modelName": "trained_kriging_model.pkl",
+      "displayName": "液压弯管抗冲击代理模型02",
+      "modelType": "Kriging / Gaussian Process",
+      "outputName": "predictedStress",
+      "outputUnit": "MPa"
+    }
+  ]
 }

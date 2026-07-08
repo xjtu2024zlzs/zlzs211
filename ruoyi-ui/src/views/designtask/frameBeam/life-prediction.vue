@@ -3,7 +3,6 @@
     <div class="design-platform-shell">
       <section class="platform-topbar">
         <div>
-          <p class="platform-eyebrow">FRAME BEAM</p>
           <h1 class="platform-title">寿命预测评估</h1>
         </div>
         <el-button plain @click="goDashboard">返回看板</el-button>

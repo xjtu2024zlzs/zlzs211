@@ -2,7 +2,6 @@
   <section class="section-block">
     <div class="section-header">
       <div>
-        <p class="section-label">LOAD SPECTRUM</p>
         <h2 class="section-title">载荷谱与工况输入</h2>
       </div>
       <el-button type="primary" :loading="saving" @click="save">保存载荷谱</el-button>

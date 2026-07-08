@@ -2,7 +2,6 @@
   <section class="section-block">
     <div class="section-header">
       <div>
-        <p class="section-label">MAINTENANCE ADVICE</p>
         <h2 class="section-title">维修建议与确认</h2>
       </div>
       <el-button type="success" :loading="confirming" @click="confirm">确认维修建议</el-button>

@@ -36,6 +36,57 @@ public class DesignOptimizationService {
     private static final DateTimeFormatter TASK_NO_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private static final String ANSYS_MODE_DEMO = "DEMO_SIMULATION_MODEL";
     private static final String ANSYS_MODE_FSI = "BIDIRECTIONAL_FSI_MODEL";
+    private static final Set<String> PIPE_IMPACT_LAYOUT_RECOMMENDED_ITEMS = Set.of(
+        "HYD_STRESS_MIN", "HYD_DEFORMATION_MIN", "HYD_STRESS_LIMIT", "HYD_DEFORMATION_LIMIT", "HYD_MIN_BEND_RADIUS",
+        "LAY_INTERFERENCE_RISK_MIN", "LAY_CABLE_LENGTH_MIN", "LAY_MAINTAINABILITY_MAX",
+        "LAY_PIPE_CLEARANCE_LIMIT", "LAY_FORBIDDEN_ZONE_AVOID", "LAY_CABLE_BEND_RADIUS_LIMIT", "LAY_CLAMP_SPACING_LIMIT", "LAY_SERVICE_MARGIN_LIMIT",
+        "LAY_LENGTH_MIN", "LAY_INTERFERENCE_MIN", "LAY_CLEARANCE_LIMIT", "LAY_PIPE_CABLE_DISTANCE",
+        "LAY_FORBIDDEN_ZONE", "LAY_CLAMP_INTERVAL", "LAY_BEND_RADIUS_LIMIT",
+        "LAY_PIPE_LENGTH", "LAY_MAINTAINABILITY", "LAY_MIN_CLEARANCE", "LAY_BEND_LIMIT",
+        "STR_DEFORMATION_RISK_MIN", "STR_FORBIDDEN_ZONE", "STR_INTERFACE_FIXED", "STR_CLAMP_SUPPORT_VALID",
+        "AERO_ENVELOPE_IMPACT_MIN", "AERO_OUTER_ENVELOPE",
+        "MFG_PROCESS_COMPLEXITY_MIN", "MFG_ASSEMBLY_EFFICIENCY_MAX", "MFG_BEND_RADIUS_LIMIT", "MFG_CLAMP_INSTALLABLE", "MFG_TOOL_ACCESS"
+    );
+    private static final Map<String, String> OBJECTIVE_ITEM_CANONICAL_CODES = Map.ofEntries(
+        Map.entry("LAY_PIPE_LENGTH", "LAY_CABLE_LENGTH_MIN"),
+        Map.entry("LAY_LENGTH_MIN", "LAY_CABLE_LENGTH_MIN"),
+        Map.entry("LAY_INTERFERENCE_MIN", "LAY_INTERFERENCE_RISK_MIN"),
+        Map.entry("LAY_PIPE_CABLE_DISTANCE", "LAY_PIPE_CLEARANCE_LIMIT"),
+        Map.entry("LAY_MIN_CLEARANCE", "LAY_CLEARANCE_LIMIT"),
+        Map.entry("LAY_FORBIDDEN_ZONE", "LAY_FORBIDDEN_ZONE_AVOID"),
+        Map.entry("LAY_CLAMP_INTERVAL", "LAY_CLAMP_SPACING_LIMIT"),
+        Map.entry("LAY_BEND_RADIUS_LIMIT", "LAY_CABLE_BEND_RADIUS_LIMIT"),
+        Map.entry("LAY_BEND_LIMIT", "LAY_CABLE_BEND_RADIUS_LIMIT"),
+        Map.entry("LAY_MAINTAINABILITY", "LAY_MAINTAINABILITY_MAX"),
+        Map.entry("LAY_SPACE_OCCUPANCY", "LAY_COMPACTNESS_MAX"),
+        Map.entry("AERO_GAP_LIMIT", "AERO_DOOR_GAP_CLEARANCE"),
+        Map.entry("AERO_MOTION_BOUNDARY", "AERO_DOOR_GAP_CLEARANCE"),
+        Map.entry("AERO_DRAG_DISTURBANCE", "AERO_ENVELOPE_IMPACT_MIN"),
+        Map.entry("HYD_PRESSURE_DROP", "HYD_PRESSURE_DROP_MIN"),
+        Map.entry("HYD_BEND_RADIUS", "HYD_MIN_BEND_RADIUS")
+    );
+    private static final Map<String, Set<String>> DISCIPLINE_EXCLUDED_OBJECTIVE_ITEM_CODES = Map.of(
+        "structure", Set.of(
+            "STR_FORBIDDEN_ZONE"
+        ),
+        "layout", Set.of(
+            "LAY_DOOR_ENVELOPE_AVOID",
+            "LAY_PIPE_ENDPOINT_FIXED",
+            "LAY_PIPE_HORIZONTAL_SPAN",
+            "LAY_PIPE_VERTICAL_SPAN"
+        ),
+        "hydraulic", Set.of(
+            "HYD_MIN_BEND_RADIUS",
+            "HYD_BEND_RADIUS",
+            "HYD_IMPACT_LOAD",
+            "HYD_PRESSURE_VELOCITY_INPUT",
+            "HYD_VALVE_CLOSE_TIME",
+            "HYD_PIPE_DIAMETER"
+        ),
+        "manufacturing", Set.of(
+            "MFG_MAINTENANCE_ACCESS_MAX"
+        )
+    );
 
     private final IDesignTaskService taskService;
     private final IDesignTaskFileService taskFileService;
@@ -178,6 +229,7 @@ public class DesignOptimizationService {
             taskService.insertTask(task);
             Long taskFaultPipeSetId = saveTaskFaultPipeParameters(task.getTaskId(), longValue(body.get("faultPipeParameterSetId")));
             saveTaskAttachments(task.getTaskId(), body.get("attachments"));
+            saveQualityTaskLink(task.getTaskId(), body);
             debugLog("H6", "DesignOptimizationService.java:114", "task inserted", mapOf(
                 "taskId", task.getTaskId(),
                 "processDefinitionId", task.getProcessDefinitionId(),
@@ -239,6 +291,7 @@ public class DesignOptimizationService {
         data.put("stageRoute", stageRoute(task == null ? "structure_select" : task.getCurrentNodeKey()));
         data.put("access", taskAccess(task));
         data.put("currentUserId", currentUserId());
+        data.put("isPlatformAdmin", isPlatformAdmin());
         data.put("catalog", catalog());
         data.put("attachments", safeTaskFiles(taskId));
         data.put("objectiveConstraints", selectedObjectiveConstraints(taskId));
@@ -251,10 +304,27 @@ public class DesignOptimizationService {
         Map<String, Object> simulation = simulationResult(taskId);
         data.put("simulation", simulation);
         data.put("canConfirmSimulation", canConfirmSimulation(task, simulation));
+        data.put("reportSubmission", designReport(taskId));
         data.put("ansysSimulation", taskId == null ? defaultAnsysSimulation() : ansysSimulation(taskId));
         data.put("surrogateSolve", taskId == null ? defaultSurrogateSolve() : surrogateSolve(taskId));
         data.put("cadModel", taskId == null ? defaultCadModel() : cadModel(taskId));
+        data.put("qualityTaskLink", qualityTaskLinkByDesignTask(taskId));
         data.put("approval", mapOf("result", "PENDING", "comment", ""));
+        return data;
+    }
+
+    public Map<String, Object> taskByQualityTask(Long qualityTaskId) {
+        if (qualityTaskId == null) {
+            return mapOf("linked", false);
+        }
+        Map<String, Object> link = qualityTaskLinkByQualityTask(qualityTaskId);
+        Long designTaskId = longValue(link.get("designTaskId"));
+        if (designTaskId == null) {
+            return mapOf("linked", false, "qualityTaskId", qualityTaskId);
+        }
+        Map<String, Object> data = detail(designTaskId);
+        data.put("linked", true);
+        data.put("qualityTaskLink", link);
         return data;
     }
 
@@ -300,8 +370,103 @@ public class DesignOptimizationService {
         return taskFile;
     }
 
+    private void saveQualityTaskLink(Long designTaskId, Map<String, Object> body) {
+        Long qualityTaskId = longValue(firstNonNull(body.get("qualityTaskId"), body.get("qmsTaskId")));
+        if (designTaskId == null || qualityTaskId == null) {
+            return;
+        }
+        ensureQualityTaskLinkTable();
+        jdbcTemplate.update("""
+            insert into t2_quality_task_link(
+              quality_task_id, quality_problem_id, quality_problem_code, quality_problem_title,
+              design_task_id, create_by, create_time, update_time
+            )
+            values (?, ?, ?, ?, ?, ?, sysdate(), sysdate())
+            on duplicate key update
+              quality_problem_id = values(quality_problem_id),
+              quality_problem_code = values(quality_problem_code),
+              quality_problem_title = values(quality_problem_title),
+              design_task_id = values(design_task_id),
+              update_time = sysdate()
+            """,
+            qualityTaskId,
+            longValue(firstNonNull(body.get("qualityProblemId"), body.get("problemId"))),
+            limitText(str(firstNonNull(body.get("qualityProblemCode"), body.get("problemCode")), ""), 128),
+            limitText(str(firstNonNull(body.get("qualityProblemTitle"), body.get("problemTitle")), ""), 255),
+            designTaskId,
+            currentUsername()
+        );
+    }
+
+    private Map<String, Object> qualityTaskLinkByDesignTask(Long designTaskId) {
+        if (designTaskId == null) {
+            return Collections.emptyMap();
+        }
+        ensureQualityTaskLinkTable();
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+            select quality_task_id qualityTaskId,
+                   quality_problem_id qualityProblemId,
+                   quality_problem_code qualityProblemCode,
+                   quality_problem_title qualityProblemTitle,
+                   design_task_id designTaskId,
+                   create_time createTime,
+                   update_time updateTime
+            from t2_quality_task_link
+            where design_task_id = ?
+            order by id desc
+            limit 1
+            """, designTaskId);
+        return rows.isEmpty() ? Collections.emptyMap() : rows.get(0);
+    }
+
+    private Map<String, Object> qualityTaskLinkByQualityTask(Long qualityTaskId) {
+        if (qualityTaskId == null) {
+            return Collections.emptyMap();
+        }
+        ensureQualityTaskLinkTable();
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+            select quality_task_id qualityTaskId,
+                   quality_problem_id qualityProblemId,
+                   quality_problem_code qualityProblemCode,
+                   quality_problem_title qualityProblemTitle,
+                   design_task_id designTaskId,
+                   create_time createTime,
+                   update_time updateTime
+            from t2_quality_task_link
+            where quality_task_id = ?
+            order by id desc
+            limit 1
+            """, qualityTaskId);
+        return rows.isEmpty() ? Collections.emptyMap() : rows.get(0);
+    }
+
+    private void ensureQualityTaskLinkTable() {
+        jdbcTemplate.execute("""
+            create table if not exists t2_quality_task_link (
+              id bigint(20) not null auto_increment comment 'ID',
+              quality_task_id bigint(20) not null comment 'QMS task ID',
+              quality_problem_id bigint(20) default null comment 'QMS problem ID',
+              quality_problem_code varchar(128) default null comment 'QMS problem code',
+              quality_problem_title varchar(255) default null comment 'QMS problem title',
+              design_task_id bigint(20) not null comment 'Design task ID',
+              create_by varchar(64) default '',
+              create_time datetime default null,
+              update_time datetime default null,
+              primary key (id),
+              unique key uk_t2_quality_task_link_qms_task (quality_task_id),
+              key idx_t2_quality_task_link_design_task (design_task_id)
+            ) engine=InnoDB default charset=utf8mb4 comment='Quality task and design task link'
+            """);
+    }
+
     public List<Map<String, Object>> objectiveCatalog(String discipline) {
-        return catalogByDiscipline(discipline);
+        return objectiveCatalog(discipline, null, null);
+    }
+
+    public List<Map<String, Object>> objectiveCatalog(String discipline, Long taskId, String taskType) {
+        DesignTask task = taskId == null ? null : taskService.selectTaskById(taskId);
+        String recommendationProfile = recommendationProfile(task, taskType);
+        return decorateCatalogRecommendations(deduplicateObjectiveCatalog(catalogByDiscipline(discipline), discipline), recommendationProfile);
     }
 
     public List<Map<String, Object>> designVariableCatalog(String discipline) {
@@ -574,6 +739,7 @@ public class DesignOptimizationService {
         if (task != null) {
             assertCurrentAssignee(task, "当前节点未流转到你，暂不能提交目标与约束。");
             String discipline = str(body.get("discipline"), "structure");
+            assertObjectiveDisciplineMatchesNode(task, discipline);
             saveObjectiveItems(taskId, discipline, body);
             completeFlowableTask(task, mapOf("lastCompletedDiscipline", discipline));
             task.setUpdateBy(currentUsername());
@@ -609,6 +775,9 @@ public class DesignOptimizationService {
             if (!"model_decompose_solve".equals(task.getCurrentNodeKey())) {
                 throw new IllegalStateException("请先完成目标约束冲突校验，进入模型解耦求解阶段后再选择设计变量。");
             }
+            if (!isDecomposed(task, taskId)) {
+                throw new IllegalStateException("请先点击任务解耦，生成解耦子任务后再选择设计变量。");
+            }
         }
         saveDesignVariableItems(taskId, body);
         if (task != null) {
@@ -619,12 +788,18 @@ public class DesignOptimizationService {
     }
 
     public Map<String, Object> conflictCheck(Long taskId, Map<String, Object> body) {
+        if (body == null) {
+            body = Collections.emptyMap();
+        }
         boolean passed = Boolean.parseBoolean(String.valueOf(body.getOrDefault("passed", "true")));
+        boolean complete = Boolean.parseBoolean(String.valueOf(body.getOrDefault("complete", "true")));
         Map<String, Object> result = conflictCheckResult(passed);
-        saveConflictCheckResult(taskId, result);
         DesignTask task = taskService.selectTaskById(taskId);
         if (task != null) {
             assertCurrentAssignee(task, "当前任务未流转到你，暂不能执行冲突校验。");
+        }
+        saveConflictCheckResult(taskId, result);
+        if (task != null && complete) {
             completeFlowableTask(task, mapOf("conflictPassed", passed));
             task.setUpdateBy(currentUsername());
             taskService.updateTask(task);
@@ -637,10 +812,15 @@ public class DesignOptimizationService {
         if (task != null) {
             syncRuntimeIfPossible(task);
             assertCurrentAssignee(task, "当前任务未流转到你，暂不能执行任务解耦。");
+            if (!"model_decompose_solve".equals(task.getCurrentNodeKey()) && !isDecomposed(task, taskId)) {
+                throw new IllegalStateException("请先完成目标约束冲突校验，进入模型解耦求解阶段后再执行任务解耦。");
+            }
             task.setUpdateBy(currentUsername());
             taskService.updateTask(task);
         }
-        saveDecompositionMarker(taskId);
+        if (!isDecomposed(task, taskId)) {
+            saveDecompositionMarker(taskId);
+        }
         return mapOf("subtasks", subtaskDefinitions(taskId), "message", "已将大任务目标与约束归类到两个解耦子任务");
     }
 
@@ -648,6 +828,9 @@ public class DesignOptimizationService {
         DesignTask task = taskService.selectTaskById(taskId);
         if (task != null) {
             assertCurrentAssignee(task, "当前任务未流转到你，暂不能提交求解结果。");
+            if (!isDecomposed(task, taskId)) {
+                throw new IllegalStateException("请先点击任务解耦，生成解耦子任务后再进行模型求解。");
+            }
             if (selectedDesignVariableCount(taskId) == 0) {
                 throw new IllegalStateException("请先保存至少一个设计变量，再进行模型求解。");
             }
@@ -666,6 +849,9 @@ public class DesignOptimizationService {
         DesignTask task = taskService.selectTaskById(taskId);
         if (task != null) {
             assertCurrentAssignee(task, "当前任务未流转到你，暂不能启动代理模型优化求解。");
+            if (!isDecomposed(task, taskId)) {
+                throw new IllegalStateException("请先点击任务解耦，生成解耦子任务后再启动代理模型优化求解。");
+            }
             if (selectedDesignVariableCount(taskId) == 0) {
                 throw new IllegalStateException("请先保存设计变量，再启动代理模型优化求解。");
             }
@@ -673,21 +859,52 @@ public class DesignOptimizationService {
         ensureSurrogateSolveTable();
         Map<String, Object> bounds = selectedVariableBounds(taskId);
         validateSurrogateBounds(bounds);
+        Map<String, Object> faultPipeParameters = faultPipeParameters(taskId);
         Map<String, Object> algorithm = mapOf(
             "type", str(body.get("algorithmType"), "differential_evolution"),
             "maxIterations", intValue(firstNonNull(body.get("maxIterations"), body.get("maxiter")), 80),
             "populationSize", intValue(firstNonNull(body.get("populationSize"), body.get("popsize")), 15),
             "seed", intValue(body.get("seed"), 42)
         );
+        String modelName = str(firstNonNull(body.get("modelName"), body.get("activeModel")), "");
         Map<String, Object> params = mapOf(
             "taskId", taskId,
+            "modelName", modelName,
             "variables", bounds,
-            "faultPipeParameters", faultPipeParameters(taskId),
+            "fixedParams", surrogateFixedParams(faultPipeParameters),
+            "faultPipeParameters", faultPipeParameters,
             "algorithm", algorithm
         );
         upsertSurrogateSolve(taskId, "QUEUED", params, Collections.emptyMap(), "");
         CompletableFuture.runAsync(() -> runSurrogateWorker(taskId, params), solverExecutor);
         return surrogateSolve(taskId);
+    }
+
+    public Map<String, Object> surrogateModels() {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.getForObject(trimTrailingSlash(surrogateBaseUrl) + "/api/models", Map.class);
+            Map<String, Object> data = responseData(response);
+            Object models = firstNonNull(data.get("models"), Collections.emptyList());
+            return mapOf(
+                "activeModel", str(data.get("activeModel"), "aero_pipe_kriging.pkl"),
+                "models", models
+            );
+        } catch (Exception e) {
+            return mapOf(
+                "activeModel", "aero_pipe_kriging.pkl",
+                "models", List.of(mapOf(
+                    "modelName", "aero_pipe_kriging.pkl",
+                    "displayName", "液压弯管抗冲击代理模型02",
+                    "modelType", "Kriging / Gaussian Process",
+                    "outputName", "predictedStress",
+                    "outputUnit", "MPa",
+                    "exists", true,
+                    "active", true
+                )),
+                "errorMessage", "代理模型服务暂不可用：" + e.getMessage()
+            );
+        }
     }
 
     public Map<String, Object> surrogateSolve(Long taskId) {
@@ -745,6 +962,8 @@ public class DesignOptimizationService {
             throw new IllegalArgumentException("请先由工程师选择仿真验证通过或不通过。");
         }
         boolean passed = Boolean.parseBoolean(String.valueOf(body.get("simulationPassed")));
+        String comment = str(firstNonNull(body.get("comment"), body.get("submitComment")),
+            passed ? "工程师确认仿真验证通过。" : "工程师确认仿真验证不通过，退回模型解耦求解。");
         Map<String, Object> result = simulationResult(taskId);
         DesignTask task = taskService.selectTaskById(taskId);
         if (task != null && !canConfirmSimulation(task, result)) {
@@ -752,16 +971,108 @@ public class DesignOptimizationService {
         }
         result.put("verified", true);
         result.put("passed", passed);
-        result.put("conclusion", passed ? "工程师确认仿真验证通过。" : "工程师确认仿真验证不通过。");
+        result.put("conclusion", comment);
         if (task != null) {
             saveSimulationResult(taskId, result, passed);
-            if ("simulation_confirm".equals(task.getCurrentNodeKey())) {
-                completeFlowableTask(task, mapOf("simulationPassed", passed));
-            }
+            completeSimulationFlow(task, passed);
             task.setUpdateBy(currentUsername());
             taskService.updateTask(task);
         }
         return result;
+    }
+
+    public Map<String, Object> submitDesignReport(Long taskId, Map<String, Object> body) {
+        if (body == null) {
+            body = Collections.emptyMap();
+        }
+        boolean passed = Boolean.parseBoolean(String.valueOf(firstNonNull(body.get("simulationPassed"), body.get("passed"), "true")));
+        String comment = str(firstNonNull(body.get("comment"), body.get("submitComment")),
+            passed ? "设计方案报告已提交，进入领导审批。" : "设计方案验证不通过，退回模型解耦求解。");
+        if (!passed) {
+            Map<String, Object> simulationBody = new LinkedHashMap<>();
+            simulationBody.put("simulationPassed", false);
+            simulationBody.put("comment", comment);
+            return simulation(taskId, simulationBody);
+        }
+        Map<String, Object> currentSimulation = simulationResult(taskId);
+        DesignTask task = taskService.selectTaskById(taskId);
+        if (task != null && !canConfirmSimulation(task, currentSimulation)) {
+            throw new IllegalStateException("当前任务不允许提交设计方案报告。");
+        }
+
+        Map<String, Object> reportPayload = fromJson(toJson(firstNonNull(body.get("report"), Collections.emptyMap())));
+        String reportHtml = decodeBase64Utf8(body.get("reportHtmlBase64"));
+        if (StringUtils.isEmpty(reportHtml)) {
+            reportHtml = str(body.get("reportHtml"), "");
+        }
+        if (StringUtils.isEmpty(reportHtml)) {
+            reportHtml = "<html><body><pre>" + toJson(reportPayload) + "</pre></body></html>";
+        }
+
+        Map<String, Object> simulationResult = new LinkedHashMap<>(currentSimulation);
+        simulationResult.put("verified", true);
+        simulationResult.put("passed", passed);
+        simulationResult.put("conclusion", comment);
+        saveSimulationResult(taskId, simulationResult, passed);
+        Map<String, Object> submission = saveDesignReportSubmission(taskId, task, reportPayload, reportHtml, passed, comment);
+
+        if (task != null) {
+            completeDesignReportFlow(task, passed);
+            task.setUpdateBy(currentUsername());
+            taskService.updateTask(task);
+        }
+
+        Map<String, Object> result = simulationResult(taskId);
+        result.put("reportSubmission", submission);
+        return result;
+    }
+
+    public Map<String, Object> designReport(Long taskId) {
+        ensureDesignReportSubmissionTable();
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+                select id reportId,
+                       task_id taskId,
+                       report_code reportCode,
+                       report_title reportTitle,
+                       report_json reportJson,
+                       report_html reportHtml,
+                       report_file_id reportFileId,
+                       report_file_path reportFilePath,
+                       report_file_name reportFileName,
+                       passed,
+                       submit_comment submitComment,
+                       submit_by submitBy,
+                       submit_time submitTime
+                from t2_design_report_submission
+                where task_id = ?
+                order by id desc
+                limit 1
+                """, taskId);
+            if (rows.isEmpty()) {
+                return mapOf("submitted", false);
+            }
+            Map<String, Object> row = rows.get(0);
+            boolean passed = "1".equals(str(row.get("passed"), "0"));
+            return mapOf(
+                "submitted", true,
+                "reportId", row.get("reportId"),
+                "taskId", row.get("taskId"),
+                "reportCode", str(row.get("reportCode"), ""),
+                "reportTitle", str(row.get("reportTitle"), ""),
+                "report", fromJson(str(row.get("reportJson"), "{}")),
+                "reportHtml", str(row.get("reportHtml"), ""),
+                "reportFileId", row.get("reportFileId"),
+                "reportFilePath", str(row.get("reportFilePath"), ""),
+                "reportFileName", str(row.get("reportFileName"), ""),
+                "passed", passed,
+                "submitComment", str(row.get("submitComment"), ""),
+                "submitBy", str(row.get("submitBy"), ""),
+                "submitTime", row.get("submitTime")
+            );
+        } catch (Exception e) {
+            return mapOf("submitted", false, "errorMessage", e.getMessage());
+        }
     }
 
     public Map<String, Object> submitAnsysSimulation(Long taskId, Map<String, Object> body) {
@@ -1312,6 +1623,7 @@ public class DesignOptimizationService {
             "cadModel", cadModel(taskId),
             "ansysSimulation", ansysSimulation(taskId),
             "simulation", simulationResult(taskId),
+            "reportSubmission", designReport(taskId),
             "approval", approvalArchive(taskId),
             "attachments", safeTaskFiles(taskId)
         );
@@ -1365,7 +1677,7 @@ public class DesignOptimizationService {
         try {
             upsertSurrogateSolve(taskId, "RUNNING", params, Collections.emptyMap(), "");
             @SuppressWarnings("unchecked")
-            Map<String, Object> workerResponse = restTemplate.postForObject(surrogateBaseUrl + "/api/surrogate/optimize", params, Map.class);
+            Map<String, Object> workerResponse = restTemplate.postForObject(trimTrailingSlash(surrogateBaseUrl) + "/api/surrogate/optimize", params, Map.class);
             Map<String, Object> data = responseData(workerResponse);
             String status = str(data.get("status"), "SUCCESS");
             if (!"SUCCESS".equalsIgnoreCase(status)) {
@@ -1425,8 +1737,8 @@ public class DesignOptimizationService {
             """,
             taskId,
             status,
-            str(data.get("modelName"), "aero_pipe_kriging.pkl"),
-            str(data.get("modelType"), "Kriging / Gaussian Process"),
+            str(data.get("modelName"), str(params.get("modelName"), "aero_pipe_kriging.pkl")),
+            str(data.get("modelType"), str(params.get("modelType"), "Kriging / Gaussian Process")),
             str(data.get("objectiveName"), "predictedStress"),
             str(data.get("objectiveUnit"), "MPa"),
             toJson(params),
@@ -1474,6 +1786,16 @@ public class DesignOptimizationService {
 
     private double faultPipeNumber(Map<String, Object> values, String code, double defaultValue) {
         return doubleValue(values == null ? null : values.get(code), defaultValue);
+    }
+
+    private Map<String, Object> surrogateFixedParams(Map<String, Object> faultPipeParameters) {
+        Map<String, Object> faultValues = faultPipeValues(faultPipeParameters);
+        return mapOf(
+            "pipeDiameter", faultPipeNumber(faultValues, "PIPE_OUTER_DIAMETER", 9.53),
+            "totalHorizontal", 600.0,
+            "totalVertical", 300.0,
+            "centerlineStep", 5.0
+        );
     }
 
     private Map<String, Object> cadParams(Map<String, Object> body, Map<String, Object> faultPipeParameters) {
@@ -1877,7 +2199,7 @@ public class DesignOptimizationService {
                     str(item.get("unit"), ""), str(body.get("remark"), ""),
                     str(item.get("ruleType"), ""), str(item.get("ruleExpression"), ""), str(item.get("targetField"), ""),
                     str(item.get("referenceField"), ""), str(item.get("operatorCode"), ""), str(item.get("thresholdValue"), ""),
-                    str(item.get("executeMode"), "reserved"), str(item.get("rulePayload"), ""),
+                    str(item.get("executeMode"), "reserved"), rulePayloadValue(item.get("rulePayload")),
                     currentUsername());
             } catch (Exception missingRuleColumns) {
                 jdbcTemplate.update("""
@@ -1889,6 +2211,13 @@ public class DesignOptimizationService {
                     str(item.get("unit"), ""), str(body.get("remark"), ""), currentUsername());
             }
         }
+    }
+
+    private String rulePayloadValue(Object payload) {
+        if (payload instanceof Map<?, ?> || payload instanceof Collection<?>) {
+            return toJson(payload);
+        }
+        return str(payload, "");
     }
 
     private void saveObjectiveWeightItems(Long taskId, Map<String, Object> body) {
@@ -1949,7 +2278,7 @@ public class DesignOptimizationService {
     private Map<String, Object> catalog() {
         Map<String, Object> data = new LinkedHashMap<>();
         for (String discipline : List.of("structure", "layout", "aero", "hydraulic", "manufacturing")) {
-            data.put(discipline, catalogByDiscipline(discipline));
+            data.put(discipline, decorateCatalogRecommendations(deduplicateObjectiveCatalog(catalogByDiscipline(discipline), discipline), "LANDING_GEAR_DOOR"));
         }
         return data;
     }
@@ -1964,6 +2293,7 @@ public class DesignOptimizationService {
                        unit,
                        default_weight weight,
                        default_limit_value limitValue,
+                       sort_order sortOrder,
                        remark,
                        rule_type ruleType,
                        rule_expression ruleExpression,
@@ -1972,11 +2302,11 @@ public class DesignOptimizationService {
                        operator_code operatorCode,
                        threshold_value thresholdValue,
                        execute_mode executeMode,
-                       rule_payload rulePayload
+                       rule_payload rulePayload,
+                       status itemStatus
                 from t2_design_objective_catalog
                 where discipline = ?
-                  and status = '0'
-                order by sort_order, id
+                order by case when status = '0' then 0 else 1 end, sort_order, id
                 """, discipline);
             if (!rows.isEmpty()) {
                 return rows;
@@ -1984,6 +2314,184 @@ public class DesignOptimizationService {
         } catch (Exception ignored) {
         }
         return fallbackCatalog().getOrDefault(discipline, Collections.emptyList());
+    }
+
+    private List<Map<String, Object>> deduplicateObjectiveCatalog(List<Map<String, Object>> rows) {
+        return deduplicateObjectiveCatalog(rows, "");
+    }
+
+    private List<Map<String, Object>> deduplicateObjectiveCatalog(List<Map<String, Object>> rows, String defaultDiscipline) {
+        Map<String, Map<String, Object>> selected = new LinkedHashMap<>();
+        for (Map<String, Object> row : rows) {
+            String itemCode = str(row.get("itemCode"), "").trim().toUpperCase(Locale.ROOT);
+            String discipline = str(row.get("discipline"), defaultDiscipline);
+            if (isObjectiveItemExcludedForDiscipline(discipline, itemCode)) {
+                continue;
+            }
+            normalizeObjectiveItemPresentation(row);
+            String itemType = str(row.get("itemType"), "");
+            String canonicalCode = canonicalObjectiveItemCode(itemCode);
+            String key = discipline + ":" + itemType + ":" + canonicalCode;
+            Map<String, Object> existing = selected.get(key);
+            if (existing == null || shouldReplaceCatalogItem(row, existing, canonicalCode)) {
+                selected.put(key, row);
+            }
+        }
+        return new ArrayList<>(selected.values());
+    }
+
+    private boolean isObjectiveItemExcludedForDiscipline(String discipline, String itemCode) {
+        if (StringUtils.isEmpty(discipline) || StringUtils.isEmpty(itemCode)) {
+            return false;
+        }
+        return DISCIPLINE_EXCLUDED_OBJECTIVE_ITEM_CODES
+            .getOrDefault(discipline, Collections.emptySet())
+            .contains(itemCode.trim().toUpperCase(Locale.ROOT));
+    }
+
+    private boolean shouldReplaceCatalogItem(Map<String, Object> candidate, Map<String, Object> existing, String canonicalCode) {
+        int candidateStatus = catalogStatusRank(candidate);
+        int existingStatus = catalogStatusRank(existing);
+        if (candidateStatus != existingStatus) {
+            return candidateStatus < existingStatus;
+        }
+        int candidateCanonical = canonicalItemRank(candidate, canonicalCode);
+        int existingCanonical = canonicalItemRank(existing, canonicalCode);
+        if (candidateCanonical != existingCanonical) {
+            return candidateCanonical < existingCanonical;
+        }
+        return intValue(candidate.get("sortOrder"), Integer.MAX_VALUE) < intValue(existing.get("sortOrder"), Integer.MAX_VALUE);
+    }
+
+    private int catalogStatusRank(Map<String, Object> item) {
+        String status = str(item.get("itemStatus"), "");
+        return StringUtils.isEmpty(status) || "0".equals(status) ? 0 : 1;
+    }
+
+    private int canonicalItemRank(Map<String, Object> item, String canonicalCode) {
+        String itemCode = str(item.get("itemCode"), "").trim().toUpperCase(Locale.ROOT);
+        return Objects.equals(itemCode, canonicalCode) ? 0 : 1;
+    }
+
+    private String canonicalObjectiveItemCode(String itemCode) {
+        if (StringUtils.isEmpty(itemCode)) {
+            return "";
+        }
+        return OBJECTIVE_ITEM_CANONICAL_CODES.getOrDefault(itemCode.trim().toUpperCase(Locale.ROOT), itemCode.trim().toUpperCase(Locale.ROOT));
+    }
+
+    private String recommendationProfile(DesignTask task, String taskType) {
+        String text = String.join(" ",
+            str(taskType, ""),
+            task == null ? "" : str(task.getTaskType(), ""),
+            task == null ? "" : str(task.getTaskNo(), ""),
+            task == null ? "" : str(task.getTaskName(), ""),
+            task == null ? "" : str(task.getDescription(), "")
+        ).trim().toUpperCase(Locale.ROOT);
+        if (StringUtils.isEmpty(text)) {
+            return "PIPE_IMPACT_LAYOUT";
+        }
+        if (text.contains("LANDING_GEAR_DOOR")
+            || text.contains("HYDRAULIC_PIPE")
+            || text.contains("PIPE_IMPACT")
+            || text.contains("PIPE_LAYOUT")
+            || text.contains("LINE_LAYOUT")
+            || text.contains("BEND_PIPE")
+            || text.contains("IMPACT_LAYOUT")
+            || text.contains("CABLE")
+            || text.contains("液压弯管")
+            || text.contains("液压管")
+            || text.contains("弯管")
+            || text.contains("冲击")
+            || text.contains("管线")
+            || text.contains("管路")
+            || text.contains("线缆")
+            || text.contains("联合布局")
+            || text.contains("抗冲击")
+            || text.contains("舱门")) {
+            return "PIPE_IMPACT_LAYOUT";
+        }
+        return "";
+    }
+
+    private List<Map<String, Object>> decorateCatalogRecommendations(List<Map<String, Object>> rows, String recommendationProfile) {
+        String normalizedProfile = StringUtils.isEmpty(recommendationProfile) ? "" : recommendationProfile;
+        List<Map<String, Object>> decorated = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            Map<String, Object> item = new LinkedHashMap<>(row);
+            normalizeObjectiveItemPresentation(item);
+            String itemCode = str(item.get("itemCode"), "");
+            boolean recommended = isRecommendedCatalogItem(normalizedProfile, itemCode);
+            item.put("recommended", recommended);
+            item.put("matchLevel", recommended ? "recommended" : "optional");
+            item.put("matchReason", recommended ? "匹配当前任务类型，建议默认启用。" : "备选目标/约束，可按当前任务需要补选。");
+            attachCouplingMetadata(item);
+            decorated.add(item);
+        }
+        decorated.sort(Comparator
+            .comparing((Map<String, Object> item) -> Boolean.TRUE.equals(item.get("recommended")) ? 0 : 1)
+            .thenComparing(item -> intValue(item.get("sortOrder"), 0))
+            .thenComparing(item -> str(item.get("itemName"), "")));
+        return decorated;
+    }
+
+    private void normalizeObjectiveItemPresentation(Map<String, Object> item) {
+        String itemCode = str(item.get("itemCode"), "").trim().toUpperCase(Locale.ROOT);
+        if ("HYD_CLAMP_VALID".equals(itemCode)) {
+            item.put("itemName", "卡箍强度/连接完整性满足要求");
+            item.put("direction", "meet");
+            item.put("unit", "");
+            item.put("ruleType", "strength_check");
+            item.put("operatorCode", "pass");
+        }
+    }
+
+    private boolean isRecommendedCatalogItem(String recommendationProfile, String itemCode) {
+        if (StringUtils.isEmpty(itemCode)) return false;
+        String normalizedItemCode = itemCode.trim().toUpperCase(Locale.ROOT);
+        if ("PIPE_IMPACT_LAYOUT".equals(recommendationProfile)) {
+            return PIPE_IMPACT_LAYOUT_RECOMMENDED_ITEMS.contains(normalizedItemCode);
+        }
+        return false;
+    }
+
+    private void attachCouplingMetadata(Map<String, Object> item) {
+        String canonicalCode = canonicalObjectiveItemCode(str(item.get("itemCode"), ""));
+        List<Map<String, Object>> couplingGroups = new ArrayList<>();
+        if (List.of("LAY_PIPE_CLEARANCE_LIMIT", "LAY_CLEARANCE_LIMIT").contains(canonicalCode)) {
+            couplingGroups.add(couplingGroup("LAYOUT_CLEARANCE_SPACE", "安全间隙与布局空间", "safety_clearance",
+                "间隙越大越安全，但会挤占舱内空间并增加布线路径。"));
+        }
+        if (List.of("LAY_COMPACTNESS_MAX", "LAY_CABLE_LENGTH_MIN").contains(canonicalCode)) {
+            couplingGroups.add(couplingGroup("LAYOUT_CLEARANCE_SPACE", "安全间隙与布局空间", "space_compactness",
+                "紧凑和短路径可能压缩线缆/管路安全间隙。"));
+        }
+        if (List.of("LAY_SERVICE_MARGIN_LIMIT", "LAY_MAINTAINABILITY_MAX").contains(canonicalCode)) {
+            couplingGroups.add(couplingGroup("MAINTAINABILITY_SPACE", "维护可达性与空间包络", "maintenance_access",
+                "检修空间越大越利于维护，但会占用包络和布局空间。"));
+        }
+        if (List.of("AERO_OUTER_ENVELOPE", "AERO_ENVELOPE_IMPACT_MIN", "AERO_DOOR_GAP_CLEARANCE").contains(canonicalCode)) {
+            couplingGroups.add(couplingGroup("AERO_LAYOUT_ENVELOPE", "气动包络与管线布局", "aero_envelope",
+                "外形包络越严格，内部管线绕行、间隙和检修空间越受限。"));
+        }
+        if (List.of("HYD_STRESS_MIN", "HYD_STRESS_LIMIT", "HYD_DEFORMATION_MIN", "HYD_DEFORMATION_LIMIT").contains(canonicalCode)) {
+            couplingGroups.add(couplingGroup("HYDRAULIC_SPACE_STRENGTH", "液压抗冲击与空间/制造约束", "impact_strength",
+                "降低应力和变形可能要求更大弯曲半径或支撑空间。"));
+        }
+        if ("MFG_BEND_RADIUS_LIMIT".equals(canonicalCode)) {
+            couplingGroups.add(couplingGroup("BEND_RADIUS_PACKAGING", "制造弯曲半径与路径/包络", "manufacturing_radius",
+                "弯曲半径下限越大，路径和包络占用通常越大。"));
+        }
+        if (List.of("STR_CLAMP_SUPPORT_VALID", "HYD_CLAMP_VALID", "LAY_CLAMP_SPACING_LIMIT", "MFG_CLAMP_INSTALLABLE", "MFG_TOOL_ACCESS").contains(canonicalCode)) {
+            couplingGroups.add(couplingGroup("CLAMP_SUPPORT_INSTALLABILITY", "支撑强度与安装可达性", "support_installability",
+                "增加支撑点有利于强度和振动控制，但可能增加装配和工具可达性压力。"));
+        }
+        item.put("couplingGroups", couplingGroups);
+        item.put("hasCouplingRisk", !couplingGroups.isEmpty());
+    }
+
+    private Map<String, Object> couplingGroup(String groupId, String title, String role, String note) {
+        return mapOf("groupId", groupId, "title", title, "role", role, "note", note);
     }
 
     private List<Map<String, Object>> variableCatalogByDiscipline(String discipline) {
@@ -2038,7 +2546,7 @@ public class DesignOptimizationService {
                     items = Collections.emptyList();
                 }
             }
-            groups.add(mapOf("discipline", discipline, "disciplineName", disciplineName(discipline), "items", items));
+            groups.add(mapOf("discipline", discipline, "disciplineName", disciplineName(discipline), "items", deduplicateObjectiveCatalog(items, discipline)));
         }
         return groups;
     }
@@ -2310,7 +2818,7 @@ public class DesignOptimizationService {
 
     private List<Map<String, Object>> selectedItems(Long taskId) {
         try {
-            return jdbcTemplate.queryForList("""
+            return deduplicateObjectiveCatalog(jdbcTemplate.queryForList("""
                 select discipline, item_type itemType, item_code itemCode, item_name itemName, direction, weight, limit_value limitValue, unit, remark,
                        rule_type ruleType, rule_expression ruleExpression, target_field targetField,
                        reference_field referenceField, operator_code operatorCode, threshold_value thresholdValue,
@@ -2318,15 +2826,15 @@ public class DesignOptimizationService {
                 from t2_design_objective_constraint
                 where task_id = ?
                 order by discipline, item_type desc, id
-                """, taskId);
+                """, taskId));
         } catch (Exception e) {
             try {
-                return jdbcTemplate.queryForList("""
+                return deduplicateObjectiveCatalog(jdbcTemplate.queryForList("""
                     select discipline, item_type itemType, item_code itemCode, item_name itemName, direction, weight, limit_value limitValue, unit, remark
                     from t2_design_objective_constraint
                     where task_id = ?
                     order by discipline, item_type desc, id
-                    """, taskId);
+                    """, taskId));
             } catch (Exception ignored) {
                 return Collections.emptyList();
             }
@@ -2361,14 +2869,18 @@ public class DesignOptimizationService {
         mapping.put("LAY_SERVICE_MARGIN_LIMIT", List.of("cable_pipe_layout"));
 
         // Backward-compatible mappings for catalogs created before the two-subtask refinement.
+        mapping.put("LAY_PIPE_LENGTH", List.of("cable_pipe_layout"));
         mapping.put("LAY_LENGTH_MIN", List.of("cable_pipe_layout"));
         mapping.put("LAY_INTERFERENCE_MIN", List.of("cable_pipe_layout"));
+        mapping.put("LAY_SPACE_OCCUPANCY", List.of("cable_pipe_layout"));
+        mapping.put("LAY_MAINTAINABILITY", List.of("cable_pipe_layout"));
         mapping.put("LAY_MAINTAINABILITY_MAX", List.of("cable_pipe_layout"));
         mapping.put("STR_SPACE_SUPPORT_MAX", List.of("cable_pipe_layout"));
         mapping.put("MFG_ASSEMBLY_EFFICIENCY_MAX", List.of("cable_pipe_layout"));
         mapping.put("MFG_MAINTENANCE_ACCESS_MAX", List.of("cable_pipe_layout"));
         mapping.put("AERO_ENVELOPE_IMPACT_MIN", List.of("cable_pipe_layout"));
         mapping.put("LAY_PIPE_CABLE_DISTANCE", List.of("cable_pipe_layout"));
+        mapping.put("LAY_MIN_CLEARANCE", List.of("cable_pipe_layout"));
         mapping.put("LAY_FORBIDDEN_ZONE", List.of("cable_pipe_layout"));
         mapping.put("LAY_CLAMP_INTERVAL", List.of("cable_pipe_layout"));
         mapping.put("STR_FORBIDDEN_ZONE", List.of("cable_pipe_layout"));
@@ -2379,6 +2891,7 @@ public class DesignOptimizationService {
 
         mapping.put("STR_PIPE_CLEARANCE", List.of("hydraulic_impact", "cable_pipe_layout"));
         mapping.put("MFG_BEND_RADIUS_LIMIT", List.of("hydraulic_impact", "cable_pipe_layout"));
+        mapping.put("LAY_BEND_LIMIT", List.of("hydraulic_impact", "cable_pipe_layout"));
         mapping.put("LAY_BEND_RADIUS_LIMIT", List.of("hydraulic_impact", "cable_pipe_layout"));
         mapping.put("LAY_CLEARANCE_LIMIT", List.of("hydraulic_impact", "cable_pipe_layout"));
         mapping.put("MFG_CLAMP_INSTALLABLE", List.of("hydraulic_impact", "cable_pipe_layout"));
@@ -2388,10 +2901,113 @@ public class DesignOptimizationService {
         return mapping.getOrDefault(itemCode, Collections.emptyList());
     }
 
+    private List<Map<String, Object>> potentialConflictGroups(Long taskId) {
+        if (taskId == null) {
+            return Collections.emptyList();
+        }
+        List<Map<String, Object>> items = selectedItems(taskId);
+        if (items.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<String, List<Map<String, Object>>> byCanonicalCode = new LinkedHashMap<>();
+        for (Map<String, Object> item : items) {
+            String canonicalCode = canonicalObjectiveItemCode(str(item.get("itemCode"), ""));
+            byCanonicalCode.computeIfAbsent(canonicalCode, key -> new ArrayList<>()).add(item);
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        addPotentialConflict(result, byCanonicalCode,
+            "LAYOUT_CLEARANCE_SPACE",
+            "安全间隙与布局空间存在拉扯",
+            "线缆/管路间隙越大，安全裕度越高；但空间占用、路径长度和包络压力也会增加。",
+            "冲突检验应同时检查最小间隙下限、路径长度、紧凑度和可用包络，必要时给出折中间隙区间。",
+            List.of("LAY_PIPE_CLEARANCE_LIMIT", "LAY_CLEARANCE_LIMIT"),
+            List.of("LAY_COMPACTNESS_MAX", "LAY_CABLE_LENGTH_MIN"));
+        addPotentialConflict(result, byCanonicalCode,
+            "MAINTAINABILITY_SPACE",
+            "维护可达性与空间包络存在拉扯",
+            "检修空间和维护可达性越高，越可能挤占舱内空间或外形包络。",
+            "冲突检验应同时检查检修空间、布局紧凑度和气动包络边界。",
+            List.of("LAY_SERVICE_MARGIN_LIMIT", "LAY_MAINTAINABILITY_MAX"),
+            List.of("LAY_COMPACTNESS_MAX", "AERO_OUTER_ENVELOPE", "AERO_ENVELOPE_IMPACT_MIN"));
+        addPotentialConflict(result, byCanonicalCode,
+            "AERO_LAYOUT_ENVELOPE",
+            "气动包络与管线布局存在耦合",
+            "气动外形/开闭包络越严格，线缆管路可用布局空间、避让路径和安全间隙越受限。",
+            "冲突检验应把气动包络、路径禁布区、线缆/管路间隙和检修空间合并校核。",
+            List.of("AERO_OUTER_ENVELOPE", "AERO_ENVELOPE_IMPACT_MIN", "AERO_DOOR_GAP_CLEARANCE"),
+            List.of("LAY_FORBIDDEN_ZONE_AVOID", "LAY_PIPE_CLEARANCE_LIMIT", "LAY_CLEARANCE_LIMIT", "LAY_SERVICE_MARGIN_LIMIT"));
+        addPotentialConflict(result, byCanonicalCode,
+            "HYDRAULIC_SPACE_STRENGTH",
+            "液压抗冲击与空间/制造约束存在耦合",
+            "降低冲击应力和变形可能需要更大的弯曲半径、更多支撑或更长路径，从而影响制造和布局空间。",
+            "冲突检验应同时检查液压应力/变形、制造弯曲半径和空间包络。",
+            List.of("HYD_STRESS_MIN", "HYD_STRESS_LIMIT", "HYD_DEFORMATION_MIN", "HYD_DEFORMATION_LIMIT"),
+            List.of("MFG_BEND_RADIUS_LIMIT", "LAY_COMPACTNESS_MAX", "AERO_OUTER_ENVELOPE"));
+        addPotentialConflict(result, byCanonicalCode,
+            "BEND_RADIUS_PACKAGING",
+            "制造弯曲半径与路径/包络存在拉扯",
+            "制造弯曲半径下限越大，管线转弯占用越大，可能增加路径长度或突破局部包络。",
+            "冲突检验应同时检查制造弯曲半径、路径长度、紧凑度和气动包络。",
+            List.of("MFG_BEND_RADIUS_LIMIT"),
+            List.of("LAY_CABLE_LENGTH_MIN", "LAY_COMPACTNESS_MAX", "AERO_OUTER_ENVELOPE"));
+        addPotentialConflict(result, byCanonicalCode,
+            "CLAMP_SUPPORT_INSTALLABILITY",
+            "支撑强度与安装可达性存在耦合",
+            "增加支撑点有利于强度和振动控制，但会增加安装空间、工具可达性和管夹布置压力。",
+            "冲突检验应同时检查卡箍支撑强度、线夹间距、管夹可安装性和工具可达性。",
+            List.of("STR_CLAMP_SUPPORT_VALID", "HYD_CLAMP_VALID", "LAY_CLAMP_SPACING_LIMIT"),
+            List.of("MFG_CLAMP_INSTALLABLE", "MFG_TOOL_ACCESS"));
+        return result;
+    }
+
+    private void addPotentialConflict(List<Map<String, Object>> result,
+                                      Map<String, List<Map<String, Object>>> byCanonicalCode,
+                                      String groupId,
+                                      String title,
+                                      String reason,
+                                      String checkSuggestion,
+                                      List<String> leftCodes,
+                                      List<String> rightCodes) {
+        List<Map<String, Object>> leftItems = matchedConflictItems(byCanonicalCode, leftCodes);
+        List<Map<String, Object>> rightItems = matchedConflictItems(byCanonicalCode, rightCodes);
+        if (leftItems.isEmpty() || rightItems.isEmpty()) {
+            return;
+        }
+        result.add(mapOf(
+            "groupId", groupId,
+            "title", title,
+            "reason", reason,
+            "checkSuggestion", checkSuggestion,
+            "leftItems", conflictItemSummaries(leftItems),
+            "rightItems", conflictItemSummaries(rightItems)
+        ));
+    }
+
+    private List<Map<String, Object>> matchedConflictItems(Map<String, List<Map<String, Object>>> byCanonicalCode, List<String> codes) {
+        List<Map<String, Object>> matched = new ArrayList<>();
+        for (String code : codes) {
+            matched.addAll(byCanonicalCode.getOrDefault(canonicalObjectiveItemCode(code), Collections.emptyList()));
+        }
+        return matched;
+    }
+
+    private List<Map<String, Object>> conflictItemSummaries(List<Map<String, Object>> items) {
+        return items.stream()
+            .map(item -> mapOf(
+                "discipline", str(item.get("discipline"), ""),
+                "disciplineName", disciplineName(str(item.get("discipline"), "")),
+                "itemCode", str(item.get("itemCode"), ""),
+                "itemName", str(item.get("itemName"), ""),
+                "itemType", str(item.get("itemType"), "")
+            ))
+            .collect(Collectors.toList());
+    }
+
     private Map<String, Object> conflictCheckResult(Long taskId) {
         if (taskId == null) {
             return pendingConflictCheckResult();
         }
+        List<Map<String, Object>> potentialConflicts = potentialConflictGroups(taskId);
         ensureConflictCheckTable();
         try {
             List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
@@ -2402,7 +3018,7 @@ public class DesignOptimizationService {
                 limit 1
                 """, taskId);
             if (rows.isEmpty()) {
-                return pendingConflictCheckResult();
+                return pendingConflictCheckResult(potentialConflicts);
             }
             Map<String, Object> row = rows.get(0);
             boolean passed = "1".equals(str(row.get("passed"), "0"));
@@ -2414,21 +3030,27 @@ public class DesignOptimizationService {
                 "passed", passed,
                 "score", intValue(row.get("score"), passed ? 86 : 52),
                 "conflicts", conflicts,
+                "potentialConflicts", potentialConflicts,
                 "suggestions", suggestions,
                 "checkedAt", str(row.get("createTime"), "")
             );
         } catch (Exception ignored) {
-            return pendingConflictCheckResult();
+            return pendingConflictCheckResult(potentialConflicts);
         }
     }
 
     private Map<String, Object> pendingConflictCheckResult() {
+        return pendingConflictCheckResult(Collections.emptyList());
+    }
+
+    private Map<String, Object> pendingConflictCheckResult(List<Map<String, Object>> potentialConflicts) {
         return mapOf(
             "checked", false,
             "status", "NOT_CHECKED",
             "passed", false,
             "score", null,
             "conflicts", Collections.emptyList(),
+            "potentialConflicts", potentialConflicts,
             "suggestions", Collections.emptyList(),
             "checkedAt", ""
         );
@@ -2445,6 +3067,7 @@ public class DesignOptimizationService {
             "passed", passed,
             "score", passed ? 86 : 52,
             "conflicts", conflicts,
+            "potentialConflicts", Collections.emptyList(),
             "suggestions", conflicts.stream().map(item -> mapOf(
                 "title", item.get("title"),
                 "suggestion", item.get("suggestion")
@@ -2673,10 +3296,20 @@ public class DesignOptimizationService {
     }
 
     private boolean canConfirmSimulation(DesignTask task, Map<String, Object> simulation) {
-        if (task == null || Boolean.TRUE.equals(simulation == null ? null : simulation.get("verified"))) {
+        if (task == null) {
             return false;
         }
         String nodeKey = task.getCurrentNodeKey();
+        boolean verified = Boolean.TRUE.equals(simulation == null ? null : simulation.get("verified"));
+        boolean returnedForRework = verified
+            && Boolean.FALSE.equals(simulation == null ? null : simulation.get("passed"))
+            && "model_decompose_solve".equals(nodeKey);
+        if (verified && !returnedForRework) {
+            return false;
+        }
+        if ("model_decompose_solve".equals(nodeKey)) {
+            return canOperateCurrentStage(task);
+        }
         if ("simulation_confirm".equals(nodeKey)) {
             return canOperateCurrentStage(task);
         }
@@ -2842,6 +3475,108 @@ public class DesignOptimizationService {
         );
     }
 
+    private Map<String, Object> saveDesignReportSubmission(Long taskId, DesignTask task, Map<String, Object> reportPayload,
+                                                            String reportHtml, boolean passed, String comment) {
+        ensureDesignReportSubmissionTable();
+        DesignTaskFile reportFile = writeDesignReportFile(taskId, task, reportHtml);
+        String defaultReportCode = str(task == null ? null : task.getTaskNo(), "DT-" + taskId) + "-RPT";
+        String reportCode = str(firstNonNull(reportPayload.get("reportCode"), defaultReportCode), defaultReportCode);
+        String reportTitle = str(firstNonNull(reportPayload.get("reportTitle"),
+            task == null ? "设计方案及验证报告" : task.getTaskName() + "设计方案及验证报告"), "设计方案及验证报告");
+        jdbcTemplate.update("""
+            insert into t2_design_report_submission(
+              task_id, report_code, report_title, report_json, report_html,
+              report_file_id, report_file_path, report_file_name, passed, submit_comment, submit_by, submit_time
+            )
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate())
+            """,
+            taskId,
+            limitText(reportCode, 120),
+            limitText(reportTitle, 255),
+            toJson(reportPayload),
+            reportHtml,
+            reportFile == null ? null : reportFile.getFileId(),
+            reportFile == null ? "" : reportFile.getFilePath(),
+            reportFile == null ? "" : reportFile.getFileName(),
+            passed ? "1" : "0",
+            limitText(comment, 950),
+            currentUsername()
+        );
+        return designReport(taskId);
+    }
+
+    private DesignTaskFile writeDesignReportFile(Long taskId, DesignTask task, String reportHtml) {
+        try {
+            Path root = Path.of(attachmentPath).toAbsolutePath().normalize();
+            Path reportDir = root.resolve("design-reports").normalize();
+            Files.createDirectories(reportDir);
+            if (!reportDir.startsWith(root)) {
+                throw new IllegalArgumentException("报告文件路径非法");
+            }
+            String baseName = task == null ? "design-report-" + taskId : str(task.getTaskNo(), "design-report-" + taskId);
+            String fileName = safeFileName(baseName + "-" + TASK_NO_TIME.format(LocalDateTime.now()) + ".doc");
+            Path target = reportDir.resolve(fileName).normalize();
+            if (!target.startsWith(reportDir)) {
+                throw new IllegalArgumentException("报告文件路径非法");
+            }
+            Files.writeString(target, "\ufeff" + reportHtml, StandardCharsets.UTF_8);
+
+            DesignTaskFile file = new DesignTaskFile();
+            file.setTaskId(taskId);
+            file.setFileName(fileName);
+            file.setFilePath(target.toString());
+            file.setFileSize(Files.size(target));
+            file.setFileType("DESIGN_REPORT");
+            file.setFileSuffix("doc");
+            file.setUploadBy(currentUsername());
+            taskFileService.insertFile(file);
+            return file;
+        } catch (IOException e) {
+            throw new IllegalStateException("设计方案报告文件保存失败：" + e.getMessage(), e);
+        }
+    }
+
+    private void completeSimulationFlow(DesignTask task, boolean passed) {
+        if (task == null) {
+            return;
+        }
+        String nodeKey = task.getCurrentNodeKey();
+        if ("model_decompose_solve".equals(nodeKey)) {
+            completeFlowableTask(task, mapOf("returnToObjectiveSelection", false));
+            syncRuntimeIfPossible(task);
+        }
+        if ("simulation_confirm".equals(task.getCurrentNodeKey())) {
+            completeFlowableTask(task, mapOf("simulationPassed", passed));
+            syncRuntimeIfPossible(task);
+        }
+    }
+
+    private void completeDesignReportFlow(DesignTask task, boolean passed) {
+        completeSimulationFlow(task, passed);
+    }
+
+    private void ensureDesignReportSubmissionTable() {
+        jdbcTemplate.execute("""
+            create table if not exists t2_design_report_submission (
+              id bigint(20) not null auto_increment comment 'ID',
+              task_id bigint(20) not null comment 'Task ID',
+              report_code varchar(128) default null comment 'Report code',
+              report_title varchar(255) default null comment 'Report title',
+              report_json longtext comment 'Report payload JSON',
+              report_html longtext comment 'Report HTML snapshot',
+              report_file_id bigint(20) default null comment 'Report file ID',
+              report_file_path varchar(1000) default null comment 'Report file path',
+              report_file_name varchar(255) default null comment 'Report file name',
+              passed char(1) default '1' comment 'Design report conclusion',
+              submit_comment varchar(1000) default null comment 'Submit comment',
+              submit_by varchar(64) default '',
+              submit_time datetime default null,
+              primary key (id),
+              key idx_t2_design_report_task (task_id)
+            ) engine=InnoDB default charset=utf8mb4 comment='Design report submission'
+            """);
+    }
+
     private void ensureSimulationResultTable() {
         jdbcTemplate.execute("""
             create table if not exists t2_design_simulation_result (
@@ -2911,8 +3646,9 @@ public class DesignOptimizationService {
         if (nodeKey == null) return "/designtask/objective";
         if ("end".equals(nodeKey)) return "/designtask/archive";
         if (nodeKey.endsWith("_select")) return "/designtask/objective";
-        if ("model_decompose_solve".equals(nodeKey) || "conflict_check".equals(nodeKey)) return "/designtask/solve";
-        if ("simulation_confirm".equals(nodeKey) || "leader_approve".equals(nodeKey)) return "/designtask/simulation";
+        if ("leader_approve".equals(nodeKey)) return "/designtask/approval";
+        if ("model_decompose_solve".equals(nodeKey) || "conflict_check".equals(nodeKey)
+            || "simulation_confirm".equals(nodeKey)) return "/designtask/solve";
         return "/designtask/dashboard";
     }
 
@@ -3003,6 +3739,26 @@ public class DesignOptimizationService {
 
     private boolean isPlatformAdmin() {
         return Objects.equals(currentUserId(), 1L) || currentUserHasRole("admin", "超级管理员");
+    }
+
+    private void assertObjectiveDisciplineMatchesNode(DesignTask task, String discipline) {
+        if (task == null || isPlatformAdmin()) {
+            return;
+        }
+        String expectedDiscipline = disciplineForObjectiveNode(task.getCurrentNodeKey());
+        if (StringUtils.isNotEmpty(expectedDiscipline) && !Objects.equals(expectedDiscipline, discipline)) {
+            String nodeName = str(task.getCurrentNodeName(), "当前目标约束选择节点");
+            throw new IllegalStateException(nodeName + "只能提交" + disciplineName(expectedDiscipline) + "学科目标与约束。");
+        }
+    }
+
+    private String disciplineForObjectiveNode(String nodeKey) {
+        if ("structure_select".equals(nodeKey)) return "structure";
+        if ("layout_select".equals(nodeKey)) return "layout";
+        if ("aero_select".equals(nodeKey)) return "aero";
+        if ("hydraulic_select".equals(nodeKey)) return "hydraulic";
+        if ("manufacturing_select".equals(nodeKey)) return "manufacturing";
+        return null;
     }
 
     private Long currentStageAssigneeId(DesignTask task) {
@@ -3118,6 +3874,26 @@ public class DesignOptimizationService {
         return result;
     }
 
+    private String trimTrailingSlash(String value) {
+        String text = str(value, "");
+        while (text.endsWith("/")) {
+            text = text.substring(0, text.length() - 1);
+        }
+        return text;
+    }
+
+    private String decodeBase64Utf8(Object value) {
+        String text = str(value, "");
+        if (StringUtils.isEmpty(text)) {
+            return "";
+        }
+        try {
+            return new String(Base64.getDecoder().decode(text), StandardCharsets.UTF_8);
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
     private String currentUsername() {
         try {
             return SecurityUtils.getUsername();
@@ -3146,6 +3922,11 @@ public class DesignOptimizationService {
             return text;
         }
         return text.substring(0, Math.max(0, maxLength - 3)) + "...";
+    }
+
+    private String safeFileName(String value) {
+        String name = str(value, "design-report.doc").replaceAll("[\\\\/:*?\"<>|]", "_");
+        return name.length() > 180 ? name.substring(name.length() - 180) : name;
     }
 
     private Integer intValue(Object value, Integer fallback) {

@@ -77,14 +77,19 @@ public class DesignOptimizationController {
         return AjaxResult.success(optimizationService.detail(taskId));
     }
 
+    @GetMapping("/task/quality-task/{qualityTaskId}")
+    public AjaxResult taskByQualityTask(@PathVariable Long qualityTaskId) {
+        return AjaxResult.success(optimizationService.taskByQualityTask(qualityTaskId));
+    }
+
     @GetMapping("/task/{taskId}/archive")
     public AjaxResult taskArchive(@PathVariable Long taskId) {
         return AjaxResult.success(optimizationService.archive(taskId));
     }
 
     @GetMapping("/objective/catalog/{discipline}")
-    public AjaxResult objectiveCatalog(@PathVariable String discipline) {
-        return AjaxResult.success(optimizationService.objectiveCatalog(discipline));
+    public AjaxResult objectiveCatalog(@PathVariable String discipline, Long taskId, String taskType) {
+        return AjaxResult.success(optimizationService.objectiveCatalog(discipline, taskId, taskType));
     }
 
     @GetMapping("/design-variable/catalog/{discipline}")
@@ -142,6 +147,11 @@ public class DesignOptimizationController {
         return AjaxResult.success(optimizationService.submitSurrogateSolve(taskId, body));
     }
 
+    @GetMapping("/surrogate-models")
+    public AjaxResult surrogateModels() {
+        return AjaxResult.success(optimizationService.surrogateModels());
+    }
+
     @GetMapping("/task/{taskId}/surrogate-solve")
     public AjaxResult surrogateSolve(@PathVariable Long taskId) {
         return AjaxResult.success(optimizationService.surrogateSolve(taskId));
@@ -155,6 +165,16 @@ public class DesignOptimizationController {
     @PostMapping("/task/{taskId}/simulation")
     public AjaxResult simulation(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
         return AjaxResult.success(optimizationService.simulation(taskId, body));
+    }
+
+    @PostMapping("/task/{taskId}/design-report")
+    public AjaxResult submitDesignReport(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
+        return AjaxResult.success(optimizationService.submitDesignReport(taskId, body));
+    }
+
+    @GetMapping("/task/{taskId}/design-report")
+    public AjaxResult designReport(@PathVariable Long taskId) {
+        return AjaxResult.success(optimizationService.designReport(taskId));
     }
 
     @PostMapping("/task/{taskId}/ansys-simulation")

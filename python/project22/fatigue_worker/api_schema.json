@@ -1,0 +1,122 @@
+{
+  "_comment": "Kriging 裂纹扩展代理模型接口说明。供外部系统对接或人工查阅字段含义。",
+  "model_name": "kriging_crack_growth_surrogate",
+  "model_description": "基于高斯过程回归（Kriging）的裂纹最终长度预测代理模型",
+  "model_file": "kriging_surrogate_model.joblib",
+  "training_data": "surrogate_model_samples.csv",
+  "input_fields": [
+    {
+      "name": "a0_mm",
+      "type": "float",
+      "unit": "mm",
+      "description": "初始裂纹长度"
+    },
+    {
+      "name": "P1_kN",
+      "type": "float",
+      "unit": "kN",
+      "description": "第 1 段载荷谱峰值载荷"
+    },
+    {
+      "name": "N1",
+      "type": "int",
+      "unit": "cycles",
+      "description": "第 1 段载荷谱循环次数"
+    },
+    {
+      "name": "P2_kN",
+      "type": "float",
+      "unit": "kN",
+      "description": "第 2 段载荷谱峰值载荷"
+    },
+    {
+      "name": "N2",
+      "type": "int",
+      "unit": "cycles",
+      "description": "第 2 段载荷谱循环次数"
+    },
+    {
+      "name": "P3_kN",
+      "type": "float",
+      "unit": "kN",
+      "description": "第 3 段载荷谱峰值载荷"
+    },
+    {
+      "name": "N3",
+      "type": "int",
+      "unit": "cycles",
+      "description": "第 3 段载荷谱循环次数"
+    },
+    {
+      "name": "task_count_T",
+      "type": "int",
+      "unit": "-",
+      "description": "任务/工况序号 T，表示同一样本在不同扩展阶段或任务下的编号"
+    }
+  ],
+  "output_fields": [
+    {
+      "name": "a_final_mm",
+      "type": "float",
+      "unit": "mm",
+      "description": "预测的最终裂纹长度"
+    },
+    {
+      "name": "growth_mm",
+      "type": "float",
+      "unit": "mm",
+      "description": "裂纹扩展量，等于 a_final_mm 减去初始裂纹长度 a0_mm"
+    },
+    {
+      "name": "pred_std_mm",
+      "type": "float",
+      "unit": "mm",
+      "description": "Kriging 预测标准差，反映该工况下模型预测的不确定性"
+    },
+    {
+      "name": "critical_length_mm",
+      "type": "float",
+      "unit": "mm",
+      "default": 60.0,
+      "description": "临界裂纹长度阈值，用于失效判定"
+    },
+    {
+      "name": "is_failed",
+      "type": "bool",
+      "description": "是否达到临界裂纹长度，True 表示失效或达到临界状态"
+    },
+    {
+      "name": "failure_status",
+      "type": "string",
+      "description": "失效判定的中文描述"
+    },
+    {
+      "name": "remaining_margin_mm",
+      "type": "float",
+      "unit": "mm",
+      "description": "距离临界裂纹长度的剩余裕度，已失效时为 0"
+    }
+  ],
+  "metrics": {
+    "_comment": "在 surrogate_model_samples.csv（184 条样本）上训练后在测试集上的参考指标",
+    "r2": 0.979089,
+    "rmse_mm": 1.592384,
+    "mae_mm": 1.207824,
+    "total_samples": 184
+  },
+  "failure_rule": {
+    "critical_length_mm": 60.0,
+    "condition": "a_final_mm >= critical_length_mm",
+    "failed_status": "达到临界裂纹长度",
+    "safe_status": "未达到临界裂纹长度",
+    "description": "当预测最终裂纹长度不低于 60 mm 时，判定为达到临界裂纹长度"
+  },
+  "related_files": {
+    "surrogate_model_api.py": "核心 API：训练、加载、预测、失效判定",
+    "example_call.py": "单条预测调用示例",
+    "surrogate_model_samples.csv": "训练样本库",
+    "prediction_check.csv": "预测结果校验用样本",
+    "test_prediction_check.csv": "测试用预测校验样本",
+    "removed_capped_samples.csv": "训练前被剔除或截断的样本记录"
+  }
+}
