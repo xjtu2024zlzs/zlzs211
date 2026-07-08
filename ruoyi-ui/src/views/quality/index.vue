@@ -376,7 +376,19 @@
 
                         <div v-if="record.processResult" class="log-line result-line">
                           <span class="log-label">处理结果</span>
-                          <span>{{ record.processResult }}</span>
+                          <span class="process-result-content">
+                            <span>{{ formatProcessResult(record.processResult) }}</span>
+                            <el-button
+                              v-if="isDesignModuleTask(record) && !record.processFile"
+                              link
+                              type="primary"
+                              icon="View"
+                              :loading="designReportLoadingTaskId === record.taskId"
+                              @click.stop="handleViewDesignReportAttachment(record)"
+                            >
+                              查看附件
+                            </el-button>
+                          </span>
                         </div>
 
                         <div v-if="record.processFile" class="log-line result-line">
@@ -485,7 +497,6 @@
               >
                 生成报告
               </el-button>
-
             </div>
           </div>
 
@@ -547,8 +558,11 @@
                   结果确认
                 </el-button>
 
-                <span v-else-if="scope.row.taskStatus === 'PROCESSING'" class="wait-action">
-                  等待模块返回
+                <span
+                  v-else-if="['UNSTARTED', 'DISPATCHED', 'PROCESSING', 'PENDING_BACKFILL'].includes(scope.row.taskStatus)"
+                  class="wait-action"
+                >
+                  {{ getConfirmStateText(scope.row.taskStatus) }}
                 </span>
 
                 <span v-else class="wait-action">
@@ -585,6 +599,36 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <el-dialog
+      :title="designReportPreviewTitle"
+      v-model="designReportPreviewOpen"
+      width="88%"
+      append-to-body
+      destroy-on-close
+    >
+      <div v-if="designReportPreviewHtml" class="design-report-preview-wrapper">
+        <article class="design-report-paper" v-html="designReportPreviewHtml"></article>
+      </div>
+
+      <el-empty
+        v-else
+        description="暂无可预览的优化方案报告正文"
+        :image-size="100"
+      />
+
+      <template #footer>
+        <el-button @click="designReportPreviewOpen = false">关闭</el-button>
+        <el-button
+          type="primary"
+          icon="Download"
+          :disabled="!designReportDownloadFileId && !designReportPreviewHtml"
+          @click="downloadDesignReportAttachment"
+        >
+          下载附件
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -600,6 +644,7 @@ import { listProblem, addProblem, updateProblem, delProblem, exportProblemReport
 import { listModule } from '@/api/quality/module'
 import { listTask, addTask, updateTask } from '@/api/quality/task'
 import { listLog, addLog } from '@/api/quality/log'
+import { getDesignReportTask, getDesignTaskByQualityTask, getTaskAttachmentFile } from '@/api/designtask/optimization'
 
 const router = useRouter()
 
@@ -618,6 +663,12 @@ const reportLoading = ref(false)
 const reportPreviewOpen = ref(false)
 const reportPreviewUrl = ref('')
 const reportPreviewTitle = ref('最终溯源Word报告预览')
+const designReportPreviewOpen = ref(false)
+const designReportPreviewHtml = ref('')
+const designReportPreviewTitle = ref('设计制造协同优化方案报告')
+const designReportDownloadFileId = ref('')
+const designReportDownloadFileName = ref('')
+const designReportLoadingTaskId = ref(null)
 
 const PROJECT2_API_PREFIX = '/designtask'
 const HIDDEN_WORK_MODULE_CODES = ['PROJECT_1']
@@ -655,6 +706,7 @@ const notifyCurrentTaskChanged = (moduleCode, payload = {}) => {
     moduleCode,
     problemId: payload.problemId || '',
     problemCode: payload.problemCode || '',
+    taskId: payload.taskId || '',
     action: payload.action || 'DISPATCH',
     time: Date.now()
   }
@@ -714,6 +766,10 @@ const getProcessFileDownloadConfig = (filePath) => {
 }
 
 const fetchProcessFileBlob = async (row) => {
+  if (isDesignModuleTask(row)) {
+    return fetchDesignProcessFileBlob(row)
+  }
+
   if (!row || !row.processFile) {
     throw new Error('当前任务暂无处理结果文件')
   }
@@ -779,7 +835,7 @@ const defaultModules = [
     moduleCode: 'PROJECT_2',
     moduleName: '设计制造协同优化平台',
     moduleType: 'TOPIC',
-    route: '/project_2'
+    route: '/designtask/dashboard'
   },
   {
     moduleCode: 'PROJECT_3',
@@ -807,6 +863,25 @@ const moduleDisplayNames = {
   PROJECT_3: '生命周期质量监管与故障预防平台',
   PROJECT_4: '智能故障诊断与根源性分析技术平台',
   PROJECT_5: '全生命周期数字质量自反馈与追溯平台'
+}
+
+const moduleRouteMap = {
+  PROJECT_2: '/designtask/dashboard'
+}
+
+const legacyRouteMap = {
+  '/project_2': '/designtask/dashboard'
+}
+
+const resolveModuleRoute = (module) => {
+  if (!module) return ''
+
+  if (moduleRouteMap[module.moduleCode]) {
+    return moduleRouteMap[module.moduleCode]
+  }
+
+  const route = module.moduleRoute || module.route || ''
+  return legacyRouteMap[route] || route
 }
 
 const getModuleDisplayName = (module) => {
@@ -1064,6 +1139,49 @@ const taskFlowRecords = computed(() => {
     })
 })
 
+const getLatestTaskForModule = (moduleCode) => {
+  if (!currentProblem.value || !Array.isArray(currentProblem.value.tasks)) {
+    return null
+  }
+
+  return [...currentProblem.value.tasks]
+    .filter((item) => item.moduleCode === moduleCode)
+    .sort((a, b) => {
+      const at = new Date(a.dispatchTime || a.createTime || 0).getTime()
+      const bt = new Date(b.dispatchTime || b.createTime || 0).getTime()
+      if (bt !== at) return bt - at
+      return Number(b.taskId || 0) - Number(a.taskId || 0)
+    })[0] || null
+}
+
+const fetchLatestTaskForModule = async (moduleCode) => {
+  if (!currentProblem.value?.problemId || !moduleCode) {
+    return null
+  }
+
+  try {
+    const res = await listTask({
+      problemId: currentProblem.value.problemId,
+      moduleCode,
+      pageNum: 1,
+      pageSize: 50
+    })
+
+    const rows = Array.isArray(res?.rows) ? res.rows : []
+    return rows
+      .filter((item) => item.moduleCode === moduleCode)
+      .sort((a, b) => {
+        const at = new Date(a.dispatchTime || a.createTime || 0).getTime()
+        const bt = new Date(b.dispatchTime || b.createTime || 0).getTime()
+        if (bt !== at) return bt - at
+        return Number(b.taskId || 0) - Number(a.taskId || 0)
+      })[0] || null
+  } catch (error) {
+    console.warn('查询最新模块分派任务失败：', error)
+    return null
+  }
+}
+
 const selectProblem = async (problem) => {
   selectedModuleCode.value = ''
   dispatchOpinion.value = ''
@@ -1226,6 +1344,11 @@ const dispatchSelectedModule = async () => {
   const now = getNowTime()
   const keepSelectedModuleCode = module.moduleCode
   const opinion = dispatchOpinion.value || `请处理该质量问题。`
+  const initialTaskStatus = module.moduleCode === DESIGN_MODULE_CODE ? 'UNSTARTED' : 'PROCESSING'
+  const dispatchActionContent = module.moduleCode === DESIGN_MODULE_CODE
+    ? `已分派至${module.moduleName}，等待设计制造协同优化平台开始处置。分派说明：${opinion}`
+    : `已分派至${module.moduleName}，${module.moduleName}正在处理。分派说明：${opinion}`
+  let latestModuleTask = null
 
   try {
     await addTask({
@@ -1239,6 +1362,8 @@ const dispatchSelectedModule = async () => {
       dispatchTime: now,
       createTime: now
     })
+
+    latestModuleTask = await fetchLatestTaskForModule(module.moduleCode)
 
     await updateProblem(buildProblemPayload({
       ...currentProblem.value,
@@ -1268,6 +1393,7 @@ const dispatchSelectedModule = async () => {
     notifyCurrentTaskChanged(module.moduleCode, {
       problemId: currentProblem.value.problemId,
       problemCode: currentProblem.value.problemCode,
+      taskId: latestModuleTask?.taskId || '',
       action: 'DISPATCH'
     })
 
@@ -1287,13 +1413,15 @@ const dispatchSelectedModule = async () => {
   }
 }
 
-const goToSelectedModule = () => {
+const goToSelectedModule = async () => {
   if (!selectedModule.value) {
     ElMessage.warning('请先选择一个模块')
     return
   }
 
-  if (!selectedModule.value.route) {
+  const targetRoute = resolveModuleRoute(selectedModule.value)
+
+  if (!targetRoute) {
     ElMessage.warning('该模块未配置前端路由')
     return
   }
@@ -1303,7 +1431,31 @@ const goToSelectedModule = () => {
     return
   }
 
-  router.push(selectedModule.value.route)
+  if (selectedModule.value.moduleCode === DESIGN_MODULE_CODE) {
+    let targetTask = getLatestTaskForModule(DESIGN_MODULE_CODE)
+
+    if (!targetTask) {
+      targetTask = await fetchLatestTaskForModule(DESIGN_MODULE_CODE)
+    }
+
+    if (!targetTask) {
+      ElMessage.warning('当前问题还没有分派给设计制造协同优化平台的任务')
+      return
+    }
+
+    router.push({
+      path: targetRoute,
+      query: {
+        qmsTaskId: targetTask.taskId,
+        problemId: targetTask.problemId || currentProblem.value?.problemId,
+        problemCode: targetTask.problemCode || currentProblem.value?.problemCode,
+        problemTitle: currentProblem.value?.title || ''
+      }
+    })
+    return
+  }
+
+  router.push(targetRoute)
 }
 
 const confirmTask = async (task) => {
@@ -1491,13 +1643,18 @@ const isWordFile = (url) => {
 }
 
 const handlePreviewProcessFile = async (row) => {
+  if (isDesignModuleTask(row)) {
+    await handleViewDesignReportAttachment(row)
+    return
+  }
+
   try {
     const blob = await fetchProcessFileBlob(row)
 
     const objectUrl = window.URL.createObjectURL(blob)
 
     reportPreviewUrl.value = objectUrl
-    reportPreviewTitle.value = `${row.problemCode || currentProblem.value?.problemCode || ''} 报告预览`
+    reportPreviewTitle.value = `${row.problemCode || currentProblem.value?.problemCode || ''} 课题五追溯报告预览`
     reportPreviewOpen.value = true
   } catch (error) {
     console.error('预览Word报告失败：', error)
@@ -1506,6 +1663,11 @@ const handlePreviewProcessFile = async (row) => {
 }
 
 const handleOpenProcessFile = async (row) => {
+  if (isDesignModuleTask(row)) {
+    await handleViewDesignReportAttachment(row)
+    return
+  }
+
   try {
     const blob = await fetchProcessFileBlob(row)
 
@@ -1520,6 +1682,323 @@ const handleOpenProcessFile = async (row) => {
   } catch (error) {
     console.error('打开Word报告失败：', error)
     ElMessage.error(error.message || '打开Word报告失败')
+  }
+}
+
+const DESIGN_MODULE_CODE = 'PROJECT_2'
+const DESIGN_MODULE_NAME = '设计制造协同优化平台'
+
+const toPlainObject = (value) => {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+}
+
+const parseProcessResult = (value) => {
+  if (!value) return {}
+  if (typeof value === 'object') return toPlainObject(value)
+  if (typeof value !== 'string') return {}
+
+  const text = value.trim()
+  if (!text || (!text.startsWith('{') && !text.startsWith('['))) {
+    return {}
+  }
+
+  try {
+    return toPlainObject(JSON.parse(text))
+  } catch {
+    return {}
+  }
+}
+
+const firstValue = (...values) => {
+  return values.find((item) => item !== undefined && item !== null && String(item).trim() !== '')
+}
+
+const escapeHtml = (value) => {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+const isDesignModuleTask = (row) => {
+  const moduleName = row?.moduleName || ''
+  const result = parseProcessResult(row?.processResult)
+  const resultModuleName = result.moduleName || ''
+  return row?.moduleCode === DESIGN_MODULE_CODE ||
+    result.moduleCode === DESIGN_MODULE_CODE ||
+    moduleName === DESIGN_MODULE_NAME ||
+    moduleName.includes('设计制造协同优化') ||
+    resultModuleName.includes('设计制造协同优化')
+}
+
+const formatProcessResult = (value) => {
+  const result = parseProcessResult(value)
+
+  if (Object.keys(result).length > 0) {
+    return firstValue(
+      result.conclusion,
+      result.summary,
+      result.processResult,
+      result.result,
+      result.message,
+      result.optimizationResult?.conclusion,
+      '已完成处理并提交结果。'
+    )
+  }
+
+  return value || '-'
+}
+
+const buildDesignReportPayload = (row = {}, extra = {}) => {
+  const result = {
+    ...parseProcessResult(row.processResult),
+    ...toPlainObject(extra)
+  }
+  const report = toPlainObject(result.report)
+  const reportSubmission = toPlainObject(result.reportSubmission || result.designReport)
+  const designTask = toPlainObject(result.designTask)
+  const optimizationResult = toPlainObject(result.optimizationResult)
+
+  return {
+    reportHtml: firstValue(
+      row.reportHtml,
+      result.reportHtml,
+      report.reportHtml,
+      reportSubmission.reportHtml,
+      optimizationResult.reportHtml
+    ),
+    reportFileId: firstValue(
+      row.reportFileId,
+      result.reportFileId,
+      report.reportFileId,
+      reportSubmission.reportFileId,
+      optimizationResult.reportFileId
+    ),
+    reportFilePath: firstValue(
+      row.reportFilePath,
+      result.reportFilePath,
+      report.reportFilePath,
+      reportSubmission.reportFilePath,
+      optimizationResult.reportFilePath
+    ),
+    reportFileName: firstValue(
+      row.reportFileName,
+      result.reportFileName,
+      report.reportFileName,
+      reportSubmission.reportFileName,
+      optimizationResult.reportFileName,
+      '设计制造协同优化方案报告.doc'
+    ),
+    reportTitle: firstValue(
+      row.reportTitle,
+      result.reportTitle,
+      report.reportTitle,
+      reportSubmission.reportTitle,
+      `${row.problemCode || currentProblem.value?.problemCode || ''} 设计制造协同优化方案报告`
+    ),
+    designTaskId: firstValue(
+      row.designTaskId,
+      row.designtaskTaskId,
+      result.designTaskId,
+      result.designtaskTaskId,
+      result.taskId,
+      designTask.taskId,
+      report.taskId,
+      reportSubmission.taskId,
+      optimizationResult.designTaskId
+    )
+  }
+}
+
+const loadDesignReportPayloadByQualityTask = async (row = {}, payload = {}) => {
+  if (!row.taskId) return payload
+
+  const linkRes = await getDesignTaskByQualityTask(row.taskId)
+  const linkData = linkRes?.data || {}
+  const designTaskId = linkData.task?.taskId || linkData.qualityTaskLink?.designTaskId
+
+  if (!designTaskId) return payload
+
+  const reportRes = await getDesignReportTask(designTaskId)
+  return buildDesignReportPayload(row, {
+    ...reportRes?.data,
+    designTaskId
+  })
+}
+
+const fetchDesignProcessFileBlob = async (row = {}) => {
+  let payload = buildDesignReportPayload(row)
+
+  if (!payload.reportFileId && payload.designTaskId) {
+    const reportRes = await getDesignReportTask(payload.designTaskId)
+    payload = buildDesignReportPayload(row, reportRes?.data || {})
+  }
+
+  if (!payload.reportFileId) {
+    throw new Error('当前设计制造协同优化任务暂无可预览的Word报告')
+  }
+
+  const data = await getTaskAttachmentFile(payload.reportFileId)
+
+  return new Blob([data], {
+    type: String(payload.reportFileName || '').toLowerCase().endsWith('.docx')
+      ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      : 'application/msword'
+  })
+}
+
+const openDesignReportPreview = (payload) => {
+  designReportPreviewTitle.value = payload.reportTitle || '设计制造协同优化方案报告'
+  designReportPreviewHtml.value = payload.reportHtml || ''
+  designReportDownloadFileId.value = payload.reportFileId || ''
+  designReportDownloadFileName.value = payload.reportFileName || '设计制造协同优化方案报告.doc'
+  designReportPreviewOpen.value = true
+}
+
+const openDesignReportAttachmentByFileId = async (fileId) => {
+  const data = await getTaskAttachmentFile(fileId)
+  const blob = new Blob([data], {
+    type: 'application/msword'
+  })
+  const objectUrl = window.URL.createObjectURL(blob)
+
+  window.open(objectUrl, '_blank')
+
+  setTimeout(() => {
+    window.URL.revokeObjectURL(objectUrl)
+  }, 60000)
+}
+
+const handleViewDesignReportAttachment = async (row) => {
+  if (!isDesignModuleTask(row)) return
+
+  designReportLoadingTaskId.value = row.taskId
+
+  try {
+    let payload = buildDesignReportPayload(row)
+
+    if (payload.reportHtml) {
+      openDesignReportPreview(payload)
+      return
+    }
+
+    if (payload.designTaskId) {
+      try {
+        const reportRes = await getDesignReportTask(payload.designTaskId)
+        payload = buildDesignReportPayload(row, reportRes?.data || {})
+
+        if (payload.reportHtml) {
+          openDesignReportPreview(payload)
+          return
+        }
+
+        if (payload.reportFileId) {
+          await openDesignReportAttachmentByFileId(payload.reportFileId)
+          return
+        }
+      } catch (error) {
+        console.warn('按设计任务查询报告失败，尝试直接打开附件：', error)
+      }
+    }
+
+    if (!payload.reportHtml && row.taskId) {
+      try {
+        const linkedPayload = await loadDesignReportPayloadByQualityTask(row, payload)
+        if (linkedPayload.reportHtml || linkedPayload.reportFileId) {
+          payload = linkedPayload
+        }
+
+        if (payload.reportHtml) {
+          openDesignReportPreview(payload)
+          return
+        }
+
+        if (payload.reportFileId) {
+          await openDesignReportAttachmentByFileId(payload.reportFileId)
+          return
+        }
+      } catch (error) {
+        console.warn('按质量任务绑定关系查询设计报告失败：', error)
+      }
+    }
+
+    if (payload.reportFileId) {
+      await openDesignReportAttachmentByFileId(payload.reportFileId)
+      return
+    }
+
+    ElMessage.warning('当前质量任务未找到已绑定的设计制造协同优化方案报告')
+  } catch (error) {
+    console.error('查看设计制造协同优化方案报告失败：', error)
+
+    const realMsg =
+      error?.response?.data?.msg ||
+      error?.data?.msg ||
+      error?.msg ||
+      error?.message ||
+      '查看优化方案报告失败'
+
+    ElMessage.error(realMsg)
+  } finally {
+    designReportLoadingTaskId.value = null
+  }
+}
+
+const downloadHtmlAsWord = (html, fileName) => {
+  const source = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${escapeHtml(fileName)}</title>
+        <style>
+          body { font-family: Arial, 'Microsoft YaHei', sans-serif; color: #303133; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #dcdfe6; padding: 8px 10px; text-align: left; vertical-align: top; }
+          th { width: 160px; background: #f5f7fa; font-weight: 600; }
+        </style>
+      </head>
+      <body>${html}</body>
+    </html>
+  `
+  const blob = new Blob([source], {
+    type: 'application/msword;charset=utf-8'
+  })
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  link.href = url
+  link.download = fileName || '设计制造协同优化方案报告.doc'
+  link.style.display = 'none'
+
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
+}
+
+const downloadDesignReportAttachment = async () => {
+  if (!designReportDownloadFileId.value && !designReportPreviewHtml.value) {
+    ElMessage.warning('当前报告暂无可下载附件')
+    return
+  }
+
+  try {
+    if (!designReportDownloadFileId.value) {
+      downloadHtmlAsWord(
+        designReportPreviewHtml.value,
+        designReportDownloadFileName.value || '设计制造协同优化方案报告.doc'
+      )
+      return
+    }
+
+    const data = await getTaskAttachmentFile(designReportDownloadFileId.value)
+    downloadBlob(data, designReportDownloadFileName.value || '设计制造协同优化方案报告.doc')
+  } catch (error) {
+    console.error('下载设计制造协同优化方案报告失败：', error)
+    ElMessage.error('下载优化方案报告失败')
   }
 }
 
@@ -1571,7 +2050,10 @@ const getTaskStatusText = (status) => {
 
 const getTaskStatusType = (status) => {
   const map = {
+    UNSTARTED: 'info',
+    DISPATCHED: 'info',
     PROCESSING: 'primary',
+    PENDING_BACKFILL: 'warning',
     SUBMITTED: 'warning',
     CONFIRMED: 'success'
   }
@@ -1579,42 +2061,54 @@ const getTaskStatusType = (status) => {
 }
 
 const getProcessStateText = (status) => {
+  if (['UNSTARTED', 'DISPATCHED'].includes(status)) return '未开始'
   if (status === 'PROCESSING') return '正在处理'
+  if (status === 'PENDING_BACKFILL') return '已完成待回填'
   if (status === 'SUBMITTED') return '已完成'
   if (status === 'CONFIRMED') return '已完成'
   return '-'
 }
 
 const getModuleProcessSentence = (status) => {
+  if (['UNSTARTED', 'DISPATCHED'].includes(status)) return '等待模块开始处理'
   if (status === 'PROCESSING') return '正在处理'
+  if (status === 'PENDING_BACKFILL') return '优化方案已提交，等待回填模拟结果'
   if (status === 'SUBMITTED') return '已完成处理，等待确认'
   if (status === 'CONFIRMED') return '已完成处理，结果已确认'
   return ''
 }
 
 const getProcessStateClass = (status) => {
+  if (['UNSTARTED', 'DISPATCHED'].includes(status)) return 'state-waiting'
   if (status === 'PROCESSING') return 'state-processing'
+  if (status === 'PENDING_BACKFILL') return 'state-processing'
   if (status === 'SUBMITTED') return 'state-finished'
   if (status === 'CONFIRMED') return 'state-finished'
   return ''
 }
 
 const getConfirmStateText = (status) => {
+  if (['UNSTARTED', 'DISPATCHED'].includes(status)) return '等待模块开始'
   if (status === 'PROCESSING') return '等待模块提交'
+  if (status === 'PENDING_BACKFILL') return '等待模块回填'
   if (status === 'CONFIRMED') return '结果已确认'
   if (status === 'SUBMITTED') return '待确认'
   return '-'
 }
 
 const getConfirmStateClass = (status) => {
+  if (['UNSTARTED', 'DISPATCHED'].includes(status)) return 'confirm-wait'
   if (status === 'PROCESSING') return 'confirm-wait'
+  if (status === 'PENDING_BACKFILL') return 'confirm-pending'
   if (status === 'SUBMITTED') return 'confirm-pending'
   if (status === 'CONFIRMED') return 'confirm-finished'
   return ''
 }
 
 const getFlowRecordCardClass = (status) => {
+  if (['UNSTARTED', 'DISPATCHED'].includes(status)) return 'card-processing'
   if (status === 'PROCESSING') return 'card-processing'
+  if (status === 'PENDING_BACKFILL') return 'card-submitted'
   if (status === 'SUBMITTED') return 'card-submitted'
   if (status === 'CONFIRMED') return 'card-confirmed'
   return ''
@@ -1663,6 +2157,50 @@ const getNowTime = () => {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.process-result-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.design-report-preview-wrapper {
+  max-height: 72vh;
+  overflow: auto;
+  padding: 16px;
+  box-sizing: border-box;
+  background: #f5f7fa;
+}
+
+.design-report-paper {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 28px;
+  border: 1px solid #e4e7ed;
+  background: #ffffff;
+  color: #303133;
+  line-height: 1.7;
+}
+
+.design-report-paper :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.design-report-paper :deep(th),
+.design-report-paper :deep(td) {
+  padding: 8px 10px;
+  border: 1px solid #dcdfe6;
+  text-align: left;
+  vertical-align: top;
+}
+
+.design-report-paper :deep(th) {
+  width: 160px;
+  background: #f5f7fa;
+  font-weight: 600;
 }
 
 .task-action-buttons {

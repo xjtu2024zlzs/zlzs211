@@ -3,7 +3,6 @@
     <div class="design-platform-shell">
       <section class="platform-topbar">
         <div>
-          <p class="platform-eyebrow">COLLABORATIVE MECHANISM</p>
           <h1 class="platform-title">协同机制生成</h1>
         </div>
         <div class="topbar-meta">
@@ -22,7 +21,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">TASK INFO</p>
               <h2 class="section-title">任务信息</h2>
             </div>
             <div class="section-actions">
@@ -32,6 +30,27 @@
           </div>
 
           <el-form :model="form" label-width="130px" class="mt-12">
+            <el-form-item v-if="qualityTaskContext.taskId" label="关联质量问题">
+              <div class="quality-problem-context">
+                <div>
+                  <span>问题编号</span>
+                  <strong>{{ qualityTaskContext.problemCode || '-' }}</strong>
+                </div>
+                <div>
+                  <span>问题名称</span>
+                  <strong>{{ qualityTaskContext.problemTitle || '-' }}</strong>
+                </div>
+                <div>
+                  <span>涉及系统</span>
+                  <strong>{{ qualityTaskContext.involvedSystem || '-' }}</strong>
+                </div>
+                <div>
+                  <span>严重程度</span>
+                  <strong>{{ qualityTaskContext.severity || '-' }}</strong>
+                </div>
+              </div>
+            </el-form-item>
+
             <el-form-item label="流程模板">
               <el-select
                 v-model="form.processDefinitionId"
@@ -154,7 +173,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">ASSIGNEE</p>
               <h2 class="section-title">处理人配置</h2>
             </div>
           </div>
@@ -184,7 +202,6 @@
       <section class="section-block template-block">
         <div class="section-header">
           <div>
-            <p class="section-label">FLOWABLE TEMPLATE</p>
             <h2 class="section-title">工作流模板内容</h2>
           </div>
           <el-button plain icon="Refresh" :loading="loadingDefinitions" @click="loadDefinitions">刷新流程模板</el-button>
@@ -254,7 +271,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Upload } from '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   deployDefaultProcess,
   listFaultPipeParameterOptions,
@@ -265,6 +282,7 @@ import {
   uploadDesignTaskFile
 } from '@/api/designtask/optimization'
 
+const route = useRoute()
 const router = useRouter()
 const submitting = ref(false)
 const deploying = ref(false)
@@ -277,16 +295,17 @@ const workflowNodes = ref([])
 const assigneeOptions = ref({})
 const faultPipeOptions = ref([])
 const fileList = ref([])
+const qualityTaskContext = ref({})
 
 const form = ref({
   processDefinitionId: '',
-  taskName: '液压弯管抗冲击与线缆管路布局协同优化任务',
+  taskName: '',
   taskType: 'LANDING_GEAR_DOOR',
   plannedStartTime: '',
   plannedEndTime: '',
   priority: 3,
   faultPipeParameterSetId: undefined,
-  description: '基于前置故障追因结论，当前任务先由各专业工程师选择与舱门管线问题相关的优化目标、约束条件和必要设计变量。任务解耦将在目标与约束选择完成后执行，解耦前不预先固定子任务关系或上下游边界。',
+  description: '',
   structureUserId: undefined,
   layoutUserId: undefined,
   aeroUserId: undefined,
@@ -313,7 +332,7 @@ const nodes = [
   { key: 'conflict_check', name: '目标约束冲突校验' },
   { key: 'model_decompose_solve', name: '模型解耦求解' },
   { key: 'simulation_confirm', name: '仿真验证确认' },
-  { key: 'leader_approve', name: '领导审批' }
+  { key: 'leader_approve', name: '优化方案审批' }
 ]
 
 const expectedNodeKeys = nodes.map(item => item.key)
@@ -354,6 +373,23 @@ function valueWithUnit(code) {
   const value = faultPipeValue(code)
   const unit = faultPipeUnit(code)
   return value ? `${value}${unit ? ` ${unit}` : ''}` : '-'
+}
+
+function loadQualityTaskContext() {
+  const qualityTaskId = Number(route.query.qmsTaskId || route.query.qualityTaskId)
+  if (!qualityTaskId) return
+
+  qualityTaskContext.value = {
+    taskId: qualityTaskId,
+    problemId: route.query.problemId ? Number(route.query.problemId) : undefined,
+    problemCode: route.query.problemCode || '',
+    problemTitle: route.query.problemTitle || '',
+    problemDescription: '',
+    involvedSystem: '',
+    occurPart: '',
+    severity: '',
+    dispatchOpinion: ''
+  }
 }
 
 function rolePlaceholder(role) {
@@ -469,11 +505,21 @@ async function submitTask() {
     const attachments = await buildAttachments()
     const res = await startDesignTask({
       ...form.value,
+      qualityTaskId: qualityTaskContext.value.taskId,
+      qualityProblemId: qualityTaskContext.value.problemId,
+      qualityProblemCode: qualityTaskContext.value.problemCode,
+      qualityProblemTitle: qualityTaskContext.value.problemTitle,
       attachments
     })
     const taskId = res.data?.task?.taskId
     ElMessage.success('任务已发起，流程进入结构工程师目标约束选择')
-    router.push({ path: '/designtask/dashboard', query: { taskId } })
+    router.push({
+      path: '/designtask/dashboard',
+      query: {
+        taskId,
+        qmsTaskId: qualityTaskContext.value.taskId || undefined
+      }
+    })
   } finally {
     submitting.value = false
   }
@@ -484,6 +530,7 @@ onMounted(() => {
   loadAssignees()
   loadFaultPipeOptions()
   loadDefinitions()
+  loadQualityTaskContext()
 })
 </script>
 
@@ -510,6 +557,40 @@ onMounted(() => {
 
 .attachment-upload {
   width: 100%;
+}
+
+.quality-problem-context {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+
+  > div {
+    min-width: 0;
+    padding: 9px 12px;
+    border: 1px solid #e6ebf1;
+    border-left: 3px solid #4f8edc;
+    border-radius: 6px;
+    background: #fbfcfe;
+  }
+
+  span {
+    display: block;
+    color: #6b7688;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  strong {
+    display: block;
+    margin-top: 4px;
+    color: #172033;
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .upload-tip {

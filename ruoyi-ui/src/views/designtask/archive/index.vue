@@ -3,7 +3,6 @@
     <div class="design-platform-shell">
       <section class="platform-topbar">
         <div>
-          <p class="platform-eyebrow">TASK ARCHIVE</p>
           <h1 class="platform-title">任务归档文档</h1>
         </div>
         <div class="topbar-meta">
@@ -17,7 +16,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">BASIC INFO</p>
               <h2 class="section-title">{{ archive.archiveTitle || task.taskName || '设计任务归档文档' }}</h2>
             </div>
             <el-tag>{{ archive.archiveCode || '-' }}</el-tag>
@@ -35,7 +33,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">OVERVIEW</p>
               <h2 class="section-title">问题概览</h2>
             </div>
           </div>
@@ -45,7 +42,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">OBJECTIVES & CONSTRAINTS</p>
               <h2 class="section-title">目标与约束选择归档</h2>
             </div>
           </div>
@@ -71,7 +67,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">FIXED INPUTS</p>
               <h2 class="section-title">故障管段原始设计参数</h2>
             </div>
           </div>
@@ -91,7 +86,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">DECOMPOSITION</p>
               <h2 class="section-title">模型解耦结果</h2>
             </div>
           </div>
@@ -110,7 +104,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">DESIGN VARIABLES</p>
               <h2 class="section-title">设计变量归口结果</h2>
             </div>
           </div>
@@ -131,7 +124,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">SOLVER RESULT</p>
               <h2 class="section-title">代理模型优化结果</h2>
             </div>
             <el-tag :type="surrogate.status === 'SUCCESS' || surrogate.confirmed ? 'success' : 'info'">{{ surrogate.statusLabel || surrogate.status || '未提交' }}</el-tag>
@@ -152,7 +144,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">CAD & SIMULATION</p>
               <h2 class="section-title">CAD 建模与 ANSYS 仿真结果</h2>
             </div>
           </div>
@@ -176,7 +167,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">APPROVAL</p>
               <h2 class="section-title">审批记录</h2>
             </div>
             <el-tag type="success">{{ approval.result || '通过' }}</el-tag>

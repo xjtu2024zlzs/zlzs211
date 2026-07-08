@@ -3,7 +3,6 @@
     <div class="design-platform-shell">
       <section class="platform-topbar">
         <div>
-          <p class="platform-eyebrow">SIMULATION CONFIRMATION</p>
           <h1 class="platform-title">{{ hasTask ? taskTitle : '仿真验证确认' }}</h1>
         </div>
         <div class="topbar-meta">
@@ -22,7 +21,6 @@
       <section v-if="!hasTask" class="section-block">
         <div class="section-header">
           <div>
-            <p class="section-label">TASK INBOX</p>
             <h2 class="section-title">我的仿真验证确认任务</h2>
           </div>
           <el-button plain icon="Refresh" :loading="inboxLoading" @click="loadInbox">刷新</el-button>
@@ -76,7 +74,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">CAD MODELING</p>
               <h2 class="section-title">CAD 参数建模验证</h2>
             </div>
             <div class="action-row">
@@ -165,7 +162,6 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">ANSYS SIMULATION</p>
               <h2 class="section-title">ANSYS 应力仿真结果</h2>
             </div>
             <div class="action-row">
@@ -226,9 +222,8 @@
           <section class="section-block">
             <div class="section-header">
               <div>
-                <p class="section-label">SIMULATION INPUTS</p>
-              <h2 class="section-title">管段原始设计参数</h2>
-            </div>
+                <h2 class="section-title">管段原始设计参数</h2>
+              </div>
               <el-tag v-if="faultPipeParameters.setCode">{{ faultPipeParameters.setCode }}</el-tag>
             </div>
 
@@ -257,7 +252,6 @@
           <section class="section-block">
             <div class="section-header">
               <div>
-                <p class="section-label">METRICS</p>
                 <h2 class="section-title">优化前后指标对比</h2>
               </div>
               <div class="action-row">
@@ -284,7 +278,6 @@
         <section class="section-block conclusion-section">
           <div class="section-header">
             <div>
-              <p class="section-label">CONCLUSION</p>
               <h2 class="section-title">验证结论</h2>
             </div>
           </div>
@@ -320,8 +313,7 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <p class="section-label">APPROVAL</p>
-              <h2 class="section-title">领导审批</h2>
+              <h2 class="section-title">优化方案审批</h2>
             </div>
           </div>
 
@@ -529,7 +521,7 @@ function handledReason(detailData) {
     return '已完成仿真确认'
   }
   if (Number(task.leaderUserId) === currentUserId && task.currentNodeKey === 'end') {
-    return '已完成领导审批'
+    return '已完成优化方案审批'
   }
   return ''
 }

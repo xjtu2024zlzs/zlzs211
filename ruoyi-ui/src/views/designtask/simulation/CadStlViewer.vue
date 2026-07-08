@@ -1,5 +1,5 @@
 <template>
-  <div ref="wrapRef" class="cad-viewer">
+  <div ref="wrapRef" class="cad-viewer" :style="viewerStyle">
     <div v-if="!modelData" class="cad-viewer__empty">
       <span>{{ emptyText }}</span>
     </div>
@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
@@ -20,10 +20,19 @@ const props = defineProps({
   emptyText: {
     type: String,
     default: '请先生成 CAD 模型'
+  },
+  height: {
+    type: String,
+    default: '500px'
   }
 })
 
 const wrapRef = ref(null)
+const viewerStyle = computed(() => ({
+  height: props.height,
+  minHeight: props.height
+}))
+const hasLoadedModel = ref(false)
 let renderer
 let scene
 let camera
@@ -41,7 +50,7 @@ function initScene() {
   camera = new THREE.PerspectiveCamera(45, 1, 0.1, 5000)
   camera.position.set(520, -520, 260)
 
-  renderer = new THREE.WebGLRenderer({ antialias: true })
+  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
   renderer.setPixelRatio(window.devicePixelRatio || 1)
   renderer.outputColorSpace = THREE.SRGBColorSpace
   wrapRef.value.appendChild(renderer.domElement)
@@ -80,7 +89,15 @@ function animate() {
   renderer?.render(scene, camera)
 }
 
+function captureImage(type = 'image/png') {
+  if (!renderer || !scene || !camera || !mesh || !hasLoadedModel.value) return ''
+  controls?.update()
+  renderer.render(scene, camera)
+  return renderer.domElement.toDataURL(type)
+}
+
 function clearModel() {
+  hasLoadedModel.value = false
   if (!mesh) return
   scene.remove(mesh)
   mesh.geometry?.dispose()
@@ -110,8 +127,10 @@ function loadModel(buffer) {
   })
   mesh = new THREE.Mesh(geometry, material)
   scene.add(mesh)
+  hasLoadedModel.value = true
 
-  camera.position.set(maxSize * 0.95, -maxSize * 0.9, maxSize * 0.42)
+  camera.position.set(maxSize * 0.72, -maxSize * 0.68, maxSize * 0.34)
+  camera.zoom = 1.28
   camera.near = Math.max(maxSize / 1000, 0.1)
   camera.far = maxSize * 10
   camera.updateProjectionMatrix()
@@ -136,12 +155,17 @@ onBeforeUnmount(() => {
   renderer?.dispose()
   renderer?.domElement?.remove()
 })
+
+defineExpose({
+  captureImage,
+  hasModel: () => hasLoadedModel.value
+})
 </script>
 
 <style scoped>
 .cad-viewer {
   position: relative;
-  min-height: 500px;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid #e1e7ef;
   border-radius: 6px;

@@ -58,6 +58,10 @@ spring:
                 - Path=/project1/**
               filters:
                 - StripPrefix=1
+            - id: ruoyi-quality
+              uri: lb://ruoyi-quality
+              predicates:
+                - Path=/qms/**
 
 security:
   captcha:

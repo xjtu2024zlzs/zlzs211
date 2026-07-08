@@ -72,6 +72,7 @@ public class DesignPlatformStartupCheck implements ApplicationRunner {
             );
         }
         repairPlatformRoleKeys();
+        repairPlatformMenus();
         repairPlatformRoleMenus();
     }
 
@@ -108,10 +109,31 @@ public class DesignPlatformStartupCheck implements ApplicationRunner {
 
     private void repairPlatformRoleMenus() {
         grantMenus(List.of(2600L, 2601L, 2606L), PLATFORM_ROLES.keySet().stream().toList());
-        grantMenus(List.of(2602L, 2604L, 2605L, 2608L, 2609L, 2610L, 2611L, 2613L, 2614L, 2615L, 2616L), List.of("design_task_owner"));
+        grantMenus(List.of(2602L, 2604L, 2608L, 2609L, 2610L, 2611L, 2613L, 2614L, 2615L, 2616L), List.of("design_task_owner"));
         grantMenus(List.of(2603L, 2607L), List.of("structure_engineer", "layout_engineer", "aero_engineer", "hydraulic_engineer"));
-        grantMenus(List.of(2603L, 2605L, 2607L, 2611L), List.of("manufacturing_engineer"));
+        grantMenus(List.of(2603L, 2607L, 2611L), List.of("manufacturing_engineer"));
         grantMenus(List.of(2605L, 2612L), List.of("approval_leader"));
+    }
+
+    private void repairPlatformMenus() {
+        jdbcTemplate.update("""
+            update sys_menu
+            set menu_name = '优化方案审批',
+                path = 'approval',
+                component = 'designtask/approval/index',
+                perms = 'designtask:task:approve',
+                icon = 'checkbox',
+                update_by = 'admin',
+                update_time = sysdate()
+            where menu_id = 2605
+            """);
+        jdbcTemplate.update("""
+            delete rm
+            from sys_role_menu rm
+            join sys_role r on r.role_id = rm.role_id
+            where rm.menu_id = 2605
+              and r.role_key in ('design_task_owner', 'manufacturing_engineer')
+            """);
     }
 
     private void grantMenus(List<Long> menuIds, List<String> roleKeys) {

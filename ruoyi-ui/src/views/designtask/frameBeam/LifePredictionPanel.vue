@@ -2,7 +2,6 @@
   <section class="section-block">
     <div class="section-header">
       <div>
-        <p class="section-label">LIFE PREDICTION</p>
         <h2 class="section-title">裂纹扩展与剩余寿命</h2>
       </div>
       <div class="action-row">

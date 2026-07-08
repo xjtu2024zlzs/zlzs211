@@ -2,7 +2,6 @@
   <section class="section-block">
     <div class="section-header">
       <div>
-        <p class="section-label">FRAME BEAM INPUT</p>
         <h2 class="section-title">裂纹信息与结构参数</h2>
       </div>
       <el-button type="primary" :loading="saving" @click="save">保存裂纹信息</el-button>
