@@ -242,6 +242,34 @@
               </el-table>
             </div>
 
+            <div v-if="showTraceResults" class="data-block trace-result-block">
+              <div class="block-title block-title-row">
+                <span>故障追溯</span>
+                <el-tag size="small" type="success">{{ activeTraceResults.length }} 条</el-tag>
+              </div>
+              <el-table v-if="activeTraceResults.length" :data="activeTraceResults" border>
+                <el-table-column prop="sourceLabel" label="处理课题" width="130" />
+                <el-table-column prop="resultTypeLabel" label="类型" width="110" />
+                <el-table-column prop="title" label="质量问题/任务" min-width="240" show-overflow-tooltip />
+                <el-table-column prop="summary" label="处理结果" min-width="280" show-overflow-tooltip />
+                <el-table-column prop="createdAt" label="更新时间" width="170" />
+                <el-table-column label="操作" width="150" fixed="right" align="center">
+                  <template #default="{ row }">
+                    <el-button link type="primary" @click="openTraceDetail(row)">详情</el-button>
+                    <el-button
+                      link
+                      type="primary"
+                      :loading="traceExportingId === row.resultId"
+                      @click="exportTraceResult(row)"
+                    >
+                      导出
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <el-empty v-else description="暂无故障追溯内容" />
+            </div>
+
             <div v-if="showDocumentList" class="data-block">
               <div class="block-title block-title-row">
                 <span>附件材料</span>
@@ -441,6 +469,45 @@
         </div>
       </div>
     </el-dialog>
+
+    <el-dialog v-model="traceDetailVisible" title="质量追溯详情" width="860px" append-to-body>
+      <div class="trace-detail-head">
+        <div>
+          <strong>{{ activeTraceResult.title || '-' }}</strong>
+          <span>{{ activeTraceResult.summary || '-' }}</span>
+        </div>
+        <el-tag size="small" type="success">{{ activeTraceResult.sourceLabel || '质量管理中心' }}</el-tag>
+      </div>
+
+      <div class="version-info dialog-info trace-detail-grid">
+        <div><label>类型</label><span>{{ activeTraceResult.resultTypeLabel || '-' }}</span></div>
+        <div><label>更新时间</label><span>{{ activeTraceResult.createdAt || '-' }}</span></div>
+        <div><label>处理课题</label><span>{{ activeTraceResult.sourceLabel || '-' }}</span></div>
+        <div><label>附件数量</label><span>{{ activeTraceResult.attachmentCount || 0 }}</span></div>
+      </div>
+
+      <div v-if="activeTraceFields.length" class="trace-detail-section">
+        <div class="block-title">字段明细</div>
+        <el-table :data="activeTraceFields" border max-height="260">
+          <el-table-column prop="label" label="字段" width="220" show-overflow-tooltip />
+          <el-table-column prop="value" label="内容" min-width="360" show-overflow-tooltip />
+        </el-table>
+      </div>
+
+      <div class="trace-detail-section">
+        <div class="block-title">完整内容</div>
+        <pre class="trace-full-content">{{ activeTraceResult.fullContent || '-' }}</pre>
+      </div>
+
+      <div v-if="activeTraceDocuments.length" class="trace-detail-section">
+        <div class="block-title">关联文档</div>
+        <el-table :data="activeTraceDocuments" border>
+          <el-table-column prop="title" label="文档名称" min-width="220" show-overflow-tooltip />
+          <el-table-column prop="docNo" label="文档编号" min-width="180" show-overflow-tooltip />
+          <el-table-column prop="fileType" label="类型" width="90" />
+        </el-table>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -451,6 +518,7 @@ import { ElMessage } from 'element-plus'
 import { saveAs } from 'file-saver'
 import {
   exportDossierFiles,
+  exportTraceResultWord,
   getCurrentDossierDetail,
   getDossierNodeDetail,
   listBomChildren,
@@ -480,6 +548,9 @@ const metaDialogVisible = ref(false)
 const activeMetaPanel = ref('')
 const fileDetailVisible = ref(false)
 const activeFile = ref({})
+const traceDetailVisible = ref(false)
+const activeTraceResult = ref({})
+const traceExportingId = ref('')
 const attachmentPage = ref(1)
 const attachmentPageSize = ref(10)
 const attachmentPageSizes = [10, 20, 50]
@@ -564,6 +635,7 @@ const currentChildren = computed(() => detailData.value.bomChildren || [])
 const detail = computed(() => detailData.value.detail || {})
 const contentItems = computed(() => detailData.value.contentItems || [])
 const documents = computed(() => detailData.value.documents || [])
+const traceResults = computed(() => detailData.value.traceResults || detail.value.traceResults || [])
 const displayDocuments = computed(() => {
   return documents.value.map(item => ({
     ...item,
@@ -738,6 +810,13 @@ const directoryTables = computed(() => buildDirectoryTables(activeDirectoryItem.
 
 const categoryContentItems = computed(() => filterContentItemsForDirectory(activeDirectoryItem.value))
 
+const activeTraceResults = computed(() => {
+  return activeDirectoryCategory.value === 'fault' ? traceResults.value : []
+})
+
+const activeTraceFields = computed(() => activeTraceResult.value.fields || [])
+const activeTraceDocuments = computed(() => activeTraceResult.value.documents || [])
+
 const showDocumentList = computed(() => {
   return isDocumentDirectory(activeDirectoryItem.value) && directoryDocuments.value.length > 0
 })
@@ -746,6 +825,10 @@ const showContentList = computed(() => {
   return !['composition', 'documents'].includes(activeDirectoryCategory.value)
     && categoryContentItems.value.length > 0
     && (!activeDirectoryBlocks.value.length || activeDirectoryBlocks.value.includes('details'))
+})
+
+const showTraceResults = computed(() => {
+  return activeDirectoryCategory.value === 'fault'
 })
 
 const showDetailPanel = computed(() => !isCompositionDirectory.value)
@@ -769,6 +852,34 @@ function openMetaPanel(key) {
 function openFileDetail(row) {
   activeFile.value = row || {}
   fileDetailVisible.value = true
+}
+
+function openTraceDetail(row) {
+  activeTraceResult.value = row || {}
+  traceDetailVisible.value = true
+}
+
+async function exportTraceResult(row) {
+  if (!row?.resultId) {
+    ElMessage.warning('当前追溯结果缺少可导出的编号')
+    return
+  }
+  traceExportingId.value = row.resultId
+  try {
+    const data = await exportTraceResultWord(row.resultId, {
+      instanceId: context.value.instanceId,
+      versionId: context.value.versionId || selectedVersionId.value,
+      bomNodeId: currentNode.value.nodeId
+    })
+    saveAs(new Blob([data], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    }), traceResultFileName(row))
+    ElMessage.success('追溯结果导出完成')
+  } catch (error) {
+    ElMessage.error('追溯结果暂时无法导出')
+  } finally {
+    traceExportingId.value = ''
+  }
 }
 
 async function viewFile(row) {
@@ -1004,6 +1115,7 @@ function isCompositionRow(item) {
 }
 
 function directoryCategory(item) {
+  if (isInstallationDirectory(item)) return 'installation'
   if (item?.category) return item.category
   if (item?.displayType === 'file_list') return 'documents'
   const label = item && item.label ? item.label : ''
@@ -1012,12 +1124,24 @@ function directoryCategory(item) {
   if (label.includes('故障')) return 'fault'
   if (label.includes('检验')) return 'inspection'
   if (label.includes('制造') || label.includes('追溯') || label.includes('装配')) return 'manufacturing'
-  if (label.includes('装机') || label.includes('服役') || label.includes('使用') || label.includes('履历') || label.includes('维修')) return 'service'
+  if (label.includes('装机')) return 'installation'
+  if (label.includes('服役') || label.includes('使用') || label.includes('履历') || label.includes('维修')) return 'service'
   if (label.includes('技术')) return 'status'
   if (label.includes('接口')) return 'interface'
   if (label.includes('设计')) return 'design'
   if (label.includes('基本') || label.includes('概况')) return 'basic'
   return 'content'
+}
+
+function isInstallationDirectory(item) {
+  const fields = lowerStringSet(item?.primaryFields || item?.attrs?.primaryFields)
+  if (fields.has('install_date') || fields.has('installdate')
+    || fields.has('torque_n_m') || fields.has('torquenm')
+    || fields.has('leak_check_result') || fields.has('leakcheckresult')) {
+    return true
+  }
+  const sourceTables = lowerStringSet(item?.sourceTables)
+  return sourceTableMatches(sourceTables, 't1_assembly_record')
 }
 
 function isDocumentDirectory(item) {
@@ -1101,7 +1225,8 @@ function tableMatchesCategory(table, category, label) {
   if (category === 'design') return title.includes('设计')
   if (category === 'manufacturing') return title.includes('制造') || title.includes('装配')
   if (category === 'inspection') return title.includes('检验') || title.includes('试验')
-  if (category === 'service') return title.includes('服役') || title.includes('装机') || title.includes('履历') || title.includes('使用') || title.includes('维修')
+  if (category === 'installation') return title.includes('装机') || title.includes('安装') || title.includes('装配')
+  if (category === 'service') return title.includes('服役') || title.includes('使用') || title.includes('维修')
   if (category === 'fault') return title.includes('故障') || title.includes('服役与故障')
   if (category === 'status') return title.includes('技术') || title.includes('状态')
   if (category === 'interface') return title.includes('接口') || label.includes('接口')
@@ -1125,6 +1250,7 @@ function sourceByCategory(category) {
     design: 'part_master / file_relation / impact_tube_*',
     manufacturing: 'shop_order / process_route / production_operation_record',
     inspection: 'inspection_record / inspection_measurement',
+    installation: 'aircraft_bom_node / assembly_record / install_removal',
     service: 'life_usage_record / install_removal / work_order',
     fault: 'fault_event / work_order',
     status: 'object_technical_status / object_status_history',
@@ -1142,6 +1268,7 @@ function displayModeForDirectory(item, category) {
     design: '参数卡片 + 明细表',
     manufacturing: '工序记录 + 追溯表',
     inspection: '检验结论 + 记录表',
+    installation: '装机履历 + 明细表',
     service: '履历时间线 + 明细表',
     fault: '事件记录 + 闭环状态',
     status: '状态清单 + 变更记录',
@@ -1170,12 +1297,10 @@ function filterContentItemsForDirectory(directoryItem) {
   const lifecycleStages = upperStringSet(directoryItem?.lifecycleStages)
   const chapterId = String(directoryItem?.chapterId || '').trim()
   const exactItems = chapterId
-    ? contentItems.value.filter(item => contentItemChapterId(item) === chapterId)
+    ? contentItems.value.filter(item => contentItemChapterId(item) === chapterId
+      && matchesDirectoryFilters(item, sourceTables, lifecycleStages))
     : []
-  if (exactItems.length) {
-    return exactItems
-  }
-  return contentItems.value.filter(item => {
+  const fallbackItems = contentItems.value.filter(item => {
     const itemChapterId = contentItemChapterId(item)
     if (chapterId && itemChapterId) {
       return false
@@ -1183,11 +1308,14 @@ function filterContentItemsForDirectory(directoryItem) {
     if (chapterId && !isDirectoryFallbackCandidate(item)) {
       return false
     }
+    if (category === 'installation' && matchesContentCategory(item, category)) {
+      return true
+    }
     if (sourceTables.size && lifecycleStages.size) {
-      return sourceTables.has(String(item.sourceTable || '').toLowerCase())
+      return sourceTableMatches(sourceTables, item.sourceTable)
         && lifecycleStages.has(String(item.lifecycleStage || '').toUpperCase())
     }
-    if (sourceTables.size && sourceTables.has(String(item.sourceTable || '').toLowerCase())) {
+    if (sourceTables.size && sourceTableMatches(sourceTables, item.sourceTable)) {
       return true
     }
     if (lifecycleStages.size && lifecycleStages.has(String(item.lifecycleStage || '').toUpperCase())) {
@@ -1195,10 +1323,72 @@ function filterContentItemsForDirectory(directoryItem) {
     }
     return !chapterId && matchesContentCategory(item, category)
   })
+  return exactItems.length ? mergeDetailedFallbackItems(exactItems, fallbackItems) : fallbackItems
 }
 
 function contentItemChapterId(item) {
   return String(item?.attrs?.chapterId || item?.chapterId || '').trim()
+}
+
+function matchesDirectoryFilters(item, sourceTables, lifecycleStages) {
+  if (sourceTables.size && !sourceTableMatches(sourceTables, item?.sourceTable)) {
+    return false
+  }
+  if (lifecycleStages.size && !lifecycleStages.has(String(item?.lifecycleStage || '').toUpperCase())) {
+    return false
+  }
+  return true
+}
+
+function sourceTableMatches(expectedTables, actualTable) {
+  const table = String(actualTable || '').toLowerCase()
+  const logical = table.startsWith('t1_') ? table.slice(3) : table
+  return expectedTables.has(table) || expectedTables.has(logical) || expectedTables.has(`t1_${logical}`)
+}
+
+function mergeDetailedFallbackItems(exactItems, fallbackItems) {
+  const result = [...exactItems]
+  fallbackItems.forEach(item => {
+    if (!hasInformativeContent(item)) {
+      return
+    }
+    const key = contentItemMergeKey(item)
+    const index = result.findIndex(row => contentItemMergeKey(row) === key)
+    if (index < 0) {
+      result.push(item)
+      return
+    }
+    if (contentInfoScore(item) > contentInfoScore(result[index])) {
+      result.splice(index, 1, item)
+    }
+  })
+  return result
+}
+
+function contentItemMergeKey(item) {
+  const table = String(item?.sourceTable || '').toLowerCase().replace(/^t1_/, '')
+  const record = String(item?.sourceRecordId || item?.sourceRecordKey || '').trim()
+  return record ? `${table}|${record}` : `${table}|${item?.itemName || ''}|${item?.contentSummary || ''}`
+}
+
+function hasInformativeContent(item) {
+  return contentInfoScore(item) > 0
+}
+
+function contentInfoScore(item) {
+  let score = 0
+  const summary = String(item?.contentSummary || '').trim()
+  const recordKey = String(item?.sourceRecordKey || '').trim()
+  const recordId = String(item?.sourceRecordId || '').trim()
+  if (summary && summary.toLowerCase() !== recordKey.toLowerCase() && summary.toLowerCase() !== recordId.toLowerCase()) {
+    score += summary.length
+  }
+  Object.entries(item?.attrs || {}).forEach(([key, value]) => {
+    if (String(key).toLowerCase() !== 'chapterid' && String(value || '').trim()) {
+      score += 5
+    }
+  })
+  return score
 }
 
 function isDirectoryFallbackCandidate(item) {
@@ -1239,6 +1429,7 @@ function matchesContentCategory(item, category) {
   }
   if (category === 'design') return stage === 'DESIGN' || itemType.includes('design') || sourceTable.includes('design')
   if (category === 'manufacturing') return ['MANUFACTURING', 'INSTALLATION'].includes(stage) || sourceTable.includes('shop_order')
+  if (category === 'installation') return stage === 'INSTALLATION' || sourceTable.includes('assembly') || sourceTable.includes('install')
   if (category === 'inspection') return stage === 'INSPECTION' || sourceTable.includes('inspection')
   if (category === 'service') return stage === 'SERVICE' || itemType.includes('work_order') || itemType.includes('maintenance') || sourceTable.includes('life_usage')
   if (category === 'fault') return stage === 'FAULT' || itemType.includes('fault') || sourceTable.includes('fault')
@@ -1560,6 +1751,12 @@ function formatDateOnly(value) {
 function exportAllFileName() {
   const nodeName = firstPresent(currentNode.value.partNumber, currentNode.value.partName, context.value.tailNumber, 'dossier')
   return `${safeFileSegment(nodeName)}_附件材料.zip`
+}
+
+function traceResultFileName(row) {
+  const nodeName = firstPresent(currentNode.value.partNumber, currentNode.value.partName, 'dossier')
+  const title = firstPresent(row?.sourceLabel, row?.title, row?.resultId, 'trace-result')
+  return `${safeFileSegment(nodeName)}_${safeFileSegment(title)}_追溯结果.docx`
 }
 
 function safeFileSegment(value) {
@@ -2490,6 +2687,65 @@ onMounted(() => {
     margin: 3px 0;
     color: #374151;
   }
+}
+
+.trace-result-block {
+  border-color: #d9ecff;
+}
+
+.trace-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+
+  div {
+    min-width: 0;
+  }
+
+  strong,
+  span {
+    display: block;
+  }
+
+  strong {
+    color: #111827;
+    font-size: 16px;
+    font-weight: 650;
+  }
+
+  span {
+    margin-top: 5px;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+}
+
+.trace-detail-grid {
+  div {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+}
+
+.trace-detail-section {
+  margin-top: 16px;
+}
+
+.trace-full-content {
+  max-height: 320px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid #edf0f5;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #1f2937;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 @media (max-width: 1280px) {

@@ -56,3 +56,12 @@ export function exportDossierFiles(documentEntryIds) {
     responseType: 'blob'
   })
 }
+
+export function exportTraceResultWord(resultId, query) {
+  return request({
+    url: '/project1/dossier/detail/trace-results/' + resultId + '/export',
+    method: 'get',
+    params: query,
+    responseType: 'blob'
+  })
+}

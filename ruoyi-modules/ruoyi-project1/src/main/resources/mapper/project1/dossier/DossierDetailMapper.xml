@@ -699,6 +699,175 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by fr.required_flag desc, title
     </select>
 
+    <select id="selectTraceResultRows" resultType="java.util.HashMap">
+        select ar.id as resultId,
+               ar.task_id as taskId,
+               ar.result_type as resultType,
+               ar.result_title as resultTitle,
+               ar.result_summary as resultSummary,
+               cast(ar.result_value_json as char) as resultValueJson,
+               ar.confidence,
+               ar.rank_no as rankNo,
+               ar.related_object_type as relatedObjectType,
+               ar.related_object_id as relatedObjectId,
+               cast(ar.evidence_json as char) as evidenceJson,
+               ar.created_at as createdAt,
+               tsk.task_code as taskCode,
+               tsk.task_name as taskName,
+               tsk.algorithm_code as algorithmCode,
+               tsk.algorithm_version as algorithmVersion,
+               tsk.scope_type as scopeType,
+               cast(tsk.scope_json as char) as scopeJson,
+               json_unquote(json_extract(tsk.scope_json, '$.bomNodeId')) as scopeBomNodeId,
+               json_unquote(json_extract(tsk.scope_json, '$.sourceComponent')) as sourceComponent
+        from t1_analysis_result ar
+        inner join t1_analysis_task tsk on tsk.id = ar.task_id
+        where (
+            (lower(ar.related_object_type) = 'bom_node' and ar.related_object_id = #{bomNodeId})
+            or json_unquote(json_extract(tsk.scope_json, '$.bomNodeId')) = #{bomNodeId}
+            or (
+                lower(ar.related_object_type) = 'dossier'
+                and ar.related_object_id = #{instanceId}
+                and coalesce(json_unquote(json_extract(tsk.scope_json, '$.bomNodeId')), '') = ''
+            )
+        )
+        and (
+            json_unquote(json_extract(tsk.scope_json, '$.instanceId')) = #{instanceId}
+            or ar.related_object_id = #{instanceId}
+            or ar.related_object_id = #{bomNodeId}
+            or json_unquote(json_extract(tsk.scope_json, '$.bomNodeId')) = #{bomNodeId}
+        )
+        <if test="versionId != null and versionId != ''">
+            and (
+                coalesce(json_unquote(json_extract(tsk.scope_json, '$.versionId')), '') = ''
+                or json_unquote(json_extract(tsk.scope_json, '$.versionId')) = #{versionId}
+            )
+        </if>
+        order by ar.created_at desc, ar.rank_no, ar.id
+    </select>
+
+    <select id="selectTraceResultDocuments" resultType="java.util.HashMap">
+        select fr.id as documentEntryId,
+               fr.file_id as fileAssetId,
+               fr.relation_type as relationType,
+               fr.target_type as targetType,
+               fr.target_id as targetId,
+               fr.target_code as targetCode,
+               fr.target_name as targetName,
+               fr.dossier_instance_id as instanceId,
+               fr.dossier_version_id as versionId,
+               fr.aircraft_id as aircraftId,
+               fr.bom_node_id as bomNodeId,
+               fr.part_number as partNumber,
+               fr.part_instance_id as partInstanceId,
+               fr.object_level as objectLevel,
+               fr.lifecycle_stage as lifecycleStage,
+               fr.business_domain as businessDomain,
+               fa.file_code as fileCode,
+               coalesce(fa.business_no, fr.target_code, fr.source_record_key) as docNo,
+               fa.business_no as businessNo,
+               fa.business_type as businessType,
+               fa.business_title as businessTitle,
+               fa.revision,
+               fa.file_status as fileStatus,
+               fa.original_file_name as originalFileName,
+               fa.display_name as displayName,
+               coalesce(fa.business_title, fa.display_name) as title,
+               fa.file_ext as fileExt,
+               fa.mime_type as mimeType,
+               fa.storage_type as storageType,
+               fa.storage_key as storageKey,
+               fa.storage_path as storagePath,
+               fa.access_url as accessUrl,
+               fa.preview_storage_key as previewStorageKey,
+               coalesce(fa.storage_key, fa.storage_path, fa.access_url) as fileStorageKey,
+               fa.file_size as fileSize,
+               coalesce(fr.source_system, fa.source_system) as sourceSystem,
+               coalesce(fr.source_table, fa.source_table) as sourceTable,
+               coalesce(fr.source_record_id, fa.source_record_id) as sourceRecordId,
+               coalesce(fr.source_record_key, fa.source_record_key) as sourceRecordKey,
+               fr.relation_status as documentStatus,
+               fr.completeness_status as completenessStatus,
+               cast(fr.source_trace_json as char) as sourceTraceJson,
+               cast(fr.business_meta_json as char) as attrsJson,
+               fr.created_at as createdAt
+        from t1_file_relation fr
+        inner join t1_file_asset fa on fa.id = fr.file_id
+        where fr.relation_status != 'deleted'
+          and fr.source_table = 'openapi_writeback'
+          and fr.dossier_instance_id = #{instanceId}
+          and fr.bom_node_id = #{bomNodeId}
+        order by fr.created_at desc, title
+    </select>
+
+    <select id="selectQualityTraceRows" resultType="java.util.HashMap">
+        select p.problem_id as problemId,
+               p.problem_code as problemCode,
+               p.title as problemTitle,
+               p.description as problemDescription,
+               p.product_model as productModel,
+               p.involved_system as involvedSystem,
+               p.occur_part as occurPart,
+               p.component_code as componentCode,
+               p.severity,
+               p.source as problemSource,
+               p.reporter,
+               p.status as problemStatus,
+               p.current_module_code as currentModuleCode,
+               p.current_module_name as currentModuleName,
+               p.occur_time as occurTime,
+               p.create_time as problemCreateTime,
+               p.update_time as problemUpdateTime,
+               t.task_id as taskId,
+               t.module_code as moduleCode,
+               t.module_name as moduleName,
+               t.task_status as taskStatus,
+               t.dispatch_opinion as dispatchOpinion,
+               t.process_result as processResult,
+               t.process_file as processFile,
+               t.dispatch_time as dispatchTime,
+               t.submit_time as submitTime,
+               t.confirm_time as confirmTime,
+               t.create_time as taskCreateTime,
+               t.update_time as taskUpdateTime
+        from qms_quality_problem p
+        left join qms_quality_task t on t.problem_id = p.problem_id
+             and (t.del_flag is null or t.del_flag = '0')
+        where (p.del_flag is null or p.del_flag = '0')
+          and p.status = 'FINISHED'
+          and t.task_id is not null
+          and t.task_status = 'CONFIRMED'
+        <if test="(tokens == null or tokens.size() == 0) and !demoTraceEnabled">
+          and 1 = 0
+        </if>
+        <if test="(tokens != null and tokens.size() > 0) or demoTraceEnabled">
+          and (
+            <trim prefixOverrides="or">
+              <if test="tokens != null and tokens.size() > 0">
+                or p.component_code in
+                <foreach item="token" collection="tokens" open="(" separator="," close=")">
+                    #{token}
+                </foreach>
+              </if>
+              <if test="demoTraceEnabled">
+                or (
+                  p.product_model = 'C001'
+                  and p.involved_system = '液压系统'
+                  and p.create_time >= '2026-06-15 00:00:00'
+                )
+              </if>
+            </trim>
+          )
+        </if>
+        order by p.occur_time desc,
+                 p.create_time desc,
+                 t.confirm_time desc,
+                 t.submit_time desc,
+                 t.dispatch_time desc,
+                 t.task_id desc
+        limit 80
+    </select>
+
     <select id="selectAllDocuments" resultType="java.util.HashMap">
         select fr.id as documentEntryId,
                fr.file_id as fileAssetId,

@@ -91,6 +91,23 @@ public class DossierDetailController extends BaseController
     }
 
     @RequiresPermissions("project1:dossier:detail:list")
+    @GetMapping("/trace-results/{resultId}/export")
+    public void exportTraceResult(@PathVariable String resultId, @RequestParam String instanceId,
+            @RequestParam String versionId, @RequestParam String bomNodeId, HttpServletResponse response)
+            throws IOException
+    {
+        byte[] content = detailService.exportTraceResultWord(instanceId, versionId, bomNodeId, resultId);
+        String fileName = "trace-result-" + resultId + ".docx";
+        String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
+        response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + encodedName);
+        response.setHeader("X-Content-Type-Options", "nosniff");
+        response.setContentLength(content.length);
+        response.getOutputStream().write(content);
+        response.flushBuffer();
+    }
+
+    @RequiresPermissions("project1:dossier:detail:list")
     @GetMapping("/files/{documentEntryId}/preview")
     public void previewFile(@PathVariable String documentEntryId, HttpServletResponse response) throws IOException
     {
