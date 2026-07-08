@@ -80,14 +80,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                cast(gj.output_json as char) as outputJson,
                ds.snapshot_code as snapshotCode
         from t1_dossier_version dv
+        inner join (
+            select id
+            from t1_dossier_version
+            where dossier_instance_id = #{instanceId}
+            <if test="versionId != null and versionId != ''">
+                and id = #{versionId}
+            </if>
+            order by case when is_current = 1 then 0 else 1 end, version_no desc
+            limit 1
+        ) selected_version on selected_version.id = dv.id
         left join t1_generation_job gj on gj.id = dv.generation_job_id
         left join t1_data_snapshot ds on ds.id = dv.data_snapshot_id
-        where dv.dossier_instance_id = #{instanceId}
-        <if test="versionId != null and versionId != ''">
-            and dv.id = #{versionId}
-        </if>
-        order by case when dv.is_current = 1 then 0 else 1 end, dv.version_no desc
-        limit 1
     </select>
 
     <select id="selectVersionList" resultType="java.util.HashMap">
