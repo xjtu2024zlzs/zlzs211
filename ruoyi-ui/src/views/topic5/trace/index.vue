@@ -245,8 +245,8 @@
           </div>
         </el-descriptions-item>
 
-        <el-descriptions-item label="附件保存位置" :span="3">
-          {{ currentTrace.attachmentSavePath || '未设置' }}
+        <el-descriptions-item label="数据获取状态" :span="3">
+          {{ Number(currentTrace.workflowStage || 0) >= 2 ? '已调用数字卷宗数据' : '未调用数字卷宗数据' }}
         </el-descriptions-item>
 
         <el-descriptions-item label="问题描述" :span="3">
@@ -283,17 +283,10 @@
             调用数字卷宗数据
           </el-button>
         </el-col>
-
-        <el-col :span="5">
-          <el-button type="success" icon="FolderChecked" @click="handleSaveAttachments">
-            保存附件
-          </el-button>
-        </el-col>
       </el-row>
 
       <el-alert
         class="mt15"
-        title="点击“保存附件”后，将弹出保存位置设置窗口。确认后，保存位置会同步写入追溯问题表，并用于后续 Python 算法读取数据。"
         type="info"
         show-icon
         :closable="false"
@@ -302,8 +295,8 @@
       <el-table :data="attachmentList" border class="mt15">
         <el-table-column prop="fileName" label="附件名称" min-width="220" />
         <el-table-column prop="sensorType" label="传感器类型" min-width="130" />
-        <el-table-column prop="fileType" label="文件类型" min-width="100" />
-        <el-table-column prop="fileSize" label="文件大小" min-width="100" />
+        <!-- <el-table-column prop="fileType" label="文件类型" min-width="100" />
+        <el-table-column prop="fileSize" label="文件大小" min-width="100" /> -->
         <el-table-column prop="fileSource" label="来源" min-width="160" />
         <el-table-column prop="fileUrl" label="文件路径" min-width="320" />
       </el-table>
@@ -331,7 +324,7 @@
           type="warning"
           icon="Cpu"
           :loading="algorithmRunning"
-          :disabled="algorithmRunning"
+          :disabled="algorithmRunning || !selectedTraceId || Number(currentTrace.workflowStage || 0) < 2"
           @click="handleRunAlgorithm"
         >
           进行根因诊断
@@ -435,47 +428,6 @@
       />
     </el-card> -->
 
-    <!-- 设置附件保存位置弹窗 -->
-    <el-dialog
-      title="设置附件保存位置"
-      v-model="savePathOpen"
-      width="680px"
-      append-to-body
-    >
-      <el-alert
-        title="请填写 Java 后端和后续 Python 算法都能访问到的文件夹路径。确认保存后，该路径会同步写入 trace_problem 表。"
-        type="warning"
-        show-icon
-        :closable="false"
-        style="margin-bottom: 15px;"
-      />
-
-      <el-form :model="savePathForm" label-width="120px">
-        <el-form-item label="保存位置">
-          <el-input
-            v-model="savePathForm.attachmentSavePath"
-            placeholder="例如 D:/topic5_data/trace_1/"
-          />
-        </el-form-item>
-
-        <el-form-item label="路径示例">
-          <div class="path-example">
-            D:/topic5_data/trace_{{ selectedTraceId }}/<br />
-            D:/追溯算法数据/trace_{{ selectedTraceId }}/<br />
-            E:/python_trace_data/task_{{ selectedTraceId }}/
-          </div>
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="savePathOpen = false">取消</el-button>
-          <el-button type="primary" @click="submitSaveAttachmentsWithPath">
-            确认保存
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
 
     <!-- 知识图谱查看弹窗：展示第三页面最终生成的 sourceGraphJson -->
     <el-dialog
@@ -768,7 +720,6 @@ import {
   addTrace,
   delTrace,
   importDossierFiles,
-  saveAttachmentsWithPath,
   pushTopic4,
   topic4Callback,
   fillTopic4Result,
@@ -787,7 +738,6 @@ const syncLoading = ref(false)
 const submitQualityLoading = ref(false)
 const open = ref(false)
 const detailOpen = ref(false)
-const savePathOpen = ref(false)
 
 const graphDialogOpen = ref(false)
 const graphLoading = ref(false)
@@ -899,9 +849,6 @@ const form = reactive({
   remark: null
 })
 
-const savePathForm = reactive({
-  attachmentSavePath: ''
-})
 
 const rules = {
   eventTime: [
@@ -1302,27 +1249,27 @@ function handleImportDossier() {
 
   importDossierFiles(selectedTraceId.value).then(res => {
     attachmentList.value = res.data || []
-    proxy.$modal.msgSuccess('已从数字卷宗调用传感器数据')
-    refreshCurrentTrace()
+
+    proxy.$modal.msgSuccess('数字卷宗数据调用成功，已可进行根因诊断')
+
+    getTrace(selectedTraceId.value).then(detailRes => {
+      currentTrace.value = detailRes.data || currentTrace.value
+      setTopic5CurrentTrace(currentTrace.value)
+      getList()
+    })
+  }).catch(err => {
+    console.error('调用数字卷宗数据失败：', err)
+
+    const msg =
+      err?.response?.data?.msg ||
+      err?.response?.data?.message ||
+      err?.message ||
+      '调用数字卷宗数据失败'
+
+    proxy.$modal.msgError(msg)
   })
 }
 
-function handleSaveAttachments() {
-  if (!selectedTraceId.value) {
-    proxy.$modal.msgWarning('请先选择追溯任务')
-    return
-  }
-
-  if (!attachmentList.value || attachmentList.value.length === 0) {
-    proxy.$modal.msgWarning('请先调用数字卷宗数据，再保存附件')
-    return
-  }
-
-  savePathForm.attachmentSavePath = currentTrace.value.attachmentSavePath
-    || `D:/topic5_data/trace_${selectedTraceId.value}/`
-
-  savePathOpen.value = true
-}
 function handleSubmitQualityResult() {
   if (!selectedTraceId.value) {
     proxy.$modal.msgWarning('请先选择追溯任务')
@@ -1336,37 +1283,7 @@ function handleSubmitQualityResult() {
     refreshCurrentTrace()
   }).catch(() => {})
 }
-function submitSaveAttachmentsWithPath() {
-  if (!selectedTraceId.value) {
-    proxy.$modal.msgWarning('请先选择追溯任务')
-    return
-  }
 
-  if (!savePathForm.attachmentSavePath || savePathForm.attachmentSavePath.trim() === '') {
-    proxy.$modal.msgWarning('请填写附件保存位置')
-    return
-  }
-
-  saveAttachmentsWithPath(selectedTraceId.value, {
-    attachmentSavePath: savePathForm.attachmentSavePath
-  }).then(() => {
-    proxy.$modal.msgSuccess('附件保存成功，保存位置已同步到追溯问题表')
-    savePathOpen.value = false
-
-    const basePath = normalizePath(savePathForm.attachmentSavePath)
-
-    attachmentList.value = attachmentList.value.map(item => {
-      return {
-        ...item,
-        fileUrl: basePath + item.fileName,
-        fileSource: '用户指定保存位置',
-        savedFlag: 1
-      }
-    })
-
-    refreshCurrentTrace()
-  })
-}
 
 function handlePushTopic4() {
   if (!selectedTraceId.value) {
@@ -1392,7 +1309,7 @@ function handleMockTopic4Callback() {
     topic4Result: '课题四综合判断：该异常与液压压力波动、装配间隙异常以及密封状态退化有关。',
     faultType: '液压系统压力异常',
     faultLocation: '起落架液压作动筒及连接管路',
-    causeAnalysis: '根据课题一数字卷宗中的压力、温度和振动数据，结合故障发生时间窗口分析，发现压力信号存在异常波动，且与作动筒密封状态和管路连接状态存在关联。初步判断故障可能由液压管路装配间隙异常、密封件性能退化或局部压力冲击共同诱发。',
+    causeAnalysis: '根据数字卷宗中的压力、温度和振动数据，结合故障发生时间窗口分析，发现压力信号存在异常波动，且与作动筒密封状态和管路连接状态存在关联。初步判断故障可能由液压管路装配间隙异常、密封件性能退化或局部压力冲击共同诱发。',
     deductionProcess: '首先，系统根据故障发生时间和发生部位定位相关传感器数据；其次，对压力传感器数据进行异常波动识别，发现故障时间附近存在明显压力突变；随后结合温度数据和部件关联关系，推断密封状态可能发生退化；最后结合部件装配关系，推演出液压管路连接状态异常可能进一步放大压力波动，最终导致该质量问题。',
     rootConfidence: '0.87'
   }
@@ -1711,14 +1628,6 @@ function buildFileUrl(url) {
   return baseApi + url
 }
 
-function normalizePath(path) {
-  if (!path) return ''
-  let result = path.replace(/\\/g, '/')
-  if (!result.endsWith('/')) {
-    result += '/'
-  }
-  return result
-}
 
 function traceStatusTagType(status) {
   if (status === '未处理') return 'info'

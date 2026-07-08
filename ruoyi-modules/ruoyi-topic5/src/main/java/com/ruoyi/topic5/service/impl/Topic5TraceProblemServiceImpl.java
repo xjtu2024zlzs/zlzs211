@@ -667,29 +667,148 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             throw new ServiceException("追溯任务不存在，无法调用数字卷宗数据");
         }
 
-        // 模拟课题一根据发生时间和部位返回传感器文件路径
-        List<Topic5TraceAttachment> list = mockCallTopic1DossierFiles(problem);
+        // 从课题一数字卷宗获取传感器文件路径
+        List<Topic5TraceAttachment> allList = buildAllDossierSensorFiles(problem);
 
-        // 建议：这里先把课题一返回的源文件路径保存到附件表，savedFlag = 0
+// 从课题四智能故障诊断结果中提取“故障标签”
+        Integer faultLabel = extractTopic4FaultLabel(problem);
+
+// 如果没有解析到标签，默认按 0 处理，即展示前 5 个文件
+        if (faultLabel == null)
+        {
+            faultLabel = 0;
+        }
+
+// 根据故障标签筛选数字卷宗附件
+        List<Topic5TraceAttachment> list = selectDossierFilesByFaultLabel(allList, faultLabel);
+
+        System.out.println("数字卷宗附件筛选：故障标签 = " + faultLabel + "，展示文件数 = " + list.size());
+
         for (Topic5TraceAttachment item : list)
         {
             item.setTraceId(id);
-            item.setSavedFlag(0L);
-            item.setFileSource("课题一数字卷宗");
+
+            /*
+             * 当前版本取消“保存附件”按钮。
+             * 调用数字卷宗后，认为数据已经可用于后续算法。
+             */
+            item.setSavedFlag(1L);
+            item.setFileSource("数字卷宗");
             item.setCreateTime(DateUtils.getNowDate());
 
             traceAttachmentMapper.insertTopic5TraceAttachment(item);
         }
 
+        /*
+         * 关键修改：
+         * 调用数字卷宗成功后，直接进入 workflow_stage = 2。
+         * 因为 runAlgorithmMock 中判断 workflowStage >= 2 才允许运行根因诊断算法。
+         */
+        Topic5TraceProblem updateProblem = new Topic5TraceProblem();
+        updateProblem.setId(id);
+        updateProblem.setWorkflowStage(2L);
+        updateProblem.setStatus("处理中");
+        updateProblem.setUpdateTime(DateUtils.getNowDate());
+
+        topic5TraceProblemMapper.updateTopic5TraceProblem(updateProblem);
+
         insertFlowLog(
                 id,
-                1L,
-                "调用课题一数字卷宗",
+                2L,
+                "调用数字卷宗数据",
                 "成功",
-                "已根据发生时间和部位获取课题一传感器数据路径"
+                "已从数字卷宗获取传感器数据，可运行根因诊断算法"
         );
 
         return list;
+    }
+
+    private List<Topic5TraceAttachment> buildAllDossierSensorFiles(Topic5TraceProblem problem)
+    {
+        List<Topic5TraceAttachment> list = new ArrayList<>();
+
+        String basePath = "D:/2.11/topic5_code/code1/uci_data/";
+
+        addDossierFile(list, "冷却效率参数 CE.txt", "冷却效率参数", "CE.txt", basePath + "CE.txt");
+        addDossierFile(list, "冷却功率参数 CP.txt", "冷却功率参数", "CP.txt", basePath + "CP.txt");
+        addDossierFile(list, "电机功率参数 EPS1.txt", "电机功率参数", "EPS1.txt", basePath + "EPS1.txt");
+        addDossierFile(list, "供压流量传感器 FS1.txt", "供压流量传感器", "FS1.txt", basePath + "FS1.txt");
+        addDossierFile(list, "回油流量传感器 FS2.txt", "回油流量传感器", "FS2.txt", basePath + "FS2.txt");
+
+        addDossierFile(list, "入口压力传感器 PS1.txt", "入口压力传感器", "PS1.txt", basePath + "PS1.txt");
+        addDossierFile(list, "出口压力传感器 PS2.txt", "出口压力传感器", "PS2.txt", basePath + "PS2.txt");
+        addDossierFile(list, "弯管前段压力传感器 PS3.txt", "弯管前段压力传感器", "PS3.txt", basePath + "PS3.txt");
+        addDossierFile(list, "弯管后段压力传感器 PS4.txt", "弯管后段压力传感器", "PS4.txt", basePath + "PS4.txt");
+        addDossierFile(list, "主起供压支路压力传感器 PS5.txt", "主起供压支路压力传感器", "PS5.txt", basePath + "PS5.txt");
+        addDossierFile(list, "泄压支路压力传感器 PS6.txt", "泄压支路压力传感器", "PS6.txt", basePath + "PS6.txt");
+
+        addDossierFile(list, "系统效率状态序列 SE.txt", "系统效率状态序列", "SE.txt", basePath + "SE.txt");
+
+        addDossierFile(list, "管路入口温度传感器 TS1.txt", "管路入口温度传感器", "TS1.txt", basePath + "TS1.txt");
+        addDossierFile(list, "管路出口温度传感器 TS2.txt", "管路出口温度传感器", "TS2.txt", basePath + "TS2.txt");
+        addDossierFile(list, "弯管外壁温度传感器 TS3.txt", "弯管外壁温度传感器", "TS3.txt", basePath + "TS3.txt");
+        addDossierFile(list, "环境温度传感器 TS4.txt", "环境温度传感器", "TS4.txt", basePath + "TS4.txt");
+
+        return list;
+    }
+
+    private void addDossierFile(
+            List<Topic5TraceAttachment> list,
+            String displayName,
+            String sensorType,
+            String fileName,
+            String fileUrl)
+    {
+        Topic5TraceAttachment attachment = new Topic5TraceAttachment();
+
+        attachment.setFileName(displayName);
+        attachment.setSensorType(sensorType);
+        attachment.setFileType("txt");
+        attachment.setFileSize("-");
+        attachment.setFileSource("数字卷宗");
+        attachment.setFileUrl(fileUrl);
+        attachment.setSavedFlag(1L);
+
+        list.add(attachment);
+    }
+
+    /**
+     * 根据课题四故障标签筛选数字卷宗附件。
+     *
+     * 规则：
+     * faultLabel = 0 -> 第1~5个文件
+     * faultLabel = 1 -> 第2~6个文件
+     * faultLabel = 2 -> 第3~7个文件
+     * 超出范围则从头循环。
+     */
+    private List<Topic5TraceAttachment> selectDossierFilesByFaultLabel(
+            List<Topic5TraceAttachment> allList,
+            Integer faultLabel)
+    {
+        List<Topic5TraceAttachment> selectedList = new ArrayList<>();
+
+        if (allList == null || allList.isEmpty())
+        {
+            return selectedList;
+        }
+
+        int fileCount = allList.size();
+        int windowSize = Math.min(5, fileCount);
+
+        int startIndex = 0;
+
+        if (faultLabel != null)
+        {
+            startIndex = Math.floorMod(faultLabel, fileCount);
+        }
+
+        for (int i = 0; i < windowSize; i++)
+        {
+            int index = (startIndex + i) % fileCount;
+            selectedList.add(allList.get(index));
+        }
+
+        return selectedList;
     }
     private List<Topic5TraceAttachment> mockCallTopic1DossierFiles(Topic5TraceProblem problem)
     {

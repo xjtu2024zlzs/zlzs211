@@ -47,52 +47,44 @@
         />
 
         <template v-else>
-          <div v-if="qualityTaskList.length > 1" class="quality-task-switch">
-            <span class="switch-label">当前质量问题：</span>
-            <el-select
-              :model-value="currentQualityTask.taskId"
-              size="small"
-              style="width: 520px"
-              @change="selectQualityTask"
-            >
-              <el-option
-                v-for="item in qualityTaskList"
-                :key="item.taskId"
-                :label="`${item.problemCode || '-'}｜${item.problemTitle || '未命名问题'}`"
-                :value="item.taskId"
-              />
-            </el-select>
-          </div>
 
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="问题编号">
-              {{ currentQualityTask.problemCode || '-' }}
-            </el-descriptions-item>
+      `    <el-descriptions-item label="问题编号">
+            {{ currentQualityTask.problemCode || '-' }}
+          </el-descriptions-item>
 
-            <el-descriptions-item label="问题标题">
-              {{ currentQualityTask.problemTitle || '-' }}
-            </el-descriptions-item>
+          <el-descriptions-item label="问题标题">
+            {{ currentQualityTask.problemTitle || '-' }}
+          </el-descriptions-item>
 
-            <el-descriptions-item label="产品型号">
-              {{ currentQualityTask.productModel || '-' }}
-            </el-descriptions-item>
+          <el-descriptions-item label="产品型号">
+            {{ currentQualityTask.productModel || '-' }}
+          </el-descriptions-item>
 
-            <el-descriptions-item label="涉及系统">
-              {{ currentQualityTask.involvedSystem || '-' }}
-            </el-descriptions-item>
+          <el-descriptions-item label="涉及系统">
+            {{ currentQualityTask.involvedSystem || '-' }}
+          </el-descriptions-item>
 
-            <el-descriptions-item label="发生部件">
-              {{ currentQualityTask.occurPart || '-' }}
-            </el-descriptions-item>
+          <el-descriptions-item label="发生部件">
+            {{ currentQualityTask.occurPart || '-' }}
+          </el-descriptions-item>
 
-            <el-descriptions-item label="部件编号">
-              {{ currentQualityTask.componentCode || '-' }}
-            </el-descriptions-item>
+          <el-descriptions-item label="部件编号">
+            {{ currentQualityTask.componentCode || '-' }}
+          </el-descriptions-item>
 
-            <el-descriptions-item label="问题描述" :span="2">
-              {{ currentQualityTask.description || '-' }}
-            </el-descriptions-item>
-          </el-descriptions>
+          <el-descriptions-item label="分派时间">
+            {{ currentQualityTask.dispatchTime || currentQualityTask.createTime || '-' }}
+          </el-descriptions-item>
+
+          <el-descriptions-item label="分派说明">
+            {{ currentQualityTask.dispatchOpinion || '-' }}
+          </el-descriptions-item>
+
+          <el-descriptions-item label="问题描述" :span="2">
+            {{ currentQualityTask.description || '-' }}
+          </el-descriptions-item>
+        </el-descriptions>`
 
           <div
             v-if="currentQualityTask.lifecycleReportFile"
@@ -662,22 +654,27 @@ const loadCurrentQualityTask = async () => {
 
     const rows = Array.isArray(res?.rows) ? res.rows : []
 
-    const normalizedRows = rows
+    const latestTask = rows
       .map((item) => normalizeQualityTask(item))
       .sort((a, b) => {
         const at = a.dispatchTime || a.createTime || ''
         const bt = b.dispatchTime || b.createTime || ''
         return bt.localeCompare(at)
-      })
+      })[0]
 
-    const rowsWithProblemInfo = await Promise.all(
-      normalizedRows.map((task) => loadQualityProblemInfo(task))
-    )
+    if (!latestTask) {
+      qualityTaskList.value = []
+      currentQualityTask.value = null
+      return
+    }
 
-    qualityTaskList.value = rowsWithProblemInfo
-    currentQualityTask.value = rowsWithProblemInfo.length > 0 ? rowsWithProblemInfo[0] : null
+    const latestTaskWithProblemInfo = await loadQualityProblemInfo(latestTask)
+
+    // 这里只保留最新一条，不再用于下拉选择
+    qualityTaskList.value = latestTaskWithProblemInfo ? [latestTaskWithProblemInfo] : []
+    currentQualityTask.value = latestTaskWithProblemInfo || null
   } catch (error) {
-    console.error('加载设计制造协同优化平台当前质量问题失败：', error)
+    console.error('加载设计制造协同优化平台最新质量问题失败：', error)
     qualityTaskList.value = []
     currentQualityTask.value = null
   } finally {
@@ -685,13 +682,6 @@ const loadCurrentQualityTask = async () => {
   }
 }
 
-const selectQualityTask = (taskId) => {
-  const task = qualityTaskList.value.find((item) => item.taskId === taskId)
-
-  if (task) {
-    currentQualityTask.value = task
-  }
-}
 
 const isWordFile = (url) => {
   if (!url) return false
@@ -1177,18 +1167,6 @@ onBeforeUnmount(() => {
 
 .quality-task-card {
   border-left: 4px solid #e6a23c;
-}
-
-.quality-task-switch {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.switch-label {
-  font-size: 13px;
-  color: #606266;
 }
 
 .quality-task-actions {
