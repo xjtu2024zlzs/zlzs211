@@ -217,7 +217,13 @@
               {{ project.description }}
             </p>
 
-            <div class="mini-chart" :class="{ 'mini-chart--pie': project.chartType === 'faultPie' }">
+            <div
+              class="mini-chart"
+              :class="{
+                'mini-chart--pie': project.chartType === 'faultPie',
+                'mini-chart--project3': project.key === 'project-3'
+              }"
+            >
               <div class="mini-chart__header">
                 <span>{{ project.chartTitle }}</span>
                 <strong>{{ project.chartValue }}</strong>
@@ -260,6 +266,24 @@
                     <span class="fault-pie-legend__dot" :style="{ background: item.color }"></span>
                     <span class="fault-pie-legend__name">{{ item.name }}</span>
                     <strong>{{ formatOneDecimalPercent(item.value) }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else-if="project.key === 'project-3'" class="project3-insight">
+                <div class="project3-insight__lead">
+                  <span>任务对象</span>
+                  <strong>{{ project.taskObject }}</strong>
+                </div>
+
+                <div class="project3-insight__grid">
+                  <div
+                    v-for="item in project.keyInsights"
+                    :key="item.name"
+                    class="project3-insight__item"
+                  >
+                    <span>{{ item.name }}</span>
+                    <strong>{{ item.value }}</strong>
                   </div>
                 </div>
               </div>
@@ -492,6 +516,9 @@ import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { listProblem } from '@/api/quality/problem'
 import { getDossierHomeSummary } from '@/api/project1/home'
+import { listKqcMiningResults, listWarningDetectResults } from '@/api/project_3/feedback'
+import { listFaultIdentifyResults, listKeyProcessResults } from '@/api/project_3/service'
+import { getMonitorTree } from '@/api/project_3/monitor'
 
 const router = useRouter()
 
@@ -775,16 +802,25 @@ const middleProjects = ref([
     title: '复杂产品生命周期质量监管与故障预防',
     icon: '三',
     iconClass: 'project-card__icon--orange',
-    description: '展示设备状态识别、故障类型分布和诊断结果，为质量异常定位提供依据。',
-    chartTitle: '故障识别率',
-    chartValue: '88.5%',
+    description: '围绕关键质量特性、关键工序、异常检测和早期退化识别，形成面向故障预防的生命周期监管视图。',
+    chartTitle: '算法执行进度',
+    chartValue: '加载中',
+    taskObject: '加载中',
+    taskName: '加载中',
+    keyInsights: [
+      { name: '质量特性', value: '加载中' },
+      { name: '关键工序', value: '加载中' },
+      { name: '工序异常', value: '加载中' },
+      { name: '早期识别点', value: '加载中' },
+      { name: '距故障时间', value: '加载中' }
+    ],
     chartLabels: ['泵', '阀', '缸', '管', '传', '控'],
     chartData: [72, 81, 64, 77, 88, 92],
     route: '/project_3',
     meta: [
-      { name: '故障类型', value: '12' },
-      { name: '诊断记录', value: '35' },
-      { name: '待复核', value: '4' }
+      { name: '已执行算法', value: '加载中' },
+      { name: '任务名称', value: '加载中' },
+      { name: '任务状态', value: '加载中' }
     ]
   },
   {
@@ -813,6 +849,536 @@ const middleProjects = ref([
     ]
   }
 ])
+
+const PROJECT3_NO_RESULT = '未执行算法'
+const PROJECT3_PAGE_SIZE = 200
+const project3MonitorTree = ref([])
+
+const getProject3Card = () => middleProjects.value.find((item) => item.key === 'project-3')
+
+const getProject3Payload = (response) => response?.data || response || {}
+
+const getProject3Rows = (response) => {
+  const payload = getProject3Payload(response)
+  const rows = payload?.rows || payload?.data?.rows || []
+  return Array.isArray(rows) ? rows : []
+}
+
+const parseProject3Json = (value) => {
+  if (!value || typeof value !== 'string') return value
+  const text = value.trim()
+  if (!text || (!text.startsWith('{') && !text.startsWith('['))) return value
+  try {
+    return JSON.parse(text)
+  } catch {
+    return value
+  }
+}
+
+const project3RowResult = (row) => {
+  if (!row || typeof row !== 'object') return {}
+  const parsedResult = parseProject3Json(row.result)
+  const result = parsedResult && typeof parsedResult === 'object' ? parsedResult : {}
+  return result.result && typeof result.result === 'object' ? result.result : result
+}
+
+const project3Pick = (source, names) => {
+  if (!source || typeof source !== 'object') return undefined
+  for (const name of names) {
+    const value = source[name]
+    if (value !== undefined && value !== null && value !== '') return value
+  }
+  const containers = [
+    source.result,
+    source.data,
+    source.summary,
+    source.metrics,
+    source.prediction,
+    source.degradation,
+    source.request,
+    source.reqJson,
+    source.req_json,
+    source.resJson,
+    source.res_json,
+    source.params,
+    source.algorithmParams,
+    source.algorithm_params,
+    source.selected_object,
+    source.selectedObject,
+    source.hierarchyContext,
+    source.hierarchy_context
+  ]
+  for (const item of containers) {
+    const value = project3Pick(item, names)
+    if (value !== undefined && value !== null && value !== '') return value
+  }
+  return undefined
+}
+
+const project3Text = (value) => {
+  if (value === undefined || value === null || value === '') return PROJECT3_NO_RESULT
+  if (Array.isArray(value)) return value.filter(Boolean).map(project3Text).join('；') || PROJECT3_NO_RESULT
+  if (typeof value === 'object') {
+    return Object.values(value).filter(item => item !== undefined && item !== null && item !== '').map(project3Text).join('；') || PROJECT3_NO_RESULT
+  }
+  return String(value)
+}
+
+const project3TaskName = (row) => {
+  const result = project3RowResult(row)
+  const name = project3Pick({
+    ...result,
+    ...(row || {}),
+    params: row?.params || row?.algorithmParams || row?.algorithm_params
+  }, [
+    'importTaskName',
+    'import_task_name',
+    'taskName',
+    'task_name',
+    'dataTaskName',
+    'data_task_name',
+    'sourceTaskName',
+    'source_task_name',
+    'uploadBatchId',
+    'upload_batch_id'
+  ])
+  return String(name || '').trim() || '未命名任务'
+}
+
+const normalizeProject3NodeType = (type) => {
+  const text = String(type || '').trim()
+  if (text === 'device') return 'equipment'
+  if (text === '设备') return 'equipment'
+  if (text === '组件') return 'component'
+  if (text === '分系统') return 'subsystem'
+  if (text === '飞机') return 'aircraft'
+  if (text === '零件') return 'part'
+  return text
+}
+
+const project3NodeType = (node) => {
+  const explicitType = node?.type || node?.nodeType || node?.level || node?.objectLevel
+  if (explicitType) return normalizeProject3NodeType(explicitType)
+
+  const id = String(node?.id || '')
+  const match = id.match(/^(aircraft|subsystem|equipment|device|component|part)[:-]/)
+  return match ? normalizeProject3NodeType(match[1]) : ''
+}
+
+const rawProject3NodeId = (nodeId) => {
+  return String(nodeId || '').replace(/^(aircraft|subsystem|equipment|device|component|part)[:-]/, '')
+}
+
+const project3NodeIdCandidates = (node) => {
+  return [
+    node?.id,
+    node?.value,
+    node?.key,
+    node?.nodeId,
+    node?.node_id,
+    node?.objectId,
+    node?.object_id,
+    node?.bizId,
+    node?.biz_id,
+    node?.aircraftId,
+    node?.aircraft_id,
+    node?.subsystemId,
+    node?.subsystem_id,
+    node?.equipmentId,
+    node?.equipment_id,
+    node?.deviceId,
+    node?.device_id,
+    node?.componentId,
+    node?.component_id,
+    node?.partId,
+    node?.part_id
+  ].filter(item => item !== undefined && item !== null && item !== '')
+}
+
+const findProject3NodeByRawId = (nodes, rawId, allowedTypes = []) => {
+  const raw = String(rawId || '')
+  if (!raw) return null
+  const rawWithoutPrefix = rawProject3NodeId(raw)
+  const types = new Set((allowedTypes || []).map(normalizeProject3NodeType))
+  for (const node of nodes || []) {
+    const nodeType = project3NodeType(node)
+    const idMatched = project3NodeIdCandidates(node).some((candidate) => {
+      const text = String(candidate)
+      return text === raw || rawProject3NodeId(text) === rawWithoutPrefix
+    })
+    if ((!types.size || types.has(nodeType) || !nodeType) && idMatched) {
+      return node
+    }
+    const found = findProject3NodeByRawId(node.children || [], raw, allowedTypes)
+    if (found) return found
+  }
+  return null
+}
+
+const project3NodeName = (node) => {
+  return String(node?.name || node?.label || node?.title || node?.text || '').trim()
+}
+
+const findProject3NodeByName = (nodes, name, allowedTypes = []) => {
+  const targetName = String(name || '').trim()
+  if (!targetName) return null
+  const types = new Set((allowedTypes || []).map(normalizeProject3NodeType))
+  for (const node of nodes || []) {
+    const nodeType = project3NodeType(node)
+    if ((!types.size || types.has(nodeType) || !nodeType) && project3NodeName(node) === targetName) {
+      return node
+    }
+    const found = findProject3NodeByName(node.children || [], targetName, allowedTypes)
+    if (found) return found
+  }
+  return null
+}
+
+const findProject3NodePath = (nodes, targetId, parents = []) => {
+  for (const node of nodes || []) {
+    const path = [...parents, project3NodeName(node) || rawProject3NodeId(node.id)]
+    if (node.id === targetId) return path
+    const found = findProject3NodePath(node.children || [], targetId, path)
+    if (found.length) return found
+  }
+  return []
+}
+
+const project3TargetId = (source) => {
+  const directId = project3Pick(source, [
+    'targetId',
+    'target_id',
+    'objectId',
+    'object_id',
+    'bizId',
+    'biz_id',
+    'businessObjectId',
+    'business_object_id'
+  ])
+  if (directId) return directId
+
+  const targetType = normalizeProject3NodeType(project3Pick(source, ['targetType', 'target_type', 'objectLevel', 'object_level', 'level']))
+  const idKeysByType = {
+    aircraft: ['aircraftId', 'aircraft_id'],
+    subsystem: ['subsystemId', 'subsystem_id'],
+    equipment: ['equipmentId', 'equipment_id', 'deviceId', 'device_id'],
+    component: ['componentId', 'component_id'],
+    part: ['partId', 'part_id']
+  }
+
+  if (targetType && idKeysByType[targetType]) {
+    const typedId = project3Pick(source, idKeysByType[targetType])
+    if (typedId) return typedId
+  }
+
+  return project3Pick(source, [
+    'componentId',
+    'component_id',
+    'partId',
+    'part_id',
+    'equipmentId',
+    'equipment_id',
+    'deviceId',
+    'device_id',
+    'subsystemId',
+    'subsystem_id',
+    'aircraftId',
+    'aircraft_id'
+  ])
+}
+
+const project3CleanPathText = (value) => {
+  if (!value) return ''
+  const text = String(value).trim()
+  if (!text) return ''
+  return text
+    .replace(/\s*(?:>|\/|\\|→|->|-->)\s*/g, ' / ')
+    .replace(/\s+-\s+/g, ' / ')
+    .replace(/\s*\/\s*/g, ' / ')
+    .replace(/(?:^|\s\/\s)(?:--|暂无数据|未指定对象)(?=\s\/\s|$)/g, '')
+    .replace(/\s+\/\s+\/\s+/g, ' / ')
+    .replace(/^(?:\s*\/\s*)+|(?:\s*\/\s*)+$/g, '')
+}
+
+const project3ParsedObject = (value) => {
+  const parsed = parseProject3Json(value)
+  return parsed && typeof parsed === 'object' ? parsed : {}
+}
+
+const project3TargetName = (row) => {
+  const result = project3RowResult(row)
+  const request = project3ParsedObject(row?.request || row?.request_json || row?.requestJson)
+  const reqJson = project3ParsedObject(row?.reqJson || row?.req_json)
+  const resJson = project3ParsedObject(row?.resJson || row?.res_json)
+  const params = project3ParsedObject(row?.params)
+  const algorithmParams = project3ParsedObject(row?.algorithmParams || row?.algorithm_params)
+  const source = {
+    ...resJson,
+    ...result,
+    ...(row || {}),
+    request,
+    reqJson,
+    req_json: reqJson,
+    params,
+    algorithmParams,
+    algorithm_params: algorithmParams,
+    selected_object: result.selected_object || result.selectedObject || resJson.selected_object || resJson.selectedObject || request.selected_object || request.selectedObject || reqJson.selected_object || reqJson.selectedObject || params.selected_object || params.selectedObject || algorithmParams.selected_object || algorithmParams.selectedObject,
+    hierarchyContext: result.hierarchyContext || result.hierarchy_context || resJson.hierarchyContext || resJson.hierarchy_context || request.hierarchyContext || request.hierarchy_context || reqJson.hierarchyContext || reqJson.hierarchy_context || params.hierarchyContext || params.hierarchy_context || algorithmParams.hierarchyContext || algorithmParams.hierarchy_context
+  }
+
+  const directPath = project3Pick(source, [
+    'targetPath',
+    'target_path',
+    'objectPath',
+    'object_path',
+    'pathText',
+    'path_text'
+  ])
+  const selectedObjectPath = project3Pick(source.selected_object || source.selectedObject, [
+    'path',
+    'pathText',
+    'path_text'
+  ])
+  const cleanDirectPath = project3CleanPathText(directPath || selectedObjectPath)
+  if (cleanDirectPath) return cleanDirectPath
+
+  const targetId = project3TargetId(source)
+  const targetType = normalizeProject3NodeType(project3Pick(source, ['targetType', 'target_type', 'objectLevel', 'object_level', 'level']))
+  const name = project3Pick(source, [
+    'targetName',
+    'target_name',
+    'objectName',
+    'object_name',
+    'bizName',
+    'biz_name',
+    'businessObjectName',
+    'business_object_name'
+  ])
+  const typeMap = {
+    equipment: 'equipment',
+    component: 'component',
+    subsystem: 'subsystem',
+    aircraft: 'aircraft',
+    part: 'part'
+  }
+  const treeNode = findProject3NodeByRawId(project3MonitorTree.value, targetId, typeMap[targetType] ? [typeMap[targetType]] : [])
+    || findProject3NodeByRawId(project3MonitorTree.value, targetId)
+    || findProject3NodeByName(project3MonitorTree.value, name, typeMap[targetType] ? [typeMap[targetType]] : [])
+  if (treeNode?.id) {
+    const treePath = findProject3NodePath(project3MonitorTree.value, treeNode.id)
+    if (treePath.length) return treePath.join(' / ')
+  }
+
+  const hierarchyNames = [
+    project3Pick(source, ['aircraftName', 'aircraft_name']),
+    project3Pick(source, ['subsystemName', 'subsystem_name']),
+    project3Pick(source, ['equipmentName', 'equipment_name', 'deviceName', 'device_name']),
+    project3Pick(source, ['componentName', 'component_name']),
+    project3Pick(source, ['partName', 'part_name'])
+  ].filter(Boolean).map(item => String(item).trim()).filter(Boolean)
+
+  if (hierarchyNames.length) {
+    return Array.from(new Set(hierarchyNames)).join(' / ')
+  }
+
+  return String(name || '').trim() || '未指定对象'
+}
+
+const project3TargetTypeText = (row) => {
+  const result = project3RowResult(row)
+  const type = project3Pick({ ...result, ...(row || {}) }, ['targetType', 'target_type', 'objectLevel', 'object_level', 'level'])
+  const map = {
+    aircraft: '飞机',
+    subsystem: '分系统',
+    equipment: '设备',
+    device: '设备',
+    component: '组件',
+    part: '零件'
+  }
+  return map[type] || '层级对象'
+}
+
+const logProject3TargetDebug = (row, taskObject) => {
+  if (!import.meta.env.DEV) return
+
+  const result = project3RowResult(row)
+  const source = { ...result, ...(row || {}) }
+  const targetId = project3TargetId(source)
+  const targetType = normalizeProject3NodeType(project3Pick(source, ['targetType', 'target_type', 'objectLevel', 'object_level', 'level']))
+  const targetName = project3Pick(source, ['targetName', 'target_name', 'objectName', 'object_name', 'bizName', 'biz_name'])
+  const directPath = project3Pick(source, ['targetPath', 'target_path', 'objectPath', 'object_path', 'pathText', 'path_text'])
+  const treeNode = findProject3NodeByRawId(project3MonitorTree.value, targetId, targetType ? [targetType] : [])
+    || findProject3NodeByRawId(project3MonitorTree.value, targetId)
+    || findProject3NodeByName(project3MonitorTree.value, targetName, targetType ? [targetType] : [])
+  const treePath = treeNode?.id ? findProject3NodePath(project3MonitorTree.value, treeNode.id).join(' / ') : ''
+
+  console.info('[project-3-card] 任务对象调试', {
+    receivedKeys: Object.keys(row || {}),
+    hasRequestJson: Boolean(row?.request || row?.request_json || row?.requestJson || row?.reqJson || row?.req_json),
+    hasResultJson: Boolean(row?.result || row?.resJson || row?.res_json),
+    targetType,
+    targetId,
+    targetName,
+    directPath,
+    monitorTreeRootCount: project3MonitorTree.value.length,
+    matchedTreeNodeId: treeNode?.id || '',
+    treePath,
+    taskObject,
+    selectedRow: row
+  })
+}
+
+const project3TaskKey = (row) => project3TaskName(row)
+
+const project3CreateTime = (row) => String(row?.createTime || row?.create_time || row?.updateTime || row?.update_time || '')
+
+const loadProject3PagedRows = async (loader, query = {}) => {
+  const response = await loader({
+    ...query,
+    page_num: 1,
+    page_size: PROJECT3_PAGE_SIZE
+  })
+  return getProject3Rows(response)
+}
+
+const firstSuccessfulProject3Row = (rows, selectedTask) => {
+  return (Array.isArray(rows) ? rows : [])
+    .filter((row) => project3TaskKey(row) === selectedTask.taskKey)
+    .filter((row) => String(row.status || '').toUpperCase() === 'SUCCESS')
+    .sort((a, b) => project3CreateTime(b).localeCompare(project3CreateTime(a)))[0] || null
+}
+
+const formatProject3Number = (value, digits = 2) => {
+  const number = Number(value)
+  return Number.isFinite(number) ? number.toFixed(digits) : value
+}
+
+const buildProject3CardValues = ({ kqcRow, keyProcessRow, anomalyRow, degradationRow, predictionRow }) => {
+  const kqc = { ...project3RowResult(kqcRow), ...(kqcRow || {}) }
+  const keyProcess = { ...project3RowResult(keyProcessRow), ...(keyProcessRow || {}) }
+  const anomaly = { ...project3RowResult(anomalyRow), ...(anomalyRow || {}) }
+  const degradation = { ...project3RowResult(degradationRow), ...(degradationRow || {}) }
+  const prediction = { ...project3RowResult(predictionRow), ...(predictionRow || {}) }
+
+  const qualityFeature = project3Pick(kqc, ['targetKqc', 'target_kqc', 'topFeature', 'top_feature', 'featureName', 'feature_name'])
+  const processName = project3Pick(keyProcess, ['keyProcessName', 'key_process_name', 'processName', 'process_name', 'name'])
+  const processCode = project3Pick(keyProcess, ['keyProcessCode', 'key_process_code', 'processCode', 'process_code', 'code'])
+  const abnormalFlag = project3Pick(anomaly, ['isAbnormal', 'is_abnormal', 'abnormal'])
+  const abnormalLevel = project3Pick(anomaly, ['abnormalLevel', 'abnormal_level', 'level'])
+  const abnormalScore = project3Pick(anomaly, ['abnormalScore', 'abnormal_score', 'score'])
+  const degradationPoint = project3Pick(degradation, [
+    'earlyDegradationPoint',
+    'early_degradation_point',
+    'earlyDegradationTime',
+    'early_degradation_time',
+    'degradationPoint',
+    'degradation_point',
+    'degradationTime',
+    'degradation_time',
+    'time'
+  ])
+  const degradationUnit = project3Pick(degradation, ['degradationPointUnit', 'degradation_point_unit', 'unit'])
+  const remainingLife = project3Pick(prediction, ['predictedRemainingLife', 'predicted_remaining_life', 'remainingLife', 'remaining_life', 'remainingTime', 'remaining_time'])
+  const rulUnit = project3Pick(prediction, ['rulUnit', 'rul_unit', 'unit'])
+  const riskLevel = project3Pick(prediction, ['riskLevel', 'risk_level', 'risk'])
+
+  const abnormalText = abnormalFlag === undefined
+    ? project3Text(abnormalLevel || abnormalScore)
+    : `${abnormalFlag === true || abnormalFlag === 'true' || abnormalFlag === 1 ? '异常' : '正常'}${abnormalLevel ? ` / ${abnormalLevel}` : ''}`
+
+  return {
+    chartValue: project3Text(riskLevel),
+    keyInsights: [
+      { name: '质量特性', value: project3Text(qualityFeature) },
+      { name: '关键工序', value: project3Text(processName || processCode) },
+      { name: '工序异常', value: abnormalText || PROJECT3_NO_RESULT },
+      { name: '早期识别点', value: degradationPoint === undefined ? PROJECT3_NO_RESULT : `${formatProject3Number(degradationPoint)}${degradationUnit || 's'}` },
+      { name: '距故障时间', value: remainingLife === undefined ? PROJECT3_NO_RESULT : `${formatProject3Number(remainingLife)}${rulUnit || 's'}` }
+    ]
+  }
+}
+
+const setProject3CardEmpty = () => {
+  const project = getProject3Card()
+  if (!project) return
+  project.chartValue = '0/5'
+  project.taskObject = '未找到历史任务'
+  project.taskName = '未找到历史任务'
+  project.keyInsights = [
+    { name: '质量特性', value: PROJECT3_NO_RESULT },
+    { name: '关键工序', value: PROJECT3_NO_RESULT },
+    { name: '工序异常', value: PROJECT3_NO_RESULT },
+    { name: '早期识别点', value: PROJECT3_NO_RESULT },
+    { name: '距故障时间', value: PROJECT3_NO_RESULT }
+  ]
+  project.meta = [
+    { name: '已执行算法', value: '0/5' },
+    { name: '任务名称', value: PROJECT3_NO_RESULT },
+    { name: '任务状态', value: PROJECT3_NO_RESULT }
+  ]
+}
+
+const loadProject3CardResults = async () => {
+  const project = getProject3Card()
+  if (!project) return
+
+  try {
+    const [treeResponse, kqcRows, keyProcessRows, anomalyRows, degradationRows, predictionRows] = await Promise.all([
+      getMonitorTree({}),
+      loadProject3PagedRows(listKqcMiningResults),
+      loadProject3PagedRows(listKeyProcessResults),
+      loadProject3PagedRows(listWarningDetectResults),
+      loadProject3PagedRows(listFaultIdentifyResults, { task_type: 'EARLY_DEGRADATION_POINT_DETECT' }),
+      loadProject3PagedRows(listFaultIdentifyResults, { task_type: 'FAULT_PREDICT' })
+    ])
+    const treePayload = treeResponse?.data || treeResponse || []
+    project3MonitorTree.value = Array.isArray(treePayload) ? treePayload : (treePayload.children || treePayload.rows || [])
+
+    const allRows = [
+      ...kqcRows,
+      ...keyProcessRows,
+      ...anomalyRows,
+      ...degradationRows,
+      ...predictionRows
+    ].filter(Boolean).sort((a, b) => project3CreateTime(b).localeCompare(project3CreateTime(a)))
+
+    const selectedRow = allRows[0]
+    if (!selectedRow) {
+      setProject3CardEmpty()
+      return
+    }
+
+    const selectedTask = {
+      taskKey: project3TaskKey(selectedRow),
+      taskName: project3TaskName(selectedRow),
+      taskObject: `${project3TargetTypeText(selectedRow)}：${project3TargetName(selectedRow)}`
+    }
+    logProject3TargetDebug(selectedRow, selectedTask.taskObject)
+
+    const rowsByType = {
+      kqcRow: firstSuccessfulProject3Row(kqcRows, selectedTask),
+      keyProcessRow: firstSuccessfulProject3Row(keyProcessRows, selectedTask),
+      anomalyRow: firstSuccessfulProject3Row(anomalyRows, selectedTask),
+      degradationRow: firstSuccessfulProject3Row(degradationRows, selectedTask),
+      predictionRow: firstSuccessfulProject3Row(predictionRows, selectedTask)
+    }
+    const values = buildProject3CardValues(rowsByType)
+    const executedCount = Object.values(rowsByType).filter(Boolean).length
+
+    project.chartValue = `${executedCount}/5`
+    project.taskObject = selectedTask.taskObject
+    project.taskName = selectedTask.taskName
+    project.keyInsights = values.keyInsights
+    project.meta = [
+      { name: '已执行算法', value: `${executedCount}/5` },
+      { name: '任务名称', value: selectedTask.taskName },
+      { name: '任务状态', value: executedCount === 5 ? '已完成' : '进行中' }
+    ]
+  } catch (error) {
+    console.error('加载质量监管与故障预防卡片数据失败：', error)
+    setProject3CardEmpty()
+  }
+}
 
 const knowledgeStats = ref([
   { label: '图谱节点数', value: '1,286' },
@@ -1369,6 +1935,7 @@ const loadProjectOneSummary = async () => {
 const loadHomeData = async () => {
   await Promise.all([
     loadProjectOneSummary(),
+    loadProject3CardResults(),
     loadRecentQualityProblems()
   ])
 }
@@ -2008,6 +2575,11 @@ onBeforeUnmount(() => {
   background: rgba(246, 250, 255, 0.96);
 }
 
+.mini-chart--project3 {
+  min-height: 196px;
+  padding: 12px;
+}
+
 .mini-chart__header {
   display: flex;
   align-items: center;
@@ -2059,6 +2631,96 @@ onBeforeUnmount(() => {
   margin: 6px 0 0;
   color: #6c7d90;
   font-size: 10px;
+}
+
+.project3-insight {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-height: 158px;
+  margin-top: 10px;
+  overflow: visible;
+}
+
+.project3-insight__item {
+  min-width: 0;
+  border: 1px solid rgba(222, 129, 42, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.project3-insight__lead {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+  padding: 0 2px;
+  overflow: visible;
+}
+
+.project3-insight__lead span,
+.project3-insight__item span {
+  color: #8a6a4d;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.project3-insight__lead strong {
+  display: block;
+  min-width: 0;
+  margin-top: 3px;
+  color: #d46a1d;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 800;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.project3-insight__lead em {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  height: 18px;
+  margin-top: 4px;
+  padding: 0;
+  color: #a85016;
+  background: transparent;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project3-insight__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(48px, 1fr);
+  flex: 1;
+  gap: 7px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.project3-insight__item {
+  padding: 8px 9px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.project3-insight__item strong {
+  display: block;
+  margin-top: 3px;
+  color: #142d48;
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mini-chart--pie {

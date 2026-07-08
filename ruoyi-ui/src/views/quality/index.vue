@@ -376,7 +376,16 @@
 
                         <div v-if="record.processResult" class="log-line result-line">
                           <span class="log-label">处理结果</span>
-                          <span>{{ record.processResult }}</span>
+                          <div class="process-result-display">
+                            <div
+                              v-for="item in formatProcessResultLines(record)"
+                              :key="item.label"
+                              class="process-result-row"
+                            >
+                              <span class="process-result-label">{{ item.label }}</span>
+                              <span class="process-result-value">{{ item.value }}</span>
+                            </div>
+                          </div>
                         </div>
 
                         <div v-if="record.processFile" class="log-line result-line">
@@ -505,7 +514,7 @@
             <el-table-column prop="dispatchOpinion" label="分派说明" show-overflow-tooltip />
             <el-table-column prop="processResult" label="处理结果摘要" min-width="260" show-overflow-tooltip>
               <template #default="scope">
-                {{ scope.row.processResult || '-' }}
+                {{ formatProcessResultSummary(scope.row) }}
               </template>
             </el-table-column>
 
@@ -813,6 +822,191 @@ const getModuleDisplayName = (module) => {
   if (!module) return '课题模块'
 
   return moduleDisplayNames[module.moduleCode] || module.moduleName || '课题模块'
+}
+
+const project3ProcessResultFields = [
+  {
+    label: '关键质量特性',
+    paths: ['keyQualityCharacteristics.targetKqc', 'keyQualityCharacteristics.summary']
+  },
+  {
+    label: '关键工序',
+    paths: ['keyProcess.keyProcessName', 'keyProcess.keyProcessCode', 'keyProcess.summary']
+  },
+  {
+    label: '异常检测',
+    paths: ['processAnomaly.summary', 'processAnomaly.abnormalLevel', 'processAnomaly.abnormalScore']
+  },
+  {
+    label: '早期退化点',
+    paths: ['earlyDegradationPoint.summary', 'earlyDegradationPoint.degradationPoint']
+  },
+  {
+    label: '风险等级',
+    paths: ['faultPrediction.riskLevel']
+  },
+  {
+    label: '风险评分',
+    paths: ['faultPrediction.riskScore']
+  },
+  {
+    label: '预测剩余寿命',
+    paths: ['faultPrediction.predictedRemainingLife', 'faultPrediction.remainingLife']
+  },
+  {
+    label: '维修建议',
+    paths: ['faultPrediction.maintenanceAdvice']
+  },
+  {
+    label: '结果摘要',
+    paths: ['faultPrediction.summary']
+  }
+]
+
+const processResultLabelMap = {
+  taskId: '任务编号',
+  task_id: '任务编号',
+  flowTaskId: '流程任务编号',
+  flow_task_id: '流程任务编号',
+  status: '处理状态',
+  result: '处理结果',
+  errorMessage: '错误信息',
+  error_message: '错误信息',
+  summary: '结果摘要',
+  riskLevel: '风险等级',
+  risk_level: '风险等级',
+  riskScore: '风险评分',
+  risk_score: '风险评分',
+  predictedRemainingLife: '预测剩余寿命',
+  predicted_remaining_life: '预测剩余寿命',
+  remainingLife: '剩余寿命',
+  remaining_life: '剩余寿命',
+  maintenanceAdvice: '维修建议',
+  maintenance_advice: '维修建议',
+  abnormalLevel: '异常等级',
+  abnormal_level: '异常等级',
+  abnormalScore: '异常评分',
+  abnormal_score: '异常评分',
+  degradationPoint: '退化点',
+  degradation_point: '退化点',
+  keyProcessName: '关键工序',
+  key_process_name: '关键工序',
+  keyProcessCode: '关键工序编号',
+  key_process_code: '关键工序编号',
+  targetKqc: '关键质量特性',
+  target_kqc: '关键质量特性'
+}
+
+const parseProcessResult = (value) => {
+  if (!value) return null
+  if (typeof value === 'object') return value
+  if (typeof value !== 'string') return null
+
+  const text = value.trim()
+  if (!text || (!text.startsWith('{') && !text.startsWith('['))) {
+    return null
+  }
+
+  try {
+    return JSON.parse(text)
+  } catch (error) {
+    return null
+  }
+}
+
+const getValueByPath = (source, path) => {
+  if (!source || !path) return undefined
+
+  return path.split('.').reduce((current, key) => {
+    if (current === undefined || current === null) return undefined
+    return current[key]
+  }, source)
+}
+
+const formatProcessResultValue = (value) => {
+  if (value === undefined || value === null || value === '') return ''
+  if (value === true || value === 'true') return '是'
+  if (value === false || value === 'false') return '否'
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => formatProcessResultValue(item))
+      .filter(Boolean)
+      .join('；')
+  }
+
+  if (typeof value === 'object') {
+    return Object.entries(value)
+      .map(([key, item]) => {
+        const text = formatProcessResultValue(item)
+        return text ? `${processResultLabelMap[key] || key}：${text}` : ''
+      })
+      .filter(Boolean)
+      .join('；')
+  }
+
+  return String(value)
+}
+
+const buildProject3ProcessResultLines = (result) => {
+  const source = result?.result && typeof result.result === 'object' ? result.result : result
+
+  return project3ProcessResultFields
+    .map((field) => {
+      const value = field.paths
+        .map((path) => formatProcessResultValue(getValueByPath(source, path)))
+        .find(Boolean)
+
+      return value ? { label: field.label, value } : null
+    })
+    .filter(Boolean)
+}
+
+const buildGenericProcessResultLines = (result, parentLabel = '') => {
+  if (!result || typeof result !== 'object') {
+    const value = formatProcessResultValue(result)
+    return value ? [{ label: parentLabel || '处理结果', value }] : []
+  }
+
+  return Object.entries(result).flatMap(([key, value]) => {
+    if (value === undefined || value === null || value === '') return []
+
+    const label = processResultLabelMap[key] || parentLabel || key
+
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      const nested = buildGenericProcessResultLines(value, label)
+      return nested.length ? nested : []
+    }
+
+    const text = formatProcessResultValue(value)
+    return text ? [{ label, value: text }] : []
+  })
+}
+
+const formatProcessResultLines = (row) => {
+  const rawValue = row?.processResult || ''
+  const parsed = parseProcessResult(rawValue)
+
+  if (!parsed) {
+    return rawValue ? [{ label: '处理结果', value: rawValue }] : []
+  }
+
+  const lines = row?.moduleCode === 'PROJECT_3'
+    ? buildProject3ProcessResultLines(parsed)
+    : buildGenericProcessResultLines(parsed)
+
+  return lines.length ? lines.slice(0, 8) : [{ label: '处理结果', value: '已完成处理' }]
+}
+
+const formatProcessResultSummary = (row) => {
+  const lines = formatProcessResultLines(row)
+
+  if (!lines.length) return '-'
+
+  return lines
+    .slice(0, 3)
+    .map((item) => `${item.label}：${item.value}`)
+    .join('；')
 }
 
 const workModules = ref([])
@@ -2104,6 +2298,30 @@ const getNowTime = () => {
 
 .result-line span:last-child {
   color: #303133;
+}
+
+.process-result-display {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #303133;
+}
+
+.process-result-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.process-result-label {
+  color: #909399;
+}
+
+.process-result-value {
+  color: #303133;
+  word-break: break-word;
 }
 
 .process-state,
