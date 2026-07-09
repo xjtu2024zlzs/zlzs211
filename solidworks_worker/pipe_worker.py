@@ -53,7 +53,7 @@ def build_model(payload):
         raise RuntimeError("Pipe inner diameter must be greater than 0 and smaller than the outer diameter.")
 
     params_path = GENERATOR_DIR / "params.json"
-    original_params = params_path.read_text(encoding="utf-8")
+    original_params = params_path.read_text(encoding="utf-8") if params_path.exists() else None
     try:
         params_path.write_text(json.dumps(params, ensure_ascii=False, indent=2), encoding="utf-8")
         proc = subprocess.run(
@@ -143,7 +143,10 @@ def build_model(payload):
             "errorMessage": "",
         }
     finally:
-        params_path.write_text(original_params, encoding="utf-8")
+        if original_params is None:
+            params_path.unlink(missing_ok=True)
+        else:
+            params_path.write_text(original_params, encoding="utf-8")
 
 
 def solidworks_error_message(job_dir, fallback):

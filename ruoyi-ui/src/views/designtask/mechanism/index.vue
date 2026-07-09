@@ -30,23 +30,44 @@
           </div>
 
           <el-form :model="form" label-width="130px" class="mt-12">
-            <el-form-item v-if="qualityTaskContext.taskId" label="关联质量问题">
-              <div class="quality-problem-context">
-                <div>
-                  <span>问题编号</span>
-                  <strong>{{ qualityTaskContext.problemCode || '-' }}</strong>
-                </div>
-                <div>
-                  <span>问题名称</span>
-                  <strong>{{ qualityTaskContext.problemTitle || '-' }}</strong>
-                </div>
-                <div>
-                  <span>涉及系统</span>
-                  <strong>{{ qualityTaskContext.involvedSystem || '-' }}</strong>
-                </div>
-                <div>
-                  <span>严重程度</span>
-                  <strong>{{ qualityTaskContext.severity || '-' }}</strong>
+            <el-form-item label="关联质量问题">
+              <div class="quality-problem-select-wrap">
+                <el-select
+                  v-model="selectedQualityTaskId"
+                  filterable
+                  clearable
+                  :loading="loadingQualityTasks"
+                  placeholder="请选择质量问题管理中心分派给本平台的任务"
+                  style="width: 100%"
+                  @change="handleQualityTaskChange"
+                >
+                  <el-option
+                    v-for="item in qualityTaskOptions"
+                    :key="item.taskId"
+                    :label="qualityTaskOptionLabel(item)"
+                    :value="Number(item.taskId)"
+                  >
+                    <span>{{ item.problemCode || '-' }}｜{{ item.problemTitle || '未命名质量问题' }}</span>
+                    <span class="option-meta">{{ qualityTaskStatusText(item.taskStatus) }}</span>
+                  </el-option>
+                </el-select>
+                <div v-if="qualityTaskContext.taskId" class="quality-problem-context">
+                  <div>
+                    <span>问题编号</span>
+                    <strong>{{ qualityTaskContext.problemCode || '-' }}</strong>
+                  </div>
+                  <div>
+                    <span>问题名称</span>
+                    <strong>{{ qualityTaskContext.problemTitle || '-' }}</strong>
+                  </div>
+                  <div>
+                    <span>涉及系统</span>
+                    <strong>{{ qualityTaskContext.involvedSystem || '-' }}</strong>
+                  </div>
+                  <div>
+                    <span>严重程度</span>
+                    <strong>{{ qualityTaskContext.severity || '-' }}</strong>
+                  </div>
                 </div>
               </div>
             </el-form-item>
@@ -281,6 +302,8 @@ import {
   startDesignTask,
   uploadDesignTaskFile
 } from '@/api/designtask/optimization'
+import { listTask as listQualityTask } from '@/api/quality/task'
+import { getProblem as getQualityProblem } from '@/api/quality/problem'
 
 const route = useRoute()
 const router = useRouter()
@@ -290,12 +313,18 @@ const loadingDefinitions = ref(false)
 const loadingNodes = ref(false)
 const loadingAssignees = ref(false)
 const loadingFaultPipeOptions = ref(false)
+const loadingQualityTasks = ref(false)
 const definitions = ref([])
 const workflowNodes = ref([])
 const assigneeOptions = ref({})
 const faultPipeOptions = ref([])
 const fileList = ref([])
 const qualityTaskContext = ref({})
+const qualityTaskOptions = ref([])
+const selectedQualityTaskId = ref(undefined)
+
+const DESIGN_MODULE_CODE = 'PROJECT_2'
+const ACTIVE_QUALITY_TASK_STATUSES = ['PROCESSING', 'DISPATCHED', 'UNSTARTED', 'PENDING_BACKFILL']
 
 const form = ref({
   processDefinitionId: '',
@@ -375,11 +404,59 @@ function valueWithUnit(code) {
   return value ? `${value}${unit ? ` ${unit}` : ''}` : '-'
 }
 
+function qualityTaskStatusText(status) {
+  return {
+    UNSTARTED: '未开始',
+    DISPATCHED: '已分派',
+    PROCESSING: '处理中',
+    PENDING_BACKFILL: '待回填'
+  }[status] || status || '待处理'
+}
+
+function qualityTaskOptionLabel(item) {
+  return `${item.problemCode || '-'}｜${item.problemTitle || '未命名质量问题'}`
+}
+
+function qualityTaskSortTime(item = {}) {
+  return item.dispatchTime || item.updateTime || item.createTime || item.submitTime || ''
+}
+
+function normalizeQualityTaskOption(item = {}, problem = {}) {
+  return {
+    ...item,
+    taskId: Number(item.taskId),
+    problemId: item.problemId || problem.problemId,
+    problemCode: item.problemCode || problem.problemCode || '',
+    problemTitle: item.problemTitle || problem.title || '',
+    problemDescription: item.problemDescription || problem.description || '',
+    involvedSystem: item.involvedSystem || problem.involvedSystem || '',
+    occurPart: item.occurPart || item.partName || problem.occurPart || '',
+    severity: item.severity || problem.severity || '',
+    dispatchOpinion: item.dispatchOpinion || ''
+  }
+}
+
+function setQualityTaskContext(item = {}) {
+  if (!item.taskId) {
+    qualityTaskContext.value = {}
+    selectedQualityTaskId.value = undefined
+    return
+  }
+
+  selectedQualityTaskId.value = Number(item.taskId)
+  qualityTaskContext.value = normalizeQualityTaskOption(item)
+}
+
+function handleQualityTaskChange(taskId) {
+  const selected = qualityTaskOptions.value.find(item => Number(item.taskId) === Number(taskId))
+  setQualityTaskContext(selected || {})
+}
+
 function loadQualityTaskContext() {
   const qualityTaskId = Number(route.query.qmsTaskId || route.query.qualityTaskId)
   if (!qualityTaskId) return
 
-  qualityTaskContext.value = {
+  setQualityTaskContext({
     taskId: qualityTaskId,
     problemId: route.query.problemId ? Number(route.query.problemId) : undefined,
     problemCode: route.query.problemCode || '',
@@ -389,6 +466,56 @@ function loadQualityTaskContext() {
     occurPart: '',
     severity: '',
     dispatchOpinion: ''
+  })
+}
+
+async function loadQualityTaskOptions() {
+  loadingQualityTasks.value = true
+  try {
+    const results = await Promise.all(ACTIVE_QUALITY_TASK_STATUSES.map(taskStatus => {
+      return listQualityTask({
+        moduleCode: DESIGN_MODULE_CODE,
+        taskStatus,
+        pageNum: 1,
+        pageSize: 200
+      })
+    }))
+    const rows = results.flatMap(res => Array.isArray(res?.rows) ? res.rows : [])
+    const usableRows = rows.filter(item => {
+      return item.taskId &&
+        item.problemId &&
+        !['SUBMITTED', 'CONFIRMED'].includes(item.taskStatus)
+    })
+
+    const latestByProblem = usableRows.reduce((map, item) => {
+      const key = item.problemCode || item.problemId || item.taskId
+      const current = map.get(key)
+      if (!current || qualityTaskSortTime(item).localeCompare(qualityTaskSortTime(current)) > 0) {
+        map.set(key, item)
+      }
+      return map
+    }, new Map())
+
+    const dedupedRows = Array.from(latestByProblem.values()).sort((a, b) => {
+      const timeCompare = qualityTaskSortTime(b).localeCompare(qualityTaskSortTime(a))
+      return timeCompare || Number(b.taskId || 0) - Number(a.taskId || 0)
+    })
+
+    qualityTaskOptions.value = await Promise.all(dedupedRows.map(async item => {
+      try {
+        const problemRes = await getQualityProblem(item.problemId)
+        return normalizeQualityTaskOption(item, problemRes?.data || {})
+      } catch {
+        return normalizeQualityTaskOption(item)
+      }
+    }))
+
+    const selected = qualityTaskOptions.value.find(item => Number(item.taskId) === Number(selectedQualityTaskId.value))
+    if (selected) {
+      setQualityTaskContext(selected)
+    }
+  } finally {
+    loadingQualityTasks.value = false
   }
 }
 
@@ -531,6 +658,7 @@ onMounted(() => {
   loadFaultPipeOptions()
   loadDefinitions()
   loadQualityTaskContext()
+  loadQualityTaskOptions()
 })
 </script>
 

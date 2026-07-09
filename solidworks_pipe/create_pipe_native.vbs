@@ -128,11 +128,11 @@ End If
 swModel.SketchManager.Insert3DSketch True
 Set swPathSketch = swModel.GetActiveSketch2
 swModel.SketchManager.AddToDB = True
-swModel.SketchManager.CreateLine 0.0000000000, 0.0000000000, 0, 0.0645654029, -0.0270427208, 0
-swModel.SketchManager.Create3PointArc 0.0645654029, -0.0270427208, 0, 0.0797140824, -0.0387619338, 0, 0.0729111745, -0.0319051466, 0
-swModel.SketchManager.CreateLine 0.0797140824, -0.0387619338, 0, 0.1221080011, -0.0944643185, 0
-swModel.SketchManager.Create3PointArc 0.1221080011, -0.0944643185, 0, 0.1372566806, -0.1061835315, 0, 0.1289109090, -0.1013211057, 0
-swModel.SketchManager.CreateLine 0.1372566806, -0.1061835315, 0, 0.6000000000, -0.3000000000, 0
+swModel.SketchManager.CreateLine 0.0000000000, 0.0000000000, 0, 0.0476813488, -0.0207482284, 0
+swModel.SketchManager.Create3PointArc 0.0476813488, -0.0207482284, 0, 0.0630720348, -0.0329975310, 0, 0.0561830174, -0.0258597686, 0
+swModel.SketchManager.CreateLine 0.0630720348, -0.0329975310, 0, 0.0933965810, -0.0740026758, 0
+swModel.SketchManager.Create3PointArc 0.0933965810, -0.0740026758, 0, 0.1087872671, -0.0862519785, 0, 0.1002855984, -0.0811404383, 0
+swModel.SketchManager.CreateLine 0.1087872671, -0.0862519785, 0, 0.6000000000, -0.3000000000, 0
 swModel.SketchManager.AddToDB = False
 swModel.SketchManager.Insert3DSketch True
 Set swPathFeat = FindLast3DSketchFeature(swModel)
@@ -156,24 +156,24 @@ End If
 swModel.SketchManager.Insert3DSketch True
 Set swInnerPathSketch = swModel.GetActiveSketch2
 swModel.SketchManager.AddToDB = True
-swModel.SketchManager.CreateLine -0.0737890319, 0.0309059666, 0, 0.0645654029, -0.0270427208, 0
-swModel.SketchManager.Create3PointArc 0.0645654029, -0.0270427208, 0, 0.0797140824, -0.0387619338, 0, 0.0729111745, -0.0319051466, 0
-swModel.SketchManager.CreateLine 0.0797140824, -0.0387619338, 0, 0.1221080011, -0.0944643185, 0
-swModel.SketchManager.Create3PointArc 0.1221080011, -0.0944643185, 0, 0.1372566806, -0.1061835315, 0, 0.1289109090, -0.1013211057, 0
-swModel.SketchManager.CreateLine 0.1372566806, -0.1061835315, 0, 0.6737890319, -0.3309059666, 0
+swModel.SketchManager.CreateLine -0.0733559212, 0.0319203513, 0, 0.0476813488, -0.0207482284, 0
+swModel.SketchManager.Create3PointArc 0.0476813488, -0.0207482284, 0, 0.0630720348, -0.0329975310, 0, 0.0561830174, -0.0258597686, 0
+swModel.SketchManager.CreateLine 0.0630720348, -0.0329975310, 0, 0.0933965810, -0.0740026758, 0
+swModel.SketchManager.Create3PointArc 0.0933965810, -0.0740026758, 0, 0.1087872671, -0.0862519785, 0, 0.1002855984, -0.0811404383, 0
+swModel.SketchManager.CreateLine 0.1087872671, -0.0862519785, 0, 0.6733559212, -0.3319203513, 0
 swModel.SketchManager.AddToDB = False
 swModel.SketchManager.Insert3DSketch True
 Set swInnerPathFeat = FindLast3DSketchFeature(swModel)
 If Not swInnerPathFeat Is Nothing Then swInnerPathFeat.Name = "InnerBorePath3D"
 swModel.ClearSelection2 True
 
-Set swShellFeat = ApplyPipeShell(swModel, 0.0009000000, 0.0000000000, 0.0000000000, 0, 0.9223628987, -0.3863245825, 0, 0.6000000000, -0.3000000000, 0, 0.9223628987, -0.3863245825, 0, 0.0190600000)
+Set swShellFeat = ApplyPipeShell(swModel, 0.0009000000, 0.0000000000, 0.0000000000, 0, 0.9169490146, -0.3990043918, 0, 0.6000000000, -0.3000000000, 0, 0.9169490146, -0.3990043918, 0, 0.0190600000)
 If swShellFeat Is Nothing Then
   Set swInnerCutFeat = ApplySweptInnerCut(swModel, swInnerPathFeat, 0.0077300000)
   If Not swInnerCutFeat Is Nothing Then
     swModel.SketchManager.Insert3DSketch True
     swModel.SketchManager.AddToDB = True
-    swModel.SketchManager.CreateLine -0.0737890319, 0.0309059666, 0, 0.0527407105, -0.0220900396, 0
+    swModel.SketchManager.CreateLine -0.0733559212, 0.0319203513, 0, 0.0524311447, -0.0228150711, 0
     swModel.SketchManager.AddToDB = False
     swModel.SketchManager.Insert3DSketch True
     Set swStartOpenPathFeat = FindLast3DSketchFeature(swModel)
@@ -181,7 +181,7 @@ If swShellFeat Is Nothing Then
     Set swStartOpenCutFeat = ApplySweptInnerCut(swModel, swStartOpenPathFeat, 0.0077300000)
     swModel.SketchManager.Insert3DSketch True
     swModel.SketchManager.AddToDB = True
-    swModel.SketchManager.CreateLine 0.6737890319, -0.3309059666, 0, 0.5472592895, -0.2779099604, 0
+    swModel.SketchManager.CreateLine 0.6733559212, -0.3319203513, 0, 0.5475688553, -0.2771849289, 0
     swModel.SketchManager.AddToDB = False
     swModel.SketchManager.Insert3DSketch True
     Set swEndOpenPathFeat = FindLast3DSketchFeature(swModel)
@@ -194,7 +194,7 @@ If swShellFeat Is Nothing And swInnerCutFeat Is Nothing Then
   WScript.Quit 1
 End If
 
-outPart = "D:\\2.11\\RuoYi-Cloud-master\\solidworks_pipe\\pipe_native.SLDPRT"
+outPart = "C:\\Users\\wrr\\IdeaProjects\\zlzs2110709\\zlzs211\\solidworks_pipe\\pipe_native.SLDPRT"
 swModel.SaveAs outPart
 swModel.ViewZoomtofit2
-MsgBox "Native SolidWorks pipe model created." & vbCrLf & outPart & vbCrLf & "L3 = 501.693 mm, initial angle = -22.726 deg, wall = 0.900 mm", vbInformation, "Native pipe model"
+MsgBox "Native SolidWorks pipe model created." & vbCrLf & outPart & vbCrLf & "L3 = 535.703 mm, initial angle = -23.516 deg, wall = 0.900 mm", vbInformation, "Native pipe model"

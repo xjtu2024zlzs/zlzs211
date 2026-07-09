@@ -665,10 +665,10 @@
                 type="info"
                 :closable="false"
                 show-icon
-                title="报告正文将在弹窗中预览，页面下方仅保留提交和审批操作。"
+                title="报告正文将在弹窗中预览，页面下方仅保留设计方案提交信息。"
               />
               <section v-if="showReportDecision">
-                <el-form v-if="!canApproveDesignReport" :model="reportDecision" label-width="96px" class="report-decision-form">
+                <el-form :model="reportDecision" label-width="96px" class="report-decision-form">
                   <el-form-item label="验证结论">
                     <el-radio-group v-model="reportDecision.passed" :disabled="!canEditReportDecision">
                       <el-radio :value="true">验证通过，提交当前设计方案</el-radio>
@@ -676,20 +676,8 @@
                     </el-radio-group>
                   </el-form-item>
                   <el-form-item label="提交说明">
-                    <el-input v-model="reportDecision.comment" type="textarea" :rows="3" :disabled="!canGenerateReport" />
+                    <el-input v-model="reportDecision.comment" type="textarea" :rows="3" :disabled="!canEditReportDecision" />
                   </el-form-item>
-                </el-form>
-                <el-form v-else :model="approval" label-width="96px" class="report-decision-form">
-                  <el-form-item label="审批结论">
-                    <el-radio-group v-model="approval.approved" :disabled="!canApproveDesignReport">
-                      <el-radio :value="true">通过</el-radio>
-                      <el-radio :value="false">退回模型解耦求解</el-radio>
-                    </el-radio-group>
-                  </el-form-item>
-                  <el-form-item label="审批意见">
-                    <el-input v-model="approval.comment" type="textarea" :rows="3" :disabled="!canApproveDesignReport" />
-                  </el-form-item>
-                  <el-button type="primary" icon="Select" :disabled="!canApproveDesignReport" :loading="approvalSubmitting" @click="submitApproval">提交审批</el-button>
                 </el-form>
               </section>
             </div>
@@ -735,7 +723,7 @@
           <div>
             <span>设计优化任务提交件</span>
             <h2>{{ taskTitle || '设计方案及验证报告' }}</h2>
-            <p>报告编号：{{ reportCode }}　生成时间：{{ reportGeneratedAt || '-' }}</p>
+            <p>报告编号：{{ reportCode }}　生成时间：{{ formatDateTime(reportGeneratedAt || '-') }}</p>
           </div>
           <el-tag :type="reportStatusTagType" size="large">{{ reportSubmitStatusLabel }}</el-tag>
         </header>
@@ -961,7 +949,6 @@ import { ElMessage } from 'element-plus'
 import { saveAs } from 'file-saver'
 import * as echarts from 'echarts'
 import {
-  approveTask,
   decomposeTask,
   getAnsysSimulationImage,
   getAnsysSimulationTask,
@@ -1063,8 +1050,6 @@ const reportSubmitting = ref(false)
 const simulationReturnSubmitting = ref(false)
 const reportSubmission = ref({ submitted: false })
 const reportDecision = ref({ passed: true, comment: '模型建模和仿真验证结果满足当前设计任务要求，提交当前设计方案。' })
-const approval = ref({ approved: true, comment: '设计方案报告完整，建模与仿真验证结果满足要求，同意通过。' })
-const approvalSubmitting = ref(false)
 const ANSYS_MODE_DEMO = 'DEMO_SIMULATION_MODEL'
 const comparisonLimit = 5
 const objectiveSelectNodeKeys = ['structure_select', 'layout_select', 'aero_select', 'hydraulic_select', 'manufacturing_select']
@@ -1168,13 +1153,12 @@ const canSubmitDesignReport = computed(() => {
     !reportSubmission.value.submitted &&
     !simulationBlocksReportSubmit.value
 })
-const canApproveDesignReport = computed(() => !readonlyMode.value && currentNodeKey.value === 'leader_approve')
 const showReportDecision = computed(() => ['model_decompose_solve', 'simulation_confirm', 'leader_approve'].includes(currentNodeKey.value) || simulation.value.verified || reportSubmission.value.submitted)
 const reportStatusText = computed(() => {
-  if (reportSubmission.value.submitted) return `设计方案报告已提交：${reportSubmission.value.submitTime || reportGeneratedAt.value || '-'}`
+  if (reportSubmission.value.submitted) return `设计方案报告已提交：${formatDateTime(reportSubmission.value.submitTime || reportGeneratedAt.value || '-')}`
   if (simulation.value.verified) return simulation.value.conclusion || '设计方案报告已提交，等待审批或归档。'
   if (!reportGeneratedAt.value) return '完成参数建模和仿真验证后，先生成报告，再提交当前设计方案。'
-  return `报告已生成：${reportGeneratedAt.value}`
+  return `报告已生成：${formatDateTime(reportGeneratedAt.value)}`
 })
 const reportCode = computed(() => {
   const task = detail.value.task || {}
@@ -1714,7 +1698,7 @@ function loadDetail() {
     simulation.value = detail.value.simulation || simulation.value
     reportSubmission.value = detail.value.reportSubmission || { submitted: false }
     if (reportSubmission.value.submitted) {
-      reportGeneratedAt.value = reportSubmission.value.report?.generatedAt || reportSubmission.value.submitTime || reportGeneratedAt.value
+      reportGeneratedAt.value = formatDateTime(reportSubmission.value.report?.generatedAt || reportSubmission.value.submitTime || reportGeneratedAt.value)
       reportDecision.value = {
         passed: reportSubmission.value.passed !== false,
         comment: reportSubmission.value.submitComment || reportDecision.value.comment
@@ -2894,7 +2878,7 @@ function buildQualityTaskDesignResult(submission = {}) {
       reportFileId: submission.reportFileId || '',
       reportFilePath: submission.reportFilePath || '',
       reportFileName: submission.reportFileName || '设计制造协同优化方案报告.doc',
-      submitTime: submission.submitTime || formatDateTime(new Date())
+      submitTime: formatDateTime(submission.submitTime || new Date())
     },
     generateTime: formatDateTime(new Date())
   }
@@ -3023,20 +3007,6 @@ function submitDesignReportBlockedReason() {
   return '当前条件未满足，暂不能提交设计方案报告。'
 }
 
-function submitApproval() {
-  if (!canApproveDesignReport.value) {
-    ElMessage.warning('当前节点不可审批设计方案报告。')
-    return
-  }
-  approvalSubmitting.value = true
-  approveTask(taskId.value, approval.value).then(() => {
-    ElMessage.success(approval.value.approved ? '审批通过，任务完成。' : '已退回模型解耦求解。')
-    loadDetail()
-  }).finally(() => {
-    approvalSubmitting.value = false
-  })
-}
-
 function downloadDesignReport() {
   if (reportSubmission.value.submitted && reportSubmission.value.reportFileId) {
     getTaskAttachmentFile(reportSubmission.value.reportFileId).then(data => {
@@ -3132,7 +3102,7 @@ function buildReportHtml() {
   <header class="report-cover">
     <span>设计优化任务提交件</span>
     <h1 style="margin:3mm 0 2mm;color:#172b4d;font-size:15.5pt;line-height:1.35;text-align:center;font-weight:500;">${escapeHtml(taskTitle.value || '液压弯管抗冲击性能优化设计方案验证报告')}</h1>
-    <p>报告编号：${escapeHtml(reportCode.value)}　生成时间：${escapeHtml(reportGeneratedAt.value || formatDateTime(new Date()))}　状态：${escapeHtml(reportSubmitStatusLabel.value)}</p>
+    <p>报告编号：${escapeHtml(reportCode.value)}　生成时间：${escapeHtml(formatDateTime(reportGeneratedAt.value || new Date()))}　状态：${escapeHtml(reportSubmitStatusLabel.value)}</p>
   </header>
   ${section('一、审批结论摘要', `<table class="report-form-table"><tbody><tr><th>审批建议</th><td colspan="3" class="report-decision-cell">${escapeHtml(reportApprovalDecision.value)}</td></tr><tr><th>结论说明</th><td colspan="3">${escapeHtml(reportConclusionText.value)}</td></tr>${reportApprovalSummaryTableRows.value.map(row => `<tr>${row.map(item => `<th>${escapeHtml(item.label)}</th><td>${escapeHtml(item.value)}</td>`).join('')}</tr>`).join('')}</tbody></table>`)}
   ${section('二、任务与优化问题概述', paragraph(reportProblemNarrative.value) + formTable(reportProblemMetaTableRows.value) + summaryTable(reportOptimizationSummaryItems.value))}
@@ -3185,8 +3155,28 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;')
 }
 
-function formatDateTime(date) {
-  const pad = value => String(value).padStart(2, '0')
+function formatDateTime(value = new Date()) {
+  const pad = number => String(number).padStart(2, '0')
+  if (!value) return ''
+  if (value === '-') return '-'
+  if (Array.isArray(value)) {
+    const [year, month = 1, day = 1, hour = 0, minute = 0, second = 0] = value
+    if (year) return `${year}-${pad(month)}-${pad(day)} ${pad(hour)}:${pad(minute)}:${pad(second)}`
+  }
+  if (typeof value === 'string') {
+    const text = value.trim()
+    if (!text) return ''
+    const commaParts = text.split(',').map(item => Number(item.trim()))
+    if (commaParts.length >= 3 && commaParts.every(Number.isFinite)) {
+      return formatDateTime(commaParts)
+    }
+    const matched = text.replace('T', ' ').match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/)
+    if (matched) {
+      return `${matched[1]}-${pad(matched[2])}-${pad(matched[3])} ${pad(matched[4] || 0)}:${pad(matched[5] || 0)}:${pad(matched[6] || 0)}`
+    }
+  }
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value)
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 

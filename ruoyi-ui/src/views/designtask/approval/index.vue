@@ -4,7 +4,6 @@
       <section class="platform-topbar">
         <div>
           <h1 class="platform-title">优化方案审批</h1>
-          <p class="platform-subtitle">选择已生成正式报告的设计优化任务，查看模型解耦阶段形成的最终设计方案并完成审批。</p>
         </div>
         <div class="topbar-meta">
           <div class="meta-chip">
@@ -23,8 +22,7 @@
         <section class="section-block">
           <div class="section-header">
             <div>
-              <h2 class="section-title">正式报告任务</h2>
-              <p class="section-hint">仅展示设计工程师已经提交正式设计方案报告的任务。</p>
+              <h2 class="section-title">已提交任务报告</h2>
             </div>
             <el-radio-group v-model="activeTab" @change="handleTabChange">
               <el-radio-button label="pending">待审批</el-radio-button>
@@ -353,8 +351,26 @@ function downloadReport() {
 }
 
 function formatDateTime(value = new Date()) {
-  const date = value instanceof Date ? value : new Date(value)
   const pad = (number) => String(number).padStart(2, '0')
+  if (!value) return ''
+  if (Array.isArray(value)) {
+    const [year, month = 1, day = 1, hour = 0, minute = 0, second = 0] = value
+    if (year) return `${year}-${pad(month)}-${pad(day)} ${pad(hour)}:${pad(minute)}:${pad(second)}`
+  }
+  if (typeof value === 'string') {
+    const text = value.trim()
+    if (!text) return ''
+    const commaParts = text.split(',').map(item => Number(item.trim()))
+    if (commaParts.length >= 3 && commaParts.every(Number.isFinite)) {
+      return formatDateTime(commaParts)
+    }
+    const matched = text.replace('T', ' ').match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/)
+    if (matched) {
+      return `${matched[1]}-${pad(matched[2])}-${pad(matched[3])} ${pad(matched[4] || 0)}:${pad(matched[5] || 0)}:${pad(matched[6] || 0)}`
+    }
+  }
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value)
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
@@ -480,7 +496,7 @@ function reportTagType(item) {
 
 function formatTime(value) {
   if (!value) return '-'
-  return String(value).replace('T', ' ').slice(0, 19)
+  return formatDateTime(value)
 }
 
 watch(() => route.query.taskId, value => {

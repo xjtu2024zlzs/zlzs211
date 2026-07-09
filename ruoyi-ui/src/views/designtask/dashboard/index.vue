@@ -134,7 +134,7 @@
             <el-button
               type="success"
               :loading="finishQualityTaskLoading"
-              :disabled="!currentQualityTask"
+              :disabled="!canBackfillQualityTask"
               @click="finishCurrentQualityTask"
             >
               完成任务并回填结果
@@ -356,7 +356,12 @@ import VueOfficeDocx from '@vue-office/docx'
 import '@vue-office/docx/lib/index.css'
 
 import request from '@/utils/request'
-import { getDashboard, getDesignTask } from '@/api/designtask/optimization'
+import {
+  getDashboard,
+  getDesignReportTask,
+  getDesignTask,
+  getDesignTaskByQualityTask
+} from '@/api/designtask/optimization'
 import { listTask, updateTask } from '@/api/quality/task'
 import { getProblem, updateProblem } from '@/api/quality/problem'
 import { addLog } from '@/api/quality/log'
@@ -382,6 +387,11 @@ const lifecycleReportPreviewTitle = ref('全生命周期数字质量自反馈与
 
 const MODULE_CODE = 'PROJECT_2'
 const MODULE_NAME = '设计制造协同优化平台'
+const BACKFILLABLE_QUALITY_TASK_STATUSES = ['PROCESSING', 'PENDING_BACKFILL']
+const QUALITY_TASK_STATUS_PRIORITY = {
+  PENDING_BACKFILL: 0,
+  PROCESSING: 1
+}
 
 const RELATED_REPORT_MODULE_CODE = 'PROJECT_5'
 const RELATED_REPORT_MODULE_NAME = '全生命周期数字质量自反馈与追溯模块'
@@ -444,6 +454,13 @@ const statCards = computed(() => [
 
 const selectedTaskTitle = computed(() => {
   return selectedTask.value ? selectedTask.value.taskName : '未选择任务'
+})
+
+const canBackfillQualityTask = computed(() => {
+  return Boolean(
+    currentQualityTask.value &&
+    BACKFILLABLE_QUALITY_TASK_STATUSES.includes(currentQualityTask.value.taskStatus)
+  )
 })
 
 const selectedDisciplineProgress = computed(() => {
@@ -647,16 +664,28 @@ const loadCurrentQualityTask = async () => {
   qualityTaskLoading.value = true
 
   try {
-    const res = await listTask({
-      moduleCode: MODULE_CODE,
-      taskStatus: 'PROCESSING'
-    })
+    const responses = await Promise.all(
+      BACKFILLABLE_QUALITY_TASK_STATUSES.map((taskStatus) => {
+        return listTask({
+          moduleCode: MODULE_CODE,
+          taskStatus
+        })
+      })
+    )
 
-    const rows = Array.isArray(res?.rows) ? res.rows : []
+    const rows = responses.flatMap((res) => Array.isArray(res?.rows) ? res.rows : [])
 
     const latestTask = rows
       .map((item) => normalizeQualityTask(item))
       .sort((a, b) => {
+        const priorityDiff =
+          (QUALITY_TASK_STATUS_PRIORITY[a.taskStatus] ?? 99) -
+          (QUALITY_TASK_STATUS_PRIORITY[b.taskStatus] ?? 99)
+
+        if (priorityDiff !== 0) {
+          return priorityDiff
+        }
+
         const at = a.dispatchTime || a.createTime || ''
         const bt = b.dispatchTime || b.createTime || ''
         return bt.localeCompare(at)
@@ -885,11 +914,17 @@ const finishCurrentQualityTask = async () => {
   const now = getNowTime()
   const task = currentQualityTask.value
 
+  if (!BACKFILLABLE_QUALITY_TASK_STATUSES.includes(task.taskStatus)) {
+    ElMessage.warning('当前质量任务状态不支持回填')
+    finishQualityTaskLoading.value = false
+    return
+  }
+
   try {
-    const reportFilePath = getProject2ReportFilePath(task)
+    const reportFilePath = await getProject2ReportFilePath(task)
 
     if (!reportFilePath) {
-      throw new Error('课题二报告路径为空，请检查报告路径配置')
+      throw new Error('未查询到已关联设计任务的优化方案报告路径，请先在模型解耦求解页提交报告')
     }
 
     const returnResult = buildProject2ReturnResult()
@@ -918,7 +953,7 @@ const finishCurrentQualityTask = async () => {
       actionType: 'SUBMIT',
       actionName: '设计制造协同优化平台任务完成',
       operatorName: '设计制造协同优化平台',
-      fromStatus: 'PROCESSING',
+      fromStatus: task.taskStatus || 'PROCESSING',
       toStatus: 'WAIT_CONFIRM',
       actionContent: `设计制造协同优化平台已完成任务处理，并返回Word报告：${reportFilePath}`,
       createTime: now
@@ -931,7 +966,8 @@ const finishCurrentQualityTask = async () => {
       action: 'SUBMIT'
     })
 
-    await loadCurrentQualityTask()
+    qualityTaskList.value = []
+    currentQualityTask.value = null
 
     ElMessage.success('设计制造协同优化平台处理结果和Word报告已回填质量问题管理中心')
   } catch (error) {
@@ -978,14 +1014,26 @@ const buildProject2ReturnResult = () => {
   return '设计制造协同优化平台已完成质量问题处理，并生成Word报告，详细结果请查看处理结果文件。'
 }
 
-/**
- * 获取课题二本次任务对应的报告路径
- *
- * 当前测试阶段固定返回 000.docx。
- * 后续课题二真实报告文件名确定后，只需要改这个函数。
- */
-const getProject2ReportFilePath = (task) => {
-  return '/profile/topic2/report/QF-20260705-52435.docx'
+const getProject2ReportFilePath = async (task) => {
+  if (task?.processFile && isWordFile(task.processFile)) {
+    return task.processFile
+  }
+
+  if (!task?.taskId) {
+    return ''
+  }
+
+  const linkRes = await getDesignTaskByQualityTask(task.taskId)
+  const linkData = linkRes?.data || {}
+  const designTaskId = linkData.task?.taskId || linkData.qualityTaskLink?.designTaskId
+
+  if (!designTaskId) {
+    return ''
+  }
+
+  const reportRes = await getDesignReportTask(designTaskId)
+  const report = reportRes?.data || {}
+  return report.reportFilePath || report.designReport?.reportFilePath || ''
 }
 
 function loadData() {
