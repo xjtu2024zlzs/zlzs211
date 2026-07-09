@@ -155,7 +155,7 @@
     </div>
 
     <div v-if="result" class="result-grid">
-      <el-card class="panel-card" shadow="never">
+      <!-- <el-card class="panel-card" shadow="never">
         <template #header>
           <div class="card-header">
             <div>
@@ -215,7 +215,7 @@
             写回数字卷宗
           </el-button>
         </div>
-      </el-card>
+      </el-card> -->
 
       <el-card class="panel-card" shadow="never">
         <template #header>

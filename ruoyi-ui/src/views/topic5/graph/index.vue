@@ -14,7 +14,7 @@
         <el-step title="任务开始" />
         <el-step title="问题填报" />
         <el-step title="原始数据获取" />
-        <el-step title="故障根因分析" />
+        <el-step title="故障根因定位" />
         <el-step title="卷宗实体映射" />
         <el-step title="溯源图谱构建" />
         <el-step title="全链路追溯闭环" />
@@ -158,7 +158,7 @@
         </el-table>
 
         <!-- 部件诊断 Top3 -->
-        <div class="sub-title mt15">部件诊断 Top3</div>
+        <div class="sub-title mt15">部件诊断</div>
         <el-table
           :data="componentDiagnosisTop3"
           border
@@ -180,7 +180,7 @@
         </el-table>
 
         <!-- 故障子类型 Top5 -->
-        <div class="sub-title mt15">故障子类型 Top5</div>
+        <div class="sub-title mt15">故障子类型</div>
         <el-table
           :data="subtypeTop5"
           border
@@ -1047,7 +1047,7 @@ function workflowName(stage) {
 
   if (value === 1) return '问题填报'
   if (value === 2) return '原始数据获取'
-  if (value === 3) return '故障根因分析'
+  if (value === 3) return '故障根因定位'
   if (value === 4) return '卷宗实体映射'
   if (value === 5) return '溯源图谱构建'
   if (value === 6) return '全链路追溯闭环'

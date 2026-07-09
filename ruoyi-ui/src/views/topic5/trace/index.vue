@@ -14,7 +14,7 @@
         <el-step title="任务开始" />
         <el-step title="问题填报" />
         <el-step title="原始数据获取" />
-        <el-step title="故障根因分析" />
+        <el-step title="故障根因定位" />
         <el-step title="卷宗实体映射" />
         <el-step title="溯源图谱构建" />
         <el-step title="全链路追溯闭环" />
@@ -306,7 +306,7 @@
     <el-card class="box-card mt15">
       <template #header>
         <div class="card-header">
-          <span>根因诊断算法运行区</span>
+          <span>根因定位算法运行区</span>
         </div>
       </template>
 
@@ -325,7 +325,7 @@
           :disabled="algorithmRunning || !selectedTraceId || Number(currentTrace.workflowStage || 0) < 2"
           @click="handleRunAlgorithm"
         >
-          进行根因诊断
+          进行根因定位
         </el-button>
       </div>
 
@@ -368,11 +368,11 @@
               </el-descriptions-item>
             </el-descriptions>
 
-            <div class="sub-title mt15">故障部件诊断结果</div>
+            <div class="sub-title mt15">故障部件定位结果</div>
 
             <el-empty
               v-if="currentFirstComponentDiagnostics.length === 0"
-              description="暂无故障部件诊断结果"
+              description="暂无故障部件定位结果"
             />
 
             <el-table
@@ -406,7 +406,7 @@
 
           <el-empty
             v-else
-            description="暂无根因诊断结果"
+            description="暂无定位结果"
           />
         </el-form-item>
       </el-form>
@@ -608,13 +608,13 @@
           {{ workflowName(detail.workflowStage) }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="课题四状态">
+        <el-descriptions-item label="故障诊断状态">
           {{ topic4StatusName(detail.topic4Status) }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="附件保存位置" :span="2">
+        <!-- <el-descriptions-item label="附件保存位置" :span="2">
           {{ detail.attachmentSavePath || '未设置' }}
-        </el-descriptions-item>
+        </el-descriptions-item> -->
 
         <el-descriptions-item label="知识图谱重构">
           <el-button
@@ -665,7 +665,7 @@
         </el-descriptions-item> -->
 
 
-        <el-descriptions-item label="根因诊断算法结果" :span="2">
+        <el-descriptions-item label="根因定位算法结果" :span="2">
           <div v-if="detailFirstAlgorithmResult" class="first-algorithm-detail-box">
             <el-descriptions :column="2" border>
               <el-descriptions-item label="故障部件编号">
@@ -700,7 +700,7 @@
 
           <el-empty
             v-else
-            description="暂无根因诊断结构化结果"
+            description="暂无根因定位结构化结果"
           />
         </el-descriptions-item>
       </el-descriptions>
@@ -1248,7 +1248,7 @@ function handleImportDossier() {
   importDossierFiles(selectedTraceId.value).then(res => {
     attachmentList.value = res.data || []
 
-    proxy.$modal.msgSuccess('数字卷宗数据调用成功，已可进行根因诊断')
+    proxy.$modal.msgSuccess('数字卷宗数据调用成功，已可进行根因定位')
 
     getTrace(selectedTraceId.value).then(detailRes => {
       currentTrace.value = detailRes.data || currentTrace.value
@@ -1343,11 +1343,11 @@ function handleRunAlgorithm() {
   algorithmRunning.value = true
 
   runAlgorithm(selectedTraceId.value).then(() => {
-    proxy.$modal.msgSuccess('根因诊断算法运行完成')
+    proxy.$modal.msgSuccess('根因定位算法运行完成')
     refreshCurrentTrace()
   }).catch(err => {
-    console.error('根因诊断算法运行失败：', err)
-    proxy.$modal.msgError('根因诊断算法运行失败')
+    console.error('根因定位算法运行失败：', err)
+    proxy.$modal.msgError('根因定位算法运行失败')
   }).finally(() => {
     algorithmRunning.value = false
   })
@@ -1630,7 +1630,7 @@ function buildFileUrl(url) {
 function traceStatusTagType(status) {
   if (status === '未处理') return 'info'
   if (status === '处理中') return 'warning'
-  if (status === '根因诊断算法完成') return 'success'
+  if (status === '根因定位算法完成') return 'success'
   if (status === '知识图谱算法完成') return 'success'
   if (status === '最终溯源算法完成') return 'success'
   if (status === '溯源完成') return 'success'
@@ -1738,7 +1738,7 @@ function normalizeFirstAlgorithmResultObject(obj) {
       data.conclusion ||
       data.algorithmConclusion ||
       data.algorithm_conclusion ||
-      '当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。',
+      '当前已完成多元特征提取与初步故障根因定位，可进入后续卷宗实体映射和溯源图谱构建流程。',
 
     componentDiagnostics:
       data.componentDiagnostics ||
@@ -1890,7 +1890,7 @@ function workflowName(stage) {
   const value = Number(stage)
   if (value === 1) return '问题填报'
   if (value === 2) return '原始数据获取'
-  if (value === 3) return '故障根因分析'
+  if (value === 3) return '故障根因定位'
   if (value === 4) return '卷宗实体映射'
   if (value === 5) return '溯源图谱构建'
   if (value === 6) return '全链路追溯闭环'

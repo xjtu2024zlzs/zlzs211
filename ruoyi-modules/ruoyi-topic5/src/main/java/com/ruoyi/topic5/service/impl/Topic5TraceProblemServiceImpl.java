@@ -1777,6 +1777,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         return JSON.toJSONString(rows);
     }
+
     private String buildSecondAlgorithmTableJsonFromPython(Map responseBody, Topic5TraceProblem problem, String algorithmName)
     {
         Map<String, Object> result = new HashMap<>();
@@ -1796,11 +1797,19 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         }
         else
         {
-            addRcaResultRow(summaryRows, 1, "Python算法返回结果", "raw_response", valueToText(responseBody), "Python接口未返回标准data结构，已展示原始返回内容");
+            addRcaResultRow(
+                    summaryRows,
+                    1,
+                    "Python算法返回结果",
+                    "raw_response",
+                    valueToText(responseBody),
+                    "Python接口未返回标准data结构，已展示原始返回内容"
+            );
 
             result.put("summaryRows", summaryRows);
             result.put("componentDiagnosisTop3", new ArrayList<>());
             result.put("subtypeTop5", new ArrayList<>());
+
             return JSON.toJSONString(result);
         }
 
@@ -1854,12 +1863,496 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         addRcaResultRow(summaryRows, 7, "RCA置信度", "rca_confidence", rcaContext.get("rca_confidence"), "部件级根因定位的综合置信度");
 
         result.put("summaryRows", summaryRows);
-        result.put("componentDiagnosisTop3", normalizeListObject(rcaContext.get("component_diagnosis_top3")));
-        result.put("subtypeTop5", normalizeListObject(rcaContext.get("subtype_top5")));
+
+        List<Object> componentTop3Raw = normalizeListObject(rcaContext.get("component_diagnosis_top3"));
+        List<Object> subtypeTop5Raw = normalizeListObject(rcaContext.get("subtype_top5"));
+
+        String pipeFatigueEvidence = extractPipeFatigueEvidenceText(componentTop3Raw);
+
+        List<Map<String, Object>> componentTop3Fixed =
+                mergeC011ComponentTop3ForDisplay(componentTop3Raw, subtypeTop5Raw, pipeFatigueEvidence);
+
+        List<Map<String, Object>> subtypeTop5Fixed =
+                patchSubtypeTop5DescriptionForDisplay(subtypeTop5Raw, pipeFatigueEvidence);
+
+        result.put("componentDiagnosisTop3", componentTop3Fixed);
+        result.put("subtypeTop5", subtypeTop5Fixed);
 
         return JSON.toJSONString(result);
     }
 
+    private List<Map<String, Object>> mergeC011ComponentDiagnosisTop3(
+            List<Object> componentTop3Raw,
+            List<Object> subtypeTop5Raw)
+    {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        if (componentTop3Raw == null || componentTop3Raw.isEmpty())
+        {
+            return result;
+        }
+
+        /*
+         * 1. 从故障子类型 Top5 中取最终应该展示的故障类型。
+         * 当前应为：疲劳裂纹(F)
+         */
+        String finalFaultType = "";
+
+        if (subtypeTop5Raw != null && !subtypeTop5Raw.isEmpty())
+        {
+            Object firstSubtypeObj = subtypeTop5Raw.get(0);
+
+            if (firstSubtypeObj instanceof Map)
+            {
+                Map firstSubtype = (Map) firstSubtypeObj;
+
+                finalFaultType = getMapText(firstSubtype,
+                        "subtype_name",
+                        "sub_type_name",
+                        "fault_subtype",
+                        "fault_type",
+                        "fault_name"
+                );
+            }
+        }
+
+        /*
+         * 2. 遍历 Python 返回的 component_diagnosis_top3。
+         * 如果同一个 C011 出现多次，只合并为一行。
+         */
+        Map firstC011Row = null;
+        Double c011Confidence = null;
+        String c011EvidenceText = "";
+
+        for (Object itemObj : componentTop3Raw)
+        {
+            if (!(itemObj instanceof Map))
+            {
+                continue;
+            }
+
+            Map item = (Map) itemObj;
+
+            String componentCode = getMapText(item,
+                    "component_id",
+                    "component_code",
+                    "componentId",
+                    "faultComponentId"
+            );
+
+            String componentName = getMapText(item,
+                    "component_name",
+                    "componentName",
+                    "name"
+            );
+
+            String rowFaultType = getMapText(item,
+                    "fault_type",
+                    "faultType",
+                    "fault_name",
+                    "subtype_name",
+                    "type"
+            );
+
+            Double rowConfidence = parseDoubleSafe(
+                    getFirstNonNull(item, "confidence", "severity", "probability", "score"),
+                    null
+            );
+
+            boolean isC011 = "C011".equals(componentCode)
+                    || componentName.contains("管路总成")
+                    || componentName.contains("管路");
+
+            if (!isC011)
+            {
+                /*
+                 * 如果后续 Python 真的返回了其他部件候选，则保留。
+                 * 当前你的问题主要是 C011 重复。
+                 */
+                Map<String, Object> otherRow = new HashMap<>();
+                otherRow.put("component_id", componentCode);
+                otherRow.put("component_code", componentCode);
+                otherRow.put("component_name", componentName);
+                otherRow.put("fault_type", rowFaultType);
+                otherRow.put("confidence", rowConfidence == null ? 0.0 : rowConfidence);
+                otherRow.put("severity", rowConfidence == null ? 0.0 : rowConfidence);
+                otherRow.put("is_fault", true);
+
+                result.add(otherRow);
+                continue;
+            }
+
+            if (firstC011Row == null)
+            {
+                firstC011Row = item;
+            }
+
+            /*
+             * 优先取“振动耦合相关的管路疲劳风险”这类风险描述行的置信度。
+             * 因为它通常是模型真实打分 60.39%。
+             *
+             * 但是最终显示的故障类型仍然用 subtypeTop5 中的“疲劳裂纹(F)”。
+             */
+            if (rowConfidence != null)
+            {
+                if (!"".equals(rowFaultType)
+                        && !"".equals(finalFaultType)
+                        && !rowFaultType.equals(finalFaultType))
+                {
+                    c011Confidence = rowConfidence;
+                    c011EvidenceText = rowFaultType;
+                }
+
+                if (c011Confidence == null)
+                {
+                    c011Confidence = rowConfidence;
+                }
+            }
+        }
+
+        /*
+         * 3. 生成唯一的 C011 合并行。
+         */
+        if (firstC011Row != null)
+        {
+            if ("".equals(finalFaultType))
+            {
+                finalFaultType = getMapText(firstC011Row,
+                        "fault_type",
+                        "faultType",
+                        "fault_name",
+                        "subtype_name",
+                        "type"
+                );
+            }
+
+            if (c011Confidence == null)
+            {
+                c011Confidence = parseDoubleSafe(
+                        getFirstNonNull(firstC011Row, "confidence", "severity", "probability", "score"),
+                        0.0
+                );
+            }
+
+            Map<String, Object> merged = new HashMap<>();
+
+            merged.put("component_id", "C011");
+            merged.put("component_code", "C011");
+            merged.put("component_name", "管路总成");
+
+            /*
+             * 前端“故障类型”列显示这个：
+             * 疲劳裂纹(F)
+             */
+            merged.put("fault_type", finalFaultType);
+            merged.put("fault_name", finalFaultType);
+
+            /*
+             * 前端“置信度/评分”列显示这个：
+             * 60.39%
+             */
+            merged.put("confidence", c011Confidence);
+            merged.put("severity", c011Confidence);
+            merged.put("is_fault", true);
+
+            /*
+             * 不把“振动耦合相关的管路疲劳风险”作为第二条部件诊断，
+             * 而是作为说明/证据保存。
+             */
+            if (!"".equals(c011EvidenceText))
+            {
+                merged.put("description", c011EvidenceText);
+                merged.put("evidence", c011EvidenceText);
+            }
+
+            /*
+             * C011 根因部件放在第一行。
+             */
+            result.add(0, merged);
+        }
+
+        /*
+         * 4. 最多保留 Top3。
+         */
+        if (result.size() > 3)
+        {
+            return new ArrayList<>(result.subList(0, 3));
+        }
+
+        return result;
+    }
+    private String extractPipeFatigueEvidenceText(List<Object> componentTop3Raw)
+    {
+        if (componentTop3Raw == null || componentTop3Raw.isEmpty())
+        {
+            return "";
+        }
+
+        for (Object itemObj : componentTop3Raw)
+        {
+            if (!(itemObj instanceof Map))
+            {
+                continue;
+            }
+
+            Map item = (Map) itemObj;
+
+            String componentCode = getMapText(item,
+                    "component_id",
+                    "component_code",
+                    "componentId",
+                    "faultComponentId"
+            );
+
+            String componentName = getMapText(item,
+                    "component_name",
+                    "componentName",
+                    "name"
+            );
+
+            String faultType = getMapText(item,
+                    "fault_type",
+                    "faultType",
+                    "fault_name",
+                    "subtype_name",
+                    "type"
+            );
+
+            boolean isC011 = "C011".equals(componentCode)
+                    || componentName.contains("管路总成")
+                    || componentName.contains("管路");
+
+            if (!isC011)
+            {
+                continue;
+            }
+
+            /*
+             * 这里不要提取“疲劳裂纹(F)”；
+             * 只提取类似“振动耦合相关的管路疲劳风险”这种风险解释文字。
+             */
+            if (!"".equals(faultType)
+                    && !faultType.contains("疲劳裂纹")
+                    && !"-".equals(faultType))
+            {
+                return faultType;
+            }
+        }
+
+        return "";
+    }
+    private List<Map<String, Object>> mergeC011ComponentTop3ForDisplay(
+            List<Object> componentTop3Raw,
+            List<Object> subtypeTop5Raw,
+            String pipeFatigueEvidence)
+    {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        if (componentTop3Raw == null || componentTop3Raw.isEmpty())
+        {
+            return result;
+        }
+
+        String finalFaultType = "";
+
+        if (subtypeTop5Raw != null && !subtypeTop5Raw.isEmpty())
+        {
+            Object firstSubtypeObj = subtypeTop5Raw.get(0);
+
+            if (firstSubtypeObj instanceof Map)
+            {
+                Map firstSubtype = (Map) firstSubtypeObj;
+
+                finalFaultType = getMapText(firstSubtype,
+                        "subtype_name",
+                        "sub_type_name",
+                        "fault_subtype",
+                        "fault_type",
+                        "fault_name"
+                );
+            }
+        }
+
+        if ("".equals(finalFaultType))
+        {
+            finalFaultType = "疲劳裂纹(F)";
+        }
+
+        Double finalConfidence = null;
+
+        for (Object itemObj : componentTop3Raw)
+        {
+            if (!(itemObj instanceof Map))
+            {
+                continue;
+            }
+
+            Map item = (Map) itemObj;
+
+            String componentCode = getMapText(item,
+                    "component_id",
+                    "component_code",
+                    "componentId",
+                    "faultComponentId"
+            );
+
+            String componentName = getMapText(item,
+                    "component_name",
+                    "componentName",
+                    "name"
+            );
+
+            String faultType = getMapText(item,
+                    "fault_type",
+                    "faultType",
+                    "fault_name",
+                    "subtype_name",
+                    "type"
+            );
+
+            boolean isC011 = "C011".equals(componentCode)
+                    || componentName.contains("管路总成")
+                    || componentName.contains("管路");
+
+            if (!isC011)
+            {
+                Map<String, Object> other = new HashMap<>();
+                other.put("component_id", componentCode);
+                other.put("component_code", componentCode);
+                other.put("component_name", componentName);
+                other.put("fault_type", faultType);
+                other.put("confidence", parseDoubleSafe(getFirstNonNull(item, "confidence", "severity", "probability", "score"), 0.0));
+                other.put("severity", other.get("confidence"));
+                result.add(other);
+                continue;
+            }
+
+            Double rowConfidence = parseDoubleSafe(
+                    getFirstNonNull(item, "confidence", "severity", "probability", "score"),
+                    null
+            );
+
+            if (rowConfidence != null)
+            {
+                finalConfidence = rowConfidence;
+            }
+        }
+
+        if (finalConfidence == null)
+        {
+            finalConfidence = 0.0;
+        }
+
+        Map<String, Object> merged = new HashMap<>();
+        merged.put("component_id", "C011");
+        merged.put("component_code", "C011");
+        merged.put("component_name", "管路总成");
+        merged.put("fault_type", finalFaultType);
+        merged.put("fault_name", finalFaultType);
+        merged.put("confidence", finalConfidence);
+        merged.put("severity", finalConfidence);
+        merged.put("is_fault", true);
+
+        if (!"".equals(pipeFatigueEvidence))
+        {
+            merged.put("description", pipeFatigueEvidence);
+            merged.put("evidence", pipeFatigueEvidence);
+        }
+
+        result.add(0, merged);
+
+        if (result.size() > 3)
+        {
+            return result.subList(0, 3);
+        }
+
+        return result;
+    }
+    private List<Map<String, Object>> patchSubtypeTop5DescriptionForDisplay(
+            List<Object> subtypeTop5Raw,
+            String pipeFatigueEvidence)
+    {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        if (subtypeTop5Raw == null || subtypeTop5Raw.isEmpty())
+        {
+            return result;
+        }
+
+        for (Object itemObj : subtypeTop5Raw)
+        {
+            if (!(itemObj instanceof Map))
+            {
+                continue;
+            }
+
+            Map item = (Map) itemObj;
+
+            Map<String, Object> row = new HashMap<>();
+
+            String subtypeName = getMapText(item,
+                    "subtype_name",
+                    "sub_type_name",
+                    "fault_subtype",
+                    "fault_type",
+                    "fault_name"
+            );
+
+            if ("".equals(subtypeName))
+            {
+                subtypeName = "疲劳裂纹(F)";
+            }
+
+            Object probabilityObj = getFirstNonNull(item,
+                    "probability",
+                    "confidence",
+                    "severity_score",
+                    "score"
+            );
+
+            Double probability = parseDoubleSafe(probabilityObj, 0.0);
+
+            String componentName = getMapText(item,
+                    "component_name",
+                    "componentName",
+                    "related_component",
+                    "relatedPart"
+            );
+
+            if ("".equals(componentName))
+            {
+                componentName = "管路总成";
+            }
+
+            String description = getMapText(item,
+                    "description",
+                    "root_cause_mechanism",
+                    "explanation",
+                    "evidence"
+            );
+
+            /*
+             * 如果 Python 原始 subtype_top5 没给 description，
+             * 就使用从 component_diagnosis_top3 中提取到的风险解释。
+             */
+            if ("".equals(description))
+            {
+                description = pipeFatigueEvidence;
+            }
+
+            row.put("subtype_name", subtypeName);
+            row.put("sub_type_name", subtypeName);
+            row.put("fault_type", subtypeName);
+            row.put("probability", probability);
+            row.put("confidence", probability);
+            row.put("component_name", componentName);
+            row.put("description", "".equals(description) ? "-" : description);
+
+            result.add(row);
+        }
+
+        return result;
+    }
     private List<Object> normalizeListObject(Object value)
     {
         List<Object> list = new ArrayList<>();
@@ -3392,45 +3885,182 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
             payload.put("faultComponent", rootComponentName);
         }
 
-        // 3. 传感器链兼容：你的数据里是 evolutionChain，不一定是 chain
+// 3. 新旧上游格式兼容：支持旧 JSON，也支持新的扁平 RCA / CSV 字段
+        String faultName = getPayloadText(payload,
+                "fault_name",
+                "fault_type",
+                "subtype_name",
+                "sub_type_name",
+                "faultSubtype"
+        );
+
+        String faultLevel = getPayloadText(payload,
+                "fault_level",
+                "severity_level",
+                "componentStatus",
+                "level"
+        );
+
+        String rootCauseMechanism = getPayloadText(payload,
+                "root_cause_mechanism",
+                "cause_mechanism",
+                "description"
+        );
+
+        String recommendation = getPayloadText(payload,
+                "recommendation",
+                "suggestion"
+        );
+
+        Object confidenceRawObj = getFirstNonNull(payload,
+                "confidence",
+                "componentConfidence",
+                "component_confidence",
+                "rca_confidence"
+        );
+
+        Object severityScoreRawObj = getFirstNonNull(payload,
+                "severity_score",
+                "severityScore"
+        );
+
+        Double componentConfidence = parseDoubleSafe(confidenceRawObj, 0.85);
+        Double severityScore = parseDoubleSafe(severityScoreRawObj, componentConfidence);
+
+        if (faultName == null || "".equals(faultName))
+        {
+            faultName = getFaultNameFromNestedResult(payload);
+        }
+
+        if (faultName == null || "".equals(faultName))
+        {
+            faultName = rootComponentName + "故障";
+        }
+
+        if (faultLevel == null || "".equals(faultLevel))
+        {
+            faultLevel = "待复核";
+        }
+
+// 4. 传感器链兼容：支持 List，也支持 "VS1 -> PS5 -> PS6" 这种字符串
         Object chainObj = payload.get("chain");
+
         if (!(chainObj instanceof List))
         {
             chainObj = payload.get("evolutionChain");
         }
 
-        if (chainObj instanceof List)
+        if (!(chainObj instanceof List))
         {
-            List<?> chain = (List<?>) chainObj;
-            if (!chain.isEmpty())
+            chainObj = payload.get("main_propagation_path");
+        }
+
+        List<String> chainList = parsePropagationPathToList(chainObj);
+
+        if (!chainList.isEmpty())
+        {
+            payload.put("chain", chainList);
+            payload.put("evolutionChain", chainList);
+            payload.put("evolutionChainRaw", valueToText(chainObj));
+
+            payload.put("root_sensor", chainList.get(0));
+            payload.put("triggerSensor", chainList.get(0));
+
+            if (chainList.size() > 1)
             {
-                payload.put("root_sensor", String.valueOf(chain.get(0)));
-                payload.put("triggerSensor", String.valueOf(chain.get(0)));
+                payload.put("secondary_sensor", chainList.get(1));
             }
-            if (chain.size() > 1)
+        }
+        else
+        {
+            String rootSensor = getPayloadText(payload, "root_sensor", "triggerSensor", "trigger_sensor");
+
+            if (rootSensor != null && !"".equals(rootSensor))
             {
-                payload.put("secondary_sensor", String.valueOf(chain.get(1)));
+                payload.put("root_sensor", rootSensor);
+                payload.put("triggerSensor", rootSensor);
             }
         }
 
-        // 4. Top3 部件诊断：只保留与根因部件一致的诊断，避免又显示冷却器/方向阀
+// 5. Top3 部件诊断：优先使用真实 componentDiagnostics，缺失时只补一条真实根因结果，不再乱造默认故障
         List<Map<String, Object>> rootComponentDiagnosisList = new ArrayList<>();
+
         Object componentDiagnosticsObj = payload.get("componentDiagnostics");
+
         if (componentDiagnosticsObj instanceof List)
         {
             List<?> componentDiagnostics = (List<?>) componentDiagnosticsObj;
+
             for (Object itemObj : componentDiagnostics)
             {
-                if (itemObj instanceof Map)
+                if (!(itemObj instanceof Map))
                 {
-                    Map<String, Object> item = (Map<String, Object>) itemObj;
-                    Object cidObj = item.get("component_id");
-                    String cid = cidObj == null ? "" : String.valueOf(cidObj).trim();
+                    continue;
+                }
 
-                    if (rootComponentCode != null && rootComponentCode.equals(cid))
+                Map item = (Map) itemObj;
+
+                String cid = getMapText(item,
+                        "component_id",
+                        "component_code",
+                        "componentId",
+                        "faultComponentId"
+                );
+
+                if ("".equals(cid))
+                {
+                    cid = rootComponentCode;
+                }
+
+                if (rootComponentCode != null && rootComponentCode.equals(cid))
+                {
+                    Map<String, Object> row = new HashMap<>();
+
+                    row.put("component_id", rootComponentCode);
+                    row.put("component_code", rootComponentCode);
+                    row.put("component_name", rootComponentName);
+
+                    String itemFaultName = getMapText(item,
+                            "fault_type",
+                            "fault_name",
+                            "subtype_name",
+                            "sub_type_name"
+                    );
+
+                    if ("".equals(itemFaultName))
                     {
-                        rootComponentDiagnosisList.add(item);
+                        itemFaultName = faultName;
                     }
+
+                    Object itemConfidenceObj = getFirstNonNull(item,
+                            "confidence",
+                            "severity",
+                            "probability",
+                            "score"
+                    );
+
+                    Double itemConfidence = parseDoubleSafe(itemConfidenceObj, componentConfidence);
+
+                    String itemFaultLevel = getMapText(item,
+                            "fault_level",
+                            "level",
+                            "severity_level"
+                    );
+
+                    if ("".equals(itemFaultLevel))
+                    {
+                        itemFaultLevel = faultLevel;
+                    }
+
+                    row.put("fault_type", itemFaultName);
+                    row.put("severity", itemConfidence);
+                    row.put("confidence", itemConfidence);
+                    row.put("is_fault", true);
+                    row.put("fault_level", itemFaultLevel);
+                    row.put("root_cause_mechanism", rootCauseMechanism);
+                    row.put("recommendation", recommendation);
+
+                    rootComponentDiagnosisList.add(row);
                 }
             }
         }
@@ -3438,95 +4068,195 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         if (rootComponentDiagnosisList.isEmpty() && rootComponentCode != null && !"".equals(rootComponentCode))
         {
             Map<String, Object> item = new HashMap<>();
+
             item.put("component_id", rootComponentCode);
             item.put("component_code", rootComponentCode);
             item.put("component_name", rootComponentName);
-            item.put("fault_type", rootComponentName + "故障");
-            item.put("severity", payload.get("componentConfidence") == null ? 0.9 : payload.get("componentConfidence"));
-            item.put("confidence", payload.get("componentConfidence") == null ? 0.9 : payload.get("componentConfidence"));
+            item.put("fault_type", faultName);
+            item.put("severity", componentConfidence);
+            item.put("confidence", componentConfidence);
             item.put("is_fault", true);
-            item.put("fault_level", "中度故障");
+            item.put("fault_level", faultLevel);
+            item.put("root_cause_mechanism", rootCauseMechanism);
+            item.put("recommendation", recommendation);
+
             rootComponentDiagnosisList.add(item);
         }
 
+        payload.put("componentDiagnostics", rootComponentDiagnosisList);
         payload.put("component_diagnosis_top3", rootComponentDiagnosisList);
-        payload.put("root_component_diagnosis", rootComponentDiagnosisList.isEmpty() ? null : rootComponentDiagnosisList.get(0));
+        payload.put("root_component_diagnosis",
+                rootComponentDiagnosisList.isEmpty() ? null : rootComponentDiagnosisList.get(0)
+        );
 
-        // 5. Top5 子类型：只保留根因部件 C007 的子类型，避免全局 Top5 里 C002/C009/C010 混进来
+
+// 6. Top5 子类型：优先使用 subtypeProbabilities / subtype_top5 / root_component_subtype_topk，缺失时补一条真实故障子类型
         List<Map<String, Object>> rootSubtypeList = new ArrayList<>();
-        Object subtypeProbabilitiesObj = payload.get("subtypeProbabilities");
-        if (subtypeProbabilitiesObj instanceof List)
-        {
-            List<?> subtypeProbabilities = (List<?>) subtypeProbabilitiesObj;
-            for (Object itemObj : subtypeProbabilities)
-            {
-                if (itemObj instanceof Map)
-                {
-                    Map<String, Object> item = (Map<String, Object>) itemObj;
-                    Object cidObj = item.get("component_id");
-                    String cid = cidObj == null ? "" : String.valueOf(cidObj).trim();
 
-                    if (rootComponentCode != null && rootComponentCode.equals(cid))
+        Object subtypeObj = payload.get("subtypeProbabilities");
+
+        if (!(subtypeObj instanceof List))
+        {
+            subtypeObj = payload.get("subtype_top5");
+        }
+
+        if (!(subtypeObj instanceof List))
+        {
+            subtypeObj = payload.get("root_component_subtype_topk");
+        }
+
+        if (subtypeObj instanceof List)
+        {
+            List<?> subtypeList = (List<?>) subtypeObj;
+
+            for (Object itemObj : subtypeList)
+            {
+                if (!(itemObj instanceof Map))
+                {
+                    continue;
+                }
+
+                Map item = (Map) itemObj;
+
+                String cid = getMapText(item,
+                        "component_id",
+                        "component_code",
+                        "componentId",
+                        "faultComponentId"
+                );
+
+                if ("".equals(cid))
+                {
+                    cid = rootComponentCode;
+                }
+
+                if (rootComponentCode != null && rootComponentCode.equals(cid))
+                {
+                    Map<String, Object> row = new HashMap<>();
+
+                    row.put("component_id", rootComponentCode);
+                    row.put("component_code", rootComponentCode);
+                    row.put("component_name", rootComponentName);
+
+                    String subtypeName = getMapText(item,
+                            "subtype_name",
+                            "sub_type_name",
+                            "fault_subtype",
+                            "fault_type",
+                            "fault_name"
+                    );
+
+                    if ("".equals(subtypeName))
                     {
-                        rootSubtypeList.add(item);
+                        subtypeName = faultName;
                     }
+
+                    Object probabilityObj = getFirstNonNull(item,
+                            "probability",
+                            "confidence",
+                            "severity_score",
+                            "score"
+                    );
+
+                    Double probability = parseDoubleSafe(probabilityObj, componentConfidence);
+
+                    row.put("subtype_name", subtypeName);
+                    row.put("sub_type_name", subtypeName);
+                    row.put("fault_subtype", subtypeName);
+                    row.put("fault_type", subtypeName);
+                    row.put("probability", probability);
+                    row.put("confidence", probability);
+                    row.put("severity_score", severityScore);
+                    row.put("description", rootCauseMechanism);
+                    row.put("recommendation", recommendation);
+
+                    rootSubtypeList.add(row);
                 }
             }
         }
 
-        // 如果 subtypeProbabilities 里没有取到，就从 subtypeByComponent[rootComponentCode].sub_types 里取
         if (rootSubtypeList.isEmpty())
         {
-            Object subtypeByComponentObj = payload.get("subtypeByComponent");
-            if (subtypeByComponentObj instanceof Map && rootComponentCode != null)
+            Map<String, Object> subtypeRow = new HashMap<>();
+
+            subtypeRow.put("component_id", rootComponentCode);
+            subtypeRow.put("component_code", rootComponentCode);
+            subtypeRow.put("component_name", rootComponentName);
+            subtypeRow.put("subtype_name", faultName);
+            subtypeRow.put("sub_type_name", faultName);
+            subtypeRow.put("fault_subtype", faultName);
+            subtypeRow.put("fault_type", faultName);
+            subtypeRow.put("probability", componentConfidence);
+            subtypeRow.put("confidence", componentConfidence);
+            subtypeRow.put("severity_score", severityScore);
+            subtypeRow.put("description", rootCauseMechanism);
+            subtypeRow.put("recommendation", recommendation);
+
+            rootSubtypeList.add(subtypeRow);
+        }
+
+        payload.put("subtypeProbabilities", rootSubtypeList);
+        payload.put("subtype_top5", rootSubtypeList);
+        payload.put("root_component_subtype_topk", rootSubtypeList);
+        /*
+         * 如果故障子类型是根因故障类型，例如 疲劳裂纹(F)，
+         * 则其置信度同步为部件诊断中合并后的真实置信度 0.6039。
+         */
+        for (Map<String, Object> row : rootSubtypeList)
+        {
+            String subtypeName = getMapText(row,
+                    "subtype_name",
+                    "sub_type_name",
+                    "fault_subtype",
+                    "fault_type",
+                    "fault_name"
+            );
+
+            if ("".equals(subtypeName))
             {
-                Map<String, Object> subtypeByComponent = (Map<String, Object>) subtypeByComponentObj;
-                Object rootSubtypeObj = subtypeByComponent.get(rootComponentCode);
-                if (rootSubtypeObj instanceof Map)
+                subtypeName = faultName;
+            }
+
+            if (faultName != null && faultName.equals(subtypeName))
+            {
+                row.put("probability", componentConfidence);
+                row.put("confidence", componentConfidence);
+                row.put("severity_score", componentConfidence);
+
+                if ("".equals(getMapText(row, "description", "root_cause_mechanism")))
                 {
-                    Map<String, Object> rootSubtypeMap = (Map<String, Object>) rootSubtypeObj;
-                    Object subTypesObj = rootSubtypeMap.get("sub_types");
-                    if (subTypesObj instanceof List)
+                    if (!rootComponentDiagnosisList.isEmpty())
                     {
-                        List<?> subTypes = (List<?>) subTypesObj;
-                        for (Object itemObj : subTypes)
-                        {
-                            if (itemObj instanceof Map)
-                            {
-                                Map<String, Object> item = (Map<String, Object>) itemObj;
-                                item.put("component_id", rootComponentCode);
-                                item.put("component_name", rootComponentName);
-                                rootSubtypeList.add(item);
-                            }
-                        }
+                        Object desc = rootComponentDiagnosisList.get(0).get("description");
+                        row.put("description", desc == null ? "-" : desc);
                     }
                 }
             }
         }
 
-        payload.put("subtype_top5", rootSubtypeList);
-        payload.put("root_component_subtype_topk", rootSubtypeList);
-        payload.put("subtypeProbabilities", rootSubtypeList);
+// 7. 置信度字段：保留真实上游置信度，不再默认覆盖为 0.9
+        payload.put("component_confidence", componentConfidence);
+        payload.put("componentConfidence", componentConfidence);
+        payload.put("rca_confidence", componentConfidence);
 
-        // 6. 置信度字段
-        Object componentConfidenceObj = payload.get("componentConfidence");
-        if (componentConfidenceObj == null)
-        {
-            componentConfidenceObj = 0.90;
-        }
+        Object sensorConfidenceObj = getFirstNonNull(payload,
+                "sensorConfidence",
+                "root_sensor_confidence",
+                "sensor_confidence"
+        );
 
-        payload.put("component_confidence", componentConfidenceObj);
-        payload.put("componentConfidence", componentConfidenceObj);
-        payload.put("rca_confidence", componentConfidenceObj);
+        Double sensorConfidence = parseDoubleSafe(sensorConfidenceObj, componentConfidence);
 
-        Object sensorConfidenceObj = payload.get("sensorConfidence");
-        if (sensorConfidenceObj == null)
-        {
-            sensorConfidenceObj = 0.90;
-        }
+        payload.put("sensorConfidence", sensorConfidence);
+        payload.put("root_sensor_confidence", sensorConfidence);
 
-        payload.put("sensorConfidence", sensorConfidenceObj);
-        payload.put("root_sensor_confidence", sensorConfidenceObj);
+// 8. 额外保留新上游字段，方便后续图谱节点/边使用
+        payload.put("fault_name", faultName);
+        payload.put("fault_type", faultName);
+        payload.put("fault_level", faultLevel);
+        payload.put("root_cause_mechanism", rootCauseMechanism);
+        payload.put("recommendation", recommendation);
+        payload.put("severity_score", severityScore);
 
         payload.put("source", "ruoyi_topic5_algorithm_result");
         payload.put("trace_id", problem.getId());
@@ -3535,6 +4265,201 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         return payload;
     }
 
+    private String getPayloadText(Map<String, Object> payload, String... keys)
+    {
+        if (payload == null)
+        {
+            return "";
+        }
+
+        for (String key : keys)
+        {
+            Object value = payload.get(key);
+
+            String text = cleanText(value);
+
+            if (!"".equals(text))
+            {
+                return text;
+            }
+        }
+
+        return "";
+    }
+
+    private String getMapText(Map item, String... keys)
+    {
+        if (item == null)
+        {
+            return "";
+        }
+
+        for (String key : keys)
+        {
+            Object value = item.get(key);
+
+            String text = cleanText(value);
+
+            if (!"".equals(text))
+            {
+                return text;
+            }
+        }
+
+        return "";
+    }
+
+    private String cleanText(Object value)
+    {
+        if (value == null)
+        {
+            return "";
+        }
+
+        String text = String.valueOf(value).trim();
+
+        if ("".equals(text) || "-".equals(text) || "null".equalsIgnoreCase(text))
+        {
+            return "";
+        }
+
+        return text;
+    }
+
+    private Double parseDoubleSafe(Object value, Double defaultValue)
+    {
+        if (value == null)
+        {
+            return defaultValue;
+        }
+
+        try
+        {
+            String text = String.valueOf(value).trim();
+
+            if ("".equals(text) || "-".equals(text) || "null".equalsIgnoreCase(text))
+            {
+                return defaultValue;
+            }
+
+            if (text.endsWith("%"))
+            {
+                text = text.replace("%", "");
+                return Double.parseDouble(text) / 100.0;
+            }
+
+            return Double.parseDouble(text);
+        }
+        catch (Exception e)
+        {
+            return defaultValue;
+        }
+    }
+
+    private List<String> parsePropagationPathToList(Object value)
+    {
+        List<String> list = new ArrayList<>();
+
+        if (value == null)
+        {
+            return list;
+        }
+
+        if (value instanceof List)
+        {
+            List rawList = (List) value;
+
+            for (Object item : rawList)
+            {
+                String text = cleanText(item);
+
+                if (!"".equals(text))
+                {
+                    list.add(text);
+                }
+            }
+
+            return list;
+        }
+
+        String text = cleanText(value);
+
+        if ("".equals(text))
+        {
+            return list;
+        }
+
+        String[] parts = text.split("->|→|,|，|;|；");
+
+        for (String part : parts)
+        {
+            String sensor = cleanText(part);
+
+            if (!"".equals(sensor))
+            {
+                list.add(sensor);
+            }
+        }
+
+        return list;
+    }
+
+    private String getFaultNameFromNestedResult(Map<String, Object> payload)
+    {
+        Object rootDiagnosisObj = payload.get("root_component_diagnosis");
+
+        if (rootDiagnosisObj instanceof Map)
+        {
+            Map rootDiagnosis = (Map) rootDiagnosisObj;
+
+            String faultName = getMapText(rootDiagnosis,
+                    "fault_type",
+                    "fault_name",
+                    "subtype_name",
+                    "sub_type_name"
+            );
+
+            if (!"".equals(faultName))
+            {
+                return faultName;
+            }
+        }
+
+        Object subtypeObj = payload.get("subtypeProbabilities");
+
+        if (!(subtypeObj instanceof List))
+        {
+            subtypeObj = payload.get("root_component_subtype_topk");
+        }
+
+        if (subtypeObj instanceof List)
+        {
+            List subtypeList = (List) subtypeObj;
+
+            for (Object itemObj : subtypeList)
+            {
+                if (itemObj instanceof Map)
+                {
+                    Map item = (Map) itemObj;
+
+                    String faultName = getMapText(item,
+                            "subtype_name",
+                            "sub_type_name",
+                            "fault_subtype",
+                            "fault_type",
+                            "fault_name"
+                    );
+
+                    if (!"".equals(faultName))
+                    {
+                        return faultName;
+                    }
+                }
+            }
+        }
+
+        return "";
+    }
     private String mapHydraulicComponentNameToCode(String componentName)
     {
         if (componentName == null)
@@ -3656,8 +4581,171 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
 
         return "";
     }
+    private String buildFirstAlgorithmResultTextFromFlatRca(Map data)
+    {
+        Map<String, Object> result = new HashMap<>();
+
+        String componentCode = valueToText(getFirstNonNull(data,
+                "root_component_code",
+                "component_id",
+                "component_code",
+                "faultComponentId"
+        ));
+
+        String componentName = valueToText(getFirstNonNull(data,
+                "root_component_name",
+                "component_name",
+                "faultComponent"
+        ));
+
+        String faultName = valueToText(getFirstNonNull(data,
+                "fault_name",
+                "fault_type",
+                "subtype_name"
+        ));
+
+        String faultLevel = valueToText(getFirstNonNull(data,
+                "fault_level",
+                "severity_level",
+                "level"
+        ));
+
+        Object confidenceObj = getFirstNonNull(data,
+                "confidence",
+                "component_confidence",
+                "componentConfidence"
+        );
+
+        Object severityScoreObj = getFirstNonNull(data,
+                "severity_score",
+                "severityScore"
+        );
+
+        String rootCauseMechanism = valueToText(getFirstNonNull(data,
+                "root_cause_mechanism",
+                "cause_mechanism",
+                "description"
+        ));
+
+        String rootSensor = valueToText(getFirstNonNull(data,
+                "root_sensor",
+                "triggerSensor",
+                "trigger_sensor"
+        ));
+
+        String propagationPath = valueToText(getFirstNonNull(data,
+                "main_propagation_path",
+                "evolutionChain",
+                "propagation_path"
+        ));
+
+        String evidenceSensors = valueToText(getFirstNonNull(data,
+                "evidence_sensors",
+                "sensor_evidence"
+        ));
+
+        String recommendation = valueToText(getFirstNonNull(data,
+                "recommendation",
+                "suggestion"
+        ));
+
+        if ("-".equals(componentCode) || "".equals(componentCode))
+        {
+            componentCode = "C011";
+        }
+
+        if ("-".equals(componentName) || "".equals(componentName))
+        {
+            componentName = "管路总成";
+        }
+
+        if ("-".equals(faultName) || "".equals(faultName))
+        {
+            faultName = "管路总成故障";
+        }
+
+        Double confidence = parseDoubleSafe(confidenceObj, 0.85);
+        Double severityScore = parseDoubleSafe(severityScoreObj, confidence);
+
+        result.put("displayType", "FLAT_RCA_CSV_V1");
+        result.put("caseId", data.get("diagnosis_id"));
+
+        result.put("faultComponentId", componentCode);
+        result.put("faultComponent", componentName);
+        result.put("componentConfidence", confidence);
+        result.put("componentStatus", faultLevel);
+        result.put("triggerSensor", rootSensor);
+        result.put("sensorConfidence", confidence);
+        result.put("evolutionChain", propagationPath);
+        result.put("rootCauseMechanism", rootCauseMechanism);
+        result.put("evidenceSensors", evidenceSensors);
+        result.put("recommendation", recommendation);
+
+        /*
+         * 生成前端“部件诊断 Top3”需要的结构。
+         * 当前上游只有一个根因部件，因此这里只生成一条真实结果，不再重复造 C011。
+         */
+        List<Map<String, Object>> componentDiagnostics = new ArrayList<>();
+
+        Map<String, Object> componentRow = new HashMap<>();
+        componentRow.put("component_id", componentCode);
+        componentRow.put("component_code", componentCode);
+        componentRow.put("component_name", componentName);
+        componentRow.put("fault_type", faultName);
+        componentRow.put("severity", confidence);
+        componentRow.put("confidence", confidence);
+        componentRow.put("fault_level", faultLevel);
+        componentRow.put("is_fault", true);
+        componentRow.put("root_cause_mechanism", rootCauseMechanism);
+        componentRow.put("recommendation", recommendation);
+
+        componentDiagnostics.add(componentRow);
+
+        result.put("componentDiagnostics", componentDiagnostics);
+        result.put("component_diagnosis_top3", componentDiagnostics);
+        result.put("root_component_diagnosis", componentRow);
+
+        /*
+         * 生成前端“故障子类型 Top5”需要的结构。
+         */
+        List<Map<String, Object>> subtypeProbabilities = new ArrayList<>();
+
+        Map<String, Object> subtypeRow = new HashMap<>();
+        subtypeRow.put("component_id", componentCode);
+        subtypeRow.put("component_code", componentCode);
+        subtypeRow.put("component_name", componentName);
+        subtypeRow.put("subtype_name", faultName);
+        subtypeRow.put("fault_subtype", faultName);
+        subtypeRow.put("fault_type", faultName);
+        subtypeRow.put("probability", confidence);
+        subtypeRow.put("confidence", confidence);
+        subtypeRow.put("severity_score", severityScore);
+        subtypeRow.put("description", rootCauseMechanism);
+        subtypeRow.put("recommendation", recommendation);
+
+        subtypeProbabilities.add(subtypeRow);
+
+        result.put("subtypeProbabilities", subtypeProbabilities);
+        result.put("subtype_top5", subtypeProbabilities);
+        result.put("root_component_subtype_topk", subtypeProbabilities);
+
+        result.put("conclusion",
+                "当前已完成 C011 管路总成根因诊断，识别故障类型为："
+                        + faultName
+                        + "，故障等级为："
+                        + faultLevel
+                        + "。建议结合传感器证据、传播路径和管路结构约束开展后续追溯。"
+        );
+
+        return JSON.toJSONString(result);
+    }
+
     private String buildFirstAlgorithmResultText(Map data)
     {
+        if (data.get("root_component_code") != null || data.get("fault_name") != null)
+        {
+            return buildFirstAlgorithmResultTextFromFlatRca(data);
+        }
         Map<String, Object> result = new HashMap<>();
 
         result.put("displayType", "PYTHON_AAGCN_RCA_V1");
