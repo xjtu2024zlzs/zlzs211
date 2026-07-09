@@ -20,7 +20,9 @@ import java.nio.file.StandardCopyOption;
 import java.net.URLEncoder;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -34,6 +36,7 @@ import java.io.IOException;
 public class DesignOptimizationService {
 
     private static final DateTimeFormatter TASK_NO_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final String ANSYS_MODE_DEMO = "DEMO_SIMULATION_MODEL";
     private static final String ANSYS_MODE_FSI = "BIDIRECTIONAL_FSI_MODEL";
     private static final Set<String> PIPE_IMPACT_LAYOUT_RECOMMENDED_ITEMS = Set.of(
@@ -1068,7 +1071,7 @@ public class DesignOptimizationService {
                 "passed", passed,
                 "submitComment", str(row.get("submitComment"), ""),
                 "submitBy", str(row.get("submitBy"), ""),
-                "submitTime", row.get("submitTime")
+                "submitTime", dateTimeText(row.get("submitTime"))
             );
         } catch (Exception e) {
             return mapOf("submitted", false, "errorMessage", e.getMessage());
@@ -3908,6 +3911,43 @@ public class DesignOptimizationService {
         } catch (Exception e) {
             return 1L;
         }
+    }
+
+    private String dateTimeText(Object value) {
+        if (value == null || String.valueOf(value).isBlank() || "null".equals(String.valueOf(value))) {
+            return "";
+        }
+        if (value instanceof LocalDateTime dateTime) {
+            return dateTime.format(DATE_TIME);
+        }
+        if (value instanceof java.sql.Timestamp timestamp) {
+            return timestamp.toLocalDateTime().format(DATE_TIME);
+        }
+        if (value instanceof Date date) {
+            return LocalDateTime.ofInstant(Instant.ofEpochMilli(date.getTime()), ZoneId.systemDefault()).format(DATE_TIME);
+        }
+        String text = String.valueOf(value).trim().replace("T", " ");
+        if (text.matches("\\d{4},\\d{1,2},\\d{1,2}(,\\d{1,2}){0,3}.*")) {
+            try {
+                String[] parts = text.split(",");
+                String year = parts[0].trim();
+                String month = parts.length > 1 ? parts[1].trim() : "1";
+                String day = parts.length > 2 ? parts[2].trim() : "1";
+                String hour = parts.length > 3 ? parts[3].trim() : "0";
+                String minute = parts.length > 4 ? parts[4].trim() : "0";
+                String second = parts.length > 5 ? parts[5].trim() : "0";
+                return String.format("%s-%02d-%02d %02d:%02d:%02d",
+                    year,
+                    Integer.parseInt(month),
+                    Integer.parseInt(day),
+                    Integer.parseInt(hour),
+                    Integer.parseInt(minute),
+                    Integer.parseInt(second));
+            } catch (Exception ignored) {
+                return text;
+            }
+        }
+        return text.length() >= 19 ? text.substring(0, 19) : text;
     }
 
     private String str(Object value, String fallback) {

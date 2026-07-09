@@ -1052,12 +1052,41 @@ function submit() {
     discipline: discipline.value,
     items: buildSubmitItems(),
     remark: remark.value
-  }).then(() => {
+  }).then(res => {
     ElMessage.success('已提交，流程将进入下一学科或冲突校验。')
-    loadTaskContext()
+    handleSubmittedStage(res.data || {})
   }).finally(() => {
     saving.value = false
   })
+}
+
+function handleSubmittedStage(data) {
+  const nextTaskId = data.task?.taskId || taskId.value
+  const nodeKey = data.nodeKey || data.task?.currentNodeKey || ''
+  const nextRoute = data.stageRoute || ''
+  if (nextRoute && nextRoute !== '/designtask/objective') {
+    router.push({ path: nextRoute, query: { taskId: nextTaskId } })
+    return
+  }
+
+  const nextDiscipline = nodeDisciplineMap[nodeKey]
+  if (nextDiscipline) {
+    discipline.value = nextDiscipline
+  }
+  if (nextDiscipline && route.query.discipline !== nextDiscipline) {
+    router.replace({
+      path: '/designtask/objective',
+      query: {
+        ...route.query,
+        taskId: nextTaskId,
+        discipline: nextDiscipline,
+        mode: data.access?.mode || route.query.mode
+      }
+    }).finally(loadTaskContext)
+    return
+  }
+
+  loadTaskContext()
 }
 
 onMounted(loadTaskContext)

@@ -1,0 +1,16 @@
+{
+  "total_horizontal_mm": 600.0,
+  "total_vertical_mm": 300.0,
+  "L1_mm": 280.0,
+  "L2_mm": 150.0,
+  "R_mm": 20.0,
+  "theta1_deg": -70.0,
+  "theta2_deg": 55.0,
+  "pipe_outer_diameter_mm": 9.53,
+  "pipe_inner_diameter_mm": 7.73,
+  "wall_cut_extension_mm": 80.0,
+  "centerline_step_mm": 2.0,
+  "tube_segments": 32,
+  "output_stl": "pipe_model.stl",
+  "output_centerline_csv": "pipe_centerline.csv"
+}

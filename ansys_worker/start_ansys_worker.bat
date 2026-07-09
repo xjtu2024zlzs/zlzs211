@@ -9,3 +9,4 @@ set "ANSYS_KEEP_MECHANICAL_OPEN=1"
 
 cd /d "%~dp0"
 python ansys_import_worker.py
+
