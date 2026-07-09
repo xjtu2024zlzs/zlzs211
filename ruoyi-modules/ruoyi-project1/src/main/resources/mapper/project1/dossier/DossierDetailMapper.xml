@@ -836,7 +836,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where (p.del_flag is null or p.del_flag = '0')
           and p.status = 'FINISHED'
           and t.task_id is not null
-          and t.task_status = 'CONFIRMED'
+          and t.task_status in ('SUBMITTED', 'CONFIRMED')
+          and t.process_result is not null
+          and trim(t.process_result) != ''
         <if test="(tokens == null or tokens.size() == 0) and !demoTraceEnabled">
           and 1 = 0
         </if>
@@ -850,10 +852,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 </foreach>
               </if>
               <if test="demoTraceEnabled">
-                or (
-                  p.product_model = 'C001'
-                  and p.involved_system = '液压系统'
-                  and p.create_time >= '2026-06-15 00:00:00'
+                or p.problem_id = (
+                  select latest_p.problem_id
+                  from qms_quality_problem latest_p
+                  inner join qms_quality_task latest_t on latest_t.problem_id = latest_p.problem_id
+                       and (latest_t.del_flag is null or latest_t.del_flag = '0')
+                  where (latest_p.del_flag is null or latest_p.del_flag = '0')
+                    and latest_p.status = 'FINISHED'
+                    and latest_t.task_status in ('SUBMITTED', 'CONFIRMED')
+                    and latest_t.process_result is not null
+                    and trim(latest_t.process_result) != ''
+                  order by coalesce(latest_t.confirm_time, latest_t.submit_time, latest_t.update_time,
+                           latest_t.create_time, latest_p.update_time, latest_p.create_time) desc,
+                           latest_t.task_id desc
+                  limit 1
                 )
               </if>
             </trim>

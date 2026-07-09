@@ -23,7 +23,7 @@ class DossierDetailMapperSqlTest
     }
 
     @Test
-    void qualityTraceRowsUseFinishedExactSelectedNodeFilter() throws Exception
+    void qualityTraceRowsUseFinishedWorkflowReturnedResultFilter() throws Exception
     {
         String mapperXml = mapperXml();
 
@@ -31,6 +31,8 @@ class DossierDetailMapperSqlTest
                 mapperXml.indexOf("<select id=\"selectAllDocuments\""));
 
         assertTrue(selectQualityTraceRows.contains("and p.status = 'FINISHED'"));
+        assertTrue(selectQualityTraceRows.contains("t.task_status in ('SUBMITTED', 'CONFIRMED')"));
+        assertTrue(selectQualityTraceRows.contains("t.process_result is not null"));
         assertTrue(selectQualityTraceRows.contains("p.component_code in"));
         assertFalse(selectQualityTraceRows.contains("or p.occur_part like"));
         assertFalse(selectQualityTraceRows.contains("or p.title like"));
@@ -39,7 +41,7 @@ class DossierDetailMapperSqlTest
     }
 
     @Test
-    void qualityTraceRowsLimitDemoAggregationToCurrentDemoFlow() throws Exception
+    void qualityTraceRowsLimitDemoAggregationToLatestFinishedQualityWorkflow() throws Exception
     {
         String mapperXml = mapperXml();
 
@@ -47,9 +49,11 @@ class DossierDetailMapperSqlTest
                 mapperXml.indexOf("<select id=\"selectAllDocuments\""));
 
         assertTrue(selectQualityTraceRows.contains("demoTraceEnabled"));
-        assertTrue(selectQualityTraceRows.contains("p.product_model = 'C001'"));
-        assertTrue(selectQualityTraceRows.contains("p.involved_system = '液压系统'"));
-        assertTrue(selectQualityTraceRows.contains("p.create_time >= '2026-06-15 00:00:00'"));
+        assertTrue(selectQualityTraceRows.contains("latest_p.problem_id"));
+        assertTrue(selectQualityTraceRows.contains("latest_p.status = 'FINISHED'"));
+        assertTrue(selectQualityTraceRows.contains("latest_t.task_status in ('SUBMITTED', 'CONFIRMED')"));
+        assertFalse(selectQualityTraceRows.contains("p.product_model = 'C001'"));
+        assertFalse(selectQualityTraceRows.contains("p.involved_system = '液压系统'"));
     }
 
     private String mapperXml() throws Exception
