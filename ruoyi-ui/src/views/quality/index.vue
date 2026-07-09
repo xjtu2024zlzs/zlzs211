@@ -648,7 +648,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, onMounted } from 'vue'
+import { computed, reactive, ref, onMounted , onActivated} from 'vue'
 import VueOfficeDocx from '@vue-office/docx'
 import '@vue-office/docx/lib/index.css'
 import { useRouter } from 'vue-router'
@@ -1091,6 +1091,13 @@ onMounted(() => {
   initPage()
 })
 
+onActivated(() => {
+  loadProblemList({
+    keepCurrent: false,
+    preserveSelected: false
+  })
+})
+
 const initPage = async () => {
   await loadModules()
   await loadProblemList({
@@ -1144,7 +1151,9 @@ const loadProblemList = async (options = {}) => {
     const res = await listProblem({})
     const rows = Array.isArray(res?.rows) ? res.rows : []
 
-    problemList.value = rows.map((item) => normalizeProblem(item))
+    problemList.value = sortProblemListByTimeDesc(
+      rows.map((item) => normalizeProblem(item))
+    )
 
     if (problemList.value.length > 0) {
       let targetProblem = null
@@ -1193,6 +1202,44 @@ const normalizeProblem = (item) => {
     tasks: item.tasks || [],
     logs: item.logs || []
   }
+}
+
+const getProblemTimeValue = (item = {}) => {
+  const time =
+    item.createTime ||
+    item.updateTime ||
+    item.occurTime ||
+    ''
+
+  if (!time) {
+    return 0
+  }
+
+  if (typeof time === 'number') {
+    return time
+  }
+
+  const text = String(time).trim()
+
+  if (!text) {
+    return 0
+  }
+
+  const parsed = new Date(text.replace(/-/g, '/')).getTime()
+
+  return Number.isNaN(parsed) ? 0 : parsed
+}
+
+const sortProblemListByTimeDesc = (list = []) => {
+  return [...list].sort((a, b) => {
+    const timeDiff = getProblemTimeValue(b) - getProblemTimeValue(a)
+
+    if (timeDiff !== 0) {
+      return timeDiff
+    }
+
+    return Number(b.problemId || 0) - Number(a.problemId || 0)
+  })
 }
 
 const normalizeTask = (item) => {
@@ -2310,6 +2357,8 @@ const getFlowRecordCardClass = (status) => {
   if (status === 'CONFIRMED') return 'card-confirmed'
   return ''
 }
+
+
 
 const generateProblemCode = () => {
   const now = new Date()

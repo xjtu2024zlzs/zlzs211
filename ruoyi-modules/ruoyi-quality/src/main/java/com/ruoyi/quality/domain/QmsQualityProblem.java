@@ -29,8 +29,8 @@ public class QmsQualityProblem extends BaseEntity
     private String title;
 
     /** 发生时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "发生时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "发生时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date occurTime;
 
     /** 产品型号 */

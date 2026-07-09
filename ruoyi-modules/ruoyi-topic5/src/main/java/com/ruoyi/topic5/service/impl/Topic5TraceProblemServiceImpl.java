@@ -500,7 +500,7 @@ public class Topic5TraceProblemServiceImpl implements ITopic5TraceProblemService
         sb.append("质量问题编号：").append(emptyToDash(task.getProblemCode())).append("\n");
 
         // 新增字段
-        sb.append("发生时间：").append(formatDate(task.getOccurTime())).append("\n");
+//        sb.append("发生时间：").append(formatDate(task.getOccurTime())).append("\n");
         sb.append("发生部位：").append(emptyToDash(task.getModuleName())).append("\n");
         sb.append("部件编号：").append(emptyToDash(task.getModuleCode())).append("\n");
         sb.append("填报人员：").append(emptyToDash(task.getReporter())).append("\n");

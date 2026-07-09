@@ -61,8 +61,8 @@ public class QmsQualityTask extends BaseEntity
     private String dispatchUserName;
 
     /** 分派时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "分派时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "分派时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date dispatchTime;
 
     /** 提交人ID */
@@ -74,8 +74,8 @@ public class QmsQualityTask extends BaseEntity
     private String submitUserName;
 
     /** 提交时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "提交时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "提交时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date submitTime;
 
     /** 确认人ID */
@@ -91,8 +91,8 @@ public class QmsQualityTask extends BaseEntity
     private String confirmOpinion;
 
     /** 确认时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "确认时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "确认时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date confirmTime;
 
     /** 删除标志：0存在 2删除 */
