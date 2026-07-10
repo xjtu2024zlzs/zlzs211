@@ -1,0 +1,224 @@
+{
+  "domain": "hydraulic",
+  "evaluation_mode": "eval_split",
+  "model_dir": "D:\\Cursor\\transH\\outputs\\hydraulic\\models_eval",
+  "overall_metrics": {
+    "total_cases": 200,
+    "evaluated_cases": 200,
+    "skipped_cases": 0,
+    "top1_hit_rate": 0.11,
+    "top3_hit_rate": 0.36,
+    "top6_hit_rate": 0.83,
+    "mean_mrr": 0.320667,
+    "type_hit_rate": 0.835,
+    "stage_accuracy": 0.17,
+    "stage_top1_accuracy": 0.17,
+    "stage_top2_accuracy": 0.37,
+    "stage_top3_accuracy": 0.52,
+    "stage_top6_coverage": 0.845,
+    "average_top1_score": 0.72684,
+    "average_top6_score": 0.56384,
+    "scope_distribution": {
+      "lifecycle_candidate": {
+        "count": 1054,
+        "ratio": 0.878333
+      },
+      "expanded_candidate": {
+        "count": 82,
+        "ratio": 0.068333
+      },
+      "rca_root_component_candidate": {
+        "count": 24,
+        "ratio": 0.02
+      },
+      "rca_root_component_expanded_candidate": {
+        "count": 0,
+        "ratio": 0.0
+      },
+      "global_same_type_candidate": {
+        "count": 40,
+        "ratio": 0.033333
+      }
+    }
+  },
+  "fault_type_metrics": {
+    "flow_abnormal": {
+      "case_count": 33,
+      "top1_hit_rate": 0.151515,
+      "top3_hit_rate": 0.393939,
+      "top6_hit_rate": 0.787879,
+      "mean_mrr": 0.355556,
+      "stage_accuracy": 0.181818,
+      "stage_top1_accuracy": 0.181818,
+      "stage_top2_accuracy": 0.454545,
+      "stage_top3_accuracy": 0.545455,
+      "stage_top6_coverage": 0.787879
+    },
+    "oil_leakage": {
+      "case_count": 42,
+      "top1_hit_rate": 0.142857,
+      "top3_hit_rate": 0.357143,
+      "top6_hit_rate": 0.880952,
+      "mean_mrr": 0.345238,
+      "stage_accuracy": 0.166667,
+      "stage_top1_accuracy": 0.166667,
+      "stage_top2_accuracy": 0.404762,
+      "stage_top3_accuracy": 0.547619,
+      "stage_top6_coverage": 0.904762
+    },
+    "pressure_abnormal": {
+      "case_count": 33,
+      "top1_hit_rate": 0.090909,
+      "top3_hit_rate": 0.151515,
+      "top6_hit_rate": 0.787879,
+      "mean_mrr": 0.251515,
+      "stage_accuracy": 0.121212,
+      "stage_top1_accuracy": 0.121212,
+      "stage_top2_accuracy": 0.181818,
+      "stage_top3_accuracy": 0.363636,
+      "stage_top6_coverage": 0.818182
+    },
+    "temperature_abnormal": {
+      "case_count": 20,
+      "top1_hit_rate": 0.05,
+      "top3_hit_rate": 0.5,
+      "top6_hit_rate": 0.85,
+      "mean_mrr": 0.315833,
+      "stage_accuracy": 0.1,
+      "stage_top1_accuracy": 0.1,
+      "stage_top2_accuracy": 0.45,
+      "stage_top3_accuracy": 0.6,
+      "stage_top6_coverage": 0.9
+    },
+    "valve_stuck": {
+      "case_count": 41,
+      "top1_hit_rate": 0.170732,
+      "top3_hit_rate": 0.512195,
+      "top6_hit_rate": 0.902439,
+      "mean_mrr": 0.405691,
+      "stage_accuracy": 0.268293,
+      "stage_top1_accuracy": 0.268293,
+      "stage_top2_accuracy": 0.439024,
+      "stage_top3_accuracy": 0.609756,
+      "stage_top6_coverage": 0.902439
+    },
+    "vibration_abnormal": {
+      "case_count": 31,
+      "top1_hit_rate": 0.0,
+      "top3_hit_rate": 0.258065,
+      "top6_hit_rate": 0.741935,
+      "mean_mrr": 0.214516,
+      "stage_accuracy": 0.129032,
+      "stage_top1_accuracy": 0.129032,
+      "stage_top2_accuracy": 0.290323,
+      "stage_top3_accuracy": 0.451613,
+      "stage_top6_coverage": 0.741935
+    }
+  },
+  "stage_metrics": {
+    "assembly": {
+      "case_count": 24,
+      "top1_hit_rate": 0.0,
+      "top3_hit_rate": 0.125,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.240278,
+      "stage_accuracy": 0.083333,
+      "stage_top1_accuracy": 0.083333,
+      "stage_top2_accuracy": 0.166667,
+      "stage_top3_accuracy": 0.375,
+      "stage_top6_coverage": 1.0
+    },
+    "design": {
+      "case_count": 30,
+      "top1_hit_rate": 0.033333,
+      "top3_hit_rate": 0.133333,
+      "top6_hit_rate": 0.266667,
+      "mean_mrr": 0.112222,
+      "stage_accuracy": 0.033333,
+      "stage_top1_accuracy": 0.033333,
+      "stage_top2_accuracy": 0.166667,
+      "stage_top3_accuracy": 0.233333,
+      "stage_top6_coverage": 0.266667
+    },
+    "inspection": {
+      "case_count": 13,
+      "top1_hit_rate": 0.0,
+      "top3_hit_rate": 0.153846,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.220513,
+      "stage_accuracy": 0.0,
+      "stage_top1_accuracy": 0.0,
+      "stage_top2_accuracy": 0.0,
+      "stage_top3_accuracy": 0.307692,
+      "stage_top6_coverage": 1.0
+    },
+    "manufacturing": {
+      "case_count": 45,
+      "top1_hit_rate": 0.244444,
+      "top3_hit_rate": 0.577778,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.491111,
+      "stage_accuracy": 0.377778,
+      "stage_top1_accuracy": 0.377778,
+      "stage_top2_accuracy": 0.622222,
+      "stage_top3_accuracy": 0.688889,
+      "stage_top6_coverage": 1.0
+    },
+    "material": {
+      "case_count": 28,
+      "top1_hit_rate": 0.321429,
+      "top3_hit_rate": 0.785714,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.586905,
+      "stage_accuracy": 0.25,
+      "stage_top1_accuracy": 0.25,
+      "stage_top2_accuracy": 0.75,
+      "stage_top3_accuracy": 0.821429,
+      "stage_top6_coverage": 1.0
+    },
+    "operation": {
+      "case_count": 60,
+      "top1_hit_rate": 0.016667,
+      "top3_hit_rate": 0.25,
+      "top6_hit_rate": 0.8,
+      "mean_mrr": 0.226667,
+      "stage_accuracy": 0.116667,
+      "stage_top1_accuracy": 0.116667,
+      "stage_top2_accuracy": 0.266667,
+      "stage_top3_accuracy": 0.5,
+      "stage_top6_coverage": 0.85
+    }
+  },
+  "test_cases_file": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_test_cases.csv",
+  "train_triples_file": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_triples_train.csv",
+  "leak_count": 0,
+  "leak_ratio": 0.0,
+  "scope_distribution": {
+    "lifecycle_candidate": {
+      "count": 1054,
+      "ratio": 0.878333
+    },
+    "expanded_candidate": {
+      "count": 82,
+      "ratio": 0.068333
+    },
+    "rca_root_component_candidate": {
+      "count": 24,
+      "ratio": 0.02
+    },
+    "rca_root_component_expanded_candidate": {
+      "count": 0,
+      "ratio": 0.0
+    },
+    "global_same_type_candidate": {
+      "count": 40,
+      "ratio": 0.033333
+    }
+  },
+  "hydraulic_metrics": {
+    "root_component_diff_ratio": 0.12,
+    "top6_contains_rca_root_candidate_ratio": 0.12,
+    "top6_hit_rate_with_rca_root_candidate": 0.75,
+    "top6_hit_rate_without_rca_root_candidate": 0.840909
+  }
+}

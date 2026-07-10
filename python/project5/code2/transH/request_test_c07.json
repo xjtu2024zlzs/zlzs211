@@ -1,0 +1,85 @@
+﻿{
+  "domain": "hydraulic",
+  "case_id": "HFB-01676",
+  "model_variant": "default",
+  "generate_graph": true,
+  "generate_report": true,
+  "generate_echarts": true,
+  "generate_docx": true,
+  "first_algorithm_result": {
+    "caseId": "TEST-C07-ROOT",
+    "faultComponentId": "C011",
+    "faultComponent": "管路总成",
+    "root_component_code": "C07",
+    "root_component_name": "过滤器",
+    "severityScores": {
+      "filter": 1.0,
+      "accumulator": 0.2,
+      "valve": 0.1,
+      "pump": 0.0
+    },
+    "triggerSensor": "PS5",
+    "sensorConfidence": 0.91,
+    "componentConfidence": 0.82,
+    "componentDiagnostics": [
+      {
+        "component_id": "C007",
+        "component_name": "过滤器",
+        "fault_type": "过滤器堵塞",
+        "severity": 0.82,
+        "is_fault": true,
+        "fault_level": "中度故障"
+      },
+      {
+        "component_id": "C011",
+        "component_name": "管路总成",
+        "fault_type": "管路总成异常",
+        "severity": 0.40,
+        "is_fault": true,
+        "fault_level": "轻度故障"
+      }
+    ],
+    "subtypeByComponent": {
+      "C007": {
+        "component_id": "C007",
+        "component_name": "过滤器",
+        "sub_types": [
+          {
+            "component_id": "C007",
+            "component_name": "过滤器",
+            "sub_type_id": "C007-S1",
+            "sub_type_name": "滤芯堵塞",
+            "fault_part": "滤芯",
+            "probability": 0.76
+          },
+          {
+            "component_id": "C007",
+            "component_name": "过滤器",
+            "sub_type_id": "C007-S2",
+            "sub_type_name": "滤芯破损",
+            "fault_part": "滤芯结构",
+            "probability": 0.32
+          }
+        ]
+      }
+    },
+    "subtypeProbabilities": [
+      {
+        "component_id": "C007",
+        "component_name": "过滤器",
+        "sub_type_id": "C007-S1",
+        "sub_type_name": "滤芯堵塞",
+        "fault_part": "滤芯",
+        "probability": 0.76
+      },
+      {
+        "component_id": "C009",
+        "component_name": "单向阀",
+        "sub_type_id": "C009-S1",
+        "sub_type_name": "弹簧断裂失效",
+        "fault_part": "弹簧",
+        "probability": 0.70
+      }
+    ]
+  }
+}

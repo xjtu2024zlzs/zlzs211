@@ -1,0 +1,829 @@
+{
+  "domain": "hydraulic",
+  "case_id": "HFB-03634",
+  "feedback_summary": {
+    "feedback_id": "HFB-03634",
+    "fault_type": "oil_leakage",
+    "fault_position": "管路总成",
+    "fault_severity": "medium",
+    "diagnosis_confidence": 0.8589,
+    "rca_confidence": 0.6185
+  },
+  "target_object": {
+    "object_id": "HCU-03634",
+    "object_type": "HydraulicComponent",
+    "object_name": "管路总成"
+  },
+  "top6_candidates": [
+    {
+      "candidate_id": "HMAT-00362",
+      "candidate_type": "MaterialBatch",
+      "candidate_stage": "material",
+      "candidate_stage_name": "材料阶段",
+      "transh_score": 1.0,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.14,
+      "final_score": 0.8335,
+      "adjusted_final_score": 0.8735,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于材料阶段，具备直接路径证据。",
+      "rank": 1
+    },
+    {
+      "candidate_id": "HPIP-00632",
+      "candidate_type": "PipeDesignParam",
+      "candidate_stage": "design",
+      "candidate_stage_name": "设计阶段",
+      "transh_score": 0.308811,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.2,
+      "final_score": 0.496905,
+      "adjusted_final_score": 0.536905,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于设计阶段，具备直接路径证据。",
+      "rank": 2
+    },
+    {
+      "candidate_id": "HMAN-00687",
+      "candidate_type": "ManufacturingBatch",
+      "candidate_stage": "manufacturing",
+      "candidate_stage_name": "制造阶段",
+      "transh_score": 0.322866,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.1,
+      "final_score": 0.488933,
+      "adjusted_final_score": 0.528933,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于制造阶段，具备直接路径证据。",
+      "rank": 3
+    },
+    {
+      "candidate_id": "HOPR-03634",
+      "candidate_type": "MaintenanceRecord",
+      "candidate_stage": "operation",
+      "candidate_stage_name": "使用/运维阶段",
+      "transh_score": 0.23369,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.26,
+      "final_score": 0.468345,
+      "adjusted_final_score": 0.508345,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于使用/运维阶段，具备直接路径证据。",
+      "rank": 4
+    },
+    {
+      "candidate_id": "HASM-03634",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "candidate_stage_name": "装配阶段",
+      "transh_score": 0.181488,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.18,
+      "final_score": 0.430244,
+      "adjusted_final_score": 0.470244,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于装配阶段，具备直接路径证据。",
+      "rank": 5
+    },
+    {
+      "candidate_id": "HINSP-03634",
+      "candidate_type": "InspectionRecord",
+      "candidate_stage": "inspection",
+      "candidate_stage_name": "检测阶段",
+      "transh_score": 0.111948,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.08,
+      "final_score": 0.380474,
+      "adjusted_final_score": 0.420474,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于检测阶段，具备直接路径证据。",
+      "rank": 6
+    }
+  ],
+  "stage_attribution": {
+    "primary_stage": "design",
+    "primary_stage_name": "设计阶段",
+    "feedback_target_subsystem": "设计子系统",
+    "stage_scores": {
+      "design": 0.610445,
+      "material": 1.0,
+      "manufacturing": 0.476455,
+      "assembly": 0.397538,
+      "inspection": 0.271143,
+      "operation": 0.382761
+    },
+    "stage_rank": [
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 1.0
+      },
+      {
+        "stage": "design",
+        "stage_name": "设计阶段",
+        "score": 0.610445
+      },
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 0.476455
+      },
+      {
+        "stage": "assembly",
+        "stage_name": "装配阶段",
+        "score": 0.397538
+      },
+      {
+        "stage": "operation",
+        "stage_name": "使用/运维阶段",
+        "score": 0.382761
+      },
+      {
+        "stage": "inspection",
+        "stage_name": "检测阶段",
+        "score": 0.271143
+      }
+    ],
+    "focus_stage_top3": [
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 1.0,
+        "feedback_subsystem": "材料/供应商管理子系统"
+      },
+      {
+        "stage": "design",
+        "stage_name": "设计阶段",
+        "score": 0.610445,
+        "feedback_subsystem": "设计子系统"
+      },
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 0.476455,
+        "feedback_subsystem": "制造工艺子系统"
+      }
+    ],
+    "feedback_subsystem_top3": [
+      "设计子系统",
+      "材料/供应商管理子系统",
+      "制造工艺子系统"
+    ],
+    "stage_attribution_detail": [
+      {
+        "candidate_id": "HMAT-00362",
+        "candidate_type": "MaterialBatch",
+        "candidate_stage": "material",
+        "rank": 1,
+        "adjusted_final_score": 0.8735,
+        "rank_score": 1.0,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.05,
+        "contribution": 0.917175
+      },
+      {
+        "candidate_id": "HPIP-00632",
+        "candidate_type": "PipeDesignParam",
+        "candidate_stage": "design",
+        "rank": 2,
+        "adjusted_final_score": 0.536905,
+        "rank_score": 0.85,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.524825
+      },
+      {
+        "candidate_id": "HMAN-00687",
+        "candidate_type": "ManufacturingBatch",
+        "candidate_stage": "manufacturing",
+        "rank": 3,
+        "adjusted_final_score": 0.528933,
+        "rank_score": 0.72,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.05,
+        "contribution": 0.399873
+      },
+      {
+        "candidate_id": "HOPR-03634",
+        "candidate_type": "MaintenanceRecord",
+        "candidate_stage": "operation",
+        "rank": 4,
+        "adjusted_final_score": 0.508345,
+        "rank_score": 0.6,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.1,
+        "contribution": 0.335508
+      },
+      {
+        "candidate_id": "HASM-03634",
+        "candidate_type": "AssemblyRecord",
+        "candidate_stage": "assembly",
+        "rank": 5,
+        "adjusted_final_score": 0.470244,
+        "rank_score": 0.5,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.27039
+      },
+      {
+        "candidate_id": "HINSP-03634",
+        "candidate_type": "InspectionRecord",
+        "candidate_stage": "inspection",
+        "rank": 6,
+        "adjusted_final_score": 0.420474,
+        "rank_score": 0.42,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.203089
+      }
+    ]
+  },
+  "stage_attribution_detail": [
+    {
+      "candidate_id": "HMAT-00362",
+      "candidate_type": "MaterialBatch",
+      "candidate_stage": "material",
+      "rank": 1,
+      "adjusted_final_score": 0.8735,
+      "rank_score": 1.0,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.05,
+      "contribution": 0.917175
+    },
+    {
+      "candidate_id": "HPIP-00632",
+      "candidate_type": "PipeDesignParam",
+      "candidate_stage": "design",
+      "rank": 2,
+      "adjusted_final_score": 0.536905,
+      "rank_score": 0.85,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.15,
+      "contribution": 0.524825
+    },
+    {
+      "candidate_id": "HMAN-00687",
+      "candidate_type": "ManufacturingBatch",
+      "candidate_stage": "manufacturing",
+      "rank": 3,
+      "adjusted_final_score": 0.528933,
+      "rank_score": 0.72,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.05,
+      "contribution": 0.399873
+    },
+    {
+      "candidate_id": "HOPR-03634",
+      "candidate_type": "MaintenanceRecord",
+      "candidate_stage": "operation",
+      "rank": 4,
+      "adjusted_final_score": 0.508345,
+      "rank_score": 0.6,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.1,
+      "contribution": 0.335508
+    },
+    {
+      "candidate_id": "HASM-03634",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "rank": 5,
+      "adjusted_final_score": 0.470244,
+      "rank_score": 0.5,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.15,
+      "contribution": 0.27039
+    },
+    {
+      "candidate_id": "HINSP-03634",
+      "candidate_type": "InspectionRecord",
+      "candidate_stage": "inspection",
+      "rank": 6,
+      "adjusted_final_score": 0.420474,
+      "rank_score": 0.42,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.15,
+      "contribution": 0.203089
+    }
+  ],
+  "rca_context": {
+    "case_id": "HCASE-03634",
+    "root_sensor": "PS6",
+    "root_sensor_confidence": 1.0,
+    "secondary_sensor": "PS2",
+    "secondary_sensor_confidence": 0.8283,
+    "root_component_code": "C011",
+    "root_component_name": "管路总成",
+    "root_component_uids": [
+      "HCU-03634"
+    ],
+    "component_confidence": 0.6039,
+    "rca_confidence": 0.6039,
+    "is_root_component_different_from_feedback": false,
+    "component_diagnosis_top3": [
+      {
+        "severity": 0.6039,
+        "component_id": "C011",
+        "is_fault": true,
+        "root_cause_mechanism": "",
+        "component_name": "管路总成",
+        "confidence": 0.6039,
+        "fault_type": "振动耦合相关的管路疲劳风险",
+        "recommendation": "",
+        "component_code": "C011",
+        "fault_level": "轻度",
+        "display_role": "RCA根因部件诊断",
+        "display_source": "root_component_diagnosis"
+      },
+      {
+        "component_id": "C011",
+        "component_name": "管路总成",
+        "fault_type": "疲劳裂纹(F)",
+        "severity": 0.6039,
+        "is_fault": true,
+        "fault_level": "根因子类型",
+        "sub_type_id": "",
+        "sub_type_name": "疲劳裂纹(F)",
+        "fault_part": "",
+        "display_role": "RCA根因部件子类型",
+        "display_source": "root_component_subtype"
+      }
+    ],
+    "subtype_top5": [
+      {
+        "component_id": "C011",
+        "component_name": "管路总成",
+        "sub_type_id": "",
+        "sub_type_name": "疲劳裂纹(F)",
+        "fault_part": "",
+        "probability": 0.6039
+      }
+    ],
+    "sensor_energy_top5": {
+      "PS6": 0.9789,
+      "PS2": 0.97212,
+      "PS1": 0.67863,
+      "VS1": 0.58382,
+      "PS3": 0.15941
+    },
+    "evolution_chain": [
+      "PS6",
+      "VS1",
+      "EPS1",
+      "TS3",
+      "PS1",
+      "FS2",
+      "PS3",
+      "PS5",
+      "TS4",
+      "FS1",
+      "TS1",
+      "TS2",
+      "PS2",
+      "PS4"
+    ],
+    "algorithm_conclusion": "当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。",
+    "component_diagnostics_from_first_algorithm": [
+      {
+        "severity": 0.6039,
+        "component_id": "C011",
+        "is_fault": true,
+        "root_cause_mechanism": "",
+        "component_name": "管路总成",
+        "confidence": 0.6039,
+        "fault_type": "振动耦合相关的管路疲劳风险",
+        "recommendation": "",
+        "component_code": "C011",
+        "fault_level": "轻度"
+      }
+    ],
+    "first_algorithm_result": {
+      "fault_component_id": "C011",
+      "fault_component": "管路总成",
+      "component_confidence": 0.6039,
+      "trigger_sensor": "PS6",
+      "sensor_confidence": 1.0,
+      "evolution_chain": [
+        "PS6",
+        "VS1",
+        "EPS1",
+        "TS3",
+        "PS1",
+        "FS2",
+        "PS3",
+        "PS5",
+        "TS4",
+        "FS1",
+        "TS1",
+        "TS2",
+        "PS2",
+        "PS4"
+      ],
+      "algorithm_conclusion": "当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。",
+      "component_diagnostics": [
+        {
+          "severity": 0.6039,
+          "component_id": "C011",
+          "is_fault": true,
+          "root_cause_mechanism": "",
+          "component_name": "管路总成",
+          "confidence": 0.6039,
+          "fault_type": "振动耦合相关的管路疲劳风险",
+          "recommendation": "",
+          "component_code": "C011",
+          "fault_level": "轻度"
+        }
+      ],
+      "raw": {
+        "subtype_top5": [
+          {
+            "component_id": "C011",
+            "subtype_name": "疲劳裂纹(F)",
+            "probability": 0.6039,
+            "component_name": "管路总成",
+            "confidence": 0.6039,
+            "fault_type": "疲劳裂纹(F)",
+            "description": "-",
+            "recommendation": "",
+            "component_code": "C011",
+            "fault_subtype": "疲劳裂纹(F)",
+            "sub_type_name": "疲劳裂纹(F)",
+            "severity_score": 0.6039
+          }
+        ],
+        "faultComponent": "管路总成",
+        "root_cause_mechanism": "",
+        "recommendation": "",
+        "componentStatus": "轻度",
+        "component_code": "C011",
+        "source": "ruoyi_topic5_algorithm_result",
+        "root_sensor_confidence": 1.0,
+        "trace_no": "QF-20260709-94820",
+        "triggerSensor": "PS6",
+        "component_confidence": 0.6039,
+        "conclusion": "当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。",
+        "component_diagnosis_top3": [
+          {
+            "severity": 0.6039,
+            "component_id": "C011",
+            "is_fault": true,
+            "root_cause_mechanism": "",
+            "component_name": "管路总成",
+            "confidence": 0.6039,
+            "fault_type": "振动耦合相关的管路疲劳风险",
+            "recommendation": "",
+            "component_code": "C011",
+            "fault_level": "轻度"
+          }
+        ],
+        "rca_confidence": 0.6039,
+        "fault_name": "疲劳裂纹(F)",
+        "subtypeByComponent": {
+          "C011": [
+            {
+              "rank": 1,
+              "component_id": "C011",
+              "component_name": "管路总成",
+              "label": 1,
+              "subtype": "疲劳裂纹(F)",
+              "fault_type": "疲劳裂纹(F)",
+              "fault_size": 0.007,
+              "fault_size_inch": 0.007,
+              "probability": 0.85,
+              "confidence": 0.85
+            }
+          ]
+        },
+        "root_component_diagnosis": {
+          "severity": 0.6039,
+          "component_id": "C011",
+          "is_fault": true,
+          "root_cause_mechanism": "",
+          "component_name": "管路总成",
+          "confidence": 0.6039,
+          "fault_type": "振动耦合相关的管路疲劳风险",
+          "recommendation": "",
+          "component_code": "C011",
+          "fault_level": "轻度"
+        },
+        "dynamicTopologyMatrix": [],
+        "caseId": "QF-20260709-94820",
+        "sensorAnomalyEnergy": {
+          "PS6": 0.571,
+          "VS1": 0.559,
+          "EPS1": 0.157,
+          "TS3": 0.146,
+          "PS1": 0.143,
+          "FS2": 0.138
+        },
+        "evolutionChainRaw": "[\"PS6\",\"VS1\",\"EPS1\",\"TS3\",\"PS1\",\"FS2\",\"PS3\",\"PS5\",\"TS4\",\"FS1\",\"TS1\",\"TS2\",\"PS2\",\"PS4\"]",
+        "root_component_code": "C011",
+        "component_id": "C011",
+        "chain": [
+          "PS6",
+          "VS1",
+          "EPS1",
+          "TS3",
+          "PS1",
+          "FS2",
+          "PS3",
+          "PS5",
+          "TS4",
+          "FS1",
+          "TS1",
+          "TS2",
+          "PS2",
+          "PS4"
+        ],
+        "trace_id": 75,
+        "root_sensor": "PS6",
+        "secondary_sensor": "VS1",
+        "severityScores": {
+          "C011": 0.4562
+        },
+        "component_name": "管路总成",
+        "fault_type": "疲劳裂纹(F)",
+        "fault_level": "轻度",
+        "componentDiagnostics": [
+          {
+            "severity": 0.6039,
+            "component_id": "C011",
+            "is_fault": true,
+            "root_cause_mechanism": "",
+            "component_name": "管路总成",
+            "confidence": 0.6039,
+            "fault_type": "振动耦合相关的管路疲劳风险",
+            "recommendation": "",
+            "component_code": "C011",
+            "fault_level": "轻度"
+          }
+        ],
+        "root_component_subtype_topk": [
+          {
+            "component_id": "C011",
+            "subtype_name": "疲劳裂纹(F)",
+            "probability": 0.6039,
+            "component_name": "管路总成",
+            "confidence": 0.6039,
+            "fault_type": "疲劳裂纹(F)",
+            "description": "-",
+            "recommendation": "",
+            "component_code": "C011",
+            "fault_subtype": "疲劳裂纹(F)",
+            "sub_type_name": "疲劳裂纹(F)",
+            "severity_score": 0.6039
+          }
+        ],
+        "displayType": "PYTHON_AAGCN_RCA_V1",
+        "componentConfidence": 0.6039,
+        "subtypeProbabilities": [
+          {
+            "component_id": "C011",
+            "subtype_name": "疲劳裂纹(F)",
+            "probability": 0.6039,
+            "component_name": "管路总成",
+            "confidence": 0.6039,
+            "fault_type": "疲劳裂纹(F)",
+            "description": "-",
+            "recommendation": "",
+            "component_code": "C011",
+            "fault_subtype": "疲劳裂纹(F)",
+            "sub_type_name": "疲劳裂纹(F)",
+            "severity_score": 0.6039
+          }
+        ],
+        "sensorConfidence": 1.0,
+        "evolutionChain": [
+          "PS6",
+          "VS1",
+          "EPS1",
+          "TS3",
+          "PS1",
+          "FS2",
+          "PS3",
+          "PS5",
+          "TS4",
+          "FS1",
+          "TS1",
+          "TS2",
+          "PS2",
+          "PS4"
+        ],
+        "root_component_name": "管路总成",
+        "faultComponentId": "C011",
+        "severity_score": 0.6039
+      }
+    },
+    "root_component_diagnosis": {
+      "severity": 0.6039,
+      "component_id": "C011",
+      "is_fault": true,
+      "root_cause_mechanism": "",
+      "component_name": "管路总成",
+      "confidence": 0.6039,
+      "fault_type": "振动耦合相关的管路疲劳风险",
+      "recommendation": "",
+      "component_code": "C011",
+      "fault_level": "轻度"
+    },
+    "root_component_subtype_topk": [
+      {
+        "component_id": "C011",
+        "component_name": "管路总成",
+        "sub_type_id": "",
+        "sub_type_name": "疲劳裂纹(F)",
+        "fault_part": "",
+        "probability": 0.6039
+      }
+    ],
+    "global_component_diagnosis_top3": [
+      {
+        "severity": 0.6039,
+        "component_id": "C011",
+        "is_fault": true,
+        "root_cause_mechanism": "",
+        "component_name": "管路总成",
+        "confidence": 0.6039,
+        "fault_type": "振动耦合相关的管路疲劳风险",
+        "recommendation": "",
+        "component_code": "C011",
+        "fault_level": "轻度"
+      }
+    ],
+    "global_subtype_top5": [
+      {
+        "component_id": "C011",
+        "component_name": "管路总成",
+        "sub_type_id": "",
+        "sub_type_name": "疲劳裂纹(F)",
+        "fault_part": "",
+        "probability": 0.6039
+      }
+    ],
+    "subtype_display_note": "",
+    "consistency_warning": "",
+    "feedback_component_code": "C011",
+    "feedback_component_name": "管路总成",
+    "rca_source": "upstream_first_algorithm",
+    "local_case_rca_overridden": true
+  },
+  "conclusion_text": "液压反馈对象为 管路总成，上游 RCA 根因部件为 C011 管路总成，根因传感器为 PS6。系统识别该质量反馈与 C011 管路总成及管路设计参数相关，首要复核方向为设计阶段管路设计参数复核，建议反馈至设计子系统。原 TransH 候选结果中的材料、制造、装配、检测及使用/运维阶段候选作为辅助排查对象保留。",
+  "_output_path": "D:\\2.11\\RuoYi-Cloud-master\\python\\project5\\code2\\transH\\outputs\\hydraulic\\reports\\reasoning_HFB-03634.json",
+  "pipe_design_reference": {
+    "enabled": true,
+    "component_code": "C011",
+    "component_name": "管路总成",
+    "associated_stage": "design",
+    "associated_stage_name": "设计阶段",
+    "target_subsystem": "设计子系统",
+    "reason": "系统识别该质量反馈与管路总成设计参数相关，优先输出设计阶段参数复核建议。",
+    "optimization_variables": [
+      "pipe_length_L1",
+      "pipe_length_L2",
+      "pipe_length_L3",
+      "bend_radius_R",
+      "bend_angle_theta1",
+      "bend_angle_theta2"
+    ],
+    "parameter_review_items": [
+      {
+        "param_key": "pipe_length_L1",
+        "param_name": "管段长度L1",
+        "param_category": "管段长度",
+        "priority": "low",
+        "is_focus": false,
+        "problem_type": "常规复核",
+        "reason": "作为管路设计变量提供给下游系统读取。",
+        "optimization_hint": "建议复核L1与接口位置、装配空间及相邻部件间隙之间的匹配关系。"
+      },
+      {
+        "param_key": "pipe_length_L2",
+        "param_name": "管段长度L2",
+        "param_category": "管段长度",
+        "priority": "low",
+        "is_focus": false,
+        "problem_type": "常规复核",
+        "reason": "作为管路设计变量提供给下游系统读取。",
+        "optimization_hint": "建议复核L2是否存在冗余长度、空间绕行或局部布置过紧问题。"
+      },
+      {
+        "param_key": "pipe_length_L3",
+        "param_name": "管段长度L3",
+        "param_category": "管段长度",
+        "priority": "medium",
+        "is_focus": true,
+        "problem_type": "建议复核",
+        "reason": "该反馈涉及管路总成，建议结合管段长度进行参数复核。",
+        "optimization_hint": "建议复核L3与相邻部件之间的间隙关系，避免装配干涉和振动风险。"
+      },
+      {
+        "param_key": "bend_radius_R",
+        "param_name": "弯曲半径R",
+        "param_category": "弯曲参数",
+        "priority": "high",
+        "is_focus": true,
+        "problem_type": "重点复核",
+        "reason": "弯曲半径与管路流阻、急弯和空间走向密切相关。",
+        "optimization_hint": "建议复核弯曲半径R，必要时增大弯曲半径或调整管路走向。"
+      },
+      {
+        "param_key": "bend_angle_theta1",
+        "param_name": "第一弯曲角θ1",
+        "param_category": "弯曲参数",
+        "priority": "medium",
+        "is_focus": true,
+        "problem_type": "建议复核",
+        "reason": "弯曲角可能影响急弯、空间干涉和装配可达性。",
+        "optimization_hint": "建议复核θ1，避免急弯、空间干涉或局部流阻增大。"
+      },
+      {
+        "param_key": "bend_angle_theta2",
+        "param_name": "第二弯曲角θ2",
+        "param_category": "弯曲参数",
+        "priority": "medium",
+        "is_focus": true,
+        "problem_type": "建议复核",
+        "reason": "弯曲角可能影响管路空间走向和装配可达性。",
+        "optimization_hint": "建议复核θ2，优化管路空间走向和装配可达性。"
+      }
+    ],
+    "downstream_usage": {
+      "target_module": "管路参数优化模块",
+      "description": "optimization_variables字段供下游系统读取，parameter_review_items字段用于前端展示重点复核建议。"
+    }
+  },
+  "reasonList": [
+    {
+      "rank": 1,
+      "reasonType": "设计阶段 / 管路设计参数",
+      "relatedPart": "HPIP-00632",
+      "reasonName": "PipeDesignParam",
+      "evidence": "该设计参数实体位于当前管路总成生命周期链上，属于设计阶段 PipeDesignParam 节点，系统识别其与管段长度、弯曲半径和弯曲角等设计参数复核任务相关。",
+      "confidence": 0.96,
+      "suggestion": "建议优先复核管段长度L1/L2/L3、弯曲半径R和弯曲角θ1/θ2，并将上述参数提供给下游管路参数优化模块读取。",
+      "confidence_type": "综合置信度"
+    },
+    {
+      "rank": 2,
+      "reasonType": "材料阶段 / MaterialBatch",
+      "relatedPart": "HMAT-00362",
+      "reasonName": "MaterialBatch",
+      "evidence": "该实体位于当前反馈对象生命周期链上，属于材料阶段，具备直接路径证据。",
+      "confidence": 0.8735,
+      "suggestion": "建议结合材料阶段记录继续复核该候选原因。",
+      "original_confidence": 0.8735,
+      "confidence_type": "综合置信度"
+    },
+    {
+      "rank": 3,
+      "reasonType": "制造阶段 / ManufacturingBatch",
+      "relatedPart": "HMAN-00687",
+      "reasonName": "ManufacturingBatch",
+      "evidence": "该实体位于当前反馈对象生命周期链上，属于制造阶段，具备直接路径证据。",
+      "confidence": 0.6,
+      "suggestion": "建议结合制造阶段记录继续复核该候选原因。",
+      "original_confidence": 0.6,
+      "confidence_type": "综合置信度"
+    },
+    {
+      "rank": 4,
+      "reasonType": "使用/运维阶段 / MaintenanceRecord",
+      "relatedPart": "HOPR-03634",
+      "reasonName": "MaintenanceRecord",
+      "evidence": "该实体位于当前反馈对象生命周期链上，属于使用/运维阶段，具备直接路径证据。",
+      "confidence": 0.6,
+      "suggestion": "建议结合使用/运维阶段记录继续复核该候选原因。",
+      "original_confidence": 0.6,
+      "confidence_type": "综合置信度"
+    },
+    {
+      "rank": 5,
+      "reasonType": "装配阶段 / AssemblyRecord",
+      "relatedPart": "HASM-03634",
+      "reasonName": "AssemblyRecord",
+      "evidence": "该实体位于当前反馈对象生命周期链上，属于装配阶段，具备直接路径证据。",
+      "confidence": 0.6,
+      "suggestion": "建议结合装配阶段记录继续复核该候选原因。",
+      "original_confidence": 0.6,
+      "confidence_type": "综合置信度"
+    },
+    {
+      "rank": 6,
+      "reasonType": "检测阶段 / InspectionRecord",
+      "relatedPart": "HINSP-03634",
+      "reasonName": "InspectionRecord",
+      "evidence": "该实体位于当前反馈对象生命周期链上，属于检测阶段，具备直接路径证据。",
+      "confidence": 0.6,
+      "suggestion": "建议结合检测阶段记录继续复核该候选原因。",
+      "original_confidence": 0.6,
+      "confidence_type": "综合置信度"
+    }
+  ],
+  "upstream_conclusion_text": "液压反馈对象为 管路总成，上游 RCA 根因部件为 C011 管路总成，根因传感器为 PS6。系统识别该质量反馈与 C011 管路总成及管路设计参数相关，首要复核方向为设计阶段管路设计参数复核，建议反馈至设计子系统。原 TransH 候选结果中的材料、制造、装配、检测及使用/运维阶段候选作为辅助排查对象保留。"
+}

@@ -1,0 +1,14 @@
+System created from template: Static Structural / ANSYS
+Geometry file set: D:\\2.11\\RuoYi-Cloud-master\\ansys_worker\\output\\task_31\\demo_simulation_model\\input_geometry.step
+Geometry.Update succeeded
+System.Update succeeded
+Model.Refresh succeeded
+Opening Mechanical
+Sending Mechanical handshake attempt 1
+Mechanical handshake sent
+Mechanical command channel ready
+Sending Mechanical script
+Mechanical script sent
+Mechanical script started
+Mechanical result detected
+Mechanical left open

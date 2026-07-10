@@ -1,0 +1,539 @@
+{
+  "domain": "hydraulic",
+  "case_id": "HFB-00014",
+  "graph_type": "original_graph",
+  "nodes": [
+    {
+      "id": "HCU-00014",
+      "name": "过滤器 HCU-00014",
+      "type": "HydraulicComponent",
+      "stage": "operation",
+      "stage_name": "使用/运维阶段",
+      "is_feedback": false,
+      "is_target_object": true,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {
+        "component_code": "C007",
+        "name": "过滤器 HCU-00014"
+      }
+    },
+    {
+      "id": "C007",
+      "name": "ComponentCode C007",
+      "type": "ComponentCode",
+      "stage": "unknown",
+      "stage_name": "未知阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "CATEGORY_filtration",
+      "name": "ComponentCategory CATEGORY_filtration",
+      "type": "ComponentCategory",
+      "stage": "unknown",
+      "stage_name": "未知阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "COMPONENT_NAME_过滤器",
+      "name": "ComponentName COMPONENT_NAME_过滤器",
+      "type": "ComponentName",
+      "stage": "unknown",
+      "stage_name": "未知阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "FS1",
+      "name": "传感器 FS1",
+      "type": "Sensor",
+      "stage": "rca",
+      "stage_name": "RCA 诊断",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "HASM-00014",
+      "name": "装配记录 HASM-00014",
+      "type": "AssemblyRecord",
+      "stage": "assembly",
+      "stage_name": "装配阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "HDES-00640",
+      "name": "设计规范 HDES-00640",
+      "type": "DesignSpec",
+      "stage": "design",
+      "stage_name": "设计阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "HEQ-051",
+      "name": "设备 HEQ-051",
+      "type": "Equipment",
+      "stage": "manufacturing",
+      "stage_name": "制造阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "HINSP-00014",
+      "name": "检测记录 HINSP-00014",
+      "type": "InspectionRecord",
+      "stage": "inspection",
+      "stage_name": "检测阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "HMAN-01123",
+      "name": "制造批次 HMAN-01123",
+      "type": "ManufacturingBatch",
+      "stage": "manufacturing",
+      "stage_name": "制造阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "HMAT-00050",
+      "name": "材料批次 HMAT-00050",
+      "type": "MaterialBatch",
+      "stage": "material",
+      "stage_name": "材料阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "HOPR-00014",
+      "name": "运维记录 HOPR-00014",
+      "type": "MaintenanceRecord",
+      "stage": "operation",
+      "stage_name": "使用/运维阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "HSUP-029",
+      "name": "供应商 HSUP-029",
+      "type": "Supplier",
+      "stage": "material",
+      "stage_name": "材料阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "INSPECTION_RESULT_pass",
+      "name": "InspectionResult INSPECTION_RESULT_pass",
+      "type": "InspectionResult",
+      "stage": "unknown",
+      "stage_name": "未知阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "MATERIAL_GRADE_40Cr",
+      "name": "MaterialGrade MATERIAL_GRADE_40Cr",
+      "type": "MaterialGrade",
+      "stage": "unknown",
+      "stage_name": "未知阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "OP-H-138",
+      "name": "操作员 OP-H-138",
+      "type": "Operator",
+      "stage": "operation",
+      "stage_name": "使用/运维阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "PROCESS_machining",
+      "name": "制造工艺 PROCESS_machining",
+      "type": "ManufacturingProcess",
+      "stage": "manufacturing",
+      "stage_name": "制造阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "RISK_0_25",
+      "name": "RiskScore RISK_0_25",
+      "type": "RiskScore",
+      "stage": "unknown",
+      "stage_name": "未知阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "RISK_LEVEL_low",
+      "name": "RiskLevel RISK_LEVEL_low",
+      "type": "RiskLevel",
+      "stage": "unknown",
+      "stage_name": "未知阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "RISK_LEVEL_medium",
+      "name": "RiskLevel RISK_LEVEL_medium",
+      "type": "RiskLevel",
+      "stage": "unknown",
+      "stage_name": "未知阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "ST-H-04",
+      "name": "工位 ST-H-04",
+      "type": "Station",
+      "stage": "assembly",
+      "stage_name": "装配阶段",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "id": "TS4",
+      "name": "传感器 TS4",
+      "type": "Sensor",
+      "stage": "rca",
+      "stage_name": "RCA 诊断",
+      "is_feedback": false,
+      "is_target_object": false,
+      "is_top_candidate": false,
+      "rank": null,
+      "score": null,
+      "properties": {}
+    }
+  ],
+  "edges": [
+    {
+      "source": "HCU-00014",
+      "target": "HDES-00640",
+      "relation": "designed_by",
+      "relation_name": "设计依据",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "HMAT-00050",
+      "relation": "uses_material_batch",
+      "relation_name": "使用材料批次",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "HMAN-01123",
+      "relation": "manufactured_in",
+      "relation_name": "制造批次",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "HASM-00014",
+      "relation": "assembled_in",
+      "relation_name": "装配记录",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "HINSP-00014",
+      "relation": "inspected_by",
+      "relation_name": "检测记录",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "HOPR-00014",
+      "relation": "maintained_by",
+      "relation_name": "运维记录",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "TS4",
+      "relation": "monitored_by",
+      "relation_name": "监测传感器",
+      "weight": 0.55,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "FS1",
+      "relation": "monitored_by",
+      "relation_name": "监测传感器",
+      "weight": 0.45,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HMAT-00050",
+      "target": "HSUP-029",
+      "relation": "supplied_by",
+      "relation_name": "供应商",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HMAN-01123",
+      "target": "PROCESS_machining",
+      "relation": "uses_process",
+      "relation_name": "使用工艺",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HMAN-01123",
+      "target": "HEQ-051",
+      "relation": "processed_by",
+      "relation_name": "加工设备",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HASM-00014",
+      "target": "OP-H-138",
+      "relation": "operated_by",
+      "relation_name": "操作人员",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HASM-00014",
+      "target": "ST-H-04",
+      "relation": "located_at",
+      "relation_name": "所在位置",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "C007",
+      "relation": "has_component_code",
+      "relation_name": "has_component_code",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "COMPONENT_NAME_过滤器",
+      "relation": "has_component_name",
+      "relation_name": "has_component_name",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "CATEGORY_filtration",
+      "relation": "belongs_to_category",
+      "relation_name": "belongs_to_category",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "RISK_0_25",
+      "relation": "has_overall_lifecycle_risk_score",
+      "relation_name": "has_overall_lifecycle_risk_score",
+      "weight": 0.2261,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HCU-00014",
+      "target": "RISK_LEVEL_low",
+      "relation": "has_overall_lifecycle_risk_level",
+      "relation_name": "has_overall_lifecycle_risk_level",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HDES-00640",
+      "target": "RISK_LEVEL_low",
+      "relation": "has_design_risk_level",
+      "relation_name": "has_design_risk_level",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HDES-00640",
+      "target": "RISK_0_25",
+      "relation": "has_design_risk_score",
+      "relation_name": "has_design_risk_score",
+      "weight": 0.0778,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HMAT-00050",
+      "target": "MATERIAL_GRADE_40Cr",
+      "relation": "has_material_grade",
+      "relation_name": "has_material_grade",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HMAT-00050",
+      "target": "RISK_LEVEL_low",
+      "relation": "has_material_risk_level",
+      "relation_name": "has_material_risk_level",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HMAN-01123",
+      "target": "RISK_LEVEL_medium",
+      "relation": "has_process_risk_level",
+      "relation_name": "has_process_risk_level",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HASM-00014",
+      "target": "RISK_LEVEL_low",
+      "relation": "has_assembly_risk_level",
+      "relation_name": "has_assembly_risk_level",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HINSP-00014",
+      "target": "INSPECTION_RESULT_pass",
+      "relation": "has_inspection_result",
+      "relation_name": "has_inspection_result",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    },
+    {
+      "source": "HINSP-00014",
+      "target": "RISK_LEVEL_low",
+      "relation": "has_inspection_risk_level",
+      "relation_name": "has_inspection_risk_level",
+      "weight": 1.0,
+      "score": null,
+      "properties": {}
+    }
+  ],
+  "summary": {
+    "node_count": 22,
+    "edge_count": 26,
+    "primary_stage": "manufacturing",
+    "top1_candidate": "HMAN-01123",
+    "target_object": "HCU-00014"
+  }
+}

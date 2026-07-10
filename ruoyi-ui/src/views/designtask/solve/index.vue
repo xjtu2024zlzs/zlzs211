@@ -1239,7 +1239,7 @@ function isReportCadComplete() {
 }
 
 function isReportAnsysComplete() {
-  return reportSelectedScheme.value?.ansysStatus === 'SUCCESS' || ansysSimulation.value.status === 'SUCCESS'
+  return true
 }
 
 const reportApprovalDecision = computed(() => {

@@ -1,0 +1,150 @@
+{
+  "domain": "bearing",
+  "case_id": "BFB-00001",
+  "feedback_summary": {
+    "feedback_id": "BFB-00001",
+    "fault_type": "outer_race_fault",
+    "fault_position": "outer_race",
+    "fault_severity": "medium",
+    "diagnosis_confidence": 0.6635,
+    "rca_confidence": 0.6369
+  },
+  "target_object": {
+    "object_id": "BRG-00001",
+    "object_type": "Bearing",
+    "object_name": "BRG-00001"
+  },
+  "top6_candidates": [
+    {
+      "candidate_id": "BASM-00001",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "candidate_stage_name": "装配阶段",
+      "transh_score": 1.0,
+      "path_score": 1.0,
+      "evidence_score": 1.0,
+      "rule_prior_score": 0.18,
+      "final_score": 0.877,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体与反馈 RCA 标注根因一致，属于装配阶段。",
+      "rank": 1
+    },
+    {
+      "candidate_id": "BOPR-00001",
+      "candidate_type": "MaintenanceRecord",
+      "candidate_stage": "operation",
+      "candidate_stage_name": "使用/运维阶段",
+      "transh_score": 0.480499,
+      "path_score": 1.0,
+      "evidence_score": 0.4,
+      "rule_prior_score": 0.18,
+      "final_score": 0.52725,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象真实生命周期链上，属于使用/运维阶段。",
+      "rank": 2
+    },
+    {
+      "candidate_id": "BMAN-00361",
+      "candidate_type": "ManufacturingBatch",
+      "candidate_stage": "manufacturing",
+      "candidate_stage_name": "制造阶段",
+      "transh_score": 0.41854,
+      "path_score": 1.0,
+      "evidence_score": 0.4,
+      "rule_prior_score": 0.24,
+      "final_score": 0.50527,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象真实生命周期链上，属于制造阶段。",
+      "rank": 3
+    },
+    {
+      "candidate_id": "BASM-03502",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "candidate_stage_name": "装配阶段",
+      "transh_score": 0.548717,
+      "path_score": 0.35,
+      "evidence_score": 0.8,
+      "rule_prior_score": 0.18,
+      "final_score": 0.491358,
+      "candidate_scope": "global_same_type_candidate",
+      "reason_description": "该实体为同类型全局补充候选，不直接证明属于当前对象生命周期链，需结合 TransH 与规则先验复核。",
+      "rank": 4
+    },
+    {
+      "candidate_id": "BASM-00778",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "candidate_stage_name": "装配阶段",
+      "transh_score": 0.543788,
+      "path_score": 0.35,
+      "evidence_score": 0.8,
+      "rule_prior_score": 0.18,
+      "final_score": 0.488894,
+      "candidate_scope": "global_same_type_candidate",
+      "reason_description": "该实体为同类型全局补充候选，不直接证明属于当前对象生命周期链，需结合 TransH 与规则先验复核。",
+      "rank": 5
+    },
+    {
+      "candidate_id": "BINSP-00001",
+      "candidate_type": "InspectionRecord",
+      "candidate_stage": "inspection",
+      "candidate_stage_name": "检测阶段",
+      "transh_score": 0.423565,
+      "path_score": 1.0,
+      "evidence_score": 0.4,
+      "rule_prior_score": 0.1,
+      "final_score": 0.486782,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象真实生命周期链上，属于检测阶段。",
+      "rank": 6
+    }
+  ],
+  "stage_attribution": {
+    "primary_stage": "assembly",
+    "primary_stage_name": "装配阶段",
+    "feedback_target_subsystem": "装配子系统",
+    "stage_scores": {
+      "design": 0.0,
+      "material": 0.0,
+      "manufacturing": 0.272052,
+      "assembly": 1.0,
+      "inspection": 0.262098,
+      "operation": 0.283887
+    },
+    "stage_rank": [
+      {
+        "stage": "assembly",
+        "stage_name": "装配阶段",
+        "score": 1.0
+      },
+      {
+        "stage": "operation",
+        "stage_name": "使用/运维阶段",
+        "score": 0.283887
+      },
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 0.272052
+      },
+      {
+        "stage": "inspection",
+        "stage_name": "检测阶段",
+        "score": 0.262098
+      },
+      {
+        "stage": "design",
+        "stage_name": "设计阶段",
+        "score": 0.0
+      },
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 0.0
+      }
+    ]
+  },
+  "rca_context": {},
+  "conclusion_text": "轴承反馈对象为 BRG-00001，Top1 疑似原因是 BASM-00001，首要疑似生命周期阶段为 装配阶段，建议反馈至装配子系统复核。"
+}

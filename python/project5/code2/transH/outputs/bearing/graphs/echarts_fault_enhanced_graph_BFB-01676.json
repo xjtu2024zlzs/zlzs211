@@ -1,0 +1,2302 @@
+{
+  "title": {
+    "text": "故障增强知识图谱",
+    "subtext": "bearing | BFB-01676"
+  },
+  "tooltip": {
+    "trigger": "item",
+    "confine": true
+  },
+  "legend": [
+    {
+      "data": [
+        "质量反馈",
+        "反馈对象",
+        "Top6疑似原因",
+        "设计阶段",
+        "材料阶段",
+        "制造阶段",
+        "装配阶段",
+        "检测阶段",
+        "使用/运维阶段",
+        "传感器",
+        "RCA证据",
+        "辅助信息"
+      ]
+    }
+  ],
+  "edgeLegend": [
+    {
+      "name": "TransH疑似原因关系",
+      "relations": [
+        "may_caused_by"
+      ],
+      "color": "#d62728",
+      "width": 3.5,
+      "type": "solid",
+      "description": "质量反馈指向Top6疑似根因的推理关系"
+    },
+    {
+      "name": "RCA根因证据关系",
+      "relations": [
+        "has_root_sensor",
+        "has_secondary_sensor",
+        "diagnosed_root_component"
+      ],
+      "color": "#c2185b",
+      "width": 2.8,
+      "type": "solid",
+      "description": "上游根因分析、根因部件或根因传感器证据"
+    },
+    {
+      "name": "传感器激活关系",
+      "relations": [
+        "activates_sensor"
+      ],
+      "color": "#7b1fa2",
+      "width": 2.2,
+      "type": "dashed",
+      "description": "传感器异常或激活证据关系"
+    },
+    {
+      "name": "部件诊断/子类型候选关系",
+      "relations": [
+        "has_component_diagnosis",
+        "has_subtype_candidate"
+      ],
+      "color": "#f57c00",
+      "width": 2.0,
+      "type": "dashed",
+      "description": "部件诊断和故障子类型候选关系"
+    },
+    {
+      "name": "生命周期阶段关系",
+      "relations": [
+        "designed_by",
+        "uses_material_batch",
+        "manufactured_in",
+        "assembled_in",
+        "inspected_by",
+        "maintained_by"
+      ],
+      "color": "#666666",
+      "width": 1.6,
+      "type": "solid",
+      "description": "设计、材料、制造、装配、检测、运维等生命周期关系"
+    },
+    {
+      "name": "管路参数关系",
+      "relations": [
+        "has_pipe_length",
+        "has_bend_angle",
+        "has_bend_radius",
+        "has_max_deformation",
+        "has_max_equivalent_stress",
+        "has_stress_ratio",
+        "has_design_risk_score",
+        "has_design_risk_level"
+      ],
+      "color": "#90caf9",
+      "width": 1.0,
+      "type": "dotted",
+      "description": "管路设计参数或仿真约束信息"
+    },
+    {
+      "name": "辅助属性关系",
+      "relations": [
+        "other"
+      ],
+      "color": "#bdbdbd",
+      "width": 0.8,
+      "type": "solid",
+      "description": "故障属性、风险分箱、文本证据等辅助关系"
+    }
+  ],
+  "series": [
+    {
+      "name": "知识图谱",
+      "type": "graph",
+      "layout": "force",
+      "roam": true,
+      "draggable": true,
+      "focusNodeAdjacency": true,
+      "label": {
+        "show": false,
+        "position": "right",
+        "formatter": "{b}"
+      },
+      "force": {
+        "repulsion": 420,
+        "edgeLength": [
+          90,
+          220
+        ],
+        "gravity": 0.06,
+        "friction": 0.6
+      },
+      "categories": [
+        {
+          "name": "质量反馈",
+          "key": "feedback",
+          "itemStyle": {
+            "color": "#d94841"
+          }
+        },
+        {
+          "name": "反馈对象",
+          "key": "target_object",
+          "itemStyle": {
+            "color": "#2f80ed"
+          }
+        },
+        {
+          "name": "Top6疑似原因",
+          "key": "top_candidate",
+          "itemStyle": {
+            "color": "#f2994a"
+          }
+        },
+        {
+          "name": "设计阶段",
+          "key": "design",
+          "itemStyle": {
+            "color": "#6f52ed"
+          }
+        },
+        {
+          "name": "材料阶段",
+          "key": "material",
+          "itemStyle": {
+            "color": "#27ae60"
+          }
+        },
+        {
+          "name": "制造阶段",
+          "key": "manufacturing",
+          "itemStyle": {
+            "color": "#b7791f"
+          }
+        },
+        {
+          "name": "装配阶段",
+          "key": "assembly",
+          "itemStyle": {
+            "color": "#00a6a6"
+          }
+        },
+        {
+          "name": "检测阶段",
+          "key": "inspection",
+          "itemStyle": {
+            "color": "#2d9cdb"
+          }
+        },
+        {
+          "name": "使用/运维阶段",
+          "key": "operation",
+          "itemStyle": {
+            "color": "#7f8c8d"
+          }
+        },
+        {
+          "name": "传感器",
+          "key": "sensor",
+          "itemStyle": {
+            "color": "#9b51e0"
+          }
+        },
+        {
+          "name": "RCA证据",
+          "key": "rca",
+          "itemStyle": {
+            "color": "#eb5757"
+          }
+        },
+        {
+          "name": "辅助信息",
+          "key": "other",
+          "itemStyle": {
+            "color": "#8f8f8f"
+          }
+        }
+      ],
+      "data": [
+        {
+          "id": "BFB-01676",
+          "name": "质量反馈 BFB-01676",
+          "value": 1.0,
+          "category": "质量反馈",
+          "symbolSize": 68,
+          "properties": {
+            "feedback_id": "BFB-01676",
+            "fault_type": "rolling_element_fault",
+            "fault_position": "rolling_element",
+            "fault_severity": "severe",
+            "diagnosis_confidence": 0.6278,
+            "rca_confidence": 0.6719,
+            "id": "BFB-01676",
+            "name": "质量反馈 BFB-01676",
+            "type": "QualityFeedback",
+            "stage": "feedback",
+            "stage_name": "反馈阶段",
+            "is_feedback": true,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "feedback"
+          },
+          "itemStyle": {
+            "color": "#d94841",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "质量反馈 BFB-01676"
+          }
+        },
+        {
+          "id": "BRG-01676",
+          "name": "BRG-01676",
+          "value": 1.0,
+          "category": "反馈对象",
+          "symbolSize": 62,
+          "properties": {
+            "id": "BRG-01676",
+            "name": "BRG-01676",
+            "type": "Bearing",
+            "stage": "operation",
+            "stage_name": "使用/运维阶段",
+            "is_feedback": false,
+            "is_target_object": true,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "target_object"
+          },
+          "itemStyle": {
+            "color": "#2f80ed",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "轴承 BRG-01676"
+          }
+        },
+        {
+          "id": "BMAN-00147",
+          "name": "制造批次 BMAN-00147",
+          "value": 0.8515,
+          "category": "Top6疑似原因",
+          "symbolSize": 58,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 1.0,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.26,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于制造阶段，具备直接路径证据。",
+            "id": "BMAN-00147",
+            "name": "制造批次 BMAN-00147",
+            "type": "ManufacturingBatch",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 1,
+            "score": 0.8515,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top1 制造批次 BMAN-00147"
+          }
+        },
+        {
+          "id": "BMAT-00431",
+          "name": "材料批次 BMAT-00431",
+          "value": 0.648658,
+          "category": "Top6疑似原因",
+          "symbolSize": 50,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 0.606315,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.22,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于材料阶段，具备直接路径证据。",
+            "id": "BMAT-00431",
+            "name": "材料批次 BMAT-00431",
+            "type": "MaterialBatch",
+            "stage": "material",
+            "stage_name": "材料阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 2,
+            "score": 0.648658,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top2 材料批次 BMAT-00431"
+          }
+        },
+        {
+          "id": "BOPR-01676",
+          "name": "运维记录 BOPR-01676",
+          "value": 0.607995,
+          "category": "Top6疑似原因",
+          "symbolSize": 50,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 0.54899,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.14,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于使用/运维阶段，具备直接路径证据。",
+            "id": "BOPR-01676",
+            "name": "运维记录 BOPR-01676",
+            "type": "MaintenanceRecord",
+            "stage": "operation",
+            "stage_name": "使用/运维阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 3,
+            "score": 0.607995,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top3 运维记录 BOPR-01676"
+          }
+        },
+        {
+          "id": "BASM-01676",
+          "name": "装配记录 BASM-01676",
+          "value": 0.604428,
+          "category": "Top6疑似原因",
+          "symbolSize": 44,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 0.541856,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.14,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于装配阶段，具备直接路径证据。",
+            "id": "BASM-01676",
+            "name": "装配记录 BASM-01676",
+            "type": "AssemblyRecord",
+            "stage": "assembly",
+            "stage_name": "装配阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 4,
+            "score": 0.604428,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top4 装配记录 BASM-01676"
+          }
+        },
+        {
+          "id": "BDES-00227",
+          "name": "轴承设计规范 BDES-00227",
+          "value": 0.542853,
+          "category": "Top6疑似原因",
+          "symbolSize": 44,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 0.430706,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.1,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于设计阶段，具备直接路径证据。",
+            "id": "BDES-00227",
+            "name": "轴承设计规范 BDES-00227",
+            "type": "BearingDesignSpec",
+            "stage": "design",
+            "stage_name": "设计阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 5,
+            "score": 0.542853,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top5 设计规范 BDES-00227"
+          }
+        },
+        {
+          "id": "BINSP-01676",
+          "name": "检测记录 BINSP-01676",
+          "value": 0.532215,
+          "category": "Top6疑似原因",
+          "symbolSize": 44,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 0.409431,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.1,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于检测阶段，具备直接路径证据。",
+            "id": "BINSP-01676",
+            "name": "检测记录 BINSP-01676",
+            "type": "InspectionRecord",
+            "stage": "inspection",
+            "stage_name": "检测阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 6,
+            "score": 0.532215,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top6 检测记录 BINSP-01676"
+          }
+        },
+        {
+          "id": "BEARING_MODEL_7206AC",
+          "name": "ComponentName BEARING_MODEL_7206AC",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "BEARING_MODEL_7206AC",
+            "name": "ComponentName BEARING_MODEL_7206AC",
+            "type": "ComponentName",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "ComponentName BEARING..."
+          }
+        },
+        {
+          "id": "CONCLUSION_BFB-01676",
+          "name": "推理结论 BFB-01676",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 26,
+          "properties": {
+            "conclusion_text": "轴承反馈对象为 BRG-01676，Top1 疑似原因是 BMAN-00147，首要疑似生命周期阶段为 制造阶段，建议优先反馈至制造工艺子系统复核。同时，系统建议重点关注材料阶段、使用/运维阶段等相关阶段，以支持跨阶段联合复核。",
+            "id": "CONCLUSION_BFB-01676",
+            "name": "推理结论 BFB-01676",
+            "type": "ReasoningConclusion",
+            "stage": "feedback",
+            "stage_name": "反馈阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.5
+          },
+          "label": {
+            "show": false,
+            "formatter": "推理结论 BFB-01676"
+          }
+        },
+        {
+          "id": "CONF_50_75",
+          "name": "ConfidenceLevel CONF_50_75",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "CONF_50_75",
+            "name": "ConfidenceLevel CONF_50_75",
+            "type": "ConfidenceLevel",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "ConfidenceLevel CONF_..."
+          }
+        },
+        {
+          "id": "EQ-GR-015",
+          "name": "设备 EQ-GR-015",
+          "value": 1.0,
+          "category": "制造阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "EQ-GR-015",
+            "name": "设备 EQ-GR-015",
+            "type": "Equipment",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "manufacturing"
+          },
+          "itemStyle": {
+            "color": "#b7791f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "设备 EQ-GR-015"
+          }
+        },
+        {
+          "id": "EVO_TEXT_BFB-01676",
+          "name": "演化文本 BFB-01676",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 26,
+          "properties": {
+            "evidence_type": "fault_evolution_text",
+            "evidence_text": "早期表现为局部接触应力升高，随后振动冲击增强，最终演化为严重滚动体故障。",
+            "confidence": 0.6719,
+            "id": "EVO_TEXT_BFB-01676",
+            "name": "演化文本 BFB-01676",
+            "type": "FaultEvolutionText",
+            "stage": "feedback",
+            "stage_name": "反馈阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.5
+          },
+          "label": {
+            "show": false,
+            "formatter": "演化文本 BFB-01676"
+          }
+        },
+        {
+          "id": "FAULT_POSITION_rolling_element",
+          "name": "故障位置 FAULT_POSITION_rolling_element",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "FAULT_POSITION_rolling_element",
+            "name": "故障位置 FAULT_POSITION_rolling_element",
+            "type": "FaultPosition",
+            "stage": "fault",
+            "stage_name": "故障信息",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "故障位置 FAULT_POSITION_r..."
+          }
+        },
+        {
+          "id": "FAULT_SEVERITY_severe",
+          "name": "故障严重度 FAULT_SEVERITY_severe",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "FAULT_SEVERITY_severe",
+            "name": "故障严重度 FAULT_SEVERITY_severe",
+            "type": "FaultSeverity",
+            "stage": "fault",
+            "stage_name": "故障信息",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "故障严重度 FAULT_SEVERITY_..."
+          }
+        },
+        {
+          "id": "FAULT_TYPE_rolling_element_fault",
+          "name": "故障类型 FAULT_TYPE_rolling_element_fault",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "FAULT_TYPE_rolling_element_fault",
+            "name": "故障类型 FAULT_TYPE_rolling_element_fault",
+            "type": "FaultType",
+            "stage": "fault",
+            "stage_name": "故障信息",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "故障类型 FAULT_TYPE_rolli..."
+          }
+        },
+        {
+          "id": "INSPECTION_RESULT_pass",
+          "name": "InspectionResult INSPECTION_RESULT_pass",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "INSPECTION_RESULT_pass",
+            "name": "InspectionResult INSPECTION_RESULT_pass",
+            "type": "InspectionResult",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "InspectionResult INSP..."
+          }
+        },
+        {
+          "id": "LUBRICATION_oil_bath",
+          "name": "LubricationRecord LUBRICATION_oil_bath",
+          "value": 1.0,
+          "category": "使用/运维阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "LUBRICATION_oil_bath",
+            "name": "LubricationRecord LUBRICATION_oil_bath",
+            "type": "LubricationRecord",
+            "stage": "operation",
+            "stage_name": "使用/运维阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "operation"
+          },
+          "itemStyle": {
+            "color": "#7f8c8d",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "润滑记录 LUBRICATION_oil_bath"
+          }
+        },
+        {
+          "id": "MATERIAL_GRADE_GCr15",
+          "name": "MaterialGrade MATERIAL_GRADE_GCr15",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "MATERIAL_GRADE_GCr15",
+            "name": "MaterialGrade MATERIAL_GRADE_GCr15",
+            "type": "MaterialGrade",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "MaterialGrade MATERIA..."
+          }
+        },
+        {
+          "id": "OP-B-111",
+          "name": "操作员 OP-B-111",
+          "value": 1.0,
+          "category": "使用/运维阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "OP-B-111",
+            "name": "操作员 OP-B-111",
+            "type": "Operator",
+            "stage": "operation",
+            "stage_name": "使用/运维阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "operation"
+          },
+          "itemStyle": {
+            "color": "#7f8c8d",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "操作员 OP-B-111"
+          }
+        },
+        {
+          "id": "PROCESS_BEARING_MANUFACTURING",
+          "name": "制造工艺 PROCESS_BEARING_MANUFACTURING",
+          "value": 1.0,
+          "category": "制造阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "PROCESS_BEARING_MANUFACTURING",
+            "name": "制造工艺 PROCESS_BEARING_MANUFACTURING",
+            "type": "ManufacturingProcess",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "manufacturing"
+          },
+          "itemStyle": {
+            "color": "#b7791f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "制造工艺 PROCESS_BEARING_..."
+          }
+        },
+        {
+          "id": "PROCESS_GRINDING",
+          "name": "磨削工艺 PROCESS_GRINDING",
+          "value": 1.0,
+          "category": "制造阶段",
+          "symbolSize": 32,
+          "properties": {
+            "id": "PROCESS_GRINDING",
+            "name": "磨削工艺 PROCESS_GRINDING",
+            "type": "GrindingProcess",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "manufacturing"
+          },
+          "itemStyle": {
+            "color": "#b7791f",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "磨削工艺 PROCESS_GRINDING"
+          }
+        },
+        {
+          "id": "PROCESS_HEAT_TREATMENT",
+          "name": "热处理工艺 PROCESS_HEAT_TREATMENT",
+          "value": 1.0,
+          "category": "制造阶段",
+          "symbolSize": 32,
+          "properties": {
+            "id": "PROCESS_HEAT_TREATMENT",
+            "name": "热处理工艺 PROCESS_HEAT_TREATMENT",
+            "type": "HeatTreatmentProcess",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "manufacturing"
+          },
+          "itemStyle": {
+            "color": "#b7791f",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "热处理工艺 PROCESS_HEAT_TR..."
+          }
+        },
+        {
+          "id": "RCA_TEXT_BFB-01676",
+          "name": "RCA文本 BFB-01676",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 26,
+          "properties": {
+            "evidence_type": "rca_text",
+            "evidence_text": "该样本的生命周期风险在制造阶段较突出，能够解释当前严重滚动体故障的主要失效模式。",
+            "confidence": 0.6719,
+            "id": "RCA_TEXT_BFB-01676",
+            "name": "RCA文本 BFB-01676",
+            "type": "RcaText",
+            "stage": "feedback",
+            "stage_name": "反馈阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.5
+          },
+          "label": {
+            "show": false,
+            "formatter": "RCA文本 BFB-01676"
+          }
+        },
+        {
+          "id": "RISK_0_25",
+          "name": "RiskScore RISK_0_25",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "RISK_0_25",
+            "name": "RiskScore RISK_0_25",
+            "type": "RiskScore",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "RiskScore RISK_0_25"
+          }
+        },
+        {
+          "id": "RISK_25_50",
+          "name": "RiskScore RISK_25_50",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "RISK_25_50",
+            "name": "RiskScore RISK_25_50",
+            "type": "RiskScore",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "RiskScore RISK_25_50"
+          }
+        },
+        {
+          "id": "RISK_LEVEL_low",
+          "name": "RiskLevel RISK_LEVEL_low",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "RISK_LEVEL_low",
+            "name": "RiskLevel RISK_LEVEL_low",
+            "type": "RiskLevel",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "RiskLevel RISK_LEVEL_low"
+          }
+        },
+        {
+          "id": "RISK_LEVEL_medium",
+          "name": "RiskLevel RISK_LEVEL_medium",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "RISK_LEVEL_medium",
+            "name": "RiskLevel RISK_LEVEL_medium",
+            "type": "RiskLevel",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "RiskLevel RISK_LEVEL_..."
+          }
+        },
+        {
+          "id": "ST-B-21",
+          "name": "工位 ST-B-21",
+          "value": 1.0,
+          "category": "装配阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "ST-B-21",
+            "name": "工位 ST-B-21",
+            "type": "Station",
+            "stage": "assembly",
+            "stage_name": "装配阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "assembly"
+          },
+          "itemStyle": {
+            "color": "#00a6a6",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "工位 ST-B-21"
+          }
+        },
+        {
+          "id": "STAGE_assembly",
+          "name": "装配阶段",
+          "value": 0.501577,
+          "category": "装配阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 0.501577,
+            "id": "STAGE_assembly",
+            "name": "装配阶段",
+            "type": "LifecycleStage",
+            "stage": "assembly",
+            "stage_name": "装配阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.501577,
+            "category_key": "assembly"
+          },
+          "itemStyle": {
+            "color": "#00a6a6",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_assembly"
+          }
+        },
+        {
+          "id": "STAGE_design",
+          "name": "设计阶段",
+          "value": 0.370898,
+          "category": "设计阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 0.370898,
+            "id": "STAGE_design",
+            "name": "设计阶段",
+            "type": "LifecycleStage",
+            "stage": "design",
+            "stage_name": "设计阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.370898,
+            "category_key": "design"
+          },
+          "itemStyle": {
+            "color": "#6f52ed",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_design"
+          }
+        },
+        {
+          "id": "STAGE_inspection",
+          "name": "检测阶段",
+          "value": 0.337578,
+          "category": "检测阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 0.337578,
+            "id": "STAGE_inspection",
+            "name": "检测阶段",
+            "type": "LifecycleStage",
+            "stage": "inspection",
+            "stage_name": "检测阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.337578,
+            "category_key": "inspection"
+          },
+          "itemStyle": {
+            "color": "#2d9cdb",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_inspection"
+          }
+        },
+        {
+          "id": "STAGE_manufacturing",
+          "name": "制造阶段",
+          "value": 1.0,
+          "category": "制造阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 1.0,
+            "id": "STAGE_manufacturing",
+            "name": "制造阶段",
+            "type": "LifecycleStage",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 1.0,
+            "category_key": "manufacturing"
+          },
+          "itemStyle": {
+            "color": "#b7791f",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_manufacturing"
+          }
+        },
+        {
+          "id": "STAGE_material",
+          "name": "材料阶段",
+          "value": 0.696467,
+          "category": "材料阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 0.696467,
+            "id": "STAGE_material",
+            "name": "材料阶段",
+            "type": "LifecycleStage",
+            "stage": "material",
+            "stage_name": "材料阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.696467,
+            "category_key": "material"
+          },
+          "itemStyle": {
+            "color": "#27ae60",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_material"
+          }
+        },
+        {
+          "id": "STAGE_operation",
+          "name": "使用/运维阶段",
+          "value": 0.587883,
+          "category": "使用/运维阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 0.587883,
+            "id": "STAGE_operation",
+            "name": "使用/运维阶段",
+            "type": "LifecycleStage",
+            "stage": "operation",
+            "stage_name": "使用/运维阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.587883,
+            "category_key": "operation"
+          },
+          "itemStyle": {
+            "color": "#7f8c8d",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_operation"
+          }
+        },
+        {
+          "id": "SUBSYSTEM_manufacturing",
+          "name": "制造工艺子系统",
+          "value": 1.0,
+          "category": "制造阶段",
+          "symbolSize": 32,
+          "properties": {
+            "id": "SUBSYSTEM_manufacturing",
+            "name": "制造工艺子系统",
+            "type": "TargetSubsystem",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "manufacturing"
+          },
+          "itemStyle": {
+            "color": "#b7791f",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "反馈子系统 SUBSYSTEM_manufacturing"
+          }
+        },
+        {
+          "id": "SUP-053",
+          "name": "供应商 SUP-053",
+          "value": 1.0,
+          "category": "材料阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "SUP-053",
+            "name": "供应商 SUP-053",
+            "type": "Supplier",
+            "stage": "material",
+            "stage_name": "材料阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "material"
+          },
+          "itemStyle": {
+            "color": "#27ae60",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "供应商 SUP-053"
+          }
+        },
+        {
+          "id": "VIBRATION_INSPECTION",
+          "name": "振动检测 VIBRATION_INSPECTION",
+          "value": 1.0,
+          "category": "检测阶段",
+          "symbolSize": 32,
+          "properties": {
+            "id": "VIBRATION_INSPECTION",
+            "name": "振动检测 VIBRATION_INSPECTION",
+            "type": "VibrationInspectionRecord",
+            "stage": "inspection",
+            "stage_name": "检测阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "inspection"
+          },
+          "itemStyle": {
+            "color": "#2d9cdb",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "振动检测 VIBRATION_INSPEC..."
+          }
+        }
+      ],
+      "links": [
+        {
+          "source": "BRG-01676",
+          "target": "BDES-00227",
+          "name": "设计依据",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "designed_by",
+            "relation_name": "设计依据",
+            "business_meaning": "该边表示设计阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#6f42c1",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BRG-01676",
+          "target": "BMAT-00431",
+          "name": "使用材料批次",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "uses_material_batch",
+            "relation_name": "使用材料批次",
+            "business_meaning": "该边表示材料或供应商生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#2ca25f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BRG-01676",
+          "target": "BMAN-00147",
+          "name": "制造批次",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "manufactured_in",
+            "relation_name": "制造批次",
+            "business_meaning": "该边表示制造阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#b7791f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BRG-01676",
+          "target": "BASM-01676",
+          "name": "装配记录",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "assembled_in",
+            "relation_name": "装配记录",
+            "business_meaning": "该边表示装配或工位相关关系。"
+          },
+          "lineStyle": {
+            "color": "#00a6a6",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BRG-01676",
+          "target": "BINSP-01676",
+          "name": "检测记录",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "inspected_by",
+            "relation_name": "检测记录",
+            "business_meaning": "该边表示检测阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#2b8cbe",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BRG-01676",
+          "target": "BOPR-01676",
+          "name": "运维记录",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "maintained_by",
+            "relation_name": "运维记录",
+            "business_meaning": "该边表示使用/运维阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#607d8b",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BMAT-00431",
+          "target": "SUP-053",
+          "name": "供应商",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "supplied_by",
+            "relation_name": "供应商",
+            "business_meaning": "该边表示材料或供应商生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#2ca25f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BMAN-00147",
+          "target": "EQ-GR-015",
+          "name": "加工设备",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "processed_by",
+            "relation_name": "加工设备",
+            "business_meaning": "该边表示制造阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#b7791f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BMAN-00147",
+          "target": "PROCESS_BEARING_MANUFACTURING",
+          "name": "使用工艺",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "uses_process",
+            "relation_name": "使用工艺",
+            "business_meaning": "该边表示制造阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#b7791f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BMAN-00147",
+          "target": "PROCESS_HEAT_TREATMENT",
+          "name": "使用工艺",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "uses_process",
+            "relation_name": "使用工艺",
+            "business_meaning": "该边表示制造阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#b7791f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BMAN-00147",
+          "target": "PROCESS_GRINDING",
+          "name": "使用工艺",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "uses_process",
+            "relation_name": "使用工艺",
+            "business_meaning": "该边表示制造阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#b7791f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BASM-01676",
+          "target": "OP-B-111",
+          "name": "操作人员",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "operated_by",
+            "relation_name": "操作人员",
+            "business_meaning": "该边表示装配或工位相关关系。"
+          },
+          "lineStyle": {
+            "color": "#00a6a6",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BASM-01676",
+          "target": "ST-B-21",
+          "name": "所在位置",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "located_at",
+            "relation_name": "所在位置",
+            "business_meaning": "该边表示装配或工位相关关系。"
+          },
+          "lineStyle": {
+            "color": "#00a6a6",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BINSP-01676",
+          "target": "VIBRATION_INSPECTION",
+          "name": "检测类型",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "uses_inspection_type",
+            "relation_name": "检测类型",
+            "business_meaning": "该边表示检测阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#2b8cbe",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BRG-01676",
+          "target": "RISK_LEVEL_medium",
+          "name": "has_overall_lifecycle_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_overall_lifecycle_risk_level",
+            "relation_name": "has_overall_lifecycle_risk_level",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BRG-01676",
+          "target": "RISK_25_50",
+          "name": "has_overall_lifecycle_risk_score",
+          "value": 0.2769,
+          "properties": {
+            "weight": 0.2769,
+            "relation": "has_overall_lifecycle_risk_score",
+            "relation_name": "has_overall_lifecycle_risk_score",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BDES-00227",
+          "target": "BEARING_MODEL_7206AC",
+          "name": "has_bearing_model",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_bearing_model",
+            "relation_name": "has_bearing_model",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BDES-00227",
+          "target": "LUBRICATION_oil_bath",
+          "name": "has_lubrication_method",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_lubrication_method",
+            "relation_name": "has_lubrication_method",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BDES-00227",
+          "target": "RISK_LEVEL_low",
+          "name": "has_design_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_design_risk_level",
+            "relation_name": "has_design_risk_level",
+            "business_meaning": "该边表示管路设计参数关系。"
+          },
+          "lineStyle": {
+            "color": "#90caf9",
+            "width": 1.0,
+            "type": "dotted",
+            "opacity": 0.55,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BDES-00227",
+          "target": "RISK_0_25",
+          "name": "has_design_risk_score",
+          "value": 0.1732,
+          "properties": {
+            "weight": 0.1732,
+            "relation": "has_design_risk_score",
+            "relation_name": "has_design_risk_score",
+            "business_meaning": "该边表示管路设计参数关系。"
+          },
+          "lineStyle": {
+            "color": "#90caf9",
+            "width": 1.0,
+            "type": "dotted",
+            "opacity": 0.55,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BMAT-00431",
+          "target": "MATERIAL_GRADE_GCr15",
+          "name": "has_material_grade",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_material_grade",
+            "relation_name": "has_material_grade",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BMAT-00431",
+          "target": "RISK_LEVEL_low",
+          "name": "has_material_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_material_risk_level",
+            "relation_name": "has_material_risk_level",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BMAN-00147",
+          "target": "RISK_LEVEL_medium",
+          "name": "has_manufacturing_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_manufacturing_risk_level",
+            "relation_name": "has_manufacturing_risk_level",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BASM-01676",
+          "target": "RISK_LEVEL_medium",
+          "name": "has_assembly_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_assembly_risk_level",
+            "relation_name": "has_assembly_risk_level",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BINSP-01676",
+          "target": "INSPECTION_RESULT_pass",
+          "name": "has_inspection_result",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_inspection_result",
+            "relation_name": "has_inspection_result",
+            "business_meaning": "该边表示检测阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#2b8cbe",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BINSP-01676",
+          "target": "RISK_LEVEL_low",
+          "name": "has_inspection_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_inspection_risk_level",
+            "relation_name": "has_inspection_risk_level",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "BRG-01676",
+          "name": "发生于",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "occurs_on",
+            "relation_name": "发生于",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "FAULT_TYPE_rolling_element_fault",
+          "name": "故障类型",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_fault_type",
+            "relation_name": "故障类型",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "FAULT_POSITION_rolling_element",
+          "name": "所在位置",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "located_at",
+            "relation_name": "所在位置",
+            "business_meaning": "该边表示装配或工位相关关系。"
+          },
+          "lineStyle": {
+            "color": "#00a6a6",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "FAULT_SEVERITY_severe",
+          "name": "故障严重度",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_fault_severity",
+            "relation_name": "故障严重度",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "CONF_50_75",
+          "name": "has_diagnosis_confidence",
+          "value": 0.6278,
+          "properties": {
+            "weight": 0.6278,
+            "relation": "has_diagnosis_confidence",
+            "relation_name": "has_diagnosis_confidence",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "CONF_50_75",
+          "name": "has_rca_confidence",
+          "value": 0.6719,
+          "properties": {
+            "weight": 0.6719,
+            "relation": "has_rca_confidence",
+            "relation_name": "has_rca_confidence",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "STAGE_manufacturing",
+          "name": "attributed_to_stage",
+          "value": 1.0,
+          "properties": {
+            "score": 1.0,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "RCA_TEXT_BFB-01676",
+          "name": "RCA 文本",
+          "value": 0.6719,
+          "properties": {
+            "score": 0.6719,
+            "weight": 0.6719,
+            "relation": "has_rca_text",
+            "relation_name": "RCA 文本",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "EVO_TEXT_BFB-01676",
+          "name": "故障演化文本",
+          "value": 0.6719,
+          "properties": {
+            "score": 0.6719,
+            "weight": 0.6719,
+            "relation": "has_fault_evolution_text",
+            "relation_name": "故障演化文本",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "BMAN-00147",
+          "name": "疑似原因",
+          "value": 0.8515,
+          "properties": {
+            "rank": 1,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.8515,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "BMAT-00431",
+          "name": "疑似原因",
+          "value": 0.648658,
+          "properties": {
+            "rank": 2,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.648658,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "BOPR-01676",
+          "name": "疑似原因",
+          "value": 0.607995,
+          "properties": {
+            "rank": 3,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.607995,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "BASM-01676",
+          "name": "疑似原因",
+          "value": 0.604428,
+          "properties": {
+            "rank": 4,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.604428,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "BDES-00227",
+          "name": "疑似原因",
+          "value": 0.542853,
+          "properties": {
+            "rank": 5,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.542853,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "BINSP-01676",
+          "name": "疑似原因",
+          "value": 0.532215,
+          "properties": {
+            "rank": 6,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.532215,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "STAGE_material",
+          "name": "attributed_to_stage",
+          "value": 0.696467,
+          "properties": {
+            "score": 0.696467,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "STAGE_operation",
+          "name": "attributed_to_stage",
+          "value": 0.587883,
+          "properties": {
+            "score": 0.587883,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "STAGE_assembly",
+          "name": "attributed_to_stage",
+          "value": 0.501577,
+          "properties": {
+            "score": 0.501577,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "STAGE_design",
+          "name": "attributed_to_stage",
+          "value": 0.370898,
+          "properties": {
+            "score": 0.370898,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "STAGE_inspection",
+          "name": "attributed_to_stage",
+          "value": 0.337578,
+          "properties": {
+            "score": 0.337578,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "CONCLUSION_BFB-01676",
+          "name": "推理结论",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_conclusion",
+            "relation_name": "推理结论",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "BFB-01676",
+          "target": "SUBSYSTEM_manufacturing",
+          "name": "反馈子系统",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "routes_to_subsystem",
+            "relation_name": "反馈子系统",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        }
+      ],
+      "lineStyle": {
+        "opacity": 0.55,
+        "curveness": 0.12
+      },
+      "emphasis": {
+        "focus": "adjacency",
+        "lineStyle": {
+          "width": 3
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "input_mode": "upstream_json",
+  "upstream_payload": {
+    "upstream_case_id": "UT-HYD-C002",
+    "component_code": "C002",
+    "component_name": "方向控制阀",
+    "fault_position": "方向控制阀",
+    "fault_type": "valve_stuck",
+    "fault_severity": "medium",
+    "diagnosis_confidence": 0.82,
+    "rca_result": {
+      "root_sensor": "PS6",
+      "secondary_sensor": "PS2",
+      "root_component_code": "C005",
+      "root_component_name": "蓄能器"
+    }
+  },
+  "normalized_upstream": {
+    "upstream_case_id": "UT-HYD-C002",
+    "fault_type": "valve_stuck",
+    "raw_fault_type": "valve_stuck",
+    "fault_position": "方向控制阀",
+    "component_code": "C002",
+    "component_name": "方向控制阀",
+    "diagnosis_confidence": 0.82,
+    "fault_severity": "medium",
+    "root_sensor": "PS6",
+    "secondary_sensor": "PS2",
+    "root_component_code": "C005",
+    "root_component_name": "蓄能器",
+    "sensor_energy": {},
+    "rca_result": {
+      "root_sensor": "PS6",
+      "secondary_sensor": "PS2",
+      "root_component_code": "C005",
+      "root_component_name": "蓄能器"
+    }
+  },
+  "target_resolution": {
+    "mode": "inferred_from_component_code",
+    "selected_case_id": "HFB-00356",
+    "selected_object_id": "HCU-00356",
+    "selected_object_name": "方向控制阀",
+    "confidence": 0.85,
+    "match_reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete",
+    "match_warning": null,
+    "candidate_topk": [
+      {
+        "case_id": "HFB-00356",
+        "object_id": "HCU-00356",
+        "object_name": "方向控制阀",
+        "score": 1.0,
+        "reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete"
+      },
+      {
+        "case_id": "HFB-00480",
+        "object_id": "HCU-00480",
+        "object_name": "方向控制阀",
+        "score": 1.0,
+        "reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete"
+      },
+      {
+        "case_id": "HFB-01207",
+        "object_id": "HCU-01207",
+        "object_name": "方向控制阀",
+        "score": 1.0,
+        "reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete"
+      },
+      {
+        "case_id": "HFB-01466",
+        "object_id": "HCU-01466",
+        "object_name": "方向控制阀",
+        "score": 1.0,
+        "reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete"
+      },
+      {
+        "case_id": "HFB-01533",
+        "object_id": "HCU-01533",
+        "object_name": "方向控制阀",
+        "score": 1.0,
+        "reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete"
+      }
+    ]
+  },
+  "selected_case_id": "HFB-00356",
+  "created_time": "2026-06-05 22:34:24"
+}

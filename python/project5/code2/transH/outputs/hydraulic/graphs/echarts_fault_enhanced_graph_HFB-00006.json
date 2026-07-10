@@ -1,0 +1,3021 @@
+{
+  "title": {
+    "text": "故障增强知识图谱",
+    "subtext": "hydraulic | HFB-00006"
+  },
+  "tooltip": {
+    "trigger": "item",
+    "confine": true
+  },
+  "legend": [
+    {
+      "data": [
+        "质量反馈",
+        "反馈对象",
+        "Top6疑似原因",
+        "设计阶段",
+        "材料阶段",
+        "制造阶段",
+        "装配阶段",
+        "检测阶段",
+        "使用/运维阶段",
+        "传感器",
+        "RCA证据",
+        "辅助信息"
+      ]
+    }
+  ],
+  "edgeLegend": [
+    {
+      "name": "TransH疑似原因关系",
+      "relations": [
+        "may_caused_by"
+      ],
+      "color": "#d62728",
+      "width": 3.5,
+      "type": "solid",
+      "description": "质量反馈指向Top6疑似根因的推理关系"
+    },
+    {
+      "name": "RCA根因证据关系",
+      "relations": [
+        "has_root_sensor",
+        "has_secondary_sensor",
+        "diagnosed_root_component"
+      ],
+      "color": "#c2185b",
+      "width": 2.8,
+      "type": "solid",
+      "description": "上游根因分析、根因部件或根因传感器证据"
+    },
+    {
+      "name": "传感器激活关系",
+      "relations": [
+        "activates_sensor"
+      ],
+      "color": "#7b1fa2",
+      "width": 2.2,
+      "type": "dashed",
+      "description": "传感器异常或激活证据关系"
+    },
+    {
+      "name": "部件诊断/子类型候选关系",
+      "relations": [
+        "has_component_diagnosis",
+        "has_subtype_candidate"
+      ],
+      "color": "#f57c00",
+      "width": 2.0,
+      "type": "dashed",
+      "description": "部件诊断和故障子类型候选关系"
+    },
+    {
+      "name": "生命周期阶段关系",
+      "relations": [
+        "designed_by",
+        "uses_material_batch",
+        "manufactured_in",
+        "assembled_in",
+        "inspected_by",
+        "maintained_by"
+      ],
+      "color": "#666666",
+      "width": 1.6,
+      "type": "solid",
+      "description": "设计、材料、制造、装配、检测、运维等生命周期关系"
+    },
+    {
+      "name": "管路参数关系",
+      "relations": [
+        "has_pipe_length",
+        "has_bend_angle",
+        "has_bend_radius",
+        "has_max_deformation",
+        "has_max_equivalent_stress",
+        "has_stress_ratio",
+        "has_design_risk_score",
+        "has_design_risk_level"
+      ],
+      "color": "#90caf9",
+      "width": 1.0,
+      "type": "dotted",
+      "description": "管路设计参数或仿真约束信息"
+    },
+    {
+      "name": "辅助属性关系",
+      "relations": [
+        "other"
+      ],
+      "color": "#bdbdbd",
+      "width": 0.8,
+      "type": "solid",
+      "description": "故障属性、风险分箱、文本证据等辅助关系"
+    }
+  ],
+  "series": [
+    {
+      "name": "知识图谱",
+      "type": "graph",
+      "layout": "force",
+      "roam": true,
+      "draggable": true,
+      "focusNodeAdjacency": true,
+      "label": {
+        "show": false,
+        "position": "right",
+        "formatter": "{b}"
+      },
+      "force": {
+        "repulsion": 420,
+        "edgeLength": [
+          90,
+          220
+        ],
+        "gravity": 0.06,
+        "friction": 0.6
+      },
+      "categories": [
+        {
+          "name": "质量反馈",
+          "key": "feedback",
+          "itemStyle": {
+            "color": "#d94841"
+          }
+        },
+        {
+          "name": "反馈对象",
+          "key": "target_object",
+          "itemStyle": {
+            "color": "#2f80ed"
+          }
+        },
+        {
+          "name": "Top6疑似原因",
+          "key": "top_candidate",
+          "itemStyle": {
+            "color": "#f2994a"
+          }
+        },
+        {
+          "name": "设计阶段",
+          "key": "design",
+          "itemStyle": {
+            "color": "#6f52ed"
+          }
+        },
+        {
+          "name": "材料阶段",
+          "key": "material",
+          "itemStyle": {
+            "color": "#27ae60"
+          }
+        },
+        {
+          "name": "制造阶段",
+          "key": "manufacturing",
+          "itemStyle": {
+            "color": "#b7791f"
+          }
+        },
+        {
+          "name": "装配阶段",
+          "key": "assembly",
+          "itemStyle": {
+            "color": "#00a6a6"
+          }
+        },
+        {
+          "name": "检测阶段",
+          "key": "inspection",
+          "itemStyle": {
+            "color": "#2d9cdb"
+          }
+        },
+        {
+          "name": "使用/运维阶段",
+          "key": "operation",
+          "itemStyle": {
+            "color": "#7f8c8d"
+          }
+        },
+        {
+          "name": "传感器",
+          "key": "sensor",
+          "itemStyle": {
+            "color": "#9b51e0"
+          }
+        },
+        {
+          "name": "RCA证据",
+          "key": "rca",
+          "itemStyle": {
+            "color": "#eb5757"
+          }
+        },
+        {
+          "name": "辅助信息",
+          "key": "other",
+          "itemStyle": {
+            "color": "#8f8f8f"
+          }
+        }
+      ],
+      "data": [
+        {
+          "id": "HFB-00006",
+          "name": "质量反馈 HFB-00006",
+          "value": 1.0,
+          "category": "质量反馈",
+          "symbolSize": 68,
+          "properties": {
+            "feedback_id": "HFB-00006",
+            "fault_type": "valve_stuck",
+            "fault_position": "方向控制阀",
+            "fault_severity": "slight",
+            "diagnosis_confidence": 0.6878,
+            "rca_confidence": 0.6432,
+            "id": "HFB-00006",
+            "name": "质量反馈 HFB-00006",
+            "type": "QualityFeedback",
+            "stage": "feedback",
+            "stage_name": "反馈阶段",
+            "is_feedback": true,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "feedback"
+          },
+          "itemStyle": {
+            "color": "#d94841",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "质量反馈 HFB-00006"
+          }
+        },
+        {
+          "id": "HCU-00006",
+          "name": "方向控制阀 HCU-00006",
+          "value": 1.0,
+          "category": "反馈对象",
+          "symbolSize": 62,
+          "properties": {
+            "component_code": "C002",
+            "name": "方向控制阀 HCU-00006",
+            "id": "HCU-00006",
+            "type": "HydraulicComponent",
+            "stage": "operation",
+            "stage_name": "使用/运维阶段",
+            "is_feedback": false,
+            "is_target_object": true,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "target_object"
+          },
+          "itemStyle": {
+            "color": "#2f80ed",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "液压部件 HCU-00006"
+          }
+        },
+        {
+          "id": "HMAN-00205",
+          "name": "制造批次 HMAN-00205",
+          "value": 0.8425,
+          "category": "Top6疑似原因",
+          "symbolSize": 58,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 1.0,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.2,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于制造阶段，具备直接路径证据。",
+            "id": "HMAN-00205",
+            "name": "制造批次 HMAN-00205",
+            "type": "ManufacturingBatch",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 1,
+            "score": 0.8425,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top1 制造批次 HMAN-00205"
+          }
+        },
+        {
+          "id": "HDES-00141",
+          "name": "设计规范 HDES-00141",
+          "value": 0.547295,
+          "category": "Top6疑似原因",
+          "symbolSize": 50,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 0.43359,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.12,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于设计阶段，具备直接路径证据。",
+            "id": "HDES-00141",
+            "name": "设计规范 HDES-00141",
+            "type": "DesignSpec",
+            "stage": "design",
+            "stage_name": "设计阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 2,
+            "score": 0.547295,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top2 设计规范 HDES-00141"
+          }
+        },
+        {
+          "id": "HMAT-00502",
+          "name": "材料批次 HMAT-00502",
+          "value": 0.505151,
+          "category": "Top6疑似原因",
+          "symbolSize": 50,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 0.343302,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.14,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于材料阶段，具备直接路径证据。",
+            "id": "HMAT-00502",
+            "name": "材料批次 HMAT-00502",
+            "type": "MaterialBatch",
+            "stage": "material",
+            "stage_name": "材料阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 3,
+            "score": 0.505151,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top3 材料批次 HMAT-00502"
+          }
+        },
+        {
+          "id": "HASM-00006",
+          "name": "装配记录 HASM-00006",
+          "value": 0.47517,
+          "category": "Top6疑似原因",
+          "symbolSize": 44,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 0.289339,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.12,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于装配阶段，具备直接路径证据。",
+            "id": "HASM-00006",
+            "name": "装配记录 HASM-00006",
+            "type": "AssemblyRecord",
+            "stage": "assembly",
+            "stage_name": "装配阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 4,
+            "score": 0.47517,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top4 装配记录 HASM-00006"
+          }
+        },
+        {
+          "id": "HOPR-00006",
+          "name": "运维记录 HOPR-00006",
+          "value": 0.438961,
+          "category": "Top6疑似原因",
+          "symbolSize": 44,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 0.162921,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.3,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于使用/运维阶段，具备直接路径证据。",
+            "id": "HOPR-00006",
+            "name": "运维记录 HOPR-00006",
+            "type": "MaintenanceRecord",
+            "stage": "operation",
+            "stage_name": "使用/运维阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 5,
+            "score": 0.438961,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top5 运维记录 HOPR-00006"
+          }
+        },
+        {
+          "id": "HINSP-00006",
+          "name": "检测记录 HINSP-00006",
+          "value": 0.415254,
+          "category": "Top6疑似原因",
+          "symbolSize": 44,
+          "properties": {
+            "candidate_scope": "lifecycle_candidate",
+            "transh_score": 0.181507,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.08,
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于检测阶段，具备直接路径证据。",
+            "id": "HINSP-00006",
+            "name": "检测记录 HINSP-00006",
+            "type": "InspectionRecord",
+            "stage": "inspection",
+            "stage_name": "检测阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": true,
+            "rank": 6,
+            "score": 0.415254,
+            "category_key": "top_candidate"
+          },
+          "itemStyle": {
+            "color": "#f2994a",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "fontWeight": "bold",
+            "formatter": "Top6 检测记录 HINSP-00006"
+          }
+        },
+        {
+          "id": "C002",
+          "name": "ComponentCode C002",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "C002",
+            "name": "ComponentCode C002",
+            "type": "ComponentCode",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "ComponentCode C002"
+          }
+        },
+        {
+          "id": "C006-S2",
+          "name": "管束堵塞",
+          "value": 0.557964,
+          "category": "RCA证据",
+          "symbolSize": 38,
+          "properties": {
+            "case_id": "HCASE-00006",
+            "component_code": "C006",
+            "component_name": "冷却器",
+            "subtype_id": "C006-S2",
+            "subtype_name": "管束堵塞",
+            "fault_part": "-",
+            "probability": 0.557964,
+            "is_precise_part": false,
+            "id": "C006-S2",
+            "name": "管束堵塞",
+            "type": "FaultSubtype",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.557964,
+            "category_key": "rca"
+          },
+          "itemStyle": {
+            "color": "#eb5757",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "故障子类型 C006-S2"
+          }
+        },
+        {
+          "id": "C007-S1",
+          "name": "滤芯堵塞",
+          "value": 0.633212,
+          "category": "RCA证据",
+          "symbolSize": 38,
+          "properties": {
+            "case_id": "HCASE-00006",
+            "component_code": "C007",
+            "component_name": "过滤器",
+            "subtype_id": "C007-S1",
+            "subtype_name": "滤芯堵塞",
+            "fault_part": "-",
+            "probability": 0.633212,
+            "is_precise_part": false,
+            "id": "C007-S1",
+            "name": "滤芯堵塞",
+            "type": "FaultSubtype",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.633212,
+            "category_key": "rca"
+          },
+          "itemStyle": {
+            "color": "#eb5757",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "故障子类型 C007-S1"
+          }
+        },
+        {
+          "id": "C008-S2",
+          "name": "空气滤清器堵塞",
+          "value": 0.57045,
+          "category": "RCA证据",
+          "symbolSize": 38,
+          "properties": {
+            "case_id": "HCASE-00006",
+            "component_code": "C008",
+            "component_name": "液压油箱",
+            "subtype_id": "C008-S2",
+            "subtype_name": "空气滤清器堵塞",
+            "fault_part": "-",
+            "probability": 0.57045,
+            "is_precise_part": false,
+            "id": "C008-S2",
+            "name": "空气滤清器堵塞",
+            "type": "FaultSubtype",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.57045,
+            "category_key": "rca"
+          },
+          "itemStyle": {
+            "color": "#eb5757",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "故障子类型 C008-S2"
+          }
+        },
+        {
+          "id": "C009-S1",
+          "name": "阀芯卡死",
+          "value": 0.610734,
+          "category": "RCA证据",
+          "symbolSize": 38,
+          "properties": {
+            "case_id": "HCASE-00006",
+            "component_code": "C009",
+            "component_name": "单向阀",
+            "subtype_id": "C009-S1",
+            "subtype_name": "阀芯卡死",
+            "fault_part": "-",
+            "probability": 0.610734,
+            "is_precise_part": false,
+            "id": "C009-S1",
+            "name": "阀芯卡死",
+            "type": "FaultSubtype",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.610734,
+            "category_key": "rca"
+          },
+          "itemStyle": {
+            "color": "#eb5757",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "故障子类型 C009-S1"
+          }
+        },
+        {
+          "id": "C012-S2",
+          "name": "阀芯卡滞常开",
+          "value": 0.623306,
+          "category": "RCA证据",
+          "symbolSize": 38,
+          "properties": {
+            "case_id": "HCASE-00006",
+            "component_code": "C012",
+            "component_name": "卸荷阀",
+            "subtype_id": "C012-S2",
+            "subtype_name": "阀芯卡滞常开",
+            "fault_part": "-",
+            "probability": 0.623306,
+            "is_precise_part": false,
+            "id": "C012-S2",
+            "name": "阀芯卡滞常开",
+            "type": "FaultSubtype",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.623306,
+            "category_key": "rca"
+          },
+          "itemStyle": {
+            "color": "#eb5757",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "故障子类型 C012-S2"
+          }
+        },
+        {
+          "id": "CATEGORY_control_valve",
+          "name": "ComponentCategory CATEGORY_control_valve",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 26,
+          "properties": {
+            "id": "CATEGORY_control_valve",
+            "name": "ComponentCategory CATEGORY_control_valve",
+            "type": "ComponentCategory",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.5
+          },
+          "label": {
+            "show": false,
+            "formatter": "ComponentCategory CAT..."
+          }
+        },
+        {
+          "id": "COMPONENT_NAME_方向控制阀",
+          "name": "ComponentName COMPONENT_NAME_方向控制阀",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "COMPONENT_NAME_方向控制阀",
+            "name": "ComponentName COMPONENT_NAME_方向控制阀",
+            "type": "ComponentName",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "ComponentName COMPONE..."
+          }
+        },
+        {
+          "id": "CONCLUSION_HFB-00006",
+          "name": "推理结论 HFB-00006",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 26,
+          "properties": {
+            "conclusion_text": "液压反馈对象为 方向控制阀，根因部件为 方向控制阀，根因传感器为 PS3。Top1 疑似原因是 HMAN-00205，首要疑似生命周期阶段为 制造阶段，建议优先反馈至制造工艺子系统。同时，系统建议重点关注设计阶段、装配阶段等相关阶段，以支持跨阶段联合复核。RCA 根因部件与反馈部件一致，暂未发现明显跨部件传播迹象。",
+            "id": "CONCLUSION_HFB-00006",
+            "name": "推理结论 HFB-00006",
+            "type": "ReasoningConclusion",
+            "stage": "feedback",
+            "stage_name": "反馈阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.5
+          },
+          "label": {
+            "show": false,
+            "formatter": "推理结论 HFB-00006"
+          }
+        },
+        {
+          "id": "CONF_50_75",
+          "name": "ConfidenceLevel CONF_50_75",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "CONF_50_75",
+            "name": "ConfidenceLevel CONF_50_75",
+            "type": "ConfidenceLevel",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "ConfidenceLevel CONF_..."
+          }
+        },
+        {
+          "id": "DIAG_HCASE-00006_C002",
+          "name": "方向控制阀 诊断1",
+          "value": 0.70196,
+          "category": "RCA证据",
+          "symbolSize": 38,
+          "properties": {
+            "case_id": "HCASE-00006",
+            "component_code": "C002",
+            "component_name": "方向控制阀",
+            "fault_type": "方向阀故障",
+            "severity": 0.70196,
+            "judgement": "故障",
+            "fault_level": "重度故障",
+            "rank_no": 1,
+            "id": "DIAG_HCASE-00006_C002",
+            "name": "方向控制阀 诊断1",
+            "type": "ComponentDiagnosis",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.70196,
+            "category_key": "rca"
+          },
+          "itemStyle": {
+            "color": "#eb5757",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "部件诊断 DIAG_HCASE-00006_C002"
+          }
+        },
+        {
+          "id": "DIAG_HCASE-00006_C003",
+          "name": "作动筒 诊断2",
+          "value": 0.3222,
+          "category": "RCA证据",
+          "symbolSize": 38,
+          "properties": {
+            "case_id": "HCASE-00006",
+            "component_code": "C003",
+            "component_name": "作动筒",
+            "fault_type": "作动筒故障",
+            "severity": 0.3222,
+            "judgement": "正常",
+            "fault_level": "轻微退化",
+            "rank_no": 2,
+            "id": "DIAG_HCASE-00006_C003",
+            "name": "作动筒 诊断2",
+            "type": "ComponentDiagnosis",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.3222,
+            "category_key": "rca"
+          },
+          "itemStyle": {
+            "color": "#eb5757",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "部件诊断 DIAG_HCASE-00006_C003"
+          }
+        },
+        {
+          "id": "DIAG_HCASE-00006_C010",
+          "name": "节流阀 诊断3",
+          "value": 0.2782,
+          "category": "RCA证据",
+          "symbolSize": 38,
+          "properties": {
+            "case_id": "HCASE-00006",
+            "component_code": "C010",
+            "component_name": "节流阀",
+            "fault_type": "节流阀故障",
+            "severity": 0.2782,
+            "judgement": "正常",
+            "fault_level": "轻微退化",
+            "rank_no": 3,
+            "id": "DIAG_HCASE-00006_C010",
+            "name": "节流阀 诊断3",
+            "type": "ComponentDiagnosis",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.2782,
+            "category_key": "rca"
+          },
+          "itemStyle": {
+            "color": "#eb5757",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": true,
+            "formatter": "部件诊断 DIAG_HCASE-00006_C010"
+          }
+        },
+        {
+          "id": "EVO_TEXT_HFB-00006",
+          "name": "演化文本 HFB-00006",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 26,
+          "properties": {
+            "evidence_type": "fault_evolution_text",
+            "evidence_text": "早期异常较弱，运行载荷放大后出现指标漂移，并逐步演化为轻微故障。",
+            "confidence": 0.6432,
+            "id": "EVO_TEXT_HFB-00006",
+            "name": "演化文本 HFB-00006",
+            "type": "FaultEvolutionText",
+            "stage": "feedback",
+            "stage_name": "反馈阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.5
+          },
+          "label": {
+            "show": false,
+            "formatter": "演化文本 HFB-00006"
+          }
+        },
+        {
+          "id": "FAULT_POSITION_方向控制阀",
+          "name": "故障位置 FAULT_POSITION_方向控制阀",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "FAULT_POSITION_方向控制阀",
+            "name": "故障位置 FAULT_POSITION_方向控制阀",
+            "type": "FaultPosition",
+            "stage": "fault",
+            "stage_name": "故障信息",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "故障位置 FAULT_POSITION_方..."
+          }
+        },
+        {
+          "id": "FAULT_SEVERITY_slight",
+          "name": "故障严重度 FAULT_SEVERITY_slight",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "FAULT_SEVERITY_slight",
+            "name": "故障严重度 FAULT_SEVERITY_slight",
+            "type": "FaultSeverity",
+            "stage": "fault",
+            "stage_name": "故障信息",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "故障严重度 FAULT_SEVERITY_..."
+          }
+        },
+        {
+          "id": "FAULT_TYPE_valve_stuck",
+          "name": "故障类型 FAULT_TYPE_valve_stuck",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "FAULT_TYPE_valve_stuck",
+            "name": "故障类型 FAULT_TYPE_valve_stuck",
+            "type": "FaultType",
+            "stage": "fault",
+            "stage_name": "故障信息",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "故障类型 FAULT_TYPE_valve..."
+          }
+        },
+        {
+          "id": "FS1",
+          "name": "传感器 FS1",
+          "value": 0.62181,
+          "category": "传感器",
+          "symbolSize": 36,
+          "properties": {
+            "id": "FS1",
+            "name": "传感器 FS1",
+            "type": "Sensor",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.62181,
+            "category_key": "sensor"
+          },
+          "itemStyle": {
+            "color": "#9b51e0",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": false,
+            "formatter": "传感器 FS1"
+          }
+        },
+        {
+          "id": "HEQ-053",
+          "name": "设备 HEQ-053",
+          "value": 1.0,
+          "category": "制造阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "HEQ-053",
+            "name": "设备 HEQ-053",
+            "type": "Equipment",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "manufacturing"
+          },
+          "itemStyle": {
+            "color": "#b7791f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "设备 HEQ-053"
+          }
+        },
+        {
+          "id": "HSUP-031",
+          "name": "供应商 HSUP-031",
+          "value": 1.0,
+          "category": "材料阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "HSUP-031",
+            "name": "供应商 HSUP-031",
+            "type": "Supplier",
+            "stage": "material",
+            "stage_name": "材料阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "material"
+          },
+          "itemStyle": {
+            "color": "#27ae60",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "供应商 HSUP-031"
+          }
+        },
+        {
+          "id": "INSPECTION_RESULT_pass",
+          "name": "InspectionResult INSPECTION_RESULT_pass",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "INSPECTION_RESULT_pass",
+            "name": "InspectionResult INSPECTION_RESULT_pass",
+            "type": "InspectionResult",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "InspectionResult INSP..."
+          }
+        },
+        {
+          "id": "MATERIAL_GRADE_316L",
+          "name": "MaterialGrade MATERIAL_GRADE_316L",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "MATERIAL_GRADE_316L",
+            "name": "MaterialGrade MATERIAL_GRADE_316L",
+            "type": "MaterialGrade",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "MaterialGrade MATERIA..."
+          }
+        },
+        {
+          "id": "OP-H-082",
+          "name": "操作员 OP-H-082",
+          "value": 1.0,
+          "category": "使用/运维阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "OP-H-082",
+            "name": "操作员 OP-H-082",
+            "type": "Operator",
+            "stage": "operation",
+            "stage_name": "使用/运维阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "operation"
+          },
+          "itemStyle": {
+            "color": "#7f8c8d",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "操作员 OP-H-082"
+          }
+        },
+        {
+          "id": "PROCESS_cleaning",
+          "name": "制造工艺 PROCESS_cleaning",
+          "value": 1.0,
+          "category": "制造阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "PROCESS_cleaning",
+            "name": "制造工艺 PROCESS_cleaning",
+            "type": "ManufacturingProcess",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "manufacturing"
+          },
+          "itemStyle": {
+            "color": "#b7791f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "制造工艺 PROCESS_cleaning"
+          }
+        },
+        {
+          "id": "PS2",
+          "name": "传感器 PS2",
+          "value": 0.26333,
+          "category": "传感器",
+          "symbolSize": 36,
+          "properties": {
+            "id": "PS2",
+            "name": "传感器 PS2",
+            "type": "Sensor",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.26333,
+            "category_key": "sensor"
+          },
+          "itemStyle": {
+            "color": "#9b51e0",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": false,
+            "formatter": "传感器 PS2"
+          }
+        },
+        {
+          "id": "PS3",
+          "name": "传感器 PS3",
+          "value": 0.94496,
+          "category": "传感器",
+          "symbolSize": 36,
+          "properties": {
+            "id": "PS3",
+            "name": "传感器 PS3",
+            "type": "Sensor",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.94496,
+            "category_key": "sensor"
+          },
+          "itemStyle": {
+            "color": "#9b51e0",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": false,
+            "formatter": "传感器 PS3"
+          }
+        },
+        {
+          "id": "PS4",
+          "name": "传感器 PS4",
+          "value": 0.43465,
+          "category": "传感器",
+          "symbolSize": 36,
+          "properties": {
+            "id": "PS4",
+            "name": "传感器 PS4",
+            "type": "Sensor",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.43465,
+            "category_key": "sensor"
+          },
+          "itemStyle": {
+            "color": "#9b51e0",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": false,
+            "formatter": "传感器 PS4"
+          }
+        },
+        {
+          "id": "PS6",
+          "name": "传感器 PS6",
+          "value": 0.1359,
+          "category": "传感器",
+          "symbolSize": 36,
+          "properties": {
+            "id": "PS6",
+            "name": "传感器 PS6",
+            "type": "Sensor",
+            "stage": "rca",
+            "stage_name": "RCA 诊断",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.1359,
+            "category_key": "sensor"
+          },
+          "itemStyle": {
+            "color": "#9b51e0",
+            "opacity": 1.0
+          },
+          "label": {
+            "show": false,
+            "formatter": "传感器 PS6"
+          }
+        },
+        {
+          "id": "RCA_ROOT_C002",
+          "name": "方向控制阀 RCA根因部件",
+          "value": 0.8107,
+          "category": "使用/运维阶段",
+          "symbolSize": 32,
+          "properties": {
+            "component_code": "C002",
+            "root_component_name": "方向控制阀",
+            "id": "RCA_ROOT_C002",
+            "name": "方向控制阀 RCA根因部件",
+            "type": "HydraulicComponent",
+            "stage": "operation",
+            "stage_name": "使用/运维阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.8107,
+            "category_key": "operation"
+          },
+          "itemStyle": {
+            "color": "#7f8c8d",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": true,
+            "formatter": "液压部件 RCA_ROOT_C002"
+          }
+        },
+        {
+          "id": "RCA_TEXT_HFB-00006",
+          "name": "RCA文本 HFB-00006",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 26,
+          "properties": {
+            "evidence_type": "rca_text",
+            "evidence_text": "该案例表现为轻微阀芯卡滞，根因更可能由制造阶段隐患累积触发。",
+            "confidence": 0.6432,
+            "id": "RCA_TEXT_HFB-00006",
+            "name": "RCA文本 HFB-00006",
+            "type": "RcaText",
+            "stage": "feedback",
+            "stage_name": "反馈阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.5
+          },
+          "label": {
+            "show": false,
+            "formatter": "RCA文本 HFB-00006"
+          }
+        },
+        {
+          "id": "RISK_0_25",
+          "name": "RiskScore RISK_0_25",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "RISK_0_25",
+            "name": "RiskScore RISK_0_25",
+            "type": "RiskScore",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "RiskScore RISK_0_25"
+          }
+        },
+        {
+          "id": "RISK_LEVEL_low",
+          "name": "RiskLevel RISK_LEVEL_low",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "RISK_LEVEL_low",
+            "name": "RiskLevel RISK_LEVEL_low",
+            "type": "RiskLevel",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "RiskLevel RISK_LEVEL_low"
+          }
+        },
+        {
+          "id": "RISK_LEVEL_medium",
+          "name": "RiskLevel RISK_LEVEL_medium",
+          "value": 1.0,
+          "category": "辅助信息",
+          "symbolSize": 22,
+          "properties": {
+            "id": "RISK_LEVEL_medium",
+            "name": "RiskLevel RISK_LEVEL_medium",
+            "type": "RiskLevel",
+            "stage": "unknown",
+            "stage_name": "未知阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "other"
+          },
+          "itemStyle": {
+            "color": "#8f8f8f",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "RiskLevel RISK_LEVEL_..."
+          }
+        },
+        {
+          "id": "ST-H-37",
+          "name": "工位 ST-H-37",
+          "value": 1.0,
+          "category": "装配阶段",
+          "symbolSize": 24,
+          "properties": {
+            "id": "ST-H-37",
+            "name": "工位 ST-H-37",
+            "type": "Station",
+            "stage": "assembly",
+            "stage_name": "装配阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "assembly"
+          },
+          "itemStyle": {
+            "color": "#00a6a6",
+            "opacity": 0.42
+          },
+          "label": {
+            "show": false,
+            "formatter": "工位 ST-H-37"
+          }
+        },
+        {
+          "id": "STAGE_assembly",
+          "name": "装配阶段",
+          "value": 0.463136,
+          "category": "装配阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 0.463136,
+            "id": "STAGE_assembly",
+            "name": "装配阶段",
+            "type": "LifecycleStage",
+            "stage": "assembly",
+            "stage_name": "装配阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.463136,
+            "category_key": "assembly"
+          },
+          "itemStyle": {
+            "color": "#00a6a6",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_assembly"
+          }
+        },
+        {
+          "id": "STAGE_design",
+          "name": "设计阶段",
+          "value": 0.593324,
+          "category": "设计阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 0.593324,
+            "id": "STAGE_design",
+            "name": "设计阶段",
+            "type": "LifecycleStage",
+            "stage": "design",
+            "stage_name": "设计阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.593324,
+            "category_key": "design"
+          },
+          "itemStyle": {
+            "color": "#6f52ed",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_design"
+          }
+        },
+        {
+          "id": "STAGE_inspection",
+          "name": "检测阶段",
+          "value": 0.321332,
+          "category": "检测阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 0.321332,
+            "id": "STAGE_inspection",
+            "name": "检测阶段",
+            "type": "LifecycleStage",
+            "stage": "inspection",
+            "stage_name": "检测阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.321332,
+            "category_key": "inspection"
+          },
+          "itemStyle": {
+            "color": "#2d9cdb",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_inspection"
+          }
+        },
+        {
+          "id": "STAGE_manufacturing",
+          "name": "制造阶段",
+          "value": 1.0,
+          "category": "制造阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 1.0,
+            "id": "STAGE_manufacturing",
+            "name": "制造阶段",
+            "type": "LifecycleStage",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 1.0,
+            "category_key": "manufacturing"
+          },
+          "itemStyle": {
+            "color": "#b7791f",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_manufacturing"
+          }
+        },
+        {
+          "id": "STAGE_material",
+          "name": "材料阶段",
+          "value": 0.440408,
+          "category": "材料阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 0.440408,
+            "id": "STAGE_material",
+            "name": "材料阶段",
+            "type": "LifecycleStage",
+            "stage": "material",
+            "stage_name": "材料阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.440408,
+            "category_key": "material"
+          },
+          "itemStyle": {
+            "color": "#27ae60",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_material"
+          }
+        },
+        {
+          "id": "STAGE_operation",
+          "name": "使用/运维阶段",
+          "value": 0.3053,
+          "category": "使用/运维阶段",
+          "symbolSize": 32,
+          "properties": {
+            "stage_score": 0.3053,
+            "id": "STAGE_operation",
+            "name": "使用/运维阶段",
+            "type": "LifecycleStage",
+            "stage": "operation",
+            "stage_name": "使用/运维阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": 0.3053,
+            "category_key": "operation"
+          },
+          "itemStyle": {
+            "color": "#7f8c8d",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "生命周期阶段 STAGE_operation"
+          }
+        },
+        {
+          "id": "SUBSYSTEM_manufacturing",
+          "name": "制造工艺子系统",
+          "value": 1.0,
+          "category": "制造阶段",
+          "symbolSize": 32,
+          "properties": {
+            "id": "SUBSYSTEM_manufacturing",
+            "name": "制造工艺子系统",
+            "type": "TargetSubsystem",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_feedback": false,
+            "is_target_object": false,
+            "is_top_candidate": false,
+            "rank": null,
+            "score": null,
+            "category_key": "manufacturing"
+          },
+          "itemStyle": {
+            "color": "#b7791f",
+            "opacity": 0.92
+          },
+          "label": {
+            "show": false,
+            "formatter": "反馈子系统 SUBSYSTEM_manufacturing"
+          }
+        }
+      ],
+      "links": [
+        {
+          "source": "HCU-00006",
+          "target": "HDES-00141",
+          "name": "设计依据",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "designed_by",
+            "relation_name": "设计依据",
+            "business_meaning": "该边表示设计阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#6f42c1",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "HMAT-00502",
+          "name": "使用材料批次",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "uses_material_batch",
+            "relation_name": "使用材料批次",
+            "business_meaning": "该边表示材料或供应商生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#2ca25f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "HMAN-00205",
+          "name": "制造批次",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "manufactured_in",
+            "relation_name": "制造批次",
+            "business_meaning": "该边表示制造阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#b7791f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "HASM-00006",
+          "name": "装配记录",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "assembled_in",
+            "relation_name": "装配记录",
+            "business_meaning": "该边表示装配或工位相关关系。"
+          },
+          "lineStyle": {
+            "color": "#00a6a6",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "HINSP-00006",
+          "name": "检测记录",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "inspected_by",
+            "relation_name": "检测记录",
+            "business_meaning": "该边表示检测阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#2b8cbe",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "HOPR-00006",
+          "name": "运维记录",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "maintained_by",
+            "relation_name": "运维记录",
+            "business_meaning": "该边表示使用/运维阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#607d8b",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "PS3",
+          "name": "监测传感器",
+          "value": 0.55,
+          "properties": {
+            "weight": 0.55,
+            "relation": "monitored_by",
+            "relation_name": "监测传感器",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "FS1",
+          "name": "监测传感器",
+          "value": 0.3,
+          "properties": {
+            "weight": 0.3,
+            "relation": "monitored_by",
+            "relation_name": "监测传感器",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "PS4",
+          "name": "监测传感器",
+          "value": 0.15,
+          "properties": {
+            "weight": 0.15,
+            "relation": "monitored_by",
+            "relation_name": "监测传感器",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HMAT-00502",
+          "target": "HSUP-031",
+          "name": "供应商",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "supplied_by",
+            "relation_name": "供应商",
+            "business_meaning": "该边表示材料或供应商生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#2ca25f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HMAN-00205",
+          "target": "PROCESS_cleaning",
+          "name": "使用工艺",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "uses_process",
+            "relation_name": "使用工艺",
+            "business_meaning": "该边表示制造阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#b7791f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HMAN-00205",
+          "target": "HEQ-053",
+          "name": "加工设备",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "processed_by",
+            "relation_name": "加工设备",
+            "business_meaning": "该边表示制造阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#b7791f",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HASM-00006",
+          "target": "OP-H-082",
+          "name": "操作人员",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "operated_by",
+            "relation_name": "操作人员",
+            "business_meaning": "该边表示装配或工位相关关系。"
+          },
+          "lineStyle": {
+            "color": "#00a6a6",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HASM-00006",
+          "target": "ST-H-37",
+          "name": "所在位置",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "located_at",
+            "relation_name": "所在位置",
+            "business_meaning": "该边表示装配或工位相关关系。"
+          },
+          "lineStyle": {
+            "color": "#00a6a6",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "C002",
+          "name": "has_component_code",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_component_code",
+            "relation_name": "has_component_code",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "COMPONENT_NAME_方向控制阀",
+          "name": "has_component_name",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_component_name",
+            "relation_name": "has_component_name",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "CATEGORY_control_valve",
+          "name": "belongs_to_category",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "belongs_to_category",
+            "relation_name": "belongs_to_category",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "RISK_0_25",
+          "name": "has_overall_lifecycle_risk_score",
+          "value": 0.2069,
+          "properties": {
+            "weight": 0.2069,
+            "relation": "has_overall_lifecycle_risk_score",
+            "relation_name": "has_overall_lifecycle_risk_score",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HCU-00006",
+          "target": "RISK_LEVEL_low",
+          "name": "has_overall_lifecycle_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_overall_lifecycle_risk_level",
+            "relation_name": "has_overall_lifecycle_risk_level",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HDES-00141",
+          "target": "RISK_LEVEL_low",
+          "name": "has_design_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_design_risk_level",
+            "relation_name": "has_design_risk_level",
+            "business_meaning": "该边表示管路设计参数关系。"
+          },
+          "lineStyle": {
+            "color": "#90caf9",
+            "width": 1.0,
+            "type": "dotted",
+            "opacity": 0.55,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HDES-00141",
+          "target": "RISK_0_25",
+          "name": "has_design_risk_score",
+          "value": 0.1406,
+          "properties": {
+            "weight": 0.1406,
+            "relation": "has_design_risk_score",
+            "relation_name": "has_design_risk_score",
+            "business_meaning": "该边表示管路设计参数关系。"
+          },
+          "lineStyle": {
+            "color": "#90caf9",
+            "width": 1.0,
+            "type": "dotted",
+            "opacity": 0.55,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HMAT-00502",
+          "target": "MATERIAL_GRADE_316L",
+          "name": "has_material_grade",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_material_grade",
+            "relation_name": "has_material_grade",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HMAT-00502",
+          "target": "RISK_LEVEL_medium",
+          "name": "has_material_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_material_risk_level",
+            "relation_name": "has_material_risk_level",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HMAN-00205",
+          "target": "RISK_LEVEL_low",
+          "name": "has_process_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_process_risk_level",
+            "relation_name": "has_process_risk_level",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HASM-00006",
+          "target": "RISK_LEVEL_low",
+          "name": "has_assembly_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_assembly_risk_level",
+            "relation_name": "has_assembly_risk_level",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HINSP-00006",
+          "target": "INSPECTION_RESULT_pass",
+          "name": "has_inspection_result",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_inspection_result",
+            "relation_name": "has_inspection_result",
+            "business_meaning": "该边表示检测阶段生命周期关系。"
+          },
+          "lineStyle": {
+            "color": "#2b8cbe",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HINSP-00006",
+          "target": "RISK_LEVEL_low",
+          "name": "has_inspection_risk_level",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_inspection_risk_level",
+            "relation_name": "has_inspection_risk_level",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "HCU-00006",
+          "name": "发生于",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "occurs_on",
+            "relation_name": "发生于",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "FAULT_TYPE_valve_stuck",
+          "name": "故障类型",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_fault_type",
+            "relation_name": "故障类型",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "FAULT_POSITION_方向控制阀",
+          "name": "所在位置",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "located_at",
+            "relation_name": "所在位置",
+            "business_meaning": "该边表示装配或工位相关关系。"
+          },
+          "lineStyle": {
+            "color": "#00a6a6",
+            "width": 1.6,
+            "type": "solid",
+            "opacity": 0.75,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "FAULT_SEVERITY_slight",
+          "name": "故障严重度",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_fault_severity",
+            "relation_name": "故障严重度",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "CONF_50_75",
+          "name": "has_diagnosis_confidence",
+          "value": 0.6878,
+          "properties": {
+            "weight": 0.6878,
+            "relation": "has_diagnosis_confidence",
+            "relation_name": "has_diagnosis_confidence",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "CONF_50_75",
+          "name": "has_rca_confidence",
+          "value": 0.6432,
+          "properties": {
+            "weight": 0.6432,
+            "relation": "has_rca_confidence",
+            "relation_name": "has_rca_confidence",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "STAGE_manufacturing",
+          "name": "attributed_to_stage",
+          "value": 1.0,
+          "properties": {
+            "score": 1.0,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "RCA_TEXT_HFB-00006",
+          "name": "RCA 文本",
+          "value": 0.6432,
+          "properties": {
+            "score": 0.6432,
+            "weight": 0.6432,
+            "relation": "has_rca_text",
+            "relation_name": "RCA 文本",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "EVO_TEXT_HFB-00006",
+          "name": "故障演化文本",
+          "value": 0.6432,
+          "properties": {
+            "score": 0.6432,
+            "weight": 0.6432,
+            "relation": "has_fault_evolution_text",
+            "relation_name": "故障演化文本",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "HMAN-00205",
+          "name": "疑似原因",
+          "value": 0.8425,
+          "properties": {
+            "rank": 1,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.8425,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "HDES-00141",
+          "name": "疑似原因",
+          "value": 0.547295,
+          "properties": {
+            "rank": 2,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.547295,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "HMAT-00502",
+          "name": "疑似原因",
+          "value": 0.505151,
+          "properties": {
+            "rank": 3,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.505151,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "HASM-00006",
+          "name": "疑似原因",
+          "value": 0.47517,
+          "properties": {
+            "rank": 4,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.47517,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "HOPR-00006",
+          "name": "疑似原因",
+          "value": 0.438961,
+          "properties": {
+            "rank": 5,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.438961,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "HINSP-00006",
+          "name": "疑似原因",
+          "value": 0.415254,
+          "properties": {
+            "rank": 6,
+            "candidate_scope": "lifecycle_candidate",
+            "score": 0.415254,
+            "weight": 1.0,
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。"
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "STAGE_design",
+          "name": "attributed_to_stage",
+          "value": 0.593324,
+          "properties": {
+            "score": 0.593324,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "STAGE_assembly",
+          "name": "attributed_to_stage",
+          "value": 0.463136,
+          "properties": {
+            "score": 0.463136,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "STAGE_material",
+          "name": "attributed_to_stage",
+          "value": 0.440408,
+          "properties": {
+            "score": 0.440408,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "STAGE_inspection",
+          "name": "attributed_to_stage",
+          "value": 0.321332,
+          "properties": {
+            "score": 0.321332,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "STAGE_operation",
+          "name": "attributed_to_stage",
+          "value": 0.3053,
+          "properties": {
+            "score": 0.3053,
+            "weight": 1.0,
+            "relation": "attributed_to_stage",
+            "relation_name": "attributed_to_stage",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "CONCLUSION_HFB-00006",
+          "name": "推理结论",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "has_conclusion",
+            "relation_name": "推理结论",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "SUBSYSTEM_manufacturing",
+          "name": "反馈子系统",
+          "value": 1.0,
+          "properties": {
+            "weight": 1.0,
+            "relation": "routes_to_subsystem",
+            "relation_name": "反馈子系统",
+            "business_meaning": "该边表示辅助图谱关系。"
+          },
+          "lineStyle": {
+            "color": "#bdbdbd",
+            "width": 0.8,
+            "type": "solid",
+            "opacity": 0.4,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "PS3",
+          "name": "根因传感器",
+          "value": 0.9336,
+          "properties": {
+            "score": 0.9336,
+            "weight": 0.9336,
+            "relation": "has_root_sensor",
+            "relation_name": "根因传感器",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#c2185b",
+            "width": 2.8,
+            "type": "solid",
+            "opacity": 0.9,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "PS3",
+          "name": "次级传感器",
+          "value": 0.8169,
+          "properties": {
+            "score": 0.8169,
+            "weight": 0.8169,
+            "relation": "has_secondary_sensor",
+            "relation_name": "次级传感器",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#c2185b",
+            "width": 2.8,
+            "type": "solid",
+            "opacity": 0.9,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "RCA_ROOT_C002",
+          "name": "诊断根因部件",
+          "value": 0.8107,
+          "properties": {
+            "score": 0.8107,
+            "weight": 0.8107,
+            "relation": "diagnosed_root_component",
+            "relation_name": "诊断根因部件",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#c2185b",
+            "width": 2.8,
+            "type": "solid",
+            "opacity": 0.9,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "DIAG_HCASE-00006_C002",
+          "name": "部件诊断",
+          "value": 0.70196,
+          "properties": {
+            "score": 0.70196,
+            "weight": 0.70196,
+            "relation": "has_component_diagnosis",
+            "relation_name": "部件诊断",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#f57c00",
+            "width": 2.0,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "DIAG_HCASE-00006_C003",
+          "name": "部件诊断",
+          "value": 0.3222,
+          "properties": {
+            "score": 0.3222,
+            "weight": 0.3222,
+            "relation": "has_component_diagnosis",
+            "relation_name": "部件诊断",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#f57c00",
+            "width": 2.0,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "DIAG_HCASE-00006_C010",
+          "name": "部件诊断",
+          "value": 0.2782,
+          "properties": {
+            "score": 0.2782,
+            "weight": 0.2782,
+            "relation": "has_component_diagnosis",
+            "relation_name": "部件诊断",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#f57c00",
+            "width": 2.0,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "C007-S1",
+          "name": "故障子类型候选",
+          "value": 0.633212,
+          "properties": {
+            "score": 0.633212,
+            "weight": 0.633212,
+            "relation": "has_subtype_candidate",
+            "relation_name": "故障子类型候选",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#f57c00",
+            "width": 2.0,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "C012-S2",
+          "name": "故障子类型候选",
+          "value": 0.623306,
+          "properties": {
+            "score": 0.623306,
+            "weight": 0.623306,
+            "relation": "has_subtype_candidate",
+            "relation_name": "故障子类型候选",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#f57c00",
+            "width": 2.0,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "C009-S1",
+          "name": "故障子类型候选",
+          "value": 0.610734,
+          "properties": {
+            "score": 0.610734,
+            "weight": 0.610734,
+            "relation": "has_subtype_candidate",
+            "relation_name": "故障子类型候选",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#f57c00",
+            "width": 2.0,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "C008-S2",
+          "name": "故障子类型候选",
+          "value": 0.57045,
+          "properties": {
+            "score": 0.57045,
+            "weight": 0.57045,
+            "relation": "has_subtype_candidate",
+            "relation_name": "故障子类型候选",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#f57c00",
+            "width": 2.0,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "C006-S2",
+          "name": "故障子类型候选",
+          "value": 0.557964,
+          "properties": {
+            "score": 0.557964,
+            "weight": 0.557964,
+            "relation": "has_subtype_candidate",
+            "relation_name": "故障子类型候选",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#f57c00",
+            "width": 2.0,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "PS3",
+          "name": "激活传感器",
+          "value": 0.94496,
+          "properties": {
+            "energy": 0.94496,
+            "score": 0.94496,
+            "weight": 0.94496,
+            "relation": "activates_sensor",
+            "relation_name": "激活传感器",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#7b1fa2",
+            "width": 2.2,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "FS1",
+          "name": "激活传感器",
+          "value": 0.62181,
+          "properties": {
+            "energy": 0.62181,
+            "score": 0.62181,
+            "weight": 0.62181,
+            "relation": "activates_sensor",
+            "relation_name": "激活传感器",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#7b1fa2",
+            "width": 2.2,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "PS4",
+          "name": "激活传感器",
+          "value": 0.43465,
+          "properties": {
+            "energy": 0.43465,
+            "score": 0.43465,
+            "weight": 0.43465,
+            "relation": "activates_sensor",
+            "relation_name": "激活传感器",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#7b1fa2",
+            "width": 2.2,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "PS2",
+          "name": "激活传感器",
+          "value": 0.26333,
+          "properties": {
+            "energy": 0.26333,
+            "score": 0.26333,
+            "weight": 0.26333,
+            "relation": "activates_sensor",
+            "relation_name": "激活传感器",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#7b1fa2",
+            "width": 2.2,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        },
+        {
+          "source": "HFB-00006",
+          "target": "PS6",
+          "name": "激活传感器",
+          "value": 0.1359,
+          "properties": {
+            "energy": 0.1359,
+            "score": 0.1359,
+            "weight": 0.1359,
+            "relation": "activates_sensor",
+            "relation_name": "激活传感器",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。"
+          },
+          "lineStyle": {
+            "color": "#7b1fa2",
+            "width": 2.2,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.12
+          }
+        }
+      ],
+      "lineStyle": {
+        "opacity": 0.55,
+        "curveness": 0.12
+      },
+      "emphasis": {
+        "focus": "adjacency",
+        "lineStyle": {
+          "width": 3
+        }
+      }
+    }
+  ]
+}

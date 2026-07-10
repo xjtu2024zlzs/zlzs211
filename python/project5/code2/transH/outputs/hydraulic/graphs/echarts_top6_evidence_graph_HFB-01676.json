@@ -1,0 +1,965 @@
+{
+  "title": {
+    "text": "Top6 证据链简图",
+    "subtext": "hydraulic | HFB-01676"
+  },
+  "tooltip": {
+    "trigger": "item",
+    "confine": true
+  },
+  "legend": [
+    {
+      "data": [
+        "质量反馈",
+        "反馈对象",
+        "Top6疑似原因",
+        "生命周期阶段",
+        "反馈子系统",
+        "RCA证据"
+      ]
+    }
+  ],
+  "edgeLegend": [
+    {
+      "name": "TransH疑似原因关系",
+      "relations": [
+        "may_caused_by"
+      ],
+      "color": "#d62728",
+      "width": 3.5,
+      "type": "solid",
+      "description": "质量反馈指向Top6疑似根因的推理关系"
+    },
+    {
+      "name": "RCA根因证据关系",
+      "relations": [
+        "diagnosed_root_component",
+        "has_root_sensor",
+        "has_secondary_sensor"
+      ],
+      "color": "#c2185b",
+      "width": 2.8,
+      "type": "solid",
+      "description": "上游根因分析、根因部件或根因传感器证据"
+    },
+    {
+      "name": "生命周期阶段关系",
+      "relations": [
+        "belongs_to_stage"
+      ],
+      "color": "#607d8b",
+      "width": 1.8,
+      "type": "solid",
+      "description": "Top6疑似原因所属生命周期阶段"
+    },
+    {
+      "name": "重点反馈子系统关系",
+      "relations": [
+        "feedback_to_subsystem"
+      ],
+      "color": "#0288d1",
+      "width": 2.0,
+      "type": "solid",
+      "description": "重点生命周期阶段建议反馈至相关子系统"
+    },
+    {
+      "name": "反馈对象关系",
+      "relations": [
+        "occurs_on",
+        "targets_object"
+      ],
+      "color": "#2f80ed",
+      "width": 2.0,
+      "type": "solid",
+      "description": "质量反馈定位到发生故障的反馈对象"
+    }
+  ],
+  "series": [
+    {
+      "name": "Top6证据链",
+      "type": "graph",
+      "layout": "force",
+      "roam": true,
+      "draggable": true,
+      "focusNodeAdjacency": true,
+      "label": {
+        "show": true,
+        "position": "right"
+      },
+      "force": {
+        "repulsion": 520,
+        "edgeLength": [
+          110,
+          240
+        ],
+        "gravity": 0.05,
+        "friction": 0.6
+      },
+      "categories": [
+        {
+          "name": "质量反馈",
+          "itemStyle": {
+            "color": "#d94841"
+          }
+        },
+        {
+          "name": "反馈对象",
+          "itemStyle": {
+            "color": "#2f80ed"
+          }
+        },
+        {
+          "name": "Top6疑似原因",
+          "itemStyle": {
+            "color": "#f2994a"
+          }
+        },
+        {
+          "name": "生命周期阶段",
+          "itemStyle": {
+            "color": "#607d8b"
+          }
+        },
+        {
+          "name": "反馈子系统",
+          "itemStyle": {
+            "color": "#81d4fa"
+          }
+        },
+        {
+          "name": "RCA证据",
+          "itemStyle": {
+            "color": "#f48fb1"
+          }
+        }
+      ],
+      "data": [
+        {
+          "id": "HFB-01676",
+          "name": "质量反馈 HFB-01676",
+          "category": "质量反馈",
+          "symbolSize": 72,
+          "value": 1.0,
+          "properties": {
+            "feedback_id": "HFB-01676",
+            "fault_type": "pressure_abnormal",
+            "fault_position": "管路总成",
+            "fault_severity": "medium",
+            "diagnosis_confidence": 0.7308,
+            "rca_confidence": 0.6181,
+            "is_feedback": true,
+            "is_top_candidate": false
+          },
+          "itemStyle": {
+            "color": "#d94841"
+          },
+          "label": {
+            "show": true,
+            "formatter": "质量反馈 HFB-01676",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "HCU-01676",
+          "name": "管路总成 HCU-01676",
+          "category": "反馈对象",
+          "symbolSize": 64,
+          "value": 1.0,
+          "properties": {
+            "object_id": "HCU-01676",
+            "object_type": "HydraulicComponent",
+            "object_name": "管路总成",
+            "is_target_object": true,
+            "is_top_candidate": false
+          },
+          "itemStyle": {
+            "color": "#2f80ed"
+          },
+          "label": {
+            "show": true,
+            "formatter": "管路总成 HCU-01676",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "HMAN-01042",
+          "name": "Top1 制造批次 HMAN-01042",
+          "category": "Top6疑似原因",
+          "symbolSize": 60,
+          "value": 1.0,
+          "properties": {
+            "candidate_id": "HMAN-01042",
+            "candidate_type": "ManufacturingBatch",
+            "candidate_stage": "manufacturing",
+            "candidate_stage_name": "制造阶段",
+            "transh_score": 1.0,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.12,
+            "final_score": 0.8305,
+            "adjusted_final_score": 0.8705,
+            "candidate_scope": "lifecycle_candidate",
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于制造阶段，具备直接路径证据。",
+            "rank": 1,
+            "is_top_candidate": true
+          },
+          "itemStyle": {
+            "color": "#f2994a"
+          },
+          "label": {
+            "show": true,
+            "formatter": "Top1 制造批次 HMAN-01042",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "STAGE_manufacturing",
+          "name": "制造阶段",
+          "category": "生命周期阶段",
+          "symbolSize": 38,
+          "value": 1.0,
+          "properties": {
+            "stage": "manufacturing",
+            "stage_name": "制造阶段",
+            "is_top_candidate": false
+          },
+          "itemStyle": {
+            "color": "#b7791f"
+          },
+          "label": {
+            "show": true,
+            "formatter": "制造阶段",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "HMAT-00417",
+          "name": "Top2 材料批次 HMAT-00417",
+          "category": "Top6疑似原因",
+          "symbolSize": 52,
+          "value": 1.0,
+          "properties": {
+            "candidate_id": "HMAT-00417",
+            "candidate_type": "MaterialBatch",
+            "candidate_stage": "material",
+            "candidate_stage_name": "材料阶段",
+            "transh_score": 0.608101,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.1,
+            "final_score": 0.631551,
+            "adjusted_final_score": 0.671551,
+            "candidate_scope": "lifecycle_candidate",
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于材料阶段，具备直接路径证据。",
+            "rank": 2,
+            "is_top_candidate": true
+          },
+          "itemStyle": {
+            "color": "#f2994a"
+          },
+          "label": {
+            "show": true,
+            "formatter": "Top2 材料批次 HMAT-00417",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "STAGE_material",
+          "name": "材料阶段",
+          "category": "生命周期阶段",
+          "symbolSize": 38,
+          "value": 1.0,
+          "properties": {
+            "stage": "material",
+            "stage_name": "材料阶段",
+            "is_top_candidate": false
+          },
+          "itemStyle": {
+            "color": "#27ae60"
+          },
+          "label": {
+            "show": true,
+            "formatter": "材料阶段",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "HDES-00949",
+          "name": "Top3 设计规范 HDES-00949",
+          "category": "Top6疑似原因",
+          "symbolSize": 52,
+          "value": 1.0,
+          "properties": {
+            "candidate_id": "HDES-00949",
+            "candidate_type": "DesignSpec",
+            "candidate_stage": "design",
+            "candidate_stage_name": "设计阶段",
+            "transh_score": 0.593232,
+            "path_score": 0.85,
+            "evidence_score": 0.8,
+            "rule_prior_score": 0.18,
+            "final_score": 0.613616,
+            "adjusted_final_score": 0.648616,
+            "candidate_scope": "rca_root_component_candidate",
+            "reason_description": "该候选来自 RCA 根因部件生命周期链，属于设计阶段。RCA 根因部件与反馈对象不完全一致时，可能表示故障传播或相邻部件诱发。",
+            "rank": 3,
+            "is_top_candidate": true
+          },
+          "itemStyle": {
+            "color": "#f2994a"
+          },
+          "label": {
+            "show": true,
+            "formatter": "Top3 设计规范 HDES-00949",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "STAGE_design",
+          "name": "设计阶段",
+          "category": "生命周期阶段",
+          "symbolSize": 38,
+          "value": 1.0,
+          "properties": {
+            "stage": "design",
+            "stage_name": "设计阶段",
+            "is_top_candidate": false
+          },
+          "itemStyle": {
+            "color": "#6f52ed"
+          },
+          "label": {
+            "show": true,
+            "formatter": "设计阶段",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "HASM-01676",
+          "name": "Top4 装配记录 HASM-01676",
+          "category": "Top6疑似原因",
+          "symbolSize": 46,
+          "value": 1.0,
+          "properties": {
+            "candidate_id": "HASM-01676",
+            "candidate_type": "AssemblyRecord",
+            "candidate_stage": "assembly",
+            "candidate_stage_name": "装配阶段",
+            "transh_score": 0.236406,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.16,
+            "final_score": 0.454703,
+            "adjusted_final_score": 0.494703,
+            "candidate_scope": "lifecycle_candidate",
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于装配阶段，具备直接路径证据。",
+            "rank": 4,
+            "is_top_candidate": true
+          },
+          "itemStyle": {
+            "color": "#f2994a"
+          },
+          "label": {
+            "show": true,
+            "formatter": "Top4 装配记录 HASM-01676",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "STAGE_assembly",
+          "name": "装配阶段",
+          "category": "生命周期阶段",
+          "symbolSize": 38,
+          "value": 1.0,
+          "properties": {
+            "stage": "assembly",
+            "stage_name": "装配阶段",
+            "is_top_candidate": false
+          },
+          "itemStyle": {
+            "color": "#00a6a6"
+          },
+          "label": {
+            "show": true,
+            "formatter": "装配阶段",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "HPIP-00297",
+          "name": "Top5 管路设计参数 HPIP-00297",
+          "category": "Top6疑似原因",
+          "symbolSize": 46,
+          "value": 1.0,
+          "properties": {
+            "candidate_id": "HPIP-00297",
+            "candidate_type": "PipeDesignParam",
+            "candidate_stage": "design",
+            "candidate_stage_name": "设计阶段",
+            "transh_score": 0.189612,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.18,
+            "final_score": 0.434306,
+            "adjusted_final_score": 0.474306,
+            "candidate_scope": "lifecycle_candidate",
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于设计阶段，具备直接路径证据。",
+            "rank": 5,
+            "is_top_candidate": true
+          },
+          "itemStyle": {
+            "color": "#f2994a"
+          },
+          "label": {
+            "show": true,
+            "formatter": "Top5 管路设计参数 HPIP-00297",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "HINSP-01676",
+          "name": "Top6 检测记录 HINSP-01676",
+          "category": "Top6疑似原因",
+          "symbolSize": 46,
+          "value": 1.0,
+          "properties": {
+            "candidate_id": "HINSP-01676",
+            "candidate_type": "InspectionRecord",
+            "candidate_stage": "inspection",
+            "candidate_stage_name": "检测阶段",
+            "transh_score": 0.042283,
+            "path_score": 1.0,
+            "evidence_score": 0.75,
+            "rule_prior_score": 0.08,
+            "final_score": 0.345641,
+            "adjusted_final_score": 0.385641,
+            "candidate_scope": "lifecycle_candidate",
+            "reason_description": "该实体位于当前反馈对象生命周期链上，属于检测阶段，具备直接路径证据。",
+            "rank": 6,
+            "is_top_candidate": true
+          },
+          "itemStyle": {
+            "color": "#f2994a"
+          },
+          "label": {
+            "show": true,
+            "formatter": "Top6 检测记录 HINSP-01676",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "STAGE_inspection",
+          "name": "检测阶段",
+          "category": "生命周期阶段",
+          "symbolSize": 38,
+          "value": 1.0,
+          "properties": {
+            "stage": "inspection",
+            "stage_name": "检测阶段",
+            "is_top_candidate": false
+          },
+          "itemStyle": {
+            "color": "#2d9cdb"
+          },
+          "label": {
+            "show": true,
+            "formatter": "检测阶段",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "SUBSYSTEM_制造工艺子系统",
+          "name": "制造工艺子系统",
+          "category": "反馈子系统",
+          "symbolSize": 40,
+          "value": 1.0,
+          "properties": {
+            "feedback_subsystem": "制造工艺子系统",
+            "stage": "manufacturing",
+            "stage_name": "制造阶段"
+          },
+          "itemStyle": {
+            "color": "#81d4fa"
+          },
+          "label": {
+            "show": true,
+            "formatter": "制造工艺子系统",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "SUBSYSTEM_设计子系统",
+          "name": "设计子系统",
+          "category": "反馈子系统",
+          "symbolSize": 40,
+          "value": 1.0,
+          "properties": {
+            "feedback_subsystem": "设计子系统",
+            "stage": "design",
+            "stage_name": "设计阶段"
+          },
+          "itemStyle": {
+            "color": "#81d4fa"
+          },
+          "label": {
+            "show": true,
+            "formatter": "设计子系统",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "SUBSYSTEM_材料_供应商管理子系统",
+          "name": "材料/供应商管理子系统",
+          "category": "反馈子系统",
+          "symbolSize": 40,
+          "value": 1.0,
+          "properties": {
+            "feedback_subsystem": "材料/供应商管理子系统",
+            "stage": "material",
+            "stage_name": "材料阶段"
+          },
+          "itemStyle": {
+            "color": "#81d4fa"
+          },
+          "label": {
+            "show": true,
+            "formatter": "材料/供应商管理子系统",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "RCA_ROOT_C005",
+          "name": "RCA根因部件 蓄能器",
+          "category": "RCA证据",
+          "symbolSize": 44,
+          "value": 0.863,
+          "properties": {
+            "root_component_code": "C005",
+            "root_component_name": "蓄能器",
+            "score": 0.863
+          },
+          "itemStyle": {
+            "color": "#f48fb1"
+          },
+          "label": {
+            "show": true,
+            "formatter": "RCA根因部件 蓄能器",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "RCA_SENSOR_PS6",
+          "name": "根因传感器 PS6",
+          "category": "RCA证据",
+          "symbolSize": 42,
+          "value": 0.96,
+          "properties": {
+            "sensor": "PS6",
+            "score": 0.96
+          },
+          "itemStyle": {
+            "color": "#f48fb1"
+          },
+          "label": {
+            "show": true,
+            "formatter": "根因传感器 PS6",
+            "fontWeight": "normal"
+          }
+        },
+        {
+          "id": "RCA_SENSOR_PS2",
+          "name": "次因传感器 PS2",
+          "category": "RCA证据",
+          "symbolSize": 38,
+          "value": 0.7556,
+          "properties": {
+            "sensor": "PS2",
+            "score": 0.7556
+          },
+          "itemStyle": {
+            "color": "#f48fb1"
+          },
+          "label": {
+            "show": true,
+            "formatter": "次因传感器 PS2",
+            "fontWeight": "normal"
+          }
+        }
+      ],
+      "links": [
+        {
+          "source": "HFB-01676",
+          "target": "HCU-01676",
+          "name": "发生于",
+          "value": 1.0,
+          "properties": {
+            "relation": "occurs_on",
+            "relation_name": "发生于",
+            "business_meaning": "该边表示 Top6 证据链关系。"
+          },
+          "lineStyle": {
+            "color": "#2f80ed",
+            "width": 2.0,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HFB-01676",
+          "target": "HMAN-01042",
+          "name": "疑似原因",
+          "value": 0.8305,
+          "properties": {
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。",
+            "rank": 1,
+            "score": 0.8305
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HMAN-01042",
+          "target": "STAGE_manufacturing",
+          "name": "所属阶段",
+          "value": 1.0,
+          "properties": {
+            "relation": "belongs_to_stage",
+            "relation_name": "所属阶段",
+            "business_meaning": "该边表示疑似原因所属生命周期阶段。",
+            "rank": 1
+          },
+          "lineStyle": {
+            "color": "#607d8b",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.78,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HFB-01676",
+          "target": "HMAT-00417",
+          "name": "疑似原因",
+          "value": 0.631551,
+          "properties": {
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。",
+            "rank": 2,
+            "score": 0.631551
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HMAT-00417",
+          "target": "STAGE_material",
+          "name": "所属阶段",
+          "value": 1.0,
+          "properties": {
+            "relation": "belongs_to_stage",
+            "relation_name": "所属阶段",
+            "business_meaning": "该边表示疑似原因所属生命周期阶段。",
+            "rank": 2
+          },
+          "lineStyle": {
+            "color": "#607d8b",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.78,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HFB-01676",
+          "target": "HDES-00949",
+          "name": "疑似原因",
+          "value": 0.613616,
+          "properties": {
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。",
+            "rank": 3,
+            "score": 0.613616
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HDES-00949",
+          "target": "STAGE_design",
+          "name": "所属阶段",
+          "value": 1.0,
+          "properties": {
+            "relation": "belongs_to_stage",
+            "relation_name": "所属阶段",
+            "business_meaning": "该边表示疑似原因所属生命周期阶段。",
+            "rank": 3
+          },
+          "lineStyle": {
+            "color": "#607d8b",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.78,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HFB-01676",
+          "target": "HASM-01676",
+          "name": "疑似原因",
+          "value": 0.454703,
+          "properties": {
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。",
+            "rank": 4,
+            "score": 0.454703
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HASM-01676",
+          "target": "STAGE_assembly",
+          "name": "所属阶段",
+          "value": 1.0,
+          "properties": {
+            "relation": "belongs_to_stage",
+            "relation_name": "所属阶段",
+            "business_meaning": "该边表示疑似原因所属生命周期阶段。",
+            "rank": 4
+          },
+          "lineStyle": {
+            "color": "#607d8b",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.78,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HFB-01676",
+          "target": "HPIP-00297",
+          "name": "疑似原因",
+          "value": 0.434306,
+          "properties": {
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。",
+            "rank": 5,
+            "score": 0.434306
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HPIP-00297",
+          "target": "STAGE_design",
+          "name": "所属阶段",
+          "value": 1.0,
+          "properties": {
+            "relation": "belongs_to_stage",
+            "relation_name": "所属阶段",
+            "business_meaning": "该边表示疑似原因所属生命周期阶段。",
+            "rank": 5
+          },
+          "lineStyle": {
+            "color": "#607d8b",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.78,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HFB-01676",
+          "target": "HINSP-01676",
+          "name": "疑似原因",
+          "value": 0.345641,
+          "properties": {
+            "relation": "may_caused_by",
+            "relation_name": "疑似原因",
+            "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。",
+            "rank": 6,
+            "score": 0.345641
+          },
+          "lineStyle": {
+            "color": "#d62728",
+            "width": 3.5,
+            "type": "solid",
+            "opacity": 0.95,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HINSP-01676",
+          "target": "STAGE_inspection",
+          "name": "所属阶段",
+          "value": 1.0,
+          "properties": {
+            "relation": "belongs_to_stage",
+            "relation_name": "所属阶段",
+            "business_meaning": "该边表示疑似原因所属生命周期阶段。",
+            "rank": 6
+          },
+          "lineStyle": {
+            "color": "#607d8b",
+            "width": 1.8,
+            "type": "solid",
+            "opacity": 0.78,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "STAGE_manufacturing",
+          "target": "SUBSYSTEM_制造工艺子系统",
+          "name": "反馈至子系统",
+          "value": 1.0,
+          "properties": {
+            "relation": "feedback_to_subsystem",
+            "relation_name": "反馈至子系统",
+            "business_meaning": "该边表示建议反馈复核的业务子系统。"
+          },
+          "lineStyle": {
+            "color": "#0288d1",
+            "width": 2.0,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "STAGE_design",
+          "target": "SUBSYSTEM_设计子系统",
+          "name": "反馈至子系统",
+          "value": 1.0,
+          "properties": {
+            "relation": "feedback_to_subsystem",
+            "relation_name": "反馈至子系统",
+            "business_meaning": "该边表示建议反馈复核的业务子系统。"
+          },
+          "lineStyle": {
+            "color": "#0288d1",
+            "width": 2.0,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "STAGE_material",
+          "target": "SUBSYSTEM_材料_供应商管理子系统",
+          "name": "反馈至子系统",
+          "value": 1.0,
+          "properties": {
+            "relation": "feedback_to_subsystem",
+            "relation_name": "反馈至子系统",
+            "business_meaning": "该边表示建议反馈复核的业务子系统。"
+          },
+          "lineStyle": {
+            "color": "#0288d1",
+            "width": 2.0,
+            "type": "solid",
+            "opacity": 0.8,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HFB-01676",
+          "target": "RCA_ROOT_C005",
+          "name": "RCA根因部件",
+          "value": 0.863,
+          "properties": {
+            "relation": "diagnosed_root_component",
+            "relation_name": "RCA根因部件",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。",
+            "score": 0.863
+          },
+          "lineStyle": {
+            "color": "#c2185b",
+            "width": 2.8,
+            "type": "solid",
+            "opacity": 0.9,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HFB-01676",
+          "target": "RCA_SENSOR_PS6",
+          "name": "根因传感器",
+          "value": 0.96,
+          "properties": {
+            "relation": "has_root_sensor",
+            "relation_name": "根因传感器",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。",
+            "score": 0.96
+          },
+          "lineStyle": {
+            "color": "#c2185b",
+            "width": 2.8,
+            "type": "solid",
+            "opacity": 0.9,
+            "curveness": 0.1
+          }
+        },
+        {
+          "source": "HFB-01676",
+          "target": "RCA_SENSOR_PS2",
+          "name": "次因传感器",
+          "value": 0.7556,
+          "properties": {
+            "relation": "has_secondary_sensor",
+            "relation_name": "次因传感器",
+            "business_meaning": "该边表示上游根因分析或传感器诊断证据。",
+            "score": 0.7556
+          },
+          "lineStyle": {
+            "color": "#c2185b",
+            "width": 2.2,
+            "type": "dashed",
+            "opacity": 0.85,
+            "curveness": 0.1
+          }
+        }
+      ],
+      "lineStyle": {
+        "curveness": 0.1
+      },
+      "emphasis": {
+        "focus": "adjacency",
+        "lineStyle": {
+          "width": 4
+        }
+      }
+    }
+  ]
+}

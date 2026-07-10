@@ -1,0 +1,28 @@
+{
+  "domain": "hydraulic",
+  "original_triple_count": 639771,
+  "train_triple_count": 639371,
+  "removed_may_caused_by_count": 200,
+  "removed_attributed_to_stage_count": 200,
+  "test_case_count": 200,
+  "fault_type_distribution": {
+    "flow_abnormal": 33,
+    "oil_leakage": 42,
+    "pressure_abnormal": 33,
+    "temperature_abnormal": 20,
+    "valve_stuck": 41,
+    "vibration_abnormal": 31
+  },
+  "true_stage_distribution": {
+    "assembly": 24,
+    "design": 30,
+    "inspection": 13,
+    "manufacturing": 45,
+    "material": 28,
+    "operation": 60
+  },
+  "leak_check": {
+    "test_may_caused_by_remaining_in_train": 0,
+    "test_attributed_to_stage_remaining_in_train": 0
+  }
+}

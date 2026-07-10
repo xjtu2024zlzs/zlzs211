@@ -1,0 +1,327 @@
+{
+  "success": true,
+  "code": 0,
+  "message": "Bosch KQC mining completed",
+  "taskId": "KQC20260706153459574",
+  "taskType": "KQC_MINING",
+  "status": "SUCCESS",
+  "data": {
+    "taskId": "KQC20260706153459574",
+    "status": "SUCCESS",
+    "result": {
+      "taskId": "KQC20260706153459574",
+      "taskType": "KQC_MINING",
+      "status": "SUCCESS",
+      "message": "Bosch KQC mining completed",
+      "targetKqc": "Response",
+      "selectedFeatureCount": 2,
+      "influenceCount": 2,
+      "topInfluences": [
+        {
+          "source_variable": "L0_S0_F4",
+          "station": "L0_S0",
+          "target_kqc": "Response",
+          "weight": -0.005086191427688885,
+          "frequency": 1.0
+        },
+        {
+          "source_variable": "L0_S0_F6",
+          "station": "L0_S0",
+          "target_kqc": "Response",
+          "weight": -0.004262758950804902,
+          "frequency": 1.0
+        }
+      ],
+      "graphData": {
+        "nodes": [
+          {
+            "id": "L0_S0_F4",
+            "name": "L0_S0_F4",
+            "station": "L0_S0",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L0_S0_F6",
+            "name": "L0_S0_F6",
+            "station": "L0_S0",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "Response",
+            "name": "Response",
+            "station": null,
+            "category": 1,
+            "symbolSize": 34,
+            "value": 1
+          }
+        ],
+        "links": [
+          {
+            "source": "L0_S0_F4",
+            "target": "Response",
+            "weight": -0.005086191427688885,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S0_F6",
+            "target": "Response",
+            "weight": -0.004262758950804902,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          }
+        ],
+        "categories": [
+          {
+            "name": "质量特性"
+          },
+          {
+            "name": "响应结果"
+          }
+        ]
+      },
+      "responseGraphData": {
+        "nodes": [
+          {
+            "id": "L0_S0_F6",
+            "name": "L0_S0_F6",
+            "station": "L0_S0",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "Response",
+            "name": "Response",
+            "station": null,
+            "category": 1,
+            "symbolSize": 34,
+            "value": 1
+          },
+          {
+            "id": "L0_S0_F4",
+            "name": "L0_S0_F4",
+            "station": "L0_S0",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          }
+        ],
+        "links": [
+          {
+            "source": "L0_S0_F6",
+            "target": "Response",
+            "weight": -0.004262758950804902,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          },
+          {
+            "source": "L0_S0_F4",
+            "target": "Response",
+            "weight": -0.005086191427688885,
+            "frequency": 1.0,
+            "lineStyle": {
+              "color": "#c94a4a",
+              "width": 1.0
+            }
+          }
+        ],
+        "categories": [
+          {
+            "name": "质量特性"
+          },
+          {
+            "name": "响应结果"
+          }
+        ]
+      },
+      "cvScore": {
+        "mean": 0.5553538869652017,
+        "std": 0.016819465860281286,
+        "splits": 5
+      },
+      "adjPath": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_adj_matrix_selected.csv",
+      "freqPath": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_edge_frequency.csv",
+      "outputDir": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574",
+      "outputFiles": {
+        "bosch_adj_matrix_raw": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_adj_matrix_raw.csv",
+        "bosch_edge_frequency": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_edge_frequency.csv",
+        "bosch_adj_matrix_selected": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_adj_matrix_selected.csv",
+        "bosch_influences_on_response": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_influences_on_response.csv",
+        "bosch_debug_stats": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_debug_stats.txt",
+        "bosch_kqc_cv_score": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_kqc_cv_score.txt"
+      }
+    },
+    "logs": []
+  },
+  "payload": {
+    "taskId": "KQC20260706153459574",
+    "taskType": "KQC_MINING",
+    "status": "SUCCESS",
+    "message": "Bosch KQC mining completed",
+    "targetKqc": "Response",
+    "selectedFeatureCount": 2,
+    "influenceCount": 2,
+    "topInfluences": [
+      {
+        "source_variable": "L0_S0_F4",
+        "station": "L0_S0",
+        "target_kqc": "Response",
+        "weight": -0.005086191427688885,
+        "frequency": 1.0
+      },
+      {
+        "source_variable": "L0_S0_F6",
+        "station": "L0_S0",
+        "target_kqc": "Response",
+        "weight": -0.004262758950804902,
+        "frequency": 1.0
+      }
+    ],
+    "graphData": {
+      "nodes": [
+        {
+          "id": "L0_S0_F4",
+          "name": "L0_S0_F4",
+          "station": "L0_S0",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L0_S0_F6",
+          "name": "L0_S0_F6",
+          "station": "L0_S0",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "Response",
+          "name": "Response",
+          "station": null,
+          "category": 1,
+          "symbolSize": 34,
+          "value": 1
+        }
+      ],
+      "links": [
+        {
+          "source": "L0_S0_F4",
+          "target": "Response",
+          "weight": -0.005086191427688885,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S0_F6",
+          "target": "Response",
+          "weight": -0.004262758950804902,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        }
+      ],
+      "categories": [
+        {
+          "name": "质量特性"
+        },
+        {
+          "name": "响应结果"
+        }
+      ]
+    },
+    "responseGraphData": {
+      "nodes": [
+        {
+          "id": "L0_S0_F6",
+          "name": "L0_S0_F6",
+          "station": "L0_S0",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "Response",
+          "name": "Response",
+          "station": null,
+          "category": 1,
+          "symbolSize": 34,
+          "value": 1
+        },
+        {
+          "id": "L0_S0_F4",
+          "name": "L0_S0_F4",
+          "station": "L0_S0",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        }
+      ],
+      "links": [
+        {
+          "source": "L0_S0_F6",
+          "target": "Response",
+          "weight": -0.004262758950804902,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        },
+        {
+          "source": "L0_S0_F4",
+          "target": "Response",
+          "weight": -0.005086191427688885,
+          "frequency": 1.0,
+          "lineStyle": {
+            "color": "#c94a4a",
+            "width": 1.0
+          }
+        }
+      ],
+      "categories": [
+        {
+          "name": "质量特性"
+        },
+        {
+          "name": "响应结果"
+        }
+      ]
+    },
+    "cvScore": {
+      "mean": 0.5553538869652017,
+      "std": 0.016819465860281286,
+      "splits": 5
+    },
+    "adjPath": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_adj_matrix_selected.csv",
+    "freqPath": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_edge_frequency.csv",
+    "outputDir": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574",
+    "outputFiles": {
+      "bosch_adj_matrix_raw": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_adj_matrix_raw.csv",
+      "bosch_edge_frequency": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_edge_frequency.csv",
+      "bosch_adj_matrix_selected": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_adj_matrix_selected.csv",
+      "bosch_influences_on_response": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_influences_on_response.csv",
+      "bosch_debug_stats": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_debug_stats.txt",
+      "bosch_kqc_cv_score": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153459574/bosch_kqc_cv_score.txt"
+    }
+  }
+}

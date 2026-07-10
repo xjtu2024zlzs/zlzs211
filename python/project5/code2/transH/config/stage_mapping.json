@@ -1,0 +1,36 @@
+{
+  "stages": [
+    "design",
+    "material",
+    "manufacturing",
+    "assembly",
+    "inspection",
+    "operation",
+    "feedback"
+  ],
+  "entity_type_stage_mapping": {
+    "DesignSpec": "design",
+    "BearingDesignSpec": "design",
+    "PipeDesignSpec": "design",
+    "PipeDesignParam": "design",
+    "MaterialBatch": "material",
+    "Supplier": "material",
+    "ManufacturingBatch": "manufacturing",
+    "ManufacturingProcess": "manufacturing",
+    "GrindingProcess": "manufacturing",
+    "HeatTreatmentProcess": "manufacturing",
+    "Equipment": "manufacturing",
+    "AssemblyRecord": "assembly",
+    "FitToleranceRecord": "assembly",
+    "Station": "assembly",
+    "InspectionRecord": "inspection",
+    "VibrationInspectionRecord": "inspection",
+    "InspectionEquipment": "inspection",
+    "LubricationRecord": "operation",
+    "MaintenanceRecord": "operation",
+    "Operator": "operation",
+    "QualityFeedback": "feedback",
+    "FaultType": "feedback",
+    "FaultPosition": "feedback"
+  }
+}

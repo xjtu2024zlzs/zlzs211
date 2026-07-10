@@ -1,0 +1,90 @@
+{
+  "description": "故障软先验权重用于后续 Top6 疑似原因综合重排序，不作为硬过滤条件。",
+  "domains": {
+    "bearing": {
+      "inner_race_fault": {
+        "design": 0.12,
+        "material": 0.18,
+        "manufacturing": 0.28,
+        "assembly": 0.16,
+        "inspection": 0.10,
+        "operation": 0.12,
+        "feedback": 0.04
+      },
+      "outer_race_fault": {
+        "design": 0.10,
+        "material": 0.16,
+        "manufacturing": 0.24,
+        "assembly": 0.18,
+        "inspection": 0.10,
+        "operation": 0.18,
+        "feedback": 0.04
+      },
+      "rolling_element_fault": {
+        "design": 0.10,
+        "material": 0.22,
+        "manufacturing": 0.26,
+        "assembly": 0.14,
+        "inspection": 0.10,
+        "operation": 0.14,
+        "feedback": 0.04
+      }
+    },
+    "hydraulic": {
+      "oil_leakage": {
+        "design": 0.20,
+        "material": 0.14,
+        "manufacturing": 0.10,
+        "assembly": 0.18,
+        "inspection": 0.08,
+        "operation": 0.26,
+        "feedback": 0.04
+      },
+      "valve_stuck": {
+        "design": 0.12,
+        "material": 0.14,
+        "manufacturing": 0.20,
+        "assembly": 0.12,
+        "inspection": 0.08,
+        "operation": 0.30,
+        "feedback": 0.04
+      },
+      "pressure_abnormal": {
+        "design": 0.18,
+        "material": 0.10,
+        "manufacturing": 0.12,
+        "assembly": 0.16,
+        "inspection": 0.08,
+        "operation": 0.32,
+        "feedback": 0.04
+      },
+      "flow_abnormal": {
+        "design": 0.18,
+        "material": 0.10,
+        "manufacturing": 0.12,
+        "assembly": 0.16,
+        "inspection": 0.08,
+        "operation": 0.32,
+        "feedback": 0.04
+      },
+      "temperature_abnormal": {
+        "design": 0.12,
+        "material": 0.12,
+        "manufacturing": 0.10,
+        "assembly": 0.10,
+        "inspection": 0.08,
+        "operation": 0.44,
+        "feedback": 0.04
+      },
+      "vibration_abnormal": {
+        "design": 0.10,
+        "material": 0.12,
+        "manufacturing": 0.18,
+        "assembly": 0.16,
+        "inspection": 0.08,
+        "operation": 0.32,
+        "feedback": 0.04
+      }
+    }
+  }
+}

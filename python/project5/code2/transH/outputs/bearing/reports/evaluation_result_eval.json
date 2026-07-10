@@ -1,0 +1,182 @@
+{
+  "domain": "bearing",
+  "evaluation_mode": "eval_split",
+  "model_dir": "D:\\Cursor\\transH\\outputs\\bearing\\models_eval",
+  "overall_metrics": {
+    "total_cases": 200,
+    "evaluated_cases": 200,
+    "skipped_cases": 0,
+    "top1_hit_rate": 0.28,
+    "top3_hit_rate": 0.725,
+    "top6_hit_rate": 1.0,
+    "mean_mrr": 0.527083,
+    "type_hit_rate": 1.0,
+    "stage_accuracy": 0.28,
+    "stage_top1_accuracy": 0.28,
+    "stage_top2_accuracy": 0.515,
+    "stage_top3_accuracy": 0.725,
+    "stage_top6_coverage": 1.0,
+    "average_top1_score": 0.818682,
+    "average_top6_score": 0.720049,
+    "scope_distribution": {
+      "lifecycle_candidate": {
+        "count": 1200,
+        "ratio": 1.0
+      },
+      "expanded_candidate": {
+        "count": 0,
+        "ratio": 0.0
+      },
+      "rca_root_component_candidate": {
+        "count": 0,
+        "ratio": 0.0
+      },
+      "rca_root_component_expanded_candidate": {
+        "count": 0,
+        "ratio": 0.0
+      },
+      "global_same_type_candidate": {
+        "count": 0,
+        "ratio": 0.0
+      }
+    }
+  },
+  "fault_type_metrics": {
+    "inner_race_fault": {
+      "case_count": 58,
+      "top1_hit_rate": 0.275862,
+      "top3_hit_rate": 0.741379,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.535345,
+      "stage_accuracy": 0.275862,
+      "stage_top1_accuracy": 0.275862,
+      "stage_top2_accuracy": 0.568966,
+      "stage_top3_accuracy": 0.741379,
+      "stage_top6_coverage": 1.0
+    },
+    "outer_race_fault": {
+      "case_count": 76,
+      "top1_hit_rate": 0.302632,
+      "top3_hit_rate": 0.710526,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.532456,
+      "stage_accuracy": 0.302632,
+      "stage_top1_accuracy": 0.302632,
+      "stage_top2_accuracy": 0.486842,
+      "stage_top3_accuracy": 0.710526,
+      "stage_top6_coverage": 1.0
+    },
+    "rolling_element_fault": {
+      "case_count": 66,
+      "top1_hit_rate": 0.257576,
+      "top3_hit_rate": 0.727273,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.513636,
+      "stage_accuracy": 0.257576,
+      "stage_top1_accuracy": 0.257576,
+      "stage_top2_accuracy": 0.5,
+      "stage_top3_accuracy": 0.727273,
+      "stage_top6_coverage": 1.0
+    }
+  },
+  "stage_metrics": {
+    "assembly": {
+      "case_count": 54,
+      "top1_hit_rate": 0.037037,
+      "top3_hit_rate": 0.648148,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.342901,
+      "stage_accuracy": 0.037037,
+      "stage_top1_accuracy": 0.037037,
+      "stage_top2_accuracy": 0.203704,
+      "stage_top3_accuracy": 0.648148,
+      "stage_top6_coverage": 1.0
+    },
+    "design": {
+      "case_count": 21,
+      "top1_hit_rate": 0.0,
+      "top3_hit_rate": 0.285714,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.248413,
+      "stage_accuracy": 0.0,
+      "stage_top1_accuracy": 0.0,
+      "stage_top2_accuracy": 0.095238,
+      "stage_top3_accuracy": 0.285714,
+      "stage_top6_coverage": 1.0
+    },
+    "inspection": {
+      "case_count": 13,
+      "top1_hit_rate": 0.0,
+      "top3_hit_rate": 0.076923,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.220513,
+      "stage_accuracy": 0.0,
+      "stage_top1_accuracy": 0.0,
+      "stage_top2_accuracy": 0.0,
+      "stage_top3_accuracy": 0.076923,
+      "stage_top6_coverage": 1.0
+    },
+    "manufacturing": {
+      "case_count": 59,
+      "top1_hit_rate": 0.728814,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.855932,
+      "stage_accuracy": 0.728814,
+      "stage_top1_accuracy": 0.728814,
+      "stage_top2_accuracy": 0.949153,
+      "stage_top3_accuracy": 1.0,
+      "stage_top6_coverage": 1.0
+    },
+    "material": {
+      "case_count": 37,
+      "top1_hit_rate": 0.27027,
+      "top3_hit_rate": 0.918919,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.6,
+      "stage_accuracy": 0.27027,
+      "stage_top1_accuracy": 0.27027,
+      "stage_top2_accuracy": 0.783784,
+      "stage_top3_accuracy": 0.918919,
+      "stage_top6_coverage": 1.0
+    },
+    "operation": {
+      "case_count": 16,
+      "top1_hit_rate": 0.0625,
+      "top3_hit_rate": 0.625,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 0.382292,
+      "stage_accuracy": 0.0625,
+      "stage_top1_accuracy": 0.0625,
+      "stage_top2_accuracy": 0.3125,
+      "stage_top3_accuracy": 0.625,
+      "stage_top6_coverage": 1.0
+    }
+  },
+  "test_cases_file": "D:\\Cursor\\transH\\data\\bearing\\bearing_test_cases.csv",
+  "train_triples_file": "D:\\Cursor\\transH\\data\\bearing\\bearing_triples_train.csv",
+  "leak_count": 0,
+  "leak_ratio": 0.0,
+  "scope_distribution": {
+    "lifecycle_candidate": {
+      "count": 1200,
+      "ratio": 1.0
+    },
+    "expanded_candidate": {
+      "count": 0,
+      "ratio": 0.0
+    },
+    "rca_root_component_candidate": {
+      "count": 0,
+      "ratio": 0.0
+    },
+    "rca_root_component_expanded_candidate": {
+      "count": 0,
+      "ratio": 0.0
+    },
+    "global_same_type_candidate": {
+      "count": 0,
+      "ratio": 0.0
+    }
+  }
+}

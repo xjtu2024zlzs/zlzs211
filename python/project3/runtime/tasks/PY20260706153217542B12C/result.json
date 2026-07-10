@@ -1,0 +1,153 @@
+{
+  "success": true,
+  "code": 0,
+  "message": "Bosch KQC mining completed",
+  "taskId": "KQC20260706153217475",
+  "taskType": "KQC_MINING",
+  "status": "SUCCESS",
+  "data": {
+    "taskId": "KQC20260706153217475",
+    "status": "SUCCESS",
+    "result": {
+      "taskId": "KQC20260706153217475",
+      "taskType": "KQC_MINING",
+      "status": "SUCCESS",
+      "message": "Bosch KQC mining completed",
+      "targetKqc": "Response",
+      "selectedFeatureCount": 2,
+      "influenceCount": 0,
+      "topInfluences": [],
+      "graphData": {
+        "nodes": [
+          {
+            "id": "L3_S33_F3865",
+            "name": "L3_S33_F3865",
+            "station": "L3_S33",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "L3_S33_F3873",
+            "name": "L3_S33_F3873",
+            "station": "L3_S33",
+            "category": 0,
+            "symbolSize": 22,
+            "value": 0
+          },
+          {
+            "id": "Response",
+            "name": "Response",
+            "station": null,
+            "category": 1,
+            "symbolSize": 34,
+            "value": 1
+          }
+        ],
+        "links": [],
+        "categories": [
+          {
+            "name": "质量特性"
+          },
+          {
+            "name": "响应结果"
+          }
+        ]
+      },
+      "responseGraphData": {
+        "nodes": [],
+        "links": [],
+        "categories": [
+          {
+            "name": "质量特性"
+          },
+          {
+            "name": "响应结果"
+          }
+        ]
+      },
+      "cvScore": null,
+      "adjPath": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_adj_matrix_selected.csv",
+      "freqPath": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_edge_frequency.csv",
+      "outputDir": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475",
+      "outputFiles": {
+        "bosch_adj_matrix_raw": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_adj_matrix_raw.csv",
+        "bosch_edge_frequency": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_edge_frequency.csv",
+        "bosch_adj_matrix_selected": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_adj_matrix_selected.csv",
+        "bosch_influences_on_response": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_influences_on_response.csv",
+        "bosch_debug_stats": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_debug_stats.txt"
+      }
+    },
+    "logs": []
+  },
+  "payload": {
+    "taskId": "KQC20260706153217475",
+    "taskType": "KQC_MINING",
+    "status": "SUCCESS",
+    "message": "Bosch KQC mining completed",
+    "targetKqc": "Response",
+    "selectedFeatureCount": 2,
+    "influenceCount": 0,
+    "topInfluences": [],
+    "graphData": {
+      "nodes": [
+        {
+          "id": "L3_S33_F3865",
+          "name": "L3_S33_F3865",
+          "station": "L3_S33",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "L3_S33_F3873",
+          "name": "L3_S33_F3873",
+          "station": "L3_S33",
+          "category": 0,
+          "symbolSize": 22,
+          "value": 0
+        },
+        {
+          "id": "Response",
+          "name": "Response",
+          "station": null,
+          "category": 1,
+          "symbolSize": 34,
+          "value": 1
+        }
+      ],
+      "links": [],
+      "categories": [
+        {
+          "name": "质量特性"
+        },
+        {
+          "name": "响应结果"
+        }
+      ]
+    },
+    "responseGraphData": {
+      "nodes": [],
+      "links": [],
+      "categories": [
+        {
+          "name": "质量特性"
+        },
+        {
+          "name": "响应结果"
+        }
+      ]
+    },
+    "cvScore": null,
+    "adjPath": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_adj_matrix_selected.csv",
+    "freqPath": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_edge_frequency.csv",
+    "outputDir": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475",
+    "outputFiles": {
+      "bosch_adj_matrix_raw": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_adj_matrix_raw.csv",
+      "bosch_edge_frequency": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_edge_frequency.csv",
+      "bosch_adj_matrix_selected": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_adj_matrix_selected.csv",
+      "bosch_influences_on_response": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_influences_on_response.csv",
+      "bosch_debug_stats": "D:/2.11/data/topic3/result/bosch_kqc/KQC20260706153217475/bosch_debug_stats.txt"
+    }
+  }
+}

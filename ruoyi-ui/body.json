@@ -1,0 +1,22 @@
+﻿{
+  "instanceId": "03a5b222-75b6-4186-b63c-14e394048ab3",
+  "versionId": "129a98af-c1f0-408d-8bf8-95e5ff1d98e3",
+  "bomNodeId": "f1000006-0006-4006-8006-000000000006",
+  "problemId": 18,
+  "problemCode": "QF-TEST-001",
+  "problemTitle": "测试质量问题",
+  "moduleCode": "PROJECT_3",
+  "moduleName": "复杂产品质量监管与故障预防",
+  "sourceComponent": "PROJECT_3",
+  "resultType": "quality_supervision",
+  "resultTitle": "复杂产品质量监管与故障预防分析结果",
+  "resultSummary": "测试写回",
+  "resultData": {
+    "problemId": 18,
+    "problemCode": "QF-TEST-001",
+    "problemTitle": "测试质量问题",
+    "analysisConclusion": "课题三质量监管与故障预防模块已完成分析，当前为接口联调测试写回内容。",
+    "status": "COMPLETED"
+  },
+  "status": "COMPLETED"
+}

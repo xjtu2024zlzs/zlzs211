@@ -1,0 +1,1554 @@
+{
+  "domain": "hydraulic",
+  "case_id": "HFB-04222",
+  "feedback_summary": {
+    "feedback_id": "HFB-04222",
+    "fault_type": "flow_abnormal",
+    "fault_position": "节流阀",
+    "fault_severity": "medium",
+    "diagnosis_confidence": 0.7917,
+    "rca_confidence": 0.6702
+  },
+  "target_object": {
+    "object_id": "HCU-04222",
+    "object_type": "HydraulicComponent",
+    "object_name": "节流阀"
+  },
+  "top6_candidates": [
+    {
+      "candidate_id": "HOPR-04222",
+      "candidate_type": "MaintenanceRecord",
+      "candidate_stage": "operation",
+      "candidate_stage_name": "使用/运维阶段",
+      "transh_score": 1.0,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.32,
+      "final_score": 0.8605,
+      "adjusted_final_score": 0.9005,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于使用/运维阶段，具备直接路径证据。",
+      "rank": 1
+    },
+    {
+      "candidate_id": "HMAT-00548",
+      "candidate_type": "MaterialBatch",
+      "candidate_stage": "material",
+      "candidate_stage_name": "材料阶段",
+      "transh_score": 0.416089,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.1,
+      "final_score": 0.535545,
+      "adjusted_final_score": 0.575545,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于材料阶段，具备直接路径证据。",
+      "rank": 2
+    },
+    {
+      "candidate_id": "HMAN-00538",
+      "candidate_type": "ManufacturingBatch",
+      "candidate_stage": "manufacturing",
+      "candidate_stage_name": "制造阶段",
+      "transh_score": 0.303797,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.12,
+      "final_score": 0.482398,
+      "adjusted_final_score": 0.522398,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于制造阶段，具备直接路径证据。",
+      "rank": 3
+    },
+    {
+      "candidate_id": "OP-H-027",
+      "candidate_type": "Operator",
+      "candidate_stage": "operation",
+      "candidate_stage_name": "使用/运维阶段",
+      "transh_score": 0.323312,
+      "path_score": 0.8,
+      "evidence_score": 0.74,
+      "rule_prior_score": 0.32,
+      "final_score": 0.480656,
+      "adjusted_final_score": 0.495656,
+      "candidate_scope": "expanded_candidate",
+      "reason_description": "该实体由当前反馈对象生命周期节点一跳扩展得到，属于使用/运维阶段，具备间接路径证据。",
+      "rank": 4
+    },
+    {
+      "candidate_id": "HASM-04222",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "candidate_stage_name": "装配阶段",
+      "transh_score": 0.194131,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.16,
+      "final_score": 0.433566,
+      "adjusted_final_score": 0.473566,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于装配阶段，具备直接路径证据。",
+      "rank": 5
+    },
+    {
+      "candidate_id": "HINSP-04222",
+      "candidate_type": "InspectionRecord",
+      "candidate_stage": "inspection",
+      "candidate_stage_name": "检测阶段",
+      "transh_score": 0.114304,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.08,
+      "final_score": 0.381652,
+      "adjusted_final_score": 0.421652,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于检测阶段，具备直接路径证据。",
+      "rank": 6
+    }
+  ],
+  "stage_attribution": {
+    "primary_stage": "operation",
+    "primary_stage_name": "使用/运维阶段",
+    "feedback_target_subsystem": "运维保障子系统",
+    "stage_scores": {
+      "design": 0.049743,
+      "material": 0.459024,
+      "manufacturing": 0.360581,
+      "assembly": 0.325237,
+      "inspection": 0.226876,
+      "operation": 1.0
+    },
+    "stage_rank": [
+      {
+        "stage": "operation",
+        "stage_name": "使用/运维阶段",
+        "score": 1.0
+      },
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 0.459024
+      },
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 0.360581
+      },
+      {
+        "stage": "assembly",
+        "stage_name": "装配阶段",
+        "score": 0.325237
+      },
+      {
+        "stage": "inspection",
+        "stage_name": "检测阶段",
+        "score": 0.226876
+      },
+      {
+        "stage": "design",
+        "stage_name": "设计阶段",
+        "score": 0.049743
+      }
+    ],
+    "focus_stage_top3": [
+      {
+        "stage": "operation",
+        "stage_name": "使用/运维阶段",
+        "score": 1.0,
+        "feedback_subsystem": "运维保障子系统"
+      },
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 0.459024,
+        "feedback_subsystem": "材料/供应商管理子系统"
+      },
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 0.360581,
+        "feedback_subsystem": "制造工艺子系统"
+      }
+    ],
+    "feedback_subsystem_top3": [
+      "运维保障子系统",
+      "材料/供应商管理子系统",
+      "制造工艺子系统"
+    ],
+    "stage_attribution_detail": [
+      {
+        "candidate_id": "HOPR-04222",
+        "candidate_type": "MaintenanceRecord",
+        "candidate_stage": "operation",
+        "rank": 1,
+        "adjusted_final_score": 0.9005,
+        "rank_score": 1.0,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.1,
+        "contribution": 0.99055
+      },
+      {
+        "candidate_id": "HMAT-00548",
+        "candidate_type": "MaterialBatch",
+        "candidate_stage": "material",
+        "rank": 2,
+        "adjusted_final_score": 0.575545,
+        "rank_score": 0.85,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.05,
+        "contribution": 0.513674
+      },
+      {
+        "candidate_id": "HMAN-00538",
+        "candidate_type": "ManufacturingBatch",
+        "candidate_stage": "manufacturing",
+        "rank": 3,
+        "adjusted_final_score": 0.522398,
+        "rank_score": 0.72,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.05,
+        "contribution": 0.394933
+      },
+      {
+        "candidate_id": "OP-H-027",
+        "candidate_type": "Operator",
+        "candidate_stage": "operation",
+        "rank": 4,
+        "adjusted_final_score": 0.495656,
+        "rank_score": 0.6,
+        "scope_weight": 0.65,
+        "type_stage_weight": 0.65,
+        "contribution": 0.125649
+      },
+      {
+        "candidate_id": "HASM-04222",
+        "candidate_type": "AssemblyRecord",
+        "candidate_stage": "assembly",
+        "rank": 5,
+        "adjusted_final_score": 0.473566,
+        "rank_score": 0.5,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.2723
+      },
+      {
+        "candidate_id": "HINSP-04222",
+        "candidate_type": "InspectionRecord",
+        "candidate_stage": "inspection",
+        "rank": 6,
+        "adjusted_final_score": 0.421652,
+        "rank_score": 0.42,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.203658
+      }
+    ]
+  },
+  "stage_attribution_detail": [
+    {
+      "candidate_id": "HOPR-04222",
+      "candidate_type": "MaintenanceRecord",
+      "candidate_stage": "operation",
+      "rank": 1,
+      "adjusted_final_score": 0.9005,
+      "rank_score": 1.0,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.1,
+      "contribution": 0.99055
+    },
+    {
+      "candidate_id": "HMAT-00548",
+      "candidate_type": "MaterialBatch",
+      "candidate_stage": "material",
+      "rank": 2,
+      "adjusted_final_score": 0.575545,
+      "rank_score": 0.85,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.05,
+      "contribution": 0.513674
+    },
+    {
+      "candidate_id": "HMAN-00538",
+      "candidate_type": "ManufacturingBatch",
+      "candidate_stage": "manufacturing",
+      "rank": 3,
+      "adjusted_final_score": 0.522398,
+      "rank_score": 0.72,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.05,
+      "contribution": 0.394933
+    },
+    {
+      "candidate_id": "OP-H-027",
+      "candidate_type": "Operator",
+      "candidate_stage": "operation",
+      "rank": 4,
+      "adjusted_final_score": 0.495656,
+      "rank_score": 0.6,
+      "scope_weight": 0.65,
+      "type_stage_weight": 0.65,
+      "contribution": 0.125649
+    },
+    {
+      "candidate_id": "HASM-04222",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "rank": 5,
+      "adjusted_final_score": 0.473566,
+      "rank_score": 0.5,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.15,
+      "contribution": 0.2723
+    },
+    {
+      "candidate_id": "HINSP-04222",
+      "candidate_type": "InspectionRecord",
+      "candidate_stage": "inspection",
+      "rank": 6,
+      "adjusted_final_score": 0.421652,
+      "rank_score": 0.42,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.15,
+      "contribution": 0.203658
+    }
+  ],
+  "rca_context": {
+    "case_id": "HCASE-04222",
+    "root_sensor": "FS1",
+    "root_sensor_confidence": 0.87,
+    "secondary_sensor": "FS1",
+    "secondary_sensor_confidence": 0.748,
+    "root_component_code": "C010",
+    "root_component_name": "节流阀",
+    "root_component_uids": [
+      "HCU-04222"
+    ],
+    "component_confidence": 0.5492,
+    "rca_confidence": 0.5492,
+    "is_root_component_different_from_feedback": false,
+    "component_diagnosis_top3": [
+      {
+        "component_id": "C010",
+        "component_name": "节流阀",
+        "fault_type": "节流阀故障",
+        "severity": 0.5691,
+        "is_fault": true,
+        "fault_level": "中度故障",
+        "display_role": "RCA根因部件诊断",
+        "display_source": "root_component_diagnosis"
+      },
+      {
+        "component_id": "C010",
+        "component_name": "节流阀",
+        "fault_type": "节流口堵塞",
+        "severity": 0.9468,
+        "is_fault": true,
+        "fault_level": "根因子类型",
+        "sub_type_id": "C010-S1",
+        "sub_type_name": "节流口堵塞",
+        "fault_part": "",
+        "display_role": "RCA根因部件子类型",
+        "display_source": "root_component_subtype"
+      },
+      {
+        "component_id": "C010",
+        "component_name": "节流阀",
+        "fault_type": "节流口冲蚀",
+        "severity": 0.7247,
+        "is_fault": true,
+        "fault_level": "根因子类型",
+        "sub_type_id": "C010-S3",
+        "sub_type_name": "节流口冲蚀",
+        "fault_part": "",
+        "display_role": "RCA根因部件子类型",
+        "display_source": "root_component_subtype"
+      }
+    ],
+    "subtype_top5": [
+      {
+        "component_id": "",
+        "component_name": "",
+        "sub_type_id": "C010-S1",
+        "sub_type_name": "节流口堵塞",
+        "fault_part": "",
+        "probability": 0.9468
+      },
+      {
+        "component_id": "",
+        "component_name": "",
+        "sub_type_id": "C010-S3",
+        "sub_type_name": "节流口冲蚀",
+        "fault_part": "",
+        "probability": 0.7247
+      },
+      {
+        "component_id": "",
+        "component_name": "",
+        "sub_type_id": "C010-S2",
+        "sub_type_name": "阀芯卡滞",
+        "fault_part": "",
+        "probability": 0.717
+      }
+    ],
+    "sensor_energy_top5": {
+      "FS1": 0.78103,
+      "PS3": 0.65527,
+      "PS5": 0.52453,
+      "PS2": 0.23338,
+      "PS4": 0.15298
+    },
+    "evolution_chain": [
+      "FS1",
+      "PS2",
+      "PS3",
+      "PS1",
+      "PS4",
+      "PS6",
+      "PS5",
+      "TS1",
+      "VS1",
+      "TS2",
+      "TS3",
+      "FS2",
+      "TS4",
+      "EPS1"
+    ],
+    "algorithm_conclusion": "当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。",
+    "component_diagnostics_from_first_algorithm": [
+      {
+        "component_id": "C010",
+        "component_name": "节流阀",
+        "fault_type": "节流阀故障",
+        "severity": 0.5691,
+        "is_fault": true,
+        "fault_level": "中度故障"
+      },
+      {
+        "component_id": "C002",
+        "component_name": "方向控制阀",
+        "fault_type": "方向阀故障",
+        "severity": 0.5155,
+        "is_fault": true,
+        "fault_level": "中度故障"
+      },
+      {
+        "component_id": "C008",
+        "component_name": "液压油箱",
+        "fault_type": "油箱故障",
+        "severity": 0.4705,
+        "is_fault": true,
+        "fault_level": "中度故障"
+      },
+      {
+        "component_id": "C007",
+        "component_name": "过滤器",
+        "fault_type": "过滤器堵塞",
+        "severity": 0.45,
+        "is_fault": true,
+        "fault_level": "中度故障"
+      },
+      {
+        "component_id": "C009",
+        "component_name": "单向阀",
+        "fault_type": "单向阀故障",
+        "severity": 0.3371,
+        "is_fault": true,
+        "fault_level": "中度故障"
+      },
+      {
+        "component_id": "C012",
+        "component_name": "卸荷阀",
+        "fault_type": "正常",
+        "severity": 0.2544,
+        "is_fault": false,
+        "fault_level": "轻微退化"
+      },
+      {
+        "component_id": "C006",
+        "component_name": "冷却器",
+        "fault_type": "正常",
+        "severity": 0.1007,
+        "is_fault": false,
+        "fault_level": "轻微退化"
+      },
+      {
+        "component_id": "C001",
+        "component_name": "液压泵总成",
+        "fault_type": "正常",
+        "severity": 0.0646,
+        "is_fault": false,
+        "fault_level": "轻微退化"
+      },
+      {
+        "component_id": "C003",
+        "component_name": "作动筒",
+        "fault_type": "正常",
+        "severity": 0.0602,
+        "is_fault": false,
+        "fault_level": "轻微退化"
+      },
+      {
+        "component_id": "C011",
+        "component_name": "管路总成",
+        "fault_type": "正常",
+        "severity": 0.0479,
+        "is_fault": false,
+        "fault_level": "正常"
+      },
+      {
+        "component_id": "C004",
+        "component_name": "溢流阀",
+        "fault_type": "正常",
+        "severity": 0.0,
+        "is_fault": false,
+        "fault_level": "正常"
+      },
+      {
+        "component_id": "C005",
+        "component_name": "蓄能器",
+        "fault_type": "正常",
+        "severity": 0.0,
+        "is_fault": false,
+        "fault_level": "正常"
+      }
+    ],
+    "first_algorithm_result": {
+      "fault_component_id": "C010",
+      "fault_component": "节流阀",
+      "component_confidence": 0.5492,
+      "trigger_sensor": "FS1",
+      "sensor_confidence": 0.87,
+      "evolution_chain": [
+        "FS1",
+        "PS2",
+        "PS3",
+        "PS1",
+        "PS4",
+        "PS6",
+        "PS5",
+        "TS1",
+        "VS1",
+        "TS2",
+        "TS3",
+        "FS2",
+        "TS4",
+        "EPS1"
+      ],
+      "algorithm_conclusion": "当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。",
+      "component_diagnostics": [
+        {
+          "component_id": "C010",
+          "component_name": "节流阀",
+          "fault_type": "节流阀故障",
+          "severity": 0.5691,
+          "is_fault": true,
+          "fault_level": "中度故障"
+        },
+        {
+          "component_id": "C002",
+          "component_name": "方向控制阀",
+          "fault_type": "方向阀故障",
+          "severity": 0.5155,
+          "is_fault": true,
+          "fault_level": "中度故障"
+        },
+        {
+          "component_id": "C008",
+          "component_name": "液压油箱",
+          "fault_type": "油箱故障",
+          "severity": 0.4705,
+          "is_fault": true,
+          "fault_level": "中度故障"
+        },
+        {
+          "component_id": "C007",
+          "component_name": "过滤器",
+          "fault_type": "过滤器堵塞",
+          "severity": 0.45,
+          "is_fault": true,
+          "fault_level": "中度故障"
+        },
+        {
+          "component_id": "C009",
+          "component_name": "单向阀",
+          "fault_type": "单向阀故障",
+          "severity": 0.3371,
+          "is_fault": true,
+          "fault_level": "中度故障"
+        },
+        {
+          "component_id": "C012",
+          "component_name": "卸荷阀",
+          "fault_type": "正常",
+          "severity": 0.2544,
+          "is_fault": false,
+          "fault_level": "轻微退化"
+        },
+        {
+          "component_id": "C006",
+          "component_name": "冷却器",
+          "fault_type": "正常",
+          "severity": 0.1007,
+          "is_fault": false,
+          "fault_level": "轻微退化"
+        },
+        {
+          "component_id": "C001",
+          "component_name": "液压泵总成",
+          "fault_type": "正常",
+          "severity": 0.0646,
+          "is_fault": false,
+          "fault_level": "轻微退化"
+        },
+        {
+          "component_id": "C003",
+          "component_name": "作动筒",
+          "fault_type": "正常",
+          "severity": 0.0602,
+          "is_fault": false,
+          "fault_level": "轻微退化"
+        },
+        {
+          "component_id": "C011",
+          "component_name": "管路总成",
+          "fault_type": "正常",
+          "severity": 0.0479,
+          "is_fault": false,
+          "fault_level": "正常"
+        },
+        {
+          "component_id": "C004",
+          "component_name": "溢流阀",
+          "fault_type": "正常",
+          "severity": 0.0,
+          "is_fault": false,
+          "fault_level": "正常"
+        },
+        {
+          "component_id": "C005",
+          "component_name": "蓄能器",
+          "fault_type": "正常",
+          "severity": 0.0,
+          "is_fault": false,
+          "fault_level": "正常"
+        }
+      ],
+      "raw": {
+        "subtype_top5": [
+          {
+            "sub_type_id": "C010-S1",
+            "sub_type_name": "节流口堵塞",
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_part": "",
+            "probability": 0.9468
+          },
+          {
+            "sub_type_id": "C010-S3",
+            "sub_type_name": "节流口冲蚀",
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_part": "",
+            "probability": 0.7247
+          },
+          {
+            "sub_type_id": "C010-S2",
+            "sub_type_name": "阀芯卡滞",
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_part": "",
+            "probability": 0.717
+          }
+        ],
+        "faultComponent": "节流阀",
+        "componentStatus": {
+          "cooler": "冷却正常",
+          "valve": "阀芯中度磨损",
+          "pump": "严重泄漏",
+          "accumulator": "预充中度不足",
+          "stability": "稳定"
+        },
+        "component_code": "C010",
+        "source": "ruoyi_topic5_algorithm_result",
+        "root_sensor_confidence": 0.87,
+        "trace_no": "QF-20260707-08254",
+        "triggerSensor": "FS1",
+        "component_confidence": 0.5492,
+        "conclusion": "当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。",
+        "component_diagnosis_top3": [
+          {
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_type": "节流阀故障",
+            "severity": 0.5691,
+            "is_fault": true,
+            "fault_level": "中度故障"
+          }
+        ],
+        "rca_confidence": 0.5492,
+        "subtypeByComponent": {
+          "C001": {
+            "component_id": "C001",
+            "component_name": "液压泵总成",
+            "fault_type": "液压泵故障",
+            "sub_types": [
+              {
+                "sub_type_id": "C001-S4",
+                "sub_type_name": "轴封泄漏",
+                "fault_part": "主轴密封件",
+                "probability": 0.3732
+              },
+              {
+                "sub_type_id": "C001-S2",
+                "sub_type_name": "配流盘气蚀",
+                "fault_part": "配流盘",
+                "probability": 0.1347
+              },
+              {
+                "sub_type_id": "C001-S1",
+                "sub_type_name": "柱塞副磨损",
+                "fault_part": "柱塞-缸体配合副",
+                "probability": 0.0988
+              },
+              {
+                "sub_type_id": "C001-S3",
+                "sub_type_name": "轴承疲劳剥落",
+                "fault_part": "主轴滚动轴承",
+                "probability": 0.0434
+              }
+            ]
+          },
+          "C002": {
+            "component_id": "C002",
+            "component_name": "方向控制阀",
+            "fault_type": "方向阀故障",
+            "sub_types": [
+              {
+                "sub_type_id": "C002-S2",
+                "sub_type_name": "电磁铁烧毁",
+                "fault_part": "电磁线圈",
+                "probability": 0.9224
+              },
+              {
+                "sub_type_id": "C002-S4",
+                "sub_type_name": "阀体冲蚀",
+                "fault_part": "阀体内部流道",
+                "probability": 0.8833
+              },
+              {
+                "sub_type_id": "C002-S1",
+                "sub_type_name": "阀芯卡滞",
+                "fault_part": "阀芯-阀体配合面",
+                "probability": 0.7547
+              },
+              {
+                "sub_type_id": "C002-S3",
+                "sub_type_name": "复位弹簧断裂",
+                "fault_part": "复位弹簧",
+                "probability": 0.487
+              }
+            ]
+          },
+          "C003": {
+            "component_id": "C003",
+            "component_name": "作动筒",
+            "fault_type": "作动筒故障",
+            "sub_types": [
+              {
+                "sub_type_id": "C003-S2",
+                "sub_type_name": "活塞杆拉伤",
+                "fault_part": "活塞杆表面",
+                "probability": 0.0798
+              },
+              {
+                "sub_type_id": "C003-S4",
+                "sub_type_name": "端盖密封渗漏",
+                "fault_part": "端盖O形圈",
+                "probability": 0.0653
+              },
+              {
+                "sub_type_id": "C003-S1",
+                "sub_type_name": "活塞密封圈老化",
+                "fault_part": "活塞密封圈",
+                "probability": 0.051
+              },
+              {
+                "sub_type_id": "C003-S3",
+                "sub_type_name": "缸筒内壁刮伤",
+                "fault_part": "缸筒内壁",
+                "probability": 0.0326
+              }
+            ]
+          },
+          "C004": {
+            "component_id": "C004",
+            "component_name": "溢流阀",
+            "fault_type": "溢流阀故障",
+            "sub_types": [
+              {
+                "sub_type_id": "C004-S1",
+                "sub_type_name": "先导阀芯卡滞",
+                "fault_part": "",
+                "probability": 0.0
+              },
+              {
+                "sub_type_id": "C004-S2",
+                "sub_type_name": "主阀芯弹簧疲劳",
+                "fault_part": "",
+                "probability": 0.0
+              },
+              {
+                "sub_type_id": "C004-S3",
+                "sub_type_name": "阀口冲蚀泄漏",
+                "fault_part": "",
+                "probability": 0.0
+              },
+              {
+                "sub_type_id": "C004-S4",
+                "sub_type_name": "阻尼孔堵塞",
+                "fault_part": "",
+                "probability": 0.0
+              }
+            ]
+          },
+          "C005": {
+            "component_id": "C005",
+            "component_name": "蓄能器",
+            "fault_type": "蓄能器故障",
+            "sub_types": [
+              {
+                "sub_type_id": "C005-S1",
+                "sub_type_name": "气囊破裂",
+                "fault_part": "",
+                "probability": 0.0
+              },
+              {
+                "sub_type_id": "C005-S2",
+                "sub_type_name": "预充压力不足",
+                "fault_part": "",
+                "probability": 0.0
+              },
+              {
+                "sub_type_id": "C005-S3",
+                "sub_type_name": "菌形阀密封失效",
+                "fault_part": "",
+                "probability": 0.0
+              }
+            ]
+          },
+          "C006": {
+            "component_id": "C006",
+            "component_name": "冷却器",
+            "fault_type": "冷却器故障",
+            "sub_types": [
+              {
+                "sub_type_id": "C006-S2",
+                "sub_type_name": "翅片积尘",
+                "fault_part": "",
+                "probability": 0.163
+              },
+              {
+                "sub_type_id": "C006-S3",
+                "sub_type_name": "管接头泄漏",
+                "fault_part": "",
+                "probability": 0.1274
+              },
+              {
+                "sub_type_id": "C006-S1",
+                "sub_type_name": "管束结垢堵塞",
+                "fault_part": "",
+                "probability": 0.0767
+              }
+            ]
+          },
+          "C007": {
+            "component_id": "C007",
+            "component_name": "过滤器",
+            "fault_type": "过滤器堵塞",
+            "sub_types": [
+              {
+                "sub_type_id": "C007-S2",
+                "sub_type_name": "旁通阀异常开启",
+                "fault_part": "",
+                "probability": 0.8003
+              },
+              {
+                "sub_type_id": "C007-S3",
+                "sub_type_name": "滤芯破损",
+                "fault_part": "",
+                "probability": 0.7769
+              },
+              {
+                "sub_type_id": "C007-S1",
+                "sub_type_name": "滤芯堵塞",
+                "fault_part": "",
+                "probability": 0.4963
+              }
+            ]
+          },
+          "C008": {
+            "component_id": "C008",
+            "component_name": "液压油箱",
+            "fault_type": "油箱故障",
+            "sub_types": [
+              {
+                "sub_type_id": "C008-S1",
+                "sub_type_name": "油位过低",
+                "fault_part": "",
+                "probability": 0.826
+              },
+              {
+                "sub_type_id": "C008-S2",
+                "sub_type_name": "空气滤清器堵塞",
+                "fault_part": "",
+                "probability": 0.5626
+              },
+              {
+                "sub_type_id": "C008-S3",
+                "sub_type_name": "回油泡沫化",
+                "fault_part": "",
+                "probability": 0.5475
+              }
+            ]
+          },
+          "C009": {
+            "component_id": "C009",
+            "component_name": "单向阀",
+            "fault_type": "单向阀故障",
+            "sub_types": [
+              {
+                "sub_type_id": "C009-S1",
+                "sub_type_name": "阀芯卡死(常闭)",
+                "fault_part": "",
+                "probability": 0.9079
+              },
+              {
+                "sub_type_id": "C009-S3",
+                "sub_type_name": "弹簧断裂/失效",
+                "fault_part": "",
+                "probability": 0.6476
+              },
+              {
+                "sub_type_id": "C009-S2",
+                "sub_type_name": "反向泄漏",
+                "fault_part": "",
+                "probability": 0.487
+              }
+            ]
+          },
+          "C010": {
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_type": "节流阀故障",
+            "sub_types": [
+              {
+                "sub_type_id": "C010-S1",
+                "sub_type_name": "节流口堵塞",
+                "fault_part": "",
+                "probability": 0.9468
+              },
+              {
+                "sub_type_id": "C010-S3",
+                "sub_type_name": "节流口冲蚀",
+                "fault_part": "",
+                "probability": 0.7247
+              },
+              {
+                "sub_type_id": "C010-S2",
+                "sub_type_name": "阀芯卡滞",
+                "fault_part": "",
+                "probability": 0.717
+              }
+            ]
+          },
+          "C011": {
+            "component_id": "C011",
+            "component_name": "管路总成",
+            "fault_type": "管路泄漏",
+            "sub_types": [
+              {
+                "sub_type_id": "C011-S4",
+                "sub_type_name": "管路堵塞",
+                "fault_part": "",
+                "probability": 0.107
+              },
+              {
+                "sub_type_id": "C011-S1",
+                "sub_type_name": "管接头渗漏",
+                "fault_part": "",
+                "probability": 0.1045
+              },
+              {
+                "sub_type_id": "C011-S3",
+                "sub_type_name": "软管老化破裂",
+                "fault_part": "",
+                "probability": 0.1038
+              },
+              {
+                "sub_type_id": "C011-S2",
+                "sub_type_name": "管路裂纹泄漏",
+                "fault_part": "",
+                "probability": 0.0815
+              }
+            ]
+          },
+          "C012": {
+            "component_id": "C012",
+            "component_name": "卸荷阀",
+            "fault_type": "卸荷阀故障",
+            "sub_types": [
+              {
+                "sub_type_id": "C012-S2",
+                "sub_type_name": "阀芯卡滞(常开)",
+                "fault_part": "",
+                "probability": 0.4883
+              },
+              {
+                "sub_type_id": "C012-S3",
+                "sub_type_name": "导阀密封失效",
+                "fault_part": "",
+                "probability": 0.4023
+              },
+              {
+                "sub_type_id": "C012-S1",
+                "sub_type_name": "卸荷压力漂移",
+                "fault_part": "",
+                "probability": 0.3114
+              }
+            ]
+          }
+        },
+        "root_component_diagnosis": {
+          "component_id": "C010",
+          "component_name": "节流阀",
+          "fault_type": "节流阀故障",
+          "severity": 0.5691,
+          "is_fault": true,
+          "fault_level": "中度故障"
+        },
+        "dynamicTopologyMatrix": [
+          [
+            0.0,
+            0.05070989951491356,
+            0.07274845987558365,
+            0.08070594817399979,
+            0.007252872455865145,
+            0.05975742265582085,
+            0.005990138743072748,
+            0.000492511666379869,
+            0.0005152158555574715,
+            0.011042664758861065,
+            0.03995797038078308,
+            0.007188187912106514,
+            0.0030234449077397585,
+            0.12219329923391342
+          ],
+          [
+            0.02332867681980133,
+            0.0,
+            0.17617414891719818,
+            0.002640309976413846,
+            0.00021528342040255666,
+            0.02378268726170063,
+            0.0007432522252202034,
+            0.00018393622303847224,
+            0.003667506156489253,
+            0.024256771430373192,
+            0.009325554594397545,
+            0.015482843853533268,
+            0.018411772325634956,
+            0.0020982460118830204
+          ],
+          [
+            0.11707045882940292,
+            0.06715857237577438,
+            0.0,
+            0.013985157012939453,
+            0.08101362735033035,
+            0.006372138857841492,
+            0.0008900355896912515,
+            0.004019466694444418,
+            0.0009880914585664868,
+            0.02877998910844326,
+            0.00021515208936762065,
+            0.0022438045125454664,
+            0.0036881815176457167,
+            0.002098699100315571
+          ],
+          [
+            0.0005793946911580861,
+            0.004104890860617161,
+            0.004299994558095932,
+            0.0,
+            0.0006067600916139781,
+            0.0005913687054999173,
+            0.00010400855535408482,
+            0.021055983379483223,
+            0.020934341475367546,
+            5.491388492373517e-06,
+            0.005285928025841713,
+            0.0008714820141904056,
+            0.00071650993777439,
+            0.0039733885787427425
+          ],
+          [
+            0.0006670034490525723,
+            0.000668203691020608,
+            0.006599211599677801,
+            0.008923969231545925,
+            0.0,
+            0.01393702533096075,
+            0.0009738539229147136,
+            0.006509363651275635,
+            0.006530869286507368,
+            0.001019056304357946,
+            0.009633437730371952,
+            0.004771944135427475,
+            0.00030667331884615123,
+            0.00041794395656324923
+          ],
+          [
+            0.0009468898642808199,
+            0.00368615728802979,
+            0.0026008649729192257,
+            0.028117351233959198,
+            0.05905752256512642,
+            0.0,
+            0.0010957514168694615,
+            0.009087803773581982,
+            0.0033436547964811325,
+            0.0056983972899615765,
+            0.013240997679531574,
+            0.008867666125297546,
+            0.002959837205708027,
+            0.00673071900382638
+          ],
+          [
+            0.22049205005168915,
+            0.03971114382147789,
+            0.23014505207538605,
+            0.14022016525268555,
+            0.0190757904201746,
+            0.0824141576886177,
+            0.0,
+            0.028368091210722923,
+            0.01683887466788292,
+            0.1252155750989914,
+            0.09430225938558578,
+            0.03925400972366333,
+            0.03962062671780586,
+            0.18023675680160522
+          ],
+          [
+            0.09765002876520157,
+            0.03415548801422119,
+            0.3184339106082916,
+            0.00649370439350605,
+            0.0054242913611233234,
+            0.0007482709479518235,
+            0.0005854820483364165,
+            0.0,
+            0.004474166315048933,
+            0.01522758137434721,
+            0.002942554419860244,
+            0.0009725082200020552,
+            0.0023331677075475454,
+            0.002439080737531185
+          ],
+          [
+            0.005490383133292198,
+            0.0024895037058740854,
+            0.01430649682879448,
+            0.014531324617564678,
+            0.0044003017246723175,
+            0.00041259327554143965,
+            0.012163658626377583,
+            0.013374236412346363,
+            0.0,
+            0.00923050008714199,
+            0.017131173983216286,
+            0.0014229536755010486,
+            0.01034803781658411,
+            0.009406712837517262
+          ],
+          [
+            0.018549015745520592,
+            0.0015807623276486993,
+            0.019732877612113953,
+            0.009073716588318348,
+            0.011159613728523254,
+            0.03486607223749161,
+            0.006513133179396391,
+            0.0054840040393173695,
+            0.013067127205431461,
+            0.0,
+            0.0024647777900099754,
+            0.004897028673440218,
+            0.008449583314359188,
+            0.014074197970330715
+          ],
+          [
+            0.008225017227232456,
+            0.0018476849654689431,
+            0.005158506333827972,
+            0.007914611138403416,
+            0.008477690629661083,
+            0.004648290108889341,
+            0.013707165606319904,
+            0.003993995487689972,
+            0.002924393629655242,
+            0.0017091421177610755,
+            0.0,
+            0.01474075298756361,
+            0.006654029246419668,
+            0.001643005758523941
+          ],
+          [
+            0.0178613793104887,
+            0.0037669269368052483,
+            0.005318398121744394,
+            0.008469479158520699,
+            0.00478453328832984,
+            0.01794455759227276,
+            0.009652922861278057,
+            0.0033701409120112658,
+            0.009576893411576748,
+            0.004680158570408821,
+            0.0016460377955809236,
+            0.0,
+            0.015589733608067036,
+            0.0018638675101101398
+          ],
+          [
+            0.005735634360462427,
+            0.0023114883806556463,
+            0.005157229024916887,
+            0.00018427304166834801,
+            0.007711733225733042,
+            0.0069845630787312984,
+            0.013251692056655884,
+            0.0040358188562095165,
+            0.002075245836749673,
+            0.004258928820490837,
+            0.0029880350921303034,
+            0.01448830496519804,
+            0.0,
+            0.003016524249687791
+          ],
+          [
+            0.018794411793351173,
+            0.0005604618927463889,
+            0.005506135988980532,
+            0.00872879195958376,
+            0.026514383032917976,
+            0.012755620293319225,
+            0.008221223950386047,
+            0.0007042016950435936,
+            0.009035925380885601,
+            0.0013456373708322644,
+            0.0061906673945486546,
+            0.005279140081256628,
+            0.0070106531493365765,
+            0.0
+          ]
+        ],
+        "caseId": "QF-20260707-08254",
+        "sensorAnomalyEnergy": [
+          0.15544214844703674,
+          0.0,
+          0.3918016254901886,
+          0.0,
+          0.1719839721918106,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2013196498155594,
+          0.0,
+          0.03596171736717224
+        ],
+        "root_component_code": "C010",
+        "component_id": "C010",
+        "trace_id": 61,
+        "root_sensor": "FS1",
+        "secondary_sensor": "PS2",
+        "severityScores": {
+          "cooler": 1.0,
+          "valve": 0.4407,
+          "pump": 0.958,
+          "accumulator": 0.7259,
+          "stability": 0.0
+        },
+        "component_name": "节流阀",
+        "componentDiagnostics": [
+          {
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_type": "节流阀故障",
+            "severity": 0.5691,
+            "is_fault": true,
+            "fault_level": "中度故障"
+          },
+          {
+            "component_id": "C002",
+            "component_name": "方向控制阀",
+            "fault_type": "方向阀故障",
+            "severity": 0.5155,
+            "is_fault": true,
+            "fault_level": "中度故障"
+          },
+          {
+            "component_id": "C008",
+            "component_name": "液压油箱",
+            "fault_type": "油箱故障",
+            "severity": 0.4705,
+            "is_fault": true,
+            "fault_level": "中度故障"
+          },
+          {
+            "component_id": "C007",
+            "component_name": "过滤器",
+            "fault_type": "过滤器堵塞",
+            "severity": 0.45,
+            "is_fault": true,
+            "fault_level": "中度故障"
+          },
+          {
+            "component_id": "C009",
+            "component_name": "单向阀",
+            "fault_type": "单向阀故障",
+            "severity": 0.3371,
+            "is_fault": true,
+            "fault_level": "中度故障"
+          },
+          {
+            "component_id": "C012",
+            "component_name": "卸荷阀",
+            "fault_type": "正常",
+            "severity": 0.2544,
+            "is_fault": false,
+            "fault_level": "轻微退化"
+          },
+          {
+            "component_id": "C006",
+            "component_name": "冷却器",
+            "fault_type": "正常",
+            "severity": 0.1007,
+            "is_fault": false,
+            "fault_level": "轻微退化"
+          },
+          {
+            "component_id": "C001",
+            "component_name": "液压泵总成",
+            "fault_type": "正常",
+            "severity": 0.0646,
+            "is_fault": false,
+            "fault_level": "轻微退化"
+          },
+          {
+            "component_id": "C003",
+            "component_name": "作动筒",
+            "fault_type": "正常",
+            "severity": 0.0602,
+            "is_fault": false,
+            "fault_level": "轻微退化"
+          },
+          {
+            "component_id": "C011",
+            "component_name": "管路总成",
+            "fault_type": "正常",
+            "severity": 0.0479,
+            "is_fault": false,
+            "fault_level": "正常"
+          },
+          {
+            "component_id": "C004",
+            "component_name": "溢流阀",
+            "fault_type": "正常",
+            "severity": 0.0,
+            "is_fault": false,
+            "fault_level": "正常"
+          },
+          {
+            "component_id": "C005",
+            "component_name": "蓄能器",
+            "fault_type": "正常",
+            "severity": 0.0,
+            "is_fault": false,
+            "fault_level": "正常"
+          }
+        ],
+        "root_component_subtype_topk": [
+          {
+            "sub_type_id": "C010-S1",
+            "sub_type_name": "节流口堵塞",
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_part": "",
+            "probability": 0.9468
+          },
+          {
+            "sub_type_id": "C010-S3",
+            "sub_type_name": "节流口冲蚀",
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_part": "",
+            "probability": 0.7247
+          },
+          {
+            "sub_type_id": "C010-S2",
+            "sub_type_name": "阀芯卡滞",
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_part": "",
+            "probability": 0.717
+          }
+        ],
+        "displayType": "PYTHON_AAGCN_RCA_V1",
+        "componentConfidence": 0.5492,
+        "subtypeProbabilities": [
+          {
+            "sub_type_id": "C010-S1",
+            "sub_type_name": "节流口堵塞",
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_part": "",
+            "probability": 0.9468
+          },
+          {
+            "sub_type_id": "C010-S3",
+            "sub_type_name": "节流口冲蚀",
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_part": "",
+            "probability": 0.7247
+          },
+          {
+            "sub_type_id": "C010-S2",
+            "sub_type_name": "阀芯卡滞",
+            "component_id": "C010",
+            "component_name": "节流阀",
+            "fault_part": "",
+            "probability": 0.717
+          }
+        ],
+        "sensorConfidence": 0.87,
+        "evolutionChain": [
+          "FS1",
+          "PS2",
+          "PS3",
+          "PS1",
+          "PS4",
+          "PS6",
+          "PS5",
+          "TS1",
+          "VS1",
+          "TS2",
+          "TS3",
+          "FS2",
+          "TS4",
+          "EPS1"
+        ],
+        "root_component_name": "节流阀",
+        "faultComponentId": "C010"
+      }
+    },
+    "root_component_diagnosis": {
+      "component_id": "C010",
+      "component_name": "节流阀",
+      "fault_type": "节流阀故障",
+      "severity": 0.5691,
+      "is_fault": true,
+      "fault_level": "中度故障"
+    },
+    "root_component_subtype_topk": [
+      {
+        "component_id": "",
+        "component_name": "",
+        "sub_type_id": "C010-S1",
+        "sub_type_name": "节流口堵塞",
+        "fault_part": "",
+        "probability": 0.9468
+      },
+      {
+        "component_id": "",
+        "component_name": "",
+        "sub_type_id": "C010-S3",
+        "sub_type_name": "节流口冲蚀",
+        "fault_part": "",
+        "probability": 0.7247
+      },
+      {
+        "component_id": "",
+        "component_name": "",
+        "sub_type_id": "C010-S2",
+        "sub_type_name": "阀芯卡滞",
+        "fault_part": "",
+        "probability": 0.717
+      }
+    ],
+    "global_component_diagnosis_top3": [
+      {
+        "component_id": "C010",
+        "component_name": "节流阀",
+        "fault_type": "节流阀故障",
+        "severity": 0.5691,
+        "is_fault": true,
+        "fault_level": "中度故障"
+      },
+      {
+        "component_id": "C002",
+        "component_name": "方向控制阀",
+        "fault_type": "方向阀故障",
+        "severity": 0.5155,
+        "is_fault": true,
+        "fault_level": "中度故障"
+      },
+      {
+        "component_id": "C008",
+        "component_name": "液压油箱",
+        "fault_type": "油箱故障",
+        "severity": 0.4705,
+        "is_fault": true,
+        "fault_level": "中度故障"
+      }
+    ],
+    "global_subtype_top5": [
+      {
+        "component_id": "C010",
+        "component_name": "节流阀",
+        "sub_type_id": "C010-S1",
+        "sub_type_name": "节流口堵塞",
+        "fault_part": "",
+        "probability": 0.9468
+      },
+      {
+        "component_id": "C010",
+        "component_name": "节流阀",
+        "sub_type_id": "C010-S3",
+        "sub_type_name": "节流口冲蚀",
+        "fault_part": "",
+        "probability": 0.7247
+      },
+      {
+        "component_id": "C010",
+        "component_name": "节流阀",
+        "sub_type_id": "C010-S2",
+        "sub_type_name": "阀芯卡滞",
+        "fault_part": "",
+        "probability": 0.717
+      }
+    ],
+    "subtype_display_note": "",
+    "consistency_warning": "",
+    "feedback_component_code": "C010",
+    "feedback_component_name": "节流阀",
+    "rca_source": "upstream_first_algorithm",
+    "local_case_rca_overridden": true
+  },
+  "conclusion_text": "液压反馈对象为 C010 节流阀，上游 RCA 根因部件为 C010 节流阀，根因传感器为 FS1。Top1 疑似原因仍来自当前 selected_case_id=HFB-04222 的 TransH 追溯结果：HOPR-04222。本次追溯以 root_focus 方式根据上游 RCA 根因部件匹配本地生命周期案例，返回 JSON 中的 RCA 上下文以上游 RCA 结果为准。",
+  "_output_path": "D:\\2.11\\RuoYi-Cloud-master\\python\\project5\\code2\\transH\\outputs\\hydraulic\\reports\\reasoning_HFB-04222.json",
+  "upstream_conclusion_text": "液压反馈对象为 C010 节流阀，上游 RCA 根因部件为 C010 节流阀，根因传感器为 FS1。Top1 疑似原因仍来自当前 selected_case_id=HFB-04222 的 TransH 追溯结果：HOPR-04222。本次追溯以 root_focus 方式根据上游 RCA 根因部件匹配本地生命周期案例，返回 JSON 中的 RCA 上下文以上游 RCA 结果为准。"
+}

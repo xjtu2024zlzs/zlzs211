@@ -1,0 +1,424 @@
+{
+  "domain": "hydraulic",
+  "case_id": "HFB-01676",
+  "feedback_summary": {
+    "feedback_id": "HFB-01676",
+    "fault_type": "pressure_abnormal",
+    "fault_position": "管路总成",
+    "fault_severity": "medium",
+    "diagnosis_confidence": 0.7308,
+    "rca_confidence": 0.6181
+  },
+  "target_object": {
+    "object_id": "HCU-01676",
+    "object_type": "HydraulicComponent",
+    "object_name": "管路总成"
+  },
+  "top6_candidates": [
+    {
+      "candidate_id": "HMAN-01042",
+      "candidate_type": "ManufacturingBatch",
+      "candidate_stage": "manufacturing",
+      "candidate_stage_name": "制造阶段",
+      "transh_score": 1.0,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.12,
+      "final_score": 0.8305,
+      "adjusted_final_score": 0.8705,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于制造阶段，具备直接路径证据。",
+      "rank": 1
+    },
+    {
+      "candidate_id": "HOPR-01651",
+      "candidate_type": "MaintenanceRecord",
+      "candidate_stage": "operation",
+      "candidate_stage_name": "使用/运维阶段",
+      "transh_score": 0.445975,
+      "path_score": 0.85,
+      "evidence_score": 0.8,
+      "rule_prior_score": 0.32,
+      "final_score": 0.560988,
+      "adjusted_final_score": 0.595988,
+      "candidate_scope": "rca_root_component_candidate",
+      "reason_description": "该候选来自 RCA 根因部件生命周期链，属于使用/运维阶段。RCA 根因部件与反馈对象不完全一致时，可能表示故障传播或相邻部件诱发。",
+      "rank": 2
+    },
+    {
+      "candidate_id": "HMAT-00417",
+      "candidate_type": "MaterialBatch",
+      "candidate_stage": "material",
+      "candidate_stage_name": "材料阶段",
+      "transh_score": 0.447728,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.1,
+      "final_score": 0.551364,
+      "adjusted_final_score": 0.591364,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于材料阶段，具备直接路径证据。",
+      "rank": 3
+    },
+    {
+      "candidate_id": "HPIP-00297",
+      "candidate_type": "PipeDesignParam",
+      "candidate_stage": "design",
+      "candidate_stage_name": "设计阶段",
+      "transh_score": 0.167191,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.18,
+      "final_score": 0.423096,
+      "adjusted_final_score": 0.463096,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于设计阶段，具备直接路径证据。",
+      "rank": 4
+    },
+    {
+      "candidate_id": "HASM-01676",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "candidate_stage_name": "装配阶段",
+      "transh_score": 0.172783,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.16,
+      "final_score": 0.422892,
+      "adjusted_final_score": 0.462892,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于装配阶段，具备直接路径证据。",
+      "rank": 5
+    },
+    {
+      "candidate_id": "HINSP-01676",
+      "candidate_type": "InspectionRecord",
+      "candidate_stage": "inspection",
+      "candidate_stage_name": "检测阶段",
+      "transh_score": 6.6e-05,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.08,
+      "final_score": 0.324533,
+      "adjusted_final_score": 0.364533,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于检测阶段，具备直接路径证据。",
+      "rank": 6
+    }
+  ],
+  "stage_attribution": {
+    "primary_stage": "manufacturing",
+    "primary_stage_name": "制造阶段",
+    "feedback_target_subsystem": "制造工艺子系统",
+    "stage_scores": {
+      "design": 0.427814,
+      "material": 0.485119,
+      "manufacturing": 1.0,
+      "assembly": 0.334815,
+      "inspection": 0.284923,
+      "operation": 0.589153
+    },
+    "stage_rank": [
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 1.0
+      },
+      {
+        "stage": "operation",
+        "stage_name": "使用/运维阶段",
+        "score": 0.589153
+      },
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 0.485119
+      },
+      {
+        "stage": "design",
+        "stage_name": "设计阶段",
+        "score": 0.427814
+      },
+      {
+        "stage": "assembly",
+        "stage_name": "装配阶段",
+        "score": 0.334815
+      },
+      {
+        "stage": "inspection",
+        "stage_name": "检测阶段",
+        "score": 0.284923
+      }
+    ],
+    "focus_stage_top3": [
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 1.0,
+        "feedback_subsystem": "制造工艺子系统"
+      },
+      {
+        "stage": "operation",
+        "stage_name": "使用/运维阶段",
+        "score": 0.589153,
+        "feedback_subsystem": "运维保障子系统"
+      },
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 0.485119,
+        "feedback_subsystem": "材料/供应商管理子系统"
+      }
+    ],
+    "feedback_subsystem_top3": [
+      "制造工艺子系统",
+      "运维保障子系统",
+      "材料/供应商管理子系统"
+    ],
+    "stage_attribution_detail": [
+      {
+        "candidate_id": "HMAN-01042",
+        "candidate_type": "ManufacturingBatch",
+        "candidate_stage": "manufacturing",
+        "rank": 1,
+        "adjusted_final_score": 0.8705,
+        "rank_score": 1.0,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.05,
+        "contribution": 0.914025
+      },
+      {
+        "candidate_id": "HOPR-01651",
+        "candidate_type": "MaintenanceRecord",
+        "candidate_stage": "operation",
+        "rank": 2,
+        "adjusted_final_score": 0.595988,
+        "rank_score": 0.85,
+        "scope_weight": 0.9,
+        "type_stage_weight": 1.1,
+        "contribution": 0.501524
+      },
+      {
+        "candidate_id": "HMAT-00417",
+        "candidate_type": "MaterialBatch",
+        "candidate_stage": "material",
+        "rank": 3,
+        "adjusted_final_score": 0.591364,
+        "rank_score": 0.72,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.05,
+        "contribution": 0.447071
+      },
+      {
+        "candidate_id": "HPIP-00297",
+        "candidate_type": "PipeDesignParam",
+        "candidate_stage": "design",
+        "rank": 4,
+        "adjusted_final_score": 0.463096,
+        "rank_score": 0.6,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.319536
+      },
+      {
+        "candidate_id": "HASM-01676",
+        "candidate_type": "AssemblyRecord",
+        "candidate_stage": "assembly",
+        "rank": 5,
+        "adjusted_final_score": 0.462892,
+        "rank_score": 0.5,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.266163
+      },
+      {
+        "candidate_id": "HINSP-01676",
+        "candidate_type": "InspectionRecord",
+        "candidate_stage": "inspection",
+        "rank": 6,
+        "adjusted_final_score": 0.364533,
+        "rank_score": 0.42,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.176069
+      }
+    ]
+  },
+  "stage_attribution_detail": [
+    {
+      "candidate_id": "HMAN-01042",
+      "candidate_type": "ManufacturingBatch",
+      "candidate_stage": "manufacturing",
+      "rank": 1,
+      "adjusted_final_score": 0.8705,
+      "rank_score": 1.0,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.05,
+      "contribution": 0.914025
+    },
+    {
+      "candidate_id": "HOPR-01651",
+      "candidate_type": "MaintenanceRecord",
+      "candidate_stage": "operation",
+      "rank": 2,
+      "adjusted_final_score": 0.595988,
+      "rank_score": 0.85,
+      "scope_weight": 0.9,
+      "type_stage_weight": 1.1,
+      "contribution": 0.501524
+    },
+    {
+      "candidate_id": "HMAT-00417",
+      "candidate_type": "MaterialBatch",
+      "candidate_stage": "material",
+      "rank": 3,
+      "adjusted_final_score": 0.591364,
+      "rank_score": 0.72,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.05,
+      "contribution": 0.447071
+    },
+    {
+      "candidate_id": "HPIP-00297",
+      "candidate_type": "PipeDesignParam",
+      "candidate_stage": "design",
+      "rank": 4,
+      "adjusted_final_score": 0.463096,
+      "rank_score": 0.6,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.15,
+      "contribution": 0.319536
+    },
+    {
+      "candidate_id": "HASM-01676",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "rank": 5,
+      "adjusted_final_score": 0.462892,
+      "rank_score": 0.5,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.15,
+      "contribution": 0.266163
+    },
+    {
+      "candidate_id": "HINSP-01676",
+      "candidate_type": "InspectionRecord",
+      "candidate_stage": "inspection",
+      "rank": 6,
+      "adjusted_final_score": 0.364533,
+      "rank_score": 0.42,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.15,
+      "contribution": 0.176069
+    }
+  ],
+  "rca_context": {
+    "case_id": "HCASE-01676",
+    "root_sensor": "PS6",
+    "root_sensor_confidence": 0.96,
+    "secondary_sensor": "PS2",
+    "secondary_sensor_confidence": 0.7556,
+    "root_component_code": "C005",
+    "root_component_name": "蓄能器",
+    "root_component_uids": [
+      "HCU-01663",
+      "HCU-01653",
+      "HCU-01651"
+    ],
+    "component_confidence": 0.863,
+    "rca_confidence": 0.6181,
+    "is_root_component_different_from_feedback": true,
+    "component_diagnosis_top3": [
+      {
+        "case_id": "HCASE-01676",
+        "component_code": "C005",
+        "component_name": "蓄能器",
+        "fault_type": "蓄能器故障",
+        "severity": 0.82339,
+        "judgement": "故障",
+        "fault_level": "重度故障",
+        "rank_no": 1
+      },
+      {
+        "case_id": "HCASE-01676",
+        "component_code": "C011",
+        "component_name": "管路总成",
+        "fault_type": "管路泄漏",
+        "severity": 0.43848,
+        "judgement": "故障",
+        "fault_level": "中度故障",
+        "rank_no": 2
+      },
+      {
+        "case_id": "HCASE-01676",
+        "component_code": "C004",
+        "component_name": "溢流阀",
+        "fault_type": "溢流阀故障",
+        "severity": 0.39472,
+        "judgement": "故障",
+        "fault_level": "中度故障",
+        "rank_no": 3
+      }
+    ],
+    "subtype_top5": [
+      {
+        "case_id": "HCASE-01676",
+        "component_code": "C009",
+        "component_name": "单向阀",
+        "subtype_id": "C009-S3",
+        "subtype_name": "弹簧断裂失效",
+        "fault_part": "-",
+        "probability": 0.586926,
+        "is_precise_part": false
+      },
+      {
+        "case_id": "HCASE-01676",
+        "component_code": "C012",
+        "component_name": "卸荷阀",
+        "subtype_id": "C012-S1",
+        "subtype_name": "卸荷压力漂移",
+        "fault_part": "-",
+        "probability": 0.580998,
+        "is_precise_part": false
+      },
+      {
+        "case_id": "HCASE-01676",
+        "component_code": "C004",
+        "component_name": "溢流阀",
+        "subtype_id": "C004-S2",
+        "subtype_name": "主阀芯弹簧疲劳",
+        "fault_part": "-",
+        "probability": 0.479914,
+        "is_precise_part": false
+      },
+      {
+        "case_id": "HCASE-01676",
+        "component_code": "C005",
+        "component_name": "蓄能器",
+        "subtype_id": "C005-S1",
+        "subtype_name": "气囊破裂",
+        "fault_part": "-",
+        "probability": 0.465117,
+        "is_precise_part": false
+      },
+      {
+        "case_id": "HCASE-01676",
+        "component_code": "C002",
+        "component_name": "方向控制阀",
+        "subtype_id": "C002-S3",
+        "subtype_name": "复位弹簧断裂",
+        "fault_part": "复位弹簧",
+        "probability": 0.458642,
+        "is_precise_part": true
+      }
+    ],
+    "sensor_energy_top5": {
+      "PS6": 1.0,
+      "PS2": 0.79911,
+      "PS3": 0.19495,
+      "PS1": 0.19344,
+      "PS4": 0.16131
+    }
+  },
+  "conclusion_text": "液压反馈对象为 管路总成，根因部件为 蓄能器，根因传感器为 PS6。Top1 疑似原因是 HMAN-01042，首要疑似生命周期阶段为 制造阶段，建议优先反馈至制造工艺子系统。同时，系统建议重点关注使用/运维阶段、材料阶段等相关阶段，以支持跨阶段联合复核。本次追溯同时考虑了反馈对象的生命周期链和 RCA 根因部件的生命周期链。RCA 根因部件与反馈对象不完全一致，可能表示故障传播或相邻部件诱发。Top6 中包含来自 RCA 根因部件生命周期链的候选原因，说明根因部件的生命周期数据对本次追溯具有辅助解释作用。"
+}

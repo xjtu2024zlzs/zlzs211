@@ -1,0 +1,750 @@
+
+ Ansys Mechanical Enterprise                       
+
+
+ *------------------------------------------------------------------*
+ |                                                                  |
+ |   W E L C O M E   T O   T H E   A N S Y S (R)  P R O G R A M     |
+ |                                                                  |
+ *------------------------------------------------------------------*
+
+
+
+
+ ***************************************************************
+ *            ANSYS 2022 R1          LEGAL NOTICES             *
+ ***************************************************************
+ *                                                             *
+ * Copyright 1971-2022 ANSYS, Inc.  All rights reserved.       *
+ * Unauthorized use, distribution or duplication is            *
+ * prohibited.                                                 *
+ *                                                             *
+ * Ansys is a registered trademark of ANSYS, Inc. or its       *
+ * subsidiaries in the United States or other countries.       *
+ * See the ANSYS, Inc. online documentation or the ANSYS, Inc. *
+ * documentation CD or online help for the complete Legal      *
+ * Notice.                                                     *
+ *                                                             *
+ ***************************************************************
+ *                                                             *
+ * THIS ANSYS SOFTWARE PRODUCT AND PROGRAM DOCUMENTATION       *
+ * INCLUDE TRADE SECRETS AND CONFIDENTIAL AND PROPRIETARY      *
+ * PRODUCTS OF ANSYS, INC., ITS SUBSIDIARIES, OR LICENSORS.    *
+ * The software products and documentation are furnished by    *
+ * ANSYS, Inc. or its subsidiaries under a software license    *
+ * agreement that contains provisions concerning               *
+ * non-disclosure, copying, length and nature of use,          *
+ * compliance with exporting laws, warranties, disclaimers,    *
+ * limitations of liability, and remedies, and other           *
+ * provisions.  The software products and documentation may be *
+ * used, disclosed, transferred, or copied only in accordance  *
+ * with the terms and conditions of that software license      *
+ * agreement.                                                  *
+ *                                                             *
+ * ANSYS, Inc. is a UL registered                              *
+ * ISO 9001:2015 company.                                      *
+ *                                                             *
+ ***************************************************************
+ *                                                             *
+ * This product is subject to U.S. laws governing export and   *
+ * re-export.                                                  *
+ *                                                             *
+ * For U.S. Government users, except as specifically granted   *
+ * by the ANSYS, Inc. software license agreement, the use,     *
+ * duplication, or disclosure by the United States Government  *
+ * is subject to restrictions stated in the ANSYS, Inc.        *
+ * software license agreement and FAR 12.212 (for non-DOD      *
+ * licenses).                                                  *
+ *                                                             *
+ ***************************************************************
+
+ 2022 R1 
+     
+ Point Releases and Patches installed:   
+     
+ ANSYS, Inc. License Manager 2022 R1 
+ Discovery 2022 R1   
+ SpaceClaim 2022 R1  
+ Ansys Sherlock 2022 R1  
+ Autodyn 2022 R1 
+ LS-DYNA 2022 R1 
+ CFX (includes CFD-Post) 2022 R1 
+ Chemkin 2022 R1 
+ EnSight 2022 R1 
+ FENSAP-ICE 2022 R1  
+ Fluent (includes CFD-Post) 2022 R1  
+ Polyflow (includes CFD-Post) 2022 R1
+ Forte (includes EnSight) 2022 R1
+ TurboGrid 2022 R1   
+ ICEM CFD 2022 R1
+ Aqwa 2022 R1
+ Speos 2022 R1   
+ Additive 2022 R1
+ Mechanical Products 2022 R1 
+ Icepak (includes CFD-Post) 2022 R1  
+ ACIS Geometry Interface 2022 R1 
+ AutoCAD Geometry Interface 2022 R1  
+ Catia, Version 4 Geometry Interface 2022 R1 
+ Catia, Version 5 Geometry Interface 2022 R1 
+ Catia, Version 6 Geometry Interface 2022 R1 
+ Creo Elements/Direct Modeling Geometry Interface 2022 R1
+ Creo Parametric Geometry Interface 2022 R1  
+ Inventor Geometry Interface 2022 R1 
+ JTOpen Geometry Interface 2022 R1   
+ NX Geometry Interface 2022 R1   
+ Parasolid Geometry Interface  2022 R1   
+ Solid Edge Geometry Interface 2022 R1   
+ SOLIDWORKS Geometry Interface 2022 R1   
+
+
+          *****  ANSYS COMMAND LINE ARGUMENTS  *****
+  BATCH MODE REQUESTED (-b)    = NOLIST
+  INPUT FILE COPY MODE (-c)    = COPY
+  DISTRIBUTED MEMORY PARALLEL REQUESTED
+      32 PARALLEL PROCESSES REQUESTED WITH SINGLE THREAD PER PROCESS
+    TOTAL OF    32 CORES REQUESTED
+  INPUT FILE NAME              = C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5\dummy.dat
+  OUTPUT FILE NAME             = C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5\solve.out
+  START-UP FILE MODE           = NOREAD
+  STOP FILE MODE               = NOREAD
+
+ RELEASE= 2022 R1              BUILD= 22.1      UP20211129   VERSION=WINDOWS x64 
+ CURRENT JOBNAME=file0  16:45:52  JUN 18, 2026 CP=      0.141
+
+
+ PARAMETER _DS_PROGRESS =     999.0000000    
+
+ /INPUT FILE= ds.dat  LINE=       0
+
+
+
+ *** NOTE ***                            CP =       1.250   TIME= 16:45:53
+ The /CONFIG,NOELDB command is not valid in a Distributed ANSYS          
+ solution.  Command is ignored.                                          
+
+ *GET  _WALLSTRT  FROM  ACTI  ITEM=TIME WALL  VALUE=  16.7647222    
+
+ TITLE= 
+ wbnew--____                                                                   
+
+  ACT Extensions:
+      LSDYNA, 2021.1
+      5f463412-bd3e-484b-87e7-cbc0a665e474, wbex
+  
+
+ SET PARAMETER DIMENSIONS ON  _WB_PROJECTSCRATCH_DIR
+  TYPE=STRI  DIMENSIONS=      248        1        1
+
+ PARAMETER _WB_PROJECTSCRATCH_DIR(1) = C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5\
+
+ SET PARAMETER DIMENSIONS ON  _WB_SOLVERFILES_DIR
+  TYPE=STRI  DIMENSIONS=      248        1        1
+
+ PARAMETER _WB_SOLVERFILES_DIR(1) = C:\Users\666\AppData\Local\Temp\WB_666_48460_2\wbnew_files\dp0\SYS\MECH\
+
+ SET PARAMETER DIMENSIONS ON  _WB_USERFILES_DIR
+  TYPE=STRI  DIMENSIONS=      248        1        1
+
+ PARAMETER _WB_USERFILES_DIR(1) = C:\Users\666\AppData\Local\Temp\WB_666_48460_2\wbnew_files\user_files\
+ --- Data in consistent MKS units. See Solving Units in the help system for more
+
+ MKS UNITS SPECIFIED FOR INTERNAL    
+  LENGTH        (l)  = METER (M)
+  MASS          (M)  = KILOGRAM (KG)
+  TIME          (t)  = SECOND (SEC)
+  TEMPERATURE   (T)  = CELSIUS (C)
+  TOFFSET            = 273.0
+  CHARGE        (Q)  = COULOMB
+  FORCE         (f)  = NEWTON (N) (KG-M/SEC2)
+  HEAT               = JOULE (N-M)
+
+  PRESSURE           = PASCAL (NEWTON/M**2)
+  ENERGY        (W)  = JOULE (N-M)
+  POWER         (P)  = WATT (N-M/SEC)
+  CURRENT       (i)  = AMPERE (COULOMBS/SEC)
+  CAPACITANCE   (C)  = FARAD
+  INDUCTANCE    (L)  = HENRY
+  MAGNETIC FLUX      = WEBER
+  RESISTANCE    (R)  = OHM
+  ELECTRIC POTENTIAL = VOLT
+
+ INPUT  UNITS ARE ALSO SET TO MKS 
+
+ *** ANSYS - ENGINEERING ANALYSIS SYSTEM  RELEASE 2022 R1          22.1     ***
+ DISTRIBUTED Ansys Mechanical Enterprise                       
+
+ 00000000  VERSION=WINDOWS x64   16:45:53  JUN 18, 2026 CP=      1.250
+
+ wbnew--____                                                                   
+
+
+
+          ***** ANSYS ANALYSIS DEFINITION (PREP7) *****
+ *********** Nodes for the whole assembly ***********
+ *********** Elements for Body 1 "input_geometry-FreeParts|PipeInnerBoreCut" ***
+ *********** Send User Defined Coordinate System(s) ***********
+ *********** Set Reference Temperature ***********
+ *********** Send Materials ***********
+ *********** Fixed Supports ***********
+ *********** Define Pressure Using Surface Effect Elements "__" ***********
+
+
+ ***** ROUTINE COMPLETED *****  CP =         2.750
+
+
+ --- Number of total nodes = 29070
+ --- Number of contact elements = 4140
+ --- Number of spring elements = 0
+ --- Number of bearing elements = 0
+ --- Number of solid elements = 4140
+ --- Number of condensed parts = 0
+ --- Number of total elements = 8280
+
+ *GET  _WALLBSOL  FROM  ACTI  ITEM=TIME WALL  VALUE=  16.7647222    
+ ****************************************************************************
+ *************************    SOLUTION       ********************************
+ ****************************************************************************
+
+ *****  ANSYS SOLUTION ROUTINE  *****
+
+
+ PERFORM A STATIC ANALYSIS
+  THIS WILL BE A NEW ANALYSIS
+
+ PARAMETER _THICKRATIO =     0.000000000    
+
+ USE SPARSE MATRIX DIRECT SOLVER
+
+ CONTACT INFORMATION PRINTOUT LEVEL       1
+
+ DO NOT COMBINE ELEMENT MATRIX FILES (.emat) AFTER DISTRIBUTED PARALLEL SOLUTION
+
+ DO NOT COMBINE ELEMENT SAVE DATA FILES (.esav) AFTER DISTRIBUTED PARALLEL SOLUTION
+
+ NLDIAG: Nonlinear diagnostics CONT option is set to ON. 
+         Writing frequency : each ITERATION.
+
+ DO NOT SAVE ANY RESTART FILES AT ALL
+ ****************************************************
+ ******************* SOLVE FOR LS 1 OF 1 ****************
+
+ SELECT       FOR ITEM=TYPE COMPONENT=    
+  IN RANGE         2 TO          2 STEP          1
+
+       4140  ELEMENTS (OF       8280  DEFINED) SELECTED BY  ESEL  COMMAND.
+
+ SELECT      ALL NODES HAVING ANY ELEMENT IN ELEMENT SET.
+
+      12456 NODES (OF      29070  DEFINED) SELECTED FROM
+     4140 SELECTED ELEMENTS BY NSLE COMMAND.
+
+ GENERATE SURFACE LOAD PRES ON SURFACE DEFINED BY ALL SELECTED NODES
+ VALUES=  30000000.0      0.00000000    
+
+ NUMBER OF PRES ELEMENT FACE LOADS STORED =       4140
+
+ ALL SELECT   FOR ITEM=NODE COMPONENT=    
+  IN RANGE         1 TO      29070 STEP          1
+
+      29070  NODES (OF      29070  DEFINED) SELECTED BY NSEL  COMMAND.
+
+ ALL SELECT   FOR ITEM=ELEM COMPONENT=    
+  IN RANGE         1 TO      16596 STEP          1
+
+       8280  ELEMENTS (OF       8280  DEFINED) SELECTED BY  ESEL  COMMAND.
+
+ ALL SELECT   FOR ITEM=ELEM COMPONENT=    
+  IN RANGE         1 TO      16596 STEP          1
+
+       8280  ELEMENTS (OF       8280  DEFINED) SELECTED BY  ESEL  COMMAND.
+
+ PRINTOUT RESUMED BY /GOP
+
+ USE       1 SUBSTEPS INITIALLY THIS LOAD STEP FOR ALL  DEGREES OF FREEDOM
+ FOR AUTOMATIC TIME STEPPING:
+   USE      1 SUBSTEPS AS A MAXIMUM
+   USE      1 SUBSTEPS AS A MINIMUM
+
+ TIME=  1.0000    
+
+ ERASE THE CURRENT DATABASE OUTPUT CONTROL TABLE.
+
+
+ WRITE ALL  ITEMS TO THE DATABASE WITH A FREQUENCY OF NONE
+   FOR ALL APPLICABLE ENTITIES
+
+ WRITE NSOL ITEMS TO THE DATABASE WITH A FREQUENCY OF ALL 
+   FOR ALL APPLICABLE ENTITIES
+
+ WRITE RSOL ITEMS TO THE DATABASE WITH A FREQUENCY OF ALL 
+   FOR ALL APPLICABLE ENTITIES
+
+ WRITE EANG ITEMS TO THE DATABASE WITH A FREQUENCY OF ALL 
+   FOR ALL APPLICABLE ENTITIES
+
+ WRITE ETMP ITEMS TO THE DATABASE WITH A FREQUENCY OF ALL 
+   FOR ALL APPLICABLE ENTITIES
+
+ WRITE VENG ITEMS TO THE DATABASE WITH A FREQUENCY OF ALL 
+   FOR ALL APPLICABLE ENTITIES
+
+ WRITE STRS ITEMS TO THE DATABASE WITH A FREQUENCY OF ALL 
+   FOR ALL APPLICABLE ENTITIES
+
+ WRITE EPEL ITEMS TO THE DATABASE WITH A FREQUENCY OF ALL 
+   FOR ALL APPLICABLE ENTITIES
+
+ WRITE EPPL ITEMS TO THE DATABASE WITH A FREQUENCY OF ALL 
+   FOR ALL APPLICABLE ENTITIES
+
+ WRITE CONT ITEMS TO THE DATABASE WITH A FREQUENCY OF ALL 
+   FOR ALL APPLICABLE ENTITIES
+
+ *GET  ANSINTER_  FROM  ACTI  ITEM=INT        VALUE=  0.00000000    
+
+ *IF  ANSINTER_                         ( =   0.00000     )  NE  
+      0                                 ( =   0.00000     )  THEN    
+
+ *ENDIF
+
+ *** NOTE ***                            CP =       3.375   TIME= 16:45:53
+ The automatic domain decomposition logic has selected the MESH domain   
+ decomposition method with 32 processes per solution.                    
+
+ *****  ANSYS SOLVE    COMMAND  *****
+
+ *** WARNING ***                         CP =       3.375   TIME= 16:45:53
+ Element shape checking is currently inactive.  Issue SHPP,ON or         
+ SHPP,WARN to reactivate, if desired.                                    
+
+ *** NOTE ***                            CP =       3.625   TIME= 16:45:53
+ The model data was checked and warning messages were found.             
+  Please review output or errors file (                                  
+ C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5\ 
+ \file0.err ) for these warning messages.                                
+
+ *** SELECTION OF ELEMENT TECHNOLOGIES FOR APPLICABLE ELEMENTS ***
+      --- GIVE SUGGESTIONS AND RESET THE KEY OPTIONS ---
+
+ ELEMENT TYPE         1 IS SOLID186. KEYOPT(2)=0 IS SUGGESTED AND HAS BEEN RESET.
+  KEYOPT(1-12)=    0    0    0    0    0    0    0    0    0    0    0    0
+
+
+
+ *** ANSYS - ENGINEERING ANALYSIS SYSTEM  RELEASE 2022 R1          22.1     ***
+ DISTRIBUTED Ansys Mechanical Enterprise                       
+
+ 00000000  VERSION=WINDOWS x64   16:45:53  JUN 18, 2026 CP=      3.625
+
+ wbnew--____                                                                   
+
+
+
+                       S O L U T I O N   O P T I O N S
+
+   PROBLEM DIMENSIONALITY. . . . . . . . . . . . .3-D                  
+   DEGREES OF FREEDOM. . . . . . UX   UY   UZ  
+   ANALYSIS TYPE . . . . . . . . . . . . . . . . .STATIC (STEADY-STATE)
+   OFFSET TEMPERATURE FROM ABSOLUTE ZERO . . . . .  273.15    
+   EQUATION SOLVER OPTION. . . . . . . . . . . . .SPARSE             
+   GLOBALLY ASSEMBLED MATRIX . . . . . . . . . . .SYMMETRIC  
+
+ *** WARNING ***                         CP =       3.625   TIME= 16:45:53
+ Material number 2 (used by element 12457) should normally have at least 
+ one MP or one TB type command associated with it.  Output of energy by  
+ material may not be available.                                          
+
+ *** NOTE ***                            CP =       3.875   TIME= 16:45:53
+ The step data was checked and warning messages were found.              
+  Please review output or errors file (                                  
+ C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5\ 
+ \file0.err ) for these warning messages.                                
+
+ *** NOTE ***                            CP =       3.875   TIME= 16:45:53
+ The conditions for direct assembly have been met.  No .emat or .erot    
+ files will be produced.                                                 
+
+  
+  
+     D I S T R I B U T E D   D O M A I N   D E C O M P O S E R
+  
+  ...Number of elements: 8280
+  ...Number of nodes:    29070
+  ...Decompose to 32 CPU domains
+  ...Element load balance ratio =     1.008
+
+
+                      L O A D   S T E P   O P T I O N S
+
+   LOAD STEP NUMBER. . . . . . . . . . . . . . . .     1
+   TIME AT END OF THE LOAD STEP. . . . . . . . . .  1.0000    
+   NUMBER OF SUBSTEPS. . . . . . . . . . . . . . .     1
+   STEP CHANGE BOUNDARY CONDITIONS . . . . . . . .    NO
+   PRINT OUTPUT CONTROLS . . . . . . . . . . . . .NO PRINTOUT
+   DATABASE OUTPUT CONTROLS
+      ITEM     FREQUENCY   COMPONENT
+       ALL       NONE               
+      NSOL        ALL               
+      RSOL        ALL               
+      EANG        ALL               
+      ETMP        ALL               
+      VENG        ALL               
+      STRS        ALL               
+      EPEL        ALL               
+      EPPL        ALL               
+      CONT        ALL               
+
+
+ SOLUTION MONITORING INFO IS WRITTEN TO FILE= file.mntr                                                                                                                                                                                                                                                           
+
+
+
+                         ***********  PRECISE MASS SUMMARY  ***********
+
+   TOTAL RIGID BODY MASS MATRIX ABOUT ORIGIN
+               Translational mass               |   Coupled translational/rotational mass
+        0.13033        0.0000        0.0000     |     0.0000       0.15776E-19   0.21085E-01
+         0.0000       0.13033        0.0000     |   -0.15776E-19    0.0000       0.37958E-01
+         0.0000        0.0000       0.13033     |   -0.21085E-01  -0.37958E-01    0.0000    
+     ------------------------------------------ | ------------------------------------------
+                                                |         Rotational mass (inertia)
+                                                |    0.43747E-02   0.80697E-02  -0.26311E-19
+                                                |    0.80697E-02   0.15013E-01   0.11819E-19
+                                                |   -0.25702E-19   0.11700E-19   0.19385E-01
+
+   TOTAL MASS = 0.13033    
+     The mass principal axes coincide with the global Cartesian axes
+
+   CENTER OF MASS (X,Y,Z)=   0.29124      -0.16178       0.12105E-18
+
+   TOTAL INERTIA ABOUT CENTER OF MASS
+        0.96361E-03   0.19289E-02  -0.21716E-19
+        0.19289E-02   0.39581E-02   0.92665E-20
+       -0.21716E-19   0.92665E-20   0.49192E-02
+
+   PRINCIPAL INERTIAS =   0.19029E-04   0.49026E-02   0.49192E-02
+   ORIENTATION VECTORS OF THE INERTIA PRINCIPAL AXES IN GLOBAL CARTESIAN
+     ( 0.898,-0.440, 0.000) ( 0.440, 0.898, 0.000) (-0.000,-0.000, 1.000) 
+
+
+  *** MASS SUMMARY BY ELEMENT TYPE ***
+
+  TYPE      MASS
+     1  0.130331    
+
+ Range of element maximum matrix coefficients in global coordinates
+ Maximum = 892009605 at element 3508.                                    
+ Minimum = 491941899 at element 29.                                      
+
+   *** ELEMENT MATRIX FORMULATION TIMES
+     TYPE    NUMBER   ENAME      TOTAL CP  AVE CP
+
+        1      4140  SOLID186      0.406   0.000098
+        2      4140  SURF154       0.156   0.000038
+ Time at end of element matrix formulation CP = 6.171875.                
+
+ DISTRIBUTED SPARSE MATRIX DIRECT SOLVER.
+  Number of equations =       86670,    Maximum wavefront =    153
+
+  Process memory allocated for solver              =    27.160 MB
+  Process memory required for in-core solution     =    26.026 MB
+  Process memory required for out-of-core solution =    12.794 MB
+
+  Total memory allocated for solver                =   802.022 MB
+  Total memory required for in-core solution       =   768.289 MB
+  Total memory required for out-of-core solution   =   390.243 MB
+
+ *** NOTE ***                            CP =       6.766   TIME= 16:45:54
+ The Distributed Sparse Matrix Solver is currently running in the        
+ in-core memory mode.  This memory mode uses the most amount of memory   
+ in order to avoid using the hard drive as much as possible, which most  
+ often results in the fastest solution time.  This mode is recommended   
+ if enough physical memory is present to accommodate all of the solver   
+ data.                                                                   
+ curEqn=   2727  totEqn=   2727 Job CP sec=      7.094
+      Factor Done=  98% Factor Wall sec=      0.170 rate=       2.3 GFlops
+ Distributed sparse solver maximum pivot= 937724680 at node 196 UZ.      
+ Distributed sparse solver minimum pivot= 28107.4275 at node 12135 UZ.   
+ Distributed sparse solver minimum pivot in absolute value= 28107.4275   
+ at node 12135 UZ.                                                       
+
+   *** ELEMENT RESULT CALCULATION TIMES
+     TYPE    NUMBER   ENAME      TOTAL CP  AVE CP
+
+        1      4140  SOLID186      0.250   0.000060
+        2      4140  SURF154       0.188   0.000045
+
+   *** NODAL LOAD CALCULATION TIMES
+     TYPE    NUMBER   ENAME      TOTAL CP  AVE CP
+
+        1      4140  SOLID186      0.188   0.000045
+        2      4140  SURF154       0.016   0.000004
+ *** LOAD STEP     1   SUBSTEP     1  COMPLETED.    CUM ITER =      1
+ *** TIME =   1.00000         TIME INC =   1.00000      NEW TRIANG MATRIX
+
+
+ *** ANSYS BINARY FILE STATISTICS
+  BUFFER SIZE USED= 16384
+        2.688 MB WRITTEN ON ASSEMBLED MATRIX FILE: file0.full
+        0.750 MB WRITTEN ON RESULTS FILE: file0.rst
+ *************** Write FE CONNECTORS *********
+
+ WRITE OUT CONSTRAINT EQUATIONS TO FILE= file.ce                                                                                                                                                                                                                                                             
+ ****************************************************
+ *************** FINISHED SOLVE FOR LS 1 *************
+
+ *GET  _WALLASOL  FROM  ACTI  ITEM=TIME WALL  VALUE=  16.7650000    
+
+ PRINTOUT RESUMED BY /GOP
+
+ FINISH SOLUTION PROCESSING
+
+
+ ***** ROUTINE COMPLETED *****  CP =         7.281
+
+
+
+ *** ANSYS - ENGINEERING ANALYSIS SYSTEM  RELEASE 2022 R1          22.1     ***
+ DISTRIBUTED Ansys Mechanical Enterprise                       
+
+ 00000000  VERSION=WINDOWS x64   16:45:54  JUN 18, 2026 CP=      7.281
+
+ wbnew--____                                                                   
+
+
+
+          ***** ANSYS RESULTS INTERPRETATION (POST1) *****
+
+ *** NOTE ***                            CP =       7.281   TIME= 16:45:54
+ Reading results into the database (SET command) will update the current 
+ displacement and force boundary conditions in the database with the     
+ values from the results file for that load set.  Note that any          
+ subsequent solutions will use these values unless action is taken to    
+ either SAVE the current values or not overwrite them (/EXIT,NOSAVE).    
+
+ Set Encoding of XML File to:ISO-8859-1
+
+ Set Output of XML File to:
+     PARM,     ,     ,     ,     ,     ,     ,     ,     ,     ,     ,     ,
+         ,     ,     ,     ,     ,     ,     ,
+
+ DATABASE WRITTEN ON FILE  parm.xml                                                                                                                                                                                                                                                            
+
+ EXIT THE ANSYS POST1 DATABASE PROCESSOR
+
+
+ ***** ROUTINE COMPLETED *****  CP =         7.531
+
+
+
+ PRINTOUT RESUMED BY /GOP
+
+ *GET  _WALLDONE  FROM  ACTI  ITEM=TIME WALL  VALUE=  16.7650000    
+
+ PARAMETER _PREPTIME =     0.000000000    
+
+ PARAMETER _SOLVTIME =     1.000000000    
+
+ PARAMETER _POSTTIME =     0.000000000    
+
+ PARAMETER _TOTALTIM =     1.000000000    
+
+ *GET  _DLBRATIO  FROM  ACTI  ITEM=SOLU DLBR  VALUE=  1.00775194    
+
+ *GET  _COMBTIME  FROM  ACTI  ITEM=SOLU COMB  VALUE= 0.498968000E-01
+
+ *GET  _SSMODE   FROM  ACTI  ITEM=SOLU SSMM  VALUE=  2.00000000    
+
+ *GET  _NDOFS    FROM  ACTI  ITEM=SOLU NDOF  VALUE=  86670.0000    
+
+ *GET  _SOL_END_TIME  FROM  ACTI  ITEM=SET  TIME  VALUE=  1.00000000    
+
+ *IF  _sol_end_time                     ( =   1.00000     )  EQ  
+      1.000000                          ( =   1.00000     )  THEN    
+
+ /FCLEAN COMMAND REMOVING ALL LOCAL FILES
+
+ *ENDIF
+ --- Total number of nodes = 29070
+ --- Total number of elements = 8280
+ --- Element load balance ratio = 1.00775194
+ --- Time to combine distributed files = 4.98968E-02
+ --- Sparse memory mode = 2
+ --- Number of DOF = 86670
+
+ EXIT ANSYS WITHOUT SAVING DATABASE
+
+
+ NUMBER OF WARNING MESSAGES ENCOUNTERED=          2
+ NUMBER OF ERROR   MESSAGES ENCOUNTERED=          0
+
++--------- D I S T R I B U T E D   A N S Y S   S T A T I S T I C S ------------+
+
+Release: 2022 R1            Build: 22.1       Update: UP20211129   Platform: WINDOWS x64 
+Date Run: 06/18/2026   Time: 16:45     Process ID: 52436
+Operating System: Windows 10  (Build: 19045)
+
+Processor Model: AMD Ryzen Threadripper PRO 3975WX 32-Cores
+
+Compiler: Intel(R) Fortran Compiler Version 19.0.5  (Build: 20190815)
+          Intel(R) C/C++ Compiler Version 19.0.5  (Build: 20190815)
+          Intel(R) Math Kernel Library Version 2020.0.0 Product Build 20191125
+          BLAS Library supplied by AMD BLIS
+
+Number of machines requested            :    1
+Total number of cores available         :   64
+Number of physical cores available      :   32
+Number of processes requested           :   32
+Number of threads per process requested :    1
+Total number of cores requested         :   32 (Distributed Memory Parallel)               
+MPI Type: INTELMPI
+MPI Version: Intel(R) MPI Library 2018 Update 3 for Windows* OS
+
+
+GPU Acceleration: Not Requested
+
+Job Name: file0
+Input File: dummy.dat
+
+  Core                Machine Name   Working Directory
+ -----------------------------------------------------
+     0             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+     1             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+     2             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+     3             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+     4             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+     5             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+     6             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+     7             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+     8             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+     9             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    10             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    11             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    12             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    13             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    14             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    15             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    16             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    17             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    18             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    19             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    20             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    21             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    22             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    23             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    24             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    25             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    26             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    27             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    28             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    29             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    30             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+    31             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_48460_2\_ProjectScratch\ScrFAD5
+ 
+Latency time from master to core     1 =    1.936 microseconds
+Latency time from master to core     2 =    1.961 microseconds
+Latency time from master to core     3 =    1.916 microseconds
+Latency time from master to core     4 =    1.920 microseconds
+Latency time from master to core     5 =    1.846 microseconds
+Latency time from master to core     6 =    1.872 microseconds
+Latency time from master to core     7 =    1.896 microseconds
+Latency time from master to core     8 =    1.929 microseconds
+Latency time from master to core     9 =    1.868 microseconds
+Latency time from master to core    10 =    1.913 microseconds
+Latency time from master to core    11 =    2.134 microseconds
+Latency time from master to core    12 =    1.996 microseconds
+Latency time from master to core    13 =    1.966 microseconds
+Latency time from master to core    14 =    1.952 microseconds
+Latency time from master to core    15 =    1.961 microseconds
+Latency time from master to core    16 =    2.024 microseconds
+Latency time from master to core    17 =    1.815 microseconds
+Latency time from master to core    18 =    1.795 microseconds
+Latency time from master to core    19 =    1.838 microseconds
+Latency time from master to core    20 =    1.963 microseconds
+Latency time from master to core    21 =    1.801 microseconds
+Latency time from master to core    22 =    1.730 microseconds
+Latency time from master to core    23 =    1.821 microseconds
+Latency time from master to core    24 =    1.897 microseconds
+Latency time from master to core    25 =    1.890 microseconds
+Latency time from master to core    26 =    1.798 microseconds
+Latency time from master to core    27 =    1.847 microseconds
+Latency time from master to core    28 =    1.852 microseconds
+Latency time from master to core    29 =    1.825 microseconds
+Latency time from master to core    30 =    1.776 microseconds
+Latency time from master to core    31 =    1.909 microseconds
+ 
+Communication speed from master to core     1 =  2887.21 MB/sec
+Communication speed from master to core     2 =  8270.70 MB/sec
+Communication speed from master to core     3 =  2616.80 MB/sec
+Communication speed from master to core     4 =  2847.47 MB/sec
+Communication speed from master to core     5 =  3006.29 MB/sec
+Communication speed from master to core     6 =  2891.26 MB/sec
+Communication speed from master to core     7 =  2924.12 MB/sec
+Communication speed from master to core     8 =  2823.48 MB/sec
+Communication speed from master to core     9 =  2707.20 MB/sec
+Communication speed from master to core    10 =  2844.97 MB/sec
+Communication speed from master to core    11 =  2845.67 MB/sec
+Communication speed from master to core    12 =  2862.75 MB/sec
+Communication speed from master to core    13 =  2830.97 MB/sec
+Communication speed from master to core    14 =  2893.54 MB/sec
+Communication speed from master to core    15 =  2840.62 MB/sec
+Communication speed from master to core    16 =  3104.61 MB/sec
+Communication speed from master to core    17 =  3142.97 MB/sec
+Communication speed from master to core    18 =  3257.22 MB/sec
+Communication speed from master to core    19 =  3208.71 MB/sec
+Communication speed from master to core    20 =  9388.46 MB/sec
+Communication speed from master to core    21 =  8348.03 MB/sec
+Communication speed from master to core    22 =  9356.83 MB/sec
+Communication speed from master to core    23 =  9652.39 MB/sec
+Communication speed from master to core    24 =  3003.08 MB/sec
+Communication speed from master to core    25 =  2818.75 MB/sec
+Communication speed from master to core    26 =  2907.45 MB/sec
+Communication speed from master to core    27 =  3189.61 MB/sec
+Communication speed from master to core    28 =  3023.99 MB/sec
+Communication speed from master to core    29 =  3039.83 MB/sec
+Communication speed from master to core    30 =  2982.87 MB/sec
+Communication speed from master to core    31 =  3041.73 MB/sec
+
+Total CPU time for main thread                    :        3.5 seconds
+Total CPU time summed for all threads             :       11.1 seconds
+
+Elapsed time spent obtaining a license            :        0.7 seconds
+Elapsed time spent pre-processing model (/PREP7)  :        0.1 seconds
+Elapsed time spent solution - preprocessing       :        0.1 seconds
+Elapsed time spent computing solution             :        1.1 seconds
+Elapsed time spent solution - postprocessing      :        0.0 seconds
+Elapsed time spent post-processing model (/POST1) :        0.0 seconds
+ 
+Equation solver used                              :            Sparse (symmetric)
+Equation solver computational rate                :       71.6 Gflops
+Equation solver effective I/O rate                :       14.1 GB/sec
+
+Sum of memory used on all processes               :     4312.0 MB
+Sum of memory allocated on all processes          :    33856.0 MB
+Physical memory available                         :         64 GB
+
+Total amount of I/O written to disk               :        0.0 GB
+Total amount of I/O read from disk                :        0.0 GB
+
++------ E N D   D I S T R I B U T E D   A N S Y S   S T A T I S T I C S -------+
+
+
+ *---------------------------------------------------------------------------*
+ |                                                                           |
+ |                       DISTRIBUTED ANSYS RUN COMPLETED                     |
+ |                                                                           |
+ |---------------------------------------------------------------------------|
+ |                                                                           |
+ | Ansys 2022 R1               Build 22.1         UP20211129     WINDOWS x64 |
+ |                                                                           |
+ |---------------------------------------------------------------------------|
+ |                                                                           |
+ | Database Requested(-db)  1024 MB    Scratch Memory Requested      1024 MB |
+ | Maximum Database Used      17 MB    Maximum Scratch Memory Used    136 MB |
+ |                                                                           |
+ |---------------------------------------------------------------------------|
+ |                                                                           |
+ |        CP Time      (sec) =         11.062       Time  =  16:45:55        |
+ |        Elapsed Time (sec) =          5.000       Date  =  06/18/2026      |
+ |                                                                           |
+ *---------------------------------------------------------------------------*

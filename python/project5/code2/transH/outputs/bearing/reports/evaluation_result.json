@@ -1,0 +1,128 @@
+{
+  "domain": "bearing",
+  "overall_metrics": {
+    "total_cases": 5000,
+    "evaluated_cases": 20,
+    "skipped_cases": 600,
+    "top1_hit_rate": 1.0,
+    "top3_hit_rate": 1.0,
+    "top6_hit_rate": 1.0,
+    "mean_mrr": 1.0,
+    "type_hit_rate": 1.0,
+    "stage_accuracy": 0.85,
+    "average_top1_score": 0.8428,
+    "average_top6_score": 0.622443,
+    "scope_distribution": {
+      "lifecycle_candidate": {
+        "count": 104,
+        "ratio": 0.866667
+      },
+      "expanded_candidate": {
+        "count": 0,
+        "ratio": 0.0
+      },
+      "rca_root_component_candidate": {
+        "count": 0,
+        "ratio": 0.0
+      },
+      "rca_root_component_expanded_candidate": {
+        "count": 0,
+        "ratio": 0.0
+      },
+      "global_same_type_candidate": {
+        "count": 16,
+        "ratio": 0.133333
+      }
+    }
+  },
+  "fault_type_metrics": {
+    "inner_race_fault": {
+      "case_count": 8,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.75
+    },
+    "outer_race_fault": {
+      "case_count": 7,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.857143
+    },
+    "rolling_element_fault": {
+      "case_count": 5,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 1.0
+    }
+  },
+  "stage_metrics": {
+    "assembly": {
+      "case_count": 5,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.8
+    },
+    "design": {
+      "case_count": 1,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 1.0
+    },
+    "inspection": {
+      "case_count": 2,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 1.0
+    },
+    "manufacturing": {
+      "case_count": 9,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 1.0
+    },
+    "material": {
+      "case_count": 3,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.333333
+    }
+  },
+  "scope_distribution": {
+    "lifecycle_candidate": {
+      "count": 104,
+      "ratio": 0.866667
+    },
+    "expanded_candidate": {
+      "count": 0,
+      "ratio": 0.0
+    },
+    "rca_root_component_candidate": {
+      "count": 0,
+      "ratio": 0.0
+    },
+    "rca_root_component_expanded_candidate": {
+      "count": 0,
+      "ratio": 0.0
+    },
+    "global_same_type_candidate": {
+      "count": 16,
+      "ratio": 0.133333
+    }
+  }
+}

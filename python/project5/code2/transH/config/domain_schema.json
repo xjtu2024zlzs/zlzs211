@@ -1,0 +1,38 @@
+{
+  "domains": {
+    "bearing": {
+      "name": "bearing",
+      "description": "轴承故障追溯入口，接收轴承故障诊断、根因分析与故障推演结果，输出轴承生命周期阶段的疑似原因追溯结果。",
+      "data_dir": "data/bearing",
+      "output_dir": "outputs/bearing",
+      "triple_file": "data/bearing/bearing_triples.csv",
+      "model_file": "outputs/bearing/models/transh_model.pt"
+    },
+    "hydraulic": {
+      "name": "hydraulic",
+      "description": "液压系统故障追溯入口，接收 C001-C012 液压部件故障诊断结果，输出液压系统生命周期阶段的疑似原因追溯结果。",
+      "data_dir": "data/hydraulic",
+      "output_dir": "outputs/hydraulic",
+      "triple_file": "data/hydraulic/hydraulic_triples.csv",
+      "model_file": "outputs/hydraulic/models/transh_model.pt",
+      "components": {
+        "C001": { "code": "C001", "name": "液压泵总成" },
+        "C002": { "code": "C002", "name": "方向控制阀" },
+        "C003": { "code": "C003", "name": "作动筒" },
+        "C004": { "code": "C004", "name": "溢流阀" },
+        "C005": { "code": "C005", "name": "蓄能器" },
+        "C006": { "code": "C006", "name": "冷却器" },
+        "C007": { "code": "C007", "name": "过滤器" },
+        "C008": { "code": "C008", "name": "液压油箱" },
+        "C009": { "code": "C009", "name": "单向阀" },
+        "C010": { "code": "C010", "name": "节流阀" },
+        "C011": {
+          "code": "C011",
+          "name": "管路总成",
+          "requires_pipe_design_params": true
+        },
+        "C012": { "code": "C012", "name": "卸荷阀" }
+      }
+    }
+  }
+}

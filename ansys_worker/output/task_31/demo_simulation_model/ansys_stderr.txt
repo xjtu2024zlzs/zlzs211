@@ -1,0 +1,9 @@
+ *** The AWP_ROOT221 environment variable is set to: C:\Program Files\ANSYS Inc\v221
+ *** The AWP_LOCALE221 environment variable is set to: zh
+ *** The ANSYS221_DIR environment variable is set to: C:\Program Files\ANSYS Inc\v221\ANSYS
+ *** The ANSYS_SYSDIR environment variable is set to: winx64
+ *** The CADOE_DOCDIR221 environment variable is set to: C:\Program Files\ANSYS Inc\v221\CommonFiles\help\en-us\solviewer
+ *** The CADOE_LIBDIR221 environment variable is set to: C:\Program Files\ANSYS Inc\v221\CommonFiles\Language\zh
+ *** The LSTC_LICENSE environment variable is set to: Ansys
+ *** The P_SCHEMA environment variable is set to: C:\Program Files\ANSYS Inc\v221\AISOL\CADIntegration\Parasolid\PSchema
+ *** The TEMP environment variable is set to: C:\Users\666\AppData\Local\Temp

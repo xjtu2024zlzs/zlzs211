@@ -1,0 +1,12 @@
+/COM,ANSYS RELEASE 2022 R1           BUILD 22.1      UP20211129       00:42:17
+
+ *** FATAL ***                           CP =       2.656   TIME= 00:42:20
+ The memory (-m) size requested [2112 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+
+ ************************************************************************
+ The above error is non-recoverable by ANSYS                             
+  ANSYS run terminated by the indicated error                            
+  Current data base saved if possible.                                   
+ ************************************************************************

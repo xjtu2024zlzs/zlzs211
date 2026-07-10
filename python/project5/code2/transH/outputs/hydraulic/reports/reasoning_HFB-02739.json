@@ -1,0 +1,422 @@
+{
+  "domain": "hydraulic",
+  "case_id": "HFB-02739",
+  "feedback_summary": {
+    "feedback_id": "HFB-02739",
+    "fault_type": "pressure_abnormal",
+    "fault_position": "卸荷阀",
+    "fault_severity": "medium",
+    "diagnosis_confidence": 0.8128,
+    "rca_confidence": 0.6382
+  },
+  "target_object": {
+    "object_id": "HCU-02739",
+    "object_type": "HydraulicComponent",
+    "object_name": "卸荷阀"
+  },
+  "top6_candidates": [
+    {
+      "candidate_id": "HMAT-00550",
+      "candidate_type": "MaterialBatch",
+      "candidate_stage": "material",
+      "candidate_stage_name": "材料阶段",
+      "transh_score": 1.0,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.1,
+      "final_score": 0.8275,
+      "adjusted_final_score": 0.8675,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于材料阶段，具备直接路径证据。",
+      "rank": 1
+    },
+    {
+      "candidate_id": "HMAN-01013",
+      "candidate_type": "ManufacturingBatch",
+      "candidate_stage": "manufacturing",
+      "candidate_stage_name": "制造阶段",
+      "transh_score": 0.326739,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.12,
+      "final_score": 0.49387,
+      "adjusted_final_score": 0.53387,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于制造阶段，具备直接路径证据。",
+      "rank": 2
+    },
+    {
+      "candidate_id": "HINSP-02739",
+      "candidate_type": "InspectionRecord",
+      "candidate_stage": "inspection",
+      "candidate_stage_name": "检测阶段",
+      "transh_score": 0.286867,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.08,
+      "final_score": 0.467933,
+      "adjusted_final_score": 0.507933,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于检测阶段，具备直接路径证据。",
+      "rank": 3
+    },
+    {
+      "candidate_id": "HASM-02739",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "candidate_stage_name": "装配阶段",
+      "transh_score": 0.253485,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.16,
+      "final_score": 0.463243,
+      "adjusted_final_score": 0.503243,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于装配阶段，具备直接路径证据。",
+      "rank": 4
+    },
+    {
+      "candidate_id": "HOPR-02739",
+      "candidate_type": "MaintenanceRecord",
+      "candidate_stage": "operation",
+      "candidate_stage_name": "使用/运维阶段",
+      "transh_score": 0.110747,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.32,
+      "final_score": 0.415874,
+      "adjusted_final_score": 0.455874,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于使用/运维阶段，具备直接路径证据。",
+      "rank": 5
+    },
+    {
+      "candidate_id": "OP-H-071",
+      "candidate_type": "Operator",
+      "candidate_stage": "operation",
+      "candidate_stage_name": "使用/运维阶段",
+      "transh_score": 0.240133,
+      "path_score": 0.8,
+      "evidence_score": 0.74,
+      "rule_prior_score": 0.32,
+      "final_score": 0.439066,
+      "adjusted_final_score": 0.454066,
+      "candidate_scope": "expanded_candidate",
+      "reason_description": "该实体由当前反馈对象生命周期节点一跳扩展得到，属于使用/运维阶段，具备间接路径证据。",
+      "rank": 6
+    }
+  ],
+  "stage_attribution": {
+    "primary_stage": "material",
+    "primary_stage_name": "材料阶段",
+    "feedback_target_subsystem": "材料/供应商管理子系统",
+    "stage_scores": {
+      "design": 0.052583,
+      "material": 1.0,
+      "manufacturing": 0.595745,
+      "assembly": 0.438793,
+      "inspection": 0.557979,
+      "operation": 0.443071
+    },
+    "stage_rank": [
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 1.0
+      },
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 0.595745
+      },
+      {
+        "stage": "inspection",
+        "stage_name": "检测阶段",
+        "score": 0.557979
+      },
+      {
+        "stage": "operation",
+        "stage_name": "使用/运维阶段",
+        "score": 0.443071
+      },
+      {
+        "stage": "assembly",
+        "stage_name": "装配阶段",
+        "score": 0.438793
+      },
+      {
+        "stage": "design",
+        "stage_name": "设计阶段",
+        "score": 0.052583
+      }
+    ],
+    "focus_stage_top3": [
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 1.0,
+        "feedback_subsystem": "材料/供应商管理子系统"
+      },
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 0.595745,
+        "feedback_subsystem": "制造工艺子系统"
+      },
+      {
+        "stage": "inspection",
+        "stage_name": "检测阶段",
+        "score": 0.557979,
+        "feedback_subsystem": "检测子系统"
+      }
+    ],
+    "feedback_subsystem_top3": [
+      "材料/供应商管理子系统",
+      "制造工艺子系统",
+      "检测子系统"
+    ],
+    "stage_attribution_detail": [
+      {
+        "candidate_id": "HMAT-00550",
+        "candidate_type": "MaterialBatch",
+        "candidate_stage": "material",
+        "rank": 1,
+        "adjusted_final_score": 0.8675,
+        "rank_score": 1.0,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.05,
+        "contribution": 0.910875
+      },
+      {
+        "candidate_id": "HMAN-01013",
+        "candidate_type": "ManufacturingBatch",
+        "candidate_stage": "manufacturing",
+        "rank": 2,
+        "adjusted_final_score": 0.53387,
+        "rank_score": 0.85,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.05,
+        "contribution": 0.476479
+      },
+      {
+        "candidate_id": "HINSP-02739",
+        "candidate_type": "InspectionRecord",
+        "candidate_stage": "inspection",
+        "rank": 3,
+        "adjusted_final_score": 0.507933,
+        "rank_score": 0.72,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.420569
+      },
+      {
+        "candidate_id": "HASM-02739",
+        "candidate_type": "AssemblyRecord",
+        "candidate_stage": "assembly",
+        "rank": 4,
+        "adjusted_final_score": 0.503243,
+        "rank_score": 0.6,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.347238
+      },
+      {
+        "candidate_id": "HOPR-02739",
+        "candidate_type": "MaintenanceRecord",
+        "candidate_stage": "operation",
+        "rank": 5,
+        "adjusted_final_score": 0.455874,
+        "rank_score": 0.5,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.1,
+        "contribution": 0.250731
+      },
+      {
+        "candidate_id": "OP-H-071",
+        "candidate_type": "Operator",
+        "candidate_stage": "operation",
+        "rank": 6,
+        "adjusted_final_score": 0.454066,
+        "rank_score": 0.42,
+        "scope_weight": 0.65,
+        "type_stage_weight": 0.65,
+        "contribution": 0.080574
+      }
+    ]
+  },
+  "stage_attribution_detail": [
+    {
+      "candidate_id": "HMAT-00550",
+      "candidate_type": "MaterialBatch",
+      "candidate_stage": "material",
+      "rank": 1,
+      "adjusted_final_score": 0.8675,
+      "rank_score": 1.0,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.05,
+      "contribution": 0.910875
+    },
+    {
+      "candidate_id": "HMAN-01013",
+      "candidate_type": "ManufacturingBatch",
+      "candidate_stage": "manufacturing",
+      "rank": 2,
+      "adjusted_final_score": 0.53387,
+      "rank_score": 0.85,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.05,
+      "contribution": 0.476479
+    },
+    {
+      "candidate_id": "HINSP-02739",
+      "candidate_type": "InspectionRecord",
+      "candidate_stage": "inspection",
+      "rank": 3,
+      "adjusted_final_score": 0.507933,
+      "rank_score": 0.72,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.15,
+      "contribution": 0.420569
+    },
+    {
+      "candidate_id": "HASM-02739",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "rank": 4,
+      "adjusted_final_score": 0.503243,
+      "rank_score": 0.6,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.15,
+      "contribution": 0.347238
+    },
+    {
+      "candidate_id": "HOPR-02739",
+      "candidate_type": "MaintenanceRecord",
+      "candidate_stage": "operation",
+      "rank": 5,
+      "adjusted_final_score": 0.455874,
+      "rank_score": 0.5,
+      "scope_weight": 1.0,
+      "type_stage_weight": 1.1,
+      "contribution": 0.250731
+    },
+    {
+      "candidate_id": "OP-H-071",
+      "candidate_type": "Operator",
+      "candidate_stage": "operation",
+      "rank": 6,
+      "adjusted_final_score": 0.454066,
+      "rank_score": 0.42,
+      "scope_weight": 0.65,
+      "type_stage_weight": 0.65,
+      "contribution": 0.080574
+    }
+  ],
+  "rca_context": {
+    "case_id": "HCASE-02739",
+    "root_sensor": "FS1",
+    "root_sensor_confidence": 0.7338,
+    "secondary_sensor": "PS2",
+    "secondary_sensor_confidence": 0.6087,
+    "root_component_code": "C012",
+    "root_component_name": "卸荷阀",
+    "root_component_uids": [
+      "HCU-02739"
+    ],
+    "component_confidence": 0.7887,
+    "rca_confidence": 0.6382,
+    "is_root_component_different_from_feedback": false,
+    "component_diagnosis_top3": [
+      {
+        "case_id": "HCASE-02739",
+        "component_code": "C012",
+        "component_name": "卸荷阀",
+        "fault_type": "卸荷阀故障",
+        "severity": 0.75391,
+        "judgement": "故障",
+        "fault_level": "重度故障",
+        "rank_no": 1
+      },
+      {
+        "case_id": "HCASE-02739",
+        "component_code": "C001",
+        "component_name": "液压泵总成",
+        "fault_type": "液压泵故障",
+        "severity": 0.36838,
+        "judgement": "故障",
+        "fault_level": "中度故障",
+        "rank_no": 2
+      },
+      {
+        "case_id": "HCASE-02739",
+        "component_code": "C009",
+        "component_name": "单向阀",
+        "fault_type": "单向阀故障",
+        "severity": 0.34373,
+        "judgement": "正常",
+        "fault_level": "轻微退化",
+        "rank_no": 3
+      }
+    ],
+    "subtype_top5": [
+      {
+        "case_id": "HCASE-02739",
+        "component_code": "C009",
+        "component_name": "单向阀",
+        "subtype_id": "C009-S3",
+        "subtype_name": "弹簧断裂失效",
+        "fault_part": "-",
+        "probability": 0.594835,
+        "is_precise_part": false
+      },
+      {
+        "case_id": "HCASE-02739",
+        "component_code": "C012",
+        "component_name": "卸荷阀",
+        "subtype_id": "C012-S1",
+        "subtype_name": "卸荷压力漂移",
+        "fault_part": "-",
+        "probability": 0.524275,
+        "is_precise_part": false
+      },
+      {
+        "case_id": "HCASE-02739",
+        "component_code": "C002",
+        "component_name": "方向控制阀",
+        "subtype_id": "C002-S3",
+        "subtype_name": "复位弹簧断裂",
+        "fault_part": "复位弹簧",
+        "probability": 0.483176,
+        "is_precise_part": true
+      },
+      {
+        "case_id": "HCASE-02739",
+        "component_code": "C004",
+        "component_name": "溢流阀",
+        "subtype_id": "C004-S2",
+        "subtype_name": "主阀芯弹簧疲劳",
+        "fault_part": "-",
+        "probability": 0.480436,
+        "is_precise_part": false
+      },
+      {
+        "case_id": "HCASE-02739",
+        "component_code": "C005",
+        "component_name": "蓄能器",
+        "subtype_id": "C005-S2",
+        "subtype_name": "预充压力不足",
+        "fault_part": "-",
+        "probability": 0.422472,
+        "is_precise_part": false
+      }
+    ],
+    "sensor_energy_top5": {
+      "EPS1": 0.74353,
+      "PS1": 0.66371,
+      "FS1": 0.52875,
+      "PS2": 0.44939,
+      "TS1": 0.44118
+    }
+  },
+  "conclusion_text": "液压反馈对象为 卸荷阀，根因部件为 卸荷阀，根因传感器为 FS1。Top1 疑似原因是 HMAT-00550，首要疑似生命周期阶段为 材料阶段，建议优先反馈至材料/供应商管理子系统。同时，系统建议重点关注制造阶段、检测阶段等相关阶段，以支持跨阶段联合复核。RCA 根因部件与反馈部件一致，暂未发现明显跨部件传播迹象。"
+}

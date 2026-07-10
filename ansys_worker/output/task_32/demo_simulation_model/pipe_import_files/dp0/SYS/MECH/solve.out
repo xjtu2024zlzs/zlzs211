@@ -1,0 +1,435 @@
+
+ Ansys Mechanical Enterprise                       
+
+
+ *------------------------------------------------------------------*
+ |                                                                  |
+ |   W E L C O M E   T O   T H E   A N S Y S (R)  P R O G R A M     |
+ |                                                                  |
+ *------------------------------------------------------------------*
+
+
+
+
+ ***************************************************************
+ *            ANSYS 2022 R1          LEGAL NOTICES             *
+ ***************************************************************
+ *                                                             *
+ * Copyright 1971-2022 ANSYS, Inc.  All rights reserved.       *
+ * Unauthorized use, distribution or duplication is            *
+ * prohibited.                                                 *
+ *                                                             *
+ * Ansys is a registered trademark of ANSYS, Inc. or its       *
+ * subsidiaries in the United States or other countries.       *
+ * See the ANSYS, Inc. online documentation or the ANSYS, Inc. *
+ * documentation CD or online help for the complete Legal      *
+ * Notice.                                                     *
+ *                                                             *
+ ***************************************************************
+ *                                                             *
+ * THIS ANSYS SOFTWARE PRODUCT AND PROGRAM DOCUMENTATION       *
+ * INCLUDE TRADE SECRETS AND CONFIDENTIAL AND PROPRIETARY      *
+ * PRODUCTS OF ANSYS, INC., ITS SUBSIDIARIES, OR LICENSORS.    *
+ * The software products and documentation are furnished by    *
+ * ANSYS, Inc. or its subsidiaries under a software license    *
+ * agreement that contains provisions concerning               *
+ * non-disclosure, copying, length and nature of use,          *
+ * compliance with exporting laws, warranties, disclaimers,    *
+ * limitations of liability, and remedies, and other           *
+ * provisions.  The software products and documentation may be *
+ * used, disclosed, transferred, or copied only in accordance  *
+ * with the terms and conditions of that software license      *
+ * agreement.                                                  *
+ *                                                             *
+ * ANSYS, Inc. is a UL registered                              *
+ * ISO 9001:2015 company.                                      *
+ *                                                             *
+ ***************************************************************
+ *                                                             *
+ * This product is subject to U.S. laws governing export and   *
+ * re-export.                                                  *
+ *                                                             *
+ * For U.S. Government users, except as specifically granted   *
+ * by the ANSYS, Inc. software license agreement, the use,     *
+ * duplication, or disclosure by the United States Government  *
+ * is subject to restrictions stated in the ANSYS, Inc.        *
+ * software license agreement and FAR 12.212 (for non-DOD      *
+ * licenses).                                                  *
+ *                                                             *
+ ***************************************************************
+
+ 2022 R1 
+     
+ Point Releases and Patches installed:   
+     
+ ANSYS, Inc. License Manager 2022 R1 
+ Discovery 2022 R1   
+ SpaceClaim 2022 R1  
+ Ansys Sherlock 2022 R1  
+ Autodyn 2022 R1 
+ LS-DYNA 2022 R1 
+ CFX (includes CFD-Post) 2022 R1 
+ Chemkin 2022 R1 
+ EnSight 2022 R1 
+ FENSAP-ICE 2022 R1  
+ Fluent (includes CFD-Post) 2022 R1  
+ Polyflow (includes CFD-Post) 2022 R1
+ Forte (includes EnSight) 2022 R1
+ TurboGrid 2022 R1   
+ ICEM CFD 2022 R1
+ Aqwa 2022 R1
+ Speos 2022 R1   
+ Additive 2022 R1
+ Mechanical Products 2022 R1 
+ Icepak (includes CFD-Post) 2022 R1  
+ ACIS Geometry Interface 2022 R1 
+ AutoCAD Geometry Interface 2022 R1  
+ Catia, Version 4 Geometry Interface 2022 R1 
+ Catia, Version 5 Geometry Interface 2022 R1 
+ Catia, Version 6 Geometry Interface 2022 R1 
+ Creo Elements/Direct Modeling Geometry Interface 2022 R1
+ Creo Parametric Geometry Interface 2022 R1  
+ Inventor Geometry Interface 2022 R1 
+ JTOpen Geometry Interface 2022 R1   
+ NX Geometry Interface 2022 R1   
+ Parasolid Geometry Interface  2022 R1   
+ Solid Edge Geometry Interface 2022 R1   
+ SOLIDWORKS Geometry Interface 2022 R1   
+
+
+          *****  ANSYS COMMAND LINE ARGUMENTS  *****
+  BATCH MODE REQUESTED (-b)    = NOLIST
+  INPUT FILE COPY MODE (-c)    = COPY
+  DISTRIBUTED MEMORY PARALLEL REQUESTED
+      32 PARALLEL PROCESSES REQUESTED WITH SINGLE THREAD PER PROCESS
+    TOTAL OF    32 CORES REQUESTED
+  INPUT FILE NAME              = C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0\dummy.dat
+  OUTPUT FILE NAME             = C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0\solve.out
+  START-UP FILE MODE           = NOREAD
+  STOP FILE MODE               = NOREAD
+
+ RELEASE= 2022 R1              BUILD= 22.1      UP20211129   VERSION=WINDOWS x64 
+ CURRENT JOBNAME=file0  00:42:18  JUL 10, 2026 CP=      0.266
+
+
+ *** FATAL ***                           CP =       2.656   TIME= 00:42:20
+ The memory (-m) size requested [2112 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+
+ ************************************************************************
+ The above error is non-recoverable by ANSYS                             
+  ANSYS run terminated by the indicated error                            
+  Current data base saved if possible.                                   
+ ************************************************************************
+
++--------- D I S T R I B U T E D   A N S Y S   S T A T I S T I C S ------------+
+
+Release: 2022 R1            Build: 22.1       Update: UP20211129   Platform: WINDOWS x64 
+Date Run: 07/10/2026   Time: 00:42     Process ID: 51448
+Operating System: Windows 10  (Build: 19045)
+
+Processor Model: AMD Ryzen Threadripper PRO 3975WX 32-Cores
+
+Compiler: Intel(R) Fortran Compiler Version 19.0.5  (Build: 20190815)
+          Intel(R) C/C++ Compiler Version 19.0.5  (Build: 20190815)
+          Intel(R) Math Kernel Library Version 2020.0.0 Product Build 20191125
+          BLAS Library supplied by AMD BLIS
+ 
+Number of processes requested           :   32
+Number of threads per process requested :    1
+Total number of cores requested         :   32 (Distributed Memory Parallel)               
+MPI Type: INTELMPI
+MPI Version: Intel(R) MPI Library 2018 Update 3 for Windows* OS
+
+
+GPU Acceleration: Not Requested
+
+Job Name: file0
+Input File: dummy.dat
+
+  Core                Machine Name   Working Directory
+ -----------------------------------------------------
+     0             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+     1             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+     2             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+     3             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+     4             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+     5             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+     6             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+     7             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+     8             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+     9             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    10             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    11             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    12             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    13             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    14             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    15             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    16             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    17             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    18             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    19             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    20             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    21             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    22             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    23             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    24             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    25             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    26             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    27             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    28             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    29             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    30             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+    31             DESKTOP-CK26UI6   C:\Users\666\AppData\Local\Temp\WB_666_86820_2\_ProjectScratch\Scr1FE0
+ 
+ 
+
+Total CPU time for main thread                    :        2.9 seconds
+Total CPU time summed for all threads             :        2.7 seconds
+
+Elapsed time spent obtaining a license            :        0.8 seconds
+Elapsed time spent pre-processing model (/PREP7)  :        0.0 seconds
+Elapsed time spent solution - preprocessing       :        0.0 seconds
+Elapsed time spent computing solution             :        0.0 seconds
+Elapsed time spent solution - postprocessing      :        0.0 seconds
+Elapsed time spent post-processing model (/POST1) :        0.0 seconds
+ 
+
++------ E N D   D I S T R I B U T E D   A N S Y S   S T A T I S T I C S -------+
+
+
+ *---------------------------------------------------------------------------*
+ |                                                                           |
+ |                       DISTRIBUTED ANSYS RUN COMPLETED                     |
+ |                                                                           |
+ |---------------------------------------------------------------------------|
+ |                                                                           |
+ | Ansys 2022 R1               Build 22.1         UP20211129     WINDOWS x64 |
+ |                                                                           |
+ |---------------------------------------------------------------------------|
+ |                                                                           |
+ | Database Requested(-db)  1024 MB    Scratch Memory Requested      1024 MB |
+ | Maximum Database Used       1 MB    Maximum Scratch Memory Used      1 MB |
+ |                                                                           |
+ |---------------------------------------------------------------------------|
+ |                                                                           |
+ |        CP Time      (sec) =          2.688       Time  =  00:42:20        |
+ |        Elapsed Time (sec) =          4.000       Date  =  07/10/2026      |
+ |                                                                           |
+ *---------------------------------------------------------------------------*
+ 
+ ERROR: Worker process(es) with rank(s) 1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 2, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 3, 30, 31, 4, 5, 6, 7, 8, 9 have encountered a FATAL error.
+ The information below was gathered from the file*.out output file(s).
+ Please review the worker process output file(s) listed below for more
+ details on this error.
+ 
+ 
+ Worker Process Output File .\file1.out:
+ 
+ *** FATAL ***                           CP =       2.547   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file10.out:
+ 
+ *** FATAL ***                           CP =       2.391   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file11.out:
+ 
+ *** FATAL ***                           CP =       1.359   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available.    
+ Reenter ANSYS command line with less memory requested.                  
+ 
+ Worker Process Output File .\file12.out:
+ 
+ *** FATAL ***                           CP =       1.219   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available.    
+ Reenter ANSYS command line with less memory requested.                  
+ 
+ Worker Process Output File .\file13.out:
+ 
+ *** FATAL ***                           CP =       1.281   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available.    
+ Reenter ANSYS command line with less memory requested.                  
+ 
+ Worker Process Output File .\file14.out:
+ 
+ *** FATAL ***                           CP =       0.750   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file15.out:
+ 
+ *** FATAL ***                           CP =       0.125   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file16.out:
+ 
+ *** FATAL ***                           CP =       0.859   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file17.out:
+ 
+ *** FATAL ***                           CP =       0.859   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file18.out:
+ 
+ *** FATAL ***                           CP =       1.328   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available.    
+ Reenter ANSYS command line with less memory requested.                  
+ 
+ Worker Process Output File .\file19.out:
+ 
+ *** FATAL ***                           CP =       1.516   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file2.out:
+ 
+ *** FATAL ***                           CP =       2.516   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file20.out:
+ 
+ *** FATAL ***                           CP =       1.297   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available.    
+ Reenter ANSYS command line with less memory requested.                  
+ 
+ Worker Process Output File .\file21.out:
+ 
+ *** FATAL ***                           CP =       2.312   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file22.out:
+ 
+ *** FATAL ***                           CP =       1.344   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available.    
+ Reenter ANSYS command line with less memory requested.                  
+ 
+ Worker Process Output File .\file23.out:
+ 
+ *** FATAL ***                           CP =       2.281   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file24.out:
+ 
+ *** FATAL ***                           CP =       2.297   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file25.out:
+ 
+ *** FATAL ***                           CP =       1.312   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available.    
+ Reenter ANSYS command line with less memory requested.                  
+ 
+ Worker Process Output File .\file26.out:
+ 
+ *** FATAL ***                           CP =       2.453   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file27.out:
+ 
+ *** FATAL ***                           CP =       2.500   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file28.out:
+ 
+ *** FATAL ***                           CP =       2.531   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file29.out:
+ 
+ *** FATAL ***                           CP =       2.500   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file3.out:
+ 
+ *** FATAL ***                           CP =       2.531   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file30.out:
+ 
+ *** FATAL ***                           CP =       2.484   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file31.out:
+ 
+ *** FATAL ***                           CP =       2.500   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file4.out:
+ 
+ *** FATAL ***                           CP =       2.531   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file5.out:
+ 
+ *** FATAL ***                           CP =       2.531   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file6.out:
+ 
+ *** FATAL ***                           CP =       2.516   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file7.out:
+ 
+ *** FATAL ***                           CP =       2.531   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file8.out:
+ 
+ *** FATAL ***                           CP =       2.422   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available on  
+ one of the other Distributed ANSYS processes.  Reenter ANSYS command    
+ line with less memory requested.                                        
+ 
+ Worker Process Output File .\file9.out:
+ 
+ *** FATAL ***                           CP =       1.375   TIME= 00:42:20
+ The memory (-m) size requested [1024 mb] is not currently available.    
+ Reenter ANSYS command line with less memory requested.                  

@@ -1,0 +1,52 @@
+STARTED
+MODEL_READY
+MATERIAL_ASSIGNED=2
+MESHING
+MESH_DONE
+FACE_COUNT=25
+INNER_WALL_UNIT_TRY=mm, targetRadius=3.865, tolerance=0.225, matches=13
+FACE_INFO unit=mm, id=80, x=54.574881, area=199.506619811, radius=None, centerlineDistance=3.86650041926, endFace=False
+FACE_INFO unit=mm, id=81, x=97.2293, area=248.498361945, radius=None, centerlineDistance=3.86441560676, endFace=False
+FACE_INFO unit=mm, id=82, x=53.74668, area=295.782517076, radius=None, centerlineDistance=4.76418355622, endFace=False
+FACE_INFO unit=mm, id=83, x=97.169326, area=305.640770674, radius=None, centerlineDistance=4.76427952436, endFace=False
+FACE_INFO unit=mm, id=84, x=49.82966, area=44.6941018105, radius=None, centerlineDistance=4.02038939422, endFace=False
+FACE_INFO unit=mm, id=85, x=22.775205, area=605.607271194, radius=None, centerlineDistance=3.86473510560, endFace=False
+FACE_INFO unit=mm, id=86, x=75.321937, area=606.249300003, radius=None, centerlineDistance=3.86437667869, endFace=False
+FACE_INFO unit=mm, id=87, x=352.79234, area=6523.92614746, radius=None, centerlineDistance=3.86470780924, endFace=False
+FACE_INFO unit=mm, id=88, x=22.779227, area=746.884412766, radius=None, centerlineDistance=4.76459177929, endFace=False
+FACE_INFO unit=mm, id=89, x=75.321937, area=747.419771194, radius=None, centerlineDistance=4.76423153180, endFace=False
+FACE_INFO unit=mm, id=90, x=352.79228, area=8043.0859375, radius=None, centerlineDistance=4.76463976948, endFace=False
+FACE_INFO unit=mm, id=91, x=53.74668, area=295.782513857, radius=None, centerlineDistance=4.76418355622, endFace=False
+FACE_INFO unit=mm, id=92, x=22.779289, area=746.884410858, radius=None, centerlineDistance=4.76459177929, endFace=False
+FACE_INFO unit=mm, id=93, x=97.169326, area=305.640770435, radius=None, centerlineDistance=4.76427952436, endFace=False
+FACE_INFO unit=mm, id=94, x=75.321937, area=747.419618607, radius=None, centerlineDistance=4.76423153180, endFace=False
+FACE_INFO unit=mm, id=95, x=352.79228, area=8043.08596802, radius=None, centerlineDistance=4.76463976948, endFace=False
+FACE_INFO unit=mm, id=96, x=-0, area=24.1229701638, radius=None, centerlineDistance=4.315, endFace=True
+FACE_INFO unit=mm, id=97, x=600, area=24.1229340434, radius=None, centerlineDistance=4.315, endFace=True
+FACE_INFO unit=mm, id=98, x=352.79229, area=6523.92614746, radius=None, centerlineDistance=3.86470780924, endFace=False
+FACE_INFO unit=mm, id=99, x=54.57493, area=199.442297161, radius=None, centerlineDistance=3.86650041926, endFace=False
+FACE_INFO unit=mm, id=100, x=22.775205, area=605.607273102, radius=None, centerlineDistance=3.86473510560, endFace=False
+FACE_INFO unit=mm, id=101, x=97.2293, area=248.498350918, radius=None, centerlineDistance=3.86441560676, endFace=False
+FACE_INFO unit=mm, id=102, x=75.321937, area=606.249263763, radius=None, centerlineDistance=3.86437667869, endFace=False
+FACE_INFO unit=mm, id=103, x=49.82966, area=44.6941018105, radius=None, centerlineDistance=4.02038939422, endFace=False
+FACE_INFO unit=mm, id=104, x=53.203245, area=4.78636584431, radius=None, centerlineDistance=4.02330225993, endFace=False
+INNER_WALL_SELECTION=radius_or_centerline_match
+INNER_WALL_UNIT=mm
+INNER_WALL_TARGET_RADIUS=3.865
+INNER_WALL_TOLERANCE=0.225
+INNER_WALL_FACES=85,100,87,98,81,101,86,102,80,99,103,84,104
+FIXED_SUPPORT_MODE=both_ends
+FIXED_SUPPORT_MIN_X=-1.06240949339e-09
+FIXED_SUPPORT_MAX_X=599.999999558
+FIXED_SUPPORT_FACES=2
+PRESSURE_FACES=13
+SOLVING
+ANALYSIS_SOLVE_DONE
+SOLVED
+SOLUTION_STATUS=SolveRequired
+STRESS_STATUS=None
+DEFORMATION_STATUS=None
+IMAGE_HIGH_RES_EXPORT_FAILED=Cannot import name GraphicsImageExportFormat
+IMAGE_EXPORTED
+RESULT_WRITTEN
+IMAGE_CHINESE_LABELS_ANNOTATED

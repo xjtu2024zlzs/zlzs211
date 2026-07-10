@@ -1,0 +1,166 @@
+{
+  "domain": "hydraulic",
+  "overall_metrics": {
+    "total_cases": 5000,
+    "evaluated_cases": 20,
+    "skipped_cases": 0,
+    "top1_hit_rate": 1.0,
+    "top3_hit_rate": 1.0,
+    "top6_hit_rate": 1.0,
+    "mean_mrr": 1.0,
+    "type_hit_rate": 1.0,
+    "stage_accuracy": 0.45,
+    "average_top1_score": 0.8458,
+    "average_top6_score": 0.549795,
+    "scope_distribution": {
+      "lifecycle_candidate": {
+        "count": 57,
+        "ratio": 0.475
+      },
+      "expanded_candidate": {
+        "count": 20,
+        "ratio": 0.166667
+      },
+      "rca_root_component_candidate": {
+        "count": 4,
+        "ratio": 0.033333
+      },
+      "rca_root_component_expanded_candidate": {
+        "count": 0,
+        "ratio": 0.0
+      },
+      "global_same_type_candidate": {
+        "count": 39,
+        "ratio": 0.325
+      }
+    }
+  },
+  "fault_type_metrics": {
+    "flow_abnormal": {
+      "case_count": 3,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.666667
+    },
+    "oil_leakage": {
+      "case_count": 6,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.166667
+    },
+    "pressure_abnormal": {
+      "case_count": 4,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.75
+    },
+    "temperature_abnormal": {
+      "case_count": 1,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 1.0
+    },
+    "valve_stuck": {
+      "case_count": 4,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.25
+    },
+    "vibration_abnormal": {
+      "case_count": 2,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.5
+    }
+  },
+  "stage_metrics": {
+    "assembly": {
+      "case_count": 5,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.2
+    },
+    "design": {
+      "case_count": 3,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.0
+    },
+    "inspection": {
+      "case_count": 1,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.0
+    },
+    "manufacturing": {
+      "case_count": 3,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.333333
+    },
+    "material": {
+      "case_count": 1,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 0.0
+    },
+    "operation": {
+      "case_count": 7,
+      "top1_hit_rate": 1.0,
+      "top3_hit_rate": 1.0,
+      "top6_hit_rate": 1.0,
+      "mean_mrr": 1.0,
+      "stage_accuracy": 1.0
+    }
+  },
+  "scope_distribution": {
+    "lifecycle_candidate": {
+      "count": 57,
+      "ratio": 0.475
+    },
+    "expanded_candidate": {
+      "count": 20,
+      "ratio": 0.166667
+    },
+    "rca_root_component_candidate": {
+      "count": 4,
+      "ratio": 0.033333
+    },
+    "rca_root_component_expanded_candidate": {
+      "count": 0,
+      "ratio": 0.0
+    },
+    "global_same_type_candidate": {
+      "count": 39,
+      "ratio": 0.325
+    }
+  },
+  "hydraulic_metrics": {
+    "root_component_diff_ratio": 0.05,
+    "top6_contains_rca_root_candidate_ratio": 0.05,
+    "top6_hit_rate_with_rca_root_candidate": 1.0,
+    "top6_hit_rate_without_rca_root_candidate": 1.0
+  }
+}

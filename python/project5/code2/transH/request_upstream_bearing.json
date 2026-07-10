@@ -1,0 +1,20 @@
+{
+  "domain": "bearing",
+  "model_variant": "default",
+  "generate_graph": true,
+  "generate_report": true,
+  "generate_echarts": true,
+  "upstream_payload": {
+    "upstream_case_id": "BCASE-TEST-BRG01676",
+    "bearing_id": "BRG-01676",
+    "fault_type": "rolling_element_fault",
+    "fault_position": "rolling_element",
+    "diagnosis_confidence": 0.78,
+    "fault_severity": "severe",
+    "rca_result": {
+      "rca_confidence": 0.69,
+      "rca_text": "滚动体故障可能与制造阶段表面质量控制不足有关。",
+      "fault_evolution_text": "早期局部接触应力升高，随后振动冲击增强。"
+    }
+  }
+}

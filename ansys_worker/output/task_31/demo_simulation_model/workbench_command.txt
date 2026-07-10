@@ -1,0 +1,1 @@
+"C:\Program Files\ANSYS Inc\v221\Framework\bin\Win64\runwb2.bat" -B -R "D:\2.11\RuoYi-Cloud-master\ansys_worker\output\task_31\demo_simulation_model\import_geometry.wbjn"

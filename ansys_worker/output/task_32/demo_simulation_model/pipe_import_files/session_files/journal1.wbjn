@@ -1,0 +1,22 @@
+# encoding: utf-8
+# 2022 R1
+SetScriptVersion(Version="22.1.217")
+template1 = GetTemplate(
+    TemplateName="Static Structural",
+    Solver="ANSYS")
+system1 = template1.CreateSystem()
+geometry1 = system1.GetContainer(ComponentName="Geometry")
+geometry1.SetFile(FilePath="D://2.11//RuoYi-Cloud-master//ansys_worker//output//task_32//demo_simulation_model//input_geometry.step")
+geometry1.Update()
+system1.Update()
+system1.Refresh()
+model1 = system1.GetContainer(ComponentName="Model")
+model1.Refresh()
+model1.Edit()
+model1.SendCommand(
+    Command=r"open('D:\\\\2.11\\\\RuoYi-Cloud-master\\\\ansys_worker\\\\output\\\\task_32\\\\demo_simulation_model\\\\mechanical_command_ready.txt', 'w').write('READY')",
+    Language="Python")
+model1.SendCommand(
+    Command=r"execfile('D:\\\\2.11\\\\RuoYi-Cloud-master\\\\ansys_worker\\\\output\\\\task_32\\\\demo_simulation_model\\\\mechanical_setup.py')",
+    Language="Python")
+Save(Overwrite=True)

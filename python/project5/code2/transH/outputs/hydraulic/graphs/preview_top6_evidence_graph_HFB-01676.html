@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>hydraulic HFB-01676 top6_evidence</title>
+  <style>
+    html, body {
+      min-height: 100%;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      color: #1f2933;
+      background: #ffffff;
+    }
+    header {
+      min-height: 122px;
+      box-sizing: border-box;
+      padding: 18px 24px 14px;
+      background: #ffffff;
+      border-bottom: 1px solid #d9e2ec;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 14px;
+      align-items: center;
+    }
+    .meta span {
+      display: inline-flex;
+      gap: 6px;
+      padding: 6px 10px;
+      background: #eef2f7;
+      border: 1px solid #d9e2ec;
+      border-radius: 6px;
+    }
+    .meta b {
+      color: #52606d;
+      font-weight: 600;
+    }
+    .guide {
+      margin: 12px 0 0;
+      color: #334e68;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .legend-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+      padding: 14px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid #edf2f7;
+    }
+    .legend-section {
+      border: 1px solid #d9e2ec;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fbfdff;
+    }
+    .legend-title {
+      margin: 0 0 8px;
+      color: #243b53;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      align-items: center;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .node-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      display: inline-block;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+    }
+    .edge-line {
+      width: 34px;
+      height: 0;
+      display: inline-block;
+    }
+    #chart {
+      height: 850px;
+      width: 100%;
+      background: #ffffff;
+    }
+    footer {
+      padding: 10px 24px 18px;
+      color: #52606d;
+      font-size: 13px;
+      border-top: 1px solid #edf2f7;
+      background: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>hydraulic HFB-01676 top6_evidence</h1>
+    <div class="meta">
+      <span><b>domain</b>hydraulic</span>
+      <span><b>case_id</b>HFB-01676</span>
+      <span><b>graph_type</b>top6_evidence</span>
+      <span><b>节点数量</b>19</span>
+      <span><b>边数量</b>19</span>
+      <span><b>Top6 节点数量</b>6</span>
+    </div>
+    <p class="guide">红色粗线表示 TransH 疑似原因关系；橙色节点表示 Top6 疑似原因；蓝色节点表示反馈对象；红色节点表示质量反馈。</p>
+  </header>
+  <section class="legend-wrap">
+    <div class="legend-section">
+      <div class="legend-title">节点图例</div>
+      <div class="legend-row">
+        <span class="legend-item"><span class="node-dot" style="background:#d94841"></span><span>质量反馈</span></span>
+<span class="legend-item"><span class="node-dot" style="background:#2f80ed"></span><span>反馈对象</span></span>
+<span class="legend-item"><span class="node-dot" style="background:#f2994a"></span><span>Top6疑似原因</span></span>
+<span class="legend-item"><span class="node-dot" style="background:#607d8b"></span><span>生命周期阶段</span></span>
+<span class="legend-item"><span class="node-dot" style="background:#81d4fa"></span><span>反馈子系统</span></span>
+<span class="legend-item"><span class="node-dot" style="background:#f48fb1"></span><span>RCA证据</span></span>
+      </div>
+    </div>
+    <div class="legend-section">
+      <div class="legend-title">关系图例</div>
+      <div class="legend-row">
+        <span class="legend-item"><span class="edge-line" style="border-top:3.5px solid #d62728"></span><span>TransH疑似原因关系</span></span>
+<span class="legend-item"><span class="edge-line" style="border-top:2.8px solid #c2185b"></span><span>RCA根因证据关系</span></span>
+<span class="legend-item"><span class="edge-line" style="border-top:1.8px solid #607d8b"></span><span>生命周期阶段关系</span></span>
+<span class="legend-item"><span class="edge-line" style="border-top:2.0px solid #0288d1"></span><span>重点反馈子系统关系</span></span>
+<span class="legend-item"><span class="edge-line" style="border-top:2.0px solid #2f80ed"></span><span>反馈对象关系</span></span>
+      </div>
+    </div>
+  </section>
+  <main>
+    <div id="chart"></div>
+  </main>
+  <footer>操作提示：鼠标滚轮缩放，拖拽空白区域平移，拖拽节点调整布局；悬停节点或边可查看 properties 明细。</footer>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <script>
+    const previewMeta = {"domain": "hydraulic", "case_id": "HFB-01676", "graph_type": "top6_evidence", "node_count": 19, "edge_count": 19, "top6_count": 6};
+    const option = {"title": {"text": "Top6 证据链简图", "subtext": "hydraulic | HFB-01676"}, "tooltip": {"trigger": "item", "confine": true}, "legend": [{"data": ["质量反馈", "反馈对象", "Top6疑似原因", "生命周期阶段", "反馈子系统", "RCA证据"]}], "edgeLegend": [{"name": "TransH疑似原因关系", "relations": ["may_caused_by"], "color": "#d62728", "width": 3.5, "type": "solid", "description": "质量反馈指向Top6疑似根因的推理关系"}, {"name": "RCA根因证据关系", "relations": ["diagnosed_root_component", "has_root_sensor", "has_secondary_sensor"], "color": "#c2185b", "width": 2.8, "type": "solid", "description": "上游根因分析、根因部件或根因传感器证据"}, {"name": "生命周期阶段关系", "relations": ["belongs_to_stage"], "color": "#607d8b", "width": 1.8, "type": "solid", "description": "Top6疑似原因所属生命周期阶段"}, {"name": "重点反馈子系统关系", "relations": ["feedback_to_subsystem"], "color": "#0288d1", "width": 2.0, "type": "solid", "description": "重点生命周期阶段建议反馈至相关子系统"}, {"name": "反馈对象关系", "relations": ["occurs_on", "targets_object"], "color": "#2f80ed", "width": 2.0, "type": "solid", "description": "质量反馈定位到发生故障的反馈对象"}], "series": [{"name": "Top6证据链", "type": "graph", "layout": "force", "roam": true, "draggable": true, "focusNodeAdjacency": true, "label": {"show": true, "position": "right"}, "force": {"repulsion": 520, "edgeLength": [110, 240], "gravity": 0.05, "friction": 0.6}, "categories": [{"name": "质量反馈", "itemStyle": {"color": "#d94841"}}, {"name": "反馈对象", "itemStyle": {"color": "#2f80ed"}}, {"name": "Top6疑似原因", "itemStyle": {"color": "#f2994a"}}, {"name": "生命周期阶段", "itemStyle": {"color": "#607d8b"}}, {"name": "反馈子系统", "itemStyle": {"color": "#81d4fa"}}, {"name": "RCA证据", "itemStyle": {"color": "#f48fb1"}}], "data": [{"id": "HFB-01676", "name": "质量反馈 HFB-01676", "category": "质量反馈", "symbolSize": 72, "value": 1.0, "properties": {"feedback_id": "HFB-01676", "fault_type": "pressure_abnormal", "fault_position": "管路总成", "fault_severity": "medium", "diagnosis_confidence": 0.7308, "rca_confidence": 0.6181, "is_feedback": true, "is_top_candidate": false}, "itemStyle": {"color": "#d94841"}, "label": {"show": true, "formatter": "质量反馈 HFB-01676", "fontWeight": "bold"}}, {"id": "HCU-01676", "name": "管路总成 HCU-01676", "category": "反馈对象", "symbolSize": 64, "value": 1.0, "properties": {"object_id": "HCU-01676", "object_type": "HydraulicComponent", "object_name": "管路总成", "is_target_object": true, "is_top_candidate": false}, "itemStyle": {"color": "#2f80ed"}, "label": {"show": true, "formatter": "管路总成 HCU-01676", "fontWeight": "normal"}}, {"id": "HMAN-01042", "name": "Top1 制造批次 HMAN-01042", "category": "Top6疑似原因", "symbolSize": 60, "value": 1.0, "properties": {"candidate_id": "HMAN-01042", "candidate_type": "ManufacturingBatch", "candidate_stage": "manufacturing", "candidate_stage_name": "制造阶段", "transh_score": 1.0, "path_score": 1.0, "evidence_score": 0.75, "rule_prior_score": 0.12, "final_score": 0.8305, "adjusted_final_score": 0.8705, "candidate_scope": "lifecycle_candidate", "reason_description": "该实体位于当前反馈对象生命周期链上，属于制造阶段，具备直接路径证据。", "rank": 1, "is_top_candidate": true}, "itemStyle": {"color": "#f2994a"}, "label": {"show": true, "formatter": "Top1 制造批次 HMAN-01042", "fontWeight": "bold"}}, {"id": "STAGE_manufacturing", "name": "制造阶段", "category": "生命周期阶段", "symbolSize": 38, "value": 1.0, "properties": {"stage": "manufacturing", "stage_name": "制造阶段", "is_top_candidate": false}, "itemStyle": {"color": "#b7791f"}, "label": {"show": true, "formatter": "制造阶段", "fontWeight": "normal"}}, {"id": "HMAT-00417", "name": "Top2 材料批次 HMAT-00417", "category": "Top6疑似原因", "symbolSize": 52, "value": 1.0, "properties": {"candidate_id": "HMAT-00417", "candidate_type": "MaterialBatch", "candidate_stage": "material", "candidate_stage_name": "材料阶段", "transh_score": 0.608101, "path_score": 1.0, "evidence_score": 0.75, "rule_prior_score": 0.1, "final_score": 0.631551, "adjusted_final_score": 0.671551, "candidate_scope": "lifecycle_candidate", "reason_description": "该实体位于当前反馈对象生命周期链上，属于材料阶段，具备直接路径证据。", "rank": 2, "is_top_candidate": true}, "itemStyle": {"color": "#f2994a"}, "label": {"show": true, "formatter": "Top2 材料批次 HMAT-00417", "fontWeight": "bold"}}, {"id": "STAGE_material", "name": "材料阶段", "category": "生命周期阶段", "symbolSize": 38, "value": 1.0, "properties": {"stage": "material", "stage_name": "材料阶段", "is_top_candidate": false}, "itemStyle": {"color": "#27ae60"}, "label": {"show": true, "formatter": "材料阶段", "fontWeight": "normal"}}, {"id": "HDES-00949", "name": "Top3 设计规范 HDES-00949", "category": "Top6疑似原因", "symbolSize": 52, "value": 1.0, "properties": {"candidate_id": "HDES-00949", "candidate_type": "DesignSpec", "candidate_stage": "design", "candidate_stage_name": "设计阶段", "transh_score": 0.593232, "path_score": 0.85, "evidence_score": 0.8, "rule_prior_score": 0.18, "final_score": 0.613616, "adjusted_final_score": 0.648616, "candidate_scope": "rca_root_component_candidate", "reason_description": "该候选来自 RCA 根因部件生命周期链，属于设计阶段。RCA 根因部件与反馈对象不完全一致时，可能表示故障传播或相邻部件诱发。", "rank": 3, "is_top_candidate": true}, "itemStyle": {"color": "#f2994a"}, "label": {"show": true, "formatter": "Top3 设计规范 HDES-00949", "fontWeight": "bold"}}, {"id": "STAGE_design", "name": "设计阶段", "category": "生命周期阶段", "symbolSize": 38, "value": 1.0, "properties": {"stage": "design", "stage_name": "设计阶段", "is_top_candidate": false}, "itemStyle": {"color": "#6f52ed"}, "label": {"show": true, "formatter": "设计阶段", "fontWeight": "normal"}}, {"id": "HASM-01676", "name": "Top4 装配记录 HASM-01676", "category": "Top6疑似原因", "symbolSize": 46, "value": 1.0, "properties": {"candidate_id": "HASM-01676", "candidate_type": "AssemblyRecord", "candidate_stage": "assembly", "candidate_stage_name": "装配阶段", "transh_score": 0.236406, "path_score": 1.0, "evidence_score": 0.75, "rule_prior_score": 0.16, "final_score": 0.454703, "adjusted_final_score": 0.494703, "candidate_scope": "lifecycle_candidate", "reason_description": "该实体位于当前反馈对象生命周期链上，属于装配阶段，具备直接路径证据。", "rank": 4, "is_top_candidate": true}, "itemStyle": {"color": "#f2994a"}, "label": {"show": true, "formatter": "Top4 装配记录 HASM-01676", "fontWeight": "bold"}}, {"id": "STAGE_assembly", "name": "装配阶段", "category": "生命周期阶段", "symbolSize": 38, "value": 1.0, "properties": {"stage": "assembly", "stage_name": "装配阶段", "is_top_candidate": false}, "itemStyle": {"color": "#00a6a6"}, "label": {"show": true, "formatter": "装配阶段", "fontWeight": "normal"}}, {"id": "HPIP-00297", "name": "Top5 管路设计参数 HPIP-00297", "category": "Top6疑似原因", "symbolSize": 46, "value": 1.0, "properties": {"candidate_id": "HPIP-00297", "candidate_type": "PipeDesignParam", "candidate_stage": "design", "candidate_stage_name": "设计阶段", "transh_score": 0.189612, "path_score": 1.0, "evidence_score": 0.75, "rule_prior_score": 0.18, "final_score": 0.434306, "adjusted_final_score": 0.474306, "candidate_scope": "lifecycle_candidate", "reason_description": "该实体位于当前反馈对象生命周期链上，属于设计阶段，具备直接路径证据。", "rank": 5, "is_top_candidate": true}, "itemStyle": {"color": "#f2994a"}, "label": {"show": true, "formatter": "Top5 管路设计参数 HPIP-00297", "fontWeight": "bold"}}, {"id": "HINSP-01676", "name": "Top6 检测记录 HINSP-01676", "category": "Top6疑似原因", "symbolSize": 46, "value": 1.0, "properties": {"candidate_id": "HINSP-01676", "candidate_type": "InspectionRecord", "candidate_stage": "inspection", "candidate_stage_name": "检测阶段", "transh_score": 0.042283, "path_score": 1.0, "evidence_score": 0.75, "rule_prior_score": 0.08, "final_score": 0.345641, "adjusted_final_score": 0.385641, "candidate_scope": "lifecycle_candidate", "reason_description": "该实体位于当前反馈对象生命周期链上，属于检测阶段，具备直接路径证据。", "rank": 6, "is_top_candidate": true}, "itemStyle": {"color": "#f2994a"}, "label": {"show": true, "formatter": "Top6 检测记录 HINSP-01676", "fontWeight": "bold"}}, {"id": "STAGE_inspection", "name": "检测阶段", "category": "生命周期阶段", "symbolSize": 38, "value": 1.0, "properties": {"stage": "inspection", "stage_name": "检测阶段", "is_top_candidate": false}, "itemStyle": {"color": "#2d9cdb"}, "label": {"show": true, "formatter": "检测阶段", "fontWeight": "normal"}}, {"id": "SUBSYSTEM_制造工艺子系统", "name": "制造工艺子系统", "category": "反馈子系统", "symbolSize": 40, "value": 1.0, "properties": {"feedback_subsystem": "制造工艺子系统", "stage": "manufacturing", "stage_name": "制造阶段"}, "itemStyle": {"color": "#81d4fa"}, "label": {"show": true, "formatter": "制造工艺子系统", "fontWeight": "normal"}}, {"id": "SUBSYSTEM_设计子系统", "name": "设计子系统", "category": "反馈子系统", "symbolSize": 40, "value": 1.0, "properties": {"feedback_subsystem": "设计子系统", "stage": "design", "stage_name": "设计阶段"}, "itemStyle": {"color": "#81d4fa"}, "label": {"show": true, "formatter": "设计子系统", "fontWeight": "normal"}}, {"id": "SUBSYSTEM_材料_供应商管理子系统", "name": "材料/供应商管理子系统", "category": "反馈子系统", "symbolSize": 40, "value": 1.0, "properties": {"feedback_subsystem": "材料/供应商管理子系统", "stage": "material", "stage_name": "材料阶段"}, "itemStyle": {"color": "#81d4fa"}, "label": {"show": true, "formatter": "材料/供应商管理子系统", "fontWeight": "normal"}}, {"id": "RCA_ROOT_C005", "name": "RCA根因部件 蓄能器", "category": "RCA证据", "symbolSize": 44, "value": 0.863, "properties": {"root_component_code": "C005", "root_component_name": "蓄能器", "score": 0.863}, "itemStyle": {"color": "#f48fb1"}, "label": {"show": true, "formatter": "RCA根因部件 蓄能器", "fontWeight": "normal"}}, {"id": "RCA_SENSOR_PS6", "name": "根因传感器 PS6", "category": "RCA证据", "symbolSize": 42, "value": 0.96, "properties": {"sensor": "PS6", "score": 0.96}, "itemStyle": {"color": "#f48fb1"}, "label": {"show": true, "formatter": "根因传感器 PS6", "fontWeight": "normal"}}, {"id": "RCA_SENSOR_PS2", "name": "次因传感器 PS2", "category": "RCA证据", "symbolSize": 38, "value": 0.7556, "properties": {"sensor": "PS2", "score": 0.7556}, "itemStyle": {"color": "#f48fb1"}, "label": {"show": true, "formatter": "次因传感器 PS2", "fontWeight": "normal"}}], "links": [{"source": "HFB-01676", "target": "HCU-01676", "name": "发生于", "value": 1.0, "properties": {"relation": "occurs_on", "relation_name": "发生于", "business_meaning": "该边表示 Top6 证据链关系。"}, "lineStyle": {"color": "#2f80ed", "width": 2.0, "type": "solid", "opacity": 0.8, "curveness": 0.1}}, {"source": "HFB-01676", "target": "HMAN-01042", "name": "疑似原因", "value": 0.8305, "properties": {"relation": "may_caused_by", "relation_name": "疑似原因", "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。", "rank": 1, "score": 0.8305}, "lineStyle": {"color": "#d62728", "width": 3.5, "type": "solid", "opacity": 0.95, "curveness": 0.1}}, {"source": "HMAN-01042", "target": "STAGE_manufacturing", "name": "所属阶段", "value": 1.0, "properties": {"relation": "belongs_to_stage", "relation_name": "所属阶段", "business_meaning": "该边表示疑似原因所属生命周期阶段。", "rank": 1}, "lineStyle": {"color": "#607d8b", "width": 1.8, "type": "solid", "opacity": 0.78, "curveness": 0.1}}, {"source": "HFB-01676", "target": "HMAT-00417", "name": "疑似原因", "value": 0.631551, "properties": {"relation": "may_caused_by", "relation_name": "疑似原因", "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。", "rank": 2, "score": 0.631551}, "lineStyle": {"color": "#d62728", "width": 3.5, "type": "solid", "opacity": 0.95, "curveness": 0.1}}, {"source": "HMAT-00417", "target": "STAGE_material", "name": "所属阶段", "value": 1.0, "properties": {"relation": "belongs_to_stage", "relation_name": "所属阶段", "business_meaning": "该边表示疑似原因所属生命周期阶段。", "rank": 2}, "lineStyle": {"color": "#607d8b", "width": 1.8, "type": "solid", "opacity": 0.78, "curveness": 0.1}}, {"source": "HFB-01676", "target": "HDES-00949", "name": "疑似原因", "value": 0.613616, "properties": {"relation": "may_caused_by", "relation_name": "疑似原因", "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。", "rank": 3, "score": 0.613616}, "lineStyle": {"color": "#d62728", "width": 3.5, "type": "solid", "opacity": 0.95, "curveness": 0.1}}, {"source": "HDES-00949", "target": "STAGE_design", "name": "所属阶段", "value": 1.0, "properties": {"relation": "belongs_to_stage", "relation_name": "所属阶段", "business_meaning": "该边表示疑似原因所属生命周期阶段。", "rank": 3}, "lineStyle": {"color": "#607d8b", "width": 1.8, "type": "solid", "opacity": 0.78, "curveness": 0.1}}, {"source": "HFB-01676", "target": "HASM-01676", "name": "疑似原因", "value": 0.454703, "properties": {"relation": "may_caused_by", "relation_name": "疑似原因", "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。", "rank": 4, "score": 0.454703}, "lineStyle": {"color": "#d62728", "width": 3.5, "type": "solid", "opacity": 0.95, "curveness": 0.1}}, {"source": "HASM-01676", "target": "STAGE_assembly", "name": "所属阶段", "value": 1.0, "properties": {"relation": "belongs_to_stage", "relation_name": "所属阶段", "business_meaning": "该边表示疑似原因所属生命周期阶段。", "rank": 4}, "lineStyle": {"color": "#607d8b", "width": 1.8, "type": "solid", "opacity": 0.78, "curveness": 0.1}}, {"source": "HFB-01676", "target": "HPIP-00297", "name": "疑似原因", "value": 0.434306, "properties": {"relation": "may_caused_by", "relation_name": "疑似原因", "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。", "rank": 5, "score": 0.434306}, "lineStyle": {"color": "#d62728", "width": 3.5, "type": "solid", "opacity": 0.95, "curveness": 0.1}}, {"source": "HPIP-00297", "target": "STAGE_design", "name": "所属阶段", "value": 1.0, "properties": {"relation": "belongs_to_stage", "relation_name": "所属阶段", "business_meaning": "该边表示疑似原因所属生命周期阶段。", "rank": 5}, "lineStyle": {"color": "#607d8b", "width": 1.8, "type": "solid", "opacity": 0.78, "curveness": 0.1}}, {"source": "HFB-01676", "target": "HINSP-01676", "name": "疑似原因", "value": 0.345641, "properties": {"relation": "may_caused_by", "relation_name": "疑似原因", "business_meaning": "该边表示 TransH 综合推理得到的疑似根因关系。", "rank": 6, "score": 0.345641}, "lineStyle": {"color": "#d62728", "width": 3.5, "type": "solid", "opacity": 0.95, "curveness": 0.1}}, {"source": "HINSP-01676", "target": "STAGE_inspection", "name": "所属阶段", "value": 1.0, "properties": {"relation": "belongs_to_stage", "relation_name": "所属阶段", "business_meaning": "该边表示疑似原因所属生命周期阶段。", "rank": 6}, "lineStyle": {"color": "#607d8b", "width": 1.8, "type": "solid", "opacity": 0.78, "curveness": 0.1}}, {"source": "STAGE_manufacturing", "target": "SUBSYSTEM_制造工艺子系统", "name": "反馈至子系统", "value": 1.0, "properties": {"relation": "feedback_to_subsystem", "relation_name": "反馈至子系统", "business_meaning": "该边表示建议反馈复核的业务子系统。"}, "lineStyle": {"color": "#0288d1", "width": 2.0, "type": "solid", "opacity": 0.8, "curveness": 0.1}}, {"source": "STAGE_design", "target": "SUBSYSTEM_设计子系统", "name": "反馈至子系统", "value": 1.0, "properties": {"relation": "feedback_to_subsystem", "relation_name": "反馈至子系统", "business_meaning": "该边表示建议反馈复核的业务子系统。"}, "lineStyle": {"color": "#0288d1", "width": 2.0, "type": "solid", "opacity": 0.8, "curveness": 0.1}}, {"source": "STAGE_material", "target": "SUBSYSTEM_材料_供应商管理子系统", "name": "反馈至子系统", "value": 1.0, "properties": {"relation": "feedback_to_subsystem", "relation_name": "反馈至子系统", "business_meaning": "该边表示建议反馈复核的业务子系统。"}, "lineStyle": {"color": "#0288d1", "width": 2.0, "type": "solid", "opacity": 0.8, "curveness": 0.1}}, {"source": "HFB-01676", "target": "RCA_ROOT_C005", "name": "RCA根因部件", "value": 0.863, "properties": {"relation": "diagnosed_root_component", "relation_name": "RCA根因部件", "business_meaning": "该边表示上游根因分析或传感器诊断证据。", "score": 0.863}, "lineStyle": {"color": "#c2185b", "width": 2.8, "type": "solid", "opacity": 0.9, "curveness": 0.1}}, {"source": "HFB-01676", "target": "RCA_SENSOR_PS6", "name": "根因传感器", "value": 0.96, "properties": {"relation": "has_root_sensor", "relation_name": "根因传感器", "business_meaning": "该边表示上游根因分析或传感器诊断证据。", "score": 0.96}, "lineStyle": {"color": "#c2185b", "width": 2.8, "type": "solid", "opacity": 0.9, "curveness": 0.1}}, {"source": "HFB-01676", "target": "RCA_SENSOR_PS2", "name": "次因传感器", "value": 0.7556, "properties": {"relation": "has_secondary_sensor", "relation_name": "次因传感器", "business_meaning": "该边表示上游根因分析或传感器诊断证据。", "score": 0.7556}, "lineStyle": {"color": "#c2185b", "width": 2.2, "type": "dashed", "opacity": 0.85, "curveness": 0.1}}], "lineStyle": {"curveness": 0.1}, "emphasis": {"focus": "adjacency", "lineStyle": {"width": 4}}}]};
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function renderProperties(properties) {
+      if (!properties || typeof properties !== "object") {
+        return "";
+      }
+      return Object.entries(properties)
+        .map(([key, value]) => {
+          const rendered = typeof value === "object" && value !== null ? JSON.stringify(value) : value;
+          return `<div><b>${escapeHtml(key)}:</b> ${escapeHtml(rendered)}</div>`;
+        })
+        .join("");
+    }
+
+    function fieldLine(label, value) {
+      if (value === undefined || value === null || value === "") {
+        return "";
+      }
+      return `<div><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</div>`;
+    }
+
+    function nodeTooltip(data, props) {
+      const title = data.name || data.id || props.name || props.id || "";
+      return [
+        `<div style="max-width:560px;white-space:normal;line-height:1.55">`,
+        `<div style="font-weight:700;margin-bottom:4px">${escapeHtml(title)}</div>`,
+        fieldLine("id", data.id || props.id),
+        fieldLine("type", props.type),
+        fieldLine("stage_name", props.stage_name),
+        fieldLine("是否反馈对象", props.is_target_object === true ? "是" : props.is_target_object === false ? "否" : ""),
+        fieldLine("是否 Top6", props.is_top_candidate === true ? "是" : props.is_top_candidate === false ? "否" : ""),
+        fieldLine("rank", props.rank),
+        fieldLine("score", props.score ?? data.value),
+        fieldLine("candidate_scope", props.candidate_scope),
+        fieldLine("reason_description", props.reason_description),
+        `<hr style="border:none;border-top:1px solid #d9e2ec;margin:6px 0">`,
+        renderProperties(props),
+        `</div>`
+      ].join("");
+    }
+
+    function edgeTooltip(data, props) {
+      const relation = data.relation || data.label || props.relation || "";
+      return [
+        `<div style="max-width:560px;white-space:normal;line-height:1.55">`,
+        `<div style="font-weight:700;margin-bottom:4px">关系：${escapeHtml(data.name || props.relation_name || relation)}</div>`,
+        fieldLine("source -> target", `${data.source || ""} -> ${data.target || ""}`),
+        fieldLine("relation", relation),
+        fieldLine("relation_name", props.relation_name || data.name),
+        fieldLine("关系类型说明", props.business_meaning || props.description),
+        fieldLine("weight / score", props.score ?? props.weight ?? data.value),
+        `<hr style="border:none;border-top:1px solid #d9e2ec;margin:6px 0">`,
+        renderProperties(props),
+        `</div>`
+      ].join("");
+    }
+
+    function tooltipFormatter(params) {
+      const data = params.data || {};
+      const props = data.properties || {};
+      return params.dataType === "edge" ? edgeTooltip(data, props) : nodeTooltip(data, props);
+    }
+
+    const graphSeries = Array.isArray(option.series) ? option.series : [option.series].filter(Boolean);
+    if (Array.isArray(option.legend)) {
+      option.legend = option.legend.map((legend) => Object.assign({}, legend, { show: false }));
+    }
+    graphSeries.forEach((series) => {
+      if (series && series.type === "graph") {
+        series.roam = true;
+        series.draggable = true;
+        series.focusNodeAdjacency = true;
+        series.emphasis = Object.assign({}, series.emphasis || {}, { focus: "adjacency" });
+        series.force = Object.assign({}, series.force || {}, { repulsion: (series.force && series.force.repulsion) || 420 });
+      }
+    });
+
+    option.tooltip = Object.assign({}, option.tooltip || {}, {
+      trigger: "item",
+      confine: true,
+      enterable: true,
+      formatter: tooltipFormatter
+    });
+
+    const chart = echarts.init(document.getElementById("chart"));
+    chart.setOption(option, true);
+    window.addEventListener("resize", () => chart.resize());
+    window.previewMeta = previewMeta;
+  </script>
+</body>
+</html>

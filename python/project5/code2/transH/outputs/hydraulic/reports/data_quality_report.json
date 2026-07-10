@@ -1,0 +1,218 @@
+{
+  "domain": "hydraulic",
+  "passed": true,
+  "summary": {
+    "total_checks": 22,
+    "passed_checks": 22,
+    "failed_checks": 0
+  },
+  "checks": [
+    {
+      "name": "hydraulic_component.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_component.csv",
+        "expected_min_rows": 5000,
+        "actual_rows": 5000
+      }
+    },
+    {
+      "name": "hydraulic_design.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_design.csv",
+        "expected_min_rows": 1200,
+        "actual_rows": 1200
+      }
+    },
+    {
+      "name": "pipe_design_param.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\pipe_design_param.csv",
+        "expected_min_rows": 800,
+        "actual_rows": 850
+      }
+    },
+    {
+      "name": "hydraulic_material.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_material.csv",
+        "expected_min_rows": 600,
+        "actual_rows": 600
+      }
+    },
+    {
+      "name": "hydraulic_manufacturing.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_manufacturing.csv",
+        "expected_min_rows": 1200,
+        "actual_rows": 1200
+      }
+    },
+    {
+      "name": "hydraulic_assembly.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_assembly.csv",
+        "expected_min_rows": 5000,
+        "actual_rows": 5000
+      }
+    },
+    {
+      "name": "hydraulic_inspection.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_inspection.csv",
+        "expected_min_rows": 7000,
+        "actual_rows": 7000
+      }
+    },
+    {
+      "name": "hydraulic_feedback.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_feedback.csv",
+        "expected_min_rows": 5000,
+        "actual_rows": 5000
+      }
+    },
+    {
+      "name": "hydraulic_rca_case.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_rca_case.csv",
+        "expected_min_rows": 5000,
+        "actual_rows": 5000
+      }
+    },
+    {
+      "name": "hydraulic_sensor_energy.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_sensor_energy.csv",
+        "expected_min_rows": 5000,
+        "actual_rows": 5000
+      }
+    },
+    {
+      "name": "hydraulic_component_diagnosis.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_component_diagnosis.csv",
+        "expected_min_rows": 60000,
+        "actual_rows": 60000
+      }
+    },
+    {
+      "name": "hydraulic_subtype_probability.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\hydraulic\\hydraulic_subtype_probability.csv",
+        "expected_min_rows": 205000,
+        "actual_rows": 205000
+      }
+    },
+    {
+      "name": "forbidden names absent",
+      "passed": true,
+      "details": {
+        "hits": []
+      }
+    },
+    {
+      "name": "C010 only uses 节流阀",
+      "passed": true,
+      "details": {
+        "violations": []
+      }
+    },
+    {
+      "name": "C011 only uses 管路总成",
+      "passed": true,
+      "details": {
+        "violations": []
+      }
+    },
+    {
+      "name": "true_reason_id not empty",
+      "passed": true,
+      "details": {
+        "empty_count": 0
+      }
+    },
+    {
+      "name": "true_stage distribution reasonable",
+      "passed": true,
+      "details": {
+        "stage_distribution": {
+          "operation": 0.3682,
+          "manufacturing": 0.17,
+          "assembly": 0.136,
+          "design": 0.1346,
+          "material": 0.133,
+          "inspection": 0.0582
+        },
+        "non_normal_stage_distribution": {
+          "operation": 0.3682,
+          "manufacturing": 0.17,
+          "assembly": 0.136,
+          "design": 0.1346,
+          "material": 0.133,
+          "inspection": 0.0582
+        }
+      }
+    },
+    {
+      "name": "fault_type distribution not over-skewed",
+      "passed": true,
+      "details": {
+        "fault_distribution": {
+          "oil_leakage": 0.185,
+          "flow_abnormal": 0.1776,
+          "vibration_abnormal": 0.1682,
+          "pressure_abnormal": 0.1674,
+          "valve_stuck": 0.1638,
+          "temperature_abnormal": 0.138
+        }
+      }
+    },
+    {
+      "name": "root component sensors higher than unrelated sensors",
+      "passed": true,
+      "details": {
+        "related_mean": 0.64041,
+        "unrelated_mean": 0.12855,
+        "ratio": 4.9816
+      }
+    },
+    {
+      "name": "root component usually ranks top 3",
+      "passed": true,
+      "details": {
+        "top3_rate": 1.0,
+        "top1_rate": 1.0
+      }
+    },
+    {
+      "name": "pipe design constraints satisfied",
+      "passed": true,
+      "details": {
+        "L1_range": 0,
+        "L2_range": 0,
+        "theta1_range": 0,
+        "theta2_range": 0,
+        "R_range": 0,
+        "L3_min": 0,
+        "straight_segment_min_2R": 0
+      }
+    },
+    {
+      "name": "pipe design only references C011 components",
+      "passed": true,
+      "details": {}
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "stage": "RUN_WORKBENCH",
+  "message": "启动 Workbench 批处理并调用 Mechanical"
+}

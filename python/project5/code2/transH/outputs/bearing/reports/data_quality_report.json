@@ -1,0 +1,144 @@
+{
+  "domain": "bearing",
+  "passed": true,
+  "summary": {
+    "total_checks": 14,
+    "passed_checks": 14,
+    "failed_checks": 0
+  },
+  "checks": [
+    {
+      "name": "bearing_component.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\bearing\\bearing_component.csv",
+        "expected_min_rows": 5000,
+        "actual_rows": 5000
+      }
+    },
+    {
+      "name": "bearing_design.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\bearing\\bearing_design.csv",
+        "expected_min_rows": 800,
+        "actual_rows": 800
+      }
+    },
+    {
+      "name": "bearing_material.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\bearing\\bearing_material.csv",
+        "expected_min_rows": 500,
+        "actual_rows": 500
+      }
+    },
+    {
+      "name": "bearing_manufacturing.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\bearing\\bearing_manufacturing.csv",
+        "expected_min_rows": 1200,
+        "actual_rows": 1200
+      }
+    },
+    {
+      "name": "bearing_assembly.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\bearing\\bearing_assembly.csv",
+        "expected_min_rows": 5000,
+        "actual_rows": 5000
+      }
+    },
+    {
+      "name": "bearing_inspection.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\bearing\\bearing_inspection.csv",
+        "expected_min_rows": 7000,
+        "actual_rows": 7000
+      }
+    },
+    {
+      "name": "bearing_feedback.csv exists and row count",
+      "passed": true,
+      "details": {
+        "path": "D:\\Cursor\\transH\\data\\bearing\\bearing_feedback.csv",
+        "expected_min_rows": 5000,
+        "actual_rows": 5000
+      }
+    },
+    {
+      "name": "forbidden names absent",
+      "passed": true,
+      "details": {
+        "hits": []
+      }
+    },
+    {
+      "name": "C010 only uses 节流阀",
+      "passed": true,
+      "details": {
+        "violations": []
+      }
+    },
+    {
+      "name": "C011 only uses 管路总成",
+      "passed": true,
+      "details": {
+        "violations": []
+      }
+    },
+    {
+      "name": "true_reason_id not empty",
+      "passed": true,
+      "details": {
+        "empty_count": 0
+      }
+    },
+    {
+      "name": "true_stage distribution reasonable",
+      "passed": true,
+      "details": {
+        "stage_distribution": {
+          "feedback": 0.5386,
+          "manufacturing": 0.1476,
+          "assembly": 0.1104,
+          "material": 0.0948,
+          "design": 0.042,
+          "inspection": 0.036,
+          "operation": 0.0306
+        },
+        "non_normal_stage_distribution": {
+          "manufacturing": 0.3199,
+          "assembly": 0.2393,
+          "material": 0.2055,
+          "design": 0.091,
+          "inspection": 0.078,
+          "operation": 0.0663
+        }
+      }
+    },
+    {
+      "name": "fault_type distribution not over-skewed",
+      "passed": true,
+      "details": {
+        "fault_distribution": {
+          "normal": 0.5386,
+          "rolling_element_fault": 0.1734,
+          "outer_race_fault": 0.1472,
+          "inner_race_fault": 0.1408
+        }
+      }
+    },
+    {
+      "name": "bearing labels are valid",
+      "passed": true,
+      "details": {
+        "bad_labels": []
+      }
+    }
+  ]
+}

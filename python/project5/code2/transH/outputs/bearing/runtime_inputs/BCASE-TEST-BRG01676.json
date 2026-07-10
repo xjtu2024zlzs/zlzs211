@@ -1,0 +1,64 @@
+{
+  "input_mode": "upstream_json",
+  "upstream_payload": {
+    "upstream_case_id": "BCASE-TEST-BRG01676",
+    "bearing_id": "BRG-01676",
+    "fault_type": "rolling_element_fault",
+    "fault_position": "rolling_element",
+    "diagnosis_confidence": 0.78,
+    "fault_severity": "severe",
+    "rca_result": {
+      "rca_confidence": 0.69,
+      "rca_text": "滚动体故障可能与制造阶段表面质量控制不足有关。",
+      "fault_evolution_text": "早期局部接触应力升高，随后振动冲击增强。"
+    }
+  },
+  "normalized_upstream": {
+    "upstream_case_id": "BCASE-TEST-BRG01676",
+    "bearing_id": "BRG-01676",
+    "object_id": "",
+    "fault_type": "rolling_element_fault",
+    "fault_position": "rolling_element",
+    "diagnosis_confidence": 0.78,
+    "fault_severity": "severe",
+    "rca_result": {
+      "rca_confidence": 0.69,
+      "rca_text": "滚动体故障可能与制造阶段表面质量控制不足有关。",
+      "fault_evolution_text": "早期局部接触应力升高，随后振动冲击增强。"
+    }
+  },
+  "target_resolution": {
+    "mode": "provided_bearing_id",
+    "selected_case_id": "BFB-01676",
+    "selected_object_id": "BRG-01676",
+    "selected_object_name": "BRG-01676",
+    "confidence": 1.0,
+    "match_reason": "exact bearing_id=BRG-01676",
+    "match_warning": null,
+    "candidate_topk": [
+      {
+        "case_id": "BFB-01676",
+        "object_id": "BRG-01676",
+        "object_name": "BRG-01676",
+        "score": 1.0,
+        "reason": "exact bearing_id=BRG-01676"
+      },
+      {
+        "case_id": "BFB-00001",
+        "object_id": "BRG-00001",
+        "object_name": "BRG-00001",
+        "score": 0.2,
+        "reason": "same domain reference"
+      },
+      {
+        "case_id": "BFB-00002",
+        "object_id": "BRG-00002",
+        "object_name": "BRG-00002",
+        "score": 0.2,
+        "reason": "same domain reference"
+      }
+    ]
+  },
+  "selected_case_id": "BFB-01676",
+  "created_time": "2026-06-05 17:34:53"
+}

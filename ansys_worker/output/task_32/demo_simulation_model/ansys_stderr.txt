@@ -1,0 +1,35 @@
+ *** The AWP_ROOT221 environment variable is set to: C:\Program Files\ANSYS Inc\v221
+ *** The AWP_LOCALE221 environment variable is set to: zh
+ *** The ANSYS221_DIR environment variable is set to: C:\Program Files\ANSYS Inc\v221\ANSYS
+ *** The ANSYS_SYSDIR environment variable is set to: winx64
+ *** The CADOE_DOCDIR221 environment variable is set to: C:\Program Files\ANSYS Inc\v221\CommonFiles\help\en-us\solviewer
+ *** The CADOE_LIBDIR221 environment variable is set to: C:\Program Files\ANSYS Inc\v221\CommonFiles\Language\zh
+ *** The LSTC_LICENSE environment variable is set to: Ansys
+ *** The P_SCHEMA environment variable is set to: C:\Program Files\ANSYS Inc\v221\AISOL\CADIntegration\Parasolid\PSchema
+ *** The TEMP environment variable is set to: C:\Users\666\AppData\Local\Temp
+[mpiexec@DESKTOP-CK26UI6] ..\hydra\utils\sock\sock.c (420): write error (Unknown error)
+[mpiexec@DESKTOP-CK26UI6] ..\hydra\utils\launch\launch.c (121): shutdown failed, sock 692, error 10093
+ *** The AWP_ROOT221 environment variable is set to: C:\Program Files\ANSYS Inc\v221
+ *** The AWP_LOCALE221 environment variable is set to: zh
+ *** The ANSYS221_DIR environment variable is set to: C:\Program Files\ANSYS Inc\v221\ANSYS
+ *** The ANSYS_SYSDIR environment variable is set to: winx64
+ *** The CADOE_DOCDIR221 environment variable is set to: C:\Program Files\ANSYS Inc\v221\CommonFiles\help\en-us\solviewer
+ *** The CADOE_LIBDIR221 environment variable is set to: C:\Program Files\ANSYS Inc\v221\CommonFiles\Language\zh
+ *** The LSTC_LICENSE environment variable is set to: Ansys
+ *** The P_SCHEMA environment variable is set to: C:\Program Files\ANSYS Inc\v221\AISOL\CADIntegration\Parasolid\PSchema
+ *** The TEMP environment variable is set to: C:\Users\666\AppData\Local\Temp
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 0
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 1
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 2
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 3
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 4
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 5
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 7
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 8
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 9
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 10
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 11
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 12
+application called MPI_Abort(MPI_COMM_WORLD, 15) - process 14
+[mpiexec@DESKTOP-CK26UI6] ..\hydra\utils\sock\sock.c (420): write error (Unknown error)
+[mpiexec@DESKTOP-CK26UI6] ..\hydra\utils\launch\launch.c (121): shutdown failed, sock 624, error 10093

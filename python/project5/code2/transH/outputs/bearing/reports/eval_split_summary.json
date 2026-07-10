@@ -1,0 +1,25 @@
+{
+  "domain": "bearing",
+  "original_triple_count": 136100,
+  "train_triple_count": 135700,
+  "removed_may_caused_by_count": 200,
+  "removed_attributed_to_stage_count": 200,
+  "test_case_count": 200,
+  "fault_type_distribution": {
+    "inner_race_fault": 58,
+    "outer_race_fault": 76,
+    "rolling_element_fault": 66
+  },
+  "true_stage_distribution": {
+    "assembly": 54,
+    "design": 21,
+    "inspection": 13,
+    "manufacturing": 59,
+    "material": 37,
+    "operation": 16
+  },
+  "leak_check": {
+    "test_may_caused_by_remaining_in_train": 0,
+    "test_attributed_to_stage_remaining_in_train": 0
+  }
+}

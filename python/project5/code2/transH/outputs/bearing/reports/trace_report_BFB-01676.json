@@ -1,0 +1,539 @@
+{
+  "report_meta": {
+    "domain": "bearing",
+    "case_id": "BFB-01676",
+    "feedback_id": "BFB-01676",
+    "report_time": "2026-06-07 20:25:55",
+    "model_name": "TransH",
+    "top_k": 6,
+    "source_files": {
+      "reasoning_json": "D:\\2.11\\topic5_code\\code2\\transH\\outputs\\bearing\\reports\\reasoning_BFB-01676.json",
+      "original_graph_json": "D:\\2.11\\topic5_code\\code2\\transH\\outputs\\bearing\\graphs\\original_graph_BFB-01676.json",
+      "fault_enhanced_graph_json": "D:\\2.11\\topic5_code\\code2\\transH\\outputs\\bearing\\graphs\\fault_enhanced_graph_BFB-01676.json"
+    },
+    "kg_statistics": {
+      "domain": "bearing",
+      "triple_count": 136100,
+      "entity_count": 39908,
+      "relation_count": 33,
+      "entity_type_count": {
+        "AssemblyRecord": 5000,
+        "Bearing": 5000,
+        "BearingDesignSpec": 800,
+        "ComponentName": 5,
+        "ConfidenceLevel": 3,
+        "Equipment": 120,
+        "FaultEvolutionText": 5000,
+        "FaultPosition": 4,
+        "FaultSeverity": 4,
+        "FaultType": 4,
+        "GrindingProcess": 1,
+        "HeatTreatmentProcess": 1,
+        "InspectionRecord": 7000,
+        "InspectionResult": 3,
+        "LifecycleStage": 7,
+        "LubricationRecord": 3,
+        "MaintenanceRecord": 5000,
+        "ManufacturingBatch": 1200,
+        "ManufacturingProcess": 1,
+        "MaterialBatch": 500,
+        "MaterialGrade": 4,
+        "Operator": 150,
+        "QualityFeedback": 5000,
+        "RcaText": 5000,
+        "RiskLevel": 4,
+        "RiskScore": 3,
+        "Station": 30,
+        "Supplier": 60,
+        "VibrationInspectionRecord": 1
+      },
+      "relation_count_detail": {
+        "assembled_in": 5000,
+        "attributed_to_stage": 5000,
+        "designed_by": 5000,
+        "has_assembly_risk_level": 5000,
+        "has_bearing_model": 800,
+        "has_design_risk_level": 800,
+        "has_design_risk_score": 800,
+        "has_diagnosis_confidence": 5000,
+        "has_fault_evolution_text": 5000,
+        "has_fault_severity": 5000,
+        "has_fault_type": 5000,
+        "has_inspection_result": 7000,
+        "has_inspection_risk_level": 7000,
+        "has_lubrication_method": 800,
+        "has_manufacturing_risk_level": 1200,
+        "has_material_grade": 500,
+        "has_material_risk_level": 500,
+        "has_overall_lifecycle_risk_level": 5000,
+        "has_overall_lifecycle_risk_score": 5000,
+        "has_rca_confidence": 5000,
+        "has_rca_text": 5000,
+        "inspected_by": 5000,
+        "located_at": 10000,
+        "maintained_by": 5000,
+        "manufactured_in": 5000,
+        "may_caused_by": 4400,
+        "occurs_on": 5000,
+        "operated_by": 5000,
+        "processed_by": 1200,
+        "supplied_by": 500,
+        "uses_inspection_type": 7000,
+        "uses_material_batch": 5000,
+        "uses_process": 3600
+      },
+      "source_table_count": {
+        "bearing_assembly.csv": 15000,
+        "bearing_component.csv": 40000,
+        "bearing_design.csv": 3200,
+        "bearing_feedback.csv": 49400,
+        "bearing_inspection.csv": 21000,
+        "bearing_manufacturing.csv": 6000,
+        "bearing_material.csv": 1500
+      },
+      "may_caused_by_count": 4400
+    },
+    "train_log_last": {
+      "epoch": 100,
+      "loss": 0.035237,
+      "sampled_triple_count": 120000,
+      "may_caused_by_count": 4400,
+      "device": "cuda",
+      "elapsed_time": 379.797
+    }
+  },
+  "feedback_summary": {
+    "feedback_id": "BFB-01676",
+    "fault_type": "rolling_element_fault",
+    "fault_position": "rolling_element",
+    "fault_severity": "severe",
+    "diagnosis_confidence": 0.6278,
+    "rca_confidence": 0.6719
+  },
+  "target_object": {
+    "object_id": "BRG-01676",
+    "object_type": "Bearing",
+    "object_name": "BRG-01676"
+  },
+  "rca_summary": {
+    "rca_text": "该样本的生命周期风险在制造阶段较突出，能够解释当前严重滚动体故障的主要失效模式。",
+    "fault_evolution_text": "早期表现为局部接触应力升高，随后振动冲击增强，最终演化为严重滚动体故障。"
+  },
+  "graph_comparison": {
+    "original_graph": {
+      "node_count": 23,
+      "edge_count": 26,
+      "stages": [
+        "使用/运维阶段",
+        "装配阶段",
+        "设计阶段",
+        "检测阶段",
+        "制造阶段",
+        "材料阶段"
+      ],
+      "target_lifecycle_nodes": [
+        {
+          "relation": "designed_by",
+          "relation_name": "设计依据",
+          "node_id": "BDES-00227",
+          "node_name": "轴承设计规范 BDES-00227",
+          "node_type": "BearingDesignSpec",
+          "stage_name": "设计阶段"
+        },
+        {
+          "relation": "uses_material_batch",
+          "relation_name": "使用材料批次",
+          "node_id": "BMAT-00431",
+          "node_name": "材料批次 BMAT-00431",
+          "node_type": "MaterialBatch",
+          "stage_name": "材料阶段"
+        },
+        {
+          "relation": "manufactured_in",
+          "relation_name": "制造批次",
+          "node_id": "BMAN-00147",
+          "node_name": "制造批次 BMAN-00147",
+          "node_type": "ManufacturingBatch",
+          "stage_name": "制造阶段"
+        },
+        {
+          "relation": "assembled_in",
+          "relation_name": "装配记录",
+          "node_id": "BASM-01676",
+          "node_name": "装配记录 BASM-01676",
+          "node_type": "AssemblyRecord",
+          "stage_name": "装配阶段"
+        },
+        {
+          "relation": "inspected_by",
+          "relation_name": "检测记录",
+          "node_id": "BINSP-01676",
+          "node_name": "检测记录 BINSP-01676",
+          "node_type": "InspectionRecord",
+          "stage_name": "检测阶段"
+        },
+        {
+          "relation": "maintained_by",
+          "relation_name": "运维记录",
+          "node_id": "BOPR-01676",
+          "node_name": "运维记录 BOPR-01676",
+          "node_type": "MaintenanceRecord",
+          "stage_name": "使用/运维阶段"
+        },
+        {
+          "relation": "has_overall_lifecycle_risk_level",
+          "relation_name": "has_overall_lifecycle_risk_level",
+          "node_id": "RISK_LEVEL_medium",
+          "node_name": "RiskLevel RISK_LEVEL_medium",
+          "node_type": "RiskLevel",
+          "stage_name": "未知阶段"
+        },
+        {
+          "relation": "has_overall_lifecycle_risk_score",
+          "relation_name": "has_overall_lifecycle_risk_score",
+          "node_id": "RISK_25_50",
+          "node_name": "RiskScore RISK_25_50",
+          "node_type": "RiskScore",
+          "stage_name": "未知阶段"
+        }
+      ]
+    },
+    "fault_enhanced_graph": {
+      "node_count": 38,
+      "edge_count": 48,
+      "added_node_count": 15,
+      "added_edge_count": 22,
+      "added_node_types": [
+        "ConfidenceLevel",
+        "FaultEvolutionText",
+        "FaultPosition",
+        "FaultSeverity",
+        "FaultType",
+        "LifecycleStage",
+        "QualityFeedback",
+        "RcaText",
+        "ReasoningConclusion",
+        "TargetSubsystem"
+      ]
+    },
+    "difference_description": "故障增强图在原始生命周期链基础上新增 15 个节点，主要包括 ConfidenceLevel, FaultEvolutionText, FaultPosition, FaultSeverity, FaultType, LifecycleStage, QualityFeedback, RcaText 等，用于承载故障、RCA、Top6候选和阶段归因信息。"
+  },
+  "top6_reason_analysis": [
+    {
+      "candidate_id": "BMAN-00147",
+      "candidate_type": "ManufacturingBatch",
+      "candidate_stage": "manufacturing",
+      "candidate_stage_name": "制造阶段",
+      "transh_score": 1.0,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.26,
+      "final_score": 0.8515,
+      "adjusted_final_score": 0.8915,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于制造阶段，具备直接路径证据。",
+      "rank": 1
+    },
+    {
+      "candidate_id": "BMAT-00431",
+      "candidate_type": "MaterialBatch",
+      "candidate_stage": "material",
+      "candidate_stage_name": "材料阶段",
+      "transh_score": 0.606315,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.22,
+      "final_score": 0.648658,
+      "adjusted_final_score": 0.688658,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于材料阶段，具备直接路径证据。",
+      "rank": 2
+    },
+    {
+      "candidate_id": "BOPR-01676",
+      "candidate_type": "MaintenanceRecord",
+      "candidate_stage": "operation",
+      "candidate_stage_name": "使用/运维阶段",
+      "transh_score": 0.54899,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.14,
+      "final_score": 0.607995,
+      "adjusted_final_score": 0.647995,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于使用/运维阶段，具备直接路径证据。",
+      "rank": 3
+    },
+    {
+      "candidate_id": "BASM-01676",
+      "candidate_type": "AssemblyRecord",
+      "candidate_stage": "assembly",
+      "candidate_stage_name": "装配阶段",
+      "transh_score": 0.541856,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.14,
+      "final_score": 0.604428,
+      "adjusted_final_score": 0.644428,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于装配阶段，具备直接路径证据。",
+      "rank": 4
+    },
+    {
+      "candidate_id": "BDES-00227",
+      "candidate_type": "BearingDesignSpec",
+      "candidate_stage": "design",
+      "candidate_stage_name": "设计阶段",
+      "transh_score": 0.430706,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.1,
+      "final_score": 0.542853,
+      "adjusted_final_score": 0.582853,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于设计阶段，具备直接路径证据。",
+      "rank": 5
+    },
+    {
+      "candidate_id": "BINSP-01676",
+      "candidate_type": "InspectionRecord",
+      "candidate_stage": "inspection",
+      "candidate_stage_name": "检测阶段",
+      "transh_score": 0.409431,
+      "path_score": 1.0,
+      "evidence_score": 0.75,
+      "rule_prior_score": 0.1,
+      "final_score": 0.532215,
+      "adjusted_final_score": 0.572215,
+      "candidate_scope": "lifecycle_candidate",
+      "reason_description": "该实体位于当前反馈对象生命周期链上，属于检测阶段，具备直接路径证据。",
+      "rank": 6
+    }
+  ],
+  "stage_attribution": {
+    "primary_stage": "manufacturing",
+    "primary_stage_name": "制造阶段",
+    "feedback_target_subsystem": "制造工艺子系统",
+    "stage_scores": {
+      "design": 0.370898,
+      "material": 0.696467,
+      "manufacturing": 1.0,
+      "assembly": 0.501577,
+      "inspection": 0.337578,
+      "operation": 0.587883
+    },
+    "stage_rank": [
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 1.0
+      },
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 0.696467
+      },
+      {
+        "stage": "operation",
+        "stage_name": "使用/运维阶段",
+        "score": 0.587883
+      },
+      {
+        "stage": "assembly",
+        "stage_name": "装配阶段",
+        "score": 0.501577
+      },
+      {
+        "stage": "design",
+        "stage_name": "设计阶段",
+        "score": 0.370898
+      },
+      {
+        "stage": "inspection",
+        "stage_name": "检测阶段",
+        "score": 0.337578
+      }
+    ],
+    "focus_stage_top3": [
+      {
+        "rank": 1,
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 1.0,
+        "feedback_subsystem": "制造工艺子系统"
+      },
+      {
+        "rank": 2,
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 0.696467,
+        "feedback_subsystem": "材料/供应商管理子系统"
+      },
+      {
+        "rank": 3,
+        "stage": "operation",
+        "stage_name": "使用/运维阶段",
+        "score": 0.587883,
+        "feedback_subsystem": "运维保障子系统"
+      }
+    ],
+    "feedback_subsystem_top3": [
+      "制造工艺子系统",
+      "材料/供应商管理子系统",
+      "运维保障子系统"
+    ],
+    "stage_attribution_detail": [
+      {
+        "candidate_id": "BMAN-00147",
+        "candidate_type": "ManufacturingBatch",
+        "candidate_stage": "manufacturing",
+        "rank": 1,
+        "adjusted_final_score": 0.8915,
+        "rank_score": 1.0,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.05,
+        "contribution": 0.936075
+      },
+      {
+        "candidate_id": "BMAT-00431",
+        "candidate_type": "MaterialBatch",
+        "candidate_stage": "material",
+        "rank": 2,
+        "adjusted_final_score": 0.688658,
+        "rank_score": 0.85,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.05,
+        "contribution": 0.614627
+      },
+      {
+        "candidate_id": "BOPR-01676",
+        "candidate_type": "MaintenanceRecord",
+        "candidate_stage": "operation",
+        "rank": 3,
+        "adjusted_final_score": 0.647995,
+        "rank_score": 0.72,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.1,
+        "contribution": 0.513212
+      },
+      {
+        "candidate_id": "BASM-01676",
+        "candidate_type": "AssemblyRecord",
+        "candidate_stage": "assembly",
+        "rank": 4,
+        "adjusted_final_score": 0.644428,
+        "rank_score": 0.6,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.444655
+      },
+      {
+        "candidate_id": "BDES-00227",
+        "candidate_type": "BearingDesignSpec",
+        "candidate_stage": "design",
+        "rank": 5,
+        "adjusted_final_score": 0.582853,
+        "rank_score": 0.5,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.1,
+        "contribution": 0.320569
+      },
+      {
+        "candidate_id": "BINSP-01676",
+        "candidate_type": "InspectionRecord",
+        "candidate_stage": "inspection",
+        "rank": 6,
+        "adjusted_final_score": 0.572215,
+        "rank_score": 0.42,
+        "scope_weight": 1.0,
+        "type_stage_weight": 1.15,
+        "contribution": 0.27638
+      }
+    ],
+    "primary_stage_explanation": "制造阶段得分最高，主要因为 Top6 中 BMAN-00147 聚集在该阶段，且综合分数、路径分数或证据分数较高。"
+  },
+  "evidence_chains": [
+    {
+      "chain": [
+        "BFB-01676",
+        "occurs_on",
+        "BRG-01676"
+      ],
+      "description": "质量反馈首先定位到发生故障的目标对象。"
+    },
+    {
+      "chain": [
+        "BRG-01676",
+        "manufactured_in",
+        "BMAN-00147"
+      ],
+      "description": "候选 BMAN-00147 位于目标对象生命周期链或其关键扩展路径上，path_score=1.0。"
+    },
+    {
+      "chain": [
+        "BRG-01676",
+        "uses_material_batch",
+        "BMAT-00431"
+      ],
+      "description": "候选 BMAT-00431 位于目标对象生命周期链或其关键扩展路径上，path_score=1.0。"
+    },
+    {
+      "chain": [
+        "BFB-01676",
+        "may_caused_by",
+        "BMAN-00147"
+      ],
+      "description": "TransH 综合重排序将 BMAN-00147 排为 Top1，final_score=0.8515。"
+    }
+  ],
+  "subsystem_feedback": {
+    "primary_stage": "manufacturing",
+    "target_subsystem": "制造工艺子系统",
+    "primary_feedback_subsystem": "制造工艺子系统",
+    "feedback_subsystem_top3": [
+      "制造工艺子系统",
+      "材料/供应商管理子系统",
+      "运维保障子系统"
+    ],
+    "review_subsystem_candidates": [
+      {
+        "stage": "manufacturing",
+        "stage_name": "制造阶段",
+        "score": 1.0,
+        "feedback_subsystem": "制造工艺子系统"
+      },
+      {
+        "stage": "material",
+        "stage_name": "材料阶段",
+        "score": 0.696467,
+        "feedback_subsystem": "材料/供应商管理子系统"
+      },
+      {
+        "stage": "operation",
+        "stage_name": "使用/运维阶段",
+        "score": 0.587883,
+        "feedback_subsystem": "运维保障子系统"
+      },
+      {
+        "stage": "assembly",
+        "stage_name": "装配阶段",
+        "score": 0.501577,
+        "feedback_subsystem": "装配子系统"
+      },
+      {
+        "stage": "design",
+        "stage_name": "设计阶段",
+        "score": 0.370898,
+        "feedback_subsystem": "设计子系统"
+      },
+      {
+        "stage": "inspection",
+        "stage_name": "检测阶段",
+        "score": 0.337578,
+        "feedback_subsystem": "检测子系统"
+      }
+    ],
+    "suggestion": "建议反馈制造工艺子系统，复核加工误差、表面粗糙度、洁净度、热处理或磨削过程。"
+  },
+  "final_conclusion": "本次追溯的首要疑似原因是 BMAN-00147（ManufacturingBatch），首要疑似阶段为制造阶段。主要证据包括生命周期路径、TransH 评分、RCA/证据匹配以及规则先验，其中 TransH 综合重排序将 BMAN-00147 排为 Top1，final_score=0.8515。当前报告未发现明确跨部件传播描述，仍建议结合现场记录复核跨阶段影响。 建议优先由制造工艺子系统牵头处置，并联动相关生命周期环节复核。除首要疑似生命周期阶段外，系统同时给出重点关注阶段 Top3，用于支持跨阶段联合复核。建议优先反馈至制造工艺子系统，并联合材料/供应商管理子系统、运维保障子系统进行辅助复核。"
+}

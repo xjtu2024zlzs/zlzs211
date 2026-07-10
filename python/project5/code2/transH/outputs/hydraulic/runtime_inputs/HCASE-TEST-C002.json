@@ -1,0 +1,167 @@
+{
+  "input_mode": "upstream_json",
+  "upstream_payload": {
+    "upstream_case_id": "HCASE-TEST-C002",
+    "fault_type": "方向阀故障",
+    "fault_position": "方向控制阀",
+    "component_code": "C002",
+    "component_name": "方向控制阀",
+    "diagnosis_confidence": 0.681,
+    "fault_severity": "medium",
+    "sensor_energy": {
+      "PS1": 0.32,
+      "PS2": 0.28,
+      "PS3": 0.78,
+      "PS4": 0.2,
+      "PS5": 0.0,
+      "PS6": 0.25,
+      "EPS1": 0.0,
+      "FS1": 0.55,
+      "FS2": 0.0,
+      "TS1": 0.0,
+      "TS2": 0.0,
+      "TS3": 0.0,
+      "TS4": 0.0,
+      "VS1": 0.12
+    },
+    "rca_result": {
+      "root_sensor": "PS3",
+      "root_sensor_confidence": 0.7883,
+      "secondary_sensor": "FS1",
+      "secondary_sensor_confidence": 0.6442,
+      "root_component_code": "C002",
+      "root_component_name": "方向控制阀",
+      "component_confidence": 0.681,
+      "rca_confidence": 0.681,
+      "rca_text": "根因部件为方向控制阀，根因传感器为PS3，次因传感器为FS1。"
+    },
+    "component_diagnosis_topk": [
+      {
+        "rank_no": 1,
+        "component_code": "C002",
+        "component_name": "方向控制阀",
+        "fault_type": "方向阀故障",
+        "severity": 0.624,
+        "judgement": "故障",
+        "fault_level": "中度故障"
+      },
+      {
+        "rank_no": 2,
+        "component_code": "C009",
+        "component_name": "单向阀",
+        "fault_type": "单向阀故障",
+        "severity": 0.509,
+        "judgement": "故障",
+        "fault_level": "中度故障"
+      },
+      {
+        "rank_no": 3,
+        "component_code": "C010",
+        "component_name": "节流阀",
+        "fault_type": "节流阀故障",
+        "severity": 0.454,
+        "judgement": "故障",
+        "fault_level": "中度故障"
+      }
+    ],
+    "subtype_topk": [
+      {
+        "component_code": "C002",
+        "component_name": "方向控制阀",
+        "subtype_id": "C002-S1",
+        "subtype_name": "阀芯卡滞",
+        "fault_part": "阀芯/阀体配合面",
+        "probability": 0.8857
+      }
+    ]
+  },
+  "normalized_upstream": {
+    "upstream_case_id": "HCASE-TEST-C002",
+    "fault_type": "valve_stuck",
+    "raw_fault_type": "方向阀故障",
+    "fault_position": "方向控制阀",
+    "component_code": "C002",
+    "component_name": "方向控制阀",
+    "diagnosis_confidence": 0.681,
+    "fault_severity": "medium",
+    "root_sensor": "PS3",
+    "secondary_sensor": "FS1",
+    "root_component_code": "C002",
+    "root_component_name": "方向控制阀",
+    "sensor_energy": {
+      "PS1": 0.32,
+      "PS2": 0.28,
+      "PS3": 0.78,
+      "PS4": 0.2,
+      "PS5": 0.0,
+      "PS6": 0.25,
+      "EPS1": 0.0,
+      "FS1": 0.55,
+      "FS2": 0.0,
+      "TS1": 0.0,
+      "TS2": 0.0,
+      "TS3": 0.0,
+      "TS4": 0.0,
+      "VS1": 0.12
+    },
+    "rca_result": {
+      "root_sensor": "PS3",
+      "root_sensor_confidence": 0.7883,
+      "secondary_sensor": "FS1",
+      "secondary_sensor_confidence": 0.6442,
+      "root_component_code": "C002",
+      "root_component_name": "方向控制阀",
+      "component_confidence": 0.681,
+      "rca_confidence": 0.681,
+      "rca_text": "根因部件为方向控制阀，根因传感器为PS3，次因传感器为FS1。"
+    }
+  },
+  "target_resolution": {
+    "mode": "inferred_from_component_code",
+    "selected_case_id": "HFB-00006",
+    "selected_object_id": "HCU-00006",
+    "selected_object_name": "方向控制阀",
+    "confidence": 0.85,
+    "match_reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete",
+    "match_warning": null,
+    "candidate_topk": [
+      {
+        "case_id": "HFB-00006",
+        "object_id": "HCU-00006",
+        "object_name": "方向控制阀",
+        "score": 1.0,
+        "reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete"
+      },
+      {
+        "case_id": "HFB-00011",
+        "object_id": "HCU-00011",
+        "object_name": "方向控制阀",
+        "score": 1.0,
+        "reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete"
+      },
+      {
+        "case_id": "HFB-00043",
+        "object_id": "HCU-00043",
+        "object_name": "方向控制阀",
+        "score": 1.0,
+        "reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete"
+      },
+      {
+        "case_id": "HFB-00059",
+        "object_id": "HCU-00059",
+        "object_name": "方向控制阀",
+        "score": 1.0,
+        "reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete"
+      },
+      {
+        "case_id": "HFB-00086",
+        "object_id": "HCU-00086",
+        "object_name": "方向控制阀",
+        "score": 1.0,
+        "reason": "component_code=C002; fault_type=valve_stuck; fault_position=方向控制阀; RCA/sensor evidence matched; local lifecycle data complete"
+      }
+    ]
+  },
+  "selected_case_id": "HFB-00006",
+  "created_time": "2026-06-05 17:34:40"
+}
