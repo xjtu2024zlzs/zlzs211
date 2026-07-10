@@ -239,6 +239,16 @@
             <el-form-item label="请求头">
               <el-input v-model="textObjDlg.form.apiHeaders" type="textarea" :rows="3" :readonly="isTextFixedApiTask" placeholder='可选，JSON格式，例如 {"Authorization":"Bearer token"}' />
             </el-form-item>
+            <el-form-item label="登录令牌">
+              <div class="api-token-action">
+                <el-button :type="textApiUseLoginToken ? 'success' : 'primary'" plain @click="attachCurrentLoginToken">
+                  {{ textApiUseLoginToken ? '已获取，点击刷新' : '获取当前登录令牌' }}
+                </el-button>
+                <span class="form-tip api-token-tip">
+                  {{ textApiUseLoginToken ? '接口取数时将自动附带当前登录令牌' : '令牌不会在页面中明文显示' }}
+                </span>
+              </div>
+            </el-form-item>
             <el-form-item v-if="textObjDlg.form.apiMethod === 'POST'" label="请求体">
               <el-input v-model="textObjDlg.form.apiBody" type="textarea" :rows="6" :readonly="isTextFixedApiTask" placeholder="可选，JSON或文本请求体" />
             </el-form-item>
@@ -1211,6 +1221,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Select, Warning } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { saveAs } from 'file-saver'
+import { getToken } from '@/utils/auth'
 import '@/views/project_3/common.css'
 import {
   buildAnomalyChartOption,
@@ -1406,6 +1417,7 @@ const textObjDlg = reactive({
     apiFileName: ''
   }
 })
+const textApiUseLoginToken = ref(false)
 const dataFileDialog = reactive({
   visible: false,
   loading: false,
@@ -4326,6 +4338,18 @@ function resetTextObjForm() {
   textObjDlg.form.apiHeaders = ''
   textObjDlg.form.apiBody = ''
   textObjDlg.form.apiFileName = ''
+  textApiUseLoginToken.value = false
+}
+
+function attachCurrentLoginToken() {
+  const token = getToken()
+  if (!token) {
+    textApiUseLoginToken.value = false
+    ElMessage.warning('未获取到当前登录令牌，请重新登录后再试')
+    return
+  }
+  textApiUseLoginToken.value = true
+  ElMessage.success('已获取当前登录令牌，接口取数时将自动附带')
 }
 
 async function openNumObjDlg(importType = 'numeric') {
@@ -4962,6 +4986,18 @@ async function submitTextApiData() {
   }
   const headers = parseTextApiHeaders()
   if (headers === null) return
+  if (textApiUseLoginToken.value) {
+    const token = getToken()
+    if (!token) {
+      textApiUseLoginToken.value = false
+      ElMessage.warning('当前登录令牌已失效，请重新登录后再获取')
+      return
+    }
+    Object.keys(headers).forEach(key => {
+      if (key.toLowerCase() === 'authorization') delete headers[key]
+    })
+    headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`
+  }
 
   const payload = {
     taskType: textObjDlg.form.taskType,
@@ -6513,6 +6549,19 @@ onBeforeUnmount(() => {
   color: #8a97a8;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.api-token-action {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.api-token-tip {
+  width: auto;
+  margin-top: 0;
 }
 
 .hidden-file-input {
