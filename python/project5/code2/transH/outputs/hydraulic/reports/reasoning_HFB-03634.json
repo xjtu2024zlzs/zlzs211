@@ -314,8 +314,8 @@
   ],
   "rca_context": {
     "case_id": "HCASE-03634",
-    "root_sensor": "PS6",
-    "root_sensor_confidence": 1.0,
+    "root_sensor": "FS2",
+    "root_sensor_confidence": 0.8913,
     "secondary_sensor": "PS2",
     "secondary_sensor_confidence": 0.8283,
     "root_component_code": "C011",
@@ -323,18 +323,18 @@
     "root_component_uids": [
       "HCU-03634"
     ],
-    "component_confidence": 0.6039,
-    "rca_confidence": 0.6039,
+    "component_confidence": 0.5529,
+    "rca_confidence": 0.5529,
     "is_root_component_different_from_feedback": false,
     "component_diagnosis_top3": [
       {
-        "severity": 0.6039,
+        "severity": 0.5529,
         "component_id": "C011",
         "is_fault": true,
         "root_cause_mechanism": "",
         "component_name": "管路总成",
-        "confidence": 0.6039,
-        "fault_type": "振动耦合相关的管路疲劳风险",
+        "confidence": 0.5529,
+        "fault_type": "流量-压差异常相关的管路磨损风险",
         "recommendation": "",
         "component_code": "C011",
         "fault_level": "轻度",
@@ -344,12 +344,12 @@
       {
         "component_id": "C011",
         "component_name": "管路总成",
-        "fault_type": "疲劳裂纹(F)",
-        "severity": 0.6039,
+        "fault_type": "磨损(W)",
+        "severity": 0.5529,
         "is_fault": true,
         "fault_level": "根因子类型",
         "sub_type_id": "",
-        "sub_type_name": "疲劳裂纹(F)",
+        "sub_type_name": "磨损(W)",
         "fault_part": "",
         "display_role": "RCA根因部件子类型",
         "display_source": "root_component_subtype"
@@ -360,9 +360,9 @@
         "component_id": "C011",
         "component_name": "管路总成",
         "sub_type_id": "",
-        "sub_type_name": "疲劳裂纹(F)",
+        "sub_type_name": "磨损(W)",
         "fault_part": "",
-        "probability": 0.6039
+        "probability": 0.5529
       }
     ],
     "sensor_energy_top5": {
@@ -373,31 +373,31 @@
       "PS3": 0.15941
     },
     "evolution_chain": [
-      "PS6",
-      "VS1",
-      "EPS1",
-      "TS3",
-      "PS1",
       "FS2",
-      "PS3",
-      "PS5",
-      "TS4",
+      "PS6",
       "FS1",
-      "TS1",
+      "PS1",
+      "PS5",
+      "EPS1",
+      "VS1",
       "TS2",
+      "PS3",
+      "PS4",
       "PS2",
-      "PS4"
+      "TS3",
+      "TS4",
+      "TS1"
     ],
     "algorithm_conclusion": "当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。",
     "component_diagnostics_from_first_algorithm": [
       {
-        "severity": 0.6039,
+        "severity": 0.5529,
         "component_id": "C011",
         "is_fault": true,
         "root_cause_mechanism": "",
         "component_name": "管路总成",
-        "confidence": 0.6039,
-        "fault_type": "振动耦合相关的管路疲劳风险",
+        "confidence": 0.5529,
+        "fault_type": "流量-压差异常相关的管路磨损风险",
         "recommendation": "",
         "component_code": "C011",
         "fault_level": "轻度"
@@ -406,35 +406,35 @@
     "first_algorithm_result": {
       "fault_component_id": "C011",
       "fault_component": "管路总成",
-      "component_confidence": 0.6039,
-      "trigger_sensor": "PS6",
-      "sensor_confidence": 1.0,
+      "component_confidence": 0.5529,
+      "trigger_sensor": "FS2",
+      "sensor_confidence": 0.8913,
       "evolution_chain": [
-        "PS6",
-        "VS1",
-        "EPS1",
-        "TS3",
-        "PS1",
         "FS2",
-        "PS3",
-        "PS5",
-        "TS4",
+        "PS6",
         "FS1",
-        "TS1",
+        "PS1",
+        "PS5",
+        "EPS1",
+        "VS1",
         "TS2",
+        "PS3",
+        "PS4",
         "PS2",
-        "PS4"
+        "TS3",
+        "TS4",
+        "TS1"
       ],
       "algorithm_conclusion": "当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。",
       "component_diagnostics": [
         {
-          "severity": 0.6039,
+          "severity": 0.5529,
           "component_id": "C011",
           "is_fault": true,
           "root_cause_mechanism": "",
           "component_name": "管路总成",
-          "confidence": 0.6039,
-          "fault_type": "振动耦合相关的管路疲劳风险",
+          "confidence": 0.5529,
+          "fault_type": "流量-压差异常相关的管路磨损风险",
           "recommendation": "",
           "component_code": "C011",
           "fault_level": "轻度"
@@ -444,17 +444,17 @@
         "subtype_top5": [
           {
             "component_id": "C011",
-            "subtype_name": "疲劳裂纹(F)",
-            "probability": 0.6039,
+            "subtype_name": "磨损(W)",
+            "probability": 0.5529,
             "component_name": "管路总成",
-            "confidence": 0.6039,
-            "fault_type": "疲劳裂纹(F)",
+            "confidence": 0.5529,
+            "fault_type": "磨损(W)",
             "description": "-",
             "recommendation": "",
             "component_code": "C011",
-            "fault_subtype": "疲劳裂纹(F)",
-            "sub_type_name": "疲劳裂纹(F)",
-            "severity_score": 0.6039
+            "fault_subtype": "磨损(W)",
+            "sub_type_name": "磨损(W)",
+            "severity_score": 0.5529
           }
         ],
         "faultComponent": "管路总成",
@@ -463,36 +463,36 @@
         "componentStatus": "轻度",
         "component_code": "C011",
         "source": "ruoyi_topic5_algorithm_result",
-        "root_sensor_confidence": 1.0,
-        "trace_no": "QF-20260709-94820",
-        "triggerSensor": "PS6",
-        "component_confidence": 0.6039,
+        "root_sensor_confidence": 0.8913,
+        "trace_no": "QF-20260711-14807",
+        "triggerSensor": "FS2",
+        "component_confidence": 0.5529,
         "conclusion": "当前已完成多元特征提取与初步故障根因分析，可进入后续卷宗实体映射和溯源图谱构建流程。",
         "component_diagnosis_top3": [
           {
-            "severity": 0.6039,
+            "severity": 0.5529,
             "component_id": "C011",
             "is_fault": true,
             "root_cause_mechanism": "",
             "component_name": "管路总成",
-            "confidence": 0.6039,
-            "fault_type": "振动耦合相关的管路疲劳风险",
+            "confidence": 0.5529,
+            "fault_type": "流量-压差异常相关的管路磨损风险",
             "recommendation": "",
             "component_code": "C011",
             "fault_level": "轻度"
           }
         ],
-        "rca_confidence": 0.6039,
-        "fault_name": "疲劳裂纹(F)",
+        "rca_confidence": 0.5529,
+        "fault_name": "磨损(W)",
         "subtypeByComponent": {
           "C011": [
             {
               "rank": 1,
               "component_id": "C011",
               "component_name": "管路总成",
-              "label": 1,
-              "subtype": "疲劳裂纹(F)",
-              "fault_type": "疲劳裂纹(F)",
+              "label": 4,
+              "subtype": "磨损(W)",
+              "fault_type": "磨损(W)",
               "fault_size": 0.007,
               "fault_size_inch": 0.007,
               "probability": 0.85,
@@ -501,64 +501,64 @@
           ]
         },
         "root_component_diagnosis": {
-          "severity": 0.6039,
+          "severity": 0.5529,
           "component_id": "C011",
           "is_fault": true,
           "root_cause_mechanism": "",
           "component_name": "管路总成",
-          "confidence": 0.6039,
-          "fault_type": "振动耦合相关的管路疲劳风险",
+          "confidence": 0.5529,
+          "fault_type": "流量-压差异常相关的管路磨损风险",
           "recommendation": "",
           "component_code": "C011",
           "fault_level": "轻度"
         },
         "dynamicTopologyMatrix": [],
-        "caseId": "QF-20260709-94820",
+        "caseId": "QF-20260711-14807",
         "sensorAnomalyEnergy": {
-          "PS6": 0.571,
-          "VS1": 0.559,
-          "EPS1": 0.157,
-          "TS3": 0.146,
-          "PS1": 0.143,
-          "FS2": 0.138
+          "FS2": 0.449,
+          "PS6": 0.288,
+          "FS1": 0.247,
+          "PS1": 0.229,
+          "PS5": 0.178,
+          "EPS1": 0.163
         },
-        "evolutionChainRaw": "[\"PS6\",\"VS1\",\"EPS1\",\"TS3\",\"PS1\",\"FS2\",\"PS3\",\"PS5\",\"TS4\",\"FS1\",\"TS1\",\"TS2\",\"PS2\",\"PS4\"]",
+        "evolutionChainRaw": "[\"FS2\",\"PS6\",\"FS1\",\"PS1\",\"PS5\",\"EPS1\",\"VS1\",\"TS2\",\"PS3\",\"PS4\",\"PS2\",\"TS3\",\"TS4\",\"TS1\"]",
         "root_component_code": "C011",
         "component_id": "C011",
         "chain": [
-          "PS6",
-          "VS1",
-          "EPS1",
-          "TS3",
-          "PS1",
           "FS2",
-          "PS3",
-          "PS5",
-          "TS4",
+          "PS6",
           "FS1",
-          "TS1",
+          "PS1",
+          "PS5",
+          "EPS1",
+          "VS1",
           "TS2",
+          "PS3",
+          "PS4",
           "PS2",
-          "PS4"
+          "TS3",
+          "TS4",
+          "TS1"
         ],
-        "trace_id": 75,
-        "root_sensor": "PS6",
-        "secondary_sensor": "VS1",
+        "trace_id": 77,
+        "root_sensor": "FS2",
+        "secondary_sensor": "PS6",
         "severityScores": {
-          "C011": 0.4562
+          "C011": 0.4507
         },
         "component_name": "管路总成",
-        "fault_type": "疲劳裂纹(F)",
+        "fault_type": "磨损(W)",
         "fault_level": "轻度",
         "componentDiagnostics": [
           {
-            "severity": 0.6039,
+            "severity": 0.5529,
             "component_id": "C011",
             "is_fault": true,
             "root_cause_mechanism": "",
             "component_name": "管路总成",
-            "confidence": 0.6039,
-            "fault_type": "振动耦合相关的管路疲劳风险",
+            "confidence": 0.5529,
+            "fault_type": "流量-压差异常相关的管路磨损风险",
             "recommendation": "",
             "component_code": "C011",
             "fault_level": "轻度"
@@ -567,67 +567,67 @@
         "root_component_subtype_topk": [
           {
             "component_id": "C011",
-            "subtype_name": "疲劳裂纹(F)",
-            "probability": 0.6039,
+            "subtype_name": "磨损(W)",
+            "probability": 0.5529,
             "component_name": "管路总成",
-            "confidence": 0.6039,
-            "fault_type": "疲劳裂纹(F)",
+            "confidence": 0.5529,
+            "fault_type": "磨损(W)",
             "description": "-",
             "recommendation": "",
             "component_code": "C011",
-            "fault_subtype": "疲劳裂纹(F)",
-            "sub_type_name": "疲劳裂纹(F)",
-            "severity_score": 0.6039
+            "fault_subtype": "磨损(W)",
+            "sub_type_name": "磨损(W)",
+            "severity_score": 0.5529
           }
         ],
         "displayType": "PYTHON_AAGCN_RCA_V1",
-        "componentConfidence": 0.6039,
+        "componentConfidence": 0.5529,
         "subtypeProbabilities": [
           {
             "component_id": "C011",
-            "subtype_name": "疲劳裂纹(F)",
-            "probability": 0.6039,
+            "subtype_name": "磨损(W)",
+            "probability": 0.5529,
             "component_name": "管路总成",
-            "confidence": 0.6039,
-            "fault_type": "疲劳裂纹(F)",
+            "confidence": 0.5529,
+            "fault_type": "磨损(W)",
             "description": "-",
             "recommendation": "",
             "component_code": "C011",
-            "fault_subtype": "疲劳裂纹(F)",
-            "sub_type_name": "疲劳裂纹(F)",
-            "severity_score": 0.6039
+            "fault_subtype": "磨损(W)",
+            "sub_type_name": "磨损(W)",
+            "severity_score": 0.5529
           }
         ],
-        "sensorConfidence": 1.0,
+        "sensorConfidence": 0.8913,
         "evolutionChain": [
-          "PS6",
-          "VS1",
-          "EPS1",
-          "TS3",
-          "PS1",
           "FS2",
-          "PS3",
-          "PS5",
-          "TS4",
+          "PS6",
           "FS1",
-          "TS1",
+          "PS1",
+          "PS5",
+          "EPS1",
+          "VS1",
           "TS2",
+          "PS3",
+          "PS4",
           "PS2",
-          "PS4"
+          "TS3",
+          "TS4",
+          "TS1"
         ],
         "root_component_name": "管路总成",
         "faultComponentId": "C011",
-        "severity_score": 0.6039
+        "severity_score": 0.5529
       }
     },
     "root_component_diagnosis": {
-      "severity": 0.6039,
+      "severity": 0.5529,
       "component_id": "C011",
       "is_fault": true,
       "root_cause_mechanism": "",
       "component_name": "管路总成",
-      "confidence": 0.6039,
-      "fault_type": "振动耦合相关的管路疲劳风险",
+      "confidence": 0.5529,
+      "fault_type": "流量-压差异常相关的管路磨损风险",
       "recommendation": "",
       "component_code": "C011",
       "fault_level": "轻度"
@@ -637,20 +637,20 @@
         "component_id": "C011",
         "component_name": "管路总成",
         "sub_type_id": "",
-        "sub_type_name": "疲劳裂纹(F)",
+        "sub_type_name": "磨损(W)",
         "fault_part": "",
-        "probability": 0.6039
+        "probability": 0.5529
       }
     ],
     "global_component_diagnosis_top3": [
       {
-        "severity": 0.6039,
+        "severity": 0.5529,
         "component_id": "C011",
         "is_fault": true,
         "root_cause_mechanism": "",
         "component_name": "管路总成",
-        "confidence": 0.6039,
-        "fault_type": "振动耦合相关的管路疲劳风险",
+        "confidence": 0.5529,
+        "fault_type": "流量-压差异常相关的管路磨损风险",
         "recommendation": "",
         "component_code": "C011",
         "fault_level": "轻度"
@@ -661,9 +661,9 @@
         "component_id": "C011",
         "component_name": "管路总成",
         "sub_type_id": "",
-        "sub_type_name": "疲劳裂纹(F)",
+        "sub_type_name": "磨损(W)",
         "fault_part": "",
-        "probability": 0.6039
+        "probability": 0.5529
       }
     ],
     "subtype_display_note": "",
@@ -673,7 +673,7 @@
     "rca_source": "upstream_first_algorithm",
     "local_case_rca_overridden": true
   },
-  "conclusion_text": "液压反馈对象为 管路总成，上游 RCA 根因部件为 C011 管路总成，根因传感器为 PS6。系统识别该质量反馈与 C011 管路总成及管路设计参数相关，首要复核方向为设计阶段管路设计参数复核，建议反馈至设计子系统。原 TransH 候选结果中的材料、制造、装配、检测及使用/运维阶段候选作为辅助排查对象保留。",
+  "conclusion_text": "液压反馈对象为 管路总成，上游 RCA 根因部件为 C011 管路总成，根因传感器为 FS2。系统识别该质量反馈与 C011 管路总成及管路设计参数相关，首要复核方向为设计阶段管路设计参数复核，建议反馈至设计子系统。原 TransH 候选结果中的材料、制造、装配、检测及使用/运维阶段候选作为辅助排查对象保留。",
   "_output_path": "D:\\2.11\\RuoYi-Cloud-master\\python\\project5\\code2\\transH\\outputs\\hydraulic\\reports\\reasoning_HFB-03634.json",
   "pipe_design_reference": {
     "enabled": true,
@@ -825,5 +825,5 @@
       "confidence_type": "综合置信度"
     }
   ],
-  "upstream_conclusion_text": "液压反馈对象为 管路总成，上游 RCA 根因部件为 C011 管路总成，根因传感器为 PS6。系统识别该质量反馈与 C011 管路总成及管路设计参数相关，首要复核方向为设计阶段管路设计参数复核，建议反馈至设计子系统。原 TransH 候选结果中的材料、制造、装配、检测及使用/运维阶段候选作为辅助排查对象保留。"
+  "upstream_conclusion_text": "液压反馈对象为 管路总成，上游 RCA 根因部件为 C011 管路总成，根因传感器为 FS2。系统识别该质量反馈与 C011 管路总成及管路设计参数相关，首要复核方向为设计阶段管路设计参数复核，建议反馈至设计子系统。原 TransH 候选结果中的材料、制造、装配、检测及使用/运维阶段候选作为辅助排查对象保留。"
 }

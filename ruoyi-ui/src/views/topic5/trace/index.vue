@@ -384,7 +384,7 @@
               <el-table-column prop="rank" label="排名" width="80" align="center" />
               <el-table-column prop="componentId" label="部件编号" min-width="120" />
               <el-table-column prop="componentName" label="部件名称" min-width="140" />
-              <el-table-column prop="faultType" label="诊断结果" min-width="160" />
+              <el-table-column prop="faultType" label="定位原因" min-width="160" />
 
               <el-table-column prop="severity" label="严重度" width="120" align="center">
                 <template #default="scope">

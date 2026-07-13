@@ -311,34 +311,45 @@ export default {
   },
 
   methods: {
-    async loadFileOptions() {
-      this.fileOptionsLoading = true
-      try {
-        const res = await listCwruFiles()
-        if (res.code === 200) {
-          const list = res.data || []
+            async loadFileOptions() {
+              this.fileOptionsLoading = true
 
-          this.fileOptions = list.map(item => {
-            const keyNum = Number(item.fileName || item.file_name || item.keyNum || item.key_num)
-            return {
-              keyNum,
-              label: `${keyNum} | ${item.dataDir || item.data_dir || ''} | ${item.sampleRate || item.sample_rate || ''}Hz | load=${item.loadHp ?? item.load_hp ?? ''}`
-            }
-          }).filter(item => item.keyNum)
+              try {
+                const res = await listCwruFiles()
 
-          if (!this.form.keyNum && this.fileOptions.length > 0) {
-            this.form.keyNum = this.fileOptions[0].keyNum
-          }
-        } else {
-          this.$modal.msgError(res.msg || "液压管路样本列表加载失败")
-        }
-      } catch (err) {
-        console.error(err)
-        this.$modal.msgError("液压管路样本列表加载失败：" + err.message)
-      } finally {
-        this.fileOptionsLoading = false
-      }
-    },
+                if (res.code === 200) {
+                  const list = res.data || []
+
+                  this.fileOptions = list
+                    .map(item => {
+                      const keyNum = Number(
+                        item.fileName ||
+                        item.file_name ||
+                        item.keyNum ||
+                        item.key_num
+                      )
+
+                      return {
+                        keyNum,
+                        // 下拉框只显示最前面的样本编号
+                        label: String(keyNum)
+                      }
+                    })
+                    .filter(item => item.keyNum)
+
+                  if (!this.form.keyNum && this.fileOptions.length > 0) {
+                    this.form.keyNum = this.fileOptions[0].keyNum
+                  }
+                } else {
+                  this.$modal.msgError(res.msg || "液压管路样本列表加载失败")
+                }
+              } catch (err) {
+                console.error(err)
+                this.$modal.msgError("液压管路样本列表加载失败：" + err.message)
+              } finally {
+                this.fileOptionsLoading = false
+              }
+            },
     handleKeyNumChange(value) {
       if (value) {
         localStorage.setItem('project4_key_num', String(value))
