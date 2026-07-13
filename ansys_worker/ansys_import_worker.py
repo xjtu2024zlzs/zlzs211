@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -64,11 +65,33 @@ def fault_value(payload, key, default):
     return default
 
 
+def parameter_section(payload, name):
+    params = nested(payload, "simulationParameters", default={})
+    if not isinstance(params, dict):
+        return {}
+    section = params.get(name)
+    return section if isinstance(section, dict) else {}
+
+
 def pressure_config(payload):
-    initial_pa = to_float(fault_value(payload, "INLET_PRESSURE_INITIAL", DEFAULT_INITIAL_PRESSURE_PA), DEFAULT_INITIAL_PRESSURE_PA)
-    peak_pa = to_float(fault_value(payload, "INLET_PRESSURE_PEAK", DEFAULT_PRESSURE_PA), DEFAULT_PRESSURE_PA)
-    rise_time_s = to_float(fault_value(payload, "INLET_PRESSURE_RISE_TIME", DEFAULT_RISE_TIME_S), DEFAULT_RISE_TIME_S)
-    expression = str(fault_value(payload, "INLET_PRESSURE_EXPRESSION", payload.get("pressureLoad") or "") or "").strip()
+    pressure = parameter_section(payload, "pressure")
+    initial_pa = to_float(first_value(
+        pressure.get("initialPressurePa"),
+        fault_value(payload, "INLET_PRESSURE_INITIAL", DEFAULT_INITIAL_PRESSURE_PA),
+    ), DEFAULT_INITIAL_PRESSURE_PA)
+    peak_pa = to_float(first_value(
+        pressure.get("peakPressurePa"),
+        fault_value(payload, "INLET_PRESSURE_PEAK", DEFAULT_PRESSURE_PA),
+    ), DEFAULT_PRESSURE_PA)
+    rise_time_s = to_float(first_value(
+        pressure.get("riseTimeS"),
+        fault_value(payload, "INLET_PRESSURE_RISE_TIME", DEFAULT_RISE_TIME_S),
+    ), DEFAULT_RISE_TIME_S)
+    expression = str(first_value(
+        pressure.get("expression"),
+        fault_value(payload, "INLET_PRESSURE_EXPRESSION", payload.get("pressureLoad") or ""),
+        payload.get("pressureLoad") or "",
+    ) or "").strip()
     if not expression:
         expression = f"IF(t <= {rise_time_s}, {initial_pa} + ({peak_pa} - {initial_pa}) * t / {rise_time_s}, {peak_pa})"
     return {
@@ -80,13 +103,17 @@ def pressure_config(payload):
 
 
 def material_config(payload):
-    material_name = str(fault_value(payload, "MATERIAL_NAME", "Structural Steel") or "Structural Steel").strip()
+    material = parameter_section(payload, "material")
+    material_name = str(first_value(
+        material.get("materialName"),
+        fault_value(payload, "MATERIAL_NAME", "Structural Steel"),
+    ) or "Structural Steel").strip()
     return {
         "materialName": material_name,
-        "youngModulusPa": to_float(fault_value(payload, "YOUNG_MODULUS", 1.93e11), 1.93e11),
-        "poissonRatio": to_float(fault_value(payload, "POISSON_RATIO", 0.31), 0.31),
-        "tensileYieldStrengthPa": to_float(fault_value(payload, "TENSILE_YIELD_STRENGTH", 2.07e8), 2.07e8),
-        "tensileUltimateStrengthPa": to_float(fault_value(payload, "TENSILE_ULTIMATE_STRENGTH", 5.86e8), 5.86e8),
+        "youngModulusPa": to_float(first_value(material.get("youngModulusPa"), fault_value(payload, "YOUNG_MODULUS", 1.93e11)), 1.93e11),
+        "poissonRatio": to_float(first_value(material.get("poissonRatio"), fault_value(payload, "POISSON_RATIO", 0.31)), 0.31),
+        "tensileYieldStrengthPa": to_float(first_value(material.get("tensileYieldStrengthPa"), fault_value(payload, "TENSILE_YIELD_STRENGTH", 2.07e8)), 2.07e8),
+        "tensileUltimateStrengthPa": to_float(first_value(material.get("tensileUltimateStrengthPa"), fault_value(payload, "TENSILE_ULTIMATE_STRENGTH", 5.86e8)), 5.86e8),
     }
 
 
@@ -95,6 +122,29 @@ def first_value(*values):
         if value not in (None, ""):
             return value
     return None
+
+
+def mesh_size_config(payload):
+    mesh = parameter_section(payload, "mesh")
+    return to_float(first_value(mesh.get("globalSizeMm"), mesh.get("meshSizeMm")), MECHANICAL_MESH_SIZE_MM)
+
+
+def boundary_config(payload):
+    boundary = parameter_section(payload, "boundary")
+    fixed_support_mode = str(first_value(boundary.get("fixedSupportMode"), "both_ends") or "both_ends").strip()
+    if fixed_support_mode not in ("both_ends", "single_end"):
+        fixed_support_mode = "both_ends"
+    return {
+        "fixedSupportMode": fixed_support_mode,
+        "pressureFaceMode": "inner_wall",
+    }
+
+
+def operation_config(payload):
+    text = str(payload.get("operation") or "prepare_only").strip().lower()
+    if text in ("import", "import_result", "read_result", "read_results"):
+        return "import_result"
+    return "prepare_only"
 
 
 def parse_centerline_points(path):
@@ -166,6 +216,17 @@ def simulation_mode_slug(mode):
     return "bidirectional_fsi_model" if mode == MODE_FSI else "demo_simulation_model"
 
 
+def prepare_job_dir(task_id, simulation_mode):
+    base_dir = OUTPUT_DIR / f"task_{task_id}" / simulation_mode_slug(simulation_mode)
+    stamp = time.strftime("open_%Y%m%d_%H%M%S")
+    candidate = base_dir / f"{stamp}_{os.getpid()}"
+    counter = 1
+    while candidate.exists():
+        counter += 1
+        candidate = base_dir / f"{stamp}_{os.getpid()}_{counter}"
+    return candidate
+
+
 def is_fsi_mode(mode):
     return normalize_simulation_mode(mode) == MODE_FSI
 
@@ -235,9 +296,12 @@ def worker_health():
 
 def import_geometry(payload):
     task_id = safe_task_id(payload.get("taskId") or "manual")
+    operation = operation_config(payload)
     geometry_path = payload.get("geometryPath") or nested(payload, "geometry", "geometryPath")
     geometry_type = payload.get("geometryType") or nested(payload, "geometry", "geometryType", default="")
     simulation_mode = normalize_simulation_mode(payload.get("simulationMode") or "static_structural")
+    if operation == "import_result":
+        return import_simulation_result(payload, task_id, simulation_mode)
     if not geometry_path:
         raise RuntimeError("Missing geometryPath. Generate CAD and pass STEP or Parasolid geometry first.")
 
@@ -245,7 +309,7 @@ def import_geometry(payload):
     if not geometry.exists() or not geometry.is_file():
         raise RuntimeError(f"Geometry file does not exist: {geometry}")
 
-    job_dir = OUTPUT_DIR / f"task_{task_id}" / simulation_mode_slug(simulation_mode)
+    job_dir = prepare_job_dir(task_id, simulation_mode) if operation == "prepare_only" else OUTPUT_DIR / f"task_{task_id}" / simulation_mode_slug(simulation_mode)
     job_dir.mkdir(parents=True, exist_ok=True)
     project_path = job_dir / "pipe_import.wbpj"
     journal_path = job_dir / "import_geometry.wbjn"
@@ -261,6 +325,8 @@ def import_geometry(payload):
     pressure = pressure_config(payload)
     pipe_geometry = pipe_geometry_config(payload)
     material = material_config(payload)
+    mesh_size_mm = mesh_size_config(payload)
+    boundary = boundary_config(payload)
 
     reset_job_outputs(job_dir, [
         mechanical_result_path,
@@ -279,31 +345,23 @@ def import_geometry(payload):
     workbench_geometry = copy_geometry_to_job(geometry, job_dir, geometry_type)
 
     if is_fsi_mode(simulation_mode):
-        return run_bidirectional_fsi_reference(
-            payload,
-            job_dir,
-            geometry,
-            geometry_type,
-            workbench_geometry,
-            pressure,
-            pipe_geometry,
-            material,
-            simulation_mode,
-        )
+        raise RuntimeError("Manual ANSYS opening is currently supported for Mechanical static structural tasks first.")
 
     write_progress(job_dir, "GENERATE_SCRIPTS", "生成 Workbench Journal 和 Mechanical 脚本")
+    mechanical_script_builder = mechanical_prepare_script if operation == "prepare_only" else mechanical_script
     mechanical_script_path.write_text(
-        mechanical_script(
+        mechanical_script_builder(
             mechanical_result_path,
             mechanical_started_path,
             mechanical_trace_path,
             stress_image_path,
-            MECHANICAL_MESH_SIZE_MM,
+            mesh_size_mm,
             IMAGE_EXPORT_WIDTH,
             IMAGE_EXPORT_HEIGHT,
             pressure,
             pipe_geometry,
             material,
+            boundary,
             simulation_mode,
         ),
         encoding="utf-8",
@@ -317,6 +375,7 @@ def import_geometry(payload):
             mechanical_ready_path,
             mechanical_command_error_path,
             simulation_mode,
+            hold_open=operation == "prepare_only",
         ),
         encoding="utf-8",
     )
@@ -330,23 +389,93 @@ def import_geometry(payload):
     cmd, use_shell = workbench_command_line(WORKBENCH_CMD, journal_path)
     command_text = cmd if isinstance(cmd, str) else " ".join(cmd)
     (job_dir / "workbench_command.txt").write_text(command_text, encoding="utf-8", errors="ignore")
-    proc = subprocess.run(
-        cmd,
-        cwd=str(job_dir),
-        capture_output=True,
-        text=False,
-        shell=use_shell,
-        timeout=WORKBENCH_TIMEOUT,
-    )
-    stdout_path.write_text(decode_process_output(proc.stdout), encoding="utf-8", errors="ignore")
-    stderr_path.write_text(decode_process_output(proc.stderr), encoding="utf-8", errors="ignore")
+    if operation == "prepare_only":
+        with stdout_path.open("wb") as stdout_file, stderr_path.open("wb") as stderr_file:
+            proc = subprocess.Popen(
+                cmd,
+                cwd=str(job_dir),
+                stdout=stdout_file,
+                stderr=stderr_file,
+                shell=use_shell,
+            )
+        (job_dir / "workbench_pid.txt").write_text(str(proc.pid), encoding="utf-8")
+        deadline = time.time() + WORKBENCH_TIMEOUT
+        while time.time() < deadline:
+            if mechanical_result_path.exists():
+                break
+            if proc.poll() is not None:
+                raise RuntimeError(ansys_error_message(
+                    job_dir,
+                    f"ANSYS Workbench exited before Mechanical prepared the model. Exit code {proc.returncode}."
+                ))
+            time.sleep(1)
+        else:
+            raise RuntimeError(ansys_error_message(job_dir, "Timed out waiting for Mechanical to prepare the model."))
 
-    if proc.returncode != 0:
-        raise RuntimeError(ansys_error_message(job_dir, f"ANSYS geometry import failed with exit code {proc.returncode}."))
-    if not project_path.exists():
-        raise RuntimeError(ansys_error_message(job_dir, "ANSYS did not create the Workbench project file."))
+        project_deadline = time.time() + 60
+        while time.time() < project_deadline and not project_path.exists():
+            if proc.poll() is not None:
+                break
+            time.sleep(1)
+        if not project_path.exists():
+            raise RuntimeError(ansys_error_message(job_dir, "ANSYS did not create the Workbench project file."))
+    else:
+        proc = subprocess.run(
+            cmd,
+            cwd=str(job_dir),
+            capture_output=True,
+            text=False,
+            shell=use_shell,
+            timeout=WORKBENCH_TIMEOUT,
+        )
+        stdout_path.write_text(decode_process_output(proc.stdout), encoding="utf-8", errors="ignore")
+        stderr_path.write_text(decode_process_output(proc.stderr), encoding="utf-8", errors="ignore")
+
+        if proc.returncode != 0:
+            raise RuntimeError(ansys_error_message(job_dir, f"ANSYS geometry import failed with exit code {proc.returncode}."))
+        if not project_path.exists():
+            raise RuntimeError(ansys_error_message(job_dir, "ANSYS did not create the Workbench project file."))
 
     mechanical_result = read_json(mechanical_result_path)
+    selected_template = read_text(job_dir / "selected_template.txt")
+    if operation == "prepare_only":
+        prepared = str(mechanical_result.get("status", "")).upper() in ("PREPARED", "READY")
+        if not mechanical_result_path.exists():
+            raise RuntimeError(ansys_error_message(job_dir, "Mechanical did not produce mechanical_result.json for the prepared model."))
+        if not prepared:
+            raise RuntimeError(ansys_error_message(
+                job_dir,
+                "Mechanical model preparation failed: " + str(mechanical_result.get("errorMessage", "unknown error"))
+            ))
+        write_progress(job_dir, "PREPARED", "ANSYS Mechanical model prepared and left for engineer confirmation")
+        metrics = [
+            {"name": "Workbench 项目", "value": "已生成", "unit": "", "source": "ANSYS Workbench"},
+            {"name": "Workbench 模板", "value": selected_template or "未知", "unit": "", "source": "ANSYS Workbench"},
+            {"name": "导入几何格式", "value": geometry_type or geometry.suffix.lstrip(".").upper(), "unit": "", "source": "CAD Worker"},
+            {"name": "网格尺寸", "value": mesh_size_mm, "unit": "mm", "source": "前端仿真参数"},
+            {"name": "峰值压力", "value": round(pressure["peakPressurePa"] / 1000000.0, 6), "unit": "MPa", "source": "前端仿真参数"},
+            {"name": "材料", "value": material["materialName"], "unit": "", "source": "前端仿真参数"},
+        ]
+        for item in mechanical_result.get("metrics", []):
+            if isinstance(item, dict):
+                metrics.append(item)
+        return {
+            "status": "PREPARED",
+            "summary": "ANSYS Mechanical 模型已打开并完成材料、网格、约束、载荷和结果项设置，等待工程师确认后手动求解。",
+            "sourceGeometryPath": str(geometry),
+            "geometryPath": str(workbench_geometry),
+            "geometryType": geometry_type or geometry.suffix.lstrip(".").upper(),
+            "simulationMode": simulation_mode,
+            "simulationModelName": "演示仿真模型",
+            "workDir": str(job_dir),
+            "projectPath": str(project_path),
+            "resultFilePath": str(project_path),
+            "mechanicalScriptPath": str(mechanical_script_path),
+            "mechanicalResultPath": str(mechanical_result_path),
+            "mechanicalResult": mechanical_result,
+            "metrics": metrics,
+            "placeholder": True,
+        }
     if stress_image_path.exists():
         try:
             annotate_stress_image(stress_image_path, mechanical_result)
@@ -354,7 +483,6 @@ def import_geometry(payload):
         except Exception as exc:
             append_trace(job_dir, "IMAGE_CHINESE_LABELS_FAILED=" + str(exc))
     mechanical_solved = str(mechanical_result.get("status", "")).upper() == "SUCCESS"
-    selected_template = read_text(job_dir / "selected_template.txt")
     if simulation_mode != "geometry_import" and not mechanical_result_path.exists():
         raise RuntimeError(ansys_error_message(job_dir, "Mechanical did not produce mechanical_result.json."))
     if simulation_mode != "geometry_import" and not mechanical_solved:
@@ -376,7 +504,7 @@ def import_geometry(payload):
         {"name": "管道外径", "value": pipe_geometry["outerDiameterMm"], "unit": "mm", "source": "CAD/故障管段参数"},
         {"name": "管道内径", "value": pipe_geometry["innerDiameterMm"], "unit": "mm", "source": "CAD/故障管段参数"},
         {"name": "管道壁厚", "value": round(pipe_geometry["wallThicknessMm"], 6), "unit": "mm", "source": "CAD/故障管段参数"},
-        {"name": "网格尺寸", "value": MECHANICAL_MESH_SIZE_MM, "unit": "mm", "source": "ANSYS Worker"},
+        {"name": "网格尺寸", "value": mesh_size_mm, "unit": "mm", "source": "ANSYS Worker"},
         {"name": "材料", "value": material["materialName"], "unit": "", "source": "故障管段参数"},
         {"name": "材料屈服强度", "value": material["tensileYieldStrengthPa"], "unit": "Pa", "source": "故障管段参数"},
     ]
@@ -454,6 +582,182 @@ def read_text(path):
         return path.read_text(encoding="utf-8", errors="ignore").strip()
     except Exception:
         return ""
+
+
+def path_from_payload(value):
+    if not value:
+        return None
+    try:
+        return Path(str(value))
+    except Exception:
+        return None
+
+
+def result_job_dir(payload, task_id, simulation_mode):
+    work_dir = path_from_payload(payload.get("workDir") or nested(payload, "result", "workDir"))
+    if work_dir and work_dir.exists() and work_dir.is_dir():
+        return work_dir
+    for key in ("projectPath", "resultFilePath"):
+        candidate = path_from_payload(payload.get(key) or nested(payload, "result", key))
+        if candidate and candidate.suffix.lower() == ".wbpj":
+            return candidate.parent
+        if candidate and candidate.exists() and candidate.is_dir():
+            return candidate
+    return OUTPUT_DIR / f"task_{task_id}" / simulation_mode_slug(simulation_mode)
+
+
+def result_project_path(payload, job_dir):
+    for key in ("projectPath", "resultFilePath"):
+        candidate = path_from_payload(payload.get(key) or nested(payload, "result", key))
+        if candidate and candidate.suffix.lower() == ".wbpj":
+            return candidate
+    return job_dir / "pipe_import.wbpj"
+
+
+def import_result_response(payload, job_dir, project_path, mechanical_script_path, mechanical_result_path, stress_image_path, simulation_mode, mechanical_result):
+    pressure = pressure_config(payload)
+    pipe_geometry = pipe_geometry_config(payload)
+    material = material_config(payload)
+    mesh_size_mm = mesh_size_config(payload)
+    boundary = boundary_config(payload)
+    metrics = [
+        {"name": "Workbench 项目", "value": "已读取", "unit": "", "source": "ANSYS Workbench"},
+        {"name": "项目文件", "value": str(project_path), "unit": "", "source": "ANSYS Workbench"},
+        {"name": "网格尺寸", "value": mesh_size_mm, "unit": "mm", "source": "仿真参数"},
+        {"name": "峰值压力", "value": round(pressure["peakPressurePa"] / 1000000.0, 6), "unit": "MPa", "source": "仿真参数"},
+        {"name": "材料", "value": material["materialName"], "unit": "", "source": "仿真参数"},
+        {"name": "管道外径", "value": pipe_geometry["outerDiameterMm"], "unit": "mm", "source": "CAD/参数"},
+        {"name": "管道内径", "value": pipe_geometry["innerDiameterMm"], "unit": "mm", "source": "CAD/参数"},
+    ]
+    for item in mechanical_result.get("metrics", []):
+        if isinstance(item, dict):
+            metrics.append(item)
+    return {
+        "status": "SUCCESS",
+        "summary": "已从 ANSYS Mechanical 读取当前求解结果并传回平台。",
+        "simulationMode": simulation_mode,
+        "simulationModelName": "演示仿真模型",
+        "workDir": str(job_dir),
+        "projectPath": str(project_path),
+        "resultFilePath": str(project_path),
+        "mechanicalScriptPath": str(mechanical_script_path),
+        "mechanicalResultPath": str(mechanical_result_path),
+        "stressImageUrl": str(stress_image_path) if stress_image_path.exists() else "",
+        "engineeringStatus": mechanical_result.get("engineeringStatus", ""),
+        "engineeringWarnings": mechanical_result.get("engineeringWarnings", []),
+        "engineeringEstimates": mechanical_result.get("engineeringEstimates", {}),
+        "maxEquivalentStressValue": mechanical_result.get("maxEquivalentStressValue"),
+        "maxTotalDeformationValue": mechanical_result.get("maxTotalDeformationValue"),
+        "mechanicalResult": mechanical_result,
+        "metrics": metrics,
+        "placeholder": False,
+    }
+
+
+def import_simulation_result(payload, task_id, simulation_mode):
+    job_dir = result_job_dir(payload, task_id, simulation_mode)
+    job_dir.mkdir(parents=True, exist_ok=True)
+    project_path = result_project_path(payload, job_dir)
+    mechanical_script_path = job_dir / "mechanical_import_result.py"
+    mechanical_result_path = job_dir / "mechanical_result.json"
+    mechanical_started_path = job_dir / "mechanical_started.txt"
+    mechanical_ready_path = job_dir / "mechanical_command_ready.txt"
+    mechanical_trace_path = job_dir / "mechanical_trace.txt"
+    mechanical_command_error_path = job_dir / "mechanical_command_error.txt"
+    stress_image_path = job_dir / "equivalent_stress.png"
+    journal_path = job_dir / "import_result.wbjn"
+    stdout_path = job_dir / "ansys_stdout.txt"
+    stderr_path = job_dir / "ansys_stderr.txt"
+
+    if not project_path.exists():
+        raise RuntimeError(f"Workbench project does not exist: {project_path}")
+
+    pressure = pressure_config(payload)
+    pipe_geometry = pipe_geometry_config(payload)
+    material = material_config(payload)
+    mesh_size_mm = mesh_size_config(payload)
+
+    reset_job_outputs(job_dir, [
+        mechanical_result_path,
+        mechanical_started_path,
+        mechanical_ready_path,
+        mechanical_trace_path,
+        mechanical_command_error_path,
+        stress_image_path,
+        stdout_path,
+        stderr_path,
+        job_dir / "workbench_command.txt",
+        job_dir / "workbench_steps.txt",
+        job_dir / "workbench_pid.txt",
+    ])
+
+    write_progress(job_dir, "IMPORT_RESULT", "Open existing ANSYS project and read Mechanical results")
+    mechanical_script_path.write_text(
+        mechanical_result_script(
+            mechanical_result_path,
+            mechanical_started_path,
+            mechanical_trace_path,
+            stress_image_path,
+            mesh_size_mm,
+            IMAGE_EXPORT_WIDTH,
+            IMAGE_EXPORT_HEIGHT,
+            pressure,
+            pipe_geometry,
+            material,
+            boundary,
+            simulation_mode,
+        ),
+        encoding="utf-8",
+    )
+    journal_path.write_text(
+        workbench_result_journal(
+            project_path,
+            mechanical_script_path,
+            mechanical_result_path,
+            mechanical_ready_path,
+            mechanical_command_error_path,
+        ),
+        encoding="utf-8",
+    )
+
+    if not WORKBENCH_CMD:
+        raise RuntimeError(
+            "ANSYS_WORKBENCH_CMD is not configured. Set it to runwb2.bat or RunWB2.exe before starting the ANSYS worker."
+        )
+
+    cmd, use_shell = workbench_command_line(WORKBENCH_CMD, journal_path)
+    command_text = cmd if isinstance(cmd, str) else " ".join(cmd)
+    (job_dir / "workbench_command.txt").write_text(command_text, encoding="utf-8", errors="ignore")
+    proc = subprocess.run(
+        cmd,
+        cwd=str(job_dir),
+        capture_output=True,
+        text=False,
+        shell=use_shell,
+        timeout=WORKBENCH_TIMEOUT,
+    )
+    stdout_path.write_text(decode_process_output(proc.stdout), encoding="utf-8", errors="ignore")
+    stderr_path.write_text(decode_process_output(proc.stderr), encoding="utf-8", errors="ignore")
+
+    if proc.returncode != 0:
+        raise RuntimeError(ansys_error_message(job_dir, f"ANSYS result import failed with exit code {proc.returncode}."))
+    if not mechanical_result_path.exists():
+        raise RuntimeError(ansys_error_message(job_dir, "Mechanical did not produce mechanical_result.json while importing results."))
+
+    mechanical_result = read_json(mechanical_result_path)
+    if str(mechanical_result.get("status", "")).upper() != "SUCCESS":
+        raise RuntimeError(ansys_error_message(
+            job_dir,
+            "Mechanical result import failed: " + str(mechanical_result.get("errorMessage", "unknown error"))
+        ))
+    if stress_image_path.exists():
+        try:
+            annotate_stress_image(stress_image_path, mechanical_result)
+            append_trace(job_dir, "IMAGE_CHINESE_LABELS_ANNOTATED")
+        except Exception as exc:
+            append_trace(job_dir, "IMAGE_CHINESE_LABELS_FAILED=" + str(exc))
+    write_progress(job_dir, "SUCCESS", "Mechanical result imported")
+    return import_result_response(payload, job_dir, project_path, mechanical_script_path, mechanical_result_path, stress_image_path, simulation_mode, mechanical_result)
 
 
 def write_progress(job_dir, stage, message):
@@ -879,6 +1183,7 @@ def workbench_journal(
     mechanical_ready_path,
     mechanical_command_error_path,
     simulation_mode,
+    hold_open=False,
 ):
     geometry_text = str(geometry_path).replace("\\", "\\\\")
     project_text = str(project_path).replace("\\", "\\\\")
@@ -889,6 +1194,7 @@ def workbench_journal(
     mechanical_command_error_text = str(mechanical_command_error_path).replace("\\", "\\\\")
     mechanical_interactive_text = "True" if MECHANICAL_INTERACTIVE else "False"
     keep_mechanical_open_text = "True" if KEEP_MECHANICAL_OPEN else "False"
+    hold_open_text = "True" if hold_open else "False"
     selected_template_text = str(project_path.with_name("selected_template.txt")).replace("\\", "\\\\")
     template_errors_text = str(project_path.with_name("template_probe_errors.txt")).replace("\\", "\\\\")
     steps_log_text = str(project_path.with_name("workbench_steps.txt")).replace("\\", "\\\\")
@@ -986,6 +1292,12 @@ if {keep_mechanical_open_text}:
 else:
     model.Exit()
     log_step("Mechanical closed")
+if {hold_open_text}:
+    log_step("Saving Workbench project before hold-open")
+    Save(FilePath=project_path, Overwrite=True)
+    log_step("Workbench journal holding open for engineer confirmation")
+    while True:
+        time.sleep(60)
 '''
     return f'''# -*- coding: utf-8 -*-
 # Auto-generated by ansys_import_worker.py
@@ -1064,7 +1376,141 @@ Save(FilePath=project_path, Overwrite=True)
 '''
 
 
-def mechanical_script(result_path, started_path, trace_path, stress_image_path, mesh_size_mm, image_width, image_height, pressure, pipe_geometry, material, simulation_mode):
+def workbench_result_journal(
+    project_path,
+    mechanical_script_path,
+    mechanical_result_path,
+    mechanical_ready_path,
+    mechanical_command_error_path,
+):
+    project_text = str(project_path).replace("\\", "\\\\")
+    mechanical_script_text = str(mechanical_script_path).replace("\\", "\\\\")
+    mechanical_result_text = str(mechanical_result_path).replace("\\", "\\\\")
+    mechanical_started_text = str(mechanical_result_path.with_name("mechanical_started.txt")).replace("\\", "\\\\")
+    mechanical_ready_text = str(mechanical_ready_path).replace("\\", "\\\\")
+    mechanical_command_error_text = str(mechanical_command_error_path).replace("\\", "\\\\")
+    mechanical_interactive_text = "True" if MECHANICAL_INTERACTIVE else "False"
+    keep_mechanical_open_text = "True" if KEEP_MECHANICAL_OPEN else "False"
+    hold_open_text = "True" if hold_open else "False"
+    selected_template_text = str(project_path.with_name("selected_template.txt")).replace("\\", "\\\\")
+    steps_log_text = str(project_path.with_name("workbench_steps.txt")).replace("\\", "\\\\")
+    return f'''# -*- coding: utf-8 -*-
+# Auto-generated by ansys_import_worker.py
+project_path = r"{project_text}"
+selected_template_path = r"{selected_template_text}"
+steps_log_path = r"{steps_log_text}"
+
+def log_step(message):
+    try:
+        step_log = open(steps_log_path, "a")
+        step_log.write(str(message) + "\\n")
+        step_log.close()
+    except Exception:
+        pass
+
+def safe_update(target, label):
+    try:
+        target.Update()
+        log_step(label + ".Update succeeded")
+        return
+    except Exception:
+        pass
+    try:
+        target.Refresh()
+        log_step(label + ".Refresh succeeded")
+        return
+    except Exception:
+        pass
+    log_step(label + " update skipped")
+
+log_step("Opening existing Workbench project: " + project_path)
+Open(FilePath=project_path)
+template_log = open(selected_template_path, "w")
+template_log.write("Existing Workbench Project")
+template_log.close()
+systems = GetAllSystems()
+if len(systems) < 1:
+    raise Exception("No system found in existing Workbench project.")
+system = systems[0]
+model = system.GetContainer(ComponentName="Model")
+safe_update(model, "Model")
+mechanical_script_path = r"{mechanical_script_text}"
+mechanical_started_path = r"{mechanical_started_text}"
+mechanical_ready_path = r"{mechanical_ready_text}"
+mechanical_command_error_path = r"{mechanical_command_error_text}"
+mechanical_result_path = r"{mechanical_result_text}"
+mechanical_handshake_command = "open(" + repr(mechanical_ready_path) + ", 'w').write('READY')"
+mechanical_command = "execfile(" + repr(mechanical_script_path) + ")"
+import os
+import time
+log_step("Opening Mechanical for result import")
+model.Edit(Interactive={mechanical_interactive_text})
+time.sleep({MECHANICAL_OPEN_WAIT})
+
+def wait_for_file(path, seconds):
+    for wait_index in range(seconds):
+        if os.path.exists(path):
+            return True
+        time.sleep(1)
+    return False
+
+def remove_file(path):
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+    except Exception:
+        pass
+
+def send_python_command(label, command):
+    try:
+        model.SendCommand(Language="Python", Command=command)
+        log_step(label + " sent")
+        return True
+    except Exception as send_exc:
+        try:
+            error_log = open(mechanical_command_error_path, "a")
+            error_log.write(label + ": " + str(send_exc) + "\\n")
+            error_log.close()
+        except Exception:
+            pass
+        log_step(label + " SendCommand failed: " + str(send_exc))
+        return False
+
+for attempt in range({MECHANICAL_HANDSHAKE_RETRIES}):
+    remove_file(mechanical_ready_path)
+    log_step("Sending Mechanical handshake attempt " + str(attempt + 1))
+    send_python_command("Mechanical handshake", mechanical_handshake_command)
+    if wait_for_file(mechanical_ready_path, {MECHANICAL_HANDSHAKE_WAIT}):
+        log_step("Mechanical command channel ready")
+        break
+    log_step("Mechanical handshake timeout")
+else:
+    raise Exception("Mechanical command channel did not become ready. Check Mechanical scripting support and license.")
+
+log_step("Sending Mechanical result import script")
+send_python_command("Mechanical result import script", mechanical_command)
+
+if not wait_for_file(mechanical_started_path, {MECHANICAL_START_TIMEOUT}):
+    log_step("Mechanical result script start timeout")
+    raise Exception("Mechanical result script did not start after command channel handshake.")
+
+for wait_index in range({MECHANICAL_RESULT_TIMEOUT}):
+    if os.path.exists(mechanical_result_path):
+        log_step("Mechanical result detected")
+        break
+    time.sleep(1)
+else:
+    log_step("Mechanical result timeout")
+if {keep_mechanical_open_text}:
+    log_step("Mechanical left open")
+else:
+    model.Exit()
+    log_step("Mechanical closed")
+Save(FilePath=project_path, Overwrite=True)
+'''
+
+
+def mechanical_script(result_path, started_path, trace_path, stress_image_path, mesh_size_mm, image_width, image_height, pressure, pipe_geometry, material, boundary, simulation_mode):
     result_text = str(result_path).replace("\\", "\\\\")
     started_text = str(started_path).replace("\\", "\\\\")
     trace_text = str(trace_path).replace("\\", "\\\\")
@@ -1084,6 +1530,8 @@ def mechanical_script(result_path, started_path, trace_path, stress_image_path, 
     poisson_ratio = material["poissonRatio"]
     tensile_yield_strength_pa = material["tensileYieldStrengthPa"]
     tensile_ultimate_strength_pa = material["tensileUltimateStrengthPa"]
+    fixed_support_mode = json.dumps(boundary["fixedSupportMode"], ensure_ascii=False)
+    pressure_face_mode = json.dumps(boundary["pressureFaceMode"], ensure_ascii=False)
     static_mode = simulation_mode in (MODE_DEMO, "static_structural", "equivalent_static")
     static_mode_text = "True" if static_mode else "False"
     return f'''# -*- coding: utf-8 -*-
@@ -1112,6 +1560,8 @@ young_modulus_pa = {young_modulus_pa}
 poisson_ratio = {poisson_ratio}
 tensile_yield_strength_pa = {tensile_yield_strength_pa}
 tensile_ultimate_strength_pa = {tensile_ultimate_strength_pa}
+fixed_support_mode = {fixed_support_mode}
+pressure_face_mode = {pressure_face_mode}
 static_mode = {static_mode_text}
 
 def write_result(payload):
@@ -1522,17 +1972,25 @@ try:
     max_x = max(xs)
     span = max(max_x - min_x, 1.0e-9)
     tolerance = span * 0.02
-    fixed_faces = [
+    min_end_faces = [
         face.Id for face in faces
-        if face_center_x(face) <= min_x + tolerance or face_center_x(face) >= max_x - tolerance
+        if face_center_x(face) <= min_x + tolerance
     ]
+    max_end_faces = [
+        face.Id for face in faces
+        if face_center_x(face) >= max_x - tolerance
+    ]
+    if fixed_support_mode == "single_end":
+        fixed_faces = min_end_faces
+    else:
+        fixed_faces = min_end_faces + [face_id for face_id in max_end_faces if face_id not in min_end_faces]
     if not fixed_faces:
         fixed_faces = [faces[xs.index(min_x)].Id]
     pressure_faces = select_inner_wall_faces(faces, fixed_faces)
 
     fixed = analysis.AddFixedSupport()
     fixed.Location = geometry_selection(fixed_faces)
-    write_trace("FIXED_SUPPORT_MODE=both_ends")
+    write_trace("FIXED_SUPPORT_MODE=" + fixed_support_mode)
     write_trace("FIXED_SUPPORT_MIN_X=" + str(min_x))
     write_trace("FIXED_SUPPORT_MAX_X=" + str(max_x))
     write_trace("FIXED_SUPPORT_FACES=" + str(len(fixed_faces)))
@@ -1717,7 +2175,8 @@ try:
         "solveErrors": solve_errors,
         "fixedFaceCount": len(fixed_faces),
         "pressureFaceCount": len(pressure_faces),
-        "pressureFaceMode": "inner_wall",
+        "fixedSupportMode": fixed_support_mode,
+        "pressureFaceMode": pressure_face_mode,
         "pipeOuterDiameterMm": outer_diameter_mm,
         "pipeInnerDiameterMm": inner_diameter_mm,
         "pipeWallThicknessMm": wall_thickness_mm,
@@ -1739,6 +2198,262 @@ except Exception as exc:
     write_result({{"status": "FAILED", "errorMessage": str(exc), "traceback": traceback.format_exc()}})
     raise
 '''
+
+
+def replace_mechanical_try_body(script, body):
+    marker = "\ntry:\n    model = ExtAPI.DataModel.Project.Model\n"
+    except_marker = "\nexcept Exception as exc:\n"
+    start = script.index(marker) + 1
+    end = script.rindex(except_marker)
+    return script[:start] + body.rstrip() + "\n" + script[end:]
+
+
+def mechanical_prepare_script(result_path, started_path, trace_path, stress_image_path, mesh_size_mm, image_width, image_height, pressure, pipe_geometry, material, boundary, simulation_mode):
+    script = mechanical_script(
+        result_path,
+        started_path,
+        trace_path,
+        stress_image_path,
+        mesh_size_mm,
+        image_width,
+        image_height,
+        pressure,
+        pipe_geometry,
+        material,
+        boundary,
+        simulation_mode,
+    )
+    solve_start = script.index('    write_trace("SOLVING")')
+    except_start = script.rindex("\nexcept Exception as exc:\n")
+    prepare_body = '''    metrics = []
+    add_plain_metric(metrics, "固定约束面数量", len(fixed_faces), "", "Mechanical")
+    add_plain_metric(metrics, "压力加载面数量", len(pressure_faces), "", "Mechanical")
+    add_plain_metric(metrics, "网格尺寸", mesh_size_mm, "mm", "Mechanical")
+    add_plain_metric(metrics, "峰值压力", peak_pressure_mpa, "MPa", "Mechanical")
+    display_activated = False
+    for display_name, display_obj in [("Mesh", model.Mesh), ("Geometry", model.Geometry), ("Analysis", analysis)]:
+        try:
+            display_obj.Activate()
+            write_trace("DISPLAY_ACTIVATED=" + display_name)
+            display_activated = True
+            break
+        except Exception as display_exc:
+            write_trace("DISPLAY_ACTIVATE_FAILED=" + display_name + ":" + str(display_exc))
+    try:
+        ExtAPI.Graphics.Camera.SetFit()
+        write_trace("CAMERA_SETFIT_DONE")
+    except Exception as fit_exc:
+        write_trace("CAMERA_SETFIT_FAILED=" + str(fit_exc))
+        try:
+            ExtAPI.Graphics.Camera.Fit()
+            write_trace("CAMERA_FIT_DONE")
+        except Exception as fit_retry_exc:
+            write_trace("CAMERA_FIT_FAILED=" + str(fit_retry_exc))
+    try:
+        ExtAPI.Graphics.Refresh()
+        write_trace("GRAPHICS_REFRESH_DONE")
+    except Exception as refresh_exc:
+        write_trace("GRAPHICS_REFRESH_FAILED=" + str(refresh_exc))
+    write_result({
+        "status": "PREPARED",
+        "errorMessage": "",
+        "warnings": [],
+        "solutionStatus": safe_text(safe_attr(solution, "Status")),
+        "displayActivated": display_activated,
+        "fixedFaceCount": len(fixed_faces),
+        "pressureFaceCount": len(pressure_faces),
+        "fixedSupportMode": fixed_support_mode,
+        "pressureFaceMode": pressure_face_mode,
+        "pipeOuterDiameterMm": outer_diameter_mm,
+        "pipeInnerDiameterMm": inner_diameter_mm,
+        "pipeWallThicknessMm": wall_thickness_mm,
+        "materialName": material_name,
+        "youngModulusPa": young_modulus_pa,
+        "poissonRatio": poisson_ratio,
+        "tensileYieldStrengthPa": tensile_yield_strength_pa,
+        "tensileUltimateStrengthPa": tensile_ultimate_strength_pa,
+        "meshSizeMm": mesh_size_mm,
+        "initialPressureMpa": initial_pressure_mpa,
+        "peakPressureMpa": peak_pressure_mpa,
+        "riseTimeS": rise_time_s,
+        "pressureExpression": pressure_expression,
+        "metrics": metrics
+    })
+    write_trace("PREPARED")
+'''
+    return script[:solve_start] + prepare_body + script[except_start:]
+
+
+def mechanical_result_script(result_path, started_path, trace_path, stress_image_path, mesh_size_mm, image_width, image_height, pressure, pipe_geometry, material, boundary, simulation_mode):
+    script = mechanical_script(
+        result_path,
+        started_path,
+        trace_path,
+        stress_image_path,
+        mesh_size_mm,
+        image_width,
+        image_height,
+        pressure,
+        pipe_geometry,
+        material,
+        boundary,
+        simulation_mode,
+    )
+    result_body = '''try:
+    model = ExtAPI.DataModel.Project.Model
+    write_trace("MODEL_READY_FOR_RESULT_IMPORT")
+    analysis = model.Analyses[0]
+    try:
+        analysis.Activate()
+    except Exception:
+        pass
+    solution = analysis.Solution
+
+    def object_label(obj):
+        labels = []
+        for attr_name in ["Name", "Caption", "DataModelObjectCategory"]:
+            value = safe_attr(obj, attr_name)
+            if value is not None:
+                labels.append(safe_text(value))
+        labels.append(safe_text(obj))
+        return " ".join(labels).lower()
+
+    def find_result(kind):
+        for child in tree_children(solution):
+            label = object_label(child)
+            if kind == "stress":
+                if ("equivalent" in label and "stress" in label) or ("等效" in label and "应力" in label):
+                    return child
+            if kind == "deformation":
+                if ("total" in label and "deformation" in label) or ("总" in label and "变形" in label):
+                    return child
+        return None
+
+    stress = find_result("stress")
+    if stress is None:
+        stress = solution.AddEquivalentStress()
+        write_trace("EQUIVALENT_STRESS_RESULT_CREATED")
+    deformation = find_result("deformation")
+    if deformation is None:
+        deformation = solution.AddTotalDeformation()
+        write_trace("TOTAL_DEFORMATION_RESULT_CREATED")
+    if not static_mode:
+        try:
+            stress.DisplayTime = Quantity(str(rise_time_s) + " [s]")
+            deformation.DisplayTime = Quantity(str(rise_time_s) + " [s]")
+        except Exception:
+            pass
+
+    metrics = []
+    warnings = []
+    solution_status = safe_text(safe_attr(solution, "Status"))
+    stress_status = safe_text(safe_attr(stress, "Status"))
+    deformation_status = safe_text(safe_attr(deformation, "Status"))
+    write_trace("SOLUTION_STATUS=" + solution_status)
+    write_trace("STRESS_STATUS=" + stress_status)
+    write_trace("DEFORMATION_STATUS=" + deformation_status)
+
+    solution_not_solved = solve_required(solution_status)
+    if solution_not_solved:
+        warnings.append("Mechanical 结果尚未完成求解，请先在 ANSYS 中完成 Solve 并保存项目。")
+    else:
+        try:
+            solution.EvaluateAllResults()
+        except Exception as eval_exc:
+            warnings.append("EvaluateAllResults failed: " + str(eval_exc))
+        try:
+            stress.EvaluateAllResults()
+            deformation.EvaluateAllResults()
+        except Exception as result_eval_exc:
+            warnings.append("Result EvaluateAllResults failed: " + str(result_eval_exc))
+
+    stress_max_value = None
+    stress_min_value = None
+    deformation_max_value = None
+    try:
+        stress_max_value = add_quantity_metric(metrics, "最大等效应力", stress.Maximum, "Pa")
+    except Exception as metric_exc:
+        warnings.append("读取最大等效应力失败：" + str(metric_exc))
+    try:
+        stress_min_value = add_quantity_metric(metrics, "最小等效应力", stress.Minimum, "Pa")
+    except Exception as metric_exc:
+        warnings.append("读取最小等效应力失败：" + str(metric_exc))
+    try:
+        deformation_max_value = add_quantity_metric(metrics, "最大总变形", deformation.Maximum, "m")
+    except Exception as metric_exc:
+        warnings.append("读取最大总变形失败：" + str(metric_exc))
+
+    add_plain_metric(metrics, "网格尺寸", mesh_size_mm, "mm", "Mechanical")
+    add_plain_metric(metrics, "峰值压力", peak_pressure_mpa, "MPa", "Mechanical")
+    add_plain_metric(metrics, "材料", material_name, "", "Mechanical")
+
+    engineering_status = "NOT_CHECKED"
+    engineering_warnings = []
+    engineering_estimates = {}
+    result_status = "SUCCESS"
+    error_message = ""
+    if solution_not_solved:
+        result_status = "FAILED"
+        error_message = warnings[-1]
+    elif stress_max_value is None and deformation_max_value is None:
+        result_status = "FAILED"
+        error_message = "未能从 Mechanical 读取到有效的应力或变形结果。"
+
+    try:
+        stress.Activate()
+        time.sleep(1)
+        try:
+            ExtAPI.Graphics.Camera.SetFit()
+        except Exception:
+            try:
+                ExtAPI.Graphics.Camera.Fit()
+            except Exception:
+                pass
+        time.sleep(1)
+        try:
+            from Ansys.Mechanical.Graphics import GraphicsImageExportSettings, GraphicsImageExportFormat, GraphicsResolutionType
+            image_settings = GraphicsImageExportSettings()
+            image_settings.Resolution = GraphicsResolutionType.HighResolution
+            image_settings.Width = image_width
+            image_settings.Height = image_height
+            ExtAPI.Graphics.ExportImage(stress_image_path, GraphicsImageExportFormat.PNG, image_settings)
+            write_trace("IMAGE_EXPORTED_HIGH_RES=" + str(image_width) + "x" + str(image_height))
+        except Exception as high_res_exc:
+            write_trace("IMAGE_HIGH_RES_EXPORT_FAILED=" + str(high_res_exc))
+            ExtAPI.Graphics.ExportImage(stress_image_path)
+        write_trace("IMAGE_EXPORTED")
+    except Exception as image_exc:
+        warnings.append("导出等效应力云图失败：" + str(image_exc))
+
+    write_result({
+        "status": result_status,
+        "errorMessage": error_message,
+        "warnings": warnings,
+        "engineeringStatus": engineering_status,
+        "engineeringWarnings": engineering_warnings,
+        "engineeringEstimates": engineering_estimates,
+        "solutionStatus": solution_status,
+        "stressStatus": stress_status,
+        "deformationStatus": deformation_status,
+        "maxEquivalentStressValue": stress_max_value,
+        "minEquivalentStressValue": stress_min_value,
+        "maxTotalDeformationValue": deformation_max_value,
+        "staticMode": static_mode,
+        "meshSizeMm": mesh_size_mm,
+        "initialPressureMpa": initial_pressure_mpa,
+        "peakPressureMpa": peak_pressure_mpa,
+        "riseTimeS": rise_time_s,
+        "pressureExpression": pressure_expression,
+        "materialName": material_name,
+        "youngModulusPa": young_modulus_pa,
+        "poissonRatio": poisson_ratio,
+        "tensileYieldStrengthPa": tensile_yield_strength_pa,
+        "tensileUltimateStrengthPa": tensile_ultimate_strength_pa,
+        "metrics": metrics
+    })
+    write_trace("RESULT_IMPORTED")
+'''
+    return replace_mechanical_try_body(script, result_body)
 
 
 def ansys_error_message(job_dir, fallback):

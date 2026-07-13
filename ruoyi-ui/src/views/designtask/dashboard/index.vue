@@ -3,7 +3,6 @@
     <div class="design-platform-shell">
       <section class="platform-topbar">
         <div>
-          <p class="platform-eyebrow">DESIGN OPTIMIZATION / TASK BOARD</p>
           <h1 class="platform-title">首页（任务看板）</h1>
         </div>
 
@@ -230,7 +229,7 @@
                 </template>
               </el-table-column>
 
-              <el-table-column label="操作" width="130" fixed="right">
+              <el-table-column label="操作" width="220" fixed="right">
                 <template #default="{ row }">
                   <el-button
                     v-if="taskAction(row).mode === 'enter'"
@@ -255,6 +254,17 @@
                   <span v-else class="wait-action">
                     {{ taskAction(row).label || '等待' }}
                   </span>
+
+                  <el-button
+                    v-if="canDeleteArchivedTask(row)"
+                    v-hasRole="['admin']"
+                    link
+                    type="danger"
+                    icon="Delete"
+                    @click.stop="deleteArchivedTask(row)"
+                  >
+                    删除数据
+                  </el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -351,7 +361,7 @@
 <script setup>
 import { computed, onActivated, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import VueOfficeDocx from '@vue-office/docx'
 import '@vue-office/docx/lib/index.css'
 
@@ -360,13 +370,16 @@ import {
   getDashboard,
   getDesignReportTask,
   getDesignTask,
-  getDesignTaskByQualityTask
+  getDesignTaskByQualityTask,
+  deleteArchivedTaskData
 } from '@/api/designtask/optimization'
 import { listTask, updateTask } from '@/api/quality/task'
 import { getProblem, updateProblem } from '@/api/quality/problem'
 import { addLog } from '@/api/quality/log'
+import useUserStore from '@/store/modules/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 const loading = ref(false)
 const query = ref({ scope: '', status: '' })
@@ -1107,6 +1120,42 @@ function enterTask(row) {
   })
 }
 
+async function deleteArchivedTask(row) {
+  if (!canDeleteArchivedTask(row)) {
+    ElMessage.warning('仅已完成或已归档任务支持删除数据')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确认删除归档任务「${row.taskName || row.taskNo || row.taskId}」的数据？删除后不可恢复。`,
+      '删除归档数据',
+      {
+        type: 'warning',
+        confirmButtonText: '删除数据',
+        cancelButtonText: '取消'
+      }
+    )
+
+    await deleteArchivedTaskData(row.taskId)
+
+    if (selectedTask.value?.taskId === row.taskId) {
+      selectedTask.value = null
+      selectedDetail.value = null
+    }
+
+    ElMessage.success('归档任务数据已删除')
+    loadData()
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') {
+      return
+    }
+
+    console.error('删除归档任务数据失败：', error)
+    ElMessage.error(error?.message || '删除归档任务数据失败')
+  }
+}
+
 function taskRowClassName({ row }) {
   return row.taskId === selectedTask.value?.taskId ? 'is-selected-task' : ''
 }
@@ -1128,6 +1177,10 @@ function taskAction(row) {
 
 function completedTask(row) {
   return row?.status === 'COMPLETED' || row?.currentNodeKey === 'end'
+}
+
+function canDeleteArchivedTask(row) {
+  return Number(userStore.id) === 1 && completedTask(row)
 }
 
 function statusLabel(status) {

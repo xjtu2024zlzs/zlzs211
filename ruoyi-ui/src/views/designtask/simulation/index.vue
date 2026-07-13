@@ -167,14 +167,20 @@
             <div class="action-row">
               <el-tag :type="ansysStatusType(ansysSimulation.status)">{{ ansysSimulation.statusLabel || '未提交' }}</el-tag>
               <el-button plain icon="Refresh" :loading="ansysRefreshing" @click="refreshAnsysSimulation">刷新状态</el-button>
-              <el-button type="primary" icon="CaretRight" :loading="ansysSubmitting" :disabled="!canSimulate" @click="startAnsysSimulation">
-                开始 ANSYS 仿真
+              <el-button type="primary" plain icon="Check" :loading="ansysSaving" :disabled="!canSaveAnsysParams" @click="saveAnsysParameters">
+                保存参数
+              </el-button>
+              <el-button type="success" icon="Monitor" :loading="ansysOpening" :disabled="!canOpenAnsys" @click="prepareAnsysSimulation">
+                打开 ANSYS
+              </el-button>
+              <el-button type="warning" plain icon="Download" :loading="ansysImporting" :disabled="!canImportAnsysResult" @click="readAnsysResult">
+                读取结果
               </el-button>
             </div>
           </div>
 
           <div class="ansys-model-selector">
-            <el-radio-group v-model="selectedAnsysSimulationMode" :disabled="ansysSubmitting || ansysRefreshing">
+            <el-radio-group v-model="selectedAnsysSimulationMode" :disabled="ansysSaving || ansysOpening || ansysImporting || ansysRefreshing">
               <el-radio-button
                 v-for="mode in ansysSimulationModes"
                 :key="mode.value"
@@ -186,6 +192,24 @@
           </div>
 
           <el-alert
+            v-if="canSimulate && cadModel.status !== 'SUCCESS'"
+            class="mb-16"
+            title="CAD 模型成功后才能打开 ANSYS。"
+            type="warning"
+            :closable="false"
+            show-icon
+          />
+
+          <el-alert
+            v-if="selectedAnsysSimulationMode !== ANSYS_MODE_DEMO"
+            class="mb-16"
+            title="参数化打开 ANSYS 先用于演示仿真模型。双向流固耦合模型后续再接入同样的人工确认流程。"
+            type="info"
+            :closable="false"
+            show-icon
+          />
+
+          <el-alert
             v-if="ansysSimulation.status === 'FAILED'"
             class="mb-16"
             :title="ansysSimulation.errorMessage || 'ANSYS 仿真失败'"
@@ -193,6 +217,77 @@
             :closable="false"
             show-icon
           />
+
+          <div class="ansys-parameter-panel">
+            <el-form :model="ansysParameterForm" label-position="top" class="ansys-parameter-form">
+              <div class="ansys-param-group">
+                <div class="ansys-param-group__head">
+                  <strong>压力载荷</strong>
+                  <el-button size="small" plain icon="RefreshLeft" :disabled="!canSaveAnsysParams" @click="resetAnsysParametersFromFaultPipe">
+                    载入原始参数
+                  </el-button>
+                </div>
+                <div class="ansys-param-grid ansys-param-grid--four">
+                  <el-form-item label="初始压强 / Pa">
+                    <el-input-number v-model="ansysParameterForm.pressure.initialPressurePa" :min="0" :controls="false" :disabled="!canSaveAnsysParams" />
+                  </el-form-item>
+                  <el-form-item label="峰值压强 / Pa">
+                    <el-input-number v-model="ansysParameterForm.pressure.peakPressurePa" :min="0" :controls="false" :disabled="!canSaveAnsysParams" />
+                  </el-form-item>
+                  <el-form-item label="上升时间 / s">
+                    <el-input-number v-model="ansysParameterForm.pressure.riseTimeS" :min="0.000001" :step="0.001" :precision="6" :controls="false" :disabled="!canSaveAnsysParams" />
+                  </el-form-item>
+                  <el-form-item label="网格尺寸 / mm">
+                    <el-input-number v-model="ansysParameterForm.mesh.globalSizeMm" :min="0.1" :step="0.5" :precision="2" :controls="false" :disabled="!canSaveAnsysParams" />
+                  </el-form-item>
+                </div>
+                <el-form-item label="入口压强表达式">
+                  <el-input v-model="ansysParameterForm.pressure.expression" :disabled="!canSaveAnsysParams" />
+                </el-form-item>
+              </div>
+
+              <div class="ansys-param-group">
+                <div class="ansys-param-group__head">
+                  <strong>材料与边界</strong>
+                  <el-tag size="small" type="info">{{ ansysParameterForm.boundary.pressureFaceMode === 'inner_wall' ? '内壁加载' : '自定义加载' }}</el-tag>
+                </div>
+                <div class="ansys-param-grid ansys-param-grid--four">
+                  <el-form-item label="材料">
+                    <el-input v-model="ansysParameterForm.material.materialName" :disabled="!canSaveAnsysParams" />
+                  </el-form-item>
+                  <el-form-item label="杨氏模量 / Pa">
+                    <el-input-number v-model="ansysParameterForm.material.youngModulusPa" :min="0" :controls="false" :disabled="!canSaveAnsysParams" />
+                  </el-form-item>
+                  <el-form-item label="泊松比">
+                    <el-input-number v-model="ansysParameterForm.material.poissonRatio" :min="0" :max="0.5" :step="0.01" :precision="3" :controls="false" :disabled="!canSaveAnsysParams" />
+                  </el-form-item>
+                  <el-form-item label="屈服强度 / Pa">
+                    <el-input-number v-model="ansysParameterForm.material.tensileYieldStrengthPa" :min="0" :controls="false" :disabled="!canSaveAnsysParams" />
+                  </el-form-item>
+                  <el-form-item label="极限强度 / Pa">
+                    <el-input-number v-model="ansysParameterForm.material.tensileUltimateStrengthPa" :min="0" :controls="false" :disabled="!canSaveAnsysParams" />
+                  </el-form-item>
+                  <el-form-item label="固定约束">
+                    <el-select v-model="ansysParameterForm.boundary.fixedSupportMode" :disabled="!canSaveAnsysParams">
+                      <el-option label="两端固定" value="both_ends" />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="压力加载面">
+                    <el-select v-model="ansysParameterForm.boundary.pressureFaceMode" :disabled="!canSaveAnsysParams">
+                      <el-option label="管道内壁" value="inner_wall" />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="结果输出">
+                    <div class="ansys-result-switches">
+                      <el-switch v-model="ansysParameterForm.result.equivalentStress" active-text="应力" :disabled="!canSaveAnsysParams" />
+                      <el-switch v-model="ansysParameterForm.result.totalDeformation" active-text="变形" :disabled="!canSaveAnsysParams" />
+                      <el-switch v-model="ansysParameterForm.result.exportStressImage" active-text="云图" :disabled="!canSaveAnsysParams" />
+                    </div>
+                  </el-form-item>
+                </div>
+              </div>
+            </el-form>
+          </div>
 
           <div class="ansys-result-grid">
             <div class="table-shell ansys-table-panel">
@@ -359,8 +454,10 @@ import {
   getCadModelTask,
   getDashboard,
   getDesignTask,
+  importAnsysSimulationResult,
+  openAnsysSimulationTask,
   runSimulation,
-  submitAnsysSimulationTask,
+  saveAnsysSimulationParams,
   submitCadModelTask
 } from '@/api/designtask/optimization'
 import CadStlViewer from './CadStlViewer.vue'
@@ -380,6 +477,7 @@ const ansysStressObjectUrl = ref('')
 const ansysStressImageKey = ref('')
 const ansysImagePreviewVisible = ref(false)
 const faultPipeParameters = ref({ groups: [] })
+const ansysParameterForm = ref(defaultAnsysParameterForm())
 const approval = ref({ approved: true, comment: '仿真验证结果满足设计要求，同意通过。' })
 const cadForm = ref({ L1: 280, L2: 150, R: 20, theta1: 110, theta2: 120, pipeDiameter: 9.53, pipeInnerDiameter: 7.73 })
 const cadPipeDiameter = computed(() => Number(cadForm.value.pipeDiameter || 9.53).toFixed(2))
@@ -393,8 +491,10 @@ const cadModel = ref({ status: 'NOT_SUBMITTED', statusLabel: '未提交', params
 const cadStlData = ref(null)
 const cadSubmitting = ref(false)
 const cadRefreshing = ref(false)
-const ansysSubmitting = ref(false)
 const ansysRefreshing = ref(false)
+const ansysSaving = ref(false)
+const ansysOpening = ref(false)
+const ansysImporting = ref(false)
 const ANSYS_MODE_DEMO = 'DEMO_SIMULATION_MODEL'
 const ANSYS_MODE_FSI = 'BIDIRECTIONAL_FSI_MODEL'
 const ansysSimulationModes = [
@@ -428,6 +528,9 @@ const visibleInboxTasks = computed(() => {
 })
 const viewOnly = computed(() => route.query.mode === 'view' && access.value.mode !== 'enter')
 const canSimulate = computed(() => !viewOnly.value && access.value.mode === 'enter' && currentNodeKey.value === 'simulation_confirm')
+const canSaveAnsysParams = computed(() => canSimulate.value)
+const canOpenAnsys = computed(() => canSimulate.value && cadModel.value.status === 'SUCCESS' && selectedAnsysSimulationMode.value === ANSYS_MODE_DEMO)
+const canImportAnsysResult = computed(() => canSimulate.value && selectedAnsysSimulationMode.value === ANSYS_MODE_DEMO && !!ansysSimulation.value.resultFilePath)
 const canConfirmSimulationDecision = computed(() => !viewOnly.value && canConfirmSimulation.value)
 const canSubmitSimulationDecision = computed(() => canConfirmSimulationDecision.value && simulationDecision.value.passed !== null && simulationDecision.value.passed !== undefined)
 const canEditCad = computed(() => !viewOnly.value && access.value.mode === 'enter')
@@ -455,6 +558,150 @@ const cadEmptyText = computed(() => {
   if (['QUEUED', 'RUNNING'].includes(cadModel.value.status)) return 'CAD 模型生成中'
   return '请先生成 CAD 模型'
 })
+
+function numberValue(value, fallback) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : fallback
+}
+
+function faultPipeValue(code, fallback = '') {
+  const values = faultPipeParameters.value.values || {}
+  if (values[code] !== undefined && values[code] !== null && values[code] !== '') {
+    return values[code]
+  }
+  for (const group of faultPipeParameters.value.groups || []) {
+    const item = (group.items || []).find(row => row.paramCode === code)
+    if (item && item.paramValue !== undefined && item.paramValue !== null && item.paramValue !== '') {
+      return item.paramValue
+    }
+  }
+  return fallback
+}
+
+function pressureExpression(initialPressurePa, peakPressurePa, riseTimeS) {
+  return `IF(t <= ${riseTimeS}, ${initialPressurePa} + (${peakPressurePa} - ${initialPressurePa}) * t / ${riseTimeS}, ${peakPressurePa})`
+}
+
+function defaultAnsysParameterForm() {
+  const initialPressurePa = numberValue(faultPipeValue('INLET_PRESSURE_INITIAL'), 101325)
+  const peakPressurePa = numberValue(faultPipeValue('INLET_PRESSURE_PEAK'), 30000000)
+  const riseTimeS = numberValue(faultPipeValue('INLET_PRESSURE_RISE_TIME'), 0.001)
+  return {
+    analysisType: 'static_structural',
+    pressure: {
+      initialPressurePa,
+      peakPressurePa,
+      riseTimeS,
+      expression: faultPipeValue('INLET_PRESSURE_EXPRESSION') || pressureExpression(initialPressurePa, peakPressurePa, riseTimeS)
+    },
+    material: {
+      materialName: faultPipeValue('MATERIAL_NAME', faultPipeParameters.value.materialName || 'Structural Steel'),
+      youngModulusPa: numberValue(faultPipeValue('YOUNG_MODULUS'), 1.93e11),
+      poissonRatio: numberValue(faultPipeValue('POISSON_RATIO'), 0.31),
+      tensileYieldStrengthPa: numberValue(faultPipeValue('TENSILE_YIELD_STRENGTH'), 2.07e8),
+      tensileUltimateStrengthPa: numberValue(faultPipeValue('TENSILE_ULTIMATE_STRENGTH'), 5.86e8)
+    },
+    mesh: {
+      globalSizeMm: 3
+    },
+    boundary: {
+      fixedSupportMode: 'both_ends',
+      pressureFaceMode: 'inner_wall'
+    },
+    result: {
+      equivalentStress: true,
+      totalDeformation: true,
+      exportStressImage: true
+    }
+  }
+}
+
+function applyAnsysParameters(parameters) {
+  const fallback = defaultAnsysParameterForm()
+  const pressure = parameters?.pressure || {}
+  const material = parameters?.material || {}
+  const mesh = parameters?.mesh || {}
+  const boundary = parameters?.boundary || {}
+  const result = parameters?.result || {}
+  const initialPressurePa = numberValue(pressure.initialPressurePa, fallback.pressure.initialPressurePa)
+  const peakPressurePa = numberValue(pressure.peakPressurePa, fallback.pressure.peakPressurePa)
+  const riseTimeS = numberValue(pressure.riseTimeS, fallback.pressure.riseTimeS)
+  ansysParameterForm.value = {
+    analysisType: parameters?.analysisType || fallback.analysisType,
+    pressure: {
+      initialPressurePa,
+      peakPressurePa,
+      riseTimeS,
+      expression: pressure.expression || fallback.pressure.expression || pressureExpression(initialPressurePa, peakPressurePa, riseTimeS)
+    },
+    material: {
+      materialName: material.materialName || fallback.material.materialName,
+      youngModulusPa: numberValue(material.youngModulusPa, fallback.material.youngModulusPa),
+      poissonRatio: numberValue(material.poissonRatio, fallback.material.poissonRatio),
+      tensileYieldStrengthPa: numberValue(material.tensileYieldStrengthPa, fallback.material.tensileYieldStrengthPa),
+      tensileUltimateStrengthPa: numberValue(material.tensileUltimateStrengthPa, fallback.material.tensileUltimateStrengthPa)
+    },
+    mesh: {
+      globalSizeMm: numberValue(mesh.globalSizeMm ?? mesh.meshSizeMm, fallback.mesh.globalSizeMm)
+    },
+    boundary: {
+      fixedSupportMode: boundary.fixedSupportMode || fallback.boundary.fixedSupportMode,
+      pressureFaceMode: boundary.pressureFaceMode || fallback.boundary.pressureFaceMode
+    },
+    result: {
+      equivalentStress: result.equivalentStress !== false,
+      totalDeformation: result.totalDeformation !== false,
+      exportStressImage: result.exportStressImage !== false
+    }
+  }
+}
+
+function resetAnsysParametersFromFaultPipe(showMessage = true) {
+  applyAnsysParameters(defaultAnsysParameterForm())
+  if (showMessage) {
+    ElMessage.success('已载入原始管段参数')
+  }
+}
+
+function buildAnsysPayload(extra = {}) {
+  const form = ansysParameterForm.value
+  const initialPressurePa = numberValue(form.pressure.initialPressurePa, 101325)
+  const peakPressurePa = numberValue(form.pressure.peakPressurePa, 30000000)
+  const riseTimeS = numberValue(form.pressure.riseTimeS, 0.001)
+  const expression = form.pressure.expression || pressureExpression(initialPressurePa, peakPressurePa, riseTimeS)
+  return {
+    simulationMode: selectedAnsysSimulationMode.value,
+    simulationParameters: {
+      analysisType: form.analysisType || 'static_structural',
+      pressure: {
+        initialPressurePa,
+        peakPressurePa,
+        riseTimeS,
+        expression
+      },
+      material: {
+        materialName: form.material.materialName || 'Structural Steel',
+        youngModulusPa: numberValue(form.material.youngModulusPa, 1.93e11),
+        poissonRatio: numberValue(form.material.poissonRatio, 0.31),
+        tensileYieldStrengthPa: numberValue(form.material.tensileYieldStrengthPa, 2.07e8),
+        tensileUltimateStrengthPa: numberValue(form.material.tensileUltimateStrengthPa, 5.86e8)
+      },
+      mesh: {
+        globalSizeMm: numberValue(form.mesh.globalSizeMm, 3)
+      },
+      boundary: {
+        fixedSupportMode: form.boundary.fixedSupportMode || 'both_ends',
+        pressureFaceMode: form.boundary.pressureFaceMode || 'inner_wall'
+      },
+      result: {
+        equivalentStress: form.result.equivalentStress !== false,
+        totalDeformation: form.result.totalDeformation !== false,
+        exportStressImage: form.result.exportStressImage !== false
+      }
+    },
+    ...extra
+  }
+}
 
 function loadInbox() {
   inboxLoading.value = true
@@ -560,11 +807,11 @@ function loadData() {
     simulation.value = data.simulation || simulation.value
     canConfirmSimulation.value = !!data.canConfirmSimulation
     simulationDecision.value.passed = simulation.value.verified ? simulation.value.passed : null
+    faultPipeParameters.value = data.faultPipeParameters || { groups: [] }
     applyAnsysSimulation(data.ansysSimulation)
     if (data.ansysSimulation?.simulationMode !== selectedAnsysSimulationMode.value) {
       refreshAnsysSimulation(true)
     }
-    faultPipeParameters.value = data.faultPipeParameters || { groups: [] }
     applyCadModel(data.cadModel)
     applySurrogateSolution(data.surrogateSolve)
   })
@@ -613,6 +860,7 @@ function applySurrogateSolution(surrogateSolve) {
 
 function applyAnsysSimulation(model) {
   ansysSimulation.value = model || ansysSimulation.value
+  applyAnsysParameters(ansysSimulation.value.input?.simulationParameters)
   if (['QUEUED', 'RUNNING'].includes(ansysSimulation.value.status)) {
     clearAnsysStressImage()
     startAnsysPolling()
@@ -633,7 +881,7 @@ function clearAnsysStressImage() {
 function loadAnsysStressImage() {
   const imagePath = ansysSimulation.value.stressImageUrl
   const shouldLoad = taskId.value &&
-    ansysSimulation.value.status === 'SUCCESS' &&
+    ['SUCCESS', 'RESULT_IMPORTED'].includes(ansysSimulation.value.status) &&
     !ansysSimulation.value.placeholder &&
     imagePath
   if (!shouldLoad) {
@@ -651,16 +899,40 @@ function loadAnsysStressImage() {
   })
 }
 
-function startAnsysSimulation() {
+function saveAnsysParameters() {
   if (!taskId.value) return
-  ansysSubmitting.value = true
-  submitAnsysSimulationTask(taskId.value, {
-    simulationMode: selectedAnsysSimulationMode.value
-  }).then(res => {
+  ansysSaving.value = true
+  saveAnsysSimulationParams(taskId.value, buildAnsysPayload()).then(res => {
     applyAnsysSimulation(res.data)
-    ElMessage.success('ANSYS 仿真任务已提交')
+    ElMessage.success('ANSYS 参数已保存')
   }).finally(() => {
-    ansysSubmitting.value = false
+    ansysSaving.value = false
+  })
+}
+
+function prepareAnsysSimulation() {
+  if (!taskId.value) return
+  ansysOpening.value = true
+  openAnsysSimulationTask(taskId.value, buildAnsysPayload()).then(res => {
+    applyAnsysSimulation(res.data)
+    ElMessage.success('正在打开 ANSYS')
+  }).finally(() => {
+    ansysOpening.value = false
+  })
+}
+
+function readAnsysResult() {
+  if (!taskId.value) return
+  ansysImporting.value = true
+  importAnsysSimulationResult(taskId.value, buildAnsysPayload({
+    projectPath: ansysSimulation.value.resultFilePath,
+    resultFilePath: ansysSimulation.value.resultFilePath,
+    workDir: ansysSimulation.value.result?.workDir || ansysSimulation.value.input?.workDir
+  })).then(res => {
+    applyAnsysSimulation(res.data)
+    ElMessage.success('正在读取 ANSYS 结果')
+  }).finally(() => {
+    ansysImporting.value = false
   })
 }
 
@@ -678,8 +950,11 @@ function refreshAnsysSimulation(silent = false) {
 function ansysStatusType(status) {
   return {
     NOT_SUBMITTED: 'info',
+    PARAM_CONFIRMED: 'primary',
     QUEUED: 'warning',
     RUNNING: 'primary',
+    WAITING_ENGINEER_SOLVE: 'warning',
+    RESULT_IMPORTED: 'success',
     SUCCESS: 'success',
     FAILED: 'danger'
   }[status] || 'info'
@@ -940,6 +1215,67 @@ watch(selectedAnsysSimulationMode, mode => {
   background: #fbfcfe;
 }
 
+.ansys-parameter-panel {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid #dde5ee;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.ansys-parameter-form {
+  display: grid;
+  gap: 12px;
+
+  :deep(.el-form-item) {
+    margin-bottom: 0;
+  }
+
+  :deep(.el-input-number),
+  :deep(.el-select) {
+    width: 100%;
+  }
+}
+
+.ansys-param-group {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e6ebf1;
+  border-radius: 6px;
+  background: #fbfcfe;
+}
+
+.ansys-param-group__head {
+  display: flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  strong {
+    color: #233955;
+    font-size: 15px;
+  }
+}
+
+.ansys-param-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.ansys-param-grid--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ansys-result-switches {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .ansys-image-panel {
   display: flex;
   flex-direction: column;
@@ -1121,6 +1457,10 @@ watch(selectedAnsysSimulationMode, mode => {
     min-height: auto;
   }
 
+  .ansys-param-grid--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .ansys-table-panel,
   .ansys-image-panel {
     min-height: 320px;
@@ -1132,6 +1472,15 @@ watch(selectedAnsysSimulationMode, mode => {
   .conclusion-body {
     align-items: stretch;
     justify-content: flex-start;
+  }
+
+  .ansys-param-grid--four {
+    grid-template-columns: 1fr;
+  }
+
+  .ansys-param-group__head {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 </style>

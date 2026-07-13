@@ -575,6 +575,63 @@
               </el-table>
               <el-empty v-if="!comparisonSchemes.length" description="请从 Top 候选方案中加入需要对比的方案" :image-size="80" />
             </div>
+            <div class="ansys-parameter-panel mt-12">
+              <div class="ansys-parameter-panel__head">
+                <div>
+                  <h4>ANSYS 工况参数</h4>
+                  <span>{{ activeComparisonSchemeName }}</span>
+                </div>
+                <div class="ansys-parameter-actions">
+                  <el-tag type="info">静力结构</el-tag>
+                  <el-button size="small" plain icon="RefreshLeft" :disabled="!canEditAnsysParameters" @click="resetAnsysParametersFromFaultPipe">
+                    载入原始参数
+                  </el-button>
+                </div>
+              </div>
+              <el-form :model="ansysParameterForm" label-position="top" class="ansys-parameter-form">
+                <el-form-item label="初始压力 / Pa">
+                  <el-input-number v-model="ansysParameterForm.pressure.initialPressurePa" :min="0" :controls="false" :disabled="!canEditAnsysParameters" />
+                </el-form-item>
+                <el-form-item label="峰值压力 / Pa">
+                  <el-input-number v-model="ansysParameterForm.pressure.peakPressurePa" :min="0" :controls="false" :disabled="!canEditAnsysParameters" />
+                </el-form-item>
+                <el-form-item label="升压时间 / s">
+                  <el-input-number v-model="ansysParameterForm.pressure.riseTimeS" :min="0.000001" :step="0.001" :precision="6" :controls="false" :disabled="!canEditAnsysParameters" />
+                </el-form-item>
+                <el-form-item label="网格尺寸 / mm">
+                  <el-input-number v-model="ansysParameterForm.mesh.globalSizeMm" :min="0.1" :step="0.5" :precision="2" :controls="false" :disabled="!canEditAnsysParameters" />
+                </el-form-item>
+                <el-form-item label="材料名称">
+                  <el-input v-model="ansysParameterForm.material.materialName" :disabled="!canEditAnsysParameters" />
+                </el-form-item>
+                <el-form-item label="弹性模量 / Pa">
+                  <el-input-number v-model="ansysParameterForm.material.youngModulusPa" :min="0" :controls="false" :disabled="!canEditAnsysParameters" />
+                </el-form-item>
+                <el-form-item label="泊松比">
+                  <el-input-number v-model="ansysParameterForm.material.poissonRatio" :min="0" :max="0.5" :step="0.01" :precision="3" :controls="false" :disabled="!canEditAnsysParameters" />
+                </el-form-item>
+                <el-form-item label="屈服强度 / Pa">
+                  <el-input-number v-model="ansysParameterForm.material.tensileYieldStrengthPa" :min="0" :controls="false" :disabled="!canEditAnsysParameters" />
+                </el-form-item>
+                <el-form-item label="抗拉强度 / Pa">
+                  <el-input-number v-model="ansysParameterForm.material.tensileUltimateStrengthPa" :min="0" :controls="false" :disabled="!canEditAnsysParameters" />
+                </el-form-item>
+                <el-form-item label="固定约束">
+                  <el-select v-model="ansysParameterForm.boundary.fixedSupportMode" :disabled="!canEditAnsysParameters">
+                    <el-option label="两端固定" value="both_ends" />
+                    <el-option label="单端固定" value="single_end" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="压力加载面">
+                  <div class="ansys-locked-value">
+                    <el-tag type="info">管道内壁自动识别</el-tag>
+                  </div>
+                </el-form-item>
+                <el-form-item label="载荷表达式" class="ansys-parameter-form__wide">
+                  <el-input :model-value="ansysPressureExpressionPreview" disabled />
+                </el-form-item>
+              </el-form>
+            </div>
             <div v-if="comparisonSchemes.length" class="scheme-model-compare">
               <div
                 v-for="row in comparisonSchemes"
@@ -597,7 +654,10 @@
                     {{ row.cadStatus === 'SUCCESS' ? '重新建模' : '生成模型' }}
                   </el-button>
                   <el-button size="small" type="success" plain :disabled="!canEditVerification || row.cadStatus !== 'SUCCESS'" :loading="row.schemeKey === activeComparisonSchemeKey && ansysSubmitting" @click="runSchemeSimulation(row)">
-                    仿真验证
+                    打开 ANSYS
+                  </el-button>
+                  <el-button size="small" type="warning" plain :disabled="!canEditVerification" :loading="row.schemeKey === activeComparisonSchemeKey && ansysResultImporting" @click="importSchemeSimulationResult(row)">
+                    导入结果
                   </el-button>
                   <el-button size="small" plain type="success" @click="setFinalComparisonScheme(row)">最终选用</el-button>
                 </div>
@@ -961,10 +1021,11 @@ import {
   getDesignVariableCatalog,
   getSurrogateSolveTask,
   confirmSurrogateSolveTask,
+  importAnsysResultFile,
+  openAnsysSimulationTask,
   runConflictCheck,
   saveObjectiveWeights,
   saveDesignVariables,
-  submitAnsysSimulationTask,
   submitCadModelTask,
   runSimulation,
   submitDesignReportTask,
@@ -1031,7 +1092,9 @@ const cadPreviewImageKey = ref('')
 const cadSubmitting = ref(false)
 const cadRefreshing = ref(false)
 const ansysSimulation = ref({ status: 'NOT_SUBMITTED', statusLabel: '未提交', metrics: [], placeholder: true })
+const ansysParameterForm = ref(defaultAnsysParameterForm())
 const ansysSubmitting = ref(false)
+const ansysResultImporting = ref(false)
 const ansysRefreshing = ref(false)
 const ansysStressObjectUrl = ref('')
 const ansysStressImageKey = ref('')
@@ -1133,6 +1196,19 @@ const canEditVerification = computed(() => !readonlyMode.value && ['model_decomp
 const cadFormComplete = computed(() => ['L1', 'L2', 'R', 'theta1', 'theta2', 'pipeDiameter', 'pipeInnerDiameter'].every(key => cadForm.value[key] !== null && cadForm.value[key] !== undefined && cadForm.value[key] !== ''))
 const canSubmitCadModel = computed(() => canEditVerification.value && hasSurrogateResult.value && cadFormComplete.value)
 const canRunAnsysSimulation = computed(() => canEditVerification.value && cadModel.value.status === 'SUCCESS')
+const canEditAnsysParameters = computed(() => canEditVerification.value)
+const activeComparisonScheme = computed(() => {
+  return comparisonSchemes.value.find(item => item.schemeKey === activeComparisonSchemeKey.value) || comparisonSchemes.value[0] || null
+})
+const activeComparisonSchemeName = computed(() => activeComparisonScheme.value?.schemeName || '当前方案')
+const ansysPressureExpressionPreview = computed(() => {
+  const pressure = ansysParameterForm.value.pressure || {}
+  return pressureExpression(
+    numberValue(pressure.initialPressurePa, 101325),
+    numberValue(pressure.peakPressurePa, 30000000),
+    numberValue(pressure.riseTimeS, 0.001)
+  )
+})
 const canGenerateReport = computed(() => hasTask.value && bestSolutionReady.value)
 const simulationBlocksReportSubmit = computed(() => simulation.value.verified && simulation.value.passed !== false)
 const canEditReportDecision = computed(() => canEditVerification.value && !reportSubmission.value.submitted && !simulationBlocksReportSubmit.value)
@@ -2219,6 +2295,151 @@ function syncVerificationCandidateFromBest(force = false) {
   selectVerificationCandidate({ ...best.value, rank: '最优', label: '当前最优方案' }, true)
 }
 
+function numberValue(value, fallback) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : fallback
+}
+
+function faultPipeValue(code, fallback = '') {
+  const values = faultPipeParameters.value.values || {}
+  if (values[code] !== undefined && values[code] !== null && values[code] !== '') {
+    return values[code]
+  }
+  for (const group of faultPipeParameters.value.groups || []) {
+    const item = (group.items || []).find(row => row.paramCode === code)
+    if (item && item.paramValue !== undefined && item.paramValue !== null && item.paramValue !== '') {
+      return item.paramValue
+    }
+  }
+  return fallback
+}
+
+function pressureExpression(initialPressurePa, peakPressurePa, riseTimeS) {
+  const safeRiseTimeS = Math.max(numberValue(riseTimeS, 0.001), 0.000001)
+  return `IF(t <= ${safeRiseTimeS}, ${initialPressurePa} + (${peakPressurePa} - ${initialPressurePa}) * t / ${safeRiseTimeS}, ${peakPressurePa})`
+}
+
+function defaultAnsysParameterForm() {
+  const initialPressurePa = numberValue(faultPipeValue('INLET_PRESSURE_INITIAL'), 101325)
+  const peakPressurePa = numberValue(faultPipeValue('INLET_PRESSURE_PEAK'), 30000000)
+  const riseTimeS = numberValue(faultPipeValue('INLET_PRESSURE_RISE_TIME'), 0.001)
+  return {
+    analysisType: 'static_structural',
+    pressure: {
+      initialPressurePa,
+      peakPressurePa,
+      riseTimeS
+    },
+    material: {
+      materialName: faultPipeValue('MATERIAL_NAME', faultPipeParameters.value.materialName || 'Structural Steel'),
+      youngModulusPa: numberValue(faultPipeValue('YOUNG_MODULUS'), 1.93e11),
+      poissonRatio: numberValue(faultPipeValue('POISSON_RATIO'), 0.31),
+      tensileYieldStrengthPa: numberValue(faultPipeValue('TENSILE_YIELD_STRENGTH'), 2.07e8),
+      tensileUltimateStrengthPa: numberValue(faultPipeValue('TENSILE_ULTIMATE_STRENGTH'), 5.86e8)
+    },
+    mesh: {
+      globalSizeMm: 3
+    },
+    boundary: {
+      fixedSupportMode: 'both_ends',
+      pressureFaceMode: 'inner_wall'
+    },
+    result: {
+      equivalentStress: true,
+      totalDeformation: true,
+      exportStressImage: true
+    }
+  }
+}
+
+function applyAnsysParameters(parameters) {
+  const fallback = defaultAnsysParameterForm()
+  const pressure = parameters?.pressure || {}
+  const material = parameters?.material || {}
+  const mesh = parameters?.mesh || {}
+  const boundary = parameters?.boundary || {}
+  const result = parameters?.result || {}
+  ansysParameterForm.value = {
+    analysisType: parameters?.analysisType || fallback.analysisType,
+    pressure: {
+      initialPressurePa: numberValue(pressure.initialPressurePa, fallback.pressure.initialPressurePa),
+      peakPressurePa: numberValue(pressure.peakPressurePa, fallback.pressure.peakPressurePa),
+      riseTimeS: numberValue(pressure.riseTimeS, fallback.pressure.riseTimeS)
+    },
+    material: {
+      materialName: material.materialName || fallback.material.materialName,
+      youngModulusPa: numberValue(material.youngModulusPa, fallback.material.youngModulusPa),
+      poissonRatio: numberValue(material.poissonRatio, fallback.material.poissonRatio),
+      tensileYieldStrengthPa: numberValue(material.tensileYieldStrengthPa, fallback.material.tensileYieldStrengthPa),
+      tensileUltimateStrengthPa: numberValue(material.tensileUltimateStrengthPa, fallback.material.tensileUltimateStrengthPa)
+    },
+    mesh: {
+      globalSizeMm: numberValue(mesh.globalSizeMm ?? mesh.meshSizeMm, fallback.mesh.globalSizeMm)
+    },
+    boundary: {
+      fixedSupportMode: boundary.fixedSupportMode || fallback.boundary.fixedSupportMode,
+      pressureFaceMode: fallback.boundary.pressureFaceMode
+    },
+    result: {
+      equivalentStress: result.equivalentStress !== false,
+      totalDeformation: result.totalDeformation !== false,
+      exportStressImage: result.exportStressImage !== false
+    }
+  }
+}
+
+function resetAnsysParametersFromFaultPipe(showMessage = true) {
+  applyAnsysParameters(defaultAnsysParameterForm())
+  reportGeneratedAt.value = ''
+  if (showMessage) {
+    ElMessage.success('已载入原始管段参数。')
+  }
+}
+
+function buildAnsysPayload(extra = {}) {
+  const form = ansysParameterForm.value
+  const initialPressurePa = numberValue(form.pressure.initialPressurePa, 101325)
+  const peakPressurePa = numberValue(form.pressure.peakPressurePa, 30000000)
+  const riseTimeS = numberValue(form.pressure.riseTimeS, 0.001)
+  return {
+    simulationMode: ANSYS_MODE_DEMO,
+    params: {
+      ...cadForm.value,
+      activeSchemeKey: activeComparisonSchemeKey.value,
+      activeSchemeName: activeComparisonSchemeName.value
+    },
+    simulationParameters: {
+      analysisType: form.analysisType || 'static_structural',
+      pressure: {
+        initialPressurePa,
+        peakPressurePa,
+        riseTimeS,
+        expression: ansysPressureExpressionPreview.value
+      },
+      material: {
+        materialName: form.material.materialName || 'Structural Steel',
+        youngModulusPa: numberValue(form.material.youngModulusPa, 1.93e11),
+        poissonRatio: numberValue(form.material.poissonRatio, 0.31),
+        tensileYieldStrengthPa: numberValue(form.material.tensileYieldStrengthPa, 2.07e8),
+        tensileUltimateStrengthPa: numberValue(form.material.tensileUltimateStrengthPa, 5.86e8)
+      },
+      mesh: {
+        globalSizeMm: numberValue(form.mesh.globalSizeMm, 3)
+      },
+      boundary: {
+        fixedSupportMode: form.boundary.fixedSupportMode || 'both_ends',
+        pressureFaceMode: 'inner_wall'
+      },
+      result: {
+        equivalentStress: form.result.equivalentStress !== false,
+        totalDeformation: form.result.totalDeformation !== false,
+        exportStressImage: form.result.exportStressImage !== false
+      }
+    },
+    ...extra
+  }
+}
+
 function numberOrFallback(value, fallback) {
   const number = Number(value)
   return Number.isFinite(number) ? number : fallback
@@ -2436,6 +2657,11 @@ function generateSchemeModel(row) {
 function runSchemeSimulation(row) {
   setActiveComparisonScheme(row, true)
   startAnsysSimulation()
+}
+
+function importSchemeSimulationResult(row) {
+  setActiveComparisonScheme(row, true)
+  importAnsysResult()
 }
 
 function submitCadModel() {
@@ -2715,9 +2941,10 @@ async function prepareReportImages(allowCapture = false) {
   }
 
   const cadNormalized = await normalizeReportImage(cadImage, { padding: 20 })
+  const ansysNormalized = await normalizeReportImage(ansysImage, { padding: 8 })
 
   reportCadDocImageUrl.value = cadNormalized || cadImage || ''
-  reportAnsysDocImageUrl.value = ansysImage || ''
+  reportAnsysDocImageUrl.value = ansysNormalized || ansysImage || ''
 }
 
 function downloadCadFile(kind) {
@@ -2731,19 +2958,28 @@ function downloadCadFile(kind) {
 
 function startAnsysSimulation() {
   if (!canRunAnsysSimulation.value) {
-    ElMessage.warning('请先生成参数模型，再执行仿真验证。')
+    ElMessage.warning('请先生成参数模型，再打开 ANSYS。')
     return
   }
   reportGeneratedAt.value = ''
   ansysSubmitting.value = true
-  submitAnsysSimulationTask(taskId.value, {
-    simulationMode: ANSYS_MODE_DEMO,
-    params: cadForm.value
-  }).then(res => {
+  openAnsysSimulationTask(taskId.value, buildAnsysPayload()).then(res => {
     applyAnsysSimulation(res.data)
-    ElMessage.success('仿真验证任务已提交')
+    ElMessage.success('正在打开 ANSYS，请在 Mechanical 中确认参数后手动求解')
   }).finally(() => {
     ansysSubmitting.value = false
+  })
+}
+
+function importAnsysResult() {
+  if (!taskId.value) return
+  reportGeneratedAt.value = ''
+  ansysResultImporting.value = true
+  importAnsysResultFile(taskId.value, buildAnsysPayload()).then(res => {
+    applyAnsysSimulation(res.data)
+    ElMessage.success('结果已导入并传回平台')
+  }).finally(() => {
+    ansysResultImporting.value = false
   })
 }
 
@@ -2759,6 +2995,7 @@ function refreshAnsysSimulation(silent = false) {
 
 function applyAnsysSimulation(model) {
   ansysSimulation.value = model || emptyAnsysSimulation()
+  applyAnsysParameters(ansysSimulation.value.input?.simulationParameters)
   updateActiveComparisonAnsysResult(ansysSimulation.value)
   if (['QUEUED', 'RUNNING'].includes(ansysSimulation.value.status)) {
     clearAnsysStressImage()
@@ -3059,10 +3296,10 @@ function buildReportHtml() {
   const cadReportImage = reportCadDocImageUrl.value || reportSelectedCadImage.value
   const ansysReportImage = reportAnsysDocImageUrl.value || reportSelectedAnsysImage.value
   const cadFigure = `<div class="report-figure-panel"><h3>SolidWorks 参数化模型</h3>${cadReportImage
-    ? `<div class="report-figure-box report-figure-box--cad"><img src="${escapeHtml(cadReportImage)}" alt="SolidWorks 参数化模型" width="620" height="348"></div>`
+    ? `<div class="report-figure-box report-figure-box--cad"><img src="${escapeHtml(cadReportImage)}" alt="SolidWorks 参数化模型"></div>`
     : `<div class="report-figure-empty">${escapeHtml(reportSelectedScheme.value?.cadStatusLabel || cadModel.value.statusLabel || '模型文件未生成或未缓存')}</div>`}</div>`
   const ansysFigure = `<div class="report-figure-panel"><h3>ANSYS 仿真效果图</h3>${ansysReportImage
-    ? `<div class="report-figure-box report-figure-box--ansys"><img src="${escapeHtml(ansysReportImage)}" alt="ANSYS 仿真效果图" width="620" height="348"></div>`
+    ? `<div class="report-figure-box report-figure-box--ansys"><img src="${escapeHtml(ansysReportImage)}" alt="ANSYS 仿真效果图"></div>`
     : `<div class="report-figure-empty">仿真效果图未生成或未缓存</div>`}</div>`
   return `<!DOCTYPE html>
 <html>
@@ -3092,8 +3329,8 @@ function buildReportHtml() {
     .report-visual-stack { width: 100%; margin: 3mm 0 6mm; }
     .report-figure-panel { margin: 0 0 5mm; page-break-inside: avoid; }
     .report-figure-panel h3 { margin: 0 0 2mm; color: #19375a; font-size: 9.5pt; font-weight: 700; }
-    .report-figure-box, .report-figure-empty { width: 100%; height: 94mm; border: 0.75pt solid #e1e7ef; background: #f8fafc; text-align: center; vertical-align: middle; overflow: hidden; }
-    .report-figure-box img { display: block; width: 164mm; height: 92mm; margin: 1mm auto; border: 0; }
+    .report-figure-box, .report-figure-empty { width: 100%; min-height: 94mm; border: 0.75pt solid #e1e7ef; background: #f8fafc; text-align: center; vertical-align: middle; overflow: visible; }
+    .report-figure-box img { display: block; width: 164mm; height: auto; max-height: 92mm; margin: 1mm auto; border: 0; }
     .report-figure-empty { color: #7a8da3; font-size: 9pt; line-height: 94mm; }
   </style>
 </head>
@@ -4168,6 +4405,79 @@ watch(convergenceSeries, () => {
   justify-content: flex-end;
 }
 
+.ansys-parameter-panel {
+  padding: 12px;
+  border: 1px solid #e1e7ef;
+  border-radius: 6px;
+  background: #fbfcfe;
+}
+
+.ansys-parameter-panel__head,
+.ansys-parameter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ansys-parameter-panel__head {
+  margin-bottom: 10px;
+
+  h4 {
+    margin: 0;
+    color: #19375a;
+    font-size: 15px;
+  }
+
+  span {
+    display: block;
+    margin-top: 3px;
+    color: #708198;
+    font-size: 12px;
+  }
+}
+
+.ansys-parameter-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 10px;
+
+  :deep(.el-form-item) {
+    display: block;
+    margin: 0;
+  }
+
+  :deep(.el-form-item__label) {
+    display: block;
+    height: auto;
+    margin-bottom: 4px;
+    color: #52667a;
+    font-size: 12px;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  :deep(.el-input-number),
+  :deep(.el-select) {
+    width: 100%;
+  }
+
+  :deep(.el-input-number .el-input) {
+    width: 100%;
+  }
+}
+
+.ansys-parameter-form__wide {
+  grid-column: 1 / -1;
+}
+
+.ansys-locked-value {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
 .scheme-compare-panel {
   padding: 0 12px 12px;
 }
@@ -4864,6 +5174,7 @@ watch(convergenceSeries, () => {
 .report-visual-grid {
   display: grid;
   grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr);
+  align-items: start;
   gap: 12px;
   margin-bottom: 12px;
 }
@@ -4915,8 +5226,8 @@ watch(convergenceSeries, () => {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center top;
+    object-fit: contain;
+    object-position: center center;
   }
 
   span {
@@ -5063,6 +5374,10 @@ watch(convergenceSeries, () => {
   }
 
   .verification-form {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+
+  .ansys-parameter-form {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
   }
 

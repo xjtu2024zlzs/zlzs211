@@ -2316,7 +2316,7 @@ const getProcessStateText = (status) => {
 const getModuleProcessSentence = (status) => {
   if (['UNSTARTED', 'DISPATCHED'].includes(status)) return '等待模块开始处理'
   if (status === 'PROCESSING') return '正在处理'
-  if (status === 'PENDING_BACKFILL') return '优化方案已提交，等待回填模拟结果'
+  if (status === 'PENDING_BACKFILL') return '优化方案已提交，等待回填结果'
   if (status === 'SUBMITTED') return '已完成处理，等待确认'
   if (status === 'CONFIRMED') return '已完成处理，结果已确认'
   return ''

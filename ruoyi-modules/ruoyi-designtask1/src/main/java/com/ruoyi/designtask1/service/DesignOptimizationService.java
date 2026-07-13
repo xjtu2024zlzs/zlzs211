@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.net.URLEncoder;
 import java.math.BigDecimal;
@@ -108,6 +109,9 @@ public class DesignOptimizationService {
 
     @Value("${designtask.ansys.worker-url:http://127.0.0.1:18081/api/ansys/import-geometry}")
     private String ansysWorkerUrl;
+
+    @Value("${designtask.ansys.result-image-dir:ansys_worker/仿真结果展示}")
+    private String ansysResultImageDir;
 
     @Value("${design.solver.surrogate-base-url:http://127.0.0.1:9721}")
     private String surrogateBaseUrl;
@@ -1079,25 +1083,214 @@ public class DesignOptimizationService {
     }
 
     public Map<String, Object> submitAnsysSimulation(Long taskId, Map<String, Object> body) {
+        return openAnsysSimulation(taskId, body);
+    }
+
+    public Map<String, Object> saveAnsysSimulationParams(Long taskId, Map<String, Object> body) {
         DesignTask task = taskService.selectTaskById(taskId);
         if (task != null) {
-            assertCurrentAssignee(task, "当前任务未流转到你，暂不能启动 ANSYS 仿真。");
+            assertCurrentAssignee(task, "当前任务未流转到你，暂不能保存 ANSYS 仿真参数。");
+        }
+        ensureAnsysSimulationTable();
+        Map<String, Object> input = ansysSimulationInput(taskId, body, false);
+        String simulationMode = normalizeAnsysSimulationMode(input.get("simulationMode"));
+        upsertAnsysSimulation(taskId, "PARAM_CONFIRMED", input, Collections.emptyMap(), "", true);
+        return ansysSimulation(taskId, simulationMode);
+    }
+
+    public Map<String, Object> openAnsysSimulation(Long taskId, Map<String, Object> body) {
+        DesignTask task = taskService.selectTaskById(taskId);
+        if (task != null) {
+            assertCurrentAssignee(task, "当前任务未流转到你，暂不能打开 ANSYS。");
+        }
+        ensureAnsysSimulationTable();
+        Map<String, Object> input = ansysSimulationInput(taskId, body, true);
+        input.put("operation", "prepare_only");
+        String simulationMode = normalizeAnsysSimulationMode(input.get("simulationMode"));
+        upsertAnsysSimulation(taskId, "RUNNING", input, Collections.emptyMap(), "", true);
+        CompletableFuture.runAsync(() -> runAnsysWorker(
+            taskId,
+            input,
+            "WAITING_ENGINEER_SOLVE",
+            "ANSYS Worker failed to prepare the Mechanical model.",
+            true
+        ), ansysExecutor);
+        return ansysSimulation(taskId, simulationMode);
+    }
+
+    public Map<String, Object> importAnsysSimulationResult(Long taskId, Map<String, Object> body) {
+        DesignTask task = taskService.selectTaskById(taskId);
+        if (task != null) {
+            assertCurrentAssignee(task, "当前任务未流转到你，暂不能读取 ANSYS 结果。");
         }
         ensureAnsysSimulationTable();
         String simulationMode = normalizeAnsysSimulationMode(body == null ? null : body.get("simulationMode"));
-        Map<String, Object> geometry = ansysGeometryInput(taskId);
+        Map<String, Object> input = existingAnsysInput(taskId, simulationMode);
+        if (input.isEmpty()) {
+            input = ansysSimulationInput(taskId, body, true);
+        }
+        Map<String, Object> safeBody = body == null ? Collections.emptyMap() : body;
+        input.put("simulationMode", simulationMode);
+        input.put("operation", "import_result");
+        String resultFilePath = str(firstNonNull(
+            safeBody.get("projectPath"),
+            safeBody.get("resultFilePath"),
+            input.get("projectPath"),
+            input.get("resultFilePath"),
+            input.get("workDir")
+        ), "");
+        if (StringUtils.isNotEmpty(resultFilePath)) {
+            input.put("projectPath", resultFilePath);
+            input.put("resultFilePath", resultFilePath);
+        }
+        upsertAnsysSimulation(taskId, "RUNNING", input, Collections.emptyMap(), "", true);
+        final Map<String, Object> workerInput = new LinkedHashMap<>(input);
+        CompletableFuture.runAsync(() -> runAnsysWorker(
+            taskId,
+            workerInput,
+            "RESULT_IMPORTED",
+            "ANSYS Worker failed to read Mechanical results.",
+            false
+        ), ansysExecutor);
+        return ansysSimulation(taskId, simulationMode);
+    }
+
+    public Map<String, Object> importAnsysResultFile(Long taskId, Map<String, Object> body) {
+        DesignTask task = taskService.selectTaskById(taskId);
+        if (task != null) {
+            assertCurrentAssignee(task, "当前任务未流转到你，暂不能导入 ANSYS 结果。");
+        }
+        ensureAnsysSimulationTable();
+        Map<String, Object> safeBody = body == null ? Collections.emptyMap() : body;
+        String simulationMode = normalizeAnsysSimulationMode(safeBody.get("simulationMode"));
+        Map<String, Object> input = existingAnsysInput(taskId, simulationMode);
+        if (input.isEmpty()) {
+            input = ansysSimulationInput(taskId, safeBody, false);
+        }
+        input.put("simulationMode", simulationMode);
+        input.put("resultImportMode", "local_file");
+
+        Path imagePath = ansysResultImagePath(safeBody);
+        Map<String, Object> result = mapOf(
+            "status", "SUCCESS",
+            "summary", "已导入 ANSYS 结果图片并传回平台。",
+            "simulationMode", simulationMode,
+            "simulationModelName", ansysSimulationModeLabel(simulationMode),
+            "stressImageUrl", imagePath.toString(),
+            "resultFilePath", imagePath.getParent() == null ? imagePath.toString() : imagePath.getParent().toString(),
+            "importedAt", DATE_TIME.format(LocalDateTime.now()),
+            "source", "导入结果",
+            "metrics", importedAnsysResultMetrics(safeBody, imagePath)
+        );
+        upsertAnsysSimulation(taskId, "SUCCESS", input, result, "", false);
+        return ansysSimulation(taskId, simulationMode);
+    }
+
+    private Map<String, Object> ansysSimulationInput(Long taskId, Map<String, Object> body, boolean requireGeometry) {
+        Map<String, Object> safeBody = body == null ? Collections.emptyMap() : body;
+        String simulationMode = normalizeAnsysSimulationMode(safeBody.get("simulationMode"));
+        Map<String, Object> cadModel = cadModel(taskId);
         Map<String, Object> faultPipeParameters = faultPipeParameters(taskId);
-        Map<String, Object> input = mapOf(
-            "cadModel", cadModel(taskId),
+        Map<String, Object> geometry = requireGeometry ? ansysGeometryInput(taskId) : safeAnsysGeometryInput(taskId);
+        Map<String, Object> parameters = ansysSimulationParameters(safeBody, faultPipeParameters);
+        return mapOf(
+            "cadModel", cadModel,
             "geometry", geometry,
             "faultPipeParameters", faultPipeParameters,
             "simulationMode", simulationMode,
             "simulationModelName", ansysSimulationModeLabel(simulationMode),
-            "pressureLoad", inletPressureExpression(faultPipeParameters)
+            "simulationParameters", parameters,
+            "pressureLoad", str(mapValue(parameters.get("pressure")).get("expression"), inletPressureExpression(faultPipeParameters))
         );
-        upsertAnsysSimulation(taskId, "RUNNING", input, Collections.emptyMap(), "", true);
-        CompletableFuture.runAsync(() -> runAnsysWorker(taskId, input), ansysExecutor);
-        return ansysSimulation(taskId, simulationMode);
+    }
+
+    private Map<String, Object> safeAnsysGeometryInput(Long taskId) {
+        try {
+            return ansysGeometryInput(taskId);
+        } catch (Exception ignored) {
+            return Collections.emptyMap();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> ansysSimulationParameters(Map<String, Object> body, Map<String, Object> faultPipeParameters) {
+        Map<String, Object> raw = mapValue(firstNonNull(body.get("simulationParameters"), body.get("parameters")));
+        Map<String, Object> rawPressure = mapValue(raw.get("pressure"));
+        Map<String, Object> rawMaterial = mapValue(raw.get("material"));
+        Map<String, Object> rawMesh = mapValue(raw.get("mesh"));
+        Map<String, Object> rawBoundary = mapValue(raw.get("boundary"));
+        Map<String, Object> rawResult = mapValue(raw.get("result"));
+
+        Object valuesObject = faultPipeParameters == null ? null : faultPipeParameters.get("values");
+        Map<String, Object> values = valuesObject instanceof Map<?, ?> map
+            ? (Map<String, Object>) map
+            : Collections.emptyMap();
+
+        double initialPressurePa = doubleValue(firstNonNull(rawPressure.get("initialPressurePa"), values.get("INLET_PRESSURE_INITIAL")), 101325);
+        double peakPressurePa = doubleValue(firstNonNull(rawPressure.get("peakPressurePa"), values.get("INLET_PRESSURE_PEAK")), 30000000);
+        double riseTimeS = doubleValue(firstNonNull(rawPressure.get("riseTimeS"), values.get("INLET_PRESSURE_RISE_TIME")), 0.001);
+        String expression = str(firstNonNull(rawPressure.get("expression"), values.get("INLET_PRESSURE_EXPRESSION")), "");
+        if (StringUtils.isEmpty(expression)) {
+            expression = "IF(t <= " + riseTimeS + ", " + initialPressurePa + " + (" + peakPressurePa + " - " + initialPressurePa + ") * t / " + riseTimeS + ", " + peakPressurePa + ")";
+        }
+
+        String materialName = str(firstNonNull(rawMaterial.get("materialName"), values.get("MATERIAL_NAME"), faultPipeParameters == null ? null : faultPipeParameters.get("materialName")), "Structural Steel");
+
+        return mapOf(
+            "analysisType", str(firstNonNull(raw.get("analysisType"), "static_structural"), "static_structural"),
+            "pressure", mapOf(
+                "initialPressurePa", initialPressurePa,
+                "peakPressurePa", peakPressurePa,
+                "riseTimeS", riseTimeS,
+                "expression", expression
+            ),
+            "material", mapOf(
+                "materialName", materialName,
+                "youngModulusPa", doubleValue(firstNonNull(rawMaterial.get("youngModulusPa"), values.get("YOUNG_MODULUS")), 1.93e11),
+                "poissonRatio", doubleValue(firstNonNull(rawMaterial.get("poissonRatio"), values.get("POISSON_RATIO")), 0.31),
+                "tensileYieldStrengthPa", doubleValue(firstNonNull(rawMaterial.get("tensileYieldStrengthPa"), values.get("TENSILE_YIELD_STRENGTH")), 2.07e8),
+                "tensileUltimateStrengthPa", doubleValue(firstNonNull(rawMaterial.get("tensileUltimateStrengthPa"), values.get("TENSILE_ULTIMATE_STRENGTH")), 5.86e8)
+            ),
+            "mesh", mapOf(
+                "globalSizeMm", doubleValue(firstNonNull(rawMesh.get("globalSizeMm"), rawMesh.get("meshSizeMm")), 3.0)
+            ),
+            "boundary", mapOf(
+                "fixedSupportMode", str(firstNonNull(rawBoundary.get("fixedSupportMode"), "both_ends"), "both_ends"),
+                "pressureFaceMode", str(firstNonNull(rawBoundary.get("pressureFaceMode"), "inner_wall"), "inner_wall")
+            ),
+            "result", mapOf(
+                "equivalentStress", !"false".equalsIgnoreCase(str(rawResult.get("equivalentStress"), "true")),
+                "totalDeformation", !"false".equalsIgnoreCase(str(rawResult.get("totalDeformation"), "true")),
+                "exportStressImage", !"false".equalsIgnoreCase(str(rawResult.get("exportStressImage"), "true"))
+            )
+        );
+    }
+
+    private Map<String, Object> existingAnsysInput(Long taskId, String simulationModeRaw) {
+        String simulationMode = normalizeAnsysSimulationMode(simulationModeRaw);
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                "select input_json inputJson, result_file_path resultFilePath, stress_image_url stressImageUrl from t2_design_ansys_simulation_task where task_id = ? and simulation_mode = ?",
+                taskId,
+                simulationMode
+            );
+            if (!rows.isEmpty()) {
+                Map<String, Object> row = rows.get(0);
+                Map<String, Object> input = fromJson(str(row.get("inputJson"), "{}"));
+                String resultFilePath = str(row.get("resultFilePath"), "");
+                if (StringUtils.isNotEmpty(resultFilePath)) {
+                    input.put("resultFilePath", resultFilePath);
+                    input.put("projectPath", resultFilePath);
+                }
+                String stressImageUrl = str(row.get("stressImageUrl"), "");
+                if (StringUtils.isNotEmpty(stressImageUrl)) {
+                    input.put("stressImageUrl", stressImageUrl);
+                }
+                return input;
+            }
+        } catch (Exception ignored) {
+        }
+        return Collections.emptyMap();
     }
 
     private Map<String, Object> ansysGeometryInput(Long taskId) {
@@ -1170,6 +1363,22 @@ public class DesignOptimizationService {
     }
 
     private void runAnsysWorker(Long taskId, Map<String, Object> input) {
+        runAnsysWorker(
+            taskId,
+            input,
+            "SUCCESS",
+            "ANSYS Worker failed to import geometry.",
+            false
+        );
+    }
+
+    private void runAnsysWorker(
+        Long taskId,
+        Map<String, Object> input,
+        String successStatus,
+        String failureMessage,
+        boolean placeholderOnSuccess
+    ) {
         try {
             upsertAnsysSimulation(taskId, "RUNNING", input, Collections.emptyMap(), "", true);
             Map<String, Object> request = new LinkedHashMap<>(input);
@@ -1181,11 +1390,14 @@ public class DesignOptimizationService {
                 data = workerResponse;
             }
             String status = str(data.get("status"), "SUCCESS");
-            if (!"SUCCESS".equalsIgnoreCase(status) && !"COMPLETED".equalsIgnoreCase(status)) {
-                upsertAnsysSimulation(taskId, "FAILED", input, data, str(data.get("errorMessage"), "ANSYS Worker failed to import geometry."), false);
+            if (!"SUCCESS".equalsIgnoreCase(status)
+                && !"COMPLETED".equalsIgnoreCase(status)
+                && !"PREPARED".equalsIgnoreCase(status)
+                && !"READY".equalsIgnoreCase(status)) {
+                upsertAnsysSimulation(taskId, "FAILED", input, data, str(data.get("errorMessage"), failureMessage), false);
                 return;
             }
-            upsertAnsysSimulation(taskId, "SUCCESS", input, data, "", false);
+            upsertAnsysSimulation(taskId, successStatus, input, data, "", placeholderOnSuccess);
         } catch (Exception e) {
             upsertAnsysSimulation(taskId, "FAILED", input, Collections.emptyMap(), "ANSYS Worker unavailable: " + e.getMessage(), false);
         }
@@ -1248,6 +1460,80 @@ public class DesignOptimizationService {
         return file;
     }
 
+    private Path ansysResultImagePath(Map<String, Object> body) {
+        Path directory = resolveConfiguredPath(ansysResultImageDir);
+        if (!Files.isDirectory(directory)) {
+            throw new IllegalStateException("ANSYS 结果图片目录不存在：" + directory);
+        }
+
+        String imageName = str(firstNonNull(body.get("imageName"), body.get("fileName")), "");
+        if (StringUtils.isNotEmpty(imageName)) {
+            Path target = directory.resolve(Paths.get(imageName).getFileName().toString()).normalize();
+            if (!target.startsWith(directory) || !Files.isRegularFile(target) || !isResultImageFile(target)) {
+                throw new IllegalStateException("指定的 ANSYS 结果图片不存在：" + imageName);
+            }
+            return target;
+        }
+
+        try (var stream = Files.list(directory)) {
+            return stream
+                .filter(Files::isRegularFile)
+                .filter(this::isResultImageFile)
+                .max(Comparator.comparingLong(path -> path.toFile().lastModified()))
+                .orElseThrow(() -> new IllegalStateException("ANSYS 结果图片目录中没有可导入的图片。"));
+        } catch (IOException e) {
+            throw new IllegalStateException("读取 ANSYS 结果图片目录失败：" + e.getMessage(), e);
+        }
+    }
+
+    private Path resolveConfiguredPath(String configuredPath) {
+        Path configured = Paths.get(str(configuredPath, "")).normalize();
+        if (configured.isAbsolute()) {
+            return configured;
+        }
+        Path base = Paths.get("").toAbsolutePath().normalize();
+        for (Path cursor = base; cursor != null; cursor = cursor.getParent()) {
+            Path candidate = cursor.resolve(configured).normalize();
+            if (Files.exists(candidate)) {
+                return candidate;
+            }
+        }
+        return base.resolve(configured).normalize();
+    }
+
+    private boolean isResultImageFile(Path path) {
+        String name = path == null ? "" : path.getFileName().toString().toLowerCase(Locale.ROOT);
+        return name.endsWith(".png")
+            || name.endsWith(".jpg")
+            || name.endsWith(".jpeg")
+            || name.endsWith(".bmp")
+            || name.endsWith(".gif")
+            || name.endsWith(".webp");
+    }
+
+    private List<Map<String, Object>> importedAnsysResultMetrics(Map<String, Object> body, Path imagePath) {
+        Object metricsObject = body.get("metrics");
+        List<Map<String, Object>> providedMetrics = fromJsonList(toJson(firstNonNull(metricsObject, Collections.emptyList())));
+        if (!providedMetrics.isEmpty()) {
+            return providedMetrics;
+        }
+
+        Map<String, Object> parameters = mapValue(body.get("simulationParameters"));
+        Map<String, Object> pressure = mapValue(parameters.get("pressure"));
+        Map<String, Object> mesh = mapValue(parameters.get("mesh"));
+        List<Map<String, Object>> metrics = new ArrayList<>();
+        metrics.add(mapOf("name", "最大等效应力", "value", doubleValue(body.get("maxEquivalentStress"), 0.40327), "unit", str(body.get("stressUnit"), "MPa"), "source", "导入结果"));
+        metrics.add(mapOf("name", "最大总变形", "value", doubleValue(body.get("maxTotalDeformation"), 0.0012), "unit", str(body.get("deformationUnit"), "mm"), "source", "导入结果"));
+        metrics.add(mapOf("name", "结果图片", "value", imagePath.getFileName().toString(), "unit", "", "source", "导入结果"));
+        if (!pressure.isEmpty()) {
+            metrics.add(mapOf("name", "峰值压力", "value", round2(doubleValue(pressure.get("peakPressurePa"), 30000000) / 1000000.0), "unit", "MPa", "source", "仿真参数"));
+        }
+        if (!mesh.isEmpty()) {
+            metrics.add(mapOf("name", "网格尺寸", "value", doubleValue(firstNonNull(mesh.get("globalSizeMm"), mesh.get("meshSizeMm")), 3.0), "unit", "mm", "source", "仿真参数"));
+        }
+        return metrics;
+    }
+
     public Map<String, Object> submitCadModel(Long taskId, Map<String, Object> body) {
         DesignTask task = taskService.selectTaskById(taskId);
         if (task != null) {
@@ -1303,6 +1589,10 @@ public class DesignOptimizationService {
 
     private String ansysStatusLabel(String status) {
         return switch (status) {
+            case "PARAM_CONFIRMED" -> "参数已确认";
+            case "ANSYS_OPENED" -> "ANSYS 已打开";
+            case "WAITING_ENGINEER_SOLVE" -> "等待工程师求解";
+            case "RESULT_IMPORTED" -> "结果已读取";
             case "QUEUED" -> "排队中";
             case "RUNNING" -> "仿真中";
             case "SUCCESS" -> "仿真完成";
@@ -1537,6 +1827,55 @@ public class DesignOptimizationService {
         result.put("archiveBy", row.get("archiveBy"));
         result.put("exportFileId", row.get("exportFileId"));
         return result;
+    }
+
+    @Transactional
+    public Map<String, Object> deleteArchivedTaskData(Long taskId) {
+        if (taskId == null) {
+            throw new IllegalArgumentException("任务ID不能为空。");
+        }
+
+        DesignTask task = taskService.selectTaskById(taskId);
+        boolean archived = recordExists("t2_design_task_archive", "task_id", taskId);
+        boolean completed = task != null && ("COMPLETED".equals(task.getStatus()) || "end".equals(task.getCurrentNodeKey()));
+        if (!archived && !completed) {
+            throw new IllegalStateException("仅已完成或已归档任务支持删除数据。");
+        }
+
+        int deletedRows = 0;
+        deletedRows += deleteIfTableExists("t2_quality_task_link", "delete from t2_quality_task_link where design_task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_task_archive", "delete from t2_design_task_archive where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_approval_record", "delete from t2_design_approval_record where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_report_submission", "delete from t2_design_report_submission where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_simulation_result", "delete from t2_design_simulation_result where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_ansys_simulation_task", "delete from t2_design_ansys_simulation_task where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_cad_model_task", "delete from t2_cad_model_task where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_surrogate_solve_task", "delete from t2_surrogate_solve_task where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_subtask_solution", "delete from t2_design_subtask_solution where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_conflict_check", "delete from t2_design_conflict_check where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_task_variable_selection", "delete from t2_design_task_variable_selection where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_objective_constraint", "delete from t2_design_objective_constraint where task_id = ?", taskId);
+        if (tableExists("t2_design_fault_pipe_parameter_item") && tableExists("t2_design_fault_pipe_parameter_set")) {
+            deletedRows += jdbcTemplate.update("""
+                delete from t2_design_fault_pipe_parameter_item
+                where parameter_set_id in (
+                    select parameter_set_id
+                    from t2_design_fault_pipe_parameter_set
+                    where task_id = ?
+                )
+                """, taskId);
+        }
+        deletedRows += deleteIfTableExists("t2_design_fault_pipe_parameter_set", "delete from t2_design_fault_pipe_parameter_set where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_frame_beam_maintenance_advice", "delete from t2_frame_beam_maintenance_advice where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_frame_beam_life_prediction", "delete from t2_frame_beam_life_prediction where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_frame_beam_load_spectrum", "delete from t2_frame_beam_load_spectrum where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_frame_beam_crack_input", "delete from t2_frame_beam_crack_input where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_task_file", "delete from t2_design_task_file where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_task_log", "delete from t2_design_task_log where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_task_node", "delete from t2_design_task_node where task_id = ?", taskId);
+        deletedRows += deleteIfTableExists("t2_design_task", "delete from t2_design_task where task_id = ?", taskId);
+
+        return mapOf("taskId", taskId, "deletedRows", deletedRows);
     }
 
     private Map<String, Object> defaultSurrogateSolve() {
@@ -3858,6 +4197,15 @@ public class DesignOptimizationService {
         return response;
     }
 
+    private Map<String, Object> mapValue(Object value) {
+        if (!(value instanceof Map<?, ?> map)) {
+            return Collections.emptyMap();
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        map.forEach((key, item) -> result.put(String.valueOf(key), item));
+        return result;
+    }
+
     private List<Map<String, Object>> responseList(Map<String, Object> response) {
         if (response == null) {
             return Collections.emptyList();
@@ -4077,6 +4425,43 @@ public class DesignOptimizationService {
                 jdbcTemplate.execute("alter table " + tableName + " add column " + columnName + " " + columnDefinition);
             }
         } catch (Exception ignored) {
+        }
+    }
+
+    private boolean recordExists(String tableName, String columnName, Object value) {
+        if (!tableExists(tableName)) {
+            return false;
+        }
+        Integer count = jdbcTemplate.queryForObject(
+            "select count(1) from " + tableName + " where " + columnName + " = ?",
+            Integer.class,
+            value
+        );
+        return count != null && count > 0;
+    }
+
+    private int deleteIfTableExists(String tableName, String sql, Object... args) {
+        if (!tableExists(tableName)) {
+            return 0;
+        }
+        return jdbcTemplate.update(sql, args);
+    }
+
+    private boolean tableExists(String tableName) {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                """
+                select count(1)
+                from information_schema.tables
+                where table_schema = database()
+                  and table_name = ?
+                """,
+                Integer.class,
+                tableName
+            );
+            return count != null && count > 0;
+        } catch (Exception ignored) {
+            return false;
         }
     }
 
