@@ -79,6 +79,13 @@ export function getDesignTaskArchive(taskId) {
   })
 }
 
+export function deleteArchivedTaskData(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/archive-data`,
+    method: 'delete'
+  })
+}
+
 export function getTaskAttachmentFile(fileId) {
   return request({
     url: `/designtask/task/attachment/${fileId}`,
@@ -228,6 +235,38 @@ export function getDesignReportTask(taskId) {
 export function submitAnsysSimulationTask(taskId, data = {}) {
   return request({
     url: `/designtask/task/${taskId}/ansys-simulation`,
+    method: 'post',
+    data
+  })
+}
+
+export function saveAnsysSimulationParams(taskId, data = {}) {
+  return request({
+    url: `/designtask/task/${taskId}/ansys-simulation/params`,
+    method: 'post',
+    data
+  })
+}
+
+export function openAnsysSimulationTask(taskId, data = {}) {
+  return request({
+    url: `/designtask/task/${taskId}/ansys-simulation/open`,
+    method: 'post',
+    data
+  })
+}
+
+export function importAnsysSimulationResult(taskId, data = {}) {
+  return request({
+    url: `/designtask/task/${taskId}/ansys-simulation/import-result`,
+    method: 'post',
+    data
+  })
+}
+
+export function importAnsysResultFile(taskId, data = {}) {
+  return request({
+    url: `/designtask/task/${taskId}/ansys-simulation/import-result-file`,
     method: 'post',
     data
   })

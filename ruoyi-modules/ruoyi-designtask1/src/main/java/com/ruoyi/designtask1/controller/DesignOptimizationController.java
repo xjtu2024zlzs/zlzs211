@@ -1,6 +1,10 @@
 package com.ruoyi.designtask1.controller;
 
 import com.ruoyi.common.core.web.domain.AjaxResult;
+import com.ruoyi.common.log.annotation.Log;
+import com.ruoyi.common.log.enums.BusinessType;
+import com.ruoyi.common.security.annotation.RequiresRoles;
+import com.ruoyi.common.security.utils.SecurityUtils;
 import com.ruoyi.designtask1.domain.DesignTaskFile;
 import com.ruoyi.designtask1.service.DesignOptimizationService;
 import org.springframework.core.io.FileSystemResource;
@@ -97,6 +101,16 @@ public class DesignOptimizationController {
         return AjaxResult.success(optimizationService.archive(taskId));
     }
 
+    @RequiresRoles("admin")
+    @Log(title = "设计任务归档数据", businessType = BusinessType.DELETE)
+    @DeleteMapping("/task/{taskId}/archive-data")
+    public AjaxResult deleteArchivedTaskData(@PathVariable Long taskId) {
+        if (!SecurityUtils.isAdmin()) {
+            return AjaxResult.error("仅超级管理员可以删除归档任务数据");
+        }
+        return AjaxResult.success("删除成功", optimizationService.deleteArchivedTaskData(taskId));
+    }
+
     @GetMapping("/objective/catalog/{discipline}")
     public AjaxResult objectiveCatalog(@PathVariable String discipline, Long taskId, String taskType) {
         return AjaxResult.success(optimizationService.objectiveCatalog(discipline, taskId, taskType));
@@ -190,6 +204,26 @@ public class DesignOptimizationController {
     @PostMapping("/task/{taskId}/ansys-simulation")
     public AjaxResult submitAnsysSimulation(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
         return AjaxResult.success(optimizationService.submitAnsysSimulation(taskId, body));
+    }
+
+    @PostMapping("/task/{taskId}/ansys-simulation/params")
+    public AjaxResult saveAnsysSimulationParams(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
+        return AjaxResult.success(optimizationService.saveAnsysSimulationParams(taskId, body));
+    }
+
+    @PostMapping("/task/{taskId}/ansys-simulation/open")
+    public AjaxResult openAnsysSimulation(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
+        return AjaxResult.success(optimizationService.openAnsysSimulation(taskId, body));
+    }
+
+    @PostMapping("/task/{taskId}/ansys-simulation/import-result")
+    public AjaxResult importAnsysSimulationResult(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
+        return AjaxResult.success(optimizationService.importAnsysSimulationResult(taskId, body));
+    }
+
+    @PostMapping("/task/{taskId}/ansys-simulation/import-result-file")
+    public AjaxResult importAnsysResultFile(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
+        return AjaxResult.success(optimizationService.importAnsysResultFile(taskId, body));
     }
 
     @GetMapping("/task/{taskId}/ansys-simulation")
