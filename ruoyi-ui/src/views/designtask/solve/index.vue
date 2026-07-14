@@ -654,7 +654,7 @@
                     {{ row.cadStatus === 'SUCCESS' ? '重新建模' : '生成模型' }}
                   </el-button>
                   <el-button size="small" type="success" plain :disabled="!canEditVerification || row.cadStatus !== 'SUCCESS'" :loading="row.schemeKey === activeComparisonSchemeKey && ansysSubmitting" @click="runSchemeSimulation(row)">
-                    打开 ANSYS
+                    ANSYS仿真
                   </el-button>
                   <el-button size="small" type="warning" plain :disabled="!canEditVerification" :loading="row.schemeKey === activeComparisonSchemeKey && ansysResultImporting" @click="importSchemeSimulationResult(row)">
                     导入结果
