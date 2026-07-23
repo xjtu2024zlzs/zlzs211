@@ -10,11 +10,40 @@
 start_pipe_worker.bat
 ```
 
-服务地址为：
+管路 CAD 建模服务地址为：
 
 ```text
 http://127.0.0.1:18080/api/pipe-model
 ```
+
+本 Worker 也提供线缆管路 SolidWorks 建模接口：
+
+```text
+POST http://127.0.0.1:18080/api/cable-routing/model
+```
+
+线缆管路求解算法已拆分到 `python/project2` 服务：
+
+```text
+GET  http://127.0.0.1:9721/api/cable-routing/algorithms
+GET  http://127.0.0.1:9721/api/cable-routing/defaults
+POST http://127.0.0.1:9721/api/cable-routing/solve
+```
+
+当前默认算法为 `lp_bend_3d`，入口文件为 `python/project2/pip_path/LP_Bend_3D.py`。后续新增算法时，应在 `python/project2/app/main.py` 的算法注册表中增加算法项；SolidWorks Worker 只接收已求解的 `solveResult` 并生成模型。
+
+线缆管路默认参数与平台前端保持一致：
+
+- 网格范围：`12 x 12 x 8`
+- 网格单元格：`50 mm/格`
+- 管道外径：`9.53 mm`
+- 管道内径：`7.73 mm`
+- 圆角弯管半径：`20 mm`
+- 障碍物：3 个实心立方体
+- 空间壁板：底板、左侧板、后侧板，组成半包围结构
+- 管路颜色：默认红、蓝、绿三色区分
+
+`/api/cable-routing/model` 会根据算法服务返回的路径点生成彩色预览图、空心圆角管 STL、路径 JSON 和 SolidWorks 导入脚本；在 `PIPE_WORKER_RUN_SOLIDWORKS=1` 时会继续调用 SolidWorks COM 自动化保存为同一个 `SLDPRT` 零件文件，并尝试导出 STEP。
 
 ## 输出文件
 

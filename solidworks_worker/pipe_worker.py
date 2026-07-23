@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
+from cable_routing import build_cable_scene
+
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR_DIR = ROOT / "solidworks_pipe"
@@ -426,17 +428,26 @@ def render_stl_preview(stl_path, output_path):
 
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
-        if urlparse(self.path).path != "/api/pipe-model":
+        path = urlparse(self.path).path
+        if path not in ("/api/pipe-model", "/api/cable-routing/model"):
             self.send_error(404)
             return
 
         try:
             length = int(self.headers.get("Content-Length", "0"))
             payload = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
-            result = build_model(payload)
+            if path == "/api/pipe-model":
+                result = build_model(payload)
+            else:
+                task_id = str(payload.get("taskId") or "manual")
+                result = build_cable_scene(
+                    payload,
+                    OUTPUT_DIR / f"task_{task_id}" / "cable_routing",
+                    RUN_SOLIDWORKS,
+                )
             self.respond(200, result)
         except Exception as exc:
-            self.respond(500, {
+            self.respond(200 if path.startswith("/api/cable-routing/") else 500, {
                 "status": "FAILED",
                 "errorMessage": str(exc),
             })
@@ -456,5 +467,6 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     print(f"Pipe SolidWorks worker listening on http://{HOST}:{PORT}/api/pipe-model")
+    print(f"Cable routing model builder listening on http://{HOST}:{PORT}/api/cable-routing/model")
     print("SolidWorks native generation is required. Set PIPE_WORKER_RUN_SOLIDWORKS=0 only for geometry-debug mode.")
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()

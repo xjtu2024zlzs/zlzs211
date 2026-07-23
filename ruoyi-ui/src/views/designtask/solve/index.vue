@@ -307,12 +307,18 @@
         <section v-if="showVariableSection" class="section-block">
           <div class="section-header">
             <div>
-              <h2 class="section-title">设计变量统一选择</h2>
+              <h2 class="section-title">设计变量选择</h2>
+              <p class="section-subtitle">当前子任务：{{ activeSubtaskName }}，已选 {{ activeSubtaskSelectedVariableCount }} 项</p>
             </div>
             <div class="action-row">
+              <el-button plain icon="Select" :disabled="readonlyMode" @click="selectActiveSubtaskVariables">全选当前面板变量</el-button>
+              <el-button plain icon="Finished" :disabled="readonlyMode" @click="selectAllDesignVariables">全选全部变量</el-button>
               <el-button plain icon="Refresh" class="btn-soft-blue" :disabled="readonlyMode" :loading="variableLoading" @click="loadVariableCatalogs">刷新变量</el-button>
-              <el-button type="primary" icon="Check" class="btn-strong-blue" :disabled="readonlyMode || !selectedVariableCount" :loading="variableSaving" @click="saveVariables">
-                保存设计变量
+              <el-button type="primary" icon="Check" class="btn-strong-blue" :disabled="readonlyMode || !activeSubtaskSelectedVariableCount" :loading="variableSaving" @click="saveVariables">
+                保存当前子任务变量
+              </el-button>
+              <el-button plain icon="FolderChecked" :disabled="readonlyMode || !selectedVariableCount" :loading="variableSaving" @click="saveAllVariables">
+                保存全部变量
               </el-button>
             </div>
           </div>
@@ -326,16 +332,28 @@
             show-icon
           />
           <el-alert
-            v-else-if="!selectedVariableCount"
+            v-else-if="!activeSubtaskSelectedVariableCount"
             class="mb-16"
-            title="请至少选择一个设计变量，保存后才能进行模型求解。"
+            title="请至少选择当前子任务的一个设计变量，保存后才能进行对应子任务求解。"
             type="warning"
             :closable="false"
             show-icon
           />
 
-          <el-collapse class="mt-12">
-            <el-collapse-item v-for="group in variablesBySubtask" :key="group.subtaskCode" :title="group.subtaskName">
+          <el-collapse
+            v-model="activeVariableSubtaskPanels"
+            class="mt-12"
+            accordion
+            @change="handleVariablePanelChange"
+          >
+            <el-collapse-item v-for="group in variablesBySubtask" :key="group.subtaskCode" :name="group.subtaskCode">
+              <template #title>
+                <div class="variable-panel-title">
+                  <strong>{{ group.subtaskName }}</strong>
+                  <el-tag v-if="group.subtaskCode === activeSubtaskCode" size="small" type="primary">当前子任务</el-tag>
+                  <span>{{ selectedVariableCountForSubtask(group.subtaskCode) }} / {{ group.items.length }} 已选</span>
+                </div>
+              </template>
               <div class="table-shell">
                 <el-table :data="group.items" stripe class="platform-table">
                   <el-table-column v-if="!readonlyMode" width="60">
@@ -747,19 +765,322 @@
         <section v-if="showCableLayoutWorkspace" class="section-block">
           <div class="section-header">
             <div>
-              <h2 class="section-title">线缆管路布局优化</h2>
-              <p class="section-subtitle">该子任务页面已预留，后续可接入线缆管路联合布局算法、包络校核、间隙校核和布线方案对比。</p>
+              <h2 class="section-title">线缆管路联合布局优化</h2>
             </div>
             <div class="action-row">
-              <el-tag type="info">待设计</el-tag>
+              <el-tag :type="cableRoutingSolveStatusType">{{ cableRoutingSolveTask.statusLabel }}</el-tag>
+              <el-button plain icon="Refresh" class="btn-soft-blue" :disabled="readonlyMode" @click="resetCableRoutingDefaults">恢复默认</el-button>
+              <el-button type="primary" icon="CaretRight" class="btn-strong-blue" :disabled="!canSubmitCableRoutingSolve" :loading="cableRoutingSolving" @click="submitCableRoutingSolve">执行算法求解</el-button>
+              <el-button plain icon="Box" :disabled="!canGenerateCableRoutingModel" :loading="cableRoutingModelSubmitting" @click="submitCableRoutingModel">生成 SolidWorks 模型</el-button>
+              <el-button type="success" icon="Upload" :disabled="!canSubmitCableRoutingReport" :loading="cableRoutingReportSubmitting" @click="submitCableRoutingReport">提交线缆方案</el-button>
             </div>
           </div>
-          <div class="subtask-empty-workspace">
-            <el-empty description="线缆管路布局优化处理页面待配置" :image-size="110" />
+
+          <div class="cable-layout-workbench">
+            <div class="soft-panel cable-routing-panel">
+              <div class="card-head">
+                <h3 class="section-title">算法参数输入</h3>
+              </div>
+              <div class="cable-routing-algorithm-card">
+                <el-form :model="cableRoutingForm" label-width="118px" class="cable-routing-form">
+                  <div class="cable-routing-algorithm-grid">
+                    <el-form-item label="调用算法">
+                      <el-select v-model="cableRoutingForm.algorithmKey" :disabled="readonlyMode" @change="handleCableRoutingAlgorithmChange">
+                        <el-option v-for="item in cableRoutingAlgorithmOptions" :key="item.value" :label="item.label" :value="item.value">
+                          <span>{{ item.label }}</span>
+                          <el-tag size="small" class="algorithm-option-tag" :type="item.type">{{ item.badge }}</el-tag>
+                        </el-option>
+                      </el-select>
+                    </el-form-item>
+                    <el-form-item label="算法状态">
+                      <div class="algorithm-status-line">
+                        <el-tag :type="selectedCableRoutingAlgorithm?.type || 'success'">{{ cableRoutingAlgorithmStatusText }}</el-tag>
+                      </div>
+                    </el-form-item>
+                  </div>
+                </el-form>
+              </div>
+              <div class="cable-routing-designer">
+                <div class="cable-routing-visual-panel">
+                  <div class="cable-routing-visual-head">
+                    <div>
+                      <strong>空间结构预览</strong>
+                      <span>{{ cableRoutingSpaceLabel }}</span>
+                    </div>
+                    <el-tag type="info">{{ cableRoutingGridLabel }}</el-tag>
+                  </div>
+                  <div ref="cableRoutingSceneRef" class="cable-routing-scene"></div>
+                  <div class="cable-routing-pickbar">
+                    <span class="pickbar-label">管路</span>
+                    <el-select v-model="cableRoutingSelectedPipeIndex" size="small" class="pipe-picker">
+                      <el-option v-for="item in cableRoutingPipeOptions" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                    <span class="pickbar-label">Z 层</span>
+                    <el-input-number v-model="cableRoutingPickLayerZ" size="small" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[2] - 1)" :step="1" controls-position="right" />
+                    <el-button size="small" :type="cableRoutingPickMode === 'start' ? 'primary' : 'default'" :disabled="readonlyMode" @click="setCableRoutingPickMode('start')">选择起点</el-button>
+                    <el-button size="small" :type="cableRoutingPickMode === 'end' ? 'primary' : 'default'" :disabled="readonlyMode" @click="setCableRoutingPickMode('end')">选择终点</el-button>
+                    <el-tag size="small" :type="cableRoutingPickMode ? 'success' : 'info'">{{ cableRoutingPickModeLabel }}</el-tag>
+                  </div>
+                  <div class="cable-routing-scene-note">
+                    当前 Z 层为 {{ cableRoutingPickLayerZ }}，点击预览区中的网格位置即可写入所选管路的起点或终点。
+                  </div>
+                </div>
+
+                <div class="cable-routing-editor">
+              <el-form :model="cableRoutingForm" label-width="118px" class="cable-routing-form">
+                <div class="cable-routing-param-grid">
+                  <el-form-item label="空间范围">
+                    <div class="axis-inputs">
+                      <el-input-number v-model="cableRoutingForm.gridShape[0]" :min="1" :step="1" controls-position="right" />
+                      <el-input-number v-model="cableRoutingForm.gridShape[1]" :min="1" :step="1" controls-position="right" />
+                      <el-input-number v-model="cableRoutingForm.gridShape[2]" :min="1" :step="1" controls-position="right" />
+                    </div>
+                    <div class="cable-routing-space-note">{{ cableRoutingGridLabel }} = {{ cableRoutingSpaceLabel }}</div>
+                  </el-form-item>
+                  <el-form-item label="单元格大小">
+                    <el-input-number v-model="cableRoutingForm.gridUnitMm" :min="1" :step="5" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="管道外径">
+                    <el-input-number v-model="cableRoutingForm.pipeOuterDiameterMm" :min="0.1" :precision="2" :step="0.1" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="管道内径">
+                    <el-input-number v-model="cableRoutingForm.pipeInnerDiameterMm" :min="0.1" :precision="2" :step="0.1" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="圆角半径">
+                    <el-input-number v-model="cableRoutingForm.bendRadiusMm" :min="0.1" :precision="1" :step="1" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="弯曲惩罚">
+                    <el-input-number v-model="cableRoutingForm.bendWeight" :min="0" :precision="1" :step="0.5" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="求解方式">
+                    <el-select v-model="cableRoutingForm.solverMode">
+                      <el-option v-for="item in CABLE_SOLVER_MODE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                  </el-form-item>
+                </div>
+              </el-form>
+
+              <div class="content-grid content-grid--balanced mt-12 cable-layout-grid">
+                <div class="table-shell">
+                  <div class="mini-table-head">
+                    <strong>管路起终点</strong>
+                    <el-button link type="primary" icon="Plus" :disabled="readonlyMode" @click="addCableRoutingPipe">新增管路</el-button>
+                  </div>
+                  <el-table :data="cableRoutingForm.pipes" stripe class="platform-table cable-routing-edit-table">
+                    <el-table-column label="名称" min-width="118">
+                      <template #default="{ row }">
+                        <el-input v-model="row.name" size="small" />
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="颜色" width="76">
+                      <template #default="{ row }">
+                        <el-color-picker v-model="row.color" size="small" />
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="起点 X/Y/Z" min-width="210">
+                      <template #default="{ row }">
+                        <div class="axis-inputs axis-inputs--compact">
+                          <el-input-number v-model="row.start[0]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[0] - 1)" :step="1" controls-position="right" />
+                          <el-input-number v-model="row.start[1]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[1] - 1)" :step="1" controls-position="right" />
+                          <el-input-number v-model="row.start[2]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[2] - 1)" :step="1" controls-position="right" />
+                        </div>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="终点 X/Y/Z" min-width="210">
+                      <template #default="{ row }">
+                        <div class="axis-inputs axis-inputs--compact">
+                          <el-input-number v-model="row.end[0]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[0] - 1)" :step="1" controls-position="right" />
+                          <el-input-number v-model="row.end[1]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[1] - 1)" :step="1" controls-position="right" />
+                          <el-input-number v-model="row.end[2]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[2] - 1)" :step="1" controls-position="right" />
+                        </div>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="70">
+                      <template #default="{ $index }">
+                        <el-button link type="danger" :disabled="readonlyMode || cableRoutingForm.pipes.length <= 1" @click="removeCableRoutingPipe($index)">删除</el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </div>
+
+                <div class="table-shell">
+                  <div class="mini-table-head">
+                    <strong>障碍物范围</strong>
+                    <el-button link type="primary" icon="Plus" :disabled="readonlyMode" @click="addCableRoutingObstacle">新增障碍</el-button>
+                  </div>
+                  <el-table :data="cableRoutingForm.obstacles" stripe class="platform-table cable-routing-edit-table">
+                    <el-table-column label="名称" min-width="118">
+                      <template #default="{ row }">
+                        <el-input v-model="row.name" size="small" />
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="最小 X/Y/Z" min-width="210">
+                      <template #default="{ row }">
+                        <div class="axis-inputs axis-inputs--compact">
+                          <el-input-number v-model="row.min[0]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[0] - 1)" :step="1" controls-position="right" />
+                          <el-input-number v-model="row.min[1]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[1] - 1)" :step="1" controls-position="right" />
+                          <el-input-number v-model="row.min[2]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[2] - 1)" :step="1" controls-position="right" />
+                        </div>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="最大 X/Y/Z" min-width="210">
+                      <template #default="{ row }">
+                        <div class="axis-inputs axis-inputs--compact">
+                          <el-input-number v-model="row.max[0]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[0] - 1)" :step="1" controls-position="right" />
+                          <el-input-number v-model="row.max[1]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[1] - 1)" :step="1" controls-position="right" />
+                          <el-input-number v-model="row.max[2]" :min="0" :max="Math.max(0, cableRoutingForm.gridShape[2] - 1)" :step="1" controls-position="right" />
+                        </div>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="70">
+                      <template #default="{ $index }">
+                        <el-button link type="danger" :disabled="readonlyMode" @click="removeCableRoutingObstacle($index)">删除</el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+            <div class="soft-panel mt-12 cable-routing-result-panel">
+              <div class="card-head">
+                <h3 class="section-title">算法结果与模型输出</h3>
+                <div class="comparison-actions">
+                  <el-tag :type="cableRoutingSolveStatusType">求解：{{ cableRoutingSolveTask.statusLabel }}</el-tag>
+                  <el-tag :type="cableRoutingModelStatusType">模型：{{ cableRoutingModelTask.statusLabel }}</el-tag>
+                  <el-tag :type="cableRoutingSubmissionStatusType">报告：{{ cableRoutingSubmission.statusLabel }}</el-tag>
+                  <el-button link type="primary" :loading="cableRoutingRefreshing" @click="refreshCableRoutingSolve">刷新求解</el-button>
+                  <el-button link type="primary" :loading="cableRoutingModelRefreshing" @click="refreshCableRoutingModel">刷新模型</el-button>
+                  <el-button link type="primary" :loading="cableRoutingReportRefreshing" @click="refreshCableRoutingReport">刷新报告</el-button>
+                  <el-button link type="primary" :disabled="!cableRoutingSubmission.submitted" @click="previewCableRoutingReport">查看线缆报告</el-button>
+                </div>
+              </div>
+              <div class="cable-routing-result-grid">
+                <div>
+                  <div class="cable-routing-total-grid">
+                    <div v-for="item in cableRoutingTotalItems" :key="item.label" class="cable-routing-total-card">
+                      <span>{{ item.label }}</span>
+                      <strong>{{ item.value }}<em>{{ item.unit }}</em></strong>
+                    </div>
+                  </div>
+                  <el-alert
+                    v-if="cableRoutingSolveTask.errorMessage"
+                    class="mt-12"
+                    type="error"
+                    :closable="false"
+                    show-icon
+                    :title="cableRoutingSolveTask.errorMessage"
+                  />
+                  <div class="table-shell mt-12">
+                    <el-table :data="cableRoutingPathRows" stripe class="platform-table">
+                      <el-table-column label="管路" min-width="140">
+                        <template #default="{ row }">
+                          <span class="route-color-dot" :style="{ background: row.color }"></span>{{ row.name }}
+                        </template>
+                      </el-table-column>
+                      <el-table-column label="长度/m" prop="cableLength" width="100" />
+                      <el-table-column label="弯头数" min-width="90">
+                        <template #default="{ row }">{{ row.rawPath?.bendCount ?? '-' }}</template>
+                      </el-table-column>
+                      <el-table-column label="路径点" prop="pointCount" width="90" />
+                      <el-table-column label="起点" min-width="120">
+                        <template #default="{ row }">{{ pointText(row.start) }}</template>
+                      </el-table-column>
+                      <el-table-column label="终点" min-width="120">
+                        <template #default="{ row }">{{ pointText(row.end) }}</template>
+                      </el-table-column>
+                    </el-table>
+                  </div>
+                </div>
+                <div class="cable-routing-preview">
+                  <div class="cable-routing-preview-title">
+                    <strong>SolidWorks 最终三维模型</strong>
+                    <span>模型生成成功后加载 SolidWorks 导出的 STL 几何</span>
+                  </div>
+                  <div class="cable-routing-stl-viewer-wrap">
+                    <CadStlViewer :model-data="cableRoutingStlData" :empty-text="cableRoutingModelViewerEmptyText" height="360px" />
+                    <div v-if="cableRoutingStlLoading" class="cable-routing-model-loading">正在加载 SolidWorks 三维模型...</div>
+                  </div>
+                  <el-alert
+                    v-if="cableRoutingStlError"
+                    class="mt-12"
+                    type="warning"
+                    :closable="false"
+                    show-icon
+                    :title="cableRoutingStlError"
+                  />
+                  <el-alert
+                    v-if="cableRoutingModelTask.errorMessage"
+                    class="mt-12"
+                    type="error"
+                    :closable="false"
+                    show-icon
+                    :title="cableRoutingModelTask.errorMessage"
+                  />
+                  <div v-if="Object.keys(cableRoutingModelTask.files || {}).length" class="model-file-actions">
+                    <el-button size="small" plain icon="Download" :disabled="!cableRoutingModelTask.files.sldprt" @click="downloadCableRoutingFile('sldprt')">SLDPRT</el-button>
+                    <el-button size="small" plain icon="Download" :disabled="!cableRoutingModelTask.files.step" @click="downloadCableRoutingFile('step')">STEP</el-button>
+                    <el-button size="small" plain icon="Download" :disabled="!cableRoutingModelTask.files.stl" @click="downloadCableRoutingFile('stl')">STL</el-button>
+                    <el-button size="small" plain icon="Download" :disabled="!cableRoutingModelTask.files.routingJson" @click="downloadCableRoutingFile('routing')">路径 JSON</el-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="soft-panel report-panel task-submit-panel mt-12">
+              <div class="card-head report-head">
+                <div>
+                  <h3 class="section-title">总方案报告与审批提交</h3>
+                  <p>{{ reportStatusText }}</p>
+                </div>
+                <div class="report-actions">
+                  <el-button plain icon="Document" class="btn-soft-blue" :disabled="!canGenerateReport" @click="generateDesignReport">生成总报告</el-button>
+                  <el-button plain icon="View" :disabled="!reportGeneratedAt" @click="reportDialogVisible = true">预览总报告</el-button>
+                  <el-button plain icon="Download" :disabled="!reportGeneratedAt" @click="downloadDesignReport">下载总报告</el-button>
+                  <el-button type="success" icon="Upload" :disabled="!canSubmitDesignReport" :loading="reportSubmitting" @click="submitDesignReport">
+                    提交审批
+                  </el-button>
+                </div>
+              </div>
+
+              <div class="report-summary">
+                <div v-for="item in reportSummaryItems" :key="item.label">
+                  <span>{{ item.label }}</span>
+                  <strong>{{ item.value }}</strong>
+                </div>
+              </div>
+
+              <el-alert
+                v-if="cableRoutingSubmission.submitted && !reportGeneratedAt && !reportSubmission.submitted"
+                class="mt-12"
+                type="info"
+                :closable="false"
+                show-icon
+                title="线缆子任务报告已提交。若要进入领导审批，请先生成总方案报告，再点击提交审批。"
+              />
+            </div>
           </div>
         </section>
       </template>
     </div>
+    <el-dialog
+      v-model="cableRoutingReportDialogVisible"
+      title="线缆管路布局子任务报告"
+      width="76vw"
+      append-to-body
+      class="design-report-dialog"
+    >
+      <div class="subtask-report-preview">
+        <div v-if="cableRoutingSubmission.reportHtml" v-html="cableRoutingSubmission.reportHtml"></div>
+        <pre v-else>{{ JSON.stringify(cableRoutingSubmission.report || {}, null, 2) }}</pre>
+      </div>
+      <template #footer>
+        <el-button @click="cableRoutingReportDialogVisible = false">关闭</el-button>
+        <el-button plain icon="Download" :disabled="!cableRoutingSubmission.submitted" @click="downloadCableRoutingReport">下载线缆报告</el-button>
+      </template>
+    </el-dialog>
     <el-dialog
       v-model="ansysImagePreviewVisible"
       title="应力云图"
@@ -830,7 +1151,29 @@
         </section>
 
         <section class="report-section">
-          <h4>三、最终选用方案</h4>
+          <h4>三、解耦子任务成果归集</h4>
+          <table class="report-list-table">
+            <thead>
+              <tr>
+                <th>子任务</th>
+                <th>状态</th>
+                <th>成果摘要</th>
+                <th>报告状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in reportSubtaskRows" :key="item.subtaskName">
+                <td>{{ item.subtaskName }}</td>
+                <td>{{ item.status }}</td>
+                <td>{{ item.result }}</td>
+                <td>{{ item.reportStatus }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section v-if="hydraulicSubtaskReady" class="report-section">
+          <h4>液压弯管优化方案</h4>
           <div class="report-visual-grid">
             <div class="report-visual-card report-visual-card--cad">
               <div class="report-visual-title">
@@ -867,8 +1210,8 @@
           </table>
         </section>
 
-        <section class="report-section">
-          <h4>四、候选方案对比与选用依据</h4>
+        <section v-if="hydraulicSubtaskReady" class="report-section">
+          <h4>液压候选方案对比与选用依据</h4>
           <p class="report-narrative">{{ reportSchemeComparisonNarrative }}</p>
           <table class="report-list-table">
             <thead>
@@ -894,8 +1237,72 @@
           </table>
         </section>
 
+        <section v-if="cableRoutingSubmission.submitted" class="report-section">
+          <h4>线缆管路布局方案</h4>
+          <p class="report-narrative">{{ cableRoutingReportConclusion }}</p>
+          <div v-if="reportCableRoutingDocImageUrl" class="report-visual-card report-cable-routing-card">
+            <div class="report-visual-title">
+              <strong>线缆管路布局设计图</strong>
+              <span>{{ cableRoutingSpaceLabel }}，{{ cableRoutingGridLabel }}</span>
+            </div>
+            <div class="report-cable-routing-figure">
+              <img :src="reportCableRoutingDocImageUrl" alt="线缆管路布局设计图" />
+            </div>
+          </div>
+          <table class="report-form-table">
+            <tbody>
+              <tr v-for="row in chunkReportRows(cableRoutingReportSummaryRows, 2)" :key="row[0].label">
+                <template v-for="item in row" :key="item.label">
+                  <th>{{ item.label }}</th>
+                  <td>{{ item.value }} {{ item.unit }}</td>
+                </template>
+              </tr>
+            </tbody>
+          </table>
+          <table class="report-list-table mt-12">
+            <thead>
+              <tr>
+                <th>管路</th>
+                <th>长度/m</th>
+                <th>弯头数</th>
+                <th>路径点</th>
+                <th>起点</th>
+                <th>终点</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in cableRoutingReportPathRows" :key="item.name">
+                <td>{{ item.name }}</td>
+                <td>{{ item.lengthM }}</td>
+                <td>{{ item.bendCount }}</td>
+                <td>{{ item.pointCount }}</td>
+                <td>{{ item.start }}</td>
+                <td>{{ item.end }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <table class="report-list-table mt-12">
+            <thead>
+              <tr>
+                <th>约束</th>
+                <th>状态</th>
+                <th>当前值</th>
+                <th>要求</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in cableRoutingReportConstraintRows" :key="item.name">
+                <td>{{ item.name }}</td>
+                <td>{{ item.status }}</td>
+                <td>{{ item.value }}</td>
+                <td>{{ item.requirement }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
         <section class="report-section">
-          <h4>五、目标与约束满足性总结</h4>
+          <h4>目标与约束满足性总结</h4>
           <p class="report-narrative">{{ reportConstraintNarrative }}</p>
           <table class="report-list-table">
             <thead>
@@ -916,7 +1323,7 @@
         </section>
 
         <section class="report-section">
-          <h4>六、仿真验证结果与工程风险</h4>
+          <h4>验证结果与工程风险</h4>
           <table class="report-list-table">
             <thead>
               <tr>
@@ -950,7 +1357,7 @@
         </section>
 
         <section class="report-section">
-          <h4>七、附录：设计变量与指标明细</h4>
+          <h4>附录：设计变量与指标明细</h4>
           <table class="report-list-table">
             <thead>
               <tr>
@@ -1008,10 +1415,18 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { saveAs } from 'file-saver'
 import * as echarts from 'echarts'
+import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import {
   decomposeTask,
   getAnsysSimulationImage,
   getAnsysSimulationTask,
+  getCableRoutingAlgorithms,
+  getCableRoutingDefaultParams,
+  getCableRoutingModelFile,
+  getCableRoutingModelTask,
+  getCableRoutingReportTask,
+  getCableRoutingSolveTask,
   getCadModelFile,
   getCadModelTask,
   getDashboard,
@@ -1026,6 +1441,9 @@ import {
   runConflictCheck,
   saveObjectiveWeights,
   saveDesignVariables,
+  submitCableRoutingModelTask,
+  submitCableRoutingReportTask,
+  submitCableRoutingSolveTask,
   submitCadModelTask,
   runSimulation,
   submitDesignReportTask,
@@ -1070,7 +1488,18 @@ const selectedSurrogateModel = ref('aero_pipe_kriging.pkl')
 let surrogatePollTimer = null
 let cadPollTimer = null
 let ansysPollTimer = null
+let cableRoutingSolvePollTimer = null
+let cableRoutingModelPollTimer = null
 let convergenceChart = null
+let cableScene = null
+let cableCamera = null
+let cableRenderer = null
+let cableControls = null
+let cableFrameId = null
+let cableResizeObserver = null
+let cableSceneGroup = null
+let cableRaycaster = null
+let cablePointer = null
 const decomposed = ref(false)
 const designVariables = ref([])
 const variablesSaved = ref(false)
@@ -1084,6 +1513,26 @@ const handledTasks = ref([])
 const relatedTasks = ref([])
 const activeTab = ref(['handled', 'related'].includes(route.query.tab) ? route.query.tab : 'pending')
 const activeSubtaskCode = ref(route.query.subtask || 'hydraulic_impact')
+const activeVariableSubtaskPanels = ref(activeSubtaskCode.value)
+const cableRoutingForm = ref(defaultCableRoutingForm())
+const cableRoutingSolveTask = ref(emptyCableRoutingSolveTask())
+const cableRoutingModelTask = ref(emptyCableRoutingModelTask())
+const cableRoutingSubmission = ref(emptyCableRoutingSubmission())
+const cableRoutingSolving = ref(false)
+const cableRoutingRefreshing = ref(false)
+const cableRoutingModelSubmitting = ref(false)
+const cableRoutingModelRefreshing = ref(false)
+const cableRoutingReportSubmitting = ref(false)
+const cableRoutingReportRefreshing = ref(false)
+const cableRoutingReportDialogVisible = ref(false)
+const cableRoutingStlData = ref(null)
+const cableRoutingStlKey = ref('')
+const cableRoutingStlLoading = ref(false)
+const cableRoutingStlError = ref('')
+const cableRoutingSceneRef = ref(null)
+const cableRoutingSelectedPipeIndex = ref(0)
+const cableRoutingPickMode = ref('')
+const cableRoutingPickLayerZ = ref(0)
 const cadForm = ref({ L1: 280, L2: 150, R: 20, theta1: 110, theta2: 120, pipeDiameter: 9.53, pipeInnerDiameter: 7.73 })
 const cadModel = ref({ status: 'NOT_SUBMITTED', statusLabel: '未提交', params: {}, files: {} })
 const cadStlData = ref(null)
@@ -1109,6 +1558,7 @@ const reportGeneratedAt = ref('')
 const reportDialogVisible = ref(false)
 const reportCadDocImageUrl = ref('')
 const reportAnsysDocImageUrl = ref('')
+const reportCableRoutingDocImageUrl = ref('')
 const reportSubmitting = ref(false)
 const simulationReturnSubmitting = ref(false)
 const reportSubmission = ref({ submitted: false })
@@ -1117,6 +1567,67 @@ const ANSYS_MODE_DEMO = 'DEMO_SIMULATION_MODEL'
 const comparisonLimit = 5
 const objectiveSelectNodeKeys = ['structure_select', 'layout_select', 'aero_select', 'hydraulic_select', 'manufacturing_select']
 const SURROGATE_MODEL_DISPLAY_NAME = '液压弯管抗冲击代理模型02'
+const CABLE_SOLVER_MODE_OPTIONS = [
+  { label: '自动选择', value: 'auto' },
+  { label: 'MILP 精确模型', value: 'milp' },
+  { label: '快速路径搜索', value: 'astar' }
+]
+const DEFAULT_CABLE_ROUTING_ALGORITHM_OPTIONS = [
+  {
+    label: 'LP_Bend_3D 三维管线路径规划算法',
+    value: 'lp_bend_3d',
+    algorithmKey: 'lp_bend_3d',
+    badge: 'MILP',
+    type: 'success',
+    default: true,
+    description: '基于 PuLP/CBC 的三维网格管线路径规划算法'
+  }
+]
+const cableRoutingAlgorithmOptions = ref([...DEFAULT_CABLE_ROUTING_ALGORITHM_OPTIONS])
+const CABLE_ROUTING_OBJECTIVE_CODES = new Set([
+  'LAY_CABLE_LENGTH_MIN',
+  'LAY_INTERFERENCE_RISK_MIN',
+  'LAY_COMPACTNESS_MAX',
+  'LAY_MAINTAINABILITY_MAX',
+  'AERO_ENVELOPE_IMPACT_MIN',
+  'MFG_ASSEMBLY_EFFICIENCY_MAX',
+  'MFG_MAINTENANCE_ACCESS_MAX'
+])
+const CABLE_ROUTING_CONSTRAINT_CODES = new Set([
+  'LAY_PIPE_CLEARANCE_LIMIT',
+  'LAY_FORBIDDEN_ZONE_AVOID',
+  'LAY_DOOR_ENVELOPE_AVOID',
+  'LAY_CABLE_BEND_RADIUS_LIMIT',
+  'LAY_CLAMP_SPACING_LIMIT',
+  'LAY_SERVICE_MARGIN_LIMIT',
+  'AERO_OUTER_ENVELOPE',
+  'AERO_DOOR_GAP_CLEARANCE',
+  'MFG_CLAMP_INSTALLABLE',
+  'MFG_TOOL_ACCESS',
+  'STR_INTERFACE_FIXED',
+  'LAY_PIPE_ENDPOINT_FIXED',
+  'LAY_PIPE_HORIZONTAL_SPAN',
+  'LAY_PIPE_VERTICAL_SPAN'
+])
+const CABLE_ROUTING_ITEM_CODE_ALIASES = {
+  LAY_PIPE_LENGTH: 'LAY_CABLE_LENGTH_MIN',
+  LAY_LENGTH_MIN: 'LAY_CABLE_LENGTH_MIN',
+  LAY_INTERFERENCE_MIN: 'LAY_INTERFERENCE_RISK_MIN',
+  LAY_SPACE_OCCUPANCY: 'LAY_COMPACTNESS_MAX',
+  LAY_MAINTAINABILITY: 'LAY_MAINTAINABILITY_MAX',
+  LAY_PIPE_CABLE_DISTANCE: 'LAY_PIPE_CLEARANCE_LIMIT',
+  LAY_MIN_CLEARANCE: 'LAY_PIPE_CLEARANCE_LIMIT',
+  LAY_CLEARANCE_LIMIT: 'LAY_PIPE_CLEARANCE_LIMIT',
+  STR_PIPE_CLEARANCE: 'LAY_PIPE_CLEARANCE_LIMIT',
+  LAY_FORBIDDEN_ZONE: 'LAY_FORBIDDEN_ZONE_AVOID',
+  STR_FORBIDDEN_ZONE: 'LAY_FORBIDDEN_ZONE_AVOID',
+  LAY_CLAMP_INTERVAL: 'LAY_CLAMP_SPACING_LIMIT',
+  LAY_BEND_RADIUS_LIMIT: 'LAY_CABLE_BEND_RADIUS_LIMIT',
+  LAY_BEND_LIMIT: 'LAY_CABLE_BEND_RADIUS_LIMIT',
+  HYD_MIN_BEND_RADIUS: 'LAY_CABLE_BEND_RADIUS_LIMIT',
+  HYD_BEND_RADIUS: 'LAY_CABLE_BEND_RADIUS_LIMIT',
+  MFG_BEND_RADIUS_LIMIT: 'LAY_CABLE_BEND_RADIUS_LIMIT'
+}
 
 const hasTask = computed(() => !!taskId.value)
 const readonlyMode = computed(() => access.value.mode !== 'enter' || route.query.mode === 'view')
@@ -1139,7 +1650,13 @@ const visibleInboxTasks = computed(() => {
   return relatedTasks.value
 })
 const selectedVariableCount = computed(() => designVariables.value.filter(item => item.checked).length)
-const canSolve = computed(() => decomposed.value && variablesSaved.value && selectedVariableCount.value > 0)
+const activeSubtaskSelectedVariableCount = computed(() => selectedVariableCountForSubtask(activeSubtaskCode.value))
+const activeSubtaskName = computed(() => {
+  return subtaskWorkspaces.value.find(item => item.subtaskCode === activeSubtaskCode.value)?.subtaskName
+    || subtaskLabelFallback[activeSubtaskCode.value]
+    || '未选择子任务'
+})
+const canSolve = computed(() => decomposed.value && variablesSaved.value && selectedVariableCountForSubtask('hydraulic_impact') > 0)
 const showVariableSection = computed(() => hasTask.value && decomposed.value)
 const hasSolutions = computed(() => subtasks.value.some(item => (item.solutions || []).length > 0))
 const hasSurrogateResult = computed(() => surrogateSolve.value.status && surrogateSolve.value.status !== 'NOT_SUBMITTED')
@@ -1163,6 +1680,105 @@ const subtaskWorkspaces = computed(() => {
 })
 const showHydraulicWorkspace = computed(() => hasTask.value && decomposed.value && activeSubtaskCode.value === 'hydraulic_impact')
 const showCableLayoutWorkspace = computed(() => hasTask.value && decomposed.value && activeSubtaskCode.value === 'cable_pipe_layout')
+const cableRoutingSolveResult = computed(() => cableRoutingSolveTask.value.result || {})
+const cableRoutingPaths = computed(() => cableRoutingSolveResult.value.paths || [])
+const cableRoutingSpaceSize = computed(() => {
+  const [x, y, z] = cableRoutingForm.value.gridShape || [0, 0, 0]
+  const unit = Number(cableRoutingForm.value.gridUnitMm) || 0
+  return {
+    xCells: Number(x) || 0,
+    yCells: Number(y) || 0,
+    zCells: Number(z) || 0,
+    xMm: (Number(x) || 0) * unit,
+    yMm: (Number(y) || 0) * unit,
+    zMm: (Number(z) || 0) * unit,
+    unit
+  }
+})
+const cableRoutingSpaceLabel = computed(() => {
+  const size = cableRoutingSpaceSize.value
+  return `X ${formatMetricNumber(size.xMm)} mm / Y ${formatMetricNumber(size.yMm)} mm / Z ${formatMetricNumber(size.zMm)} mm`
+})
+const cableRoutingGridLabel = computed(() => {
+  const size = cableRoutingSpaceSize.value
+  return `${size.xCells} × ${size.yCells} × ${size.zCells} 格，${formatMetricNumber(size.unit)} mm/格`
+})
+const cableRoutingPipeOptions = computed(() => {
+  return cableRoutingForm.value.pipes.map((pipe, index) => ({
+    label: pipe.name || `管路 ${index + 1}`,
+    value: index
+  }))
+})
+const cableRoutingPickModeLabel = computed(() => {
+  if (cableRoutingPickMode.value === 'start') return '正在选择起点'
+  if (cableRoutingPickMode.value === 'end') return '正在选择终点'
+  return '浏览模式'
+})
+const cableRoutingModelViewerEmptyText = computed(() => {
+  if (cableRoutingStlLoading.value) return '正在加载 SolidWorks 三维模型...'
+  if (cableRoutingStlError.value) return cableRoutingStlError.value
+  if (['QUEUED', 'RUNNING'].includes(cableRoutingModelTask.value.status)) return 'SolidWorks 正在生成模型...'
+  if (cableRoutingModelTask.value.status === 'SUCCESS' && !cableRoutingModelTask.value.files?.stl) return '模型已生成，但结果中未包含 STL 三维模型文件'
+  return '点击生成 SolidWorks 模型后，在此显示最终三维模型'
+})
+const cableRoutingPathRows = computed(() => {
+  return cableRoutingPaths.value.map((path, index) => ({
+    id: `pipe-${path.pipeIndex ?? index}`,
+    name: path.name || `管路 ${index + 1}`,
+    routeSide: '三维空间',
+    cableLength: formatMetricNumber((Number(path.lengthMm) || 0) / 1000),
+    minClearance: formatMetricNumber(cableRoutingForm.value.gridUnitMm),
+    bendRadius: formatMetricNumber(cableRoutingSolveResult.value.bendRadiusMm || cableRoutingForm.value.bendRadiusMm),
+    clampSpacing: '-',
+    serviceMargin: '-',
+    maintainabilityScore: Math.max(70, 96 - Number(path.bendCount || 0) * 3),
+    interferenceRisk: '已避障',
+    recommendation: `长度 ${valueOrDash(path.lengthCells)} 格 / ${valueOrDash(path.bendCount)} 个弯头`,
+    statusType: 'success',
+    statusLabel: '求解完成',
+    pointCount: path.pointCount,
+    color: path.color,
+    start: path.start,
+    end: path.end,
+    rawPath: path
+  }))
+})
+const cableRoutingTotalItems = computed(() => {
+  const totals = cableRoutingSolveResult.value.totals || {}
+  return [
+    { label: '管路数量', value: valueOrDash(totals.pipeCount || cableRoutingPaths.value.length), unit: '条' },
+    { label: '总长度', value: valueOrDash(totals.lengthM), unit: 'm' },
+    { label: '总弯头', value: valueOrDash(totals.bendCount), unit: '个' },
+    { label: '网格单元', value: valueOrDash(cableRoutingSolveResult.value.gridUnitMm || cableRoutingForm.value.gridUnitMm), unit: 'mm/格' }
+  ]
+})
+const selectedCableRoutingAlgorithm = computed(() => {
+  return cableRoutingAlgorithmOptions.value.find(item => item.value === cableRoutingForm.value.algorithmKey)
+    || cableRoutingAlgorithmOptions.value.find(item => item.default)
+    || cableRoutingAlgorithmOptions.value[0]
+})
+const cableRoutingAlgorithmReady = computed(() => Boolean(selectedCableRoutingAlgorithm.value))
+const cableRoutingAlgorithmStatusText = computed(() => cableRoutingAlgorithmReady.value ? '可调用' : '未配置')
+const canSubmitCableRoutingSolve = computed(() => {
+  return hasTask.value &&
+    !readonlyMode.value &&
+    cableRoutingForm.value.pipes.length > 0 &&
+    cableRoutingAlgorithmReady.value &&
+    selectedVariableCountForSubtask('cable_pipe_layout') > 0
+})
+const canGenerateCableRoutingModel = computed(() => {
+  return hasTask.value && !readonlyMode.value && cableRoutingSolveTask.value.status === 'SUCCESS' && cableRoutingPaths.value.length > 0
+})
+const canSubmitCableRoutingReport = computed(() => {
+  return hasTask.value &&
+    !readonlyMode.value &&
+    cableRoutingSolveTask.value.status === 'SUCCESS' &&
+    cableRoutingPaths.value.length > 0 &&
+    !cableRoutingSubmission.value.submitted
+})
+const cableRoutingSolveStatusType = computed(() => statusTagType(cableRoutingSolveTask.value.status))
+const cableRoutingModelStatusType = computed(() => statusTagType(cableRoutingModelTask.value.status))
+const cableRoutingSubmissionStatusType = computed(() => statusTagType(cableRoutingSubmission.value.status))
 const best = computed(() => surrogateSolve.value.bestSolution || {})
 const bestSolutionReady = computed(() => Object.keys(best.value).length > 0)
 const canConfirmSurrogate = computed(() => surrogateSolve.value.status === 'SUCCESS' && bestSolutionReady.value && !surrogateSolve.value.confirmed)
@@ -1209,7 +1825,16 @@ const ansysPressureExpressionPreview = computed(() => {
     numberValue(pressure.riseTimeS, 0.001)
   )
 })
-const canGenerateReport = computed(() => hasTask.value && bestSolutionReady.value)
+const hydraulicSubtaskReady = computed(() => {
+  return bestSolutionReady.value ||
+    ['SUCCESS', 'CONFIRMED'].includes(surrogateSolve.value.status) ||
+    surrogateSolve.value.confirmed === true
+})
+const cableRoutingSubtaskReady = computed(() => {
+  return cableRoutingSubmission.value.submitted
+})
+const completedSubtaskCount = computed(() => [hydraulicSubtaskReady.value, cableRoutingSubtaskReady.value].filter(Boolean).length)
+const canGenerateReport = computed(() => hasTask.value && completedSubtaskCount.value > 0)
 const simulationBlocksReportSubmit = computed(() => simulation.value.verified && simulation.value.passed !== false)
 const canEditReportDecision = computed(() => canEditVerification.value && !reportSubmission.value.submitted && !simulationBlocksReportSubmit.value)
 const canReturnSimulationFailure = computed(() => {
@@ -1224,8 +1849,6 @@ const canSubmitDesignReport = computed(() => {
     ['model_decompose_solve', 'simulation_confirm'].includes(currentNodeKey.value) &&
     canEditVerification.value &&
     reportGeneratedAt.value &&
-    isReportCadComplete() &&
-    isReportAnsysComplete() &&
     !reportSubmission.value.submitted &&
     !simulationBlocksReportSubmit.value
 })
@@ -1233,7 +1856,7 @@ const showReportDecision = computed(() => ['model_decompose_solve', 'simulation_
 const reportStatusText = computed(() => {
   if (reportSubmission.value.submitted) return `设计方案报告已提交：${formatDateTime(reportSubmission.value.submitTime || reportGeneratedAt.value || '-')}`
   if (simulation.value.verified) return simulation.value.conclusion || '设计方案报告已提交，等待审批或归档。'
-  if (!reportGeneratedAt.value) return '完成参数建模和仿真验证后，先生成报告，再提交当前设计方案。'
+  if (!reportGeneratedAt.value) return '至少完成一个解耦子任务成果后，先生成报告，再提交当前设计方案。'
   return `报告已生成：${formatDateTime(reportGeneratedAt.value)}`
 })
 const reportCode = computed(() => {
@@ -1253,10 +1876,32 @@ const reportStatusTagType = computed(() => {
 })
 const reportSummaryItems = computed(() => [
   { label: '报告状态', value: reportSubmission.value.submitted ? '已提交' : (simulation.value.verified && simulation.value.passed === false ? '已退回' : (simulation.value.verified ? '已提交' : (reportGeneratedAt.value ? '已生成' : '待生成'))) },
+  { label: '纳入子任务', value: `${reportSubtaskRows.value.length} / 2 已纳入` },
   { label: '参数模型', value: cadModel.value.statusLabel || cadModel.value.status || '未提交' },
   { label: '仿真验证', value: ansysSimulation.value.statusLabel || ansysSimulation.value.status || '未提交' },
   { label: '当前节点', value: detail.value.task?.currentNodeName || currentNodeKey.value || '-' }
 ])
+const reportSubtaskRows = computed(() => {
+  const cableTotals = cableRoutingSolveResult.value.totals || {}
+  const rows = []
+  if (hydraulicSubtaskReady.value) {
+    rows.push({
+      subtaskName: '液压弯管抗冲击性能优化',
+      status: '已纳入总报告',
+      result: `代理模型：${surrogateSolve.value.statusLabel || surrogateSolve.value.status || '已求解'}；预测应力 ${valueOrDash(best.value.predictedStress)} ${surrogateSolve.value.objectiveUnit || 'MPa'}`,
+      reportStatus: reportSubmission.value.submitted ? '已进入总报告' : '待总报告提交'
+    })
+  }
+  if (cableRoutingSubmission.value.submitted) {
+    rows.push({
+      subtaskName: '线缆管路布局设计',
+      status: '已纳入总报告',
+      result: `管路 ${valueOrDash(cableTotals.pipeCount || cableRoutingPaths.value.length)} 条；总长度 ${valueOrDash(cableTotals.lengthM)} m；模型 ${cableRoutingModelTask.value.statusLabel || cableRoutingModelTask.value.status || '未生成'}`,
+      reportStatus: cableRoutingSubmission.value.statusLabel || '未提交'
+    })
+  }
+  return rows
+})
 const reportProblemItems = computed(() => {
   const task = detail.value.task || {}
   return [
@@ -1272,6 +1917,76 @@ const reportProblemMetaItems = computed(() => reportProblemItems.value.filter(it
 const reportProblemDescription = computed(() => {
   return reportProblemItems.value.find(item => item.label === '问题描述')?.value || '-'
 })
+const reportIncludedSubtaskNames = computed(() => reportSubtaskRows.value.map(item => item.subtaskName))
+const reportIncludedSubtaskCodes = computed(() => {
+  const codes = []
+  if (hydraulicSubtaskReady.value) codes.push('hydraulic_impact')
+  if (cableRoutingSubmission.value.submitted) codes.push('cable_pipe_layout')
+  return codes
+})
+const cableRoutingReportPayload = computed(() => cableRoutingSubmission.value.report || {})
+const cableRoutingReportSummaryRows = computed(() => {
+  if (!cableRoutingSubmission.value.submitted) return []
+  const rows = Array.isArray(cableRoutingReportPayload.value.summary) ? cableRoutingReportPayload.value.summary : []
+  if (rows.length) {
+    return rows.map(item => ({
+      label: item.label || '-',
+      value: valueOrDash(item.value),
+      unit: item.unit || ''
+    }))
+  }
+  const totals = cableRoutingSolveResult.value.totals || {}
+  return [
+    { label: '管路数量', value: valueOrDash(totals.pipeCount || cableRoutingPaths.value.length), unit: '条' },
+    { label: '总长度', value: valueOrDash(totals.lengthM), unit: 'm' },
+    { label: '总弯头数', value: valueOrDash(totals.bendCount), unit: '个' },
+    { label: '模型状态', value: cableRoutingModelTask.value.statusLabel || cableRoutingModelTask.value.status || '未生成', unit: '' }
+  ]
+})
+const cableRoutingReportPathRows = computed(() => {
+  if (!cableRoutingSubmission.value.submitted) return []
+  const rows = Array.isArray(cableRoutingReportPayload.value.paths) ? cableRoutingReportPayload.value.paths : []
+  if (rows.length) {
+    return rows.map((item, index) => ({
+      name: item.name || `管路 ${index + 1}`,
+      lengthM: valueOrDash(item.lengthM),
+      bendCount: valueOrDash(item.bendCount),
+      pointCount: valueOrDash(item.pointCount),
+      start: item.start || '-',
+      end: item.end || '-'
+    }))
+  }
+  return cableRoutingPathRows.value.map(item => ({
+    name: item.name,
+    lengthM: item.cableLength,
+    bendCount: valueOrDash(item.rawPath?.bendCount),
+    pointCount: valueOrDash(item.pointCount),
+    start: pointText(item.start),
+    end: pointText(item.end)
+  }))
+})
+const cableRoutingReportConstraintRows = computed(() => {
+  if (!cableRoutingSubmission.value.submitted) return []
+  const rows = Array.isArray(cableRoutingReportPayload.value.constraintChecks) ? cableRoutingReportPayload.value.constraintChecks : []
+  if (rows.length) {
+    return rows.map(item => ({
+      name: item.name || item.label || '-',
+      status: item.status || item.statusLabel || '-',
+      value: valueOrDash(item.value),
+      requirement: item.requirement || item.description || '-'
+    }))
+  }
+  return [{
+    name: '线缆管路求解状态',
+    status: '通过',
+    value: '已生成可行路径',
+    requirement: '路径避障、边界和弯曲半径满足当前算法约束'
+  }]
+})
+const cableRoutingReportConclusion = computed(() => {
+  if (!cableRoutingSubmission.value.submitted) return ''
+  return cableRoutingReportPayload.value.conclusion || '线缆管路布局子任务报告已提交，当前成果已纳入总方案报告。'
+})
 const reportConclusionText = computed(() => {
   if (simulation.value.verified) {
     return simulation.value.conclusion || (simulation.value.passed ? '当前设计方案已通过工程师验证并提交审批。' : '当前设计方案未通过验证，建议退回优化。')
@@ -1279,7 +1994,10 @@ const reportConclusionText = computed(() => {
   if (cadModel.value.status === 'SUCCESS' && ansysSimulation.value.status === 'SUCCESS') {
     return '当前候选设计方案已完成参数化建模和 Ansys 仿真验证，可作为本轮设计优化任务的提交方案。审批前应重点核对目标约束、设计变量边界、最终参数值和仿真指标是否与工程要求一致。'
   }
-  return '当前报告为阶段性预览，参数化建模或仿真验证尚未全部完成，暂不建议提交审批。'
+  if (completedSubtaskCount.value > 0) {
+    return `当前为演示阶段提交流程，已纳入 ${reportIncludedSubtaskNames.value.join('、')} 等已形成成果；未提交的子任务不写入本次总报告。`
+  }
+  return '当前报告为阶段性预览，尚未形成可提交的子任务成果。'
 })
 const reportKeyMetricItems = computed(() => [
   { label: '优化目标数量', value: `${objectiveCount.value} 个` },
@@ -1321,26 +2039,47 @@ function isReportAnsysComplete() {
 const reportApprovalDecision = computed(() => {
   if (simulation.value.verified && simulation.value.passed === false) return '建议退回优化'
   if (isReportCadComplete() && isReportAnsysComplete()) return '建议通过'
-  return '需补充验证'
+  if (completedSubtaskCount.value > 0) return '建议阶段性通过'
+  return '需补充成果'
 })
-const reportApprovalSummaryItems = computed(() => [
-  { label: '最终选用方案', value: reportSelectedScheme.value?.schemeName || '未标记' },
-  { label: '代理模型预测', value: `${valueOrDash(reportSelectedScheme.value?.predictedStress ?? best.value.predictedStress)} ${surrogateSolve.value.objectiveUnit || 'MPa'}` },
-  { label: '参数模型', value: reportSelectedScheme.value?.cadStatusLabel || cadModel.value.statusLabel || cadModel.value.status || '未提交' },
-  { label: '仿真验证', value: reportSelectedScheme.value?.ansysStatusLabel || ansysSimulation.value.statusLabel || ansysSimulation.value.status || '未提交' },
-  { label: '关键约束状态', value: reportConstraintStatusLabel.value },
-  { label: '报告状态', value: reportSubmitStatusLabel.value }
-])
+const reportApprovalSummaryItems = computed(() => {
+  const rows = [
+    { label: '纳入子任务', value: reportIncludedSubtaskNames.value.join('、') || '-' }
+  ]
+  if (hydraulicSubtaskReady.value) {
+    rows.push(
+      { label: '液压最终方案', value: reportSelectedScheme.value?.schemeName || '未标记' },
+      { label: '液压代理预测', value: `${valueOrDash(reportSelectedScheme.value?.predictedStress ?? best.value.predictedStress)} ${surrogateSolve.value.objectiveUnit || 'MPa'}` },
+      { label: '液压模型状态', value: reportSelectedScheme.value?.cadStatusLabel || cadModel.value.statusLabel || cadModel.value.status || '未提交' },
+      { label: '液压仿真状态', value: reportSelectedScheme.value?.ansysStatusLabel || ansysSimulation.value.statusLabel || ansysSimulation.value.status || '未提交' }
+    )
+  }
+  if (cableRoutingSubmission.value.submitted) {
+    const cableTotals = cableRoutingSolveResult.value.totals || {}
+    rows.push(
+      { label: '线缆管路数量', value: `${valueOrDash(cableTotals.pipeCount || cableRoutingPaths.value.length)} 条` },
+      { label: '线缆总长度', value: `${valueOrDash(cableTotals.lengthM)} m` },
+      { label: '线缆模型状态', value: cableRoutingModelTask.value.statusLabel || cableRoutingModelTask.value.status || '未生成' }
+    )
+  }
+  rows.push(
+    { label: '关键约束状态', value: reportConstraintStatusLabel.value },
+    { label: '报告状态', value: reportSubmitStatusLabel.value }
+  )
+  return rows
+})
 const reportApprovalSummaryTableRows = computed(() => chunkReportRows(reportApprovalSummaryItems.value, 2))
 const reportProblemNarrative = computed(() => {
-  return `本报告用于审批液压弯管抗冲击性能优化设计方案。任务围绕降低冲击载荷下的管段应力响应展开，在满足几何、接口、禁布区、制造和维护相关约束的前提下，通过代理模型搜索候选方案，并对推荐方案完成参数化建模和 ANSYS 仿真验证。${reportProblemDescription.value ? `任务说明：${reportProblemDescription.value}` : ''}`
+  const included = reportIncludedSubtaskNames.value.join('、') || '已完成子任务'
+  return `本报告用于审批当前设计优化任务的总方案，正文仅纳入已形成并提交的子任务成果。本次纳入内容包括：${included}。${reportProblemDescription.value ? `任务说明：${reportProblemDescription.value}` : ''}`
 })
 const reportProblemMetaTableRows = computed(() => chunkReportRows(reportProblemMetaItems.value, 2))
 const reportOptimizationSummaryItems = computed(() => [
   { label: '优化目标', value: objectiveReportSummaryText.value },
   { label: '主要约束', value: constraintSummaryText.value },
-  { label: '设计变量', value: reportDesignParameterRows.value.map(item => item.label).join('、') || '-' },
-  { label: '验证方式', value: '代理模型预测 + SolidWorks 参数化建模 + ANSYS 仿真验证' }
+  { label: '纳入成果', value: reportSubtaskRows.value.map(item => `${item.subtaskName}：${item.status}`).join('；') || '-' },
+  { label: '设计变量', value: reportVariableRows.value.map(item => item.variableName).slice(0, 8).join('、') || '-' },
+  { label: '验证方式', value: reportIncludedSubtaskNames.value.join('、') || '-' }
 ])
 const objectiveSummaryText = computed(() => {
   const names = reportObjectiveConstraintRows.value.filter(item => item.typeLabel === '目标').map(item => item.itemName)
@@ -1399,45 +2138,54 @@ const reportConstraintStatusLabel = computed(() => {
 const reportConstraintManualReviewRows = computed(() => {
   return reportObjectiveConstraintRows.value.filter(item => /人工|复核|维护|可达|装配|通过\/不通过/.test(`${item.itemName}${item.setting}${item.description}`))
 })
-const reportConstraintSummaryRows = computed(() => [
-  {
-    category: '优化目标',
-    conclusion: objectiveSummaryText.value,
-    detail: '当前报告不逐条堆叠目标明细，而是将目标作为优化方向进行归纳，详细条目保留在后台数据中用于追溯。'
-  },
-  {
-    category: '硬约束',
-    conclusion: conflict.value.checked && conflict.value.passed === false ? '存在待处理冲突' : '未发现阻断项',
-    detail: constraintSummaryText.value
-  },
-  {
-    category: '人工复核项',
-    conclusion: reportConstraintManualReviewRows.value.length ? `${reportConstraintManualReviewRows.value.length} 项需复核` : '暂无显著人工复核项',
-    detail: reportConstraintManualReviewRows.value.slice(0, 3).map(item => item.itemName).join('、') || '后续详细设计阶段仍建议结合装配空间和维护可达性复核。'
-  },
-  {
-    category: '验证状态',
-    conclusion: cadModel.value.status === 'SUCCESS' && ansysSimulation.value.status === 'SUCCESS' ? '建模与仿真已完成' : '验证未完全完成',
-    detail: `参数模型：${cadModel.value.statusLabel || cadModel.value.status || '未提交'}；仿真验证：${ansysSimulation.value.statusLabel || ansysSimulation.value.status || '未提交'}。`
+const reportConstraintSummaryRows = computed(() => {
+  const verificationDetails = []
+  if (hydraulicSubtaskReady.value) {
+    verificationDetails.push(`液压参数模型：${cadModel.value.statusLabel || cadModel.value.status || '未提交'}；仿真验证：${ansysSimulation.value.statusLabel || ansysSimulation.value.status || '未提交'}`)
   }
-])
+  if (cableRoutingSubmission.value.submitted) {
+    verificationDetails.push(`线缆管路模型：${cableRoutingModelTask.value.statusLabel || cableRoutingModelTask.value.status || '未生成'}；子任务报告：${cableRoutingSubmission.value.statusLabel || '已提交'}`)
+  }
+  return [
+    {
+      category: '优化目标',
+      conclusion: objectiveSummaryText.value,
+      detail: '当前报告不逐条堆叠目标明细，而是将目标作为优化方向进行归纳，详细条目保留在后台目标约束数据中用于追溯。'
+    },
+    {
+      category: '硬约束',
+      conclusion: conflict.value.checked && conflict.value.passed === false ? '存在待处理冲突' : '未发现阻断项',
+      detail: constraintSummaryText.value
+    },
+    {
+      category: '人工复核项',
+      conclusion: reportConstraintManualReviewRows.value.length ? `${reportConstraintManualReviewRows.value.length} 项需复核` : '暂无显著人工复核项',
+      detail: reportConstraintManualReviewRows.value.slice(0, 3).map(item => item.itemName).join('、') || '后续详细设计阶段仍建议结合装配空间和维护可达性复核。'
+    },
+    {
+      category: '成果验证',
+      conclusion: reportIncludedSubtaskNames.value.length ? `${reportIncludedSubtaskNames.value.join('、')} 已纳入` : '暂无已纳入成果',
+      detail: verificationDetails.join('；') || '未提交的子任务不写入本次总报告。'
+    }
+  ]
+})
 const reportConstraintNarrative = computed(() => {
   return `本次目标与约束由各学科工程师归口后进入模型求解。报告按审批阅读习惯对目标和约束进行分组总结，重点呈现是否存在阻断性冲突、是否需要人工复核，以及当前方案是否具备提交审批条件。`
 })
 const reportRiskRows = computed(() => [
   {
     label: '主要优势',
-    value: `${reportSelectedScheme.value?.schemeName || '当前方案'} 已形成参数化模型和仿真验证证据，便于审批人直接核对模型形态、应力云图和关键指标。`
+    value: `本次总报告已纳入 ${reportIncludedSubtaskNames.value.join('、') || '已完成子任务'} 的成果，便于审批人按子任务核对方案内容、模型状态和约束校核结果。`
   },
   {
     label: '潜在风险',
     value: reportConstraintManualReviewRows.value.length
       ? `存在 ${reportConstraintManualReviewRows.value.length} 项约束建议人工复核，重点关注维护可达性、装配空间或工程判据类约束。`
-      : '未发现明显阻断性风险，但详细设计阶段仍建议结合整机布局模型进行复核。'
+      : '未发现明显阻断性风险；未提交的子任务未纳入本次总报告，后续可补充提交。'
   },
   {
     label: '审批建议',
-    value: reportApprovalDecision.value === '建议通过'
+    value: reportApprovalDecision.value.includes('通过')
       ? '建议审批通过当前设计方案，并将模型文件、仿真结果和约束归口记录作为后续详细设计依据。'
       : '建议暂缓通过，待补充建模、仿真或约束复核后再提交审批。'
   }
@@ -1457,7 +2205,7 @@ const reportObjectiveConstraintRows = computed(() => {
   })
 })
 const reportVariableRows = computed(() => designVariables.value
-  .filter(item => item.checked)
+  .filter(item => item.checked && variableSubtaskCodes(item).some(code => reportIncludedSubtaskCodes.value.includes(code)))
   .map(item => ({
     ...item,
     initialValue: valueOrDash(item.initialValue),
@@ -1489,28 +2237,48 @@ const reportSimulationRows = computed(() => {
     source: '优化前后指标对比'
   }))
 })
-const reportEvidenceItems = computed(() => [
-  {
-    label: '参数模型',
-    value: cadModel.value.statusLabel || cadModel.value.status || '未提交',
-    description: `模型文件：${cadModel.value.files?.sldprt?.fileName || cadModel.value.files?.stl?.fileName || '未生成'}`
-  },
-  {
-    label: '几何闭合',
-    value: cadModel.value.closureStatus || '-',
-    description: `L3：${valueOrDash(cadModel.value.l3)} mm；起始方向角：${valueOrDash(cadModel.value.initialAngle)}°`
-  },
-  {
-    label: '仿真模型',
-    value: ansysSimulation.value.simulationModelName || 'Ansys 仿真',
-    description: ansysSimulation.value.simulationType || '对参数化模型进行结构/应力响应校核。'
-  },
-  {
-    label: '应力云图',
-    value: ansysStressImage.value ? '已生成' : '未生成',
-    description: ansysSimulation.value.stressImageUrl || '仿真成功后生成应力云图并可在页面预览。'
+const reportEvidenceItems = computed(() => {
+  const rows = []
+  if (hydraulicSubtaskReady.value) {
+    rows.push(
+      {
+        label: '液压参数模型',
+        value: cadModel.value.statusLabel || cadModel.value.status || '未提交',
+        description: `模型文件：${cadModel.value.files?.sldprt?.fileName || cadModel.value.files?.stl?.fileName || '未生成'}`
+      },
+      {
+        label: '液压几何闭合',
+        value: cadModel.value.closureStatus || '-',
+        description: `L3：${valueOrDash(cadModel.value.l3)} mm；起始方向角：${valueOrDash(cadModel.value.initialAngle)}°`
+      },
+      {
+        label: '液压仿真模型',
+        value: ansysSimulation.value.simulationModelName || 'Ansys 仿真',
+        description: ansysSimulation.value.simulationType || '对参数化模型进行结构/应力响应校核。'
+      },
+      {
+        label: '液压应力云图',
+        value: ansysStressImage.value ? '已生成' : '未生成',
+        description: ansysSimulation.value.stressImageUrl || '仿真成功后生成应力云图并可在页面预览。'
+      }
+    )
   }
-])
+  if (cableRoutingSubmission.value.submitted) {
+    rows.push(
+      {
+        label: '线缆路径求解',
+        value: cableRoutingSolveTask.value.statusLabel || cableRoutingSolveTask.value.status || '求解完成',
+        description: cableRoutingReportConclusion.value
+      },
+      {
+        label: '线缆 SolidWorks 模型',
+        value: cableRoutingModelTask.value.statusLabel || cableRoutingModelTask.value.status || '未生成',
+        description: `模型文件：${cableRoutingModelTask.value.files?.sldprt?.fileName || cableRoutingModelTask.value.files?.stl?.fileName || '未生成'}`
+      }
+    )
+  }
+  return rows
+})
 const verificationSelectionLabel = computed(() => {
   if (!selectedVerificationCandidate.value) return '先从 Top 候选方案中选用一条方案，系统会把参数带入下方输入框。'
   const rank = selectedVerificationCandidate.value.rank === '最优'
@@ -1547,7 +2315,7 @@ const surrogateStatusType = computed(() => {
 })
 const solveHint = computed(() => {
   if (!decomposed.value) return '请先执行任务解耦，再进行模型求解。'
-  if (!variablesSaved.value || selectedVariableCount.value === 0) return '请先按解耦子任务选择并保存设计变量，再进行模型求解。'
+  if (!variablesSaved.value || selectedVariableCountForSubtask('hydraulic_impact') === 0) return '请先选择并保存液压弯管抗冲击性能优化子任务的设计变量，再进行模型求解。'
   return ''
 })
 const subtaskLabelFallback = {
@@ -1736,6 +2504,7 @@ function actionType(mode) {
 function openSubtaskWorkspace(subtaskCode) {
   if (!decomposed.value) return
   activeSubtaskCode.value = subtaskCode || 'hydraulic_impact'
+  syncVariableSubtaskPanel()
   router.replace({
     path: '/designtask/solve',
     query: {
@@ -1755,6 +2524,20 @@ function syncActiveSubtask() {
   if (!validCodes.includes(activeSubtaskCode.value)) {
     activeSubtaskCode.value = validCodes[0] || 'hydraulic_impact'
   }
+  syncVariableSubtaskPanel()
+}
+
+function syncVariableSubtaskPanel() {
+  activeVariableSubtaskPanels.value = activeSubtaskCode.value || ''
+}
+
+function handleVariablePanelChange(value) {
+  const nextCode = Array.isArray(value) ? value[0] : value
+  if (!nextCode || nextCode === activeSubtaskCode.value) {
+    syncVariableSubtaskPanel()
+    return
+  }
+  openSubtaskWorkspace(nextCode)
 }
 
 function loadDetail() {
@@ -1773,6 +2556,7 @@ function loadDetail() {
     faultPipeParameters.value = detail.value.faultPipeParameters || { groups: [] }
     simulation.value = detail.value.simulation || simulation.value
     reportSubmission.value = detail.value.reportSubmission || { submitted: false }
+    cableRoutingSubmission.value = detail.value.cableRoutingSubmission || emptyCableRoutingSubmission()
     if (reportSubmission.value.submitted) {
       reportGeneratedAt.value = formatDateTime(reportSubmission.value.report?.generatedAt || reportSubmission.value.submitTime || reportGeneratedAt.value)
       reportDecision.value = {
@@ -1788,6 +2572,9 @@ function loadDetail() {
     syncDefaultComparisonSchemes()
     applyCadModel(detail.value.cadModel)
     applyAnsysSimulation(detail.value.ansysSimulation)
+    refreshCableRoutingSolve(true)
+    refreshCableRoutingModel(true)
+    refreshCableRoutingReport(true)
     loadObjectiveWeights(detail.value)
     syncSurrogatePolling()
     loadSelectedVariables(detail.value)
@@ -2293,6 +3080,932 @@ function syncVerificationCandidateFromBest(force = false) {
   if (!force && selectedVerificationCandidate.value) return
   if (!force && cadModel.value.params && Object.keys(cadModel.value.params).length) return
   selectVerificationCandidate({ ...best.value, rank: '最优', label: '当前最优方案' }, true)
+}
+
+function formatMetricNumber(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return valueOrDash(value)
+  return Number.isInteger(number) ? String(number) : number.toFixed(2)
+}
+
+function initCableRoutingScene() {
+  if (!cableRoutingSceneRef.value || cableRenderer) return
+  cableScene = new THREE.Scene()
+  cableScene.background = new THREE.Color(0xf4f7fb)
+
+  cableCamera = new THREE.PerspectiveCamera(46, 1, 0.1, 10000)
+  cableRenderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+  cableRenderer.setPixelRatio(window.devicePixelRatio || 1)
+  cableRenderer.outputColorSpace = THREE.SRGBColorSpace
+  cableRoutingSceneRef.value.appendChild(cableRenderer.domElement)
+
+  cableControls = new OrbitControls(cableCamera, cableRenderer.domElement)
+  cableControls.enableDamping = true
+  cableControls.dampingFactor = 0.08
+  cableControls.target.set(0, 160, 0)
+
+  cableRaycaster = new THREE.Raycaster()
+  cablePointer = new THREE.Vector2()
+
+  cableScene.add(new THREE.HemisphereLight(0xffffff, 0x8ea2b8, 1.9))
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.9)
+  keyLight.position.set(360, 520, 460)
+  cableScene.add(keyLight)
+  const fillLight = new THREE.DirectionalLight(0xdceaff, 0.9)
+  fillLight.position.set(-420, 220, -320)
+  cableScene.add(fillLight)
+
+  cableSceneGroup = new THREE.Group()
+  cableScene.add(cableSceneGroup)
+
+  cableRenderer.domElement.addEventListener('click', handleCableSceneClick)
+  cableResizeObserver = new ResizeObserver(resizeCableRoutingScene)
+  cableResizeObserver.observe(cableRoutingSceneRef.value)
+  resizeCableRoutingScene()
+  renderCableRoutingScene()
+  animateCableRoutingScene()
+}
+
+function resizeCableRoutingScene() {
+  if (!cableRoutingSceneRef.value || !cableRenderer || !cableCamera) return
+  const width = cableRoutingSceneRef.value.clientWidth || 1
+  const height = cableRoutingSceneRef.value.clientHeight || 1
+  cableRenderer.setSize(width, height, false)
+  cableCamera.aspect = width / height
+  cableCamera.updateProjectionMatrix()
+}
+
+function animateCableRoutingScene() {
+  cableFrameId = requestAnimationFrame(animateCableRoutingScene)
+  cableControls?.update()
+  if (cableRenderer && cableScene && cableCamera) {
+    cableRenderer.render(cableScene, cableCamera)
+  }
+}
+
+function disposeCableRoutingScene() {
+  if (cableFrameId) cancelAnimationFrame(cableFrameId)
+  cableFrameId = null
+  cableResizeObserver?.disconnect()
+  cableRenderer?.domElement?.removeEventListener('click', handleCableSceneClick)
+  clearCableRoutingSceneGroup()
+  cableControls?.dispose()
+  cableRenderer?.dispose()
+  cableRenderer?.domElement?.remove()
+  cableScene = null
+  cableCamera = null
+  cableRenderer = null
+  cableControls = null
+  cableSceneGroup = null
+  cableRaycaster = null
+  cablePointer = null
+}
+
+function clearCableRoutingSceneGroup() {
+  if (!cableSceneGroup) return
+  while (cableSceneGroup.children.length) {
+    const child = cableSceneGroup.children.pop()
+    disposeThreeObject(child)
+  }
+}
+
+function disposeThreeObject(object) {
+  object.traverse?.(item => {
+    item.geometry?.dispose?.()
+    const disposeMaterial = material => {
+      material?.map?.dispose?.()
+      material?.dispose?.()
+    }
+    if (Array.isArray(item.material)) {
+      item.material.forEach(disposeMaterial)
+    } else {
+      disposeMaterial(item.material)
+    }
+  })
+}
+
+function renderCableRoutingScene() {
+  if (!cableSceneGroup || !cableCamera) return
+  clearCableRoutingSceneGroup()
+  const cfg = normalizeCableRoutingForm(cableRoutingForm.value)
+  const unit = Math.max(Number(cfg.gridUnitMm) || 1, 1)
+  const size = cableRoutingSceneSize(cfg)
+  const maxSceneSize = Math.max(size.x, size.y, size.z, unit)
+
+  addCableSpaceFrame(size, unit, cfg)
+  addCableBoundaryWalls(size, cfg)
+  addCableObstacles(size, cfg)
+  addCableRoutes(size, unit, cfg)
+  addCablePickPlane(size, unit, cfg)
+
+  cableCamera.near = Math.max(maxSceneSize / 1000, 0.1)
+  cableCamera.far = maxSceneSize * 8
+  cableCamera.position.set(maxSceneSize * 0.78, maxSceneSize * 0.72, maxSceneSize * 1.05)
+  cableCamera.updateProjectionMatrix()
+  cableControls?.target.set(0, size.z * 0.45, 0)
+  cableControls?.update()
+}
+
+function cableRoutingSceneSize(cfg = cableRoutingForm.value) {
+  const [xCells, yCells, zCells] = cfg.gridShape || [1, 1, 1]
+  const unit = Math.max(Number(cfg.gridUnitMm) || 1, 1)
+  return {
+    x: Math.max(1, Number(xCells) || 1) * unit,
+    y: Math.max(1, Number(yCells) || 1) * unit,
+    z: Math.max(1, Number(zCells) || 1) * unit,
+    unit
+  }
+}
+
+function gridPointToCableScene(point, cfg = cableRoutingForm.value) {
+  const size = cableRoutingSceneSize(cfg)
+  const unit = size.unit
+  return new THREE.Vector3(
+    (Number(point?.[0]) || 0) * unit - size.x / 2,
+    (Number(point?.[2]) || 0) * unit,
+    (Number(point?.[1]) || 0) * unit - size.y / 2
+  )
+}
+
+function addCableSpaceFrame(size, unit, cfg) {
+  const frameGeometry = new THREE.BoxGeometry(size.x, size.z, size.y)
+  const frameEdges = new THREE.EdgesGeometry(frameGeometry)
+  const frame = new THREE.LineSegments(
+    frameEdges,
+    new THREE.LineBasicMaterial({ color: 0x315f8e, transparent: true, opacity: 0.72 })
+  )
+  frame.position.set(0, size.z / 2, 0)
+  cableSceneGroup.add(frame)
+
+  const grid = new THREE.Group()
+  const material = new THREE.LineBasicMaterial({ color: 0xc9d5e3, transparent: true, opacity: 0.85 })
+  const points = []
+  const xCells = Math.max(1, Number(cfg.gridShape?.[0]) || 1)
+  const yCells = Math.max(1, Number(cfg.gridShape?.[1]) || 1)
+  for (let x = 0; x <= xCells; x += 1) {
+    const sx = x * unit - size.x / 2
+    points.push(new THREE.Vector3(sx, 0, -size.y / 2), new THREE.Vector3(sx, 0, size.y / 2))
+  }
+  for (let y = 0; y <= yCells; y += 1) {
+    const sz = y * unit - size.y / 2
+    points.push(new THREE.Vector3(-size.x / 2, 0, sz), new THREE.Vector3(size.x / 2, 0, sz))
+  }
+  const geometry = new THREE.BufferGeometry().setFromPoints(points)
+  grid.add(new THREE.LineSegments(geometry, material))
+  cableSceneGroup.add(grid)
+
+  cableSceneGroup.add(createCableLabel(`空间 ${formatMetricNumber(size.x)} × ${formatMetricNumber(size.y)} × ${formatMetricNumber(size.z)} mm`, new THREE.Vector3(0, size.z + unit * 0.5, -size.y / 2)))
+}
+
+function addCableBoundaryWalls(size, cfg) {
+  const selected = new Set(cfg.boundaryWalls || ['floor', 'left', 'back'])
+  const thickness = Math.max(Number(cfg.wallThicknessMm) || 4, 1)
+  const walls = [
+    { key: 'floor', color: 0x83b9e8, geometry: [size.x, thickness, size.y], position: [0, -thickness / 2, 0] },
+    { key: 'left', color: 0x73c4af, geometry: [thickness, size.z, size.y], position: [-size.x / 2 - thickness / 2, size.z / 2, 0] },
+    { key: 'back', color: 0xf4af63, geometry: [size.x, size.z, thickness], position: [0, size.z / 2, -size.y / 2 - thickness / 2] }
+  ]
+  walls.filter(wall => selected.has(wall.key)).forEach(wall => {
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(...wall.geometry),
+      new THREE.MeshStandardMaterial({ color: wall.color, transparent: true, opacity: 0.22, roughness: 0.72 })
+    )
+    mesh.position.set(...wall.position)
+    cableSceneGroup.add(mesh)
+  })
+}
+
+function addCableObstacles(size, cfg) {
+  const unit = size.unit
+  ;(cfg.obstacles || []).forEach((obstacle, index) => {
+    const min = obstacle.min || [0, 0, 0]
+    const max = obstacle.max || min
+    const x0 = (Number(min[0]) || 0) * unit - size.x / 2
+    const y0 = (Number(min[1]) || 0) * unit - size.y / 2
+    const z0 = (Number(min[2]) || 0) * unit
+    const x1 = ((Number(max[0]) || 0) + 1) * unit - size.x / 2
+    const y1 = ((Number(max[1]) || 0) + 1) * unit - size.y / 2
+    const z1 = ((Number(max[2]) || 0) + 1) * unit
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(Math.max(x1 - x0, unit * 0.2), Math.max(z1 - z0, unit * 0.2), Math.max(y1 - y0, unit * 0.2)),
+      new THREE.MeshStandardMaterial({ color: 0x7b8794, roughness: 0.68 })
+    )
+    mesh.position.set((x0 + x1) / 2, (z0 + z1) / 2, (y0 + y1) / 2)
+    cableSceneGroup.add(mesh)
+    cableSceneGroup.add(createCableLabel(obstacle.name || `障碍 ${index + 1}`, new THREE.Vector3((x0 + x1) / 2, z1 + unit * 0.2, (y0 + y1) / 2)))
+  })
+}
+
+function addCableRoutes(size, unit, cfg) {
+  const pathByPipeIndex = new Map((cableRoutingPaths.value || []).map((item, index) => [item.pipeIndex ?? index, item]))
+  ;(cfg.pipes || []).forEach((pipe, index) => {
+    const color = new THREE.Color(pipe.color || ['#e14b4b', '#2f80ed', '#24a148'][index % 3])
+    const route = pathByPipeIndex.get(index)
+    const points = (route?.points?.length ? route.points : [pipe.start, pipe.end]).map(point => gridPointToCableScene(point, cfg))
+    const lineMaterial = new THREE.LineBasicMaterial({
+      color,
+      transparent: true,
+      opacity: route?.points?.length ? 0.95 : 0.48
+    })
+    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), lineMaterial)
+    cableSceneGroup.add(line)
+    addCableEndpointMarker(pipe.start, color, `S${index + 1}`, cfg)
+    addCableEndpointMarker(pipe.end, color, `E${index + 1}`, cfg)
+  })
+}
+
+function addCableEndpointMarker(point, color, label, cfg) {
+  const position = gridPointToCableScene(point, cfg)
+  const radius = Math.max(cableRoutingSceneSize(cfg).unit * 0.11, 4)
+  const marker = new THREE.Mesh(
+    new THREE.SphereGeometry(radius, 24, 16),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.42, metalness: 0.05 })
+  )
+  marker.position.copy(position)
+  cableSceneGroup.add(marker)
+  cableSceneGroup.add(createCableLabel(label, position.clone().add(new THREE.Vector3(0, radius * 2.2, 0))))
+}
+
+function addCablePickPlane(size, unit, cfg) {
+  if (!cableRoutingPickMode.value) return
+  const zLayer = clampNumber(cableRoutingPickLayerZ.value, 0, Math.max(0, (Number(cfg.gridShape?.[2]) || 1) - 1))
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(size.x, size.y),
+    new THREE.MeshBasicMaterial({ color: 0x2f80ed, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
+  )
+  plane.rotation.x = -Math.PI / 2
+  plane.position.y = zLayer * unit
+  cableSceneGroup.add(plane)
+}
+
+function createCableLabel(text, position) {
+  const canvas = document.createElement('canvas')
+  canvas.width = 420
+  canvas.height = 120
+  const context = canvas.getContext('2d')
+  const labelText = String(text || '')
+  const fontSize = labelText.length > 14 ? 34 : 42
+  context.fillStyle = 'rgba(255,255,255,0.92)'
+  context.strokeStyle = 'rgba(39,63,92,0.18)'
+  context.lineWidth = 3
+  context.roundRect?.(12, 18, 396, 84, 16)
+  if (context.roundRect) {
+    context.fill()
+    context.stroke()
+  } else {
+    context.fillRect(12, 18, 396, 84)
+  }
+  context.fillStyle = '#19375a'
+  context.font = `700 ${fontSize}px Arial, Microsoft YaHei, sans-serif`
+  context.textAlign = 'center'
+  context.textBaseline = 'middle'
+  context.fillText(labelText, 210, 60)
+  const texture = new THREE.CanvasTexture(canvas)
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }))
+  sprite.position.copy(position)
+  sprite.scale.set(138, 38, 1)
+  return sprite
+}
+
+function handleCableSceneClick(event) {
+  if (!cableRoutingPickMode.value || readonlyMode.value || !cableRenderer || !cableCamera || !cableRaycaster || !cablePointer) return
+  const rect = cableRenderer.domElement.getBoundingClientRect()
+  cablePointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+  cablePointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+  cableRaycaster.setFromCamera(cablePointer, cableCamera)
+  const cfg = normalizeCableRoutingForm(cableRoutingForm.value)
+  const size = cableRoutingSceneSize(cfg)
+  const zLayer = clampNumber(cableRoutingPickLayerZ.value, 0, Math.max(0, (Number(cfg.gridShape?.[2]) || 1) - 1))
+  const hit = new THREE.Vector3()
+  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(zLayer * size.unit))
+  if (!cableRaycaster.ray.intersectPlane(plane, hit)) return
+  const gridX = Math.round((hit.x + size.x / 2) / size.unit)
+  const gridY = Math.round((hit.z + size.y / 2) / size.unit)
+  if (gridX < 0 || gridX >= cfg.gridShape[0] || gridY < 0 || gridY >= cfg.gridShape[1]) return
+  selectCableRoutingPoint([gridX, gridY, zLayer])
+}
+
+function selectCableRoutingPoint(point) {
+  const pipe = cableRoutingForm.value.pipes[cableRoutingSelectedPipeIndex.value]
+  if (!pipe) return
+  if (cableRoutingPickMode.value === 'start') {
+    pipe.start = point
+    ElMessage.success(`已设置 ${pipe.name || '管路'} 起点：${pointText(point)}`)
+  } else if (cableRoutingPickMode.value === 'end') {
+    pipe.end = point
+    ElMessage.success(`已设置 ${pipe.name || '管路'} 终点：${pointText(point)}`)
+  }
+  renderCableRoutingScene()
+}
+
+function setCableRoutingPickMode(mode) {
+  cableRoutingPickMode.value = cableRoutingPickMode.value === mode ? '' : mode
+  nextTick(renderCableRoutingScene)
+}
+
+function clampNumber(value, min, max) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return min
+  return Math.min(max, Math.max(min, number))
+}
+
+function defaultCableRoutingForm() {
+  return {
+    algorithmKey: 'lp_bend_3d',
+    algorithmCode: 'lp_bend_3d',
+    algorithmSource: 'project2_service',
+    algorithmName: 'LP_Bend_3D 三维管线路径规划算法',
+    gridShape: [12, 12, 8],
+    gridUnitMm: 50,
+    bendWeight: 2,
+    solverMode: 'milp',
+    timeLimitSeconds: 60,
+    pipeOuterDiameterMm: 9.53,
+    pipeInnerDiameterMm: 7.73,
+    bendRadiusMm: 20,
+    wallThicknessMm: 4,
+    boundaryWalls: ['floor', 'left', 'back'],
+    objectives: [],
+    constraints: [],
+    objectiveWeights: {},
+    constraintParams: {
+      minClearanceMm: 40,
+      minBendRadiusMm: 20,
+      clampSpacingMaxMm: 250,
+      serviceMarginMinMm: 30,
+      avoidForbiddenZones: true,
+      enforceBoundary: true,
+      endpointsFixed: true
+    },
+    droppedObjectiveConstraintCodes: [],
+    pipes: [
+      { name: '管路 1', start: [0, 0, 0], end: [11, 11, 7], color: '#e14b4b' },
+      { name: '管路 2', start: [0, 1, 1], end: [10, 2, 6], color: '#2f80ed' },
+      { name: '管路 3', start: [2, 0, 7], end: [9, 10, 0], color: '#24a148' }
+    ],
+    obstacles: [
+      { name: '障碍物 1', min: [3, 3, 1], max: [5, 5, 4] },
+      { name: '障碍物 2', min: [7, 2, 0], max: [8, 8, 2] },
+      { name: '障碍物 3', min: [1, 8, 2], max: [4, 10, 6] }
+    ]
+  }
+}
+
+function emptyCableRoutingSolveTask() {
+  return {
+    status: 'NOT_SUBMITTED',
+    statusLabel: '未提交',
+    params: defaultCableRoutingForm(),
+    result: {},
+    errorMessage: ''
+  }
+}
+
+function emptyCableRoutingModelTask() {
+  return {
+    status: 'NOT_SUBMITTED',
+    statusLabel: '未提交',
+    params: defaultCableRoutingForm(),
+    result: {},
+    files: {},
+    errorMessage: ''
+  }
+}
+
+function emptyCableRoutingSubmission() {
+  return {
+    submitted: false,
+    status: 'NOT_SUBMITTED',
+    statusLabel: '未提交',
+    subtaskCode: 'cable_pipe_layout',
+    subtaskName: '线缆管路布局设计',
+    report: {},
+    reportHtml: '',
+    submitComment: '',
+    submitTime: ''
+  }
+}
+
+function cloneCableRoutingPayload(value) {
+  return JSON.parse(JSON.stringify(value || defaultCableRoutingForm()))
+}
+
+function normalizeCableRoutingForm(value) {
+  const fallback = defaultCableRoutingForm()
+  const raw = cloneCableRoutingPayload(value || fallback)
+  const algorithmKey = normalizeCableRoutingAlgorithmKey(raw.algorithmKey || raw.algorithmCode || fallback.algorithmKey)
+  const algorithmOption = cableRoutingAlgorithmOptions.value.find(item => item.value === algorithmKey)
+  const gridShape = normalizePointArray(raw.gridShape, fallback.gridShape)
+    .map(value => Math.max(1, Math.round(Number(value) || 1)))
+  const clampPointToSpace = (point, fallbackPoint = [0, 0, 0]) => {
+    return normalizePointArray(point, fallbackPoint).map((value, index) => {
+      const max = Math.max(0, gridShape[index] - 1)
+      return clampNumber(Math.round(Number(value) || 0), 0, max)
+    })
+  }
+  return {
+    ...fallback,
+    ...raw,
+    algorithmKey,
+    algorithmCode: algorithmKey,
+    algorithmSource: raw.algorithmSource || 'project2_service',
+    algorithmName: raw.algorithmName || algorithmOption?.label || fallback.algorithmName,
+    objectives: Array.isArray(raw.objectives) ? raw.objectives : fallback.objectives,
+    constraints: Array.isArray(raw.constraints) ? raw.constraints : fallback.constraints,
+    objectiveWeights: raw.objectiveWeights && typeof raw.objectiveWeights === 'object' ? raw.objectiveWeights : fallback.objectiveWeights,
+    constraintParams: {
+      ...fallback.constraintParams,
+      ...(raw.constraintParams && typeof raw.constraintParams === 'object' ? raw.constraintParams : {})
+    },
+    droppedObjectiveConstraintCodes: Array.isArray(raw.droppedObjectiveConstraintCodes) ? raw.droppedObjectiveConstraintCodes : [],
+    gridShape,
+    pipes: (raw.pipes || fallback.pipes).map((row, index) => ({
+      name: row.name || `管路 ${index + 1}`,
+      start: clampPointToSpace(row.start),
+      end: clampPointToSpace(row.end),
+      color: row.color || ['#e14b4b', '#2f80ed', '#24a148'][index % 3]
+    })),
+    obstacles: (raw.obstacles || fallback.obstacles).map((row, index) => {
+      const minPoint = clampPointToSpace(row.min)
+      const maxPoint = clampPointToSpace(row.max, minPoint)
+      return {
+        name: row.name || `障碍物 ${index + 1}`,
+        min: minPoint.map((value, pointIndex) => Math.min(value, maxPoint[pointIndex])),
+        max: maxPoint.map((value, pointIndex) => Math.max(value, minPoint[pointIndex]))
+      }
+    })
+  }
+}
+
+function normalizeCableRoutingAlgorithmKey(value) {
+  const key = String(value || 'lp_bend_3d')
+  if (key === 'builtin_cable_router' || key === 'builtin' || key === 'default') return 'lp_bend_3d'
+  return cableRoutingAlgorithmOptions.value.some(item => item.value === key) ? key : 'lp_bend_3d'
+}
+
+function handleCableRoutingAlgorithmChange(value) {
+  const key = normalizeCableRoutingAlgorithmKey(value)
+  const algorithm = cableRoutingAlgorithmOptions.value.find(item => item.value === key)
+  cableRoutingForm.value.algorithmKey = key
+  cableRoutingForm.value.algorithmCode = key
+  cableRoutingForm.value.algorithmSource = 'project2_service'
+  cableRoutingForm.value.algorithmName = algorithm?.label || 'LP_Bend_3D 三维管线路径规划算法'
+}
+
+function normalizePointArray(value, fallback) {
+  const raw = Array.isArray(value) ? value : fallback
+  return [0, 1, 2].map(index => numberValue(raw?.[index], fallback[index] || 0))
+}
+
+function loadCableRoutingAlgorithms() {
+  return getCableRoutingAlgorithms().then(res => {
+    const list = Array.isArray(res.data) ? res.data : []
+    cableRoutingAlgorithmOptions.value = list.length
+      ? list.map(item => ({
+        label: item.label || item.algorithmName || item.value,
+        value: item.value || item.algorithmKey,
+        algorithmKey: item.algorithmKey || item.value,
+        badge: item.badge || '算法',
+        type: item.type || 'info',
+        default: Boolean(item.default),
+        description: item.description || ''
+      })).filter(item => item.value)
+      : [...DEFAULT_CABLE_ROUTING_ALGORITHM_OPTIONS]
+    cableRoutingForm.value = normalizeCableRoutingForm(cableRoutingForm.value)
+  }).catch(() => {
+    cableRoutingAlgorithmOptions.value = [...DEFAULT_CABLE_ROUTING_ALGORITHM_OPTIONS]
+  })
+}
+
+function loadCableRoutingDefaults() {
+  getCableRoutingDefaultParams().then(res => {
+    if (cableRoutingSolveTask.value.status === 'NOT_SUBMITTED') {
+      cableRoutingForm.value = normalizeCableRoutingForm(res.data)
+    }
+  }).catch(() => {
+    if (cableRoutingSolveTask.value.status === 'NOT_SUBMITTED') {
+      cableRoutingForm.value = defaultCableRoutingForm()
+    }
+  })
+}
+
+function resetCableRoutingDefaults() {
+  stopCableRoutingSolvePolling()
+  stopCableRoutingModelPolling()
+  cableRoutingForm.value = defaultCableRoutingForm()
+  cableRoutingSolveTask.value = emptyCableRoutingSolveTask()
+  cableRoutingModelTask.value = emptyCableRoutingModelTask()
+  cableRoutingSubmission.value = emptyCableRoutingSubmission()
+  reportCableRoutingDocImageUrl.value = ''
+  clearCableRoutingSolidWorksModel()
+  ElMessage.success('已恢复线缆管路算法默认参数。')
+}
+
+function cableRoutingPayload() {
+  const base = normalizeCableRoutingForm(cableRoutingForm.value)
+  const workflowInputs = buildCableRoutingWorkflowInputs()
+  const constraintParams = {
+    ...base.constraintParams,
+    ...workflowInputs.constraintParams
+  }
+  return normalizeCableRoutingForm({
+    ...base,
+    ...workflowInputs,
+    constraintParams,
+    bendRadiusMm: Math.max(Number(base.bendRadiusMm) || 0, Number(constraintParams.minBendRadiusMm) || 0)
+  })
+}
+
+function buildCableRoutingWorkflowInputs() {
+  const sourceItems = cableRoutingSourceObjectiveConstraintItems()
+  const objectivesByCode = new Map()
+  const constraintsByCode = new Map()
+  const droppedCodes = new Set()
+  sourceItems.forEach(item => {
+    const itemType = item.itemType === 'objective' ? 'objective' : (item.itemType === 'constraint' ? 'constraint' : '')
+    const originalCode = String(item.itemCode || '').trim().toUpperCase()
+    const canonicalCode = canonicalCableRoutingItemCode(originalCode)
+    const allowed = itemType === 'objective'
+      ? CABLE_ROUTING_OBJECTIVE_CODES.has(canonicalCode)
+      : itemType === 'constraint' && CABLE_ROUTING_CONSTRAINT_CODES.has(canonicalCode)
+    if (!itemType || !allowed) {
+      if (originalCode) droppedCodes.add(originalCode)
+      return
+    }
+    const target = itemType === 'objective' ? objectivesByCode : constraintsByCode
+    const normalized = normalizeCableRoutingWorkflowItem(item, canonicalCode, itemType)
+    if (!target.has(canonicalCode)) {
+      target.set(canonicalCode, normalized)
+      return
+    }
+    target.set(canonicalCode, mergeCableRoutingWorkflowItems(target.get(canonicalCode), normalized))
+  })
+  const objectives = orderCableRoutingItems([...objectivesByCode.values()], CABLE_ROUTING_OBJECTIVE_CODES)
+  const constraints = orderCableRoutingItems([...constraintsByCode.values()], CABLE_ROUTING_CONSTRAINT_CODES)
+  return {
+    subtaskCode: 'cable_pipe_layout',
+    objectives,
+    constraints,
+    objectiveWeights: objectives.reduce((result, item) => {
+      result[item.itemCode] = normalizeDisplayWeight(item.weight)
+      return result
+    }, {}),
+    constraintParams: cableRoutingConstraintParams(constraints),
+    droppedObjectiveConstraintCodes: [...droppedCodes]
+  }
+}
+
+function cableRoutingSourceObjectiveConstraintItems() {
+  const cableSubtask = subtasks.value.find(item => item.subtaskCode === 'cable_pipe_layout')
+    || (detail.value.subtasks || []).find(item => item.subtaskCode === 'cable_pipe_layout')
+  const subtaskItems = cableSubtask?.items || []
+  if (subtaskItems.length) return subtaskItems
+  return objectiveSummaryGroups.value.flatMap(group => {
+    return (group.items || []).map(item => ({
+      ...item,
+      discipline: group.discipline,
+      disciplineName: group.disciplineName || disciplineLabel(group.discipline)
+    }))
+  })
+}
+
+function canonicalCableRoutingItemCode(code) {
+  const normalized = String(code || '').trim().toUpperCase()
+  return CABLE_ROUTING_ITEM_CODE_ALIASES[normalized] || normalized
+}
+
+function normalizeCableRoutingWorkflowItem(item, canonicalCode, itemType) {
+  return {
+    itemType,
+    itemCode: canonicalCode,
+    itemName: item.itemName || canonicalCode,
+    direction: item.direction || '',
+    weight: normalizeDisplayWeight(item.weight),
+    limitValue: item.limitValue ?? item.thresholdValue ?? '',
+    numericValue: numericCableRoutingConstraintValue(item),
+    unit: item.unit || '',
+    discipline: item.discipline || '',
+    disciplineName: item.disciplineName || disciplineLabel(item.discipline),
+    ruleType: item.ruleType || '',
+    ruleExpression: item.ruleExpression || '',
+    operatorCode: item.operatorCode || '',
+    targetField: item.targetField || '',
+    referenceField: item.referenceField || '',
+    sourceCodes: [...new Set([String(item.itemCode || canonicalCode).trim().toUpperCase(), canonicalCode])]
+  }
+}
+
+function mergeCableRoutingWorkflowItems(current, incoming) {
+  const merged = {
+    ...current,
+    sourceCodes: [...new Set([...(current.sourceCodes || []), ...(incoming.sourceCodes || [])])],
+    discipline: current.discipline || incoming.discipline,
+    disciplineName: current.disciplineName || incoming.disciplineName,
+    ruleExpression: current.ruleExpression || incoming.ruleExpression
+  }
+  if (current.itemType === 'objective') {
+    merged.weight = Math.max(normalizeDisplayWeight(current.weight), normalizeDisplayWeight(incoming.weight))
+    return merged
+  }
+  const nextValue = mergeCableRoutingConstraintNumericValue(current.itemCode, current.numericValue, incoming.numericValue)
+  if (Number.isFinite(nextValue)) {
+    merged.numericValue = nextValue
+    merged.limitValue = nextValue
+  }
+  return merged
+}
+
+function mergeCableRoutingConstraintNumericValue(code, current, incoming) {
+  const a = Number(current)
+  const b = Number(incoming)
+  if (!Number.isFinite(a)) return b
+  if (!Number.isFinite(b)) return a
+  if (code === 'LAY_CLAMP_SPACING_LIMIT') return Math.min(a, b)
+  return Math.max(a, b)
+}
+
+function orderCableRoutingItems(items, orderSet) {
+  const order = [...orderSet]
+  return items.sort((a, b) => order.indexOf(a.itemCode) - order.indexOf(b.itemCode))
+}
+
+function numericCableRoutingConstraintValue(item) {
+  const raw = item.limitValue ?? item.thresholdValue ?? item.value
+  if (raw === null || raw === undefined || raw === '') return null
+  const number = Number.parseFloat(String(raw).replace(/[^\d.-]/g, ''))
+  return Number.isFinite(number) ? number : null
+}
+
+function cableRoutingConstraintParams(constraints) {
+  const defaults = defaultCableRoutingForm().constraintParams
+  const result = { ...defaults }
+  constraints.forEach(item => {
+    const value = Number(item.numericValue)
+    if (item.itemCode === 'LAY_PIPE_CLEARANCE_LIMIT' && Number.isFinite(value)) {
+      result.minClearanceMm = Math.max(result.minClearanceMm, value)
+    }
+    if (item.itemCode === 'LAY_CABLE_BEND_RADIUS_LIMIT' && Number.isFinite(value)) {
+      result.minBendRadiusMm = Math.max(result.minBendRadiusMm, value)
+    }
+    if (item.itemCode === 'LAY_CLAMP_SPACING_LIMIT' && Number.isFinite(value)) {
+      result.clampSpacingMaxMm = Math.min(result.clampSpacingMaxMm, value)
+    }
+    if (item.itemCode === 'LAY_SERVICE_MARGIN_LIMIT' && Number.isFinite(value)) {
+      result.serviceMarginMinMm = Math.max(result.serviceMarginMinMm, value)
+    }
+    if (['LAY_FORBIDDEN_ZONE_AVOID', 'LAY_DOOR_ENVELOPE_AVOID'].includes(item.itemCode)) {
+      result.avoidForbiddenZones = true
+    }
+    if (['AERO_OUTER_ENVELOPE', 'AERO_DOOR_GAP_CLEARANCE'].includes(item.itemCode)) {
+      result.enforceBoundary = true
+    }
+    if (['STR_INTERFACE_FIXED', 'LAY_PIPE_ENDPOINT_FIXED'].includes(item.itemCode)) {
+      result.endpointsFixed = true
+    }
+  })
+  return result
+}
+
+function submitCableRoutingSolve() {
+  if (!canSubmitCableRoutingSolve.value) {
+    if (!cableRoutingAlgorithmReady.value) {
+      ElMessage.warning('未加载到可用的线缆管路算法。')
+      return
+    }
+    if (selectedVariableCountForSubtask('cable_pipe_layout') <= 0) {
+      ElMessage.warning('请先选择并保存线缆管路布局子任务的设计变量。')
+      return
+    }
+    ElMessage.warning('请先确认任务和线缆管路参数。')
+    return
+  }
+  cableRoutingSolving.value = true
+  cableRoutingModelTask.value = emptyCableRoutingModelTask()
+  reportCableRoutingDocImageUrl.value = ''
+  clearCableRoutingSolidWorksModel()
+  submitCableRoutingSolveTask(taskId.value, cableRoutingPayload()).then(res => {
+    applyCableRoutingSolve(res.data)
+    ElMessage.success('线缆管路布局求解任务已提交。')
+  }).finally(() => {
+    cableRoutingSolving.value = false
+  })
+}
+
+function refreshCableRoutingSolve(silent = false) {
+  if (!taskId.value) return
+  if (!silent) cableRoutingRefreshing.value = true
+  getCableRoutingSolveTask(taskId.value).then(res => {
+    applyCableRoutingSolve(res.data)
+  }).finally(() => {
+    if (!silent) cableRoutingRefreshing.value = false
+  })
+}
+
+function applyCableRoutingSolve(task) {
+  cableRoutingSolveTask.value = task || emptyCableRoutingSolveTask()
+  if (task?.params && Object.keys(task.params).length) {
+    cableRoutingForm.value = normalizeCableRoutingForm(task.params)
+  }
+  if (['QUEUED', 'RUNNING'].includes(task?.status)) {
+    startCableRoutingSolvePolling()
+  } else {
+    stopCableRoutingSolvePolling()
+  }
+}
+
+function submitCableRoutingModel() {
+  if (!canGenerateCableRoutingModel.value) {
+    ElMessage.warning('请先完成线缆管路布局求解。')
+    return
+  }
+  cableRoutingModelSubmitting.value = true
+  submitCableRoutingModelTask(taskId.value, {
+    ...cableRoutingPayload(),
+    solveResult: cableRoutingSolveResult.value
+  }).then(res => {
+    applyCableRoutingModel(res.data)
+    ElMessage.success('线缆管路 SolidWorks 模型生成任务已提交。')
+  }).finally(() => {
+    cableRoutingModelSubmitting.value = false
+  })
+}
+
+function refreshCableRoutingModel(silent = false) {
+  if (!taskId.value) return
+  if (!silent) cableRoutingModelRefreshing.value = true
+  getCableRoutingModelTask(taskId.value).then(res => {
+    applyCableRoutingModel(res.data)
+  }).finally(() => {
+    if (!silent) cableRoutingModelRefreshing.value = false
+  })
+}
+
+function applyCableRoutingModel(task) {
+  cableRoutingModelTask.value = task || emptyCableRoutingModelTask()
+  if (task?.status === 'SUCCESS') {
+    loadCableRoutingSolidWorksModel()
+  } else if (task?.status !== 'SUCCESS') {
+    clearCableRoutingSolidWorksModel()
+  }
+  if (['QUEUED', 'RUNNING'].includes(task?.status)) {
+    startCableRoutingModelPolling()
+  } else {
+    stopCableRoutingModelPolling()
+  }
+}
+
+function submitCableRoutingReport() {
+  if (!canSubmitCableRoutingReport.value) {
+    ElMessage.warning('请先完成线缆管路布局求解，再提交线缆方案。')
+    return
+  }
+  cableRoutingReportSubmitting.value = true
+  submitCableRoutingReportTask(taskId.value, {
+    params: cableRoutingPayload(),
+    solveTask: cableRoutingSolveTask.value,
+    modelTask: cableRoutingModelTask.value
+  }).then(res => {
+    cableRoutingSubmission.value = res.data || emptyCableRoutingSubmission()
+    reportCableRoutingDocImageUrl.value = ''
+    if (!reportSubmission.value.submitted) {
+      reportGeneratedAt.value = ''
+    }
+    ElMessage.success('线缆管路布局方案报告已提交。')
+  }).finally(() => {
+    cableRoutingReportSubmitting.value = false
+  })
+}
+
+function refreshCableRoutingReport(silent = false) {
+  if (!taskId.value) return
+  if (!silent) cableRoutingReportRefreshing.value = true
+  getCableRoutingReportTask(taskId.value).then(res => {
+    cableRoutingSubmission.value = res.data || emptyCableRoutingSubmission()
+  }).finally(() => {
+    if (!silent) cableRoutingReportRefreshing.value = false
+  })
+}
+
+function previewCableRoutingReport() {
+  if (!cableRoutingSubmission.value.submitted) {
+    ElMessage.warning('线缆子任务报告尚未提交。')
+    return
+  }
+  cableRoutingReportDialogVisible.value = true
+}
+
+function downloadCableRoutingReport() {
+  if (!cableRoutingSubmission.value.submitted) {
+    ElMessage.warning('线缆子任务报告尚未提交。')
+    return
+  }
+  const report = cableRoutingSubmission.value.report || {}
+  const html = cableRoutingSubmission.value.reportHtml || `<pre>${escapeHtml(JSON.stringify(report, null, 2))}</pre>`
+  const filename = `${report.reportCode || 'cable-routing-report'}.doc`
+  saveAs(new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' }), filename)
+}
+
+function startCableRoutingSolvePolling() {
+  if (cableRoutingSolvePollTimer || !taskId.value) return
+  cableRoutingSolvePollTimer = window.setInterval(() => refreshCableRoutingSolve(true), 3000)
+}
+
+function stopCableRoutingSolvePolling() {
+  if (!cableRoutingSolvePollTimer) return
+  window.clearInterval(cableRoutingSolvePollTimer)
+  cableRoutingSolvePollTimer = null
+}
+
+function startCableRoutingModelPolling() {
+  if (cableRoutingModelPollTimer || !taskId.value) return
+  cableRoutingModelPollTimer = window.setInterval(() => refreshCableRoutingModel(true), 3000)
+}
+
+function stopCableRoutingModelPolling() {
+  if (!cableRoutingModelPollTimer) return
+  window.clearInterval(cableRoutingModelPollTimer)
+  cableRoutingModelPollTimer = null
+}
+
+function clearCableRoutingSolidWorksModel() {
+  cableRoutingStlData.value = null
+  cableRoutingStlKey.value = ''
+  cableRoutingStlLoading.value = false
+  cableRoutingStlError.value = ''
+}
+
+function loadCableRoutingSolidWorksModel() {
+  if (!taskId.value || cableRoutingModelTask.value.status !== 'SUCCESS') return
+  const file = cableRoutingModelTask.value.files?.stl
+  if (!file) {
+    cableRoutingStlData.value = null
+    cableRoutingStlKey.value = ''
+    cableRoutingStlError.value = '模型生成结果中没有 STL 文件，无法在页面中显示最终三维模型。'
+    return
+  }
+  const modelKey = `${taskId.value}:${file.filePath || file.fileName || 'stl'}:${cableRoutingModelTask.value.updatedAt || ''}`
+  if (cableRoutingStlKey.value === modelKey && cableRoutingStlData.value) return
+  cableRoutingStlLoading.value = true
+  cableRoutingStlError.value = ''
+  getCableRoutingModelFile(taskId.value, 'stl').then(data => {
+    cableRoutingStlData.value = data
+    cableRoutingStlKey.value = modelKey
+  }).catch(() => {
+    cableRoutingStlData.value = null
+    cableRoutingStlKey.value = ''
+    cableRoutingStlError.value = 'SolidWorks 三维模型加载失败，请确认模型任务已成功导出 STL 文件。'
+  }).finally(() => {
+    cableRoutingStlLoading.value = false
+  })
+}
+
+function downloadCableRoutingFile(kind) {
+  if (!taskId.value) return
+  const file = cableRoutingModelTask.value.files?.[kind === 'routing' ? 'routingJson' : kind]
+  getCableRoutingModelFile(taskId.value, kind).then(data => {
+    saveAs(new Blob([data]), file?.fileName || `cable-routing-${kind}`)
+  })
+}
+
+function addCableRoutingPipe() {
+  const index = cableRoutingForm.value.pipes.length
+  cableRoutingForm.value.pipes.push({
+    name: `管路 ${index + 1}`,
+    start: [0, 0, 0],
+    end: [Math.max(0, cableRoutingForm.value.gridShape[0] - 1), Math.max(0, cableRoutingForm.value.gridShape[1] - 1), Math.max(0, cableRoutingForm.value.gridShape[2] - 1)],
+    color: ['#e14b4b', '#2f80ed', '#24a148', '#a855f7', '#f59e0b'][index % 5]
+  })
+  cableRoutingSelectedPipeIndex.value = index
+  cableRoutingPickMode.value = 'start'
+  nextTick(renderCableRoutingScene)
+}
+
+function removeCableRoutingPipe(index) {
+  cableRoutingForm.value.pipes.splice(index, 1)
+}
+
+function addCableRoutingObstacle() {
+  const index = cableRoutingForm.value.obstacles.length
+  cableRoutingForm.value.obstacles.push({
+    name: `障碍物 ${index + 1}`,
+    min: [1, 1, 1],
+    max: [2, 2, 2]
+  })
+}
+
+function removeCableRoutingObstacle(index) {
+  cableRoutingForm.value.obstacles.splice(index, 1)
+}
+
+function pointText(value) {
+  return Array.isArray(value) ? `(${value.join(', ')})` : '-'
+}
+
+function statusTagType(status) {
+  if (status === 'SUCCESS') return 'success'
+  if (status === 'FAILED') return 'danger'
+  if (['QUEUED', 'RUNNING'].includes(status)) return 'warning'
+  return 'info'
 }
 
 function numberValue(value, fallback) {
@@ -2825,6 +4538,282 @@ async function ensureReportCadImage(allowCapture = false) {
   return ''
 }
 
+async function ensureCableRoutingReportImage(allowCapture = false) {
+  if (!cableRoutingSubmission.value.submitted) return ''
+  const schematicImage = generateCableRoutingDiagramImage()
+  if (schematicImage) return schematicImage
+  if (allowCapture) return captureCableRoutingSceneImage()
+  return ''
+}
+
+function generateCableRoutingDiagramImage() {
+  if (typeof document === 'undefined') return ''
+  const cfg = normalizeCableRoutingForm(cableRoutingForm.value)
+  if (!cfg.pipes?.length) return ''
+
+  const canvas = document.createElement('canvas')
+  canvas.width = 1280
+  canvas.height = 720
+  const context = canvas.getContext('2d')
+  if (!context) return ''
+
+  const [xCells, yCells, zCells] = cfg.gridShape || [1, 1, 1]
+  const dims = {
+    x: Math.max(1, Number(xCells) || 1),
+    y: Math.max(1, Number(yCells) || 1),
+    z: Math.max(1, Number(zCells) || 1)
+  }
+  const margin = { left: 88, right: 72, top: 104, bottom: 92 }
+  const iso = point => ({
+    x: (Number(point?.[0]) || 0) - (Number(point?.[1]) || 0),
+    y: ((Number(point?.[0]) || 0) + (Number(point?.[1]) || 0)) * 0.54 - (Number(point?.[2]) || 0) * 0.92
+  })
+  const corners = [
+    [0, 0, 0], [dims.x, 0, 0], [0, dims.y, 0], [dims.x, dims.y, 0],
+    [0, 0, dims.z], [dims.x, 0, dims.z], [0, dims.y, dims.z], [dims.x, dims.y, dims.z]
+  ].map(iso)
+  const minX = Math.min(...corners.map(item => item.x))
+  const maxX = Math.max(...corners.map(item => item.x))
+  const minY = Math.min(...corners.map(item => item.y))
+  const maxY = Math.max(...corners.map(item => item.y))
+  const scale = Math.min(
+    (canvas.width - margin.left - margin.right) / Math.max(maxX - minX, 1),
+    (canvas.height - margin.top - margin.bottom) / Math.max(maxY - minY, 1)
+  )
+  const project = point => {
+    const raw = iso(point)
+    return {
+      x: margin.left + (raw.x - minX) * scale,
+      y: margin.top + (raw.y - minY) * scale
+    }
+  }
+
+  const drawPoly = (points, fill, stroke = 'rgba(31,59,99,0.2)', lineWidth = 1.2) => {
+    context.beginPath()
+    points.forEach((point, index) => {
+      if (index === 0) context.moveTo(point.x, point.y)
+      else context.lineTo(point.x, point.y)
+    })
+    context.closePath()
+    if (fill) {
+      context.fillStyle = fill
+      context.fill()
+    }
+    if (stroke) {
+      context.strokeStyle = stroke
+      context.lineWidth = lineWidth
+      context.stroke()
+    }
+  }
+  const drawLine = (points, color, lineWidth = 1.2, alpha = 1) => {
+    if (points.length < 2) return
+    context.save()
+    context.globalAlpha = alpha
+    context.beginPath()
+    points.forEach((point, index) => {
+      if (index === 0) context.moveTo(point.x, point.y)
+      else context.lineTo(point.x, point.y)
+    })
+    context.strokeStyle = color
+    context.lineWidth = lineWidth
+    context.lineCap = 'round'
+    context.lineJoin = 'round'
+    context.stroke()
+    context.restore()
+  }
+  const drawLabel = (text, point, options = {}) => {
+    const label = String(text || '')
+    if (!label) return
+    context.save()
+    context.font = options.font || '600 22px "Microsoft YaHei", Arial, sans-serif'
+    const width = Math.max(context.measureText(label).width + 18, options.minWidth || 46)
+    const height = options.height || 30
+    const x = point.x + (options.dx || 0)
+    const y = point.y + (options.dy || 0)
+    context.fillStyle = options.background || 'rgba(255,255,255,0.92)'
+    context.strokeStyle = options.border || 'rgba(39,63,92,0.18)'
+    context.lineWidth = 1.2
+    if (context.roundRect) {
+      context.beginPath()
+      context.roundRect(x - width / 2, y - height / 2, width, height, 8)
+      context.fill()
+      context.stroke()
+    } else {
+      context.fillRect(x - width / 2, y - height / 2, width, height)
+      context.strokeRect(x - width / 2, y - height / 2, width, height)
+    }
+    context.fillStyle = options.color || '#19375a'
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+    context.fillText(label, x, y + 0.5)
+    context.restore()
+  }
+  const drawCircle = (point, radius, fill, stroke = '#ffffff') => {
+    context.beginPath()
+    context.arc(point.x, point.y, radius, 0, Math.PI * 2)
+    context.fillStyle = fill
+    context.fill()
+    context.lineWidth = 2
+    context.strokeStyle = stroke
+    context.stroke()
+  }
+
+  context.fillStyle = '#f8fafc'
+  context.fillRect(0, 0, canvas.width, canvas.height)
+  const gradient = context.createLinearGradient(0, 0, 0, canvas.height)
+  gradient.addColorStop(0, '#ffffff')
+  gradient.addColorStop(1, '#eef5fb')
+  context.fillStyle = gradient
+  context.fillRect(0, 0, canvas.width, canvas.height)
+
+  context.fillStyle = '#172b4d'
+  context.font = '700 28px "Microsoft YaHei", Arial, sans-serif'
+  context.textAlign = 'left'
+  context.textBaseline = 'top'
+  context.fillText('线缆管路布局设计图', 42, 28)
+  context.fillStyle = '#60758e'
+  context.font = '18px "Microsoft YaHei", Arial, sans-serif'
+  context.fillText(`${cableRoutingSpaceLabel.value}，${cableRoutingGridLabel.value}`, 42, 66)
+
+  const selectedWalls = new Set(cfg.boundaryWalls || ['floor', 'left', 'back'])
+  if (selectedWalls.has('floor')) {
+    drawPoly([
+      project([0, 0, 0]), project([dims.x, 0, 0]), project([dims.x, dims.y, 0]), project([0, dims.y, 0])
+    ], 'rgba(131,185,232,0.20)', 'rgba(49,95,142,0.36)', 1.4)
+  }
+  if (selectedWalls.has('left')) {
+    drawPoly([
+      project([0, 0, 0]), project([0, dims.y, 0]), project([0, dims.y, dims.z]), project([0, 0, dims.z])
+    ], 'rgba(115,196,175,0.18)', 'rgba(49,95,142,0.28)', 1.2)
+  }
+  if (selectedWalls.has('back')) {
+    drawPoly([
+      project([0, 0, 0]), project([dims.x, 0, 0]), project([dims.x, 0, dims.z]), project([0, 0, dims.z])
+    ], 'rgba(244,175,99,0.18)', 'rgba(49,95,142,0.28)', 1.2)
+  }
+
+  for (let x = 0; x <= dims.x; x += 1) {
+    drawLine([project([x, 0, 0]), project([x, dims.y, 0])], '#cad8e8', 0.9, 0.85)
+  }
+  for (let y = 0; y <= dims.y; y += 1) {
+    drawLine([project([0, y, 0]), project([dims.x, y, 0])], '#cad8e8', 0.9, 0.85)
+  }
+
+  const frameEdges = [
+    [[0, 0, 0], [dims.x, 0, 0]], [[dims.x, 0, 0], [dims.x, dims.y, 0]], [[dims.x, dims.y, 0], [0, dims.y, 0]], [[0, dims.y, 0], [0, 0, 0]],
+    [[0, 0, dims.z], [dims.x, 0, dims.z]], [[dims.x, 0, dims.z], [dims.x, dims.y, dims.z]], [[dims.x, dims.y, dims.z], [0, dims.y, dims.z]], [[0, dims.y, dims.z], [0, 0, dims.z]],
+    [[0, 0, 0], [0, 0, dims.z]], [[dims.x, 0, 0], [dims.x, 0, dims.z]], [[dims.x, dims.y, 0], [dims.x, dims.y, dims.z]], [[0, dims.y, 0], [0, dims.y, dims.z]]
+  ]
+  frameEdges.forEach(edge => drawLine(edge.map(project), '#315f8e', 1.35, 0.72))
+
+  const obstacleRows = (cfg.obstacles || []).map((obstacle, index) => {
+    const min = obstacle.min || [0, 0, 0]
+    const max = obstacle.max || min
+    return {
+      name: obstacle.name || `障碍物 ${index + 1}`,
+      x0: Number(min[0]) || 0,
+      y0: Number(min[1]) || 0,
+      z0: Number(min[2]) || 0,
+      x1: (Number(max[0]) || 0) + 1,
+      y1: (Number(max[1]) || 0) + 1,
+      z1: (Number(max[2]) || 0) + 1
+    }
+  }).sort((a, b) => (a.x0 + a.y0 + a.z0) - (b.x0 + b.y0 + b.z0))
+  obstacleRows.forEach(obstacle => {
+    const p000 = project([obstacle.x0, obstacle.y0, obstacle.z0])
+    const p100 = project([obstacle.x1, obstacle.y0, obstacle.z0])
+    const p010 = project([obstacle.x0, obstacle.y1, obstacle.z0])
+    const p110 = project([obstacle.x1, obstacle.y1, obstacle.z0])
+    const p001 = project([obstacle.x0, obstacle.y0, obstacle.z1])
+    const p101 = project([obstacle.x1, obstacle.y0, obstacle.z1])
+    const p011 = project([obstacle.x0, obstacle.y1, obstacle.z1])
+    const p111 = project([obstacle.x1, obstacle.y1, obstacle.z1])
+    drawPoly([p100, p110, p111, p101], 'rgba(80,94,112,0.76)', 'rgba(45,58,75,0.72)', 1.2)
+    drawPoly([p010, p110, p111, p011], 'rgba(96,111,129,0.72)', 'rgba(45,58,75,0.62)', 1.2)
+    drawPoly([p001, p101, p111, p011], 'rgba(123,135,148,0.86)', 'rgba(45,58,75,0.74)', 1.2)
+    drawLine([p000, p100, p110, p010, p000], 'rgba(45,58,75,0.42)', 1, 0.82)
+    drawLabel(obstacle.name, project([(obstacle.x0 + obstacle.x1) / 2, (obstacle.y0 + obstacle.y1) / 2, obstacle.z1]), {
+      dy: -18,
+      font: '600 17px "Microsoft YaHei", Arial, sans-serif',
+      height: 26,
+      background: 'rgba(255,255,255,0.82)'
+    })
+  })
+
+  const pathByPipeIndex = new Map((cableRoutingPaths.value || []).map((item, index) => [item.pipeIndex ?? index, item]))
+  ;(cfg.pipes || []).forEach((pipe, index) => {
+    const route = pathByPipeIndex.get(index)
+    const points = (route?.points?.length ? route.points : [pipe.start, pipe.end]).map(project)
+    const color = pipe.color || ['#e14b4b', '#2f80ed', '#24a148'][index % 3]
+    context.save()
+    context.shadowColor = 'rgba(15, 23, 42, 0.22)'
+    context.shadowBlur = 7
+    context.shadowOffsetY = 3
+    drawLine(points, color, 7, route?.points?.length ? 0.96 : 0.54)
+    context.restore()
+    const startPoint = project(pipe.start || [0, 0, 0])
+    const endPoint = project(pipe.end || [0, 0, 0])
+    drawCircle(startPoint, 9, color)
+    drawCircle(endPoint, 9, color)
+    drawLabel(`S${index + 1}`, startPoint, { dy: -26, font: '700 16px Arial, sans-serif', minWidth: 34, height: 24, color })
+    drawLabel(`E${index + 1}`, endPoint, { dy: -26, font: '700 16px Arial, sans-serif', minWidth: 34, height: 24, color })
+    if (points.length) {
+      const mid = points[Math.floor(points.length / 2)]
+      drawLabel(pipe.name || `管路 ${index + 1}`, mid, {
+        dy: -24,
+        font: '600 17px "Microsoft YaHei", Arial, sans-serif',
+        height: 26,
+        background: 'rgba(255,255,255,0.88)',
+        color
+      })
+    }
+  })
+
+  const legendY = canvas.height - 48
+  let legendX = 42
+  context.font = '600 18px "Microsoft YaHei", Arial, sans-serif'
+  context.textAlign = 'left'
+  context.textBaseline = 'middle'
+  ;(cfg.pipes || []).forEach((pipe, index) => {
+    const color = pipe.color || ['#e14b4b', '#2f80ed', '#24a148'][index % 3]
+    context.fillStyle = color
+    context.fillRect(legendX, legendY - 6, 22, 12)
+    context.fillStyle = '#24324f'
+    const label = pipe.name || `管路 ${index + 1}`
+    context.fillText(label, legendX + 30, legendY)
+    legendX += Math.max(120, context.measureText(label).width + 74)
+  })
+  context.fillStyle = '#7b8794'
+  context.fillRect(legendX, legendY - 8, 22, 16)
+  context.fillStyle = '#24324f'
+  context.fillText('实体障碍物', legendX + 30, legendY)
+
+  return canvas.toDataURL('image/png')
+}
+
+async function captureCableRoutingSceneImage() {
+  if (!cableRenderer || !cableScene || !cableCamera) return ''
+  const previousPickMode = cableRoutingPickMode.value
+  try {
+    if (previousPickMode) {
+      cableRoutingPickMode.value = ''
+      await nextTick()
+    }
+    renderCableRoutingScene()
+    cableControls?.update()
+    cableRenderer.render(cableScene, cableCamera)
+    const imageUrl = cableRenderer.domElement?.toDataURL?.('image/png') || ''
+    return imageUrl.startsWith('data:image') ? imageUrl : ''
+  } catch {
+    return ''
+  } finally {
+    if (previousPickMode) {
+      cableRoutingPickMode.value = previousPickMode
+      nextTick(renderCableRoutingScene)
+    }
+  }
+}
+
 async function normalizeReportImage(source, options = {}) {
   if (!source) return ''
   const width = options.width || 1280
@@ -2931,6 +4920,7 @@ function getImageContentCrop(image, options = {}) {
 async function prepareReportImages(allowCapture = false) {
   let cadImage = reportSelectedCadImage.value
   let ansysImage = reportSelectedAnsysImage.value
+  let cableRoutingImage = ''
 
   if (isReportCadComplete()) {
     cadImage = await ensureReportCadImage(allowCapture)
@@ -2940,11 +4930,17 @@ async function prepareReportImages(allowCapture = false) {
     ansysImage = reportSelectedAnsysImage.value || await loadAnsysStressImage()
   }
 
+  if (cableRoutingSubmission.value.submitted) {
+    cableRoutingImage = await ensureCableRoutingReportImage(allowCapture)
+  }
+
   const cadNormalized = await normalizeReportImage(cadImage, { padding: 20 })
   const ansysNormalized = await normalizeReportImage(ansysImage, { padding: 8 })
+  const cableRoutingNormalized = await normalizeReportImage(cableRoutingImage, { padding: 10 })
 
   reportCadDocImageUrl.value = cadNormalized || cadImage || ''
   reportAnsysDocImageUrl.value = ansysNormalized || ansysImage || ''
+  reportCableRoutingDocImageUrl.value = cableRoutingSubmission.value.submitted ? (cableRoutingNormalized || cableRoutingImage || '') : ''
 }
 
 function downloadCadFile(kind) {
@@ -3084,7 +5080,7 @@ function ansysStatusType(status) {
 
 function generateDesignReport() {
   if (!canGenerateReport.value) {
-    ElMessage.warning('请先完成代理模型求解并形成候选设计方案。')
+    ElMessage.warning('请先至少完成一个解耦子任务成果。')
     return
   }
   reportGeneratedAt.value = formatDateTime(new Date())
@@ -3234,11 +5230,9 @@ function encodeBase64Utf8(value) {
 }
 
 function submitDesignReportBlockedReason() {
-  if (!canGenerateReport.value) return '请先完成代理模型求解并形成候选设计方案。'
+  if (!canGenerateReport.value) return '请先至少完成一个解耦子任务成果。'
   if (!['model_decompose_solve', 'simulation_confirm'].includes(currentNodeKey.value) || !canEditVerification.value) return '当前节点或当前账号没有提交设计方案报告的权限。'
   if (!reportGeneratedAt.value) return '请先点击“生成报告”，确认报告内容后再提交。'
-  if (!isReportCadComplete()) return '当前选用方案尚未完成参数化建模，不能提交设计方案。'
-  if (!isReportAnsysComplete()) return '当前选用方案尚未完成 ANSYS 仿真验证，不能提交设计方案。'
   if (reportSubmission.value.submitted) return '该设计方案报告已经提交，不能重复提交。'
   if (simulationBlocksReportSubmit.value) return '该设计方案报告已经提交，不能重复提交。'
   return '当前条件未满足，暂不能提交设计方案报告。'
@@ -3258,7 +5252,7 @@ function downloadDesignReport() {
   prepareReportImages(true).finally(() => {
     const html = buildReportHtml()
     const task = detail.value.task || {}
-    const filename = `${task.taskNo || task.taskName || '设计方案验证报告'}.doc`
+    const filename = `${task.taskNo || task.taskName || '总方案验证报告'}.doc`
     saveAs(new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' }), filename)
   })
 }
@@ -3266,23 +5260,27 @@ function downloadDesignReport() {
 function buildDesignReportPayload() {
   return {
     reportCode: reportCode.value,
-    reportTitle: taskTitle.value || '设计方案及验证报告',
+    reportTitle: taskTitle.value || '设计优化总方案验证报告',
     generatedAt: reportGeneratedAt.value,
     problem: reportProblemItems.value,
     approvalDecision: reportApprovalDecision.value,
     approvalSummary: reportApprovalSummaryItems.value,
     optimizationSummary: reportOptimizationSummaryItems.value,
-    selectedScheme: reportSelectedScheme.value,
-    cadPreviewImage: reportCadDocImageUrl.value || reportSelectedCadImage.value,
-    schemeComparison: reportSchemeComparisonRows.value,
+    subtaskReports: reportSubtaskRows.value,
+    cableRoutingReport: cableRoutingSubmission.value.submitted ? cableRoutingSubmission.value.report : null,
+    cableRoutingDiagramImage: cableRoutingSubmission.value.submitted ? reportCableRoutingDocImageUrl.value : '',
+    selectedScheme: hydraulicSubtaskReady.value ? reportSelectedScheme.value : null,
+    cadPreviewImage: hydraulicSubtaskReady.value ? (reportCadDocImageUrl.value || reportSelectedCadImage.value) : '',
+    schemeComparison: hydraulicSubtaskReady.value ? reportSchemeComparisonRows.value : [],
     constraintSummary: reportConstraintSummaryRows.value,
     riskRows: reportRiskRows.value,
     objectivesAndConstraints: reportObjectiveConstraintRows.value,
     designVariables: reportVariableRows.value,
-    designParameters: reportDesignParameterRows.value,
-    cadModel: cadModel.value,
-    ansysSimulation: ansysSimulation.value,
-    simulationMetrics: reportSimulationRows.value,
+    designParameters: hydraulicSubtaskReady.value ? reportDesignParameterRows.value : [],
+    cadModel: hydraulicSubtaskReady.value ? cadModel.value : null,
+    ansysSimulation: hydraulicSubtaskReady.value ? ansysSimulation.value : null,
+    cableRoutingModel: cableRoutingSubmission.value.submitted ? cableRoutingModelTask.value : null,
+    simulationMetrics: hydraulicSubtaskReady.value ? reportSimulationRows.value : [],
     conclusion: reportDecision.value
   }
 }
@@ -3295,18 +5293,53 @@ function buildReportHtml() {
   const paragraph = text => `<p>${escapeHtml(text)}</p>`
   const cadReportImage = reportCadDocImageUrl.value || reportSelectedCadImage.value
   const ansysReportImage = reportAnsysDocImageUrl.value || reportSelectedAnsysImage.value
+  const cableRoutingReportImage = reportCableRoutingDocImageUrl.value
   const cadFigure = `<div class="report-figure-panel"><h3>SolidWorks 参数化模型</h3>${cadReportImage
     ? `<div class="report-figure-box report-figure-box--cad"><img src="${escapeHtml(cadReportImage)}" alt="SolidWorks 参数化模型"></div>`
     : `<div class="report-figure-empty">${escapeHtml(reportSelectedScheme.value?.cadStatusLabel || cadModel.value.statusLabel || '模型文件未生成或未缓存')}</div>`}</div>`
   const ansysFigure = `<div class="report-figure-panel"><h3>ANSYS 仿真效果图</h3>${ansysReportImage
     ? `<div class="report-figure-box report-figure-box--ansys"><img src="${escapeHtml(ansysReportImage)}" alt="ANSYS 仿真效果图"></div>`
     : `<div class="report-figure-empty">仿真效果图未生成或未缓存</div>`}</div>`
+  const cableRoutingFigure = cableRoutingReportImage
+    ? `<div class="report-figure-panel"><h3>线缆管路布局设计图</h3><div class="report-figure-box report-figure-box--cable"><img src="${escapeHtml(cableRoutingReportImage)}" alt="线缆管路布局设计图"></div></div>`
+    : ''
+  const hydraulicSections = hydraulicSubtaskReady.value
+    ? section('液压弯管优化方案', `<div class="report-visual-stack">${cadFigure}${ansysFigure}</div>` + formTable(reportSelectedParameterTableRows.value)) +
+      section('液压候选方案对比与选用依据', paragraph(reportSchemeComparisonNarrative.value) + listTable([
+        { label: '方案', prop: 'schemeName' },
+        { label: '预测应力', prop: 'predictedStress' },
+        { label: '建模结果', prop: 'cadStatusLabel' },
+        { label: '仿真结果', prop: 'ansysResultLabel' },
+        { label: '验证结论', prop: 'judgementLabel' },
+        { label: '选用状态', prop: 'selectionLabel' }
+      ], reportSchemeComparisonRows.value))
+    : ''
+  const cableRoutingSection = cableRoutingSubmission.value.submitted
+    ? section('线缆管路布局方案',
+      paragraph(cableRoutingReportConclusion.value) +
+      cableRoutingFigure +
+      formTable(chunkReportRows(cableRoutingReportSummaryRows.value, 2)) +
+      listTable([
+        { label: '管路', prop: 'name' },
+        { label: '长度/m', prop: 'lengthM' },
+        { label: '弯头数', prop: 'bendCount' },
+        { label: '路径点', prop: 'pointCount' },
+        { label: '起点', prop: 'start' },
+        { label: '终点', prop: 'end' }
+      ], cableRoutingReportPathRows.value) +
+      listTable([
+        { label: '约束', prop: 'name' },
+        { label: '状态', prop: 'status' },
+        { label: '当前值', prop: 'value' },
+        { label: '要求', prop: 'requirement' }
+      ], cableRoutingReportConstraintRows.value))
+    : ''
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>液压弯管抗冲击性能优化设计方案验证报告</title>
+  <title>设计优化总方案验证报告</title>
   <style>
     @page WordSection1 { size: 210mm 297mm; margin: 16mm 16mm 16mm 16mm; }
     div.WordSection1 { page: WordSection1; }
@@ -3338,26 +5371,25 @@ function buildReportHtml() {
   <div class="WordSection1"><div class="report-doc-export">
   <header class="report-cover">
     <span>设计优化任务提交件</span>
-    <h1 style="margin:3mm 0 2mm;color:#172b4d;font-size:15.5pt;line-height:1.35;text-align:center;font-weight:500;">${escapeHtml(taskTitle.value || '液压弯管抗冲击性能优化设计方案验证报告')}</h1>
+    <h1 style="margin:3mm 0 2mm;color:#172b4d;font-size:15.5pt;line-height:1.35;text-align:center;font-weight:500;">${escapeHtml(taskTitle.value || '设计优化总方案验证报告')}</h1>
     <p>报告编号：${escapeHtml(reportCode.value)}　生成时间：${escapeHtml(formatDateTime(reportGeneratedAt.value || new Date()))}　状态：${escapeHtml(reportSubmitStatusLabel.value)}</p>
   </header>
   ${section('一、审批结论摘要', `<table class="report-form-table"><tbody><tr><th>审批建议</th><td colspan="3" class="report-decision-cell">${escapeHtml(reportApprovalDecision.value)}</td></tr><tr><th>结论说明</th><td colspan="3">${escapeHtml(reportConclusionText.value)}</td></tr>${reportApprovalSummaryTableRows.value.map(row => `<tr>${row.map(item => `<th>${escapeHtml(item.label)}</th><td>${escapeHtml(item.value)}</td>`).join('')}</tr>`).join('')}</tbody></table>`)}
   ${section('二、任务与优化问题概述', paragraph(reportProblemNarrative.value) + formTable(reportProblemMetaTableRows.value) + summaryTable(reportOptimizationSummaryItems.value))}
-  ${section('三、最终选用方案', `<div class="report-visual-stack">${cadFigure}${ansysFigure}</div>` + formTable(reportSelectedParameterTableRows.value))}
-  ${section('四、候选方案对比与选用依据', paragraph(reportSchemeComparisonNarrative.value) + listTable([
-    { label: '方案', prop: 'schemeName' },
-    { label: '预测应力', prop: 'predictedStress' },
-    { label: '建模结果', prop: 'cadStatusLabel' },
-    { label: '仿真结果', prop: 'ansysResultLabel' },
-    { label: '验证结论', prop: 'judgementLabel' },
-    { label: '选用状态', prop: 'selectionLabel' }
-  ], reportSchemeComparisonRows.value))}
-  ${section('五、目标与约束满足性总结', paragraph(reportConstraintNarrative.value) + listTable([
+  ${section('解耦子任务成果归集', listTable([
+    { label: '子任务', prop: 'subtaskName' },
+    { label: '状态', prop: 'status' },
+    { label: '成果摘要', prop: 'result' },
+    { label: '报告状态', prop: 'reportStatus' }
+  ], reportSubtaskRows.value))}
+  ${hydraulicSections}
+  ${cableRoutingSection}
+  ${section('目标与约束满足性总结', paragraph(reportConstraintNarrative.value) + listTable([
     { label: '类别', prop: 'category' },
     { label: '结论', prop: 'conclusion' },
     { label: '说明', prop: 'detail' }
   ], reportConstraintSummaryRows.value))}
-  ${section('六、仿真验证结果与工程风险', listTable([
+  ${section('验证结果与工程风险', listTable([
     { label: '证据项', prop: 'label' },
     { label: '状态/结果', prop: 'value' },
     { label: '说明', prop: 'description' }
@@ -3365,7 +5397,7 @@ function buildReportHtml() {
     { label: '类别', prop: 'label' },
     { label: '说明', prop: 'value' }
   ], reportRiskRows.value))}
-  ${section('七、附录：设计变量与指标明细', listTable([
+  ${section('附录：设计变量与指标明细', listTable([
     { label: '学科', prop: 'disciplineName' },
     { label: '变量名称', prop: 'variableName' },
     { label: '初始值', prop: 'initialValue' },
@@ -3430,6 +5462,34 @@ function subtaskVariables(subtask) {
     }))
 }
 
+function variablesForSubtask(subtaskCode) {
+  return designVariables.value.filter(item => variableSubtaskCodes(item).includes(subtaskCode))
+}
+
+function selectedVariablesForSubtask(subtaskCode) {
+  return variablesForSubtask(subtaskCode).filter(item => item.checked)
+}
+
+function selectedVariableCountForSubtask(subtaskCode) {
+  return selectedVariablesForSubtask(subtaskCode).length
+}
+
+function selectActiveSubtaskVariables() {
+  const rows = variablesForSubtask(activeSubtaskCode.value)
+  rows.forEach(item => {
+    item.checked = true
+  })
+  if (!rows.length) {
+    ElMessage.info('当前子任务暂无可选设计变量。')
+  }
+}
+
+function selectAllDesignVariables() {
+  designVariables.value.forEach(item => {
+    item.checked = true
+  })
+}
+
 function variableSubtaskCodes(item) {
   if (item.subtaskCode === 'shared') {
     return ['hydraulic_impact', 'cable_pipe_layout']
@@ -3477,6 +5537,33 @@ function loadVariableCatalogs() {
 }
 
 function saveVariables() {
+  const currentSubtaskCode = activeSubtaskCode.value
+  const selected = Array.from(new Map(
+    selectedVariablesForSubtask(currentSubtaskCode).map(item => [item.variableCode, {
+      ...item,
+      subtaskCode: currentSubtaskCode
+    }])
+  ).values())
+  if (!selected.length) {
+    ElMessage.warning('请至少选择当前子任务的一个设计变量。')
+    return
+  }
+  variableSaving.value = true
+  saveDesignVariables(taskId.value, {
+    subtaskCode: currentSubtaskCode,
+    designVariables: selected
+  }).then(res => {
+    detail.value = res.data || detail.value
+    loadSelectedVariables(detail.value)
+    decomposed.value = Boolean(detail.value.decomposed) || decomposed.value
+    variablesSaved.value = true
+    ElMessage.success('当前子任务设计变量已保存。')
+  }).finally(() => {
+    variableSaving.value = false
+  })
+}
+
+function saveAllVariables() {
   const selected = Array.from(new Map(
     designVariables.value.filter(item => item.checked).map(item => [item.variableCode, item])
   ).values())
@@ -3492,7 +5579,7 @@ function saveVariables() {
     loadSelectedVariables(detail.value)
     decomposed.value = Boolean(detail.value.decomposed) || decomposed.value
     variablesSaved.value = true
-    ElMessage.success('设计变量已保存，可以执行模型求解。')
+    ElMessage.success('全部子任务设计变量已保存。')
   }).finally(() => {
     variableSaving.value = false
   })
@@ -3511,8 +5598,10 @@ function variableTypeLabel(value) {
 }
 
 onMounted(() => {
+  loadCableRoutingAlgorithms().finally(loadCableRoutingDefaults)
   loadSurrogateModels()
   loadDetail()
+  nextTick(initCableRoutingScene)
   window.addEventListener('resize', resizeConvergenceChart)
 })
 
@@ -3520,7 +5609,11 @@ onBeforeUnmount(() => {
   stopSurrogatePolling()
   stopCadPolling()
   stopAnsysPolling()
+  stopCableRoutingSolvePolling()
+  stopCableRoutingModelPolling()
   clearAnsysStressImage()
+  clearCableRoutingSolidWorksModel()
+  disposeCableRoutingScene()
   window.removeEventListener('resize', resizeConvergenceChart)
   disposeConvergenceChart()
 })
@@ -3529,15 +5622,43 @@ watch(() => route.query.taskId, value => {
   stopSurrogatePolling()
   stopCadPolling()
   stopAnsysPolling()
+  stopCableRoutingSolvePolling()
+  stopCableRoutingModelPolling()
   clearAnsysStressImage()
+  clearCableRoutingSolidWorksModel()
   resetComparisonState()
   taskId.value = value ? Number(value) : null
   activeTab.value = ['handled', 'related'].includes(route.query.tab) ? route.query.tab : activeTab.value
   loadDetail()
 })
 
+watch(() => route.query.subtask, value => {
+  if (!value || value === activeSubtaskCode.value) return
+  activeSubtaskCode.value = value
+  syncActiveSubtask()
+})
+
 watch(convergenceSeries, () => {
   renderConvergenceChart()
+}, { deep: true })
+
+watch(showCableLayoutWorkspace, visible => {
+  if (visible) {
+    nextTick(initCableRoutingScene)
+  }
+})
+
+watch(cableRoutingForm, () => {
+  const maxZ = Math.max(0, (Number(cableRoutingForm.value.gridShape?.[2]) || 1) - 1)
+  cableRoutingPickLayerZ.value = clampNumber(cableRoutingPickLayerZ.value, 0, maxZ)
+  if (cableRoutingSelectedPipeIndex.value >= cableRoutingForm.value.pipes.length) {
+    cableRoutingSelectedPipeIndex.value = Math.max(0, cableRoutingForm.value.pipes.length - 1)
+  }
+  renderCableRoutingScene()
+}, { deep: true })
+
+watch(cableRoutingPaths, () => {
+  renderCableRoutingScene()
 }, { deep: true })
 </script>
 
@@ -3656,6 +5777,26 @@ watch(convergenceSeries, () => {
     padding: 10px;
   }
 
+  .variable-panel-title {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+
+    strong {
+      min-width: 180px;
+      color: #17365f;
+      font-size: 14px;
+    }
+
+    span {
+      margin-left: auto;
+      color: #5c6f86;
+      font-size: 13px;
+      font-weight: 500;
+    }
+  }
+
   :deep(.el-table__cell) {
     padding: 8px 0;
   }
@@ -3725,6 +5866,317 @@ watch(convergenceSeries, () => {
   color: #6b7f95;
   font-size: 13px;
   line-height: 1.5;
+}
+
+.cable-layout-workbench {
+  margin-top: 14px;
+}
+
+.cable-routing-panel {
+  overflow: visible;
+}
+
+.cable-routing-algorithm-card {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid #dce6f1;
+  border-radius: 6px;
+  background: #fbfdff;
+
+  :deep(.el-form-item) {
+    margin-bottom: 0;
+  }
+}
+
+.cable-routing-algorithm-grid {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(160px, 0.3fr);
+  gap: 10px 12px;
+  align-items: center;
+}
+
+.algorithm-option-tag {
+  float: right;
+  margin-top: 2px;
+}
+
+.algorithm-status-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cable-routing-designer {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.88fr) minmax(520px, 1.12fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.cable-routing-visual-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dce6f1;
+  border-radius: 6px;
+  background: #f8fbff;
+}
+
+.cable-routing-visual-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e6edf5;
+  background: #fff;
+
+  div {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  strong {
+    color: #19375a;
+    font-size: 14px;
+  }
+
+  span {
+    color: #60758b;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+}
+
+.cable-routing-scene {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  min-height: 360px;
+  background: #eef4fb;
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.cable-routing-pickbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid #e6edf5;
+  background: #fff;
+
+  :deep(.el-input-number) {
+    width: 92px;
+  }
+}
+
+.pipe-picker {
+  width: 150px;
+}
+
+.pickbar-label {
+  color: #52667a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cable-routing-scene-note {
+  padding: 8px 12px 10px;
+  border-top: 1px solid #e6edf5;
+  color: #60758b;
+  font-size: 12px;
+  line-height: 1.5;
+  background: #fbfdff;
+}
+
+.cable-routing-editor {
+  min-width: 0;
+}
+
+.cable-routing-form {
+  :deep(.el-form-item) {
+    margin-bottom: 12px;
+  }
+}
+
+.cable-routing-param-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 2px 12px;
+}
+
+.axis-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+
+  :deep(.el-input-number) {
+    width: 100%;
+  }
+
+  :deep(.el-input-number__decrease),
+  :deep(.el-input-number__increase) {
+    width: 20px;
+  }
+
+  :deep(.el-input__wrapper) {
+    padding-right: 24px;
+    padding-left: 8px;
+  }
+}
+
+.axis-inputs--compact {
+  gap: 4px;
+
+  :deep(.el-input-number) {
+    min-width: 54px;
+  }
+}
+
+.cable-routing-space-note {
+  margin-top: 6px;
+  color: #60758b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.mini-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e6ebf1;
+  background: #f8fafc;
+
+  strong {
+    color: #243b58;
+    font-size: 13px;
+  }
+}
+
+.cable-routing-edit-table {
+  :deep(.el-input-number) {
+    width: 100%;
+  }
+}
+
+.cable-routing-result-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.cable-routing-total-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cable-routing-total-card {
+  min-height: 78px;
+  padding: 10px 12px;
+  border: 1px solid #dde7f0;
+  border-radius: 6px;
+  background: #fbfcfe;
+
+  span,
+  strong {
+    display: block;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  strong {
+    margin-top: 8px;
+    color: #19375a;
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  em {
+    margin-left: 4px;
+    color: #718399;
+    font-size: 12px;
+    font-style: normal;
+  }
+}
+
+.cable-routing-preview {
+  min-height: 300px;
+  padding: 10px;
+  border: 1px solid #dde7f0;
+  border-radius: 6px;
+  background: #fbfcfe;
+}
+
+.cable-routing-preview-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+
+  strong {
+    color: #19375a;
+    font-size: 14px;
+  }
+
+  span {
+    color: #60758b;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+}
+
+.cable-routing-stl-viewer-wrap {
+  position: relative;
+}
+
+.cable-routing-model-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #52667a;
+  font-size: 13px;
+  background: rgba(248, 251, 255, 0.78);
+}
+
+.route-color-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.model-file-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.cable-layout-grid {
+  align-items: start;
 }
 
 .subtask-empty-workspace {
@@ -4779,6 +7231,10 @@ watch(convergenceSeries, () => {
   padding: 0 12px 12px;
 }
 
+.task-submit-panel {
+  border-top: 3px solid #4f8edc;
+}
+
 .report-head {
   align-items: flex-start;
 
@@ -4860,6 +7316,44 @@ watch(convergenceSeries, () => {
   padding: 0 8px 0 0;
   overflow-y: auto;
   background: #eef2f7;
+}
+
+.subtask-report-preview {
+  max-height: 68vh;
+  overflow: auto;
+  padding: 18px 22px;
+  border: 1px solid #e1e7ef;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2a44;
+
+  :deep(h1) {
+    margin: 0 0 14px;
+    color: #17365f;
+    font-size: 20px;
+  }
+
+  :deep(h2) {
+    margin: 18px 0 10px;
+    color: #25496f;
+    font-size: 15px;
+  }
+
+  :deep(table) {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  :deep(th),
+  :deep(td) {
+    padding: 8px 10px;
+    border: 1px solid #d8e0ea;
+    text-align: left;
+  }
+
+  :deep(th) {
+    background: #f3f7fb;
+  }
 }
 
 .report-doc {
@@ -5183,6 +7677,10 @@ watch(convergenceSeries, () => {
   min-width: 0;
 }
 
+.report-cable-routing-card {
+  margin: 10px 0 14px;
+}
+
 .report-visual-card--cad {
   :deep(.cad-viewer) {
     height: 300px !important;
@@ -5343,8 +7841,24 @@ watch(convergenceSeries, () => {
 
 @media (max-width: 1100px) {
   .solve-command-grid,
-  .objective-constraint-columns {
+  .objective-constraint-columns,
+  .cable-routing-algorithm-grid,
+  .cable-routing-designer,
+  .cable-routing-result-grid,
+  .cable-layout-grid {
     grid-template-columns: 1fr;
+  }
+
+  .cable-routing-scene {
+    height: 360px;
+  }
+
+  .cable-routing-param-grid {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+
+  .cable-routing-total-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .objective-workbench-toolbar {
@@ -5389,6 +7903,50 @@ watch(convergenceSeries, () => {
   .report-result-grid,
   .report-evidence-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.report-cable-routing-figure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #d8e2ee;
+  border-radius: 6px;
+  background: #f8fafc;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
+  }
+}
+
+@media (max-width: 720px) {
+  .cable-routing-param-grid,
+  .cable-routing-algorithm-grid,
+  .cable-routing-total-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cable-routing-visual-head,
+  .cable-routing-pickbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pipe-picker,
+  .cable-routing-pickbar :deep(.el-input-number) {
+    width: 100%;
+  }
+
+  .cable-routing-scene {
+    height: 320px;
+    min-height: 320px;
   }
 }
 </style>

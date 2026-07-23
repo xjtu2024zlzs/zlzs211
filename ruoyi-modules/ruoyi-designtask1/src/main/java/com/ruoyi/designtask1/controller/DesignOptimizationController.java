@@ -262,6 +262,58 @@ public class DesignOptimizationController {
             .body(resource);
     }
 
+    @GetMapping("/cable-routing/default-params")
+    public AjaxResult cableRoutingDefaultParams() {
+        return AjaxResult.success(optimizationService.cableRoutingDefaultParams());
+    }
+
+    @GetMapping("/cable-routing/algorithms")
+    public AjaxResult cableRoutingAlgorithms() {
+        return AjaxResult.success(optimizationService.cableRoutingAlgorithms());
+    }
+
+    @PostMapping("/task/{taskId}/cable-routing/solve")
+    public AjaxResult submitCableRoutingSolve(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
+        return AjaxResult.success(optimizationService.submitCableRoutingSolve(taskId, body));
+    }
+
+    @GetMapping("/task/{taskId}/cable-routing/solve")
+    public AjaxResult cableRoutingSolve(@PathVariable Long taskId) {
+        return AjaxResult.success(optimizationService.cableRoutingSolve(taskId));
+    }
+
+    @PostMapping("/task/{taskId}/cable-routing/model")
+    public AjaxResult submitCableRoutingModel(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
+        return AjaxResult.success(optimizationService.submitCableRoutingModel(taskId, body));
+    }
+
+    @GetMapping("/task/{taskId}/cable-routing/model")
+    public AjaxResult cableRoutingModel(@PathVariable Long taskId) {
+        return AjaxResult.success(optimizationService.cableRoutingModel(taskId));
+    }
+
+    @PostMapping("/task/{taskId}/cable-routing/report")
+    public AjaxResult submitCableRoutingReport(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
+        return AjaxResult.success(optimizationService.submitCableRoutingReport(taskId, body));
+    }
+
+    @GetMapping("/task/{taskId}/cable-routing/report")
+    public AjaxResult cableRoutingReport(@PathVariable Long taskId) {
+        return AjaxResult.success(optimizationService.subtaskSubmission(taskId, "cable_pipe_layout"));
+    }
+
+    @GetMapping("/task/{taskId}/cable-routing/model/file/{kind}")
+    public ResponseEntity<Resource> cableRoutingModelFile(@PathVariable Long taskId, @PathVariable String kind) {
+        File file = optimizationService.cableRoutingModelFile(taskId, kind);
+        Resource resource = new FileSystemResource(file);
+        String contentType = URLConnection.guessContentTypeFromName(file.getName());
+        boolean inline = kind != null && kind.toLowerCase().contains("preview");
+        return ResponseEntity.ok()
+            .contentType(contentType == null ? MediaType.APPLICATION_OCTET_STREAM : MediaType.parseMediaType(contentType))
+            .header(HttpHeaders.CONTENT_DISPOSITION, (inline ? "inline" : "attachment") + "; filename=\"" + file.getName() + "\"")
+            .body(resource);
+    }
+
     @PostMapping("/task/{taskId}/approve")
     public AjaxResult approve(@PathVariable Long taskId, @RequestBody Map<String, Object> body) {
         return AjaxResult.success(optimizationService.approve(taskId, body));

@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
@@ -69,6 +70,40 @@ public class DesignOptimizationService {
         Map.entry("HYD_PRESSURE_DROP", "HYD_PRESSURE_DROP_MIN"),
         Map.entry("HYD_BEND_RADIUS", "HYD_MIN_BEND_RADIUS")
     );
+    private static final Set<String> CABLE_ROUTING_OBJECTIVE_CODES = Set.of(
+        "LAY_CABLE_LENGTH_MIN",
+        "LAY_INTERFERENCE_RISK_MIN",
+        "LAY_COMPACTNESS_MAX",
+        "LAY_MAINTAINABILITY_MAX",
+        "AERO_ENVELOPE_IMPACT_MIN",
+        "MFG_ASSEMBLY_EFFICIENCY_MAX",
+        "MFG_MAINTENANCE_ACCESS_MAX"
+    );
+    private static final Set<String> CABLE_ROUTING_CONSTRAINT_CODES = Set.of(
+        "LAY_PIPE_CLEARANCE_LIMIT",
+        "LAY_FORBIDDEN_ZONE_AVOID",
+        "LAY_DOOR_ENVELOPE_AVOID",
+        "LAY_CABLE_BEND_RADIUS_LIMIT",
+        "LAY_CLAMP_SPACING_LIMIT",
+        "LAY_SERVICE_MARGIN_LIMIT",
+        "AERO_OUTER_ENVELOPE",
+        "AERO_DOOR_GAP_CLEARANCE",
+        "MFG_CLAMP_INSTALLABLE",
+        "MFG_TOOL_ACCESS",
+        "STR_INTERFACE_FIXED",
+        "LAY_PIPE_ENDPOINT_FIXED",
+        "LAY_PIPE_HORIZONTAL_SPAN",
+        "LAY_PIPE_VERTICAL_SPAN"
+    );
+    private static final Map<String, String> CABLE_ROUTING_ITEM_CANONICAL_CODES = Map.ofEntries(
+        Map.entry("LAY_MIN_CLEARANCE", "LAY_PIPE_CLEARANCE_LIMIT"),
+        Map.entry("LAY_CLEARANCE_LIMIT", "LAY_PIPE_CLEARANCE_LIMIT"),
+        Map.entry("STR_PIPE_CLEARANCE", "LAY_PIPE_CLEARANCE_LIMIT"),
+        Map.entry("STR_FORBIDDEN_ZONE", "LAY_FORBIDDEN_ZONE_AVOID"),
+        Map.entry("HYD_MIN_BEND_RADIUS", "LAY_CABLE_BEND_RADIUS_LIMIT"),
+        Map.entry("HYD_BEND_RADIUS", "LAY_CABLE_BEND_RADIUS_LIMIT"),
+        Map.entry("MFG_BEND_RADIUS_LIMIT", "LAY_CABLE_BEND_RADIUS_LIMIT")
+    );
     private static final Map<String, Set<String>> DISCIPLINE_EXCLUDED_OBJECTIVE_ITEM_CODES = Map.of(
         "structure", Set.of(
             "STR_FORBIDDEN_ZONE"
@@ -106,6 +141,18 @@ public class DesignOptimizationService {
 
     @Value("${designtask.solidworks.worker-url:http://127.0.0.1:18080/api/pipe-model}")
     private String solidWorksWorkerUrl;
+
+    @Value("${designtask.cable-routing.solve-url:http://127.0.0.1:9721/api/cable-routing/solve}")
+    private String cableRoutingSolveUrl;
+
+    @Value("${designtask.cable-routing.algorithms-url:http://127.0.0.1:9721/api/cable-routing/algorithms}")
+    private String cableRoutingAlgorithmsUrl;
+
+    @Value("${designtask.cable-routing.defaults-url:http://127.0.0.1:9721/api/cable-routing/defaults}")
+    private String cableRoutingDefaultsUrl;
+
+    @Value("${designtask.cable-routing.model-url:http://127.0.0.1:18080/api/cable-routing/model}")
+    private String cableRoutingModelUrl;
 
     @Value("${designtask.ansys.worker-url:http://127.0.0.1:18081/api/ansys/import-geometry}")
     private String ansysWorkerUrl;
@@ -312,6 +359,8 @@ public class DesignOptimizationService {
         data.put("simulation", simulation);
         data.put("canConfirmSimulation", canConfirmSimulation(task, simulation));
         data.put("reportSubmission", designReport(taskId));
+        data.put("subtaskSubmissions", subtaskSubmissions(taskId));
+        data.put("cableRoutingSubmission", subtaskSubmission(taskId, "cable_pipe_layout"));
         data.put("ansysSimulation", taskId == null ? defaultAnsysSimulation() : ansysSimulation(taskId));
         data.put("surrogateSolve", taskId == null ? defaultSurrogateSolve() : surrogateSolve(taskId));
         data.put("cadModel", taskId == null ? defaultCadModel() : cadModel(taskId));
@@ -779,11 +828,8 @@ public class DesignOptimizationService {
         if (task != null) {
             syncRuntimeIfPossible(task);
             assertCurrentAssignee(task, "当前任务未流转到你，暂不能保存设计变量。");
-            if (!"model_decompose_solve".equals(task.getCurrentNodeKey())) {
-                throw new IllegalStateException("请先完成目标约束冲突校验，进入模型解耦求解阶段后再选择设计变量。");
-            }
             if (!isDecomposed(task, taskId)) {
-                throw new IllegalStateException("请先点击任务解耦，生成解耦子任务后再选择设计变量。");
+                throw new IllegalStateException("请先完成目标约束冲突校验并点击任务解耦，生成解耦子任务后再选择设计变量。");
             }
         }
         saveDesignVariableItems(taskId, body);
@@ -859,8 +905,8 @@ public class DesignOptimizationService {
             if (!isDecomposed(task, taskId)) {
                 throw new IllegalStateException("请先点击任务解耦，生成解耦子任务后再启动代理模型优化求解。");
             }
-            if (selectedDesignVariableCount(taskId) == 0) {
-                throw new IllegalStateException("请先保存设计变量，再启动代理模型优化求解。");
+            if (selectedDesignVariableCount(taskId, "hydraulic_impact") == 0) {
+                throw new IllegalStateException("请先保存液压弯管抗冲击性能优化子任务的设计变量，再启动代理模型优化求解。");
             }
         }
         ensureSurrogateSolveTable();
@@ -1008,6 +1054,7 @@ public class DesignOptimizationService {
         }
 
         Map<String, Object> reportPayload = fromJson(toJson(firstNonNull(body.get("report"), Collections.emptyMap())));
+        reportPayload.putIfAbsent("subtaskReports", subtaskSubmissions(taskId));
         String reportHtml = decodeBase64Utf8(body.get("reportHtmlBase64"));
         if (StringUtils.isEmpty(reportHtml)) {
             reportHtml = str(body.get("reportHtml"), "");
@@ -1080,6 +1127,58 @@ public class DesignOptimizationService {
         } catch (Exception e) {
             return mapOf("submitted", false, "errorMessage", e.getMessage());
         }
+    }
+
+    public Map<String, Object> subtaskSubmission(Long taskId, String subtaskCode) {
+        ensureDesignSubtaskSubmissionTable();
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+                select task_id taskId,
+                       subtask_code subtaskCode,
+                       subtask_name subtaskName,
+                       status,
+                       report_json reportJson,
+                       report_html reportHtml,
+                       result_json resultJson,
+                       submit_comment submitComment,
+                       submit_by submitBy,
+                       submit_time submitTime,
+                       update_time updateTime
+                from t2_design_subtask_submission
+                where task_id = ?
+                  and subtask_code = ?
+                limit 1
+                """, taskId, subtaskCode);
+            if (rows.isEmpty()) {
+                return defaultSubtaskSubmission(subtaskCode);
+            }
+            Map<String, Object> row = rows.get(0);
+            String status = str(row.get("status"), "NOT_SUBMITTED");
+            return mapOf(
+                "submitted", "SUCCESS".equals(status),
+                "taskId", row.get("taskId"),
+                "subtaskCode", str(row.get("subtaskCode"), subtaskCode),
+                "subtaskName", str(row.get("subtaskName"), subtaskName(subtaskCode)),
+                "status", status,
+                "statusLabel", subtaskSubmissionStatusLabel(status),
+                "report", fromJson(str(row.get("reportJson"), "{}")),
+                "reportHtml", str(row.get("reportHtml"), ""),
+                "result", fromJson(str(row.get("resultJson"), "{}")),
+                "submitComment", str(row.get("submitComment"), ""),
+                "submitBy", str(row.get("submitBy"), ""),
+                "submitTime", dateTimeText(row.get("submitTime")),
+                "updatedAt", dateTimeText(row.get("updateTime"))
+            );
+        } catch (Exception e) {
+            return defaultSubtaskSubmission(subtaskCode);
+        }
+    }
+
+    public List<Map<String, Object>> subtaskSubmissions(Long taskId) {
+        return List.of(
+            subtaskSubmission(taskId, "hydraulic_impact"),
+            subtaskSubmission(taskId, "cable_pipe_layout")
+        );
     }
 
     public Map<String, Object> submitAnsysSimulation(Long taskId, Map<String, Object> body) {
@@ -1547,6 +1646,270 @@ public class DesignOptimizationService {
         String username = currentUsername();
         CompletableFuture.runAsync(() -> runCadWorker(taskId, params, username), cadExecutor);
         return cadModel(taskId);
+    }
+
+    public Map<String, Object> cableRoutingDefaultParams() {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.getForObject(cableRoutingDefaultsUrl, Map.class);
+            Map<String, Object> data = responseData(response);
+            if (!data.isEmpty()) {
+                return cableRoutingParams(data);
+            }
+        } catch (Exception ignored) {
+        }
+        return defaultCableRoutingParams();
+    }
+
+    public List<Map<String, Object>> cableRoutingAlgorithms() {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.getForObject(cableRoutingAlgorithmsUrl, Map.class);
+            List<Map<String, Object>> algorithms = listValue(response == null ? null : response.get("algorithms"));
+            if (!algorithms.isEmpty()) {
+                return algorithms;
+            }
+        } catch (Exception ignored) {
+        }
+        return defaultCableRoutingAlgorithms();
+    }
+
+    public Map<String, Object> submitCableRoutingSolve(Long taskId, Map<String, Object> body) {
+        if (body == null) {
+            body = Collections.emptyMap();
+        }
+        DesignTask task = taskService.selectTaskById(taskId);
+        if (task != null) {
+            assertCurrentAssignee(task, "当前任务未流转到你，暂不能执行线缆管路布局求解。");
+            if (!isDecomposed(task, taskId)) {
+                throw new IllegalStateException("请先完成任务解耦，再执行线缆管路布局求解。");
+            }
+            if (selectedDesignVariableCount(taskId, "cable_pipe_layout") == 0) {
+                throw new IllegalStateException("请先保存线缆管路布局子任务的设计变量，再执行线缆管路布局求解。");
+            }
+        }
+        ensureCableRoutingSolveTable();
+        Map<String, Object> params = withCableRoutingWorkflowInputs(taskId, cableRoutingParams(body), body);
+        upsertCableRoutingSolveTask(taskId, "QUEUED", params, Collections.emptyMap(), "");
+        CompletableFuture.runAsync(() -> runCableRoutingSolveWorker(taskId, params), solverExecutor);
+        return cableRoutingSolve(taskId);
+    }
+
+    public Map<String, Object> cableRoutingSolve(Long taskId) {
+        ensureCableRoutingSolveTable();
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("select * from t2_cable_routing_solve_task where task_id = ?", taskId);
+        if (rows.isEmpty()) {
+            return defaultCableRoutingSolve();
+        }
+        Map<String, Object> row = rows.get(0);
+        String status = str(row.get("status"), "NOT_SUBMITTED");
+        return mapOf(
+            "status", status,
+            "statusLabel", cableRoutingStatusLabel(status, false),
+            "params", fromJson(str(row.get("params_json"), "{}")),
+            "result", fromJson(str(row.get("result_json"), "{}")),
+            "errorMessage", str(row.get("error_message"), ""),
+            "updatedAt", row.get("update_time")
+        );
+    }
+
+    public Map<String, Object> submitCableRoutingModel(Long taskId, Map<String, Object> body) {
+        if (body == null) {
+            body = Collections.emptyMap();
+        }
+        DesignTask task = taskService.selectTaskById(taskId);
+        if (task != null) {
+            assertCurrentAssignee(task, "当前任务未流转到你，暂不能生成线缆管路 SolidWorks 模型。");
+        }
+        Map<String, Object> params = withCableRoutingWorkflowInputs(taskId, cableRoutingParams(body), body);
+        Map<String, Object> solveResult = mapValue(body.get("solveResult"));
+        if (solveResult.isEmpty()) {
+            Map<String, Object> solveTask = cableRoutingSolve(taskId);
+            if (!"SUCCESS".equals(solveTask.get("status"))) {
+                throw new IllegalStateException("请先完成线缆管路布局求解，再生成 SolidWorks 模型。");
+            }
+            solveResult = mapValue(solveTask.get("result"));
+        }
+        params.put("solveResult", solveResult);
+        ensureCableRoutingModelTable();
+        upsertCableRoutingModelTask(taskId, "QUEUED", params, Collections.emptyMap(), "");
+        String username = currentUsername();
+        CompletableFuture.runAsync(() -> runCableRoutingModelWorker(taskId, params, username), cadExecutor);
+        return cableRoutingModel(taskId);
+    }
+
+    public Map<String, Object> cableRoutingModel(Long taskId) {
+        ensureCableRoutingModelTable();
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("select * from t2_cable_routing_model_task where task_id = ?", taskId);
+        if (rows.isEmpty()) {
+            return defaultCableRoutingModel();
+        }
+        Map<String, Object> row = rows.get(0);
+        String status = str(row.get("status"), "NOT_SUBMITTED");
+        Map<String, Object> files = new LinkedHashMap<>();
+        putCableRoutingFileIfExists(files, "sldprt", taskId, "CABLE_ROUTING_SLDPRT", str(row.get("sldprt_path"), ""));
+        putCableRoutingFileIfExists(files, "step", taskId, "CABLE_ROUTING_STEP", str(row.get("step_path"), ""));
+        putCableRoutingFileIfExists(files, "stl", taskId, "CABLE_ROUTING_STL", str(row.get("stl_path"), ""));
+        putCableRoutingFileIfExists(files, "previewPng", taskId, "CABLE_ROUTING_PREVIEW_PNG", str(row.get("preview_png_path"), ""));
+        putCableRoutingFileIfExists(files, "routingJson", taskId, "CABLE_ROUTING_JSON", str(row.get("routing_json_path"), ""));
+        putCableRoutingFileIfExists(files, "metadataJson", taskId, "CABLE_ROUTING_METADATA_JSON", str(row.get("metadata_json_path"), ""));
+        putCableRoutingFileIfExists(files, "vbs", taskId, "CABLE_ROUTING_VBS", str(row.get("vbs_path"), ""));
+        return mapOf(
+            "status", status,
+            "statusLabel", cableRoutingStatusLabel(status, true),
+            "params", fromJson(str(row.get("params_json"), "{}")),
+            "result", fromJson(str(row.get("result_json"), "{}")),
+            "errorMessage", str(row.get("error_message"), ""),
+            "files", files,
+            "updatedAt", row.get("update_time")
+        );
+    }
+
+    public Map<String, Object> submitCableRoutingReport(Long taskId, Map<String, Object> body) {
+        if (body == null) {
+            body = Collections.emptyMap();
+        }
+        DesignTask task = taskService.selectTaskById(taskId);
+        if (task != null) {
+            assertCurrentAssignee(task, "当前任务未流转到你，暂不能提交线缆管路布局方案。");
+            if (!isDecomposed(task, taskId)) {
+                throw new IllegalStateException("请先完成任务解耦，再提交线缆管路布局方案。");
+            }
+        }
+        Map<String, Object> solveTask = cableRoutingSolve(taskId);
+        if (!"SUCCESS".equals(solveTask.get("status"))) {
+            throw new IllegalStateException("请先完成线缆管路布局求解，再提交线缆方案报告。");
+        }
+        Map<String, Object> modelTask = cableRoutingModel(taskId);
+        Map<String, Object> params = mapValue(firstNonNull(body.get("params"), solveTask.get("params")));
+        if (params.isEmpty()) {
+            params = mapValue(solveTask.get("params"));
+        }
+        Map<String, Object> report = cableRoutingSubtaskReport(taskId, task, params, solveTask, modelTask);
+        String reportHtml = cableRoutingSubtaskReportHtml(report);
+        String comment = str(body.get("comment"), "线缆管路布局子任务成果已提交。");
+        saveSubtaskSubmission(taskId, "cable_pipe_layout", "线缆管路布局设计", "SUCCESS", report, reportHtml, comment);
+        return subtaskSubmission(taskId, "cable_pipe_layout");
+    }
+
+    public File cableRoutingModelFile(Long taskId, String kind) {
+        ensureCableRoutingModelTable();
+        String column = switch (kind == null ? "" : kind.toLowerCase(Locale.ROOT)) {
+            case "sldprt" -> "sldprt_path";
+            case "step", "stp" -> "step_path";
+            case "stl" -> "stl_path";
+            case "preview", "png", "previewpng" -> "preview_png_path";
+            case "routing", "routingjson", "json" -> "routing_json_path";
+            case "metadata", "metadatajson" -> "metadata_json_path";
+            case "vbs", "script" -> "vbs_path";
+            default -> throw new IllegalStateException("不支持的线缆管路模型文件类型：" + kind);
+        };
+        List<String> paths = jdbcTemplate.queryForList("select " + column + " from t2_cable_routing_model_task where task_id = ?", String.class, taskId);
+        if (paths.isEmpty() || StringUtils.isEmpty(paths.get(0))) {
+            throw new IllegalStateException("线缆管路模型文件尚未生成。");
+        }
+        File file = new File(paths.get(0));
+        if (!file.exists() || !file.isFile()) {
+            throw new IllegalStateException("线缆管路模型文件不存在：" + file.getAbsolutePath());
+        }
+        return file;
+    }
+
+    private Map<String, Object> cableRoutingSubtaskReport(Long taskId, DesignTask task, Map<String, Object> params,
+                                                           Map<String, Object> solveTask, Map<String, Object> modelTask) {
+        Map<String, Object> result = mapValue(solveTask.get("result"));
+        Map<String, Object> totals = mapValue(result.get("totals"));
+        Map<String, Object> files = mapValue(modelTask.get("files"));
+        String defaultReportCode = str(task == null ? null : task.getTaskNo(), "DT-" + taskId) + "-CL-RPT";
+        List<Map<String, Object>> summary = List.of(
+            mapOf("label", "管路数量", "value", str(firstNonNull(totals.get("pipeCount"), cableRoutingPathReportRows(result).size()), "0"), "unit", "条"),
+            mapOf("label", "总长度", "value", str(totals.get("lengthM"), "-"), "unit", "m"),
+            mapOf("label", "总弯头数", "value", str(totals.get("bendCount"), "-"), "unit", "个"),
+            mapOf("label", "模型状态", "value", str(modelTask.get("statusLabel"), str(modelTask.get("status"), "未提交")), "unit", "")
+        );
+        return mapOf(
+            "reportCode", defaultReportCode,
+            "reportTitle", "线缆管路布局设计子任务报告",
+            "generatedAt", DATE_TIME.format(LocalDateTime.now()),
+            "taskId", taskId,
+            "taskName", task == null ? "" : str(task.getTaskName(), ""),
+            "subtaskCode", "cable_pipe_layout",
+            "subtaskName", "线缆管路布局设计",
+            "algorithm", mapOf(
+                "algorithmKey", str(params.get("algorithmKey"), str(params.get("algorithmCode"), "lp_bend_3d")),
+                "algorithmName", str(params.get("algorithmName"), "LP_Bend_3D 三维管线路径规划算法"),
+                "solverMode", str(params.get("solverMode"), "auto")
+            ),
+            "space", mapOf(
+                "gridShape", firstNonNull(params.get("gridShape"), Collections.emptyList()),
+                "gridUnitMm", firstNonNull(params.get("gridUnitMm"), result.get("gridUnitMm")),
+                "pipeOuterDiameterMm", params.get("pipeOuterDiameterMm"),
+                "pipeInnerDiameterMm", params.get("pipeInnerDiameterMm"),
+                "bendRadiusMm", firstNonNull(params.get("bendRadiusMm"), result.get("bendRadiusMm"))
+            ),
+            "summary", summary,
+            "paths", cableRoutingPathReportRows(result),
+            "constraintChecks", cableRoutingConstraintReportRows(result),
+            "model", mapOf(
+                "status", str(modelTask.get("status"), "NOT_SUBMITTED"),
+                "statusLabel", str(modelTask.get("statusLabel"), "未提交"),
+                "files", files,
+                "errorMessage", str(modelTask.get("errorMessage"), "")
+            ),
+            "conclusion", cableRoutingReportConclusion(solveTask, modelTask)
+        );
+    }
+
+    private List<Map<String, Object>> cableRoutingPathReportRows(Map<String, Object> result) {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        int index = 1;
+        for (Map<String, Object> path : listValue(result.get("paths"))) {
+            rows.add(mapOf(
+                "name", str(path.get("name"), "管路 " + index),
+                "lengthM", str(path.get("lengthM"), str(path.get("lengthMm"), "-")),
+                "bendCount", str(path.get("bendCount"), "-"),
+                "pointCount", str(path.get("pointCount"), "-"),
+                "start", toJson(firstNonNull(path.get("start"), Collections.emptyList())),
+                "end", toJson(firstNonNull(path.get("end"), Collections.emptyList()))
+            ));
+            index++;
+        }
+        return rows;
+    }
+
+    private List<Map<String, Object>> cableRoutingConstraintReportRows(Map<String, Object> result) {
+        List<Map<String, Object>> checks = listValue(result.get("constraintChecks"));
+        if (!checks.isEmpty()) {
+            return checks;
+        }
+        return List.of(mapOf(
+            "name", "线缆管路求解状态",
+            "status", "通过",
+            "value", "已生成可行路径",
+            "requirement", "路径避障、边界和弯曲半径满足当前算法约束"
+        ));
+    }
+
+    private String cableRoutingReportConclusion(Map<String, Object> solveTask, Map<String, Object> modelTask) {
+        String modelStatus = str(modelTask.get("status"), "NOT_SUBMITTED");
+        if ("SUCCESS".equals(modelStatus)) {
+            return "线缆管路布局求解完成，SolidWorks 三维模型已生成，可作为当前子任务提交成果。";
+        }
+        return "线缆管路布局求解完成，SolidWorks 三维模型尚未生成或未完成；当前以路径求解成果作为子任务阶段性提交。";
+    }
+
+    private String cableRoutingSubtaskReportHtml(Map<String, Object> report) {
+        List<Map<String, Object>> summary = listValue(report.get("summary"));
+        List<Map<String, Object>> paths = listValue(report.get("paths"));
+        List<Map<String, Object>> checks = listValue(report.get("constraintChecks"));
+        return "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>" + escapeHtmlText(report.get("reportTitle")) + "</title></head><body>"
+            + "<h1>" + escapeHtmlText(report.get("reportTitle")) + "</h1>"
+            + "<p>报告编号：" + escapeHtmlText(report.get("reportCode")) + "　生成时间：" + escapeHtmlText(report.get("generatedAt")) + "</p>"
+            + "<h2>一、成果摘要</h2>" + simpleReportTable(List.of("指标", "数值", "单位"), summary, List.of("label", "value", "unit"))
+            + "<h2>二、路径结果</h2>" + simpleReportTable(List.of("管路", "长度", "弯头数", "路径点", "起点", "终点"), paths, List.of("name", "lengthM", "bendCount", "pointCount", "start", "end"))
+            + "<h2>三、约束校核</h2>" + simpleReportTable(List.of("约束", "状态", "当前值", "要求"), checks, List.of("name", "status", "value", "requirement"))
+            + "<h2>四、结论</h2><p>" + escapeHtmlText(report.get("conclusion")) + "</p>"
+            + "</body></html>";
     }
 
     private Map<String, Object> defaultAnsysSimulation() {
@@ -2212,6 +2575,501 @@ public class DesignOptimizationService {
         }
     }
 
+    private Map<String, Object> defaultCableRoutingParams() {
+        return mapOf(
+            "algorithmKey", "lp_bend_3d",
+            "algorithmCode", "lp_bend_3d",
+            "algorithmSource", "project2_service",
+            "algorithmName", "LP_Bend_3D 三维管线路径规划算法",
+            "gridShape", List.of(12, 12, 8),
+            "gridUnitMm", 50.0,
+            "bendWeight", 2.0,
+            "solverMode", "milp",
+            "timeLimitSeconds", 60,
+            "pipeOuterDiameterMm", 9.53,
+            "pipeInnerDiameterMm", 7.73,
+            "bendRadiusMm", 20.0,
+            "wallThicknessMm", 4.0,
+            "boundaryWalls", List.of("floor", "left", "back"),
+            "objectives", Collections.emptyList(),
+            "constraints", Collections.emptyList(),
+            "objectiveWeights", Collections.emptyMap(),
+            "constraintParams", defaultCableRoutingConstraintParams(),
+            "droppedObjectiveConstraintCodes", Collections.emptyList(),
+            "pipes", List.of(
+                mapOf("name", "管路 1", "start", List.of(0, 0, 0), "end", List.of(11, 11, 7), "color", "#e14b4b"),
+                mapOf("name", "管路 2", "start", List.of(0, 1, 1), "end", List.of(10, 2, 6), "color", "#2f80ed"),
+                mapOf("name", "管路 3", "start", List.of(2, 0, 7), "end", List.of(9, 10, 0), "color", "#24a148")
+            ),
+            "obstacles", List.of(
+                mapOf("name", "障碍物 1", "min", List.of(3, 3, 1), "max", List.of(5, 5, 4)),
+                mapOf("name", "障碍物 2", "min", List.of(7, 2, 0), "max", List.of(8, 8, 2)),
+                mapOf("name", "障碍物 3", "min", List.of(1, 8, 2), "max", List.of(4, 10, 6))
+            )
+        );
+    }
+
+    private List<Map<String, Object>> defaultCableRoutingAlgorithms() {
+        return List.of(mapOf(
+            "label", "LP_Bend_3D 三维管线路径规划算法",
+            "value", "lp_bend_3d",
+            "algorithmKey", "lp_bend_3d",
+            "badge", "MILP",
+            "type", "success",
+            "default", true,
+            "description", "基于 PuLP/CBC 的三维网格管线路径规划算法"
+        ));
+    }
+
+    private Map<String, Object> defaultCableRoutingConstraintParams() {
+        return mapOf(
+            "minClearanceMm", 40.0,
+            "minBendRadiusMm", 20.0,
+            "clampSpacingMaxMm", 250.0,
+            "serviceMarginMinMm", 30.0,
+            "avoidForbiddenZones", true,
+            "enforceBoundary", true,
+            "endpointsFixed", true
+        );
+    }
+
+    private Map<String, Object> defaultCableRoutingSolve() {
+        return mapOf(
+            "status", "NOT_SUBMITTED",
+            "statusLabel", "未提交",
+            "params", defaultCableRoutingParams(),
+            "result", Collections.emptyMap(),
+            "errorMessage", ""
+        );
+    }
+
+    private Map<String, Object> defaultCableRoutingModel() {
+        return mapOf(
+            "status", "NOT_SUBMITTED",
+            "statusLabel", "未提交",
+            "params", defaultCableRoutingParams(),
+            "result", Collections.emptyMap(),
+            "files", Collections.emptyMap(),
+            "errorMessage", ""
+        );
+    }
+
+    private Map<String, Object> cableRoutingParams(Map<String, Object> body) {
+        Map<String, Object> params = new LinkedHashMap<>(defaultCableRoutingParams());
+        if (body == null) {
+            return params;
+        }
+        for (String key : List.of(
+            "algorithmKey", "algorithmCode", "algorithmSource", "algorithmName",
+            "gridShape", "gridUnitMm", "bendWeight", "solverMode", "timeLimitSeconds",
+            "pipeOuterDiameterMm", "pipeInnerDiameterMm", "bendRadiusMm", "wallThicknessMm",
+            "boundaryWalls", "pipes", "obstacles",
+            "subtaskCode", "objectives", "constraints", "objectiveWeights", "constraintParams", "droppedObjectiveConstraintCodes"
+        )) {
+            if (body.containsKey(key) && body.get(key) != null) {
+                params.put(key, body.get(key));
+            }
+        }
+        if (body.containsKey("pipeDiameter") && !body.containsKey("pipeOuterDiameterMm")) {
+            params.put("pipeOuterDiameterMm", body.get("pipeDiameter"));
+        }
+        if (body.containsKey("pipeInnerDiameter") && !body.containsKey("pipeInnerDiameterMm")) {
+            params.put("pipeInnerDiameterMm", body.get("pipeInnerDiameter"));
+        }
+        return params;
+    }
+
+    private Map<String, Object> withCableRoutingWorkflowInputs(Long taskId, Map<String, Object> params, Map<String, Object> body) {
+        Map<String, Object> result = new LinkedHashMap<>(params);
+        Map<String, Object> workflow = cableRoutingWorkflowInputs(taskId, body);
+        result.put("subtaskCode", "cable_pipe_layout");
+        result.put("objectives", workflow.get("objectives"));
+        result.put("constraints", workflow.get("constraints"));
+        result.put("objectiveWeights", workflow.get("objectiveWeights"));
+        result.put("droppedObjectiveConstraintCodes", workflow.get("droppedObjectiveConstraintCodes"));
+
+        Map<String, Object> constraintParams = new LinkedHashMap<>(defaultCableRoutingConstraintParams());
+        constraintParams.putAll(mapValue(result.get("constraintParams")));
+        constraintParams.putAll(mapValue(workflow.get("constraintParams")));
+        result.put("constraintParams", constraintParams);
+
+        double minBendRadius = doubleValue(constraintParams.get("minBendRadiusMm"), 0);
+        if (minBendRadius > 0) {
+            result.put("bendRadiusMm", Math.max(doubleValue(result.get("bendRadiusMm"), minBendRadius), minBendRadius));
+        }
+        return result;
+    }
+
+    private Map<String, Object> cableRoutingWorkflowInputs(Long taskId, Map<String, Object> body) {
+        List<Map<String, Object>> sourceItems = new ArrayList<>();
+        for (Map<String, Object> item : listValue(body == null ? null : body.get("objectives"))) {
+            Map<String, Object> row = new LinkedHashMap<>(item);
+            row.putIfAbsent("itemType", "objective");
+            sourceItems.add(row);
+        }
+        for (Map<String, Object> item : listValue(body == null ? null : body.get("constraints"))) {
+            Map<String, Object> row = new LinkedHashMap<>(item);
+            row.putIfAbsent("itemType", "constraint");
+            sourceItems.add(row);
+        }
+        if (sourceItems.isEmpty()) {
+            sourceItems.addAll(classifySelectedItems(taskId).getOrDefault("cable_pipe_layout", Collections.emptyList()));
+        }
+
+        Map<String, Map<String, Object>> objectivesByCode = new LinkedHashMap<>();
+        Map<String, Map<String, Object>> constraintsByCode = new LinkedHashMap<>();
+        Set<String> droppedCodes = new LinkedHashSet<>();
+
+        for (Map<String, Object> item : sourceItems) {
+            String itemType = str(item.get("itemType"), "");
+            String originalCode = str(item.get("itemCode"), "").trim().toUpperCase(Locale.ROOT);
+            String canonicalCode = canonicalCableRoutingItemCode(originalCode);
+            boolean objective = "objective".equals(itemType) && CABLE_ROUTING_OBJECTIVE_CODES.contains(canonicalCode);
+            boolean constraint = "constraint".equals(itemType) && CABLE_ROUTING_CONSTRAINT_CODES.contains(canonicalCode);
+            if (!objective && !constraint) {
+                if (!StringUtils.isEmpty(originalCode)) {
+                    droppedCodes.add(originalCode);
+                }
+                continue;
+            }
+            Map<String, Map<String, Object>> target = objective ? objectivesByCode : constraintsByCode;
+            Map<String, Object> normalized = normalizeCableRoutingWorkflowItem(item, canonicalCode, objective ? "objective" : "constraint");
+            target.merge(canonicalCode, normalized, this::mergeCableRoutingWorkflowItem);
+        }
+
+        List<Map<String, Object>> objectives = orderCableRoutingWorkflowItems(objectivesByCode.values(), CABLE_ROUTING_OBJECTIVE_CODES);
+        List<Map<String, Object>> constraints = orderCableRoutingWorkflowItems(constraintsByCode.values(), CABLE_ROUTING_CONSTRAINT_CODES);
+        Map<String, Object> objectiveWeights = new LinkedHashMap<>();
+        for (Map<String, Object> objective : objectives) {
+            objectiveWeights.put(str(objective.get("itemCode"), ""), objectiveWeightValue(objective.get("weight")));
+        }
+        return mapOf(
+            "subtaskCode", "cable_pipe_layout",
+            "objectives", objectives,
+            "constraints", constraints,
+            "objectiveWeights", objectiveWeights,
+            "constraintParams", cableRoutingConstraintParams(constraints),
+            "droppedObjectiveConstraintCodes", new ArrayList<>(droppedCodes)
+        );
+    }
+
+    private String canonicalCableRoutingItemCode(String itemCode) {
+        String canonicalCode = canonicalObjectiveItemCode(itemCode);
+        return CABLE_ROUTING_ITEM_CANONICAL_CODES.getOrDefault(canonicalCode, canonicalCode);
+    }
+
+    private Map<String, Object> normalizeCableRoutingWorkflowItem(Map<String, Object> item, String canonicalCode, String itemType) {
+        Set<String> sourceCodes = new LinkedHashSet<>();
+        sourceCodes.add(str(item.get("itemCode"), canonicalCode).trim().toUpperCase(Locale.ROOT));
+        sourceCodes.add(canonicalCode);
+        Object existingSourceCodes = item.get("sourceCodes");
+        if (existingSourceCodes instanceof List<?> list) {
+            list.forEach(value -> sourceCodes.add(str(value, "").trim().toUpperCase(Locale.ROOT)));
+        }
+        Double numericValue = cableRoutingNumericConstraintValue(item);
+        return mapOf(
+            "itemType", itemType,
+            "itemCode", canonicalCode,
+            "itemName", str(item.get("itemName"), canonicalCode),
+            "direction", str(item.get("direction"), ""),
+            "weight", objectiveWeightValue(item.get("weight")),
+            "limitValue", firstNonNull(item.get("limitValue"), item.get("thresholdValue"), ""),
+            "numericValue", numericValue,
+            "unit", str(item.get("unit"), ""),
+            "discipline", str(item.get("discipline"), ""),
+            "disciplineName", str(item.get("disciplineName"), disciplineName(str(item.get("discipline"), ""))),
+            "ruleType", str(item.get("ruleType"), ""),
+            "ruleExpression", str(item.get("ruleExpression"), ""),
+            "operatorCode", str(item.get("operatorCode"), ""),
+            "targetField", str(item.get("targetField"), ""),
+            "referenceField", str(item.get("referenceField"), ""),
+            "sourceCodes", new ArrayList<>(sourceCodes)
+        );
+    }
+
+    private Map<String, Object> mergeCableRoutingWorkflowItem(Map<String, Object> current, Map<String, Object> incoming) {
+        Map<String, Object> merged = new LinkedHashMap<>(current);
+        Set<String> sourceCodes = new LinkedHashSet<>();
+        Object currentCodes = current.get("sourceCodes");
+        Object incomingCodes = incoming.get("sourceCodes");
+        if (currentCodes instanceof List<?> list) {
+            list.forEach(value -> sourceCodes.add(str(value, "").trim().toUpperCase(Locale.ROOT)));
+        }
+        if (incomingCodes instanceof List<?> list) {
+            list.forEach(value -> sourceCodes.add(str(value, "").trim().toUpperCase(Locale.ROOT)));
+        }
+        merged.put("sourceCodes", new ArrayList<>(sourceCodes));
+        if ("objective".equals(str(current.get("itemType"), ""))) {
+            merged.put("weight", Math.max(objectiveWeightValue(current.get("weight")), objectiveWeightValue(incoming.get("weight"))));
+            return merged;
+        }
+        Double mergedValue = mergeCableRoutingConstraintValue(str(current.get("itemCode"), ""), current.get("numericValue"), incoming.get("numericValue"));
+        if (mergedValue != null) {
+            merged.put("numericValue", mergedValue);
+            merged.put("limitValue", mergedValue);
+        }
+        return merged;
+    }
+
+    private Double mergeCableRoutingConstraintValue(String itemCode, Object current, Object incoming) {
+        Double a = current instanceof Number ? ((Number) current).doubleValue() : cableRoutingNumericConstraintValue(mapOf("numericValue", current));
+        Double b = incoming instanceof Number ? ((Number) incoming).doubleValue() : cableRoutingNumericConstraintValue(mapOf("numericValue", incoming));
+        if (a == null) return b;
+        if (b == null) return a;
+        return "LAY_CLAMP_SPACING_LIMIT".equals(itemCode) ? Math.min(a, b) : Math.max(a, b);
+    }
+
+    private Double cableRoutingNumericConstraintValue(Map<String, Object> item) {
+        Object raw = firstNonNull(item.get("numericValue"), item.get("limitValue"), item.get("thresholdValue"), item.get("value"));
+        if (raw == null || StringUtils.isEmpty(String.valueOf(raw))) {
+            return null;
+        }
+        String text = String.valueOf(raw).replaceAll("[^0-9.\\-]", "");
+        if (StringUtils.isEmpty(text)) {
+            return null;
+        }
+        try {
+            return new BigDecimal(text).doubleValue();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private List<Map<String, Object>> orderCableRoutingWorkflowItems(Collection<Map<String, Object>> items, Set<String> orderSet) {
+        List<String> order = new ArrayList<>(orderSet);
+        List<Map<String, Object>> result = new ArrayList<>(items);
+        result.sort(Comparator.comparingInt(item -> {
+            int index = order.indexOf(str(item.get("itemCode"), ""));
+            return index < 0 ? 999 : index;
+        }));
+        return result;
+    }
+
+    private Map<String, Object> cableRoutingConstraintParams(List<Map<String, Object>> constraints) {
+        Map<String, Object> result = new LinkedHashMap<>(defaultCableRoutingConstraintParams());
+        for (Map<String, Object> item : constraints) {
+            String code = str(item.get("itemCode"), "");
+            Double value = cableRoutingNumericConstraintValue(item);
+            if ("LAY_PIPE_CLEARANCE_LIMIT".equals(code) && value != null) {
+                result.put("minClearanceMm", Math.max(doubleValue(result.get("minClearanceMm"), 40), value));
+            }
+            if ("LAY_CABLE_BEND_RADIUS_LIMIT".equals(code) && value != null) {
+                result.put("minBendRadiusMm", Math.max(doubleValue(result.get("minBendRadiusMm"), 20), value));
+            }
+            if ("LAY_CLAMP_SPACING_LIMIT".equals(code) && value != null) {
+                result.put("clampSpacingMaxMm", Math.min(doubleValue(result.get("clampSpacingMaxMm"), 250), value));
+            }
+            if ("LAY_SERVICE_MARGIN_LIMIT".equals(code) && value != null) {
+                result.put("serviceMarginMinMm", Math.max(doubleValue(result.get("serviceMarginMinMm"), 30), value));
+            }
+            if (List.of("LAY_FORBIDDEN_ZONE_AVOID", "LAY_DOOR_ENVELOPE_AVOID").contains(code)) {
+                result.put("avoidForbiddenZones", true);
+            }
+            if (List.of("AERO_OUTER_ENVELOPE", "AERO_DOOR_GAP_CLEARANCE").contains(code)) {
+                result.put("enforceBoundary", true);
+            }
+            if (List.of("STR_INTERFACE_FIXED", "LAY_PIPE_ENDPOINT_FIXED").contains(code)) {
+                result.put("endpointsFixed", true);
+            }
+        }
+        return result;
+    }
+
+    private void runCableRoutingSolveWorker(Long taskId, Map<String, Object> params) {
+        try {
+            upsertCableRoutingSolveTask(taskId, "RUNNING", params, Collections.emptyMap(), "");
+            Map<String, Object> request = new LinkedHashMap<>(params);
+            request.put("taskId", taskId);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> workerResponse = restTemplate.postForObject(cableRoutingSolveUrl, request, Map.class);
+            Map<String, Object> data = responseData(workerResponse);
+            if (data.isEmpty() && workerResponse != null) {
+                data = workerResponse;
+            }
+            String status = str(data.get("status"), "SUCCESS");
+            if (!"SUCCESS".equalsIgnoreCase(status)) {
+                upsertCableRoutingSolveTask(taskId, "FAILED", params, data, str(data.get("errorMessage"), "线缆管路布局求解失败。"));
+                return;
+            }
+            upsertCableRoutingSolveTask(taskId, "SUCCESS", params, data, "");
+        } catch (Exception e) {
+            upsertCableRoutingSolveTask(taskId, "FAILED", params, Collections.emptyMap(), cableWorkerExceptionMessage(e, "线缆管路求解失败"));
+        }
+    }
+
+    private void runCableRoutingModelWorker(Long taskId, Map<String, Object> params, String username) {
+        try {
+            upsertCableRoutingModelTask(taskId, "RUNNING", params, Collections.emptyMap(), "");
+            Map<String, Object> request = new LinkedHashMap<>(params);
+            request.put("taskId", taskId);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> workerResponse = restTemplate.postForObject(cableRoutingModelUrl, request, Map.class);
+            Map<String, Object> data = responseData(workerResponse);
+            if (data.isEmpty() && workerResponse != null) {
+                data = workerResponse;
+            }
+            String status = str(data.get("status"), "SUCCESS");
+            if (!"SUCCESS".equalsIgnoreCase(status) && !"COMPLETED".equalsIgnoreCase(status)) {
+                upsertCableRoutingModelTask(taskId, "FAILED", params, data, str(data.get("errorMessage"), "线缆管路 SolidWorks 模型生成失败。"));
+                return;
+            }
+            registerCableRoutingFiles(taskId, data, username);
+            upsertCableRoutingModelTask(taskId, "SUCCESS", params, data, "");
+        } catch (Exception e) {
+            upsertCableRoutingModelTask(taskId, "FAILED", params, Collections.emptyMap(), cableWorkerExceptionMessage(e, "线缆管路建模失败"));
+        }
+    }
+
+    private String cableWorkerExceptionMessage(Exception e, String prefix) {
+        if (e instanceof HttpStatusCodeException httpError) {
+            Map<String, Object> body = fromJson(httpError.getResponseBodyAsString());
+            String workerMessage = str(body.get("errorMessage"), "");
+            if (StringUtils.isNotEmpty(workerMessage)) {
+                return prefix + "：" + workerMessage;
+            }
+            return prefix + "：Worker 返回 HTTP " + httpError.getStatusCode().value();
+        }
+        return prefix + "：" + e.getMessage();
+    }
+
+    private void ensureCableRoutingSolveTable() {
+        jdbcTemplate.execute("""
+            create table if not exists t2_cable_routing_solve_task (
+              task_id bigint not null primary key,
+              status varchar(32) not null,
+              params_json text,
+              result_json text,
+              error_message varchar(1000),
+              create_time datetime default current_timestamp,
+              update_time datetime default current_timestamp
+            )
+            """);
+    }
+
+    private void ensureCableRoutingModelTable() {
+        jdbcTemplate.execute("""
+            create table if not exists t2_cable_routing_model_task (
+              task_id bigint not null primary key,
+              status varchar(32) not null,
+              params_json text,
+              result_json text,
+              error_message varchar(1000),
+              sldprt_path varchar(1000),
+              step_path varchar(1000),
+              stl_path varchar(1000),
+              preview_png_path varchar(1000),
+              routing_json_path varchar(1000),
+              metadata_json_path varchar(1000),
+              vbs_path varchar(1000),
+              create_time datetime default current_timestamp,
+              update_time datetime default current_timestamp
+            )
+            """);
+        addColumnIfMissing("t2_cable_routing_model_task", "step_path", "varchar(1000)");
+        addColumnIfMissing("t2_cable_routing_model_task", "metadata_json_path", "varchar(1000)");
+        addColumnIfMissing("t2_cable_routing_model_task", "vbs_path", "varchar(1000)");
+    }
+
+    private void upsertCableRoutingSolveTask(Long taskId, String status, Map<String, Object> params, Map<String, Object> result, String errorMessage) {
+        ensureCableRoutingSolveTable();
+        jdbcTemplate.update("""
+            insert into t2_cable_routing_solve_task (
+              task_id, status, params_json, result_json, error_message, create_time, update_time
+            ) values (?, ?, ?, ?, ?, sysdate(), sysdate())
+            on duplicate key update
+              status = values(status),
+              params_json = values(params_json),
+              result_json = values(result_json),
+              error_message = values(error_message),
+              update_time = sysdate()
+            """,
+            taskId,
+            status,
+            toJson(params),
+            toJson(result),
+            limitText(errorMessage, 950)
+        );
+    }
+
+    private void upsertCableRoutingModelTask(Long taskId, String status, Map<String, Object> params, Map<String, Object> data, String errorMessage) {
+        ensureCableRoutingModelTable();
+        jdbcTemplate.update("""
+            insert into t2_cable_routing_model_task (
+              task_id, status, params_json, result_json, error_message,
+              sldprt_path, step_path, stl_path, preview_png_path, routing_json_path, metadata_json_path, vbs_path,
+              create_time, update_time
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate(), sysdate())
+            on duplicate key update
+              status = values(status),
+              params_json = values(params_json),
+              result_json = values(result_json),
+              error_message = values(error_message),
+              sldprt_path = values(sldprt_path),
+              step_path = values(step_path),
+              stl_path = values(stl_path),
+              preview_png_path = values(preview_png_path),
+              routing_json_path = values(routing_json_path),
+              metadata_json_path = values(metadata_json_path),
+              vbs_path = values(vbs_path),
+              update_time = sysdate()
+            """,
+            taskId,
+            status,
+            toJson(params),
+            toJson(data),
+            limitText(errorMessage, 950),
+            str(data.get("sldprtPath"), ""),
+            str(data.get("stepPath"), ""),
+            str(data.get("stlPath"), ""),
+            str(data.get("previewPngPath"), ""),
+            str(data.get("routingJsonPath"), ""),
+            str(data.get("metadataJsonPath"), ""),
+            str(data.get("vbsPath"), "")
+        );
+    }
+
+    private void registerCableRoutingFiles(Long taskId, Map<String, Object> data, String username) {
+        jdbcTemplate.update("delete from t2_design_task_file where task_id = ? and file_type in ('CABLE_ROUTING_SLDPRT','CABLE_ROUTING_STEP','CABLE_ROUTING_STL','CABLE_ROUTING_PREVIEW_PNG','CABLE_ROUTING_JSON','CABLE_ROUTING_METADATA_JSON','CABLE_ROUTING_VBS')", taskId);
+        insertCadFile(taskId, str(data.get("sldprtPath"), ""), "CABLE_ROUTING_SLDPRT", username);
+        insertCadFile(taskId, str(data.get("stepPath"), ""), "CABLE_ROUTING_STEP", username);
+        insertCadFile(taskId, str(data.get("stlPath"), ""), "CABLE_ROUTING_STL", username);
+        insertCadFile(taskId, str(data.get("previewPngPath"), ""), "CABLE_ROUTING_PREVIEW_PNG", username);
+        insertCadFile(taskId, str(data.get("routingJsonPath"), ""), "CABLE_ROUTING_JSON", username);
+        insertCadFile(taskId, str(data.get("metadataJsonPath"), ""), "CABLE_ROUTING_METADATA_JSON", username);
+        insertCadFile(taskId, str(data.get("vbsPath"), ""), "CABLE_ROUTING_VBS", username);
+    }
+
+    private void putCableRoutingFileIfExists(Map<String, Object> files, String key, Long taskId, String fileType, String path) {
+        if (StringUtils.isEmpty(path)) {
+            return;
+        }
+        String kind = switch (key) {
+            case "sldprt" -> "sldprt";
+            case "step" -> "step";
+            case "previewPng" -> "preview";
+            case "routingJson" -> "routing";
+            case "metadataJson" -> "metadata";
+            case "vbs" -> "vbs";
+            default -> "stl";
+        };
+        files.put(key, mapOf(
+            "fileType", fileType,
+            "fileName", new File(path).getName(),
+            "filePath", path,
+            "url", "/designtask/task/" + taskId + "/cable-routing/model/file/" + kind
+        ));
+    }
+
+    private String cableRoutingStatusLabel(String status, boolean modelTask) {
+        return switch (status) {
+            case "QUEUED" -> "排队中";
+            case "RUNNING" -> modelTask ? "模型生成中" : "求解中";
+            case "SUCCESS" -> modelTask ? "模型生成成功" : "求解完成";
+            case "FAILED" -> modelTask ? "模型生成失败" : "求解失败";
+            default -> "未提交";
+        };
+    }
+
     private Map<String, Object> cadWorkerParams(Map<String, Object> params) {
         Map<String, Object> request = new LinkedHashMap<>(params);
         double theta1 = doubleValue(params.get("theta1"), 110.0);
@@ -2597,7 +3455,12 @@ public class DesignOptimizationService {
     }
 
     private void saveDesignVariableItems(Long taskId, Map<String, Object> body) {
-        jdbcTemplate.update("delete from t2_design_task_variable_selection where task_id = ?", taskId);
+        String subtaskCode = str(body.get("subtaskCode"), "").trim();
+        if (StringUtils.isNotEmpty(subtaskCode)) {
+            jdbcTemplate.update("delete from t2_design_task_variable_selection where task_id = ? and subtask_code = ?", taskId, subtaskCode);
+        } else {
+            jdbcTemplate.update("delete from t2_design_task_variable_selection where task_id = ?", taskId);
+        }
         Object items = body.get("designVariables");
         if (!(items instanceof List<?> list)) {
             return;
@@ -2606,11 +3469,12 @@ public class DesignOptimizationService {
             if (!(itemObj instanceof Map<?, ?> item)) {
                 continue;
             }
+            String itemSubtaskCode = StringUtils.isNotEmpty(subtaskCode) ? subtaskCode : str(item.get("subtaskCode"), "");
             jdbcTemplate.update("""
                 insert into t2_design_task_variable_selection(task_id, discipline, subtask_code, variable_code, variable_name, variable_type, initial_value, lower_bound, upper_bound, step_value, unit, remark, create_by, create_time)
                 values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate())
                 """,
-                taskId, str(item.get("discipline"), ""), str(item.get("subtaskCode"), ""), str(item.get("variableCode"), ""), str(item.get("variableName"), ""),
+                taskId, str(item.get("discipline"), ""), itemSubtaskCode, str(item.get("variableCode"), ""), str(item.get("variableName"), ""),
                 str(item.get("variableType"), "continuous"), str(item.get("initialValue"), str(item.get("defaultValue"), "")),
                 str(item.get("lowerBound"), ""), str(item.get("upperBound"), ""), str(item.get("stepValue"), ""),
                 str(item.get("unit"), ""), str(body.get("remark"), ""), currentUsername());
@@ -2921,6 +3785,20 @@ public class DesignOptimizationService {
                 from t2_design_task_variable_selection
                 where task_id = ?
                 """, Integer.class, taskId);
+            return count == null ? 0 : count;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private int selectedDesignVariableCount(Long taskId, String subtaskCode) {
+        try {
+            Integer count = jdbcTemplate.queryForObject("""
+                select count(1)
+                from t2_design_task_variable_selection
+                where task_id = ?
+                  and subtask_code = ?
+                """, Integer.class, taskId, subtaskCode);
             return count == null ? 0 : count;
         } catch (Exception e) {
             return 0;
@@ -3919,6 +4797,90 @@ public class DesignOptimizationService {
             """);
     }
 
+    private void saveSubtaskSubmission(Long taskId, String subtaskCode, String subtaskName, String status,
+                                       Map<String, Object> reportPayload, String reportHtml, String comment) {
+        ensureDesignSubtaskSubmissionTable();
+        jdbcTemplate.update("""
+            insert into t2_design_subtask_submission(
+              task_id, subtask_code, subtask_name, status, report_json, report_html,
+              result_json, submit_comment, submit_by, submit_time, update_time
+            )
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate(), sysdate())
+            on duplicate key update
+              subtask_name = values(subtask_name),
+              status = values(status),
+              report_json = values(report_json),
+              report_html = values(report_html),
+              result_json = values(result_json),
+              submit_comment = values(submit_comment),
+              submit_by = values(submit_by),
+              submit_time = values(submit_time),
+              update_time = values(update_time)
+            """,
+            taskId,
+            limitText(subtaskCode, 64),
+            limitText(subtaskName, 128),
+            limitText(status, 32),
+            toJson(reportPayload),
+            reportHtml,
+            toJson(reportPayload),
+            limitText(comment, 950),
+            currentUsername()
+        );
+    }
+
+    private void ensureDesignSubtaskSubmissionTable() {
+        jdbcTemplate.execute("""
+            create table if not exists t2_design_subtask_submission (
+              task_id bigint(20) not null comment 'Task ID',
+              subtask_code varchar(64) not null comment 'Subtask code',
+              subtask_name varchar(128) default null comment 'Subtask name',
+              status varchar(32) default 'NOT_SUBMITTED' comment 'Submission status',
+              report_json longtext comment 'Subtask report JSON',
+              report_html longtext comment 'Subtask report HTML',
+              result_json longtext comment 'Subtask result JSON',
+              submit_comment varchar(1000) default null comment 'Submit comment',
+              submit_by varchar(64) default '',
+              submit_time datetime default null,
+              update_time datetime default null,
+              primary key (task_id, subtask_code)
+            ) engine=InnoDB default charset=utf8mb4 comment='Design subtask submission'
+            """);
+    }
+
+    private Map<String, Object> defaultSubtaskSubmission(String subtaskCode) {
+        return mapOf(
+            "submitted", false,
+            "subtaskCode", subtaskCode,
+            "subtaskName", subtaskName(subtaskCode),
+            "status", "NOT_SUBMITTED",
+            "statusLabel", "未提交",
+            "report", Collections.emptyMap(),
+            "reportHtml", "",
+            "result", Collections.emptyMap(),
+            "submitComment", "",
+            "submitBy", "",
+            "submitTime", ""
+        );
+    }
+
+    private String subtaskSubmissionStatusLabel(String status) {
+        return switch (str(status, "NOT_SUBMITTED")) {
+            case "SUCCESS" -> "已提交";
+            case "FAILED" -> "提交失败";
+            case "RUNNING" -> "提交中";
+            default -> "未提交";
+        };
+    }
+
+    private String subtaskName(String subtaskCode) {
+        return switch (str(subtaskCode, "")) {
+            case "hydraulic_impact" -> "液压弯管抗冲击性能优化";
+            case "cable_pipe_layout" -> "线缆管路布局设计";
+            default -> "解耦子任务";
+        };
+    }
+
     private void ensureSimulationResultTable() {
         jdbcTemplate.execute("""
             create table if not exists t2_design_simulation_result (
@@ -4219,6 +5181,21 @@ public class DesignOptimizationService {
             if (item instanceof Map<?, ?> map) {
                 Map<String, Object> row = new LinkedHashMap<>();
                 map.forEach((key, value) -> row.put(String.valueOf(key), value));
+                result.add(row);
+            }
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> listValue(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return Collections.emptyList();
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object item : list) {
+            if (item instanceof Map<?, ?> map) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                map.forEach((key, rowValue) -> row.put(String.valueOf(key), rowValue));
                 result.add(row);
             }
         }
@@ -4544,6 +5521,35 @@ public class DesignOptimizationService {
             .replace("\"", "\\\"")
             .replace("\r", "\\r")
             .replace("\n", "\\n");
+    }
+
+    private String simpleReportTable(List<String> headers, List<Map<String, Object>> rows, List<String> props) {
+        StringBuilder html = new StringBuilder("<table border=\"1\" cellspacing=\"0\" cellpadding=\"4\"><thead><tr>");
+        for (String header : headers) {
+            html.append("<th>").append(escapeHtmlText(header)).append("</th>");
+        }
+        html.append("</tr></thead><tbody>");
+        for (Map<String, Object> row : rows) {
+            html.append("<tr>");
+            for (String prop : props) {
+                html.append("<td>").append(escapeHtmlText(row.get(prop))).append("</td>");
+            }
+            html.append("</tr>");
+        }
+        if (rows.isEmpty()) {
+            html.append("<tr><td colspan=\"").append(Math.max(1, headers.size())).append("\">暂无数据</td></tr>");
+        }
+        html.append("</tbody></table>");
+        return html.toString();
+    }
+
+    private String escapeHtmlText(Object value) {
+        return str(value, "")
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#39;");
     }
 
     private Map<String, Object> mapOf(Object... args) {

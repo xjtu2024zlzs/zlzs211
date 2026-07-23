@@ -312,6 +312,73 @@ export function getCadModelFile(taskId, kind) {
   })
 }
 
+export function getCableRoutingDefaultParams() {
+  return request({
+    url: '/designtask/cable-routing/default-params',
+    method: 'get'
+  })
+}
+
+export function getCableRoutingAlgorithms() {
+  return request({
+    url: '/designtask/cable-routing/algorithms',
+    method: 'get'
+  })
+}
+
+export function submitCableRoutingSolveTask(taskId, data) {
+  return request({
+    url: `/designtask/task/${taskId}/cable-routing/solve`,
+    method: 'post',
+    data
+  })
+}
+
+export function getCableRoutingSolveTask(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/cable-routing/solve`,
+    method: 'get'
+  })
+}
+
+export function submitCableRoutingModelTask(taskId, data) {
+  return request({
+    url: `/designtask/task/${taskId}/cable-routing/model`,
+    method: 'post',
+    data
+  })
+}
+
+export function getCableRoutingModelTask(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/cable-routing/model`,
+    method: 'get'
+  })
+}
+
+export function getCableRoutingModelFile(taskId, kind) {
+  return request({
+    url: `/designtask/task/${taskId}/cable-routing/model/file/${kind}`,
+    method: 'get',
+    responseType: 'arraybuffer'
+  })
+}
+
+export function submitCableRoutingReportTask(taskId, data = {}) {
+  return request({
+    url: `/designtask/task/${taskId}/cable-routing/report`,
+    method: 'post',
+    data
+  })
+}
+
+export function getCableRoutingReportTask(taskId) {
+  return request({
+    url: `/designtask/task/${taskId}/cable-routing/report`,
+    method: 'get'
+  })
+}
+
 export function approveTask(taskId, data) {
   return request({
     url: `/designtask/task/${taskId}/approve`,
